@@ -45,3 +45,7 @@ Egen andel och giltighet visas. Behörighet visas som okänd. Förslag tilldelar
 # Nästa steg
 
 Ta in idén i skisserna av kandidatpanelen, besluta vilka skäl som ingår före respektive efter 05.4, och planera som ett eget steg (ny etapp i 05.1 eller inom 05.4 med 05.1 som mottagare). Inget är beslutat eller byggt.
+
+# Tillägg 2026-10-26
+
+Användaren vill också kunna begränsa matrisens lärarkolumner till *behöriga i ämnet* (till exempel linsen Ofördelat tillsammans med Engelska). Det ska tas med i planeringen av fas 05.4 (LLEG-03) och finns noterat i ROADMAP.

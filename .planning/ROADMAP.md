@@ -477,6 +477,7 @@ Etapp A–B (CLASS-COHORT) är levererade i fas 5 och omprövas inte. Huvudmanne
 3. Tjänstefördelning och schema visar behörighetsmatchning per skolform, ämne och årskurs. Ändrad källa gör en äldre kontroll inaktuell inför publicering, och inget fördelas om automatiskt. (LLEG-03)
 
 **Plans**: 0 plans — kör `/gsd-plan-phase 05.4`. Underlag: [lärarbehörighetsresearchen](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) och [todon](todos/pending/2026-10-05-integrera-skolverkets-lararbehorigheter.md).
+**Ta med vid planeringen (användaren 2026-10-26):** I tjänstefördelningens matris (linser från 05.1-29) ska kolumnerna kunna begränsas till *behöriga i ämnet*. Ett exempel är linsen Ofördelat tillsammans med Engelska, som då visar lärare som är behöriga i engelska. Okänt underlag visas som okänt, aldrig som obehörigt. Behörighet blir också ett förklarat skäl i lärarförslagen ([todo](todos/pending/2026-10-26-smart-lararrekommendation-per-tjansterad.md)). Hör till LLEG-03.
 **UI hint**: yes
 
 Proven görs med syntetisk XML enligt publicerat format tills Skolverket har bekräftat XSD och leveransväg. LLEG-04 (faktisk leverans och drift) är kvar som föreslaget mål vid fas 7:s externa godkännandegräns; fas 7:s krav ändras inte. Den äldre todon om API för lärares behörigheter med statistik (2026-09-12) är en separat fråga.
