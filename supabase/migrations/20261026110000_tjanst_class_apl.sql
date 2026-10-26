@@ -1,0 +1,79 @@
+-- 05.1-27: APL-minuter per gymnasieklass och läsår i tjänstefördelningens läsning, för varning vid samläsning med APL-skillnad.
+-- Framåtmigration: installerade migrationer ändras inte. Ny privat hjälpfunktion (stängd för alla roller); tjanst_plan_projection
+-- (senast 20261023120000) ersätts med CREATE OR REPLACE (ägare/ACL bevaras) och lägger bara till 'aplMinutes' per klass. Inga nya ingångar.
+-- Källan är timplanens tidsmodell school_terms_annual_apl_v2 (annual_apl_minutes per rad och gymnasieår). Okänt är null, aldrig 0.
+-- SS 12000: härledd planeringsuppgift ur timplanen; ingen ny identitet eller relation, inget informationsutbyte.
+
+create function public.tjanst_class_apl_minutes(link jsonb) returns integer
+language plpgsql stable security definer set search_path=pg_catalog,public as $$
+declare plan uuid;idx integer;numbers integer;total integer;
+begin
+ -- Okänt (null) när klassen saknar gymnasiekoppling, tidsmodell eller numeriska APL-värden för kopplingens år.
+ if link is null or jsonb_typeof(link)<>'object' or link->>'schoolform' is distinct from 'gymnasium' or coalesce(link->>'column','')!~'^ar[1-3]$' then return null;end if;
+ plan:=(link->>'timplanId')::uuid;idx:=substr(link->>'column',3)::integer-1;
+ if not exists(select 1 from public.timplan_time_models m where m.plan_id=plan and m.model='school_terms_annual_apl_v2') then return null;end if;
+ select count(*) filter(where jsonb_typeof(c.annual_apl_minutes->idx)='number'),
+   coalesce(sum((c.annual_apl_minutes->>idx)::integer) filter(where jsonb_typeof(c.annual_apl_minutes->idx)='number'),0)
+  into numbers,total from public.timplan_time_cells_v2 c where c.plan_id=plan;
+ return case when numbers=0 then null else total end;
+end $$;
+revoke all on function public.tjanst_class_apl_minutes(jsonb) from public,anon,authenticated,service_role,skolplattform_worker;
+
+create or replace function public.tjanst_plan_projection(a public.access_assignments,unit uuid,school_year integer,version_id uuid) returns jsonb
+language plpgsql stable security definer set search_path=pg_catalog,public as $$
+declare d public.tjanst_distributions;v public.tjanst_versions;published public.tjanst_versions;needs jsonb;rows jsonb;teachers jsonb;versions jsonb;blockers jsonb;
+ specials jsonb;joints jsonb;history boolean:=version_id is not null;editing boolean;actions text[]:='{}';result jsonb;
+begin
+ select * into d from public.tjanst_distributions x where x.unit_id=unit and x.school_year=tjanst_plan_projection.school_year;
+ if history then
+  select * into v from public.tjanst_versions x where x.id=version_id and x.distribution_id=d.id and x.status in ('published','superseded');
+  if not found then raise exception 'Service allocation denied' using errcode='42501';end if;
+ else
+  select * into v from public.tjanst_versions x where x.distribution_id=d.id and x.status in ('draft','published') order by (x.status='draft') desc limit 1;
+ end if;
+ needs:=public.tjanst_needs(unit,school_year);
+ select coalesce(jsonb_agg(jsonb_set(public.tjanst_row_json(r,(select x.value||jsonb_build_object('link',c.value->'link') from jsonb_array_elements(needs) c
+   cross join lateral jsonb_array_elements(c.value->'needs') x where x.value->>'sourceKey'=r.source_key limit 1)),'{jointGroupId}',
+   coalesce((select to_jsonb(m.group_id) from public.tjanst_joint_members m where m.row_id=r.id),'null'::jsonb))
+   order by r.source_key collate "C",r.staff_person_id nulls last,r.id),'[]'::jsonb) into rows from public.tjanst_rows r where r.version_id=v.id;
+ select coalesce(jsonb_agg(jsonb_build_object('id',s.id,'lineageId',s.lineage_id,'kind',s.kind,'label',s.label,'personId',s.staff_person_id,'classId',s.class_id,
+   'ht',s.ht_minutes,'vt',s.vt_minutes,'comment',s.comment) order by s.kind,s.label collate "C",s.id),'[]'::jsonb) into specials
+ from public.tjanst_special_assignments s where s.version_id=v.id;
+ select coalesce(jsonb_agg(jsonb_build_object('id',g.id,'lineageId',g.lineage_id,'name',g.name,
+   'rowIds',(select coalesce(jsonb_agg(m.row_id order by m.row_id),'[]'::jsonb) from public.tjanst_joint_members m where m.group_id=g.id),
+   'teachers',(select coalesce(jsonb_agg(jsonb_build_object('personId',t.staff_person_id,'ht',t.ht_minutes,'vt',t.vt_minutes) order by t.staff_person_id),'[]'::jsonb)
+    from public.tjanst_joint_teacher_time t where t.group_id=g.id)) order by g.name collate "C",g.id),'[]'::jsonb) into joints
+ from public.tjanst_joint_groups g where g.version_id=v.id;
+ select coalesce(jsonb_agg(jsonb_build_object('personId',p.id,'displayName',left(p.given_name||' '||p.family_name,200),'draft',p.status='draft',
+   'shareHere',(select max(s.percent) from public.staff_school_duties s where s.staff_person_id=p.id and s.unit_id=unit
+     and daterange(s.starts_on,s.ends_on,'[]')&&daterange(make_date(school_year,7,1),make_date(school_year+1,6,30),'[]')))
+   order by p.family_name collate "C",p.given_name collate "C",p.id),'[]'::jsonb) into teachers
+ from public.staff_people p where p.customer_id=a.customer_id and p.organizer_id=a.organizer_id
+  and (exists(select 1 from public.tjanst_version_teachers t where t.version_id=v.id and t.staff_person_id=p.id)
+   or exists(select 1 from public.tjanst_rows r where r.version_id=v.id and r.staff_person_id=p.id)
+   or exists(select 1 from public.tjanst_special_assignments s where s.version_id=v.id and s.staff_person_id=p.id)
+   or exists(select 1 from public.tjanst_joint_teacher_time t join public.tjanst_joint_groups g on g.id=t.group_id where g.version_id=v.id and t.staff_person_id=p.id));
+ select coalesce(jsonb_agg(public.tjanst_version_json(x) order by x.version_no desc),'[]'::jsonb) into versions
+ from public.tjanst_versions x where x.distribution_id=d.id and x.status<>'discarded';
+ blockers:=case when history then '[]'::jsonb else public.tjanst_plan_blockers(a,v,unit,school_year,needs) end;
+ editing:=not history and a.function in ('rektor','administrator');
+ if editing then
+  actions:=array['add_teacher','remove_teacher','save_row','delete_row','save_special','delete_special','save_joint','dissolve_joint','move','bulk'];
+  if coalesce(v.status='draft',false) then
+   actions:=actions||'discard_draft'::text;
+   if a.function='rektor' and jsonb_array_length(blockers)=0 then actions:=actions||'publish'::text;end if;
+  end if;
+ end if;
+ result:=jsonb_build_object('contractVersion','tjanst_v1','unitId',unit,'schoolName',(select u.name from public.school_units u where u.id=unit),
+  'schoolYear',school_year,'revision',coalesce(d.revision,0),'version',case when v.id is null then null else public.tjanst_version_json(v) end,
+  'versions',versions,'teachers',teachers,
+  'classes',(select coalesce(jsonb_agg(c.value-'needs'||jsonb_build_object('aplMinutes',public.tjanst_class_apl_minutes(c.value->'link'),'needs',(select coalesce(jsonb_agg(x.value-'classId'-'link'),'[]'::jsonb)
+    from jsonb_array_elements(c.value->'needs') x))),'[]'::jsonb) from jsonb_array_elements(needs) c),
+  'rows',rows,'specials',specials,'joints',joints,'actions',to_jsonb(actions),'blockers',blockers,
+  'capabilities',jsonb_build_object('canEdit',editing,
+   'canPublish',editing and coalesce(v.status='draft',false) and a.function='rektor' and jsonb_array_length(blockers)=0,'canReadHistory',true));
+ -- Återkoppling (TJANST-05): bara för rektor och administratör och bara för den aktuella publicerade versionen.
+ select * into published from public.tjanst_versions x where x.distribution_id=d.id and x.status='published';
+ if not history and published.id is not null and a.function in ('rektor','administrator') then result:=result||jsonb_build_object('feedback',public.tjanst_feedback_json(published.id));end if;
+ return result;
+end $$;

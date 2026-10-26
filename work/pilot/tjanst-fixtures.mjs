@@ -23,7 +23,9 @@ export const tjanstYearCommandMigrations = ['supabase/migrations/20261023120000_
 export const tjanstYearAccessMigrations = ['supabase/migrations/20261023130000_tjanst_year_worker_access.sql'];
 /** D-28 (05.1-26): samläsning med en lärare; framåtmigration efter installerat årssuffix. */
 export const tjanstJointTeacherMigrations = ['supabase/migrations/20261026100000_tjanst_joint_single_teacher.sql'];
-export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations];
+/** APL per klass i läsningen (05.1-27). */
+export const tjanstClassAplMigrations = ['supabase/migrations/20261026110000_tjanst_class_apl.sql'];
+export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations, ...tjanstClassAplMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 

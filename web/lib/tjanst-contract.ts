@@ -45,7 +45,8 @@ export type TjanstNeed = { sourceKind: TjanstSourceKind; sourceKey: string; rowK
 export type TjanstClassLink = { linkRevision: number; timplanId: string; seriesId: string; seriesName: string; timplanVersion: number;
   column: string; schoolform: TjanstSchoolform };
 /** link null = "koppling saknas"; needs are then always empty, never zero. */
-export type TjanstClass = { classId: string; name: string; link: TjanstClassLink | null; needs: TjanstNeed[] };
+/** aplMinutes (05.1-27): APL under läsåret för en gymnasieklass enligt timplanens tidsmodell; null = okänt eller ej tillämpligt (aldrig 0 som gissning). */
+export type TjanstClass = { classId: string; name: string; link: TjanstClassLink | null; aplMinutes: number | null; needs: TjanstNeed[] };
 export type TjanstTeacher = { personId: string; displayName: string; draft: boolean; shareHere: number | null };
 export type TjanstVersionStatus = 'draft' | 'published' | 'superseded' | 'discarded';
 export type TjanstVersion = { id: string; versionNo: number; status: TjanstVersionStatus; contentHash: string;
@@ -289,7 +290,8 @@ function parseNeed(value: unknown, classId: string): TjanstNeed {
     needHt: nullableMinutes(n.needHt), needVt: nullableMinutes(n.needVt), needBasis: choice(n.needBasis, TJANST_NEED_BASES) };
 }
 function parseClass(value: unknown): TjanstClass {
-  const c = shape(value, ['classId', 'name', 'link', 'needs']), classId = uuid(c.classId);
+  const c = optionalShape(value, ['classId', 'name', 'link', 'needs'], ['aplMinutes']), classId = uuid(c.classId);
+  const aplMinutes = has(c, 'aplMinutes') ? nullableMinutes(c.aplMinutes) : null;
   let link: TjanstClassLink | null = null;
   if (c.link !== null) {
     const l = shape(c.link, ['linkRevision', 'timplanId', 'seriesId', 'seriesName', 'timplanVersion', 'column', 'schoolform']);
@@ -301,7 +303,7 @@ function parseClass(value: unknown): TjanstClass {
   }
   const needs = unique(list(c.needs, TJANST_LIMITS.needs, v => parseNeed(v, classId)), n => n.sourceKey);
   if (link === null && needs.length) bad();
-  return { classId, name: text(c.name, 60, false), link, needs };
+  return { classId, name: text(c.name, 60, false), link, aplMinutes, needs };
 }
 function parseRow(value: unknown): TjanstRow {
   const r = shape(value, ['id', 'lineageId', 'sourceKind', 'sourceKey', 'classId', 'rowKey', 'personId', 'teacherHt', 'teacherVt',

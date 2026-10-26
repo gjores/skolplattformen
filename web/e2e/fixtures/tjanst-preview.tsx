@@ -28,7 +28,7 @@ type Reply={status:number;json:unknown};
 const clone=<T,>(v:T):T=>structuredClone(v);
 const key=(classId:string,rowKey:string)=>`class_timplan:${classId}:${YEAR}:${rowKey}`;
 function need(classId:string,rowKey:string,label:string,ht:number|null,vt:number|null,basis:'terms'|'even_split'|'weekly_calendar'='terms'){return{sourceKind:'class_timplan' as const,sourceKey:key(classId,rowKey),rowKey,label,needHt:ht,needVt:vt,needBasis:basis};}
-function gy(classId:string,name:string,series:string,version:number,needs:ReturnType<typeof need>[]):TjanstClass{return{classId,name,link:{linkRevision:0,timplanId:tid(700+version),seriesId:tid(750),seriesName:series,timplanVersion:version,column:'ar1',schoolform:'gymnasium'},needs};}
+function gy(classId:string,name:string,series:string,version:number,needs:ReturnType<typeof need>[],aplMinutes:number|null=null):TjanstClass{return{classId,name,aplMinutes,link:{linkRevision:0,timplanId:tid(700+version),seriesId:tid(750),seriesName:series,timplanVersion:version,column:'ar1',schoolform:'gymnasium'},needs};}
 function row(id:number,classId:string,cls:TjanstClass,rowKey:string,personId:string|null,ht:number,vt:number,joint:string|null=null):TjanstRow{
  const n=cls.needs.find(x=>x.rowKey===rowKey)!;
  return{id:tid(id),lineageId:tid(id+5000),sourceKind:'class_timplan',sourceKey:n.sourceKey,classId,rowKey,personId,teacherHt:ht,teacherVt:vt,needHt:n.needHt,needVt:n.needVt,needBasis:n.needBasis,stale:false,jointGroupId:joint,comment:''};
@@ -36,8 +36,8 @@ function row(id:number,classId:string,cls:TjanstClass,rowKey:string,personId:str
 function standardUnit():Unit{
  const te=gy(C.te,'TE26A','Teknikprogrammet',2,[need(C.te,'MATMAT01c',long?'Matematik 1c med fördjupning i tillämpad statistik och programmering för teknikprogrammet':'Matematik 1c',3000,3000),need(C.te,'SVESVE01','Svenska 1',3000,3000),need(C.te,'ENGENG05','Engelska 5',3000,3000)]);
  const ek=gy(C.ek,'EK26','Ekonomiprogrammet',1,[need(C.ek,'SVESVE01','Svenska 1',3000,3000),need(C.ek,'MATMAT01b','Matematik 1b',3000,3000)]);
- const im:TjanstClass={classId:C.im,name:'IMSPR',link:{linkRevision:0,timplanId:tid(760),seriesId:tid(761),seriesName:'Språkintroduktion',timplanVersion:1,column:'vecka',schoolform:'introduktionsprogram'},needs:[need(C.im,'SVASVA01','Svenska som andraspråk 1',4320,4320,'weekly_calendar')]};
- const na:TjanstClass={classId:C.na,name:'NA26B',link:null,needs:[]};
+ const im:TjanstClass={classId:C.im,name:'IMSPR',aplMinutes:null,link:{linkRevision:0,timplanId:tid(760),seriesId:tid(761),seriesName:'Språkintroduktion',timplanVersion:1,column:'vecka',schoolform:'introduktionsprogram'},needs:[need(C.im,'SVASVA01','Svenska som andraspråk 1',4320,4320,'weekly_calendar')]};
+ const na:TjanstClass={classId:C.na,name:'NA26B',aplMinutes:null,link:null,needs:[]};
  const teachers:TjanstTeacher[]=[{personId:P.anna,displayName:long?'Maximiliana Konstantinopelska-Vasaborgsson Ekströmsdotter':'Anna Andersson',draft:false,shareHere:60},{personId:P.bertil,displayName:'Bertil Berg',draft:false,shareHere:100},{personId:P.cecilia,displayName:'Cecilia Dahl',draft:true,shareHere:null}];
  const j1=tid(401);
  const draft:Content={teachers,rows:[row(301,C.te,te,'ENGENG05',P.anna,3000,0),row(302,C.te,te,'ENGENG05',P.bertil,0,3000),row(303,C.te,te,'SVESVE01',P.bertil,3000,3000,j1),row(304,C.ek,ek,'SVESVE01',P.bertil,3000,3000,j1),row(305,C.im,im,'SVASVA01',null,2160,2160),row(306,C.ek,ek,'MATMAT01b',P.anna,3000,3000)],
@@ -47,6 +47,7 @@ function standardUnit():Unit{
  const v2:TjanstVersion={id:tid(602),versionNo:2,status:'draft',contentHash:hash(2),basedOnVersionId:v1.id,publishedByName:null,publishedAt:null};
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
  const unit:Unit={schoolYear:YEAR,coreGeneration:0,evidenceGeneration:0,unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.get('hinder')==='samlasning'?[{code:'joint_invalid',message:JOINT_INVALID}]:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
+ if(variant==='apl'){te.aplMinutes=0;ek.aplMinutes=20700;ek.needs.find(n=>n.rowKey==='MATMAT01b')!.needVt=1800;draft.rows.find(r=>r.id===tid(306))!.needVt=1800;}
  if(variant==='okand-tid'){te.needs[0].needHt=null;te.needs[0].needVt=null;}
  if(variant==='tom'){unit.revision=0;unit.versions=[];unit.snapshots=new Map();unit.draft=null;}
  if(variant==='samlasning'){draft.rows.push(row(307,C.te,te,'SVESVE01',P.anna,1200,1200,j1),row(308,C.ek,ek,'SVESVE01',P.anna,1200,1200,j1));draft.joints[0].rowIds.push(tid(307),tid(308));draft.joints[0].teachers.push({personId:P.anna,ht:1200,vt:1200});}
@@ -106,7 +107,7 @@ for(const seed of [standardUnit(),otherUnit()]){
 }
 if(variant==='ny-gr-klass'){
  const u=units.get(scopeKey(A,2027))!,oldClass=C.te,newClass=tid(299);
- u.classes=[{classId:newClass,name:'TE26A',link:{linkRevision:0,timplanId:tid(789),seriesId:tid(790),seriesName:'Grundskoleplan',timplanVersion:1,column:'ak8',schoolform:'grundskola'},
+ u.classes=[{classId:newClass,name:'TE26A',aplMinutes:null,link:{linkRevision:0,timplanId:tid(789),seriesId:tid(790),seriesName:'Grundskoleplan',timplanVersion:1,column:'ak8',schoolform:'grundskola'},
   needs:[need(newClass,'GR-MA-NY','Matematik',3000,3000)]}];
  u.classes[0].needs[0].sourceKey=`class_timplan:${newClass}:2027:GR-MA-NY`;void oldClass;
 }
