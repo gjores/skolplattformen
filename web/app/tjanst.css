@@ -233,3 +233,28 @@
 .tjanst-teacher-initials{display:block;font-weight:600;letter-spacing:.02em}
 .tjanst-teacher-full{display:none;position:absolute;z-index:15;top:100%;left:50%;transform:translateX(-50%);width:max-content;max-width:220px;padding:4px 8px;background:var(--popover,var(--background));color:var(--popover-foreground,var(--foreground));border:1px solid var(--border);border-radius:.375rem;font-size:14px;font-weight:500;white-space:normal;box-shadow:0 4px 12px rgb(0 0 0 / .1)}
 .tjanst-teacher-compact:hover .tjanst-teacher-full,.tjanst-teacher-compact:focus-within .tjanst-teacher-full{display:block}
+/* 05.1-30: fördelningsläge. */
+.tjanst-allocation{display:grid;gap:12px;min-width:0}
+.tjanst-allocation-help{margin:0;font-size:14px;color:var(--muted-foreground)}
+.tjanst-allocation kbd{display:inline-block;min-width:1.5em;padding:0 4px;border:1px solid var(--border);border-radius:4px;font-size:12px;text-align:center;background:var(--muted)}
+.tjanst-allocation-grid{display:grid;grid-template-columns:minmax(220px,320px) minmax(0,1fr);gap:16px;align-items:start;min-width:0}
+@media (max-width:900px){.tjanst-allocation-grid{grid-template-columns:minmax(0,1fr)}}
+.tjanst-queue{display:grid;gap:8px;min-width:0;border:1px solid var(--border);border-radius:.5rem;padding:12px;background:var(--card)}
+.tjanst-queue-tools{display:grid;gap:8px}
+.tjanst-queue-count{margin:0;font-size:14px;color:var(--muted-foreground)}
+.tjanst-queue ul{list-style:none;margin:0;padding:0;display:grid;gap:2px;max-height:60vh;overflow-y:auto}
+.tjanst-allocation-phone .tjanst-queue ul{max-height:none}
+.tjanst-queue-group{display:block;margin-top:8px;font-size:13px;font-weight:600;color:var(--muted-foreground)}
+.tjanst-queue-item{display:flex;align-items:center;width:100%;min-height:44px;padding:6px 8px;text-align:left;border:1px solid transparent;border-radius:.375rem;background:transparent;color:var(--foreground);font-size:14px;overflow-wrap:anywhere}
+button.tjanst-queue-item{cursor:pointer}
+button.tjanst-queue-item:hover{border-color:var(--border)}
+.tjanst-queue-item[aria-current="true"]{border-color:var(--primary);background:color-mix(in srgb,var(--primary) 8%,transparent);font-weight:600}
+.tjanst-allocation-panel{display:grid;gap:12px;min-width:0;border:1px solid var(--border);border-radius:.5rem;padding:16px;background:var(--card)}
+.tjanst-allocation-panel h3{margin:0;font-size:18px}
+.tjanst-allocation-panel h4{margin:0;font-size:15px}
+.tjanst-allocation-times{display:flex;flex-wrap:wrap;gap:12px}
+.tjanst-allocation-times .tjanst-field{flex:1 1 140px}
+.tjanst-candidates{list-style:none;margin:0;padding:0;display:grid;gap:8px;max-height:50vh;overflow-y:auto}
+.tjanst-candidates strong kbd{margin-right:6px}
+.tjanst-candidates small{display:block;font-size:13px;color:var(--muted-foreground)}
+.tjanst-same-course,.tjanst-allocation-note{margin:0;font-size:14px;color:var(--muted-foreground)}

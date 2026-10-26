@@ -742,7 +742,7 @@ test.describe('telefon',()=>{
  test('telefon: öppnar Per lärare utan matris och utan redigeringskontroller',async({page},info)=>{
   const errors=await open(page);
   await expect(page.locator('.tjanst-matrix')).toHaveCount(0);await expect(ws(page).getByRole('tab')).toHaveCount(0);
-  await expect(ws(page).getByLabel('Vy')).toHaveValue('larare');await expect(ws(page).getByLabel('Vy').locator('option')).toHaveText(['Per klass','Per lärare','Specialuppdrag','Per kurs/ämne']);
+  await expect(ws(page).getByLabel('Vy')).toHaveValue('larare');await expect(ws(page).getByLabel('Vy').locator('option')).toHaveText(['Fördela','Per klass','Per lärare','Specialuppdrag','Per kurs/ämne']);
   await expect(ws(page).getByText('Matrisen och all redigering finns på dator. Här kan du läsa fördelningen.')).toHaveCount(1);
   const editing=/Lägg till|Lägg upp|Ändra uppdraget|Ta bort|Koppla till|Lös upp|Ändra samläsningen|Fastställ och publicera…|Ändra i ny version|Tilldela|Ändra\.$/;
   for(const view of ['Per lärare','Per klass','Specialuppdrag','Per kurs/ämne']){
@@ -852,5 +852,70 @@ test.describe('linser telefon',()=>{
   await expect(ws(page).getByText('Fäst lärare')).toHaveCount(0);await expect(ws(page).getByText('Sparade linser')).toHaveCount(0);
   await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
   await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-linser-telefon.png`,fullPage:true});expect(errors).toEqual([]);
+ });
+});
+
+// ---------- 05.1-30: fördelningsläge (syntetisk skola med 40 lärare, data=manga) ----------
+const fordela=(page:Page)=>ws(page).getByRole('region',{name:'Fördela'});
+const queueOf=(page:Page)=>fordela(page).getByRole('list',{name:'Ofördelade behov'});
+test.describe('fördela',()=>{
+ test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Lärare väljs bara på dator (D-15).');});
+ test('kö, inget förval, hoppa över, ändrad tid, val med siffra och sökning; kön går vidare',async({page},info)=>{
+  const errors=await open(page,'?data=manga&tjvy=fordela');
+  await expect(queueOf(page).getByRole('button')).toHaveText(['Fysik 1 · MA1','Kemi 1 · MA2']);
+  await expect(fordela(page).getByRole('heading',{name:'Fysik 1 · MA1'})).toBeVisible();
+  await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
+  expect((await commands(page)).filter(c=>c.body.action==='save_row')).toHaveLength(0);
+  await queueOf(page).getByRole('button',{name:'Fysik 1 · MA1'}).focus();await page.keyboard.press('n');
+  await expect(fordela(page).getByRole('heading',{name:'Kemi 1 · MA2'})).toBeVisible();
+  await page.keyboard.press('ArrowUp');await expect(fordela(page).getByRole('heading',{name:'Fysik 1 · MA1'})).toBeVisible();
+  expect((await commands(page)).filter(c=>c.body.action==='save_row')).toHaveLength(0);
+  await fordela(page).getByLabel('Lärartid HT (timmar)').fill('40');
+  const first=fordela(page).getByRole('list',{name:'Lärare att välja'}).getByRole('listitem').first();
+  const name=(await first.getByRole('button').textContent())!.replace(/^Välj /u,'');
+  await expect(first.getByText(/^Undervisning nu: HT/u)).toBeVisible();await expect(first.getByText(/^Efter valet: HT .* · Läsår/u)).toBeVisible();
+  await expect(first.getByText(/^Förslag: /u)).toBeVisible();await expect(first.getByText('Behörighetsunderlag saknas')).toBeVisible();
+  await page.screenshot({path:`${SHOTS}/${info.project.name}-fordela-panel.png`});
+  await queueOf(page).getByRole('button',{name:'Fysik 1 · MA1'}).focus();await page.keyboard.press('1');
+  await expect(ws(page).getByText(`Tjänsteraden är sparad: ${name}, Fysik 1, MA1, HT 40 h · VT 50 h.`)).toBeVisible();
+  let sent=(await commands(page)).filter(c=>c.body.action==='save_row');
+  expect(sent).toHaveLength(1);expect(sent[0].body.payload).toMatchObject({rowId:null,teacherHt:2400,teacherVt:3000,planningContext:{choice:{kind:'suggestion'}}});
+  // HT 40 av 50 h: behovet är delvis fördelat och ligger kvar, men kön går vidare.
+  await expect(queueOf(page).getByRole('button')).toHaveText(['Fysik 1 · MA1','Kemi 1 · MA2']);
+  await expect(fordela(page).getByRole('heading',{name:'Kemi 1 · MA2'})).toBeFocused();
+  // Biologilärare5 har ingen koppling till MA2 eller Kemi: ett manuellt val via sökningen.
+  await fordela(page).getByLabel('Sök lärare').fill('Biologilärare5');
+  await fordela(page).getByRole('button',{name:/^Välj .*Biologilärare5$/u}).click();
+  await expect(queueOf(page).getByRole('button')).toHaveText(['Fysik 1 · MA1']);await expect(fordela(page).getByRole('heading',{name:'Fysik 1 · MA1'})).toBeFocused();
+  sent=(await commands(page)).filter(c=>c.body.action==='save_row');
+  expect(sent).toHaveLength(2);expect(sent[1].body.payload).toMatchObject({rowId:'51a50000-0000-4000-8000-000000004015',planningContext:{choice:{kind:'manual'}}});
+  expect(sent[1].body.payload.personId).not.toBeNull();
+  await noOverflow(page);expect(errors).toEqual([]);
+ });
+ test('fel bevarar tider och behov; Vakant med V efter omförsök',async({page})=>{
+  const errors=await open(page,'?data=manga&tjvy=fordela');
+  await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).click();
+  await fordela(page).getByLabel('Lärartid HT (timmar)').fill('30');
+  await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:409,code:'tjanst_revision_conflict'}));
+  await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).focus();await page.keyboard.press('v');
+  await expect(fordela(page).getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar.');
+  await expect(fordela(page).getByLabel('Lärartid HT (timmar)')).toHaveValue('30');await expect(fordela(page).getByRole('heading',{name:'Kemi 1 · MA2'})).toBeVisible();
+  await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
+  await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).focus();await page.keyboard.press('v');
+  await expect(ws(page).getByText('Tjänsteraden är sparad: Vakant, Kemi 1, MA2, HT 30 h · VT 50 h.')).toBeVisible();
+  const sent=(await commands(page)).filter(c=>c.body.action==='save_row');
+  expect(sent.at(-1)!.body.payload).toMatchObject({rowId:'51a50000-0000-4000-8000-000000004015',personId:null,teacherHt:1800,planningContext:{choice:{kind:'unassigned'}}});
+  for(const b of await queueOf(page).getByRole('button').all()){const box=await b.boundingBox();expect(box!.height).toBeGreaterThanOrEqual(44);}
+  expect(errors).toEqual([]);
+ });
+});
+test.describe('fördela telefon',()=>{
+ test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
+ test('läslista över ofördelade behov utan val',async({page},info)=>{
+  const errors=await open(page,'?data=manga&tjvy=fordela');
+  await expect(fordela(page).getByText('Lärare väljs på dator.')).toBeVisible();
+  await expect(queueOf(page).getByRole('listitem')).toHaveText(['MA1Fysik 1 · MA1','MA2Kemi 1 · MA2']);
+  await expect(fordela(page).getByRole('button')).toHaveCount(0);
+  await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-fordela-telefon.png`,fullPage:true});expect(errors).toEqual([]);
  });
 });

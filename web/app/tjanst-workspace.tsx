@@ -21,6 +21,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
 import TjanstLensBar from './tjanst-lens-bar';
+import TjanstAllocation from './tjanst-allocation';
 import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
 import './tjanst.css';
 
@@ -29,8 +30,8 @@ import './tjanst.css';
  * actions, blockers och capabilities; dolda knappar är bara bekvämlighet. Läsningar och mutationer går via POST.
  * Vyn nycklas på epok, uppdrag, skola och läsår, så att ett byte tömmer innehåll, markeringar och dialoger (D-11).
  */
-export type TjanstView = 'matris' | 'klass' | 'larare' | 'special' | 'kurs';
-const VIEWS: { id: TjanstView; label: string }[] = [{ id: 'matris', label: 'Matris' }, { id: 'klass', label: 'Per klass' }, { id: 'larare', label: 'Per lärare' },
+export type TjanstView = 'matris' | 'fordela' | 'klass' | 'larare' | 'special' | 'kurs';
+const VIEWS: { id: TjanstView; label: string }[] = [{ id: 'matris', label: 'Matris' }, { id: 'fordela', label: 'Fördela' }, { id: 'klass', label: 'Per klass' }, { id: 'larare', label: 'Per lärare' },
   { id: 'special', label: 'Specialuppdrag' }, { id: 'kurs', label: 'Per kurs/ämne' }];
 const TERMS: TjanstTermView[] = ['ar', 'ht', 'vt'];
 const LOCK_CODES = ['context_changed', 'assignment_ended', 'assignment_expired', 'membership_blocked'];
@@ -448,7 +449,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {VIEWS.map(v => <TabsTrigger key={v.id} value={v.id}>{v.label}</TabsTrigger>)}</TabsList></Tabs>
         <TermSwitch term={term} onTerm={chooseTerm}/></div>}
     {phone && <TermSwitch term={term} onTerm={chooseTerm}/>}
-    {data && (shownView === 'matris' || shownView === 'kurs') && <div className="protected-filter tjanst-filter">
+    {data && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') && <div className="protected-filter tjanst-filter">
       <div className="tjanst-field"><label htmlFor={`${headingId}-klass`}>Klass</label><select id={`${headingId}-klass`} value={filter.classId} onChange={e => patchSaved({ filter: { ...filter, classId: e.target.value } })}><option value="">Alla klasser</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
@@ -485,11 +486,14 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}
       {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först. En gymnasieklass behöver en koppling för varje läsår, även i årskurs 2 och 3.</p>
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
-      : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
+      : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
           onCell={(target, from) => open({ kind: 'row', target }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
+      : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
+          loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
+          onSave={(change, message) => sendPrepared(change, () => message)}/>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
       : shownView === 'special' ? <TjanstSpecialView data={data} editable={can('save_special')} onEdit={(special, from) => open({ kind: 'special', special }, from)}/>

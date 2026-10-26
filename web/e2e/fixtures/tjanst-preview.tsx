@@ -164,7 +164,7 @@ async function candidates(u:Unit):Promise<TjanstYearCandidate[]>{
    personBasisHash:await tjanstYearHash('person',{unitId:u.unitId,schoolYear:u.schoolYear,personId:p.id,revision:p.revision,duties:own,draft:p.status==='draft'}),qualificationStatus:'unknown'});
  }
  // Large matrix uses synthetic local teachers too, each with a real fixture duty shape.
- for(const p of content(u).teachers)if(!result.some(c=>c.personId===p.personId)&&variant==='stor')result.push({personId:p.personId,displayName:p.displayName,draft:false,shareHere:100,
+ for(const p of content(u).teachers)if(!result.some(c=>c.personId===p.personId)&&(variant==='stor'||variant==='manga'))result.push({personId:p.personId,displayName:p.displayName,draft:false,shareHere:100,
   duties:[{dutyId:p.personId,startsOn:start,endsOn:end,percent:100}],personBasisHash:await tjanstYearHash('person',{unitId:u.unitId,schoolYear:u.schoolYear,personId:p.personId}),qualificationStatus:'unknown'});
  return result;
 }
