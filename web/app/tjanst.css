@@ -13,6 +13,13 @@
 .tjanst-badge{height:auto;min-height:28px;padding:4px 8px;gap:8px;font-size:14px;font-weight:500;white-space:normal;color:var(--foreground);border-color:var(--muted-foreground);background:var(--card)}
 .tjanst-badge>svg{width:16px!important;height:16px!important}
 .tjanst-nowrap{white-space:nowrap}
+.tjanst-warning{display:flex;gap:8px;align-items:flex-start;padding:12px 16px;border:1px solid #b45309;border-radius:var(--radius);background:#fff8e9;color:var(--foreground);overflow-wrap:anywhere}
+.tjanst-warning>svg{flex:none;margin-top:3px}
+.tjanst-warning p{margin:0}
+.tjanst-badge-button{display:inline-flex;align-items:center;border:1px solid var(--muted-foreground);border-radius:999px;cursor:pointer;min-height:32px}
+.tjanst-badge-button:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.tjanst-linklike{all:unset;cursor:pointer;text-decoration:underline;text-underline-offset:3px;min-height:24px}
+.tjanst-linklike:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .tjanst-badge-warning{background:#fff8e9;border-color:#b45309}
 .tjanst .tjanst-status{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;align-items:center;padding:16px 24px}
 .tjanst-status-main,.tjanst-status-side{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;min-width:0}

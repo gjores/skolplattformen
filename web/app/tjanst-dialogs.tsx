@@ -6,11 +6,11 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial, type TjanstSpecialKind } from '@/lib/tjanst-contract.ts';
 import type { TjanstYearCandidate, TjanstYearChoice, TjanstYearCommand, TjanstYearRowReply } from '@/lib/tjanst-year-contract.ts';
 import { createYearRowEditor, selectYearTeacher, yearRowSavePayload, type TjanstYearRowEditor } from '@/lib/tjanst-year-model.ts';
-import { mixedTeachers } from '@/lib/tjanst-model.ts';
+import { jointWarnings, mixedTeachers } from '@/lib/tjanst-model.ts';
 import TjanstTeacherPicker from './tjanst-teacher-picker';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import MfaStepUpNotice from './mfa-step-up';
-import { coverageText, rowTime, type TjanstCellTarget, type TjanstNeedEntry } from './tjanst-matrix';
+import { coverageText, rowTime, TjanstJointWarningBox, type TjanstCellTarget, type TjanstNeedEntry } from './tjanst-matrix';
 import { formatDeviation, formatTime, SPECIAL_KIND_LABEL, yearLabel } from './tjanst-service-summary';
 
 /**
@@ -204,7 +204,7 @@ export function TjanstJointDialog(props: JointProps) {
   const group = parsed.reduce((sum, t) => ({ ht: sum.ht + ('minutes' in t.ht ? t.ht.minutes : 0), vt: sum.vt + ('minutes' in t.vt ? t.vt.minutes : 0) }), { ht: 0, vt: 0 });
   const classes = [...new Set(rows.map(r => r.classId))];
   // D-28: samma lärare på alla rader, eller bara vakanta rader.
-  const mixed = mixedTeachers(rows);
+  const mixed = mixedTeachers(rows), warnings = jointWarnings(rows, data.classes);
   function submit() {
     if (mixed) return;
     const next: Record<string, string> = {};
@@ -227,17 +227,18 @@ export function TjanstJointDialog(props: JointProps) {
       <fieldset disabled={busy || disabled}>
         <Field id={`${id}-name`} label="Namn" error={errors.name}><input {...described(`${id}-name`, errors.name)} maxLength={200} value={name} onChange={e => setName(e.target.value)}/></Field>
         {mixed && <div role="alert" className="validation-warning"><p>En samläsning ska ha samma lärare för alla klasser. De markerade raderna har olika lärare. Byt lärare på raderna eller använd Flytta uppdrag först. Två lärare i samma grupp hanteras inte som samläsning.</p></div>}
-        {people.length === 0 && <p>Raderna saknar lärare. Gruppen sparas utan lärartid.</p>}
-        {people.map(p => <fieldset key={p} className="tjanst-person-time"><legend>Lärartid för gruppen · {teacherName(data, p)}</legend>
+        {!mixed && <TjanstJointWarningBox warnings={warnings} className={id => data.classes.find(c => c.classId === id)?.name ?? 'Okänd klass'}/>}
+        {!mixed && people.length === 0 && <p>Raderna saknar lärare. Gruppen sparas utan lärartid.</p>}
+        {!mixed && people.map(p => <fieldset key={p} className="tjanst-person-time"><legend>Lärartid för gruppen · {teacherName(data, p)}</legend>
           <Field id={`${id}-${p}-ht`} label="HT (timmar)" error={errors[`${p}-ht`]}><input {...described(`${id}-${p}-ht`, errors[`${p}-ht`])} inputMode="decimal" value={times[p]?.ht ?? ''} onChange={e => setTimes(t => ({ ...t, [p]: { ...t[p], ht: e.target.value } }))}/></Field>
           <Field id={`${id}-${p}-vt`} label="VT (timmar)" error={errors[`${p}-vt`]}><input {...described(`${id}-${p}-vt`, errors[`${p}-vt`])} inputMode="decimal" value={times[p]?.vt ?? ''} onChange={e => setTimes(t => ({ ...t, [p]: { ...t[p], vt: e.target.value } }))}/></Field>
         </fieldset>)}
       </fieldset>
-      <section className="tjanst-after" aria-label="Täckning efter kopplingen"><h3>Täckning efter kopplingen</h3><ul className="tjanst-plain-list">{classes.map(c => {
+      {!mixed && <section className="tjanst-after" aria-label="Täckning efter kopplingen"><h3>Täckning efter kopplingen</h3><ul className="tjanst-plain-list">{classes.map(c => {
         const own = rows.filter(r => r.classId === c), need = own.map(r => data.classes.find(x => x.classId === c)?.needs.find(n => n.sourceKey === r.sourceKey))
           .reduce<number | null>((sum, n) => n && (n.needHt !== null || n.needVt !== null) ? (sum ?? 0) + (n.needHt ?? 0) + (n.needVt ?? 0) : sum, null);
         return <li key={c}>{data.classes.find(x => x.classId === c)?.name}: {coverageText(group.ht + group.vt, need)}</li>;
-      })}</ul></section>
+      })}</ul></section>}
       <div className="mandate-actions">
         <Button type="submit" disabled={busy || disabled || mixed}>{busy ? 'Sparar…' : 'Spara samläsningen'}</Button>
         <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Stäng utan att spara</Button>

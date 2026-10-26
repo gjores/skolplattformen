@@ -149,3 +149,14 @@ test('D-28: mixedTeachers och jointHasMixedTeachers', async () => {
   assert.equal(jointHasMixedTeachers(joint, [r('1', 'a'), r('2', 'b')]), true);
   assert.equal(jointHasMixedTeachers({ ...joint, teachers: [...joint.teachers, { personId: 'b', ht: 1, vt: 1 }] }, [r('1', 'a'), r('2', 'a')]), true);
 });
+
+test('05.1-27: jointWarnings för tid och APL', async () => {
+  const { jointWarnings } = await import('./tjanst-model.ts');
+  const r = (classId, needHt, needVt) => ({ classId, needHt, needVt });
+  assert.deepEqual(jointWarnings([r('a', 60, 60), r('b', 60, 60)], [{ classId: 'a', aplMinutes: 0 }, { classId: 'b', aplMinutes: 0 }]), { time: null, apl: null });
+  assert.deepEqual(jointWarnings([r('a', 60, 60), r('b', 60, 30)], []).time, [{ classId: 'a', ht: 60, vt: 60 }, { classId: 'b', ht: 60, vt: 30 }]);
+  assert.equal(jointWarnings([r('a', null, 60), r('b', 60, 30)], []).time, null);
+  assert.deepEqual(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: 900 }, { classId: 'b', aplMinutes: 0 }]).apl, { withApl: ['a'], withoutApl: ['b'], unknown: [] });
+  assert.deepEqual(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: 900 }, { classId: 'b', aplMinutes: null }]).apl, { withApl: ['a'], withoutApl: [], unknown: ['b'] });
+  assert.equal(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: null }, { classId: 'b', aplMinutes: 0 }]).apl, null);
+});

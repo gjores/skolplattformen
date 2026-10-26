@@ -1,11 +1,11 @@
 'use client';
 
-import { useRef, useState, type KeyboardEvent } from 'react';
+import { useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Link2, Plus, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { TjanstClass, TjanstJoint, TjanstNeed, TjanstPlanRead, TjanstRow, TjanstTeacher } from '@/lib/tjanst-contract.ts';
-import { coverage, jointHasMixedTeachers, teacherSums, type TjanstCoverage } from '@/lib/tjanst-model.ts';
+import { coverage, jointHasMixedTeachers, teacherSums, type TjanstCoverage, type TjanstJointWarnings } from '@/lib/tjanst-model.ts';
 import { formatDeviation, formatTime, needValue, TERM_LABEL, termValue, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 
 /** En behovsrad (kurs × klass) med sina tjänsterader och täckningen enligt tjanst-model (samläsning räknas en gång). */
@@ -13,8 +13,10 @@ export type TjanstNeedEntry = { cls: TjanstClass; need: TjanstNeed; rows: Tjanst
 export type TjanstClassGroup = { cls: TjanstClass; entries: TjanstNeedEntry[] };
 /** personId null = Vakant. rowId null = ny rad. */
 export type TjanstCellTarget = { classId: string; sourceKey: string; personId: string | null; rowId: string | null };
-export type TjanstFilter = { classId: string; subject: string; personId: string; onlyIssues: boolean };
-export const EMPTY_FILTER: TjanstFilter = { classId: '', subject: '', personId: '', onlyIssues: false };
+export type TjanstFilter = { classId: string; subject: string; personId: string; onlyIssues: boolean; course: string };
+export const EMPTY_FILTER: TjanstFilter = { classId: '', subject: '', personId: '', onlyIssues: false, course: '' };
+/** Kurskod eller ämnesrad ur behovets radnyckel (05.1-27): samma kod i olika klasser är samma kurs. Namnet ensamt räcker inte. */
+export const courseCode = (need: { rowKey: string }) => need.rowKey.replace(/^.*:/u, '');
 
 const familyName = (t: TjanstTeacher) => t.displayName.split(' ').at(-1) ?? t.displayName;
 export const sortTeachers = (teachers: TjanstTeacher[]) => [...teachers].sort((a, b) => familyName(a).localeCompare(familyName(b), 'sv') || a.displayName.localeCompare(b.displayName, 'sv'));
@@ -28,6 +30,15 @@ export function TjanstClassLinkButtons({ onOpen }: { onOpen: TjanstOpenClassLink
     <Button variant="outline" onClick={() => onOpen('gymnasium')}>Klasskopplingar för gymnasiet</Button>
     <Button variant="outline" onClick={() => onOpen('grundskola')}>Klasskopplingar för GR och IM</Button>
   </div>;
+}
+/** 05.1-27: varningar för olika timplanstid och APL-skillnad i en samläsning. Stöd, inte hinder. */
+export function TjanstJointWarningBox({ warnings, className }: { warnings: TjanstJointWarnings; className: (classId: string) => string }) {
+  if (!warnings.time && !warnings.apl) return null;
+  const list = (ids: string[]) => ids.map(className).join(', ');
+  return <div className="tjanst-warning"><TriangleAlert size={16} aria-hidden="true"/><div>
+    {warnings.time && <p>Timplanstiden skiljer sig mellan klasserna: {warnings.time.map(t => `${className(t.classId)} HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`).join('; ')}. Gruppens tid kan inte motsvara alla klassers behov.</p>}
+    {warnings.apl && <p>{list(warnings.apl.withApl)} har APL under läsåret{warnings.apl.withoutApl.length ? `, ${list(warnings.apl.withoutApl)} har ingen APL` : ''}. Samläsningen kan inte schemaläggas tillsammans under APL-perioderna.{warnings.apl.unknown.length ? ` APL är okänd för ${list(warnings.apl.unknown)}.` : ''}</p>}
+  </div></div>;
 }
 export const jointOf = (row: TjanstRow, joints: TjanstJoint[]) => row.jointGroupId === null ? null : joints.find(j => j.id === row.jointGroupId) ?? null;
 /** Lärarens tid på raden: i en samläsning gruppens tid för läraren, annars radens egen tid. */
@@ -49,8 +60,8 @@ export function entryDeviation(e: TjanstNeedEntry, term: TjanstTermView): number
 export function filterGroups(groups: TjanstClassGroup[], filter: TjanstFilter, term: TjanstTermView, joints: TjanstJoint[]): TjanstClassGroup[] {
   const teaches = (e: TjanstNeedEntry) => e.rows.some(r => r.personId === filter.personId || jointOf(r, joints)?.teachers.some(t => t.personId === filter.personId));
   return groups.filter(g => !filter.classId || g.cls.classId === filter.classId).map(g => ({ ...g, entries: g.entries.filter(e =>
-    (!filter.subject || subjectOf(e.need.label) === filter.subject) && (!filter.personId || teaches(e)) && (!filter.onlyIssues || (entryDeviation(e, term) ?? 1) !== 0)) }))
-    .filter(g => g.cls.link === null ? !filter.subject && !filter.personId : g.entries.length > 0 || !filter.subject && !filter.personId && !filter.onlyIssues);
+    (!filter.subject || subjectOf(e.need.label) === filter.subject) && (!filter.course || courseCode(e.need) === filter.course) && (!filter.personId || teaches(e)) && (!filter.onlyIssues || (entryDeviation(e, term) ?? 1) !== 0)) }))
+    .filter(g => g.cls.link === null ? !filter.subject && !filter.personId && !filter.course : g.entries.length > 0 || !filter.subject && !filter.personId && !filter.onlyIssues && !filter.course);
 }
 /** Klassens täckning: {fördelat} av {behov} h · {n} lärare. Okänt behov ingår aldrig som 0. */
 export function classCoverage(entries: TjanstNeedEntry[], term: TjanstTermView, joints: TjanstJoint[]): string {
@@ -68,9 +79,12 @@ export function coverageText(covered: number, need: number | null): string {
 }
 
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
-  onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks };
+  onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
+  /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
+  onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint }: Props) {
+  const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
   const cells = useRef(new Map<string, HTMLButtonElement>());
   const columns = teachers.length + 1;
@@ -98,6 +112,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
   const sums = new Map(teachers.map(t => [t.personId, teacherSums(t.personId, data.rows, data.specials, data.joints)]));
   let rowIndex = -1;
   return <div className="tjanst-matrix-scroll" tabIndex={editable ? undefined : 0} role={editable ? undefined : 'region'} aria-label={editable ? undefined : 'Matris'}>
+    <span id={`${hintId}-course`} hidden>Visar alla klasser med samma kurs i Per kurs/ämne.</span><span id={`${hintId}-joint`} hidden>Öppnar samläsningen i Per kurs/ämne.</span>
     <table className="tjanst-matrix">
       <caption className="sr-only">Tjänstefördelning {data.schoolName} läsåret {yearLabel(data.schoolYear)}, {TERM_LABEL[term]}</caption>
       <thead><tr>
@@ -130,10 +145,13 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                 {content}{!row && <Plus size={16} aria-hidden="true" className="tjanst-plus"/>}</button> : row ? <span className="tjanst-cell-text" aria-label={label}>{content}</span> : null}</td>;
             };
             return <tr key={e.need.sourceKey}>
-              <th scope="row" className="tjanst-first"><span className="tjanst-course">{e.need.label}</span><small>{code} · ämnesrad {e.need.label}</small>
-                {joined && (e.rows.some(x => { const j = jointOf(x, data.joints); return !!j && jointHasMixedTeachers(j, data.rows); })
-                  ? <Badge variant="outline" className="tjanst-badge tjanst-badge-warning"><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</Badge>
-                  : <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>Samläsning</Badge>)}</th>
+              <th scope="row" className="tjanst-first">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
+                : <span className="tjanst-course">{e.need.label}</span>}<small>{code} · ämnesrad {e.need.label}</small>
+                {joined && (() => { const j = e.rows.map(x => jointOf(x, data.joints)).find(Boolean) ?? null, mixed = e.rows.some(x => { const jj = jointOf(x, data.joints); return !!jj && jointHasMixedTeachers(jj, data.rows); });
+                  const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;
+                  const cls = mixed ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
+                  return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}>{content}</button>
+                    : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</th>
               <td className="tjanst-num">{need === null ? 'Okänt' : time(need)}</td><td className="tjanst-num">{time(termValue(e.cov.covered, term))}</td>
               <td className={dev ? 'tjanst-num tjanst-deviation' : 'tjanst-num'}>{dev ? <span><TriangleAlert size={16} aria-hidden="true"/>{formatDeviation(dev)}</span> : null}</td>
               {teachers.map((t, c) => cell(c, t.personId))}{cell(teachers.length, null)}

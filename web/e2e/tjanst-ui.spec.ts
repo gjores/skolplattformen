@@ -91,6 +91,8 @@ test.describe('dator',()=>{
   const dialog=page.getByRole('dialog');
   await expect(dialog.getByRole('alert')).toContainText('En samläsning ska ha samma lärare för alla klasser. De markerade raderna har olika lärare.');
   await expect(dialog.getByRole('button',{name:'Spara samläsningen'})).toBeDisabled();
+  // 05.1-27: lärartid och täckning döljs när spärren gäller.
+  await expect(dialog.getByText(/^Lärartid för gruppen/)).toHaveCount(0);await expect(dialog.getByRole('region',{name:'Täckning efter kopplingen'})).toHaveCount(0);
   expect((await commands(page)).filter(c=>c.body.action==='save_joint')).toEqual([]);
  });
 
@@ -111,6 +113,40 @@ test.describe('dator',()=>{
   await page.evaluate(()=>window.__tjanst.release());
   await expect(ws(page)).toHaveAttribute('aria-busy','false');
   await expect(matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: 100 h. Ändra.'})).toBeFocused();
+ });
+
+ test('05.1-27 kursklick visar alla klasser med samma kurs och kan rensas',async({page})=>{
+  await open(page);
+  const te=matrix(page).locator('tbody').filter({has:page.getByRole('rowheader',{name:/^TE26A ·/})});
+  await te.getByRole('button',{name:'Engelska 5',exact:true}).click();
+  await expect(ws(page).getByRole('tab',{name:'Per kurs/ämne'})).toHaveAttribute('aria-selected','true');
+  await expect(ws(page).getByText('Visar alla klasser med kursen Engelska 5. Markera rader för att koppla dem till en samläsning.')).toBeVisible();
+  const course=ws(page).getByRole('region',{name:'Per kurs/ämne'});
+  await expect(course.getByRole('region',{name:'Engelska 5'})).toBeVisible();await expect(course.getByRole('region',{name:'Matematik 1b'})).toHaveCount(0);
+  await ws(page).getByRole('button',{name:'Rensa filter'}).first().click();await expect(course.getByRole('region',{name:'Matematik 1b'})).toBeVisible();
+ });
+
+ test('05.1-27 samläsningsmärket öppnar den aktuella samläsningen',async({page})=>{
+  await open(page);
+  const svenska=matrix(page).locator('tbody').filter({has:page.getByRole('rowheader',{name:/^TE26A ·/})}).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Svenska 1/})});
+  await svenska.getByRole('button',{name:'Samläsning',exact:true}).click();
+  await expect(ws(page).getByRole('tab',{name:'Per kurs/ämne'})).toHaveAttribute('aria-selected','true');
+  await expect(ws(page).getByRole('region',{name:'Samläsning: Svenska 1 TE26A + EK26'})).toBeFocused();
+ });
+
+ test('05.1-27 samläsning varnar för olika timplanstid och APL men får sparas',async({page})=>{
+  await open(page,'?data=apl');
+  await ws(page).getByRole('tab',{name:'Per kurs/ämne'}).click();
+  const course=ws(page).getByRole('region',{name:'Per kurs/ämne'});
+  await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Anna Andersson'}).check();
+  await course.getByRole('checkbox',{name:'Markera Matematik 1b EK26, Anna Andersson'}).check();
+  await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
+  const dialog=page.getByRole('dialog'),warning=dialog.locator('.tjanst-warning');
+  await expect(warning).toContainText('Timplanstiden skiljer sig mellan klasserna: TE26A HT 50 h · VT 50 h; EK26 HT 50 h · VT 30 h. Gruppens tid kan inte motsvara alla klassers behov.');
+  await expect(warning).toContainText('EK26 har APL under läsåret, TE26A har ingen APL. Samläsningen kan inte schemaläggas tillsammans under APL-perioderna.');
+  await expect(dialog.getByRole('button',{name:'Spara samläsningen'})).toBeEnabled();
+  await dialog.getByRole('button',{name:'Spara samläsningen'}).click();
+  await expect(course.locator('[data-joint] .tjanst-warning').last()).toContainText('EK26 har APL under läsåret');
  });
 
  test('WR-02: blockeraren joint_invalid visas i Fastställ och publicera och knappen är inaktiv',async({page})=>{
@@ -693,6 +729,15 @@ test.describe('dator',()=>{
 
 test.describe('telefon',()=>{
  test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
+
+ test('telefon: samläsning i Per klass leder till samläsningen i Per kurs/ämne (05.1-27)',async({page})=>{
+  await open(page);
+  await ws(page).getByLabel('Vy').selectOption({label:'Per klass'});await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});
+  await ws(page).getByRole('button',{name:'Samläsning med EK26'}).first().click();
+  await expect(ws(page).getByLabel('Vy')).toHaveValue('kurs');
+  await expect(ws(page).getByRole('region',{name:'Samläsning: Svenska 1 TE26A + EK26'})).toBeFocused();
+  await noOverflow(page);
+ });
 
  test('telefon: öppnar Per lärare utan matris och utan redigeringskontroller',async({page},info)=>{
   const errors=await open(page);

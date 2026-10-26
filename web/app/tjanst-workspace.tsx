@@ -13,7 +13,7 @@ import TjanstYearDialog, { type TjanstYearBatchDraft } from './tjanst-year-dialo
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
-import TjanstMatrix, { EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, TjanstClassLinkButtons, type TjanstCellTarget, type TjanstFilter, type TjanstOpenClassLinks } from './tjanst-matrix';
+import TjanstMatrix, { courseCode, EMPTY_FILTER, filterGroups, jointOf, needEntries, sortTeachers, subjectOf, TjanstClassLinkButtons, type TjanstCellTarget, type TjanstFilter, type TjanstOpenClassLinks } from './tjanst-matrix';
 import { hereForStepUp, TjanstAddTeacherDialog, TjanstConfirmDialog, TjanstJointDialog, TjanstNewTeacherDialog, TjanstRowDialog, TjanstSpecialDialog,
   Problems, type TjanstPreparedChange, type TjanstFormCache, type TjanstFailure, type TjanstOutcome } from './tjanst-dialogs';
 import TjanstPublishPanel, { ackSummary, dateText, STATUS_LABEL, type TjanstFeedback } from './tjanst-publish-panel';
@@ -315,6 +315,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     return () => window.removeEventListener('popstate', pop);
   }, []);
   function chooseView(next: TjanstView) { if (next === view) return; setView(next); setMarkError(null); writeLocation(next, term, savedRef.current, 'push'); }
+  // 05.1-27: kursnamn och samläsningsmärke leder till Per kurs/ämne. Kursen filtreras på kurskod; samläsningen fokuseras.
+  const [focusJoint, setFocusJoint] = useState<string | null>(null);
+  const clearFocusJoint = useCallback(() => setFocusJoint(null), []);
+  function openCourse(code: string) { patchSaved({ filter: { ...EMPTY_FILTER, course: code } }); setMarked([]); chooseView('kurs'); }
+  function openJoint(jointId: string) { patchSaved({ filter: EMPTY_FILTER }); chooseView('kurs'); setFocusJoint(jointId); }
   function chooseTerm(next: TjanstTermView) { if (next === term) return; setTerm(next); writeLocation(view, next, savedRef.current, 'push'); }
   function patchSaved(patch: Partial<Saved>) {
     const next = { ...savedRef.current, ...patch };
@@ -338,7 +343,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     return row < 0 || column < 0 ? null : document.querySelector<HTMLElement>(`[data-cell="${row}:${column}"]`);
   }; }, [filtered, columns]);
   const subjects = useMemo(() => [...new Set(groups.flatMap(g => g.entries.map(e => subjectOf(e.need.label))))].sort((a, b) => a.localeCompare(b, 'sv')), [groups]);
-  const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues);
+  const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues || filter.course);
+  const courseLabel = filter.course ? groups.flatMap(g => g.entries).find(e => courseCode(e.need) === filter.course)?.need.label ?? filter.course : '';
   const effectivePerson = personId && data?.teachers.some(t => t.personId === personId) ? personId : teachers[0]?.personId ?? '';
   const effectiveClass = classId && data?.classes.some(c => c.classId === classId) ? classId : data?.classes[0]?.classId ?? '';
   const published = data?.versions.find(v => v.status === 'published') ?? null;
@@ -421,6 +427,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
       <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
+      {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
     {data && editable && <div className="mandate-actions tjanst-actions">
@@ -449,12 +456,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
-          onCell={(target, from) => open({ kind: 'row', target }, from)}
+          onCell={(target, from) => open({ kind: 'row', target }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
-      : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks}/>
+      : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
       : shownView === 'special' ? <TjanstSpecialView data={data} editable={can('save_special')} onEdit={(special, from) => open({ kind: 'special', special }, from)}/>
-      : <TjanstCourseView data={data} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
+      : <TjanstCourseView data={data} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} focusJointId={focusJoint} onFocusedJoint={clearFocusJoint} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
           onEditJoint={(joint, from) => open({ kind: 'joint', rowIds: joint.rowIds, jointId: joint.id }, from)} onDissolve={(joint, from) => open({ kind: 'confirm', confirm: 'dissolve', id: joint.id }, from)}/>}
     </div>}
     {data && data.rows.some(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))) && <section className="protected-card"><h2>Sparade rader som behöver stämmas av</h2><p>Dessa rader finns kvar trots att behovet saknas i aktuellt underlag.</p>

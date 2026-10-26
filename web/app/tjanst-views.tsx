@@ -1,13 +1,13 @@
 'use client';
 
-import { useId } from 'react';
+import { useEffect, useId } from 'react';
 import { Link2, Pencil, Unlink } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
-import { teacherSums } from '@/lib/tjanst-model.ts';
-import { classCoverage, entryDeviation, jointOf, rowTime, sortTeachers, subjectOf, TjanstClassLinkButtons, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
+import { jointWarnings, teacherSums } from '@/lib/tjanst-model.ts';
+import { classCoverage, entryDeviation, jointOf, rowTime, sortTeachers, subjectOf, TjanstClassLinkButtons, TjanstJointWarningBox, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
 import type { TjanstFeedback } from './tjanst-publish-panel';
 import { timeText } from './tjanst-publish-panel';
 import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_KIND_LABEL, termValue, yearLabel, type TjanstSummaryRow, type TjanstTermView } from './tjanst-service-summary';
@@ -19,11 +19,11 @@ const jointClasses = (data: TjanstPlanRead, joint: TjanstJoint, except: string) 
   [...new Set(joint.rowIds.map(id => data.rows.find(r => r.id === id)?.classId).filter((c): c is string => !!c && c !== except))].map(c => className(data, c));
 
 /** Skärm 2. Kurser med alla lärare och täckning; okopplad klass visar bara texten om saknad koppling (D-04). */
-export function TjanstClassView({ data, groups, classId, term, onClass, onOpenClassLinks }: { data: TjanstPlanRead; groups: TjanstClassGroup[]; classId: string; term: TjanstTermView;
-  onClass: (classId: string) => void; onOpenClassLinks?: TjanstOpenClassLinks }) {
+export function TjanstClassView({ data, groups, classId, term, onClass, onOpenClassLinks, onOpenJoint }: { data: TjanstPlanRead; groups: TjanstClassGroup[]; classId: string; term: TjanstTermView;
+  onClass: (classId: string) => void; onOpenClassLinks?: TjanstOpenClassLinks; onOpenJoint?: (jointId: string) => void }) {
   const id = useId(), group = groups.find(g => g.cls.classId === classId) ?? null;
   const teachersOf = (rows: TjanstRow[]) => rows.map(r => { const j = jointOf(r, data.joints), t = rowTime(r, data.joints);
-    return { id: r.id, text: `${personName(data, r.personId)} · HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`, joint: j ? `Samläsning med ${jointClasses(data, j, r.classId).join(', ')}` : null }; });
+    return { id: r.id, text: `${personName(data, r.personId)} · HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`, joint: j ? `Samläsning med ${jointClasses(data, j, r.classId).join(', ')}` : null, jointId: j?.id ?? null }; });
   return <section aria-label="Per klass" className="tjanst-view">
     <div className="protected-filter tjanst-picker"><label htmlFor={id}>Klass</label><select id={id} value={classId} onChange={e => onClass(e.target.value)}>
       <option value="" disabled>Välj klass</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
@@ -43,14 +43,14 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
             <TableCell className="tjanst-text">{e.need.label}</TableCell>
             <TableCell className="tjanst-num">{e.need.needHt === null ? 'Okänt' : formatTime(e.need.needHt)}</TableCell><TableCell className="tjanst-num">{e.need.needVt === null ? 'Okänt' : formatTime(e.need.needVt)}</TableCell>
             <TableCell className="tjanst-num">{formatTime(e.cov.covered.ht)}</TableCell><TableCell className="tjanst-num">{formatTime(e.cov.covered.vt)}</TableCell>
-            <TableCell className="tjanst-text"><ul className="tjanst-plain-list">{teachersOf(e.rows).map(t => <li key={t.id}>{t.text}{t.joint && <><br/>{t.joint}</>}</li>)}</ul>
+            <TableCell className="tjanst-text"><ul className="tjanst-plain-list">{teachersOf(e.rows).map(t => <li key={t.id}>{t.text}{t.joint && <><br/>{onOpenJoint && t.jointId ? <button type="button" className="tjanst-linklike" onClick={() => onOpenJoint(t.jointId!)}>{t.joint}</button> : t.joint}</>}</li>)}</ul>
               <span className="tjanst-coverage">{classCoverage([e], 'ar', data.joints)}</span></TableCell>
             <TableCell className="tjanst-num">{formatDeviation(entryDeviation(e, term))}</TableCell>
           </TableRow>)}</TableBody></Table>
         <ul className="tjanst-cards">{group.entries.map(e => <li key={e.need.sourceKey} className="protected-card"><strong>{e.need.label}</strong>
           <span>Behov HT {e.need.needHt === null ? 'okänt' : formatTime(e.need.needHt)} · VT {e.need.needVt === null ? 'okänt' : formatTime(e.need.needVt)}</span>
           <span>Fördelat HT {formatTime(e.cov.covered.ht)} · VT {formatTime(e.cov.covered.vt)}</span>
-          {teachersOf(e.rows).map(t => <span key={t.id}>{t.text}{t.joint ? ` · ${t.joint}` : ''}</span>)}<span>{classCoverage([e], 'ar', data.joints)}</span>
+          {teachersOf(e.rows).map(t => <span key={t.id}>{t.text}{t.joint ? <> · {onOpenJoint && t.jointId ? <button type="button" className="tjanst-linklike" onClick={() => onOpenJoint(t.jointId!)}>{t.joint}</button> : t.joint}</> : ''}</span>)}<span>{classCoverage([e], 'ar', data.joints)}</span>
           {formatDeviation(entryDeviation(e, term)) && <span>Avvikelse {formatDeviation(entryDeviation(e, term))}</span>}</li>)}</ul>
       </>}
     </>}
@@ -107,10 +107,14 @@ export function TjanstSpecialView({ data, editable, onEdit }: { data: TjanstPlan
 }
 
 type CourseProps = { data: TjanstPlanRead; editable: boolean; marked: string[]; onMark: (rowIds: string[]) => void; markError: string | null;
-  onLink: (origin: HTMLElement) => void; onEditJoint: (joint: TjanstJoint, origin: HTMLElement) => void; onDissolve: (joint: TjanstJoint, origin: HTMLElement) => void; visible: Set<string> };
+  onLink: (origin: HTMLElement) => void; onEditJoint: (joint: TjanstJoint, origin: HTMLElement) => void; onDissolve: (joint: TjanstJoint, origin: HTMLElement) => void; visible: Set<string>;
+  /** 05.1-27: samläsningen som märket i matrisen eller Per klass pekade ut; fokuseras en gång. */
+  focusJointId?: string | null; onFocusedJoint?: () => void };
 /** Skärm 5. Samläsning skapas bara genom markering; inget förslag skapas automatiskt (D-16). */
-export function TjanstCourseView({ data, editable, marked, onMark, markError, onLink, onEditJoint, onDissolve, visible }: CourseProps) {
+export function TjanstCourseView({ data, editable, marked, onMark, markError, onLink, onEditJoint, onDissolve, visible, focusJointId = null, onFocusedJoint }: CourseProps) {
   const rows = data.rows.filter(r => visible.has(r.sourceKey));
+  useEffect(() => { if (!focusJointId) return; const el = document.querySelector<HTMLElement>(`[data-joint="${CSS.escape(focusJointId)}"]`);
+    if (el) { el.scrollIntoView({ block: 'start' }); el.focus(); } onFocusedJoint?.(); }, [focusJointId, onFocusedJoint]);
   const line = (r: TjanstRow) => { const t = rowTime(r, data.joints), label = rowLabel(data, r), cls = className(data, r.classId);
     return <li key={r.id} className="tjanst-course-row">
       {editable && <label className="tjanst-mark"><input type="checkbox" checked={marked.includes(r.id)} onChange={e => onMark(e.target.checked ? [...marked, r.id] : marked.filter(id => id !== r.id))}/>
@@ -126,9 +130,10 @@ export function TjanstCourseView({ data, editable, marked, onMark, markError, on
   return <section aria-label="Per kurs/ämne" className="tjanst-view">
     {editable && marked.length === 0 && <p className="tjanst-empty-text">Markera rader i olika klasser för att koppla dem till en samläsning.</p>}
     {rows.length === 0 && <p className="tjanst-empty-text">Inga tjänsterader ännu.</p>}
-    {joints.map(j => <section key={j.id} className="tjanst-joint" aria-label={`Samläsning: ${j.name}`}><h3>Samläsning: {j.name}</h3>
+    {joints.map(j => <section key={j.id} className="tjanst-joint" aria-label={`Samläsning: ${j.name}`} data-joint={j.id} tabIndex={-1}><h3>Samläsning: {j.name}</h3>
       <ul className="tjanst-plain-list">{j.rowIds.map(id => data.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r).map(r => <li key={r.id} className="tjanst-joint-line">{rowLabel(data, r)}<ul className="tjanst-plain-list">{line(r)}</ul></li>)}</ul>
       <p>Lärartid för gruppen: {j.teachers.length ? j.teachers.map(t => `${personName(data, t.personId)} HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`).join('; ') : 'ingen lärare'}</p>
+      <TjanstJointWarningBox warnings={jointWarnings(data.rows.filter(r => r.jointGroupId === j.id), data.classes)} className={id => className(data, id)}/>
       {editable && <div className="mandate-actions"><Button variant="outline" onClick={e => onEditJoint(j, e.currentTarget)}>Ändra samläsningen</Button>
         <Button variant="outline" onClick={e => onDissolve(j, e.currentTarget)}><Unlink size={16} aria-hidden="true"/>Lös upp samläsningen</Button></div>}
     </section>)}

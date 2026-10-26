@@ -84,6 +84,19 @@ export function mixedTeachers(rows: TjanstRow[]): boolean { return new Set(rows.
 export function jointHasMixedTeachers(joint: TjanstJoint, rows: TjanstRow[]): boolean {
   return joint.teachers.length > 1 || mixedTeachers(rows.filter(r => r.jointGroupId === joint.id));
 }
+/** 05.1-27: varningar för en samläsning med samma lärare. De stoppar inte sparning; rektor beslutar medvetet. */
+export type TjanstJointWarnings = {
+  time: { classId: string; ht: number; vt: number }[] | null;
+  apl: { withApl: string[]; withoutApl: string[]; unknown: string[] } | null;
+};
+export function jointWarnings(rows: TjanstRow[], classes: { classId: string; aplMinutes: number | null }[]): TjanstJointWarnings {
+  const known = rows.filter(r => r.needHt !== null && r.needVt !== null);
+  const distinct = new Set(known.map(r => `${r.needHt}:${r.needVt}`));
+  const time = distinct.size > 1 ? [...new Map(known.map(r => [r.classId, { classId: r.classId, ht: r.needHt!, vt: r.needVt! }])).values()] : null;
+  const ids = [...new Set(rows.map(r => r.classId))], apl = (id: string) => classes.find(c => c.classId === id)?.aplMinutes ?? null;
+  const withApl = ids.filter(id => (apl(id) ?? 0) > 0), withoutApl = ids.filter(id => apl(id) === 0), unknown = ids.filter(id => apl(id) === null);
+  return { time, apl: withApl.length > 0 && (withoutApl.length > 0 || unknown.length > 0) ? { withApl, withoutApl, unknown } : null };
+}
 export function teacherSums(personId: string, rows: TjanstRow[], specials: TjanstSpecial[], joints: TjanstJoint[]): TjanstTeacherSums {
   const joined = jointMap(joints);
   let teaching = zero(), special = zero();
