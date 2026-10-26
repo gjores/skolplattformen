@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EMPTY_LENS_PREFS, initials, lensMatches, lensStorageKey, readLensPrefs, unallocated, visibleTeachers, writeLensPrefs } from './tjanst-lens.ts';
+import { EMPTY_LENS_PREFS, initials, teachersWithoutTeaching, lensMatches, lensStorageKey, readLensPrefs, unallocated, visibleTeachers, writeLensPrefs } from './tjanst-lens.ts';
 
 const uid = n => `51a20000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -18,6 +18,11 @@ test('relevanta lärare följer synliga rader, samläsningens lärare och fästa
   assert.deepEqual(ids({ showAll: true }), T.map(t => t.personId));
   assert.deepEqual(ids({ personId: uid(4) }), [uid(4)], 'lärarfiltret visar bara den läraren, som tidigare');
   assert.deepEqual(visibleTeachers([], T, [], { pinned: [], showAll: false, personId: '' }), [], 'inga rader ger bara Vakant');
+  assert.deepEqual(ids({ empty: [uid(4)] }), [uid(1), uid(2), uid(3), uid(4)], 'lärare utan undervisning visas när de skickas med');
+});
+
+test('lärare utan undervisning: ingen rad och ingen samläsning; specialuppdrag räknas inte som undervisning', () => {
+  assert.deepEqual(teachersWithoutTeaching(T, [row(1, uid(1))], [joint]), [uid(2), uid(4)]);
 });
 
 test('Ofördelat: otäckt känt behov eller vakant rad; okänt behov är aldrig 0', () => {

@@ -20,6 +20,8 @@ import TjanstPublishPanel, { ackSummary, dateText, STATUS_LABEL, type TjanstFeed
 import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
+import TjanstLensBar from './tjanst-lens-bar';
+import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
 import './tjanst.css';
 
 /**
@@ -53,7 +55,8 @@ export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unit
 function readLocation(): { view: TjanstView; term: TjanstTermView; saved: Saved } {
   const q = new URLSearchParams(window.location.search), view = q.get('tjvy'), term = q.get('termin');
   const s = window.history.state?.tjanst as Partial<Saved> | undefined;
-  const filter = s?.filter && typeof s.filter === 'object' ? { ...EMPTY_FILTER, ...s.filter } : EMPTY_FILTER;
+  const merged = s?.filter && typeof s.filter === 'object' ? { ...EMPTY_FILTER, ...s.filter } : EMPTY_FILTER;
+  const filter = TJANST_LENSES.some(l => l.id === merged.lens) ? merged : { ...merged, lens: EMPTY_FILTER.lens };
   return { view: VIEWS.some(v => v.id === view) ? view as TjanstView : 'matris', term: term === 'ht' || term === 'vt' ? term : 'ar',
     saved: { filter, classId: typeof s?.classId === 'string' ? s.classId : '', personId: typeof s?.personId === 'string' ? s.personId : '' } };
 }
@@ -92,6 +95,8 @@ const REASONS: Record<string, string> = {
 type Op = 'write' | 'publish' | 'personal';
 const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailure => ({ ok: false, error, ...extra });
 const phoneViewport = () => typeof window !== 'undefined' && window.matchMedia('(max-width: 800px)').matches;
+/** localStorage kan vara avstängd; då gäller inställningarna bara under besöket. */
+const lensStorage = () => { try { return window.localStorage; } catch { return null; } };
 const aborted = (caught: unknown) => caught instanceof DOMException && caught.name === 'AbortError';
 
 export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
@@ -118,6 +123,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const scopeKey = `${context.assignmentId}:${unitId}:${schoolYear}`;
   const active = useRef(true), generation = useRef(0), running = useRef(false), origin = useRef<HTMLElement | null>(null), lost = useRef(onSessionLost);
   const originCell = useRef<{ sourceKey: string; personId: string | null } | null>(null), focusCell = useRef<() => HTMLElement | null>(() => null);
+  const editableNow = useRef(false);
   const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null), reading = useRef(false);
   // En läsning som redan har startat men ännu inte renderat inert får inte förbruka fokusmålet: cellen kan ersättas av läsningen
   // och fokus skulle då gå förlorat (faktiskt prov 05.1-22). Målet ligger kvar tills läsningen är klar.
@@ -125,7 +131,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const target = pendingFocus.current;
     // Under ett pågående kommando ritas cellerna utan knappar (inte redigerbara); vänta så att rätt cell kan hittas igen.
     if (!target || reading.current || running.current) return;
-    const resolved = target.isConnected ? target : focusCell.current() ?? viewHeading.current;
+    // En cell ritas utan knapp medan arbetsytan inte är redigerbar. Vänta då på knappen i stället för att tappa fokus till rubriken.
+    const cell = target.isConnected ? target : focusCell.current();
+    if (!cell && originCell.current && !editableNow.current) return;
+    const resolved = cell ?? viewHeading.current;
     if (!resolved || resolved.closest('[inert]')) return;
     pendingFocus.current = null; resolved.focus();
   }, []);
@@ -161,7 +170,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey, term, filterKey]);
   const refresh = useCallback(() => setReadKey(n => n + 1), []);
   // readDone räknas upp efter varje avslutad läsning, även när loading true/false slås ihop i samma rendering.
-  useEffect(() => { if (!loading && !busy) requestAnimationFrame(applyFocus); }, [loading, readDone, busy, applyFocus]);
+
 
   // Ett osäkert sparförsök från en tidigare sidvisning kontrolleras med statuskvittot, aldrig med en ny skrivning.
   const recover = useCallback(async () => {
@@ -331,11 +340,29 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const feedback = !versionId && !readOnly ? feedbackProp ?? data?.feedback : undefined;
   const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !checking && !pendingCheck && !recovering;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
+  useLayoutEffect(() => { editableNow.current = editable; });
+  useEffect(() => { if (!loading && !busy) requestAnimationFrame(applyFocus); }, [loading, readDone, busy, editable, applyFocus]);
   const shownView: TjanstView = phone && view === 'matris' ? (data?.teachers.length ? 'larare' : 'klass') : view;
   const teachers = useMemo(() => data ? sortTeachers(data.teachers) : [], [data]);
   const groups = useMemo(() => data ? needEntries(data) : [], [data]);
   const filtered = useMemo(() => data ? filterGroups(groups, filter, term, data.joints) : [], [data, groups, filter, term]);
-  const columns = filter.personId ? teachers.filter(t => t.personId === filter.personId) : teachers;
+  const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues || filter.course || filter.lens !== 'alla');
+  // 05.1-29: fästa lärare, kompakta kolumner och sparade linser. Bara i den egna webbläsaren; utan identitet bara under besöket.
+  const prefsKey = identityKey && unitId ? lensStorageKey(identityKey, unitId, schoolYear) : null;
+  const [local, setLocal] = useState<{ key: string | null; prefs: TjanstLensPrefs } | null>(null), [showAll, setShowAll] = useState(false);
+  const known = useMemo(() => data ? { teacherIds: data.teachers.map(t => t.personId), classIds: data.classes.map(c => c.classId) } : null, [data]);
+  const prefs = useMemo(() => local && local.key === prefsKey ? local.prefs : known && prefsKey ? readLensPrefs(lensStorage(), prefsKey, known) : EMPTY_LENS_PREFS, [local, prefsKey, known]);
+  function updatePrefs(next: TjanstLensPrefs) { setLocal({ key: prefsKey, prefs: next }); if (prefsKey) writeLensPrefs(lensStorage(), prefsKey, next); }
+  const unassigned = useMemo(() => data ? teachersWithoutTeaching(data.teachers, data.rows, data.joints) : [], [data]);
+  const columns = useMemo(() => data ? visibleTeachers(filtered.flatMap(g => g.entries), teachers, data.joints, { pinned: prefs.pinned, showAll, personId: filter.personId, empty: hasFilter ? [] : unassigned }) : [],
+    [data, filtered, teachers, prefs.pinned, showAll, filter.personId, unassigned, hasFilter]);
+  const pin = (id: string, on: boolean) => updatePrefs({ ...prefs, pinned: on ? [...new Set([...prefs.pinned, id])] : prefs.pinned.filter(x => x !== id) });
+  function saveLens(name: string): string | null {
+    const clean = name.trim(); if (!clean) return 'Skriv ett namn på linsen.';
+    if (prefs.saved.length >= 20 && !prefs.saved.some(s => s.name === clean)) return 'Du kan spara högst 20 linser. Ta bort en lins först.';
+    const { lens, ...rest } = filter;
+    updatePrefs({ ...prefs, saved: [...prefs.saved.filter(s => s.name !== clean), { name: clean, lens, filter: rest, showAll }] }); return null;
+  }
   useLayoutEffect(() => { focusCell.current = () => {
     const target = originCell.current; if (!target) return null;
     const row = filtered.flatMap(g => g.cls.link ? g.entries : []).findIndex(e => e.need.sourceKey === target.sourceKey);
@@ -343,8 +370,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     return row < 0 || column < 0 ? null : document.querySelector<HTMLElement>(`[data-cell="${row}:${column}"]`);
   }; }, [filtered, columns]);
   const subjects = useMemo(() => [...new Set(groups.flatMap(g => g.entries.map(e => subjectOf(e.need.label))))].sort((a, b) => a.localeCompare(b, 'sv')), [groups]);
-  const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues || filter.course);
-  const courseLabel = filter.course ? groups.flatMap(g => g.entries).find(e => courseCode(e.need) === filter.course)?.need.label ?? filter.course : '';
+    const courseLabel = filter.course ? groups.flatMap(g => g.entries).find(e => courseCode(e.need) === filter.course)?.need.label ?? filter.course : '';
   const effectivePerson = personId && data?.teachers.some(t => t.personId === personId) ? personId : teachers[0]?.personId ?? '';
   const effectiveClass = classId && data?.classes.some(c => c.classId === classId) ? classId : data?.classes[0]?.classId ?? '';
   const published = data?.versions.find(v => v.status === 'published') ?? null;
@@ -427,6 +453,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
       <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
+      <TjanstLensBar lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens } })} phone={phone} matrix={shownView === 'matris'}
+        shown={columns.length} total={teachers.length} showAll={showAll} onShowAll={setShowAll} filteredByTeacher={!!filter.personId}
+        teachers={teachers} pinned={prefs.pinned} onPin={pin} compact={prefs.compact} onCompact={compact => updatePrefs({ ...prefs, compact })}
+        saved={prefs.saved} onSave={saveLens} onDeleteSaved={name => updatePrefs({ ...prefs, saved: prefs.saved.filter(s => s.name !== name) })}
+        onApplySaved={lens => { patchSaved({ filter: { ...lens.filter, lens: lens.lens } }); setShowAll(lens.showAll); }}/>
       {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
@@ -456,6 +487,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
+          pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
           onCell={(target, from) => open({ kind: 'row', target }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>

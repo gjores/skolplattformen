@@ -61,6 +61,16 @@ function standardUnit():Unit{
    cls.needs.forEach((n,i)=>rows.push(row(3000+c*30+i,id,cls,n.rowKey,big[(c*30+i)%40].personId,3000,3000)));}
   unit.classes=classes;unit.draft={teachers:big,rows,specials:[],joints:[]};
  }
+ // 05.1-29: syntetisk skola med 40 ämneslärare (5 per ämne), 6 klasser och 8 ämnen. Fysik i MA1 saknar lärare, Kemi i MA2 är vakant.
+ if(variant==='manga'){
+  const subjects=['Biologi','Engelska','Fysik','Historia','Idrott','Kemi','Matematik','Svenska'],first=['Alva','Bo','Clara','Dan','Ebba','Filip','Gun','Hugo','Ines','Jon'];
+  const big:TjanstTeacher[]=subjects.flatMap((sub,si)=>Array.from({length:5},(_,k)=>({personId:tid(1100+si*5+k),displayName:`${first[(si+k)%10]} ${sub}lärare${k+1}`,draft:false,shareHere:100})));
+  const classes:TjanstClass[]=[],rows:TjanstRow[]=[];
+  for(let c=0;c<6;c++){const id=tid(2100+c),cls=gy(id,`MA${c+1}`,'Mångprogrammet',1,subjects.map((sub,si)=>need(id,`${sub.slice(0,3).toUpperCase()}0${si}`,`${sub} 1`,3000,3000)));classes.push(cls);
+   subjects.forEach((sub,si)=>{const rk=`${sub.slice(0,3).toUpperCase()}0${si}`;if(c===0&&sub==='Fysik')return;
+    rows.push(row(4000+c*10+si,id,cls,rk,c===1&&sub==='Kemi'?null:big[si*5+c%5].personId,3000,3000));});}
+  unit.classes=classes;unit.draft={teachers:big,rows,specials:[],joints:[]};
+ }
  return unit;
 }
 function otherUnit():Unit{
@@ -97,7 +107,7 @@ for(const seed of [standardUnit(),otherUnit()]){
  const past=retarget(seed,2025),v:TjanstVersion={id:seed.unitId===A?tid(620):tid(621),versionNo:1,status:'published',contentHash:hash(20),basedOnVersionId:null,publishedByName:'Rektor Syntetisk',publishedAt:'2025-08-01T08:00:00.000Z'};
  const old=clone(content(seed));
  old.rows.forEach(r=>{r.sourceKey=`class_timplan:${r.classId}:2025:${r.rowKey}`;});
- if(seed.unitId===A&&variant!=='batch'&&variant!=='utan-klasser'&&variant!=='stor'){
+ if(seed.unitId===A&&variant!=='batch'&&variant!=='utan-klasser'&&variant!=='stor'&&variant!=='manga'){
   const cls=past.classes.find(c=>c.classId===C.te)!;
   if(!old.teachers.some(t=>t.personId===P.anna))old.teachers.push({personId:P.anna,displayName:'Anna Andersson',draft:false,shareHere:60});
   old.rows.push(row(350,C.te,cls,'MATMAT01c',P.anna,3000,3000));

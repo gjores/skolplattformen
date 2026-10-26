@@ -1,11 +1,12 @@
 'use client';
 
 import { useId, useRef, useState, type KeyboardEvent } from 'react';
-import { Link2, Plus, TriangleAlert } from 'lucide-react';
+import { Link2, Pin, PinOff, Plus, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { TjanstClass, TjanstJoint, TjanstNeed, TjanstPlanRead, TjanstRow, TjanstTeacher } from '@/lib/tjanst-contract.ts';
 import { coverage, jointHasMixedTeachers, teacherSums, type TjanstCoverage, type TjanstJointWarnings } from '@/lib/tjanst-model.ts';
+import { initials, lensMatches, type TjanstLensId } from '@/lib/tjanst-lens.ts';
 import { formatDeviation, formatTime, needValue, TERM_LABEL, termValue, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 
 /** En behovsrad (kurs × klass) med sina tjänsterader och täckningen enligt tjanst-model (samläsning räknas en gång). */
@@ -13,8 +14,9 @@ export type TjanstNeedEntry = { cls: TjanstClass; need: TjanstNeed; rows: Tjanst
 export type TjanstClassGroup = { cls: TjanstClass; entries: TjanstNeedEntry[] };
 /** personId null = Vakant. rowId null = ny rad. */
 export type TjanstCellTarget = { classId: string; sourceKey: string; personId: string | null; rowId: string | null };
-export type TjanstFilter = { classId: string; subject: string; personId: string; onlyIssues: boolean; course: string };
-export const EMPTY_FILTER: TjanstFilter = { classId: '', subject: '', personId: '', onlyIssues: false, course: '' };
+/** lens (05.1-29): Alla behov, Ofördelat eller Samläsningar; kombineras med övriga filter. */
+export type TjanstFilter = { classId: string; subject: string; personId: string; onlyIssues: boolean; course: string; lens: TjanstLensId };
+export const EMPTY_FILTER: TjanstFilter = { classId: '', subject: '', personId: '', onlyIssues: false, course: '', lens: 'alla' };
 /** Kurskod eller ämnesrad ur behovets radnyckel (05.1-27): samma kod i olika klasser är samma kurs. Namnet ensamt räcker inte. */
 export const courseCode = (need: { rowKey: string }) => need.rowKey.replace(/^.*:/u, '');
 
@@ -60,8 +62,8 @@ export function entryDeviation(e: TjanstNeedEntry, term: TjanstTermView): number
 export function filterGroups(groups: TjanstClassGroup[], filter: TjanstFilter, term: TjanstTermView, joints: TjanstJoint[]): TjanstClassGroup[] {
   const teaches = (e: TjanstNeedEntry) => e.rows.some(r => r.personId === filter.personId || jointOf(r, joints)?.teachers.some(t => t.personId === filter.personId));
   return groups.filter(g => !filter.classId || g.cls.classId === filter.classId).map(g => ({ ...g, entries: g.entries.filter(e =>
-    (!filter.subject || subjectOf(e.need.label) === filter.subject) && (!filter.course || courseCode(e.need) === filter.course) && (!filter.personId || teaches(e)) && (!filter.onlyIssues || (entryDeviation(e, term) ?? 1) !== 0)) }))
-    .filter(g => g.cls.link === null ? !filter.subject && !filter.personId && !filter.course : g.entries.length > 0 || !filter.subject && !filter.personId && !filter.onlyIssues && !filter.course);
+    (!filter.subject || subjectOf(e.need.label) === filter.subject) && (!filter.course || courseCode(e.need) === filter.course) && (!filter.personId || teaches(e)) && (!filter.onlyIssues || (entryDeviation(e, term) ?? 1) !== 0) && lensMatches(e, filter.lens, term)) }))
+    .filter(g => g.cls.link === null ? !filter.subject && !filter.personId && !filter.course && filter.lens === 'alla' : g.entries.length > 0 || !filter.subject && !filter.personId && !filter.onlyIssues && !filter.course && filter.lens === 'alla');
 }
 /** Klassens täckning: {fördelat} av {behov} h · {n} lärare. Okänt behov ingår aldrig som 0. */
 export function classCoverage(entries: TjanstNeedEntry[], term: TjanstTermView, joints: TjanstJoint[]): string {
@@ -81,9 +83,11 @@ export function coverageText(covered: number, need: number | null): string {
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
   onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
   /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
-  onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void };
+  onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void;
+  /** 05.1-29: fästa lärare och kompakta kolumner (initialer och summa, hela namnet vid hovring och fokus). */
+  pinned?: string[]; onPin?: (personId: string, pin: boolean) => void; compact?: boolean };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false }: Props) {
   const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
   const cells = useRef(new Map<string, HTMLButtonElement>());
@@ -117,8 +121,15 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
       <caption className="sr-only">Tjänstefördelning {data.schoolName} läsåret {yearLabel(data.schoolYear)}, {TERM_LABEL[term]}</caption>
       <thead><tr>
         <th scope="col" className="tjanst-first">Kurs · klass</th><th scope="col" className="tjanst-num">Behov</th><th scope="col" className="tjanst-num">Fördelat</th><th scope="col" className="tjanst-num">Avvikelse</th>
-        {teachers.map(t => <th scope="col" key={t.personId} className="tjanst-teacher"><span className="tjanst-teacher-name">{t.displayName}</span>
-          {t.shareHere !== null && <small>Andel här {t.shareHere}{'\u00a0'}%</small>}{t.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}</th>)}
+        {teachers.map(t => { const isPinned = pinned.includes(t.personId);
+          const pin = onPin && <button type="button" className="tjanst-pin" aria-pressed={isPinned} aria-label={`${isPinned ? 'Lossa' : 'Fäst'} ${t.displayName}`} title={`${isPinned ? 'Lossa' : 'Fäst'} ${t.displayName}`}
+            onClick={() => onPin(t.personId, !isPinned)}>{isPinned ? <PinOff size={16} aria-hidden="true"/> : <Pin size={16} aria-hidden="true"/>}</button>;
+          return compact ? <th scope="col" key={t.personId} className="tjanst-teacher tjanst-teacher-compact" title={t.displayName}>
+            <span className="tjanst-teacher-initials" aria-hidden="true">{initials(t.displayName)}</span><span className="sr-only">{t.displayName}</span>
+            <span className="tjanst-teacher-full" aria-hidden="true">{t.displayName}</span>
+            <small data-compact-sum={t.displayName}>{time(termValue(sums.get(t.personId)!.total, term))}</small>{pin}</th>
+          : <th scope="col" key={t.personId} className="tjanst-teacher"><span className="tjanst-teacher-name">{t.displayName}</span>
+            {t.shareHere !== null && <small>Andel här {t.shareHere}{'\u00a0'}%</small>}{t.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}{pin}</th>; })}
         <th scope="col" className="tjanst-num tjanst-vacant">Vakant</th>
       </tr></thead>
       {groups.map(g => {

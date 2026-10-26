@@ -779,3 +779,78 @@ test.describe('telefon',()=>{
   expect(small).toEqual([]);
  });
 });
+
+// ---------- 05.1-29: matrislinser med 40 lärare (syntetisk skola, data=manga) ----------
+const headers=(page:Page)=>matrix(page).locator('thead th.tjanst-teacher');
+test.describe('linser',()=>{
+ test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Matris, fästning och sparade linser finns bara på dator (D-15).');});
+ test('relevanta kolumner, ämnesfilter, Visa alla och linser',async({page},info)=>{
+  const errors=await open(page,'?data=manga');
+  await expect(ws(page).getByText('Visar 40 av 40 lärare')).toBeVisible();await expect(headers(page)).toHaveCount(40);
+  await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  await expect(ws(page).getByText('Visar 5 av 40 lärare')).toBeVisible();await expect(headers(page)).toHaveCount(5);
+  await expect(headers(page).first()).toContainText('Engelskalärare');
+  await ws(page).getByRole('button',{name:'Visa alla lärare (40)'}).click();await expect(headers(page)).toHaveCount(40);
+  await ws(page).getByRole('button',{name:'Visa relevanta lärare'}).click();await expect(headers(page)).toHaveCount(5);
+  await ws(page).getByRole('button',{name:'Rensa filter'}).click();
+  await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Fysik 1FYS02 · ämnesrad Fysik 1','Kemi 1KEM05 · ämnesrad Kemi 1']);
+  await expect(headers(page)).toHaveCount(0);await expect(ws(page).getByText('Visar 0 av 40 lärare')).toBeVisible();
+  await expect(matrix(page).getByRole('button',{name:'Vakant, Fysik 1, MA1: ingen tid. Tilldela.'})).toBeVisible();
+  await ws(page).getByLabel('Lins',{exact:true}).selectOption('samlasning');await expect(ws(page).getByText('Inga rader matchar filtret.')).toBeVisible();
+  await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-linser-ofordelat.png`});expect(errors).toEqual([]);
+ });
+ test('fäst lärare i rubriken och i listan, kompakt läge, kvar efter omladdning',async({page},info)=>{
+  const errors=await open(page,'?data=manga');
+  await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  const pin=matrix(page).getByRole('button',{name:/^Fäst .*Engelskalärare1$/});await pin.click();
+  await expect(matrix(page).getByRole('button',{name:/^Lossa .*Engelskalärare1$/})).toHaveAttribute('aria-pressed','true');
+  await ws(page).getByText('Fäst lärare (1)').click();await ws(page).getByLabel('Sök lärare').fill('Fysiklärare3');
+  await ws(page).getByRole('checkbox',{name:/Fysiklärare3$/}).check();
+  await expect(headers(page)).toHaveCount(6);await expect(headers(page).filter({hasText:'Fysiklärare3'})).toHaveCount(1);
+  await ws(page).getByRole('checkbox',{name:'Kompakta kolumner'}).check();
+  const compact=matrix(page).locator('th.tjanst-teacher-compact').first();
+  await expect(compact.locator('.tjanst-teacher-initials')).toHaveText(/^[A-ZÅÄÖ]{2}$/);await expect(compact.locator('[data-compact-sum]')).toHaveText(/ h/);
+  await compact.locator('.tjanst-pin').focus();await expect(compact.locator('.tjanst-teacher-full')).toBeVisible();
+  for(const box of await matrix(page).locator('.tjanst-pin').all()){const b=await box.boundingBox();expect(b!.width).toBeGreaterThanOrEqual(44);expect(b!.height).toBeGreaterThanOrEqual(44);}
+  await page.screenshot({path:`${SHOTS}/${info.project.name}-linser-kompakt.png`});
+  const stored=await page.evaluate(()=>Object.entries(localStorage).filter(([k])=>k.startsWith('tjanst-lins:v1:')));
+  expect(stored).toHaveLength(1);expect(stored[0][1]).not.toMatch(/lärare|Engelska/);
+  await page.reload();await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
+  await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  await expect(headers(page)).toHaveCount(6);await expect(matrix(page).locator('th.tjanst-teacher-compact')).toHaveCount(6);
+  await matrix(page).getByRole('button',{name:/^Lossa .*Fysiklärare3$/}).click();await expect(headers(page)).toHaveCount(5);
+  await noOverflow(page);expect(errors).toEqual([]);
+ });
+ test('sparad lins och trasig lagring',async({page})=>{
+  await page.addInitScript(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('tjanst-lins:'))localStorage.setItem(k,'{trasig');});
+  const errors=await open(page,'?data=manga');
+  await ws(page).getByLabel('Ämne').selectOption('Kemi');await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await ws(page).getByText('Sparade linser').click();await ws(page).getByLabel('Namn på linsen').fill('Kemi ofördelat');
+  await ws(page).getByRole('button',{name:'Spara lins'}).click();await expect(ws(page).getByText('Linsen Kemi ofördelat är sparad.')).toBeVisible();
+  await ws(page).getByRole('button',{name:'Rensa filter'}).click();await expect(headers(page)).toHaveCount(40);
+  await ws(page).getByLabel('Sparad lins').selectOption('Kemi ofördelat');await ws(page).getByRole('button',{name:'Använd'}).click();
+  await expect(ws(page).getByLabel('Ämne')).toHaveValue('Kemi');await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
+  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Kemi 1KEM05 · ämnesrad Kemi 1']);
+  await page.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('tjanst-lins:'))localStorage.setItem(k,'{trasig');});
+  await page.reload();await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
+  await expect(ws(page).getByText('Sparade linser',{exact:true})).toBeVisible();await expect(ws(page).getByText('Fäst lärare',{exact:true})).toBeVisible();
+  expect(errors).toEqual([]);
+ });
+ test('piltangenter går över synliga kolumner och Vakant',async({page})=>{
+  await open(page,'?data=manga');await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  const first=matrix(page).locator('[data-cell="0:0"]');await first.focus();
+  for(let i=0;i<5;i++)await page.keyboard.press('ArrowRight');
+  await expect(matrix(page).locator('[data-cell="0:5"]')).toBeFocused();await expect(page.locator(':focus')).toHaveAttribute('aria-label',/^Vakant, Engelska 1, MA1/);
+ });
+});
+test.describe('linser telefon',()=>{
+ test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
+ test('läsläge: linsväljaren finns, men inte fästning eller sparade linser',async({page},info)=>{
+  const errors=await open(page,'?data=manga&tjvy=kurs');
+  await expect(ws(page).getByLabel('Lins',{exact:true})).toBeVisible();
+  await expect(ws(page).getByText('Fäst lärare')).toHaveCount(0);await expect(ws(page).getByText('Sparade linser')).toHaveCount(0);
+  await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-linser-telefon.png`,fullPage:true});expect(errors).toEqual([]);
+ });
+});

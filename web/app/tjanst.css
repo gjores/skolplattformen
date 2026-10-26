@@ -213,3 +213,23 @@
 .tjanst-year-check span { min-width: 0; }
 .tjanst-teacher-picker section[aria-label="Planeringsförslag"] { max-height: 300px; overflow-y: auto; }
 .tjanst-year-dialog .tjanst-plain-list small { display: block; }
+/* 05.1-29: linsrad, fästa lärare och kompakta kolumner. */
+.tjanst .tjanst-lens-bar{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:end;gap:12px 16px;min-width:0}
+.tjanst-lens-bar>.tjanst-field{min-width:180px}
+.tjanst-lens-count{min-height:44px;display:flex;align-items:center;font-size:14px;color:var(--muted-foreground)}
+.tjanst-lens-bar details{position:relative;min-width:0}
+.tjanst-lens-bar summary{min-height:44px;display:flex;align-items:center;padding:0 12px;border:1px solid var(--border);border-radius:.5rem;cursor:pointer;font-size:14px;font-weight:500}
+.tjanst-lens-bar summary:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+.tjanst-lens-panel{position:absolute;z-index:20;top:calc(100% + 6px);left:0;width:min(360px,calc(100vw - 32px));display:grid;gap:12px;padding:12px;background:var(--popover,var(--background));color:var(--popover-foreground,var(--foreground));border:1px solid var(--border);border-radius:.5rem;box-shadow:0 8px 24px rgb(0 0 0 / .12)}
+.tjanst-lens-panel p{margin:0;font-size:14px;color:var(--muted-foreground)}
+.tjanst-lens-panel fieldset{max-height:280px;overflow-y:auto;display:grid;gap:4px;border:0;padding:0;margin:0}
+.tjanst-lens-panel .mandate-check{min-height:44px}
+.tjanst-lens-row{display:flex;flex-wrap:wrap;align-items:end;gap:8px}
+.tjanst-lens-row .tjanst-field{flex:1 1 160px}
+.tjanst-pin{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;margin-top:4px;border:1px solid transparent;border-radius:.375rem;background:transparent;color:var(--muted-foreground);cursor:pointer}
+.tjanst-pin:hover{border-color:var(--border);color:var(--foreground)}
+.tjanst-pin[aria-pressed="true"]{color:var(--primary);border-color:var(--border)}
+.tjanst-teacher.tjanst-teacher-compact{min-width:64px;width:72px;max-width:80px;position:relative;text-align:center}
+.tjanst-teacher-initials{display:block;font-weight:600;letter-spacing:.02em}
+.tjanst-teacher-full{display:none;position:absolute;z-index:15;top:100%;left:50%;transform:translateX(-50%);width:max-content;max-width:220px;padding:4px 8px;background:var(--popover,var(--background));color:var(--popover-foreground,var(--foreground));border:1px solid var(--border);border-radius:.375rem;font-size:14px;font-weight:500;white-space:normal;box-shadow:0 4px 12px rgb(0 0 0 / .1)}
+.tjanst-teacher-compact:hover .tjanst-teacher-full,.tjanst-teacher-compact:focus-within .tjanst-teacher-full{display:block}

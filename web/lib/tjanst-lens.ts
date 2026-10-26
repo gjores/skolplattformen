@@ -37,14 +37,21 @@ export function entryTeachers(e: TjanstLensEntry, joints: TjanstJoint[]): Set<st
   return ids;
 }
 /**
- * Kolumnerna i matrisen. Med lärarfilter visas bara den läraren (som tidigare). Annars relevanta lärare (tid på synliga rader)
- * och fästa lärare, eller alla med showAll. Ordningen följer teachers (redan sorterad på efternamn).
+ * Lärare utan undervisning (ingen rad och ingen samläsning) i planen, till exempel en nyss tillagd lärare eller en lärare med bara
+ * specialuppdrag. Utan filter visas de, så att de går att fördela och deras summor syns; med filter är de inte relevanta.
+ */
+export function teachersWithoutTeaching(teachers: TjanstTeacher[], rows: TjanstRow[], joints: TjanstJoint[]): string[] {
+  return teachers.filter(t => !rows.some(r => r.personId === t.personId) && !joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => t.personId);
+}
+/**
+ * Kolumnerna i matrisen. Med lärarfilter visas bara den läraren (som tidigare). Annars relevanta lärare (tid på synliga rader),
+ * fästa lärare och empty (lärare utan undervisning när inget filter gäller), eller alla med showAll. Ordningen följer teachers (redan sorterad på efternamn).
  */
 export function visibleTeachers(entries: TjanstLensEntry[], teachers: TjanstTeacher[], joints: TjanstJoint[],
-  { pinned, showAll, personId }: { pinned: string[]; showAll: boolean; personId: string }): TjanstTeacher[] {
+  { pinned, showAll, personId, empty = [] }: { pinned: string[]; showAll: boolean; personId: string; empty?: string[] }): TjanstTeacher[] {
   if (personId) return teachers.filter(t => t.personId === personId);
   if (showAll) return teachers;
-  const keep = new Set(pinned);
+  const keep = new Set([...pinned, ...empty]);
   for (const e of entries) entryTeachers(e, joints).forEach(id => keep.add(id));
   return teachers.filter(t => keep.has(t.personId));
 }
