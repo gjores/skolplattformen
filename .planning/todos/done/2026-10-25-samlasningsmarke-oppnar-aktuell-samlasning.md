@@ -19,3 +19,7 @@ I matrisen visar samlästa rader märket **Samläsning** under kursnamnet. I exe
 - Handbok: *Fördela tjänster på skolan › Samläsning*. Pröva på dator och telefon.
 
 Registrerad som backlogg enligt användarens önskemål. Ingen ändring är gjord.
+
+## Löst 2026-10-26
+
+Åtgärdat i [05.1-27](../../phases/05.1-tjanstefordelning/05.1-27-SUMMARY.md) och provat med simulerat UI och faktiskt prov på kandidat 2da6f1e. Ännu inte installerat på 3012. APL-perioder (veckor) jämförs först i schemaläggningen.

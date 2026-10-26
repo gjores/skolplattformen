@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-27 — Samläsningsstöd (användarprov etapp 2)"
+current_plan: "Leverans av 05.1-26/27 (D-28 och samläsningsstöd)"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-25"
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-27 genomförd 2026-10-26:** [Resultat](phases/05.1-tjanstefordelning/05.1-27-SUMMARY.md). Samläsningsstöd: märket öppnar samläsningen, kursklick visar likadana kurser, varningar för olika timplanstid och APL-skillnad, och tidsfälten döljs vid D-28. Migrationen 20261026110000 lägger till APL per klass i läsningen och är inte installerad. Faktiskt prov på 2da6f1e: 85/85 PASS. SQL i schemakopia: 11/16/78/73/66/44/60/83/19 PASS. Tre todo-punkter är lösta. Nästa steg är samlad leverans av 26+27 med installationsbeslut. 3012 kör fortfarande 1eb5467.
 
 **Plan 05.1-26 genomförd 2026-10-26:** [Resultat](phases/05.1-tjanstefordelning/05.1-26-SUMMARY.md). Rättelser från användarprovet: D-28 (en lärare per samläsning) införs med migrationen 20261026100000, som ännu inte är installerad. Klasskopplingar har knappar per skolform och läsår, Bemanningsdatumet bryts inte, och fokusfelet efter sparning är löst. Faktiskt prov på 6b1a906: 84/84 PASS. SQL i schemakopia: 16/78/73/66/44/60/83/19 PASS. Fyra todo-punkter är lösta. Nästa steg är 05.1-27 (samläsningsstöd) och därefter samlad leverans med installationsbeslut. 3012 kör fortfarande 1eb5467.
 
