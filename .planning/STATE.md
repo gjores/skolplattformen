@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-29 genomförd — byte av 3012 väntar på ja; därefter 05.1-30"
+current_plan: "05.1-30 — Fördelningsläge (planerad, beslut D-29 klart)"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-26"
@@ -18,13 +18,15 @@ progress:
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 2da6f1e5226b80827af075e1b6e84b4ff1e9d888
+worker_build_revision: 258ba2e189c6a18ed9d4d00e07f79ea42b3a18bf
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Användarbeslut 2026-10-26:** Användaren svarade: ”ja, byt 3012 och direktval räknas som aktivt val”. **D-29:** ett klick på *Välj* eller en siffertangent för en namngiven kandidat räknas som aktivt val enligt D-25–D-27, även när raden sparas direkt. Inget förval. **3012 bytt (lokal miljö):** kandidaten 258ba2e klonades till `runtime/tjanst-build-258ba2e`, och artefaktmanifestet (1 370 filer) är lika med det faktiska provets. 2da6f1e stoppades, och 258ba2e startades med godkänd hälsokontroll: `/api/health/db` ok, tjänstefördelningens rutter ger 401/405 och 9 tillgångar ger 200. Logg: `/private/tmp/tjanst-3012-258ba2e.log`. Ingen migration. Återgång till `runtime/tjanst-build-2da6f1e` är möjlig. Nästa steg är 05.1-30.
 
 **Plan 05.1-29 genomförd 2026-10-26:** [Resultat](phases/05.1-tjanstefordelning/05.1-29-SUMMARY.md). Matrislinser: relevanta lärarkolumner, fästa lärare, kompakta kolumner, linserna Alla behov, Ofördelat och Samläsningar samt sparade linser i webbläsaren. Ingen SQL. Enhetstester 875/875, simulerat UI 234 PASS och faktiskt prov på 258ba2e PASS 86/86 (YEAR-24). Fokus efter sparning är stabiliserat. 3012 kör fortfarande 2da6f1e; byte kräver användarens ja. Därefter 05.1-30.
 
