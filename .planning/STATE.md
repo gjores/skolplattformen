@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-30 genomförd — byte av 3012 väntar på ja; därefter användarprov 29+30"
+current_plan: "Användarprov av 05.1-29 och 05.1-30 på 3012"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-26"
@@ -18,13 +18,15 @@ progress:
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 258ba2e189c6a18ed9d4d00e07f79ea42b3a18bf
+worker_build_revision: 66c2bd46b92244e1d342b15dd311d36349002792
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**3012 bytt 2026-10-27 (lokal miljö):** Användaren svarade ”ja, byt 3012”. Kandidaten 66c2bd4 klonades till `runtime/tjanst-build-66c2bd4`, och artefaktmanifestet (1 370 filer) är lika med det faktiska provets. 258ba2e stoppades och 66c2bd4 startades. Hälsokontroll: `/api/health/db` ok, tjänstefördelningens rutter ger 401/405 och 9 tillgångar ger 200. Logg: `/private/tmp/tjanst-3012-66c2bd4.log`. Ingen migration. Återgång till `runtime/tjanst-build-258ba2e` är möjlig. Nästa steg är användarprov av matrislinser och Fördela. Inget mänskligt godkännande ännu.
 
 **Plan 05.1-30 genomförd 2026-10-27:** [Resultat](phases/05.1-tjanstefordelning/05.1-30-SUMMARY.md). Vyn Fördela: kö med ofördelade behov, panel med förslag, sökning och undervisning före och efter valet, och direktval enligt D-29. Faktiskt prov på 66c2bd4 PASS 87/87 (YEAR-25). Proven hittade och rättade tre fel: gammalt stöd under omhämtning, dubblettrad vid delvis fördelat behov och dubblerade skäl. Två körningar bröts av att datorn somnade. Ingen SQL. 3012 kör 258ba2e; byte kräver användarens ja.
 
