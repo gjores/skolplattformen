@@ -258,3 +258,5 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-candidates strong kbd{margin-right:6px}
 .tjanst-candidates small{display:block;font-size:13px;color:var(--muted-foreground)}
 .tjanst-same-course,.tjanst-allocation-note{margin:0;font-size:14px;color:var(--muted-foreground)}
+/* 05.1-31: hjälptext om direktval i tjänsteradens dialog. */
+.tjanst-direct-hint{margin:0;font-size:14px;color:var(--muted-foreground)}

@@ -87,9 +87,11 @@ På telefon visar Fördela en lista över ofördelade behov, utan val.
 
 Välj en cell i matrisen. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
 
-1. Välj lärare aktivt. En ny rad börjar utan lärare, även om du öppnade den från en namngiven lärarkolumn. Du kan välja ett förslag, söka och välja manuellt eller uttryckligen välja **Vakant**.
-2. Kontrollera **Lärartid HT** och **Lärartid VT**. När behovet är känt förifylls det som återstår efter redan fördelad tid. Ändra vid behov, till exempel till `37,5` timmar. Okänt behov ger tomma tidsfält; ange tiden själv och skriv `0` om en termin saknar tid. Minst en termin måste ha tid.
-3. Ange eventuell kommentar och välj **Spara tjänsteraden**. En vanlig tjänsterad behöver ingen separat förhandsvisning.
+1. Kontrollera **Lärartid HT** och **Lärartid VT** överst. När behovet är känt förifylls det som återstår efter redan fördelad tid. Ändra vid behov, till exempel till `37,5` timmar. Om behovet är okänt är tidsfälten tomma; ange då tiden själv och skriv `0` om en termin saknar tid. Minst en termin måste ha tid. Skriv eventuell kommentar.
+2. Välj lärare. **Raden sparas när du väljer**: ett förslag, en lärare du har sökt fram eller **Vakant**. Ingen lärare är förvald, inte ens om du öppnade raden från en namngiven lärarkolumn. Om tiden är felaktig sparas inget, och felet visas vid fältet.
+3. För en sparad rad finns också **Spara tjänsteraden**, för att ändra bara tid eller kommentar utan att byta lärare. Väljer du en annan lärare sparas bytet direkt.
+
+En vanlig tjänsterad behöver ingen separat förhandsvisning.
 
 Förslagen förklarar vilken tidigare planering de bygger på, exempelvis samma klass föregående läsår. Det är inte bevis på vem som faktiskt har undervisat eller vem som är behörig. Samma namn, liknande klassnamn eller en följande kursnivå skapar inte en koppling. Att skriva i sökfältet eller trycka Enter där väljer ingen person; använd personens väljknapp.
 
@@ -97,7 +99,7 @@ Lärarvalet visar egna skoluppdrag, andel och giltighetsdatum. En delårsperiod 
 
 Om historiska förslag inte kan hämtas visas det. Du kan fortfarande välja lärare manuellt eller välja Vakant om det aktuella behovet och lärarunderlaget går att kontrollera. Kan det aktuella underlaget inte kontrolleras stoppas sparningen.
 
-Efter sparningen läses fördelningen om och fokus går tillbaka till cellen. Behov och lärartid sparas var för sig, så avvikelsen syns även senare. En kurs kan ha flera lärare med var sin rad. När du ändrar en sparad rad bevaras dess val. Om läraren inte längre har ett aktuellt skoluppdrag visas den sparade tilldelningen, men du behöver välja en aktuell lärare eller Vakant före sparning.
+Efter sparningen läses fördelningen om och fokus går tillbaka till cellen. Behov och lärartid sparas var för sig, så avvikelsen syns även senare. En kurs kan ha flera lärare med var sin rad. När du ändrar en sparad rad bevaras dess val. Om läraren inte längre har ett aktuellt skoluppdrag visas den sparade tilldelningen, men du behöver välja en aktuell lärare eller Vakant. Valet sparar raden.
 
 Du kan också använda **Lägg till lärare i fördelningen** för att lägga till en tom lärarkolumn. En person utan konto kan få rader och uppdrag.
 

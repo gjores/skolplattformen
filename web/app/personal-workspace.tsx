@@ -303,7 +303,7 @@ function PersonDialog({ person, checking, onClose, onSave }: { person: TjanstPer
     void run(() => onSave({ givenName: given.trim(), familyName: family.trim(), externalId: external.trim() || null, externalIdSource: external.trim() ? source.trim() : null }));
   }
   return <Shell open busy={busy} title={person ? 'Ändra uppgifter' : 'Lägg till person'} description="Personnummer registreras inte här. Ett externt ID från ett annat system kan anges med sin källa." onClose={onClose}>
-    <Problems failure={failure} summary={Object.keys(errors).length > 0} checking={checking}/>
+    <Problems failure={failure} summary={Object.values(errors).some(Boolean)} checking={checking}/>
     <form className="protected-form tjanst-form" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
       <Field id={`${id}-given`} label="Förnamn" error={errors.given}><input {...described(`${id}-given`, errors.given)} value={given} disabled={busy} onChange={e => setGiven(e.target.value)}/></Field>
       <Field id={`${id}-family`} label="Efternamn" error={errors.family}><input {...described(`${id}-family`, errors.family)} value={family} disabled={busy} onChange={e => setFamily(e.target.value)}/></Field>
@@ -332,7 +332,7 @@ function EmploymentDialog({ employment, checking, onClose, onSave }: { employmen
     void run(() => onSave({ percent: Number(percent), startsOn: from, endsOn: to || null }));
   }
   return <Shell open busy={busy} title={employment ? 'Ändra anställningen' : 'Lägg till anställning'} description="Tjänstgöringsgraden är taket för personens andelar på skolorna. Avtal och arbetstidsramar registreras inte här." onClose={onClose}>
-    <Problems failure={failure} summary={Object.keys(errors).length > 0} checking={checking}/>
+    <Problems failure={failure} summary={Object.values(errors).some(Boolean)} checking={checking}/>
     <form className="protected-form tjanst-form" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
       <Field id={`${id}-percent`} label="Tjänstgöringsgrad (%)" error={errors.percent}><input {...described(`${id}-percent`, errors.percent)} inputMode="numeric" value={percent} disabled={busy} onChange={e => setPercent(e.target.value)}/></Field>
       <Field id={`${id}-from`} label="Gäller från" error={errors.from}><DatePicker {...described(`${id}-from`, errors.from)} value={from} disabled={busy} onValueChange={setFrom}/></Field>
@@ -383,7 +383,7 @@ function DutiesDialog({ employment, units, checking, onClose, onSave }: { employ
     void run(() => onSave(filled.map(l => ({ dutyId: l.dutyId, unitId: l.unitId, percent: Number(l.percent), startsOn: l.startsOn, endsOn: l.endsOn || null }))));
   }
   return <Shell open busy={busy} title="Fördela på skolor" description={`Anställning ${employment.percent} % · ${period(employment.startsOn, employment.endsOn)}. Lämna andelen tom för skolor där personen inte arbetar.`} onClose={onClose}>
-    <Problems failure={shownFailure} summary={Object.keys(errors).length > 0} checking={checking}/>
+    <Problems failure={shownFailure} summary={Object.values(errors).some(Boolean)} checking={checking}/>
     <form className="protected-form tjanst-form" noValidate onSubmit={e => { e.preventDefault(); submit(); }}>
       {lines.map((l, i) => {
         const name = units.find(u => u.unitId === l.unitId)?.schoolName ?? 'Skola';

@@ -26,14 +26,15 @@ test.describe('dator',()=>{
   const errors=await open(page);
   const cell=matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'});
   await cell.click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');
   await expect(dialog.getByText('Schemalagd tid')).toBeVisible();await expect(dialog.getByText('Underlag saknas',{exact:true})).toBeVisible();
   await expect(dialog.getByText('Källa: Teknikprogrammet version 2, ämnesrad Matematik 1c')).toBeVisible();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('50');
   await dialog.getByLabel('Lärartid VT (timmar)').fill('40');
   await expect(dialog.getByText('Avvikelse VT: −10 h')).toBeVisible();
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  // D-30: ingen Spara-knapp för en ny rad; valet av lärare sparar.
+  await expect(dialog.getByRole('button',{name:'Spara tjänsteraden'})).toHaveCount(0);
+  await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 50 h · VT 40 h.')).toBeVisible();
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');
   expect(sent).toHaveLength(1);expect(sent[0].body.payload).toMatchObject({rowId:null,personId:'51a50000-0000-4000-8000-000000000103',teacherHt:3000,teacherVt:2400});
@@ -105,9 +106,9 @@ test.describe('dator',()=>{
  test('fokus återgår till cellen när omläsningen efter sparning är fördröjd (09f5214)',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  const dialog=page.getByRole('dialog');
   await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await expect(ws(page)).toHaveAttribute('aria-busy','true');
   await page.waitForTimeout(150);
   await page.evaluate(()=>window.__tjanst.release());
@@ -251,7 +252,6 @@ test.describe('dator',()=>{
   await ws(page).getByRole('button',{name:'Tillbaka till planeringen'}).click();
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(ws(page).getByText('Ändringar ännu inte publicerade',{exact:true})).toBeVisible();
   await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-24.')).toBeVisible();
   expect((await commands(page)).filter(c=>c.body.action==='create_draft')).toHaveLength(0);
@@ -286,10 +286,11 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:409,code:'tjanst_revision_conflict'}));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('Lärartid VT (timmar)').fill('40');await dialog.getByLabel('Kommentar (valfri)').fill('Syntetisk kommentar');
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await expect(dialog.getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar. Hämta aktuellt underlag och bekräfta ditt val på nytt.');
+  // Användarprov 2026-10-27: ett val får inte ge en falsk felruta om formulärfel.
+  await expect(dialog.getByText('Formuläret innehåller fel. Rätta de markerade fälten.')).toHaveCount(0);
   await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('40');await expect(dialog.getByLabel('Kommentar (valfri)')).toHaveValue('Syntetisk kommentar');
   await dialog.getByRole('button',{name:'Hämta aktuellt läge'}).click();
   await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('40');
@@ -303,7 +304,6 @@ test.describe('dator',()=>{
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando','lost'));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
   await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Spara tjänsteraden'}).click();
   await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 50 h · VT 50 h.')).toBeVisible();
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);
   const status=await page.evaluate(()=>window.__tjanst.reads.filter(r=>r.path.endsWith('/plan/status')));
@@ -315,8 +315,7 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>{window.__tjanst.failNext('plan/kommando','network');window.__tjanst.failNext('plan/status','network');});
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await expect(dialog.getByRole('alert')).toContainText('Det gick inte att avgöra om ändringen sparades. Hämta aktuellt läge innan du försöker igen.');
   const journal=await page.evaluate(()=>Object.entries(sessionStorage).filter(([k])=>k.startsWith('tjanst:')).map(([,v])=>v));
   expect(journal).toHaveLength(1);expect(journal[0]).not.toMatch(/Cecilia|teacherVt|3000/);
@@ -542,9 +541,8 @@ test.describe('dator',()=>{
   await open(page);
   await page.evaluate(()=>window.__tjanst.holdNext('plan/kommando'));
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
-  await expect(dialog.getByRole('button',{name:'Sparar…'})).toBeDisabled();
+  const dialog=page.getByRole('dialog');await dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  await expect(dialog.getByText('Sparar…',{exact:true})).toBeVisible();await expect(dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true})).toBeDisabled();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toBeDisabled();await expect(dialog.getByRole('button',{name:'Stäng utan att spara'})).toBeDisabled();
   await page.keyboard.press('Escape');await expect(dialog).toBeVisible();
   await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toHaveCount(0);
@@ -555,22 +553,21 @@ test.describe('dator',()=>{
  test('UI Dialoger, error: fältfel, 400, loggfel och MFA har egna texter och inmatningen bevaras',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  const dialog=page.getByRole('dialog'),ht=dialog.getByLabel('Lärartid HT (timmar)');
-  await ht.fill('abc');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  const dialog=page.getByRole('dialog'),ht=dialog.getByLabel('Lärartid HT (timmar)'),choose=dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true});
+  await ht.fill('abc');await choose.click();expect((await commands(page)).length).toBe(0);
   await expect(dialog.getByRole('alert').first()).toHaveText('Formuläret innehåller fel. Rätta de markerade fälten.');
   await expect(ht).toHaveAttribute('aria-invalid','true');await expect(ht).toHaveAccessibleDescription(/Ange tid i timmar, till exempel 40 eller 37,5\./);
-  await ht.fill('-5');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(dialog.getByText('Tiden kan inte vara negativ.')).toBeVisible();
+  await ht.fill('-5');await choose.click();await expect(dialog.getByText('Tiden kan inte vara negativ.')).toBeVisible();
   await ht.fill('37,5');
   for(const [failure,text] of [[{status:400,code:'tjanst_duplicate_row'},'Cecilia Dahl har redan en rad för Matematik 1c i TE26A. Ändra den befintliga raden.'],
    [{status:503,code:'audit_unavailable'},'Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig. Dina uppgifter finns kvar i formuläret.'],
    [{status:403,code:'mfa_required'},'Att ändra tjänstefördelningen kräver verifiering med engångskod.'],
    [{status:403,code:'forbidden'},'Ditt aktuella uppdrag tillåter inte ändringen.']] as const){
    await page.evaluate(f=>window.__tjanst.failNext('plan/kommando',f),failure);
-   await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+   await choose.click();
    await expect(dialog.getByRole('alert')).toContainText(text);await expect(ht).toHaveValue('37,5');
   }
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await choose.click();
   await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 37 h 30 min · VT 50 h.')).toBeVisible();
   expect((await commands(page)).filter(c=>c.body.action==='save_row').at(-1)!.body.payload.teacherHt).toBe(2250);
  });
@@ -578,12 +575,11 @@ test.describe('dator',()=>{
  test('UI Dialoger, partial: valfria fält får vara tomma och tid krävs för minst en termin',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
-  const dialog=page.getByRole('dialog');
+  const dialog=page.getByRole('dialog'),choose=dialog.getByRole('button',{name:'Välj Cecilia Dahl',exact:true});
   await dialog.getByLabel('Lärartid HT (timmar)').fill('0');await dialog.getByLabel('Lärartid VT (timmar)').fill('');
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await choose.click();
   await expect(dialog.getByText('Ange tid för minst en termin.')).toBeVisible();expect((await commands(page)).length).toBe(0);
-  await dialog.getByLabel('Lärartid VT (timmar)').fill('10');await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();
+  await dialog.getByLabel('Lärartid VT (timmar)').fill('10');await choose.click();
   await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 0 h · VT 10 h.')).toBeVisible();
   expect((await commands(page))[0].body.payload.comment).toBe('');
   await ws(page).getByRole('button',{name:'Lägg till specialuppdrag'}).click();
@@ -655,7 +651,6 @@ test.describe('dator',()=>{
  test('redigeringsläge stängs när fönstret krymper och osparad inmatning skyddas',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await page.getByRole('dialog').getByLabel('Lärartid VT (timmar)').fill('12');
   const size=page.viewportSize()!;await page.setViewportSize({width:390,height:844});
   await expect(page.getByRole('dialog')).toHaveCount(0);await expect(page.locator('.tjanst-matrix')).toHaveCount(0);
@@ -674,7 +669,6 @@ test.describe('dator',()=>{
   expect(await ws(page).locator('.tjanst-mark').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44&&x.getBoundingClientRect().width>=44))).toBe(true);
   await ws(page).getByRole('tab',{name:'Matris'}).click();
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
-  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   expect(await page.getByRole('dialog').locator('button,input,select,textarea').evaluateAll(n=>n.every(x=>x.getBoundingClientRect().height>=44))).toBe(true);
  });
 
@@ -715,7 +709,7 @@ test.describe('dator',()=>{
   await open(page,'?data=lang');
   await matrix(page).getByRole('button',{name:/^Maximiliana Konstantinopelska-Vasaborgsson Ekströmsdotter, Matematik 1c med fördjupning.*: ingen tid\. Tilldela\.$/}).click();
   const dialog=page.getByRole('dialog');await dialog.getByLabel('Lärartid HT (timmar)').fill('ogiltigt värde med ett mycket långt ord Programmeringsfördjupningsövningstimmar');
-  await dialog.getByRole('button',{name:'Spara tjänsteraden'}).click();await expect(dialog.getByText('Ange tid i timmar, till exempel 40 eller 37,5.')).toBeVisible();
+  await dialog.getByRole('button',{name:'Välj Vakant',exact:true}).click();await expect(dialog.getByText('Ange tid i timmar, till exempel 40 eller 37,5.')).toBeVisible();
   await page.evaluate(()=>{(document.documentElement.style as CSSStyleDeclaration & {zoom:string}).zoom='4';});
   const r=await dialog.evaluate(el=>({fits:el.scrollWidth<=el.clientWidth,cssWidth:el.getBoundingClientRect().width/4,children:[...el.querySelectorAll('*')].filter(x=>x.getBoundingClientRect().right>el.getBoundingClientRect().right+1).length}));
   expect(r.fits).toBe(true);expect(r.children).toBe(0);expect(r.cssWidth).toBeLessThanOrEqual(320);

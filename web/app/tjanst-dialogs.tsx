@@ -96,38 +96,44 @@ export function TjanstRowDialog(props: RowProps) {
   if (editor.choice) { try { yearRowSavePayload({ ...editor, teacherHt: 1, teacherVt: 1 }, support); } catch { choiceStale = true; } }
   const stale = editor.expectedRevision !== support.currentRevision || editor.expectedBasisHash !== support.basisHash || choiceStale;
   const liveDeviation = (term: string, raw: string, need: number | null, other: number) => { const parsed = parseHours(raw); return !raw.trim() || 'error' in parsed || need === null ? 'Behovet eller tiden är okänd.' : `Avvikelse ${term}: ${formatDeviation(other + parsed.minutes - need) || 'ingen'}`; };
-  function submit() {
+  // 05.1-31 (D-30): ett klick på en namngiven lärare eller Vakant sparar raden direkt med tiderna ovanför; Spara tjänsteraden finns kvar för en befintlig rad.
+  function submit(chosen: TjanstYearRowEditor = editor) {
     const h = parseHours(ht), v = parseHours(vt), next: Record<string, string> = {};
-    if (!editor.choice) next.person = 'Välj lärare.';
+    let chosenStale = chosen !== editor ? false : stale;
+    if (chosen !== editor && chosen.choice) { try { yearRowSavePayload({ ...chosen, teacherHt: 1, teacherVt: 1 }, support); } catch { chosenStale = true; } }
+    if (!chosen.choice) next.person = 'Välj lärare.';
     if (!ht.trim()) next.ht = 'Ange tid för HT. Skriv 0 om terminen saknar tid.';
     if (!vt.trim()) next.vt = 'Ange tid för VT. Skriv 0 om terminen saknar tid.';
     if ('error' in h) next.ht = h.error; if ('error' in v) next.vt = v.error;
     if ('minutes' in h && 'minutes' in v && h.minutes === 0 && v.minutes === 0) next.ht = 'Ange tid för minst en termin.';
     if (comment.length > 2000) next.comment = 'Kommentaren får vara högst 2 000 tecken.';
-    if (stale) next.person = 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.';
+    if (chosenStale) next.person = 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.';
     let payload;
     if (!Object.keys(next).length && 'minutes' in h && 'minutes' in v) {
-      try { payload = yearRowSavePayload({ ...editor, teacherHt: h.minutes, teacherVt: v.minutes, comment: comment.trim() }, support); }
+      try { payload = yearRowSavePayload({ ...chosen, teacherHt: h.minutes, teacherVt: v.minutes, comment: comment.trim() }, support); }
       catch { next.person = 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.'; }
     }
     setErrors(next); if (!payload) return;
-    const change: TjanstPreparedChange = { action: 'save_row', unitId: editor.unitId, schoolYear: editor.schoolYear, expectedRevision: editor.expectedRevision, payload };
+    const change: TjanstPreparedChange = { action: 'save_row', unitId: chosen.unitId, schoolYear: chosen.schoolYear, expectedRevision: chosen.expectedRevision, payload };
     void run(() => onSave(change));
   }
   return <Shell open={open} busy={busy} onClose={onClose} title={row ? 'Ändra tjänsteraden' : 'Ny tjänsterad'} description={`${entry.need.label} · ${entry.cls.name}`}>
     <dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
       <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl>
     {props.supportNotice}
-    <Problems failure={failure} checking={checking} summary={Object.keys(errors).length > 0}/>
+    <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     {stale && <p role="alert">Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.</p>}
     {row && <p>Sparad tilldelning: {teacherName(data, row.personId)}{row.personId !== null && !support.candidates.some(p => p.personId === row.personId) ? '. Personen saknar aktuellt skoluppdrag i underlaget. Välj en aktuell lärare eller Vakant före sparning.' : ''}</p>}
     <form className="protected-form tjanst-form" onSubmit={e => { e.preventDefault(); submit(); }}><fieldset disabled={busy || disabled}>
-      <TjanstTeacherPicker candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
-        onSelect={selection => { setEditor(selectYearTeacher(editor, support, selection)); setErrors(e => ({ ...e, person: '' })); }}/>
       <Field id={`${id}-ht`} label="Lärartid HT (timmar)" error={errors.ht} help={liveDeviation('HT', ht, support.need.needHt, others.ht)}><input {...described(`${id}-ht`, errors.ht, 'help')} inputMode="decimal" value={ht} onChange={e => setHt(e.target.value)}/></Field>
       <Field id={`${id}-vt`} label="Lärartid VT (timmar)" error={errors.vt} help={liveDeviation('VT', vt, support.need.needVt, others.vt)}><input {...described(`${id}-vt`, errors.vt, 'help')} inputMode="decimal" value={vt} onChange={e => setVt(e.target.value)}/></Field>
       <Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field>
-    </fieldset><div className="mandate-actions"><Button type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>
+      <p className="tjanst-direct-hint">{row ? 'Välj en annan lärare för att byta och spara direkt, eller ändra tid och kommentar och välj Spara tjänsteraden.' : 'Ange tiden och välj sedan lärare eller Vakant. Raden sparas när du väljer.'}</p>
+      <TjanstTeacherPicker candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
+        onSelect={selection => { let chosen: TjanstYearRowEditor; try { chosen = selectYearTeacher(editor, support, selection); } catch { setErrors({ person: 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.' }); return; }
+          setEditor(chosen); setErrors({}); submit(chosen); }}/>
+    </fieldset><div className="mandate-actions">{row && <Button type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>}
+      {!row && busy && <output aria-busy="true">Sparar…</output>}
       <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Stäng utan att spara</Button>
       {row && <Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row)}>Ta bort tjänsteraden…</Button>}</div></form>
   </Shell>;
@@ -161,7 +167,7 @@ export function TjanstSpecialDialog(props: SpecialProps) {
   }
   return <Shell open={open} busy={busy} onClose={onClose} title={special ? 'Ändra specialuppdraget' : 'Lägg till specialuppdrag'} description={<>{data.schoolName} · läsåret {yearLabel(data.schoolYear)}. Specialuppdrag räknas skilt från undervisning.</>}>
     {props.supportNotice}
-    <Problems failure={failure} checking={checking} summary={Object.keys(errors).length > 0}/>
+    <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     <form className="protected-form tjanst-form" onSubmit={event => { event.preventDefault(); submit(); }}>
       <fieldset disabled={busy || disabled}>
         <Field id={`${id}-kind`} label="Typ" error={errors.kind}><select {...described(`${id}-kind`, errors.kind)} value={kind} onChange={e => { setKind(e.target.value as TjanstSpecialKind); if (e.target.value !== 'mentor') setClassId(''); }}>
@@ -220,7 +226,7 @@ export function TjanstJointDialog(props: JointProps) {
   }
   return <Shell open={open} busy={busy} onClose={onClose} title={joint ? 'Ändra samläsningen' : 'Koppla till samläsning'} description="Lärartiden för gruppen räknas en gång. Varje klass visar sitt behov som täckt av gruppens tid.">
     {props.supportNotice}
-    <Problems failure={failure} checking={checking} summary={Object.keys(errors).length > 0}/>
+    <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     <h3>Markerade rader</h3>
     <ul className="tjanst-plain-list">{rows.map(r => <li key={r.id}>{label(r)} · {cls(r)} · {teacherName(data, r.personId)}</li>)}</ul>
     <form className="protected-form tjanst-form" onSubmit={event => { event.preventDefault(); submit(); }}>
@@ -275,7 +281,7 @@ export function TjanstNewTeacherDialog(props: NewTeacherProps) {
   useUnsavedChanges('tjanst-new-teacher', !!(given || family || note));
   return <Shell open={open} busy={busy} onClose={onClose} title="Lägg upp ny lärare" description={<>Läraren läggs upp som utkast för {schoolName}. Huvudmannen kompletterar anställning och andel.</>}>
     {props.supportNotice}
-    <Problems failure={failure} checking={checking} summary={Object.keys(errors).length > 0}/>
+    <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     <form className="protected-form tjanst-form" onSubmit={event => { event.preventDefault(); const next: Record<string, string> = {};
       if (!given.trim()) next.given = 'Ange förnamn.'; if (!family.trim()) next.family = 'Ange efternamn.'; setErrors(next);
       if (!Object.keys(next).length) void run(() => onSave({ givenName: given.trim(), familyName: family.trim(), draftNote: note.trim() })); }}>
