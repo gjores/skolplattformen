@@ -919,6 +919,21 @@ test.describe('fördela',()=>{
   expect(errors).toEqual([]);
  });
 });
+test.describe('fördela delvis',()=>{
+ test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Lärare väljs bara på dator (D-15).');});
+ test('lärare som redan har tid på behovet kan inte väljas igen (ingen dubblettrad)',async({page})=>{
+  const errors=await open(page,'?data=manga&delvis=1&tjvy=fordela');
+  await queueOf(page).getByRole('button',{name:'Historia 1 · MA3'}).click();
+  const existing=fordela(page).getByRole('region',{name:'Har redan tid på behovet'});
+  await expect(existing).toContainText('Historialärare3: HT 50 h · VT 25 h. Ändra raden i matrisen.');
+  await expect(fordela(page).getByRole('list',{name:'Lärare att välja'}).getByRole('button',{name:/Historialärare3$/u})).toHaveCount(0);
+  await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
+  await queueOf(page).getByRole('button',{name:'Historia 1 · MA3'}).focus();await page.keyboard.press('1');
+  const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);
+  expect(sent[0].body.payload.personId).not.toBe('51a50000-0000-4000-8000-000000001117');expect(sent[0].body.payload.rowId).toBeNull();
+  expect(errors).toEqual([]);
+ });
+});
 test.describe('fördela telefon',()=>{
  test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
  test('läslista över ofördelade behov utan val',async({page},info)=>{

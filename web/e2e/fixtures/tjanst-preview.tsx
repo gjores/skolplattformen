@@ -69,6 +69,8 @@ function standardUnit():Unit{
   for(let c=0;c<6;c++){const id=tid(2100+c),cls=gy(id,`MA${c+1}`,'Mångprogrammet',1,subjects.map((sub,si)=>need(id,`${sub.slice(0,3).toUpperCase()}0${si}`,`${sub} 1`,3000,3000)));classes.push(cls);
    subjects.forEach((sub,si)=>{const rk=`${sub.slice(0,3).toUpperCase()}0${si}`;if(c===0&&sub==='Fysik')return;
     rows.push(row(4000+c*10+si,id,cls,rk,c===1&&sub==='Kemi'?null:big[si*5+c%5].personId,3000,3000));});}
+  // delvis=1: Historia i MA3 är delvis fördelad (VT 25 av 50 h) till sin lärare.
+  if(params.get('delvis')){const r=rows.find(x=>x.classId===tid(2102)&&x.rowKey==='HIS03')!;r.teacherVt=1500;}
   unit.classes=classes;unit.draft={teachers:big,rows,specials:[],joints:[]};
  }
  return unit;

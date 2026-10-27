@@ -21,6 +21,7 @@ type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTer
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
   onSave: (change: TjanstPreparedChange, message: string) => Promise<TjanstOutcome>; onOpenCourse: (code: string) => void };
 type Pick = { key: string; person: TjanstYearCandidate; selection: { kind: 'suggestion'; suggestionId: string } | { kind: 'manual'; personId: string }; reasons: string[] };
+type Existing = { person: TjanstYearCandidate; time: { ht: number; vt: number } };
 
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
@@ -74,9 +75,13 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   const [query, setQuery] = useState(''), [failure, setFailure] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
+  // En lärare som redan har en rad på behovet ändras i matrisen; ett nytt val skulle bli en dubblettrad (faktiskt prov 05.1-30).
+  const onNeed = useMemo(() => new Set(entry?.rows.flatMap(r => r.personId ? [r.personId] : []) ?? []), [entry]);
+  const existing: Existing[] = useMemo(() => reply && entry ? reply.candidates.filter(p => onNeed.has(p.personId)).map(p => ({ person: p,
+    time: entry.rows.filter(r => r.personId === p.personId).reduce((s, r) => { const t = rowTime(r, data.joints); return { ht: s.ht + t.ht, vt: s.vt + t.vt }; }, { ht: 0, vt: 0 }) })) : [], [reply, entry, onNeed, data.joints]);
   const picks: Pick[] = useMemo(() => {
     if (!reply) return [];
-    const byId = new Map(reply.candidates.map(p => [p.personId, p])), list: Pick[] = [], seen = new Set<string>();
+    const byId = new Map(reply.candidates.map(p => [p.personId, p])), list: Pick[] = [], seen = new Set<string>(onNeed);
     if (reply.recommendationStatus === 'ready') for (const s of sortYearSuggestions(reply)) { const p = byId.get(s.personId); if (!p || seen.has(p.personId)) continue; seen.add(p.personId);
       list.push({ key: s.suggestionId, person: p, selection: { kind: 'suggestion', suggestionId: s.suggestionId }, reasons: s.references.map(yearEvidenceLabel) }); }
     const q = query.trim().toLocaleLowerCase('sv');
@@ -85,7 +90,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
       list.push({ key: p.personId, person: p, selection: { kind: 'manual', personId: p.personId }, reasons: [] });
     }
     return list;
-  }, [reply, query]);
+  }, [reply, query, onNeed]);
   const suggested = picks.filter(p => p.selection.kind === 'suggestion').length;
   const parsed = { ht: parseHours(ht), vt: parseHours(vt) };
   const added = { ht: 'minutes' in parsed.ht ? parsed.ht.minutes : 0, vt: 'minutes' in parsed.vt ? parsed.vt.minutes : 0 };
@@ -109,7 +114,8 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     const outcome = await onSave(change, `Tjänsteraden är sparad: ${who}, ${selected.label}, ${selected.className}, HT ${formatTime(h.minutes)} · VT ${formatTime(v.minutes)}.`);
     setBusy(false);
     if (outcome.ok) { setSaved(s => [...s, key]); setQuery(''); }
-    else { pendingNext.current = null; setFailure(outcome.error || 'Tjänsteraden kunde inte sparas. Dina uppgifter finns kvar.'); setReload(n => n + 1); }
+    else { pendingNext.current = null; setFailure(outcome.code === 'tjanst_duplicate_row' ? `${who} har redan en rad för ${selected.label} i ${selected.className}. Ändra den befintliga raden i matrisen.`
+      : outcome.error || 'Tjänsteraden kunde inte sparas. Dina uppgifter finns kvar.'); setReload(n => n + 1); }
   }
   function move(step: number) {
     if (!queue.length) return;
@@ -175,6 +181,8 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
             {reply.recommendationStatus === 'unavailable' && <p>Du kan fortfarande söka och välja en lärare.</p>}
             <div className="tjanst-field"><label htmlFor={`${id}-lsok`}>Sök lärare</label><input id={`${id}-lsok`} ref={searchRef} type="search" autoComplete="off" value={query} onChange={e => setQuery(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const p = picks[suggested]; if (p && query.trim()) void choose(p.selection, p.person.displayName); } }}/></div>
+            {existing.length > 0 && <section className="tjanst-existing" aria-label="Har redan tid på behovet"><h4>Har redan tid på behovet</h4>
+              {existing.map(x => <p key={x.person.personId}>{x.person.displayName}: HT {formatTime(x.time.ht)} · VT {formatTime(x.time.vt)}. Ändra raden i matrisen.</p>)}</section>}
             <ol className="tjanst-candidates" aria-label="Lärare att välja">{picks.slice(0, 60).map((p, i) => { const t = candidateTotals(p.person.personId, data.rows, data.specials, data.joints, added);
               return <li key={p.key} className="tjanst-teacher-choice"><strong>{i < 9 ? <kbd aria-hidden="true">{i + 1}</kbd> : null}{p.person.displayName}</strong>
                 {p.reasons.length > 0 && <p>Förslag: {p.reasons.join(' · ')}</p>}
