@@ -896,15 +896,25 @@ test.describe('fördela',()=>{
   const errors=await open(page,'?data=manga&tjvy=fordela');
   await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).click();
   await fordela(page).getByLabel('Lärartid HT (timmar)').fill('30');
-  await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:409,code:'tjanst_revision_conflict'}));
+  // Någon annan ändrar underlaget efter att panelen hämtat sitt stöd (som i faktiskt prov 05.1-30).
+  await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
+  await page.evaluate(()=>{window.__tjanst.bump('core');window.__tjanst.holdNext('plan/forhandsvisa');});
   await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).focus();await page.keyboard.press('v');
   await expect(fordela(page).getByRole('alert')).toContainText('Underlaget har ändrats. Dina uppgifter finns kvar.');
-  await expect(fordela(page).getByLabel('Lärartid HT (timmar)')).toHaveValue('30');await expect(fordela(page).getByRole('heading',{name:'Kemi 1 · MA2'})).toBeVisible();
-  await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
+  await expect(fordela(page).getByRole('heading',{name:'Kemi 1 · MA2'})).toBeVisible();
+  // Efter felet går valet bara att göra ur nytt planeringsstöd; gammalt stöd gav 409 igen i faktiskt prov 05.1-30.
+  // Medan det nya stödet hålls inne finns inga val, och V skickar inget.
+  await expect(fordela(page).getByText('Hämtar planeringsstöd…')).toBeVisible();await expect(fordela(page).getByRole('button',{name:'Välj Vakant'})).toHaveCount(0);
+  const before=(await commands(page)).filter(c=>c.body.action==='save_row').length;
+  await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).focus();await page.keyboard.press('v');
+  expect((await commands(page)).filter(c=>c.body.action==='save_row')).toHaveLength(before);
+  await page.evaluate(()=>window.__tjanst.release());await expect(fordela(page).getByRole('button',{name:'Välj Vakant'})).toBeVisible();
+  await expect(fordela(page).getByLabel('Lärartid HT (timmar)')).toHaveValue('30');
   await queueOf(page).getByRole('button',{name:'Kemi 1 · MA2'}).focus();await page.keyboard.press('v');
   await expect(ws(page).getByText('Tjänsteraden är sparad: Vakant, Kemi 1, MA2, HT 30 h · VT 50 h.')).toBeVisible();
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');
   expect(sent.at(-1)!.body.payload).toMatchObject({rowId:'51a50000-0000-4000-8000-000000004015',personId:null,teacherHt:1800,planningContext:{choice:{kind:'unassigned'}}});
+  expect(sent.at(-1)!.body.payload.planningContext.expectedBasisHash).not.toBe(sent.at(-2)!.body.payload.planningContext.expectedBasisHash);
   for(const b of await queueOf(page).getByRole('button').all()){const box=await b.boundingBox();expect(box!.height).toBeGreaterThanOrEqual(44);}
   expect(errors).toEqual([]);
  });

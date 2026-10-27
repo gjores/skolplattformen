@@ -51,16 +51,17 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   const target = selected ? `${selected.sourceKey}|${vacantRow?.id ?? ''}` : null;
   useEffect(() => {
     if (phone || !editable || !selected || !target) return;
-    let current = true;
+    let current = true; const token = `${target}|${data.revision}|${reload}`;
     void loadSupport(selected.sourceKey, vacantRow?.id ?? null).then(reply => {
       if (!current) return;
       if ('ok' in reply || reply.mode !== 'row' || reply.sourceKey !== selected.sourceKey) { setSupportError('ok' in reply ? reply.error : 'Planeringsstödet kunde inte kontrolleras.'); return; }
-      setSupportError(null); setSupport({ key: target, reply });
+      setSupportError(null); setSupport({ key: token, reply });
     });
     return () => { current = false; };
   // data.revision: ett nytt underlag hämtas efter varje ändring; inmatade tider ligger kvar.
   }, [target, data.revision, reload, phone, editable]); // eslint-disable-line react-hooks/exhaustive-deps
-  const reply = support && support.key === target ? support.reply : null;
+  // Bara stöd som hör till aktuellt behov, aktuell revision och senaste omhämtning går att välja ur; annat är inaktuellt.
+  const reply = support && support.key === `${target}|${data.revision}|${reload}` ? support.reply : null;
 
   const others = useMemo(() => {
     if (!entry) return { ht: 0, vt: 0 };
@@ -162,13 +163,13 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
           </dl>}
           {sameCourse.length > 0 && <p className="tjanst-same-course">Samma kurs finns i {sameCourse.length === 1 ? 'en annan klass' : `${sameCourse.length} andra klasser`}: {sameCourse.map(s => s.cls).join(', ')}.{' '}
             <Button type="button" variant="outline" onClick={() => onOpenCourse(courseCode({ rowKey: data.classes.flatMap(x => x.needs).find(n => n.sourceKey === selected.sourceKey)?.rowKey ?? '' }))}>Visa alla klasser med kursen</Button></p>}
+          {failure && <p role="alert" className="validation-warning">{failure}</p>}
           {!editable ? <p>Fördelningen kan inte ändras just nu.</p> : supportError ? <div role="alert"><p>{supportError}</p><Button type="button" variant="outline" onClick={() => setReload(n => n + 1)}>Hämta planeringsstöd igen</Button></div>
           : !reply || !base ? <output aria-busy="true">Hämtar planeringsstöd…</output> : <>
             <div className="tjanst-allocation-times">
               <div className="tjanst-field"><label htmlFor={`${id}-ht`}>Lärartid HT (timmar)</label><input id={`${id}-ht`} inputMode="decimal" value={ht} onChange={e => setTime('ht', e.target.value)}/></div>
               <div className="tjanst-field"><label htmlFor={`${id}-vt`}>Lärartid VT (timmar)</label><input id={`${id}-vt`} inputMode="decimal" value={vt} onChange={e => setTime('vt', e.target.value)}/></div>
             </div>
-            {failure && <p role="alert" className="validation-warning">{failure}</p>}
             {busy && <output aria-busy="true">Sparar…</output>}
             <h4>{yearRecommendationMessage(reply.recommendationStatus)}</h4>
             {reply.recommendationStatus === 'unavailable' && <p>Du kan fortfarande söka och välja en lärare.</p>}
