@@ -83,7 +83,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     if (!reply) return [];
     const byId = new Map(reply.candidates.map(p => [p.personId, p])), list: Pick[] = [], seen = new Set<string>(onNeed);
     if (reply.recommendationStatus === 'ready') for (const s of sortYearSuggestions(reply)) { const p = byId.get(s.personId); if (!p || seen.has(p.personId)) continue; seen.add(p.personId);
-      list.push({ key: s.suggestionId, person: p, selection: { kind: 'suggestion', suggestionId: s.suggestionId }, reasons: s.references.map(yearEvidenceLabel) }); }
+      list.push({ key: s.suggestionId, person: p, selection: { kind: 'suggestion', suggestionId: s.suggestionId }, reasons: [...new Set(s.references.map(yearEvidenceLabel))] }); }
     const q = query.trim().toLocaleLowerCase('sv');
     for (const p of [...reply.candidates].sort((a, b) => a.displayName.localeCompare(b.displayName, 'sv'))) {
       if (seen.has(p.personId) || q && !p.displayName.toLocaleLowerCase('sv').includes(q)) continue;

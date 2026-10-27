@@ -861,7 +861,7 @@ const queueOf=(page:Page)=>fordela(page).getByRole('list',{name:'Ofördelade beh
 test.describe('fördela',()=>{
  test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Lärare väljs bara på dator (D-15).');});
  test('kö, inget förval, hoppa över, ändrad tid, val med siffra och sökning; kön går vidare',async({page},info)=>{
-  const errors=await open(page,'?data=manga&tjvy=fordela');
+  const errors=await open(page,'?data=manga&dubbel=1&tjvy=fordela');
   await expect(queueOf(page).getByRole('button')).toHaveText(['Fysik 1 · MA1','Kemi 1 · MA2']);
   await expect(fordela(page).getByRole('heading',{name:'Fysik 1 · MA1'})).toBeVisible();
   await expect(fordela(page).getByText('Förslag utifrån tidigare planering')).toBeVisible();
@@ -875,6 +875,8 @@ test.describe('fördela',()=>{
   const name=(await first.getByRole('button').textContent())!.replace(/^Välj /u,'');
   await expect(first.getByText(/^Undervisning nu: HT/u)).toBeVisible();await expect(first.getByText(/^Efter valet: HT .* · Läsår/u)).toBeVisible();
   await expect(first.getByText(/^Förslag: /u)).toBeVisible();await expect(first.getByText('Behörighetsunderlag saknas')).toBeVisible();
+  // Varje skäl visas en gång även när läraren har flera rader i klassen.
+  const reasons=(await first.getByText(/^Förslag: /u).textContent())!.replace(/^Förslag: /u,'').split(' · ');expect(new Set(reasons).size).toBe(reasons.length);
   await page.screenshot({path:`${SHOTS}/${info.project.name}-fordela-panel.png`});
   await queueOf(page).getByRole('button',{name:'Fysik 1 · MA1'}).focus();await page.keyboard.press('1');
   await expect(ws(page).getByText(`Tjänsteraden är sparad: ${name}, Fysik 1, MA1, HT 40 h · VT 50 h.`)).toBeVisible();
