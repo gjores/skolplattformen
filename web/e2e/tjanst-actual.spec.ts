@@ -146,6 +146,14 @@ async function saveRow(page:Page,teacher:string,course:string,cls:string,{ht,vt}
   await dialog.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();expect((await done).status()).toBe(200);
   await expect(ws(page).getByText(new RegExp(`^Tjänsteraden är sparad: ${esc(teacher)}, ${esc(course)}, ${esc(cls)}, `,'u'))).toBeVisible();await settled(page);
 }
+/** 05.1-33 / D-31: svarar på frågan som följer när en andra lärare får tid; en i taget med förvald betygssättare. */
+async function shareOneAtATime(page:Page,grader:string,other:string){
+  const sharing=page.getByRole('dialog',{name:'Hur delar lärarna kursen?'});await expect(sharing).toBeVisible();
+  await sharing.getByRole('radio',{name:/^En i taget/u}).check();await expect(sharing.getByRole('checkbox',{name:grader,exact:true})).toBeChecked();
+  await expect(sharing.getByRole('checkbox',{name:other,exact:true})).not.toBeChecked();
+  const shared=page.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await sharing.getByRole('button',{name:'Spara delningen'}).click();expect((await shared).status()).toBe(200);
+  await expect(sharing).toHaveCount(0);await settled(page);
+}
 /** Ett aktivt personval och vanlig radskrivning; ingen separat skapa-utkast-väg. */
 async function beginRevision(page:Page){
   const target=matrix(page).getByRole('button',{name:/Ändra\.$/u}).first(),label=(await target.getAttribute('aria-label'))!;const teacher=label.split(', ')[0];
@@ -378,11 +386,7 @@ test('samläsning en gång och två lärare på samma kurs; lägg upp ny lärare
   await saveRow(p,'Ulla Sund','Biologi','SYNGR8',{ht:'50',vt:'0'});
   await saveRow(p,'Tor Berg','Biologi','SYNGR8',{ht:'0',vt:'50'});
   // 05.1-33 / D-31: den andra läraren ger frågan om delning; Ulla HT och Tor VT är en i taget, och Tor sätter betyg.
-  const sharing=p.getByRole('dialog',{name:'Hur delar lärarna kursen?'});await expect(sharing).toBeVisible();
-  await sharing.getByRole('radio',{name:/^En i taget/u}).check();await expect(sharing.getByRole('checkbox',{name:'Tor Berg',exact:true})).toBeChecked();
-  await expect(sharing.getByRole('checkbox',{name:'Ulla Sund',exact:true})).not.toBeChecked();
-  const shared=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await sharing.getByRole('button',{name:'Spara delningen'}).click();expect((await shared).status()).toBe(200);
-  await expect(sharing).toHaveCount(0);await settled(p);
+  await shareOneAtATime(p,'Tor Berg','Ulla Sund');
   await ws(p).getByRole('tab',{name:'Per klass'}).click();await ws(p).getByLabel('Klass',{exact:true}).selectOption({label:'SYNGR8'});
   const bio=ws(p).getByRole('region',{name:'Per klass'}).getByRole('row').filter({hasText:'Biologi'});
   await expect(bio).toContainText('100 av 100 h · 2 lärare');await expect(bio).toContainText('Ulla Sund');await expect(bio).toContainText('Tor Berg');
@@ -866,7 +870,7 @@ test('liten dator: fördela, samläsning och publicera',async({browser},info)=>{
   await capture(p,'fordela-matris');
   pass('fördela','tom cell med förifylld tid, ändrad VT, sparad och omläst vid 1024 × 768 utan sidledsrullning på sidan',{scroll});
   await addTeacher(p,'Ulla Sund');
-  await saveRow(p,'Ulla Sund','Biologi','SYNGR8',{ht:'50',vt:'0'});await saveRow(p,'Tor Berg','Biologi','SYNGR8',{ht:'0',vt:'50'});
+  await saveRow(p,'Ulla Sund','Biologi','SYNGR8',{ht:'50',vt:'0'});await saveRow(p,'Tor Berg','Biologi','SYNGR8',{ht:'0',vt:'50'});await shareOneAtATime(p,'Tor Berg','Ulla Sund');
   await saveRow(p,'Ulla Sund','Engelska','SYNGR8',{ht:'30',vt:'30'});await saveRow(p,'Ulla Sund','Engelska, grundskolenivå','SYNIM',{ht:'30',vt:'30'});
   await ws(p).getByRole('tab',{name:'Per kurs/ämne'}).click();await settled(p);
   const course=ws(p).getByRole('region',{name:'Per kurs/ämne'});
