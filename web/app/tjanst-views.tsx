@@ -6,11 +6,11 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
-import { jointWarnings, teacherSums } from '@/lib/tjanst-model.ts';
-import { classCoverage, entryDeviation, jointOf, rowTime, sortTeachers, subjectOf, TjanstClassLinkButtons, TjanstJointWarningBox, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
+import { jointWarnings, needTeachers, sharedNeedState, teacherSums } from '@/lib/tjanst-model.ts';
+import { classCoverage, entryDeviation, jointOf, rowTime, SHARING_BADGE, sortTeachers, subjectOf, TjanstClassLinkButtons, TjanstJointWarningBox, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
 import type { TjanstFeedback } from './tjanst-publish-panel';
 import { timeText } from './tjanst-publish-panel';
-import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_KIND_LABEL, termValue, yearLabel, type TjanstSummaryRow, type TjanstTermView } from './tjanst-service-summary';
+import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_KIND_LABEL, sharingWith, termValue, yearLabel, type TjanstSummaryRow, type TjanstTermView } from './tjanst-service-summary';
 
 const personName = (data: TjanstPlanRead, personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
 const className = (data: TjanstPlanRead, classId: string) => data.classes.find(c => c.classId === classId)?.name ?? 'Okänd klass';
@@ -18,6 +18,12 @@ const rowLabel = (data: TjanstPlanRead, row: TjanstRow) => data.classes.find(c =
 const jointClasses = (data: TjanstPlanRead, joint: TjanstJoint, except: string) =>
   [...new Set(joint.rowIds.map(id => data.rows.find(r => r.id === id)?.classId).filter((c): c is string => !!c && c !== except))].map(c => className(data, c));
 
+/** 05.1-33 / D-31: delningsform och betygssättare för ett behov med flera lärare, annars null. */
+export function sharingText(data: TjanstPlanRead, sourceKey: string) {
+  const state = sharedNeedState(sourceKey, data.rows, data.sharing); if (state === 'single') return null;
+  const graders = data.sharing.find(x => x.sourceKey === sourceKey)?.graderPersonIds ?? [];
+  return graders.length ? `${SHARING_BADGE[state]} · Sätter betyg: ${graders.map(p => personName(data, p)).join(', ')}` : SHARING_BADGE[state];
+}
 /** Skärm 2. Kurser med alla lärare och täckning; okopplad klass visar bara texten om saknad koppling (D-04). */
 export function TjanstClassView({ data, groups, classId, term, onClass, onOpenClassLinks, onOpenJoint }: { data: TjanstPlanRead; groups: TjanstClassGroup[]; classId: string; term: TjanstTermView;
   onClass: (classId: string) => void; onOpenClassLinks?: TjanstOpenClassLinks; onOpenJoint?: (jointId: string) => void }) {
@@ -43,7 +49,7 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
             <TableCell className="tjanst-text">{e.need.label}</TableCell>
             <TableCell className="tjanst-num">{e.need.needHt === null ? 'Okänt' : formatTime(e.need.needHt)}</TableCell><TableCell className="tjanst-num">{e.need.needVt === null ? 'Okänt' : formatTime(e.need.needVt)}</TableCell>
             <TableCell className="tjanst-num">{formatTime(e.cov.covered.ht)}</TableCell><TableCell className="tjanst-num">{formatTime(e.cov.covered.vt)}</TableCell>
-            <TableCell className="tjanst-text"><ul className="tjanst-plain-list">{teachersOf(e.rows).map(t => <li key={t.id}>{t.text}{t.joint && <><br/>{onOpenJoint && t.jointId ? <button type="button" className="tjanst-linklike" onClick={() => onOpenJoint(t.jointId!)}>{t.joint}</button> : t.joint}</>}</li>)}</ul>
+            <TableCell className="tjanst-text"><ul className="tjanst-plain-list">{sharingText(data, e.need.sourceKey) && <li className="tjanst-sharing-line">{sharingText(data, e.need.sourceKey)}</li>}{teachersOf(e.rows).map(t => <li key={t.id}>{t.text}{t.joint && <><br/>{onOpenJoint && t.jointId ? <button type="button" className="tjanst-linklike" onClick={() => onOpenJoint(t.jointId!)}>{t.joint}</button> : t.joint}</>}</li>)}</ul>
               <span className="tjanst-coverage">{classCoverage([e], 'ar', data.joints)}</span></TableCell>
             <TableCell className="tjanst-num">{formatDeviation(entryDeviation(e, term))}</TableCell>
           </TableRow>)}</TableBody></Table>
@@ -51,6 +57,7 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
           <span>Behov HT {e.need.needHt === null ? 'okänt' : formatTime(e.need.needHt)} · VT {e.need.needVt === null ? 'okänt' : formatTime(e.need.needVt)}</span>
           <span>Fördelat HT {formatTime(e.cov.covered.ht)} · VT {formatTime(e.cov.covered.vt)}</span>
           {teachersOf(e.rows).map(t => <span key={t.id}>{t.text}{t.joint ? <> · {onOpenJoint && t.jointId ? <button type="button" className="tjanst-linklike" onClick={() => onOpenJoint(t.jointId!)}>{t.joint}</button> : t.joint}</> : ''}</span>)}<span>{classCoverage([e], 'ar', data.joints)}</span>
+          {sharingText(data, e.need.sourceKey) && <span className="tjanst-sharing-line">{sharingText(data, e.need.sourceKey)}</span>}
           {formatDeviation(entryDeviation(e, term)) && <span>Avvikelse {formatDeviation(entryDeviation(e, term))}</span>}</li>)}</ul>
       </>}
     </>}
@@ -68,7 +75,11 @@ export function TjanstTeacherView({ data, personId, onTeacher, feedback }: { dat
       if (!t || seen.has(j.id)) continue; seen.add(j.id);
       const first = data.rows.find(x => x.id === j.rowIds[0])!;
       teaching.push({ id: j.id, course: rowLabel(data, first), className: className(data, first.classId), ht: t.ht, vt: t.vt, jointWith: jointClasses(data, j, first.classId) });
-    } else if (r.personId === personId) teaching.push({ id: r.id, course: rowLabel(data, r), className: className(data, r.classId), ht: r.teacherHt, vt: r.teacherVt, jointWith: null });
+    } else if (r.personId === personId) {
+      const others = needTeachers(r.sourceKey, data.rows).filter(p => p !== personId), share = data.sharing.find(x => x.sourceKey === r.sourceKey);
+      teaching.push({ id: r.id, course: rowLabel(data, r), className: className(data, r.classId), ht: r.teacherHt, vt: r.teacherVt, jointWith: null,
+        sharing: others.length ? sharingWith(share?.mode ?? null, others.map(p => personName(data, p)), !!share?.graderPersonIds.includes(personId)) : null });
+    }
   }
   const specials = data.specials.filter(s => s.personId === personId).map(s => ({ id: s.id, kind: s.kind, label: s.label, group: s.classId ? className(data, s.classId) : null, ht: s.ht, vt: s.vt }));
   const ack = feedback?.teachers.find(t => t.personId === personId), comments = feedback?.comments.filter(c => c.personId === personId) ?? [];
@@ -122,6 +133,9 @@ export function TjanstCourseView({ data, editable, marked, onMark, markError, on
       <span><span className="tjanst-label">Klass</span>{cls}</span><span><span className="tjanst-label">Lärare</span>{personName(data, r.personId)}</span>
       <span className="tjanst-num"><span className="tjanst-label">HT</span>{formatTime(t.ht)}</span><span className="tjanst-num"><span className="tjanst-label">VT</span>{formatTime(t.vt)}</span>
       {r.jointGroupId && <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>Samläsning</Badge>}
+      {!r.jointGroupId && r.personId && (() => { const state = sharedNeedState(r.sourceKey, data.rows, data.sharing); if (state === 'single') return null;
+        const grader = !!data.sharing.find(x => x.sourceKey === r.sourceKey)?.graderPersonIds.includes(r.personId!);
+        return <Badge variant="outline" className={state === 'unspecified' ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge'}>{SHARING_BADGE[state]}{grader ? ' · Sätter betyg' : ''}</Badge>; })()}
     </li>; };
   const courses = new Map<string, TjanstRow[]>();
   for (const r of rows.filter(x => x.jointGroupId === null)) { const label = rowLabel(data, r); courses.set(label, [...(courses.get(label) ?? []), r]); }

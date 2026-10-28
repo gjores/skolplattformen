@@ -262,3 +262,12 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-direct-hint{margin:0;font-size:14px;color:var(--muted-foreground)}
 /* 05.1-32: redan fördelat behov i massregistrering. */
 .tjanst-year-allocated{color:var(--foreground);font-weight:500}
+/* 05.1-33 / D-31: delning mellan lärare på samma behov */
+.tjanst-sharing-modes,.tjanst-sharing-graders{display:grid;gap:.5rem;border:0;padding:0;margin:0}
+.tjanst-sharing-modes legend,.tjanst-sharing-graders legend{font-weight:600;margin-bottom:.25rem}
+.tjanst-sharing-mode{display:flex;gap:.6rem;align-items:flex-start;min-height:44px;padding:.5rem .6rem;border:1px solid var(--border,#d4d4d8);border-radius:.4rem;cursor:pointer}
+.tjanst-sharing-mode input{width:20px;height:20px;margin-top:.15rem;flex:none}
+.tjanst-sharing-mode:has(input:checked){border-color:currentColor;background:var(--muted,#f4f4f5)}
+.tjanst-sharing-graders .mandate-check{min-height:44px;display:flex;align-items:center;gap:.5rem}
+.tjanst-sharing-teacher{display:block}
+.tjanst-sharing-line{display:block;font-size:.875rem;color:var(--muted-foreground,#52525b);overflow-wrap:anywhere}

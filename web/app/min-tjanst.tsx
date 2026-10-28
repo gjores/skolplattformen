@@ -12,7 +12,7 @@ import type { TjanstTeacherSums } from '@/lib/tjanst-model.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
 import { dateText, timeText } from './tjanst-publish-panel';
-import TjanstServiceSummary, { yearLabel, type TjanstSummaryRow } from './tjanst-service-summary';
+import TjanstServiceSummary, { sharingWith, yearLabel, type TjanstSummaryRow } from './tjanst-service-summary';
 import { recoverTracked, TRACKED_TEXT, trackedCommand } from './tjanst-tracked';
 import './tjanst.css';
 
@@ -46,7 +46,8 @@ export function selfSums(publication: TjanstSelfPublication): TjanstTeacherSums 
 function summaryRows(publication: TjanstSelfPublication): TjanstSummaryRow[] {
   return publication.rows.map(row => {
     const others = row.joint ? [...new Set(publication.rows.filter(r => r.joint?.jointId === row.joint!.jointId && r.id !== row.id).map(r => r.className))] : [];
-    return { id: row.id, course: row.label, className: row.className, ht: row.ht, vt: row.vt, jointWith: row.joint ? others.length ? others : [row.joint.name] : null };
+    return { id: row.id, course: row.label, className: row.className, ht: row.ht, vt: row.vt, jointWith: row.joint ? others.length ? others : [row.joint.name] : null,
+      sharing: row.sharing ? sharingWith(row.sharing.mode, row.sharing.colleagues, row.sharing.grader) : null };
   });
 }
 

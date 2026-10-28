@@ -5,7 +5,8 @@ import { Link2, Pin, PinOff, Plus, TriangleAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import type { TjanstClass, TjanstJoint, TjanstNeed, TjanstPlanRead, TjanstRow, TjanstTeacher } from '@/lib/tjanst-contract.ts';
-import { coverage, jointHasMixedTeachers, teacherSums, type TjanstCoverage, type TjanstJointWarnings } from '@/lib/tjanst-model.ts';
+import { coverage, jointHasMixedTeachers, sharedNeedState, teacherSums, type TjanstCoverage, type TjanstJointWarnings, type TjanstSharedNeedState } from '@/lib/tjanst-model.ts';
+import { Users } from 'lucide-react';
 import { initials, lensMatches, type TjanstLensId } from '@/lib/tjanst-lens.ts';
 import { formatDeviation, formatTime, needValue, TERM_LABEL, termValue, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 
@@ -85,9 +86,14 @@ type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: Tjans
   /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
   onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void;
   /** 05.1-29: fästa lärare och kompakta kolumner (initialer och summa, hela namnet vid hovring och fokus). */
-  pinned?: string[]; onPin?: (personId: string, pin: boolean) => void; compact?: boolean };
+  pinned?: string[]; onPin?: (personId: string, pin: boolean) => void; compact?: boolean;
+  /** 05.1-33: öppnar Hur delar lärarna kursen? för ett behov med flera lärare. */
+  onOpenSharing?: (sourceKey: string, origin: HTMLElement) => void };
+/** 05.1-33 / D-31: märket för flera lärare på samma behov. */
+export const SHARING_BADGE: Record<Exclude<TjanstSharedNeedState, 'single'>, string> = {
+  unspecified: 'Två lärare utan angiven delning', sequential: 'Två lärare · en i taget', concurrent: 'Två lärare · samtidigt' };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
   const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
   const cells = useRef(new Map<string, HTMLButtonElement>());
@@ -162,7 +168,12 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                   const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;
                   const cls = mixed ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
                   return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}>{content}</button>
-                    : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</th>
+                    : <Badge variant="outline" className={cls}>{content}</Badge>; })()}
+                {(() => { const state = sharedNeedState(e.need.sourceKey, data.rows, data.sharing); if (state === 'single') return null;
+                  const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
+                  const content = <>{warn ? <TriangleAlert size={16} aria-hidden="true"/> : <Users size={16} aria-hidden="true"/>}{SHARING_BADGE[state]}</>;
+                  return onOpenSharing ? <button type="button" data-focus-key={`sharing:${e.need.sourceKey}`} className={`${cls} tjanst-badge-button`} aria-label={`${SHARING_BADGE[state]}: ange hur lärarna delar ${e.need.label} i ${g.cls.name}`}
+                    onClick={event => onOpenSharing(e.need.sourceKey, event.currentTarget)}>{content}</button> : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</th>
               <td className="tjanst-num">{need === null ? 'Okänt' : time(need)}</td><td className="tjanst-num">{time(termValue(e.cov.covered, term))}</td>
               <td className={dev ? 'tjanst-num tjanst-deviation' : 'tjanst-num'}>{dev ? <span><TriangleAlert size={16} aria-hidden="true"/>{formatDeviation(dev)}</span> : null}</td>
               {teachers.map((t, c) => cell(c, t.personId))}{cell(teachers.length, null)}

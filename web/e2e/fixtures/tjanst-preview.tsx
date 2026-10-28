@@ -6,7 +6,7 @@ import TjanstWorkspace from '../../app/tjanst-workspace';
 import type {ActiveContext} from '../../app/context-switch';
 import type {TjanstFeedback} from '../../app/tjanst-publish-panel';
 import {UnsavedChangesProvider,useHasUnsaved} from '../../lib/unsaved-changes';
-import type {TjanstClass,TjanstJoint,TjanstPerson,TjanstPlanReceiptAction as TjanstPlanAction,TjanstPlanRead,TjanstRow,TjanstSpecial,TjanstTeacher,TjanstVersion} from '../../lib/tjanst-contract';
+import type {TjanstClass,TjanstJoint,TjanstNeedSharing,TjanstPerson,TjanstPlanReceiptAction as TjanstPlanAction,TjanstPlanRead,TjanstRow,TjanstSpecial,TjanstTeacher,TjanstVersion} from '../../lib/tjanst-contract';
 import {parsePlanReadRequest,parsePlanReadReply,parsePlanCommandReply,parsePlanStatusReply,parseCommandRef,parsePersonalCommand,parsePersonalCommandReply,parsePersonalReadReply,tjanstCanonicalSerialize,tjanstHashCanonical,verifyPlanCommandHash,planCommandRef,TjanstContractError,type TjanstCommandRef} from '../../lib/tjanst-contract';
 import {parseYearRequest,parseYearReply,assertYearRowContext,tjanstYearHash,type TjanstYearCandidate,type TjanstYearRequest,type TjanstYearReply,type TjanstYearBatchReply} from '../../lib/tjanst-year-contract';
 import {previewYearMove,yearEvidenceReason} from '../../lib/tjanst-year-model';
@@ -22,7 +22,7 @@ const hash=(n:number)=>`sha256:${String(n).padStart(8,'0').repeat(8)}`;
 /** Serverns text för blockeraren joint_invalid (20261021120000, WR-02). */
 const JOINT_INVALID='En samläsning uppfyller inte reglerna: raderna ska finnas i minst två klasser, och lärartid får bara gälla lärare som har en rad i gruppen. Ändra eller lös upp samläsningen.';
 const long=variant==='lang';
-type Content={teachers:TjanstTeacher[];rows:TjanstRow[];specials:TjanstSpecial[];joints:TjanstJoint[]};
+type Content={teachers:TjanstTeacher[];rows:TjanstRow[];specials:TjanstSpecial[];joints:TjanstJoint[];sharing?:TjanstNeedSharing[]};
 type Unit={schoolYear:number;coreGeneration:number;evidenceGeneration:number;unitId:string;schoolName:string;revision:number;classes:TjanstClass[];versions:TjanstVersion[];draft:Content|null;snapshots:Map<string,Content>;blockers:{code:string;message:string}[]};
 type Reply={status:number;json:unknown};
 const clone=<T,>(v:T):T=>structuredClone(v);
@@ -42,7 +42,9 @@ function standardUnit():Unit{
  const j1=tid(401);
  const draft:Content={teachers,rows:[row(301,C.te,te,'ENGENG05',P.anna,3000,0),row(302,C.te,te,'ENGENG05',P.bertil,0,3000),row(303,C.te,te,'SVESVE01',P.bertil,3000,3000,j1),row(304,C.ek,ek,'SVESVE01',P.bertil,3000,3000,j1),row(305,C.im,im,'SVASVA01',null,2160,2160),row(306,C.ek,ek,'MATMAT01b',P.anna,3000,3000)],
   specials:[{id:tid(501),lineageId:tid(5501),kind:'mentor',label:'Mentor',personId:P.anna,classId:C.te,ht:1200,vt:1200,comment:''},{id:tid(502),lineageId:tid(5502),kind:'programansvar',label:'Programansvar',personId:P.bertil,classId:null,ht:1800,vt:1800,comment:''}],
-  joints:[{id:j1,lineageId:tid(5401),name:'Svenska 1 TE26A + EK26',rowIds:[tid(303),tid(304)],teachers:[{personId:P.bertil,ht:3000,vt:3000}]}]};
+  joints:[{id:j1,lineageId:tid(5401),name:'Svenska 1 TE26A + EK26',rowIds:[tid(303),tid(304)],teachers:[{personId:P.bertil,ht:3000,vt:3000}]}],
+  // 05.1-33: Engelska 5 i TE26A delas en i taget (Anna HT, Bertil VT); Bertil sätter betyg. ?delning=saknas visar hindret.
+  sharing:params.get('delning')==='saknas'?[]:[{sourceKey:key(C.te,'ENGENG05'),mode:'sequential' as const,graderPersonIds:[P.bertil]}]};
  const v1:TjanstVersion={id:tid(601),versionNo:1,status:'published',contentHash:hash(1),basedOnVersionId:null,publishedByName:'Rektor Syntetisk',publishedAt:'2026-06-15T08:00:00.000Z'};
  const v2:TjanstVersion={id:tid(602),versionNo:2,status:'draft',contentHash:hash(2),basedOnVersionId:v1.id,publishedByName:null,publishedAt:null};
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
@@ -126,15 +128,24 @@ if(variant==='ny-gr-klass'){
  u.classes[0].needs[0].sourceKey=`class_timplan:${newClass}:2027:GR-MA-NY`;void oldClass;
 }
 
-const EDIT:TjanstPlanAction[]=['add_teacher','remove_teacher','save_row','delete_row','save_special','delete_special','save_joint','dissolve_joint','move','bulk'];
+const EDIT:TjanstPlanAction[]=['add_teacher','remove_teacher','save_row','delete_row','save_special','delete_special','save_joint','dissolve_joint','move','bulk','save_sharing','clear_sharing'];
+/** 05.1-33 / D-31: samma hinder som tjanst_plan_blockers för flera lärare på samma behov. */
+function sharingBlockers(d:Content){
+ const own=d.rows.filter(r=>r.personId&&!r.jointGroupId),keys=[...new Set(own.map(r=>r.sourceKey))],out:{code:string;message:string}[]=[];
+ const shared=keys.filter(k=>new Set(own.filter(r=>r.sourceKey===k).map(r=>r.personId)).size>1);
+ if(shared.some(k=>!(d.sharing??[]).some(x=>x.sourceKey===k)))out.push({code:'shared_need_unspecified',message:'Två eller fler lärare har tid på samma kurs i en klass utan angiven delning. Ange om de undervisar en i taget eller samtidigt.'});
+ if((d.sharing??[]).some(x=>shared.includes(x.sourceKey)&&!x.graderPersonIds.some(g=>own.some(r=>r.sourceKey===x.sourceKey&&r.personId===g))))out.push({code:'grader_missing',message:'En delad kurs saknar lärare som sätter betyg. Ange vem eller vilka av lärarna som sätter betyget.'});
+ return out;
+}
+const allBlockers=(u:Unit)=>{const v=current(u);return v?.status==='draft'?[...u.blockers,...sharingBlockers(u.draft!)]:[...u.blockers];};
 function read(u:Unit,versionId?:string):TjanstPlanRead{
  const v=versionId?u.versions.find(v=>v.id===versionId):current(u);if(versionId&&(!v||!['published','superseded'].includes(v.status)))throw new TjanstContractError('wrong_scope');
  const data=v===null?blank():v!.status==='draft'?u.draft!:u.snapshots.get(v!.id)!;
- const editable=!versionId,canPublish=editable&&v?.status==='draft'&&role==='rektor'&&!u.blockers.length;
+ const blockers=versionId?[]:allBlockers(u),editable=!versionId,canPublish=editable&&v?.status==='draft'&&role==='rektor'&&!blockers.length;
  const actions=editable?[...EDIT,...(v?.status==='draft'?['discard_draft' as const]:[]),...(canPublish?['publish' as const]:[])]:[];
  return parsePlanReadReply({contractVersion:'tjanst_v1',unitId:u.unitId,schoolName:u.schoolName,schoolYear:u.schoolYear,revision:u.revision,version:v?clone(v):null,
-  versions:clone(u.versions.filter(x=>x.status!=='discarded')),teachers:clone(data.teachers),classes:clone(u.classes),rows:clone(data.rows),specials:clone(data.specials),joints:clone(data.joints),
-  actions,blockers:versionId?[]:clone(u.blockers),capabilities:{canEdit:editable,canPublish,canReadHistory:true}}, {unitId:u.unitId,schoolYear:u.schoolYear,...(versionId?{versionId}:{})});
+  versions:clone(u.versions.filter(x=>x.status!=='discarded')),teachers:clone(data.teachers),classes:clone(u.classes),rows:clone(data.rows),specials:clone(data.specials),joints:clone(data.joints),sharing:clone(data.sharing??[]),
+  actions,blockers,capabilities:{canEdit:editable,canPublish,canReadHistory:true}}, {unitId:u.unitId,schoolYear:u.schoolYear,...(versionId?{versionId}:{})});
 }
 
 type Failure={status:number;code:string}|'lost'|'network';
@@ -238,7 +249,7 @@ async function apply(original:Unit,raw:unknown):Promise<Reply>{
  let v=current(u);
  if(q.action==='publish'&&(role!=='rektor'||!control.mfaVerified))return error(403,role!=='rektor'?'forbidden':'mfa_required');
  if((q.action==='publish'||q.action==='discard_draft')&&v?.status!=='draft')fail('tjanst_published_meanwhile');
- if(q.action==='publish'&&(q.expectedContentHash!==v!.contentHash||u.blockers.length))fail('tjanst_content_changed');
+ if(q.action==='publish'&&(q.expectedContentHash!==v!.contentHash||allBlockers(u).length))fail('tjanst_content_changed');
  if(v?.status!=='draft'){
   const d=clone(content(u));
   for(const item of [...d.rows,...d.specials,...d.joints]){const old=item.id;item.id=crypto.randomUUID();ids.set(old,item.id);}
@@ -286,7 +297,14 @@ async function apply(original:Unit,raw:unknown):Promise<Reply>{
   for(const item of p.items){addTeacher(item.choice.personId);if(item.kind==='row')d.rows.find(r=>r.id===id(item.id))!.personId=item.choice.personId;else d.specials.find(s=>s.id===id(item.id))!.personId=item.choice.personId;}
   for(const j of m.joints)d.joints.find(x=>x.id===id(j.id))!.teachers=clone(j.teachers);
  }else if(q.action==='bulk')for(const item of p.items){if(item.kind==='row')saveRow(item.payload);else saveSpecial(item.payload);}
- u.revision++;v!.contentHash=await tjanstHashCanonical({teachers:d.teachers,rows:d.rows,specials:d.specials,joints:d.joints});
+ else if(q.action==='save_sharing'){
+  const own=d.rows.filter(r=>r.sourceKey===p.sourceKey&&r.personId&&!r.jointGroupId);
+  if(d.rows.some(r=>r.sourceKey===p.sourceKey&&r.jointGroupId))fail('tjanst_sharing_joint');
+  if(new Set(own.map(r=>r.personId)).size<2)fail('tjanst_sharing_too_few');
+  if(!p.graderPersonIds.length||p.graderPersonIds.some((g:string)=>!own.some(r=>r.personId===g)))fail('tjanst_sharing_grader');
+  d.sharing=[...(d.sharing??[]).filter(x=>x.sourceKey!==p.sourceKey),{sourceKey:p.sourceKey,mode:p.mode,graderPersonIds:[...p.graderPersonIds].sort()}];
+ }else if(q.action==='clear_sharing'){if(!(d.sharing??[]).some(x=>x.sourceKey===p.sourceKey))fail('tjanst_invalid');d.sharing=(d.sharing??[]).filter(x=>x.sourceKey!==p.sourceKey);}
+ u.revision++;v!.contentHash=await tjanstHashCanonical({teachers:d.teachers,rows:d.rows,specials:d.specials,joints:d.joints,...(d.sharing?.length?{sharing:d.sharing}:{})});
  if(q.action==='publish'){for(const x of u.versions)if(x.status==='published')x.status='superseded';Object.assign(v!,{status:'published',publishedByName:'Rektor Syntetisk',publishedAt:'2026-10-24T09:30:00.000Z'});u.snapshots.set(v!.id,clone(d));u.draft=null;}
  if(q.action==='discard_draft'){v!.status='discarded';u.draft=null;}
  const result=parsePlanCommandReply({receipt:{commandId:q.commandId,action:q.action,versionId:v!.id,revision:u.revision,contentHash:v!.contentHash,replayed:false,changed:true},detail:read(u)},q);

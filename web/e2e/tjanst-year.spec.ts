@@ -140,7 +140,9 @@ test.describe('sammanhållen planering på dator',()=>{
   await expect.poll(()=>page.evaluate(()=>window.__tjanst.produced.length)).toBe(1);
   await ws(page).getByRole('region',{name:'Matris',exact:true}).getByRole('button',{name:'Cecilia Dahl, Matematik 1b, EK26: ingen tid. Tilldela.'}).click();
   await dialog(page).getByLabel('Lärartid HT (timmar)').fill('4');await choose(page,'David Ek');
-  await page.evaluate(()=>window.__tjanst.releaseProduced());await save(page);
+  await page.evaluate(()=>window.__tjanst.releaseProduced());
+  // 05.1-33 / D-31: David Ek blir andra lärare på Matematik 1b i EK26, så frågan om delning följer direkt.
+  const sharing=page.getByRole('dialog',{name:'Hur delar lärarna kursen?'});await expect(sharing).toBeVisible();await sharing.getByRole('button',{name:'Bestäm senare'}).click();await save(page);
   expect((await commands(page))[0].body.payload).toMatchObject({sourceKey:`class_timplan:${id(202)}:2026:MATMAT01b`,personId:id(104),teacherHt:240});
  });
  for(const first of ['row','bulk'])test(`okänd ${first}-skrivning spärrar båda skrivvägar tills status klarlagts`,async({page},info)=>{

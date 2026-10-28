@@ -37,11 +37,19 @@ export function needValue(ht: number | null, vt: number | null, term: TjanstTerm
 }
 export const termsText = (t: TjanstTermMinutes) => `HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)} · Läsår ${formatTime(t.ht + t.vt)}`;
 
-export type TjanstSummaryRow = { id: string; course: string; className: string; ht: number; vt: number; jointWith: string[] | null };
+export type TjanstSummaryRow = { id: string; course: string; className: string; ht: number; vt: number; jointWith: string[] | null;
+  /** 05.1-33: "Delas med … · En i taget/Samtidigt · Sätter betyg" när flera lärare har tid på behovet. */
+  sharing?: string | null };
 export type TjanstSummarySpecial = { id: string; kind: TjanstSpecialKind; label: string; group: string | null; ht: number; vt: number };
 type Props = { name: string; teaching: TjanstSummaryRow[]; specials: TjanstSummarySpecial[]; sums: TjanstTeacherSums; shareHere?: number | null;
   /** Kommentarer, kvittens eller annat som vyn lägger till efter sammanfattningen. */
   children?: ReactNode };
+
+/** Lärarens egen rad i en delning: "Delas med … · En i taget/Samtidigt" och om läraren sätter betyg. */
+export function sharingWith(mode: 'sequential' | 'concurrent' | null, colleagues: string[], grader: boolean) {
+  const how = mode === 'concurrent' ? 'Samtidigt' : mode === 'sequential' ? 'En i taget' : 'Delning inte angiven';
+  return `Delas med ${colleagues.join(', ')} · ${how}${grader ? ' · Sätter betyg' : ''}`;
+}
 
 const jointText = (classes: string[]) => `Samläsning med ${classes.join(', ')}`;
 export default function TjanstServiceSummary({ name, teaching, specials, sums, shareHere, children }: Props) {
@@ -58,9 +66,9 @@ export default function TjanstServiceSummary({ name, teaching, specials, sums, s
       <h3>Undervisning</h3>
       {teaching.length === 0 ? <p>Ingen undervisning i den här versionen.</p> : <>
         <Table className="tjanst-table tjanst-wide"><TableHeader><TableRow><TableHead scope="col">Kurs/ämne</TableHead><TableHead scope="col">Klass</TableHead><TableHead scope="col" className="tjanst-num">HT</TableHead><TableHead scope="col" className="tjanst-num">VT</TableHead></TableRow></TableHeader>
-          <TableBody>{teaching.map(row => <TableRow key={row.id}><TableCell className="tjanst-text"><span>{row.course}</span>{row.jointWith && <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>{jointText(row.jointWith)}</Badge>}</TableCell>
+          <TableBody>{teaching.map(row => <TableRow key={row.id}><TableCell className="tjanst-text"><span>{row.course}</span>{row.jointWith && <Badge variant="outline" className="tjanst-badge"><Link2 size={16} aria-hidden="true"/>{jointText(row.jointWith)}</Badge>}{row.sharing && <span className="tjanst-sharing-line">{row.sharing}</span>}</TableCell>
             <TableCell className="tjanst-text">{row.className}</TableCell><TableCell className="tjanst-num">{formatTime(row.ht)}</TableCell><TableCell className="tjanst-num">{formatTime(row.vt)}</TableCell></TableRow>)}</TableBody></Table>
-        <ul className="tjanst-cards">{teaching.map(row => <li key={row.id} className="protected-card"><strong>{row.course}</strong><span>{row.className}</span><span>HT {formatTime(row.ht)} · VT {formatTime(row.vt)}</span>{row.jointWith && <span>{jointText(row.jointWith)}</span>}</li>)}</ul>
+        <ul className="tjanst-cards">{teaching.map(row => <li key={row.id} className="protected-card"><strong>{row.course}</strong><span>{row.className}</span><span>HT {formatTime(row.ht)} · VT {formatTime(row.vt)}</span>{row.jointWith && <span>{jointText(row.jointWith)}</span>}{row.sharing && <span className="tjanst-sharing-line">{row.sharing}</span>}</li>)}</ul>
       </>}
       <h3>Specialuppdrag</h3>
       {specials.length === 0 ? <p>Inga specialuppdrag ännu.</p> : <>

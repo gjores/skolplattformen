@@ -369,6 +369,12 @@ test('55000 ger AuditUnavailable; svar med annan aktör än sessionen ger AuditU
   reset2('larare'); state.sqlError = { code: '22023', hint: 'tjanst_joint_teacher_mismatch', message: 'private' };
   const mixed = await post('egen/kommando', comment);
   assert.equal(mixed.status, 400); assert.equal((await mixed.json()).details.reason, 'tjanst_joint_teacher_mismatch');
+  // 05.1-33 / D-31: delningsfelen når klienten som egna orsaker.
+  for (const hint of ['tjanst_sharing_joint', 'tjanst_sharing_too_few', 'tjanst_sharing_grader']) {
+    reset2('larare'); state.sqlError = { code: '22023', hint, message: 'private' };
+    const shared = await post('egen/kommando', comment);
+    assert.equal(shared.status, 400); assert.equal((await shared.json()).details.reason, hint);
+  }
 });
 
 test('security_events-detaljer för comment innehåller ingen kommentarstext', async () => {

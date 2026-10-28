@@ -942,6 +942,11 @@ test.describe('fördela delvis',()=>{
   await queueOf(page).getByRole('button',{name:'Historia 1 · MA3'}).focus();await page.keyboard.press('1');
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);
   expect(sent[0].body.payload.personId).not.toBe('51a50000-0000-4000-8000-000000001117');expect(sent[0].body.payload.rowId).toBeNull();
+  // 05.1-33 / D-31: den andra läraren på behovet ger frågan om delning direkt; Bestäm senare lämnar hindret.
+  const sharing=page.getByRole('dialog',{name:'Hur delar lärarna kursen?'});await expect(sharing).toBeVisible();
+  await expect(sharing.getByText('Historialärare3: HT 50 h · VT 25 h')).toBeVisible();
+  await sharing.getByRole('button',{name:'Bestäm senare'}).click();await expect(sharing).toHaveCount(0);
+  expect((await commands(page)).filter(c=>c.body.action==='save_sharing')).toHaveLength(0);
   expect(errors).toEqual([]);
  });
 });
@@ -953,5 +958,122 @@ test.describe('fördela telefon',()=>{
   await expect(queueOf(page).getByRole('listitem')).toHaveText(['MA1Fysik 1 · MA1','MA2Kemi 1 · MA2']);
   await expect(fordela(page).getByRole('button')).toHaveCount(0);
   await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-fordela-telefon.png`,fullPage:true});expect(errors).toEqual([]);
+ });
+});
+
+// 05.1-33 / D-31: flera lärare på samma behov.
+const ANNA='51a50000-0000-4000-8000-000000000101',BERTIL='51a50000-0000-4000-8000-000000000102',CECILIA='51a50000-0000-4000-8000-000000000103';
+const sharingDialog=(page:Page)=>page.getByRole('dialog',{name:'Hur delar lärarna kursen?'});
+const sharingSent=async(page:Page)=>(await commands(page)).filter(c=>c.body.action==='save_sharing'||c.body.action==='clear_sharing');
+const rowOf=(page:Page,label:RegExp)=>matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:label})});
+test.describe('delning',()=>{
+ test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Delningen anges på dator (D-15).');});
+ test('andra läraren ger frågan; en i taget summerar, samtidigt räknas en gång; betygssättare',async({page},info)=>{
+  const errors=await open(page);
+  await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
+  await expect(ws(page).getByText('Tjänsteraden är sparad: Cecilia Dahl, Matematik 1c, TE26A, HT 50 h · VT 50 h.')).toBeVisible();
+  // En lärare: ingen fråga och inget märke.
+  await expect(sharingDialog(page)).toHaveCount(0);await expect(rowOf(page,/^Matematik 1c/).locator('.tjanst-badge')).toHaveCount(0);
+  await matrix(page).getByRole('button',{name:'Anna Andersson, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
+  // Behovet är redan täckt: tiden förifylls inte, utan anges för den andra läraren.
+  await page.getByRole('dialog').getByLabel('Lärartid HT (timmar)').fill('50');await page.getByRole('dialog').getByLabel('Lärartid VT (timmar)').fill('50');
+  await page.getByRole('dialog').getByRole('button',{name:'Välj Anna Andersson',exact:true}).click();
+  const dialog=sharingDialog(page);await expect(dialog).toBeVisible();
+  await expect(dialog.getByText('Cecilia Dahl: HT 50 h · VT 50 h')).toBeVisible();await expect(dialog.getByText('Anna Andersson: HT 50 h · VT 50 h')).toBeVisible();
+  await expect(dialog.getByText('Behörighetsunderlag saknas',{exact:false})).toBeVisible();
+  // Inget förval av form; betygsrutorna är spärrade tills formen är vald.
+  for(const r of await dialog.getByRole('radio').all())await expect(r).not.toBeChecked();
+  await expect(dialog.getByRole('checkbox',{name:'Anna Andersson'})).toBeDisabled();
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();
+  await expect(dialog.getByRole('alert')).toHaveText('Välj hur lärarna delar kursen.');expect(await sharingSent(page)).toEqual([]);
+  // En i taget: båda har tid VT (sista terminen med tid), så båda förvalda som betygssättare.
+  await dialog.getByRole('radio',{name:/^En i taget/u}).check();
+  await expect(dialog.getByRole('checkbox',{name:'Anna Andersson'})).toBeChecked();await expect(dialog.getByRole('checkbox',{name:'Cecilia Dahl'})).toBeChecked();
+  await dialog.getByRole('checkbox',{name:'Anna Andersson'}).uncheck();await dialog.getByRole('checkbox',{name:'Cecilia Dahl'}).uncheck();
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();
+  await expect(dialog.getByRole('alert')).toHaveText('Välj minst en lärare som sätter betyg.');expect(await sharingSent(page)).toEqual([]);
+  await dialog.getByRole('checkbox',{name:'Cecilia Dahl'}).check();
+  await page.screenshot({path:`${SHOTS}/${info.project.name}-delning-dialog.png`});
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();
+  await expect(ws(page).getByText('Delningen är sparad: En i taget. Sätter betyg: Cecilia Dahl.',{exact:false})).toBeVisible();await expect(dialog).toHaveCount(0);
+  let sent=await sharingSent(page);expect(sent).toHaveLength(1);
+  expect(sent[0].body.payload).toMatchObject({sourceKey:expect.stringMatching(/:MATMAT01c$/u),mode:'sequential',graderPersonIds:[CECILIA]});
+  // En i taget: 100 + 100 mot behovet 100 h.
+  await expect(rowOf(page,/^Matematik 1c/).locator('.tjanst-deviation')).toHaveText('+100 h');
+  const badge=matrix(page).getByRole('button',{name:'Två lärare · en i taget: ange hur lärarna delar Matematik 1c i TE26A'});await expect(badge).toBeVisible();
+  // Ändra via märket: samtidigt räknar behovet en gång, och båda lärarna behåller hela tiden.
+  await badge.click();await expect(dialog.getByRole('radio',{name:/^En i taget/u})).toBeChecked();await expect(dialog.getByRole('checkbox',{name:'Cecilia Dahl'})).toBeChecked();
+  await dialog.getByRole('radio',{name:/^Samtidigt i samma grupp/u}).check();
+  await expect(dialog.getByRole('checkbox',{name:'Anna Andersson'})).not.toBeChecked();
+  await dialog.getByRole('checkbox',{name:'Anna Andersson'}).check();
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();
+  await expect(ws(page).getByText('Delningen är sparad: Samtidigt i samma grupp.',{exact:false})).toBeVisible();
+  sent=await sharingSent(page);expect(sent[1].body.payload.mode).toBe('concurrent');expect([...sent[1].body.payload.graderPersonIds].sort()).toEqual([ANNA,CECILIA]);
+  await expect(rowOf(page,/^Matematik 1c/).locator('.tjanst-deviation')).toHaveCount(0);
+  await expect(matrix(page).getByRole('button',{name:'Två lärare · samtidigt: ange hur lärarna delar Matematik 1c i TE26A'})).toBeFocused();
+  await expect(footer(page,'Undervisning','Cecilia Dahl')).toHaveText('100 h');
+  // Per klass och Per kurs/ämne visar formen och betygssättarna.
+  await ws(page).getByRole('tab',{name:'Per klass'}).click();await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});
+  const math=ws(page).getByRole('region',{name:'Per klass'}).getByRole('row').filter({hasText:'Matematik 1c'});
+  await expect(math.locator('.tjanst-sharing-line')).toHaveText('Två lärare · samtidigt · Sätter betyg: Anna Andersson, Cecilia Dahl');
+  await ws(page).getByRole('tab',{name:'Per lärare'}).click();
+  await ws(page).getByRole('region',{name:'Per lärare'}).getByLabel('Lärare',{exact:true}).selectOption({label:'Cecilia Dahl'});
+  await expect(ws(page).getByRole('region',{name:'Per lärare'}).getByRole('row').filter({hasText:'Matematik 1c'})).toContainText('Delas med Anna Andersson · Samtidigt · Sätter betyg');
+  await noOverflow(page);expect(errors).toEqual([]);
+ });
+ test('Bestäm senare ger hindret; märket utan delning; ta bort delningen',async({page})=>{
+  const errors=await open(page,'?delning=saknas');
+  const badge=matrix(page).getByRole('button',{name:'Två lärare utan angiven delning: ange hur lärarna delar Engelska 5 i TE26A'});
+  await expect(badge).toBeVisible();
+  await ws(page).getByRole('button',{name:'Fastställ och publicera',exact:true}).click();
+  const panel=ws(page).getByRole('region',{name:'Fastställ och publicera'});
+  await expect(panel.getByRole('listitem').filter({hasText:'utan angiven delning'})).toContainText('Ange om de undervisar en i taget eller samtidigt.');
+  await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeDisabled();
+  await badge.click();const dialog=sharingDialog(page);
+  await expect(dialog.getByRole('button',{name:'Ta bort delningen'})).toHaveCount(0);
+  await dialog.getByRole('button',{name:'Bestäm senare'}).click();await expect(dialog).toHaveCount(0);await expect(badge).toBeFocused();
+  expect(await sharingSent(page)).toEqual([]);
+  // En i taget: Bertil har tiden VT och förvalds som betygssättare. Servern kan neka (till exempel om raden ändrats under tiden).
+  await badge.click();await dialog.getByRole('radio',{name:/^En i taget/u}).check();
+  await expect(dialog.getByRole('checkbox',{name:'Bertil Berg'})).toBeChecked();await expect(dialog.getByRole('checkbox',{name:'Anna Andersson'})).not.toBeChecked();
+  await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:400,code:'tjanst_sharing_grader'}));
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();
+  await expect(dialog).toContainText('Den som sätter betyg måste vara en av lärarna med tid på kursen.');
+  await expect(dialog.getByRole('radio',{name:/^En i taget/u})).toBeChecked();
+  await dialog.getByRole('button',{name:'Spara delningen'}).click();await expect(dialog).toHaveCount(0);
+  const done=matrix(page).getByRole('button',{name:'Två lärare · en i taget: ange hur lärarna delar Engelska 5 i TE26A'});await expect(done).toBeVisible();
+  await expect(panel.getByRole('listitem').filter({hasText:'utan angiven delning'})).toHaveCount(0);
+  await done.click();await dialog.getByRole('button',{name:'Ta bort delningen'}).click();
+  await expect(ws(page).getByText('Delningen är borttagen. Ange en ny delning före publicering.')).toBeVisible();
+  const sent=await sharingSent(page);expect(sent.at(-1)!.body).toMatchObject({action:'clear_sharing',payload:{sourceKey:expect.stringMatching(/:ENGENG05$/u)}});
+  await expect(badge).toBeVisible();
+  for(const b of [badge])expect((await b.boundingBox())!.height).toBeGreaterThanOrEqual(24);
+  expect(errors).toEqual([]);
+ });
+ test('tangentbord: frågan får fokus, Escape stänger och fokus återgår',async({page})=>{
+  const errors=await open(page,'?delning=saknas');
+  const badge=matrix(page).getByRole('button',{name:'Två lärare utan angiven delning: ange hur lärarna delar Engelska 5 i TE26A'});
+  await badge.focus();await page.keyboard.press('Enter');
+  const dialog=sharingDialog(page);await expect(dialog).toBeVisible();
+  expect(await dialog.evaluate(d=>d.contains(document.activeElement))).toBe(true);
+  for(const l of await dialog.locator('.tjanst-sharing-mode, .mandate-check').all())expect((await l.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.keyboard.press('Escape');await expect(dialog).toHaveCount(0);await expect(badge).toBeFocused();
+  expect(errors).toEqual([]);
+ });
+ test('samläsning: två lärare i en samläsning får ingen delningsfråga',async({page})=>{
+  const errors=await open(page,'?data=samlasning');
+  await expect(rowOf(page,/^Svenska 1/).locator('.tjanst-badge').filter({hasText:'Två lärare'})).toHaveCount(0);
+  expect(errors).toEqual([]);
+ });
+});
+test.describe('delning telefon',()=>{
+ test.beforeEach(({},info)=>{test.skip(desktop(info.project.name),'Telefonprov.');});
+ test('Per klass visar formen och betygssättaren i läsläge',async({page},info)=>{
+  const errors=await open(page);
+  await ws(page).getByLabel('Vy').selectOption({label:'Per klass'});await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});
+  const card=ws(page).getByRole('region',{name:'Per klass'}).locator('.tjanst-cards li').filter({hasText:'Engelska 5'});
+  await expect(card.locator('.tjanst-sharing-line')).toHaveText('Två lärare · en i taget · Sätter betyg: Bertil Berg');
+  await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-delning-telefon.png`,fullPage:true});expect(errors).toEqual([]);
  });
 });

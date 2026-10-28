@@ -22,6 +22,8 @@ import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
 import TjanstLensBar from './tjanst-lens-bar';
 import TjanstAllocation from './tjanst-allocation';
+import TjanstSharingDialog, { SHARING_LABEL } from './tjanst-sharing-dialog';
+import { needTeachers, sharedNeedState } from '@/lib/tjanst-model.ts';
 import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
 import './tjanst.css';
 
@@ -43,6 +45,7 @@ type Dialog =
   | { kind: 'joint'; rowIds: string[]; jointId: string | null }
   | { kind: 'batch'; mode: 'move' | 'bulk' }
   | { kind: 'addTeacher' } | { kind: 'newTeacher' }
+  | { kind: 'sharing'; sourceKey: string }
   | { kind: 'confirm'; confirm: 'removeTeacher' | 'deleteRow' | 'deleteSpecial' | 'discard' | 'dissolve' | 'publish'; id: string };
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
@@ -92,6 +95,10 @@ const REASONS: Record<string, string> = {
   // WR-02: en samläst rad behåller lärare och källa och kan inte tas bort så länge samläsningen finns.
   tjanst_joint_already: 'Raden ingår i en samläsning. Ändra eller lös upp samläsningen först.',
   tjanst_joint_teacher_mismatch: 'En samläsning ska ha samma lärare för alla klasser. Byt lärare på raderna eller använd Flytta uppdrag först.',
+  // 05.1-33 / D-31: delning mellan lärare på samma behov.
+  tjanst_sharing_joint: 'Kursen ingår i en samläsning och kan inte få en delning mellan lärare.',
+  tjanst_sharing_too_few: 'Delningen kräver minst två lärare med tid på kursen i klassen. Hämta aktuellt läge.',
+  tjanst_sharing_grader: 'Den som sätter betyg måste vara en av lärarna med tid på kursen.',
 };
 type Op = 'write' | 'publish' | 'personal';
 const failed = (error: string, extra: Partial<TjanstFailure> = {}): TjanstFailure => ({ ok: false, error, ...extra });
@@ -133,7 +140,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     // Under ett pågående kommando ritas cellerna utan knappar (inte redigerbara); vänta så att rätt cell kan hittas igen.
     if (!target || reading.current || running.current) return;
     // En cell ritas utan knapp medan arbetsytan inte är redigerbar. Vänta då på knappen i stället för att tappa fokus till rubriken.
-    const cell = target.isConnected ? target : focusCell.current();
+    // 05.1-33: delningsmärket ritas om när formen ändras; det hittas igen med sin nyckel.
+    const keyed = !target.isConnected && target.dataset.focusKey ? document.querySelector<HTMLElement>(`[data-focus-key="${CSS.escape(target.dataset.focusKey)}"]`) : null;
+    if (!target.isConnected && target.dataset.focusKey && !keyed && !editableNow.current) return;
+    const cell = target.isConnected ? target : keyed ?? focusCell.current();
     if (!cell && originCell.current && !editableNow.current) return;
     const resolved = cell ?? viewHeading.current;
     if (!resolved || resolved.closest('[inert]')) return;
@@ -341,6 +351,20 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const feedback = !versionId && !readOnly ? feedbackProp ?? data?.feedback : undefined;
   const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !checking && !pendingCheck && !recovering;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
+  // 05.1-33 / D-31: när en andra lärare får tid på ett behov frågar arbetsytan direkt hur lärarna delar kursen.
+  // Frågan väntar tills omläsningen visar den nya lärarens rad; en lärare som redan hade tid på behovet ger ingen fråga.
+  const [askSharing, setAskSharing] = useState<{ sourceKey: string; personId: string } | null>(null);
+  function askSharingFor(change: TjanstPreparedChange) {
+    if (change.action !== 'save_row' || change.payload.personId === null || !data) return;
+    if (!needTeachers(change.payload.sourceKey, data.rows).includes(change.payload.personId)) setAskSharing({ sourceKey: change.payload.sourceKey, personId: change.payload.personId });
+  }
+  useEffect(() => {
+    if (!askSharing || !data || loading || dialog || !can('save_sharing')) return;
+    const { sourceKey, personId } = askSharing;
+    if (!needTeachers(sourceKey, data.rows).includes(personId)) return;
+    queueMicrotask(() => setAskSharing(null));
+    if (sharedNeedState(sourceKey, data.rows, data.sharing) === 'unspecified') queueMicrotask(() => open({ kind: 'sharing', sourceKey }, document.activeElement instanceof HTMLElement ? document.activeElement : null));
+  });
   useLayoutEffect(() => { editableNow.current = editable; });
   useEffect(() => { if (!loading && !busy) requestAnimationFrame(applyFocus); }, [loading, readDone, busy, editable, applyFocus]);
   const shownView: TjanstView = phone && view === 'matris' ? (data?.teachers.length ? 'larare' : 'klass') : view;
@@ -497,10 +521,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
           onCell={(target, from) => open({ kind: 'row', target: vacantTarget(target) }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
+          onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
-          onSave={(change, message) => sendPrepared(change, () => message)}/>
+          onSave={async (change, message) => { const outcome = await sendPrepared(change, () => message); if (outcome.ok) askSharingFor(change); return outcome; }}/>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
       : shownView === 'special' ? <TjanstSpecialView data={data} editable={can('save_special')} onEdit={(special, from) => open({ kind: 'special', special }, from)}/>
@@ -522,6 +547,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         if (change.action !== 'save_row') return failed('Tjänsteraden kunde inte kontrolleras.');
         const payload = change.payload, who = payload.personId === null ? 'Vakant' : support.candidates.find(p => p.personId === payload.personId)?.displayName ?? dialogData.teachers.find(t => t.personId === payload.personId)?.displayName ?? 'Läraren';
         const result = await sendPrepared(change, () => `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(payload.teacherHt)} · VT ${formatTime(payload.teacherVt)}.`);
+        if (result.ok) askSharingFor(change);
         return !result.ok && result.code === 'tjanst_duplicate_row' ? { ...result, error: `${who} har redan en rad för ${dialogEntry.need.label} i ${dialogEntry.cls.name}. Ändra den befintliga raden.` } : result;
       }}/>}
     {!phone && dialogData && dialog?.kind === 'special' && support?.mode === 'catalog' && <TjanstSpecialDialog {...base} key={dialog.special?.id ?? 'ny'} data={dialogData} special={dialog.special} candidates={support.candidates} onChoice={acceptCatalog}
@@ -530,6 +556,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       rows={dialog.rowIds.map(id => dialogData.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r)} onClose={() => close()}
       onSave={async draft => { const outcome = await plan('save_joint', { jointId: dialog.jointId, name: draft.name, rowIds: dialog.rowIds, teachers: draft.teachers }, () => `Samläsningen ${draft.name} är sparad. Lärartiden räknas en gång och klasserna ${[...new Set(dialog.rowIds.map(id => rowName(dialogData.rows.find(r => r.id === id)!).cls))].join(' och ')} visas som täckta.`); if (outcome.ok) setMarked([]); return outcome; }}/>
     }
+    {!phone && dialogData && dialog?.kind === 'sharing' && support?.mode === 'catalog' && <TjanstSharingDialog {...base} key={dialog.sourceKey} data={dialogData} sourceKey={dialog.sourceKey}
+      title={(() => { const cls = dialogData.classes.find(c => c.needs.some(n => n.sourceKey === dialog.sourceKey)); const need = cls?.needs.find(n => n.sourceKey === dialog.sourceKey); return `${need?.label ?? ''} · ${cls?.name ?? ''}`; })()}
+      onClose={() => close()}
+      onSave={(mode, graderPersonIds) => plan('save_sharing', { sourceKey: dialog.sourceKey, mode, graderPersonIds }, () => `Delningen är sparad: ${SHARING_LABEL[mode]}. Sätter betyg: ${graderPersonIds.map(id => dialogData.teachers.find(t => t.personId === id)?.displayName ?? 'Okänd lärare').join(', ')}.`)}
+      onClear={() => plan('clear_sharing', { sourceKey: dialog.sourceKey }, () => 'Delningen är borttagen. Ange en ny delning före publicering.')}/>}
     {!phone && dialogData && dialog?.kind === 'addTeacher' && support?.mode === 'catalog' && <TjanstAddTeacherDialog {...base} data={dialogData} candidates={support.candidates} onChoice={acceptCatalog} onClose={() => close()}
       onNewTeacher={context.function === 'rektor' ? () => open({ kind: 'newTeacher' }, origin.current) : undefined} onSave={(person, name) => plan('add_teacher', { personId: person }, () => `${name} är tillagd i fördelningen.`)}/>}
     {!phone && dialogData && dialog?.kind === 'newTeacher' && <TjanstNewTeacherDialog {...base} schoolName={dialogData.schoolName} onClose={() => close()} onSave={newTeacher}/>}
