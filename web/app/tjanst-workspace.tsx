@@ -60,7 +60,9 @@ function readLocation(): { view: TjanstView; term: TjanstTermView; saved: Saved 
   const q = new URLSearchParams(window.location.search), view = q.get('tjvy'), term = q.get('termin');
   const s = window.history.state?.tjanst as Partial<Saved> | undefined;
   const merged = s?.filter && typeof s.filter === 'object' ? { ...EMPTY_FILTER, ...s.filter } : EMPTY_FILTER;
-  const filter = TJANST_LENSES.some(l => l.id === merged.lens) ? merged : { ...merged, lens: EMPTY_FILTER.lens };
+  const known = TJANST_LENSES.some(l => l.id === merged.lens) ? merged : { ...merged, lens: EMPTY_FILTER.lens };
+  // 05.1-34: en adress direkt till Fördela utan sparat filter öppnar med Ofördelat.
+  const filter = view === 'fordela' && !s?.filter ? { ...known, lens: 'ofordelat' as const } : known;
   return { view: VIEWS.some(v => v.id === view) ? view as TjanstView : 'matris', term: term === 'ht' || term === 'vt' ? term : 'ar',
     saved: { filter, classId: typeof s?.classId === 'string' ? s.classId : '', personId: typeof s?.personId === 'string' ? s.personId : '' } };
 }
@@ -334,7 +336,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     window.addEventListener('popstate', pop);
     return () => window.removeEventListener('popstate', pop);
   }, []);
-  function chooseView(next: TjanstView) { if (next === view) return; setView(next); setMarkError(null); writeLocation(next, term, savedRef.current, 'push'); }
+  // 05.1-34: Fördela öppnar med linsen Ofördelat; Alla behov väljs uttryckligen (till exempel för en andra lärare).
+  function chooseView(next: TjanstView) {
+    if (next === view) return;
+    const saved = next === 'fordela' && savedRef.current.filter.lens === 'alla' ? { ...savedRef.current, filter: { ...savedRef.current.filter, lens: 'ofordelat' as const } } : savedRef.current;
+    if (saved !== savedRef.current) setFilter(saved.filter);
+    setView(next); setMarkError(null); writeLocation(next, term, saved, 'push');
+  }
   // 05.1-27: kursnamn och samläsningsmärke leder till Per kurs/ämne. Kursen filtreras på kurskod; samläsningen fokuseras.
   const [focusJoint, setFocusJoint] = useState<string | null>(null);
   const clearFocusJoint = useCallback(() => setFocusJoint(null), []);
@@ -523,7 +531,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           onCell={(target, from) => open({ kind: 'row', target: vacantTarget(target) }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
-      : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
+      : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
           onSave={async (change, message) => { const outcome = await sendPrepared(change, () => message); if (outcome.ok) askSharingFor(change); return outcome; }}/>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>

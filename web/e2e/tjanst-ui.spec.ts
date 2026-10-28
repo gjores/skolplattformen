@@ -1077,3 +1077,32 @@ test.describe('delning telefon',()=>{
   await noOverflow(page);await page.screenshot({path:`${SHOTS}/${info.project.name}-delning-telefon.png`,fullPage:true});expect(errors).toEqual([]);
  });
 });
+
+// 05.1-34: Fördelas kö följer linsen; en vakant rad på ett täckt behov är överflödig, inte ofördelad (användarbeslut 2026-10-29).
+test.describe('fördela lins',()=>{
+ test.beforeEach(({},info)=>{test.skip(!desktop(info.project.name),'Lärare väljs bara på dator (D-15).');});
+ test('Fördela öppnar med Ofördelat; Alla behov visar fördelade med status; överflödig vakant rad varnas men köas inte',async({page},info)=>{
+  const errors=await open(page,'?vakant=1');
+  const math=matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:/^Matematik 1b/})});
+  await expect(math.getByText('Överflödig vakant rad')).toBeVisible();
+  await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('alla');
+  await ws(page).getByRole('tab',{name:'Fördela'}).click();
+  await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
+  const open_=fordela(page).getByRole('list',{name:'Ofördelade behov'});
+  await expect(open_.getByRole('button',{name:/^Matematik 1b · EK26/u})).toHaveCount(0);
+  await expect(open_.getByRole('button',{name:/^Matematik 1c · TE26A/u})).toBeVisible();
+  await expect(open_.getByText('Fördelat')).toHaveCount(0);
+  await ws(page).getByLabel('Lins',{exact:true}).selectOption('alla');
+  const all=fordela(page).getByRole('list',{name:'Behov'});
+  await expect(all.getByRole('button',{name:'Matematik 1b · EK26 · Fördelat · överflödig vakant rad'})).toBeVisible();
+  await expect(all.getByRole('button',{name:'Engelska 5 · TE26A · Fördelat'})).toBeVisible();
+  await expect(fordela(page).getByText(/^\d+ behov · \d+ ofördelade$/u)).toBeVisible();
+  // Första valet är fortfarande ett ofördelat behov.
+  await expect(fordela(page).getByRole('heading',{name:'Matematik 1c · TE26A'})).toBeVisible();
+  await page.screenshot({path:`${SHOTS}/${info.project.name}-fordela-alla-behov.png`});
+  // Ett fördelat behov kan väljas under Alla behov, till exempel för en andra lärare.
+  await all.getByRole('button',{name:'Engelska 5 · TE26A · Fördelat'}).click();
+  await expect(fordela(page).getByRole('heading',{name:'Engelska 5 · TE26A'})).toBeVisible();
+  await noOverflow(page);expect(errors).toEqual([]);
+ });
+});

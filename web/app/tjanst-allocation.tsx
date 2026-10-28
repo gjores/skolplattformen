@@ -8,6 +8,7 @@ import type { TjanstYearCandidate, TjanstYearReply, TjanstYearRowReply } from '@
 import { createYearRowEditor, selectYearTeacher, sortYearSuggestions, yearCandidatePeriod, yearEvidenceLabel, yearRecommendationMessage, yearRowSavePayload,
   YEAR_QUALIFICATION_LABEL } from '@/lib/tjanst-year-model.ts';
 import { allocationQueue, candidateTotals, nextAfter, type TjanstQueueGroupBy, type TjanstQueueItem } from '@/lib/tjanst-queue.ts';
+import type { TjanstLensId } from '@/lib/tjanst-lens.ts';
 import { courseCode, rowTime, type TjanstClassGroup } from './tjanst-matrix';
 import { hoursInput, parseHours, type TjanstFailure, type TjanstOutcome, type TjanstPreparedChange } from './tjanst-dialogs';
 import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-summary';
@@ -18,6 +19,8 @@ import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-sum
  * val (D-29) och sparar raden direkt; inget är förvalt. Summorna är fördelad tid, inte ledig kapacitet (D-10).
  */
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTermView; editable: boolean; phone: boolean;
+  /** 05.1-34: kön följer linsen. Ofördelat ger bara ofördelade behov; Alla behov ger också fördelade (till exempel för en andra lärare). */
+  lens?: TjanstLensId;
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
   onSave: (change: TjanstPreparedChange, message: string) => Promise<TjanstOutcome>; onOpenCourse: (code: string) => void };
 type Pick = { key: string; person: TjanstYearCandidate; selection: { kind: 'suggestion'; suggestionId: string } | { kind: 'manual'; personId: string }; reasons: string[] };
@@ -26,15 +29,15 @@ type Existing = { person: TjanstYearCandidate; time: { ht: number; vt: number } 
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
 
-export default function TjanstAllocation({ data, groups, term, editable, phone, loadSupport, onSave, onOpenCourse }: Props) {
+export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', loadSupport, onSave, onOpenCourse }: Props) {
   const id = useId();
   const [groupBy, setGroupBy] = useState<TjanstQueueGroupBy>('klass'), [search, setSearch] = useState('');
-  const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search }), [groups, term, groupBy, search]);
+  const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search, lens }), [groups, term, groupBy, search, lens]);
   const [selectedKey, setSelectedKey] = useState<string | null>(null);
   const [saved, setSaved] = useState<string[]>([]);
   const previousQueue = useRef<TjanstQueueItem[]>(queue), pendingNext = useRef<{ key: string; revision: number } | null>(null);
   // Ett behov som just blev fördelat försvinner ur kön; panelen visar då första behovet tills nästa val är satt, så rubriken behåller fokus.
-  const selected = queue.find(i => i.sourceKey === selectedKey) ?? queue[0] ?? null;
+  const selected = queue.find(i => i.sourceKey === selectedKey) ?? queue.find(i => i.status === 'open') ?? queue[0] ?? null;
   const entry = selected ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === selected.sourceKey) ?? null : null;
   const vacantRow = entry?.rows.find(r => r.personId === null && r.jointGroupId === null) ?? null;
 
@@ -141,21 +144,25 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   const sameCourse = selected ? data.classes.flatMap(c => c.needs.filter(n => n.sourceKey !== selected.sourceKey && courseCode(n) === courseCode({ rowKey: data.classes.flatMap(x => x.needs).find(n2 => n2.sourceKey === selected.sourceKey)?.rowKey ?? '' })).map(n => ({ cls: c.name, need: n }))) : [];
   const ownTime = entry ? entry.rows.filter(r => r.personId !== null).reduce((s, r) => { const t = rowTime(r, data.joints); return { ht: s.ht + t.ht, vt: s.vt + t.vt }; }, { ht: 0, vt: 0 }) : { ht: 0, vt: 0 };
 
+  const onlyOpen = lens === 'ofordelat', openCount = queue.filter(i => i.status === 'open').length;
+  const status = (item: TjanstQueueItem) => item.status === 'allocated' ? <span className="tjanst-queue-status"> · Fördelat{item.surplusVacant ? ' · överflödig vakant rad' : ''}</span>
+    : item.status === 'unknown' ? <span className="tjanst-queue-status"> · Behov okänt</span> : null;
   const queueList = <div className="tjanst-queue">
     <div className="tjanst-queue-tools">
       <div className="tjanst-field"><label htmlFor={`${id}-qsok`}>Sök behov</label><input id={`${id}-qsok`} type="search" value={search} onChange={e => setSearch(e.target.value)}/></div>
       <div className="tjanst-field"><label htmlFor={`${id}-grupp`}>Gruppera</label><select id={`${id}-grupp`} value={groupBy} onChange={e => setGroupBy(e.target.value as TjanstQueueGroupBy)}><option value="klass">Per klass</option><option value="amne">Per ämne</option></select></div>
     </div>
-    <p className="tjanst-queue-count">{queue.length === 0 ? 'Inga ofördelade behov' : `${queue.length} ofördelade behov`}{saved.length ? ` · ${saved.length} fördelade nu` : ''}</p>
-    {queue.length > 0 && <ul aria-label="Ofördelade behov">{queue.map((item, i) => <li key={item.sourceKey}>
+    <p className="tjanst-queue-count">{onlyOpen ? queue.length === 0 ? 'Inga ofördelade behov' : `${queue.length} ofördelade behov`
+      : `${queue.length} behov · ${openCount} ofördelade`}{saved.length ? ` · ${saved.length} fördelade nu` : ''}</p>
+    {queue.length > 0 && <ul aria-label={onlyOpen ? 'Ofördelade behov' : 'Behov'}>{queue.map((item, i) => <li key={item.sourceKey}>
       {(i === 0 || queue[i - 1].group !== item.group) && <span className="tjanst-queue-group">{item.group}</span>}
-      {phone ? <span className="tjanst-queue-item">{item.label} · {item.className}</span>
+      {phone ? <span className="tjanst-queue-item">{item.label} · {item.className}{status(item)}</span>
         : <button type="button" id={`${id}-q-${item.sourceKey}`} className="tjanst-queue-item" aria-current={selected?.sourceKey === item.sourceKey ? 'true' : undefined}
-          onClick={() => { setSelectedKey(item.sourceKey); setFailure(null); }}>{item.label} · {item.className}</button>}
+          onClick={() => { setSelectedKey(item.sourceKey); setFailure(null); }}>{item.label} · {item.className}{status(item)}</button>}
     </li>)}</ul>}
   </div>;
 
-  if (phone) return <section className="tjanst-allocation tjanst-allocation-phone" aria-label="Fördela"><p>Här ser du ofördelade behov. Lärare väljs på dator.</p>{queueList}</section>;
+  if (phone) return <section className="tjanst-allocation tjanst-allocation-phone" aria-label="Fördela"><p>Här ser du {lens === 'ofordelat' ? 'ofördelade behov' : 'behoven'}. Lärare väljs på dator.</p>{queueList}</section>;
   return <section className="tjanst-allocation" aria-label="Fördela" ref={sectionRef}>
     <p className="tjanst-allocation-help">Välj ett behov i kön och välj lärare. Ett klick på <strong>Välj</strong> eller en siffra (1–9) sparar raden direkt, och kön går vidare. Inget är förvalt. <kbd>↑</kbd> <kbd>↓</kbd> byter behov, <kbd>V</kbd> väljer Vakant, <kbd>N</kbd> hoppar över och <kbd>/</kbd> söker lärare.</p>
     <div className="tjanst-allocation-grid">

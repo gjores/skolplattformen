@@ -26,11 +26,24 @@ test('gruppering per ämne och sökning i kurs, ämne och klass', () => {
   assert.equal(queueSubject('Svenska – Nivå 1'), 'Svenska');
 });
 
-test('vakant rad är ofördelad även när tiden är täckt; samläsning räknas genom täckningen en gång', () => {
+test('överflödig vakant rad är inte ofördelad; bara vakant är det; samläsning räknas genom täckningen en gång', () => {
   const g = [{ cls: { classId: uid(1), name: 'TE1', link }, entries: [
-    entry('v', 'Kemi 1', { rows: [{ personId: null, jointGroupId: null }], covered: [h(50), h(50)] }),
+    entry('v', 'Kemi 1', { rows: [{ personId: uid(9), jointGroupId: null }, { personId: null, jointGroupId: null }], covered: [h(50), h(50)] }),
+    entry('w', 'Fysik 1', { rows: [{ personId: null, jointGroupId: null }] }),
     entry('j', 'Svenska 1', { rows: [{ personId: uid(9), jointGroupId: uid(8) }], covered: [h(50), h(50)] })] }];
-  assert.deepEqual(allocationQueue(g, 'ar').map(i => i.sourceKey), ['v']);
+  assert.deepEqual(allocationQueue(g, 'ar').map(i => i.sourceKey), ['w']);
+  const all = allocationQueue(g, 'ar', { lens: 'alla' });
+  assert.deepEqual(all.map(i => [i.sourceKey, i.status, i.surplusVacant]), [['v', 'allocated', true], ['w', 'open', false], ['j', 'allocated', false]]);
+});
+
+test('kön följer linsen: Ofördelat bara ofördelade, Alla behov alla med status (05.1-34)', () => {
+  assert.deepEqual(allocationQueue(groups(), 'ar', { lens: 'ofordelat' }).map(i => i.sourceKey), ['a', 'c', 'd']);
+  assert.deepEqual(allocationQueue(groups(), 'ar', { lens: 'alla' }).map(i => [i.sourceKey, i.status]),
+    [['a', 'open'], ['b', 'allocated'], ['c', 'open'], ['d', 'open'], ['e', 'unknown']]);
+  // Under Alla behov ligger det fördelade behovet kvar; nästa val är första ofördelade behov.
+  const all = allocationQueue(groups(), 'ar', { lens: 'alla' }), saved = all.map(i => i.sourceKey === 'a' ? { ...i, status: 'allocated' } : i);
+  assert.equal(nextAfter(all, saved, 'a').sourceKey, 'c', 'hoppar över fördelade b');
+  assert.equal(nextAfter(all, saved.map(i => ({ ...i, status: 'allocated' })), 'a').sourceKey, 'b', 'inget ofördelat kvar: nästa behov');
 });
 
 test('nästa behov efter val: framåt, hoppar över det valda och börjar om vid slutet', () => {

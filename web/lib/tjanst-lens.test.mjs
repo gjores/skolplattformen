@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { EMPTY_LENS_PREFS, initials, teachersWithoutTeaching, lensMatches, lensStorageKey, readLensPrefs, unallocated, visibleTeachers, writeLensPrefs } from './tjanst-lens.ts';
+import { EMPTY_LENS_PREFS, initials, teachersWithoutTeaching, lensMatches, lensStorageKey, readLensPrefs, surplusVacant, unallocated, visibleTeachers, writeLensPrefs } from './tjanst-lens.ts';
 
 const uid = n => `51a20000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -25,11 +25,14 @@ test('lärare utan undervisning: ingen rad och ingen samläsning; specialuppdrag
   assert.deepEqual(teachersWithoutTeaching(T, [row(1, uid(1))], [joint]), [uid(2), uid(4)]);
 });
 
-test('Ofördelat: otäckt känt behov eller vakant rad; okänt behov är aldrig 0', () => {
+test('Ofördelat: otäckt känt behov, eller vakant rad på okänt behov; okänt behov är aldrig 0', () => {
   assert.equal(unallocated(entry([row(1, uid(1))]), 'ar'), false);
   assert.equal(unallocated(entry([row(1, uid(1))], h(20), h(20), { ht: h(20), vt: h(10) }), 'ar'), true);
   assert.equal(unallocated(entry([row(1, uid(1))], h(20), h(20), { ht: h(20), vt: h(10) }), 'ht'), false, 'terminen styr');
-  assert.equal(unallocated(entry([row(1, null)]), 'ar'), true, 'vakant rad');
+  assert.equal(unallocated(entry([row(1, null)], h(20), h(20), { ht: 0, vt: 0 }), 'ar'), true, 'bara vakant rad: lärartid saknas');
+  // 05.1-34: en vakant rad på ett behov som lärarna täcker är överflödig, inte ofördelad (användarbeslut 2026-10-29).
+  assert.equal(unallocated(entry([row(1, uid(1)), row(2, null)]), 'ar'), false, 'överflödig vakant rad');
+  assert.equal(unallocated(entry([row(1, null)], null, null, { ht: 0, vt: 0 }), 'ar'), true, 'vakant rad på okänt behov');
   assert.equal(unallocated(entry([], null, null, { ht: 0, vt: 0 }), 'ar'), false, 'okänt behov');
   assert.equal(unallocated(entry([], h(20), null, { ht: 0, vt: 0 }), 'vt'), false, 'okänd termin');
   assert.equal(unallocated(entry([], h(20), null, { ht: 0, vt: 0 }), 'ar'), true, 'en känd termin räcker för läsåret');
@@ -74,4 +77,12 @@ test('inställningar: trasig, främmande eller otillgänglig lagring ger standar
     { name: 'Fel filter', lens: 'alla', filter: { subject: 5 } }] };
   assert.deepEqual(readLensPrefs(memory({ [KEY]: JSON.stringify(stale) }), KEY, known), { pinned: [uid(1)], compact: false,
     saved: [{ name: 'Gammal', lens: 'ofordelat', filter: { classId: '', subject: '', personId: '', onlyIssues: true, course: '' }, showAll: true }] });
+});
+
+test('överflödig vakant rad: lärarna täcker hela det kända behovet båda terminerna och en vakant rad finns kvar (05.1-34)', () => {
+  assert.equal(surplusVacant(entry([row(1, uid(1)), row(2, null)])), true);
+  assert.equal(surplusVacant(entry([row(1, uid(1)), row(2, null)], h(20), h(20), { ht: h(20), vt: h(10) })), false, 'VT är inte täckt');
+  assert.equal(surplusVacant(entry([row(1, uid(1))])), false, 'ingen vakant rad');
+  assert.equal(surplusVacant(entry([row(2, null)], null, null, { ht: 0, vt: 0 })), false, 'okänt behov');
+  assert.equal(surplusVacant(entry([row(1, uid(1)), row(2, null)], h(20), null, { ht: h(20), vt: 0 })), true, 'okänd termin räknas inte');
 });

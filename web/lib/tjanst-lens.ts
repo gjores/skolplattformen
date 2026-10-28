@@ -18,10 +18,18 @@ const need = (e: TjanstLensEntry, term: TjanstLensTerm) => term === 'ht' ? e.nee
   : e.need.needHt === null && e.need.needVt === null ? null : (e.need.needHt ?? 0) + (e.need.needVt ?? 0);
 const covered = (e: TjanstLensEntry, term: TjanstLensTerm) => term === 'ht' ? e.cov.covered.ht : term === 'vt' ? e.cov.covered.vt : e.cov.covered.ht + e.cov.covered.vt;
 
-/** Ofördelat: känt behov som inte är täckt för vald termin, eller en vakant rad. Okänt behov räknas aldrig som 0. */
+/**
+ * Ofördelat: känt behov som lärarna inte täcker för vald termin, eller en vakant rad på ett behov vars storlek är okänd.
+ * Okänt behov räknas aldrig som 0. En vakant rad på ett behov som lärarna redan täcker är överflödig, inte ofördelad (05.1-34).
+ */
 export function unallocated(e: TjanstLensEntry, term: TjanstLensTerm): boolean {
   const n = need(e, term);
-  return e.rows.some(r => r.personId === null) || n !== null && covered(e, term) < n;
+  return n === null ? e.rows.some(r => r.personId === null) : covered(e, term) < n;
+}
+/** 05.1-34: en vakant rad finns kvar fast lärarna täcker hela det kända behovet båda terminerna. */
+export function surplusVacant(e: TjanstLensEntry): boolean {
+  if (!e.rows.some(r => r.personId === null && r.jointGroupId === null) || e.need.needHt === null && e.need.needVt === null) return false;
+  return (e.need.needHt === null || e.cov.covered.ht >= e.need.needHt) && (e.need.needVt === null || e.cov.covered.vt >= e.need.needVt);
 }
 export function lensMatches(e: TjanstLensEntry, lens: TjanstLensId, term: TjanstLensTerm): boolean {
   return lens === 'alla' || (lens === 'ofordelat' ? unallocated(e, term) : e.rows.some(r => r.jointGroupId !== null));

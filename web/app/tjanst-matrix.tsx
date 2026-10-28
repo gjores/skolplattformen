@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import type { TjanstClass, TjanstJoint, TjanstNeed, TjanstPlanRead, TjanstRow, TjanstTeacher } from '@/lib/tjanst-contract.ts';
 import { coverage, jointHasMixedTeachers, sharedNeedState, teacherSums, type TjanstCoverage, type TjanstJointWarnings, type TjanstSharedNeedState } from '@/lib/tjanst-model.ts';
 import { Users } from 'lucide-react';
-import { initials, lensMatches, type TjanstLensId } from '@/lib/tjanst-lens.ts';
+import { initials, lensMatches, surplusVacant, type TjanstLensId } from '@/lib/tjanst-lens.ts';
 import { formatDeviation, formatTime, needValue, TERM_LABEL, termValue, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 
 /** En behovsrad (kurs × klass) med sina tjänsterader och täckningen enligt tjanst-model (samläsning räknas en gång). */
@@ -173,7 +173,9 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                   const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
                   const content = <>{warn ? <TriangleAlert size={16} aria-hidden="true"/> : <Users size={16} aria-hidden="true"/>}{SHARING_BADGE[state]}</>;
                   return onOpenSharing ? <button type="button" data-focus-key={`sharing:${e.need.sourceKey}`} className={`${cls} tjanst-badge-button`} aria-label={`${SHARING_BADGE[state]}: ange hur lärarna delar ${e.need.label} i ${g.cls.name}`}
-                    onClick={event => onOpenSharing(e.need.sourceKey, event.currentTarget)}>{content}</button> : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</th>
+                    onClick={event => onOpenSharing(e.need.sourceKey, event.currentTarget)}>{content}</button> : <Badge variant="outline" className={cls}>{content}</Badge>; })()}
+                {surplusVacant(e) && <Badge variant="outline" className="tjanst-badge tjanst-badge-warning" title="Lärarna täcker hela behovet. Ta bort den vakanta raden i Vakant-kolumnen.">
+                  <TriangleAlert size={16} aria-hidden="true"/>Överflödig vakant rad</Badge>}</th>
               <td className="tjanst-num">{need === null ? 'Okänt' : time(need)}</td><td className="tjanst-num">{time(termValue(e.cov.covered, term))}</td>
               <td className={dev ? 'tjanst-num tjanst-deviation' : 'tjanst-num'}>{dev ? <span><TriangleAlert size={16} aria-hidden="true"/>{formatDeviation(dev)}</span> : null}</td>
               {teachers.map((t, c) => cell(c, t.personId))}{cell(teachers.length, null)}

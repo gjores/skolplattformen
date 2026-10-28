@@ -26,6 +26,8 @@ milestone_name: milestone
 
 # Project State
 
+**Rättelse 05.1-34 från användarprovet 2026-10-29:** Fördelas kö följer linsen och öppnar med *Ofördelat*. Under *Alla behov* visas fördelade behov märkta *Fördelat*, till exempel för en andra lärare. En vakant rad på ett behov som lärarna redan täcker räknas inte längre som ofördelad och märks *Överflödig vakant rad* (användarbeslut 2026-10-29). Bara klientlogik, ingen migration. Enhetsprov 1 234 PASS, simulerat UI 257 PASS (ett instabilt telefonbytesprov passerade 3/3 vid omkörning), handbok uppdaterad. Faktiskt prov och byte av 3012 återstår.
+
 **Plan 05.1-33 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-33-SUMMARY.md). Flera lärare på samma behov enligt D-31. Rektor väljer *En i taget* eller *Samtidigt* och anger *Sätter betyg*. Frågan visas när en andra lärare får tid, och utan angiven delning hindras publiceringen. Delningen gäller lärarna utanför samläsning; en modellkonflikt som provet hittade är rättad. Faktiskt prov på 09c0626 PASS 88/88. Migrationen är installerad efter användarens ja, och 3012 kör 09c0626. Nästa steg: användarprov av delningen på 3012.
 
 **Användarbeslut D-31 2026-10-28 (flerlärarskap):** Delningsform per behov. *En i taget* och *Samtidigt* kommer först, och *Klassen delas i två grupper* kommer senare med undervisningsgrupper. *Sätter betyg* registreras och förifylls. Två lärare utan delningsform är ett publiceringshinder. Ingen HR-fråga nu. [Research](research/FLERLARARSKAP-2026-10-28.md). Genomfört i 05.1-33.

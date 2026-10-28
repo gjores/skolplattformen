@@ -57,7 +57,8 @@ Med många lärare visar matrisen som standard bara **relevanta lärare**: de so
 - **Visa alla lärare (40)** visar alla kolumner. **Visa relevanta lärare** går tillbaka.
 - **Fäst lärare:** en fäst lärare visas alltid. Du fäster med nålen i lärarens kolumnrubrik, eller med **Fäst lärare**, där du kan söka.
 - **Kompakta kolumner** visar initialer och lärarens totala tid. Hela namnet visas när du pekar på eller går till kolumnen.
-- **Lins:** **Alla behov**, **Ofördelat** (känt behov som inte är täckt för vald tid, eller en vakant rad) och **Samläsningar**. Linsen gäller tillsammans med övriga filter. Okänt behov räknas inte som ofördelat.
+- **Lins:** **Alla behov**, **Ofördelat** (känt behov som lärarna inte täcker för vald tid) och **Samläsningar**. Linsen gäller tillsammans med övriga filter. Okänt behov räknas inte som ofördelat, utom när det har en vakant rad.
+- **Överflödig vakant rad:** om lärarna redan täcker hela behovet men en vakant rad finns kvar visar raden en varning. Behovet räknas då som fördelat. Ta bort den vakanta raden i kolumnen **Vakant**.
 - **Sparade linser:** spara aktuell lins, filter och kolumnval under ett namn. Med **Använd** visas linsen igen, och med **Ta bort lins** tas den bort.
 
 Behöver du en lärare som inte syns, välj cellen i kolumnen **Vakant** och sök läraren i dialogen, eller välj **Visa alla lärare**.
@@ -68,7 +69,7 @@ Fästa lärare, kompakta kolumner och sparade linser sparas bara i den här webb
 
 Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov efter varandra.
 
-- **Kön** till vänster visar ofördelade behov: känt behov som inte är täckt för vald tid, eller en vakant rad. Okänt behov ingår inte. Du kan söka och gruppera per klass eller per ämne. Filtren och linsen ovanför gäller också här.
+- **Kön** till vänster följer linsen. Fördela öppnar med linsen **Ofördelat**, och kön visar då bara ofördelade behov. Okänt behov ingår inte. Med **Alla behov** visar kön alla behov, och fördelade behov märks *Fördelat*. Det är där du hittar ett fördelat behov, till exempel för att lägga till en andra lärare. Du kan söka och gruppera per klass eller per ämne. Övriga filter gäller också här.
 - **Panelen** till höger visar det valda behovet:
   - behov enligt timplanen och det som redan är fördelat
   - förslag utifrån tidigare planering, med skäl och källa

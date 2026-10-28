@@ -53,6 +53,8 @@ function standardUnit():Unit{
  if(variant==='okand-tid'){te.needs[0].needHt=null;te.needs[0].needVt=null;}
  if(variant==='tom'){unit.revision=0;unit.versions=[];unit.snapshots=new Map();unit.draft=null;}
  if(variant==='samlasning'){draft.rows.push(row(307,C.te,te,'SVESVE01',P.anna,1200,1200,j1),row(308,C.ek,ek,'SVESVE01',P.anna,1200,1200,j1));draft.joints[0].rowIds.push(tid(307),tid(308));draft.joints[0].teachers.push({personId:P.anna,ht:1200,vt:1200});}
+ // 05.1-34: vakant=1 lägger en kvarglömd vakant rad på Matematik 1b i EK26, som Anna redan täcker helt.
+ if(params.get('vakant'))draft.rows.push(row(309,C.ek,ek,'MATMAT01b',null,600,600));
  if(variant==='batch'){unit.revision=0;unit.versions=[];unit.snapshots=new Map();unit.draft=null;unit.classes=[gy(C.te,'TE26A','Batchplan',2,Array.from({length:101},(_,n)=>need(C.te,`BATCH${String(n+1).padStart(3,'0')}`,`Behov ${String(n+1).padStart(3,'0')}`,60,60)))];}
  if(variant==='utan-uppdrag')unit.draft!.specials=[];
  if(variant==='utan-klasser'){unit.classes=[na];unit.draft={teachers,rows:[],specials:[],joints:[]};}

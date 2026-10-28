@@ -1,29 +1,37 @@
 // 05.1-30: fördelningsläge (behovsförst). Ren logik för kön med ofördelade behov och kandidaternas summor.
-// Kön använder samma regel som linsen Ofördelat (05.1-29); okänt behov ingår inte. Summorna är fördelad tid,
+// Kön följer linsen (05.1-34): Ofördelat ger samma regel som matrisens lins; okänt behov ingår då inte. Summorna är fördelad tid,
 // inte ledig kapacitet (D-10). Inget väljs automatiskt (D-25–D-27); ett namngivet val sparar direkt (D-29).
 import type { TjanstJoint, TjanstRow, TjanstSpecial, TjanstTermMinutes } from './tjanst-contract.ts';
 import { teacherSums } from './tjanst-model.ts';
-import { unallocated, type TjanstLensEntry, type TjanstLensTerm } from './tjanst-lens.ts';
+import { surplusVacant, unallocated, type TjanstLensEntry, type TjanstLensId, type TjanstLensTerm } from './tjanst-lens.ts';
 
 export type TjanstQueueGroupBy = 'klass' | 'amne';
 export type TjanstQueueEntry = TjanstLensEntry & { need: TjanstLensEntry['need'] & { sourceKey: string; label: string } };
 export type TjanstQueueGroupInput = { cls: { classId: string; name: string; link: unknown }; entries: TjanstQueueEntry[] };
-export type TjanstQueueItem = { sourceKey: string; classId: string; className: string; label: string; subject: string; group: string };
+/** open: ofördelat enligt linsregeln; allocated: täckt; unknown: behovet är okänt (bara under Alla behov och Samläsningar). */
+export type TjanstQueueStatus = 'open' | 'allocated' | 'unknown';
+export type TjanstQueueItem = { sourceKey: string; classId: string; className: string; label: string; subject: string; group: string; status: TjanstQueueStatus; surplusVacant: boolean };
 
 /** Ämnet i en behovsrad, samma regel som matrisens ämnesfilter. */
 export const queueSubject = (label: string) => label.includes(' – ') ? label.slice(0, label.indexOf(' – ')) : /^(.*?)(?:\s+\d.*)?$/u.exec(label)?.[1] || label;
 
-/** Ofördelade behov i klassordning (eller ämnesordning), filtrerade på sökord i kurs, ämne eller klass. */
-export function allocationQueue(groups: TjanstQueueGroupInput[], term: TjanstLensTerm, { groupBy = 'klass', search = '' }: { groupBy?: TjanstQueueGroupBy; search?: string } = {}): TjanstQueueItem[] {
+/**
+ * Behov i klassordning (eller ämnesordning), filtrerade på sökord i kurs, ämne eller klass. 05.1-34: kön följer linsen.
+ * Ofördelat ger bara ofördelade behov; Alla behov och Samläsningar ger alla behov i grupperna, med status per behov.
+ */
+export function allocationQueue(groups: TjanstQueueGroupInput[], term: TjanstLensTerm, { groupBy = 'klass', search = '', lens = 'ofordelat' }: { groupBy?: TjanstQueueGroupBy; search?: string; lens?: TjanstLensId } = {}): TjanstQueueItem[] {
   const q = search.trim().toLocaleLowerCase('sv');
   const items: TjanstQueueItem[] = [];
   for (const g of groups) {
     if (!g.cls.link) continue;
     for (const e of g.entries) {
-      if (!unallocated(e, term)) continue;
+      const open = unallocated(e, term);
+      if (lens === 'ofordelat' && !open) continue;
       const subject = queueSubject(e.need.label);
       if (q && ![e.need.label, subject, g.cls.name].some(v => v.toLocaleLowerCase('sv').includes(q))) continue;
-      items.push({ sourceKey: e.need.sourceKey, classId: g.cls.classId, className: g.cls.name, label: e.need.label, subject, group: groupBy === 'klass' ? g.cls.name : subject });
+      const known = e.need.needHt !== null || e.need.needVt !== null;
+      items.push({ sourceKey: e.need.sourceKey, classId: g.cls.classId, className: g.cls.name, label: e.need.label, subject, group: groupBy === 'klass' ? g.cls.name : subject,
+        status: open ? 'open' : known ? 'allocated' : 'unknown', surplusVacant: surplusVacant(e) });
     }
   }
   if (groupBy === 'amne') items.sort((a, b) => a.subject.localeCompare(b.subject, 'sv') || a.className.localeCompare(b.className, 'sv') || a.label.localeCompare(b.label, 'sv'));
@@ -37,8 +45,10 @@ export function nextAfter(previous: TjanstQueueItem[], current: TjanstQueueItem[
   const open = new Map(current.map(i => [i.sourceKey, i]));
   const start = previous.findIndex(i => i.sourceKey === sourceKey);
   const order = start < 0 ? previous : [...previous.slice(start + 1), ...previous.slice(0, start)];
-  for (const item of order) { const hit = open.get(item.sourceKey); if (hit && hit.sourceKey !== sourceKey) return hit; }
-  return current.find(i => i.sourceKey !== sourceKey) ?? null;
+  // Under Alla behov ligger fördelade behov kvar i kön; nästa val är ändå första ofördelade behov, annars nästa behov.
+  for (const wanted of [(i: TjanstQueueItem) => i.status === 'open', () => true])
+    for (const item of order) { const hit = open.get(item.sourceKey); if (hit && hit.sourceKey !== sourceKey && wanted(hit)) return hit; }
+  return current.find(i => i.sourceKey !== sourceKey && i.status === 'open') ?? current.find(i => i.sourceKey !== sourceKey) ?? null;
 }
 export type TjanstCandidateTotals = { before: TjanstTermMinutes & { year: number }; after: TjanstTermMinutes & { year: number } };
 /** Lärarens undervisning före och efter ett val med tiden added. Ingen jämförelse med andel eller riktvärde (D-10). */
