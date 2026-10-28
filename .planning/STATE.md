@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "Användarprov av 05.1-29–32 på 3012"
+current_plan: "Användarprov av 05.1-29–33 på 3012"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
-last_updated: "2026-10-26"
-last_activity: 2026-10-26
-last_activity_desc: "05.1-28: D-28 och APL per klass installerade efter användarens ja; 3012 kör 2da6f1e."
+last_updated: "2026-10-28"
+last_activity: 2026-10-28
+last_activity_desc: "05.1-33: delning och betygsansvar per behov installerade efter användarens ja; 3012 kör 09c0626."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -18,7 +18,7 @@ progress:
 verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 968512aadd36466034d41cee819d7ec49b9b5b94
+worker_build_revision: 09c06263bd30a8e4ebdb1b34d510a1510f64d82f
 milestone_name: milestone
 ---
 
@@ -26,9 +26,9 @@ milestone_name: milestone
 
 # Project State
 
-**Planering 2026-10-28:** [05.1-33](phases/05.1-tjanstefordelning/05.1-33-PLAN.md) Flera lärare på samma behov enligt D-31. Delningsform (en i taget eller samtidigt) och betygsansvar per behov, i en ny migration. Täckning, hinder, hash, kopiering, Bemanning och Min tjänst anpassas, och rektor får frågan när en andra lärare läggs till. Leveranssteget `sharing` och installation kräver användarens ja. Inget är byggt.
+**Plan 05.1-33 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-33-SUMMARY.md). Flera lärare på samma behov enligt D-31. Rektor väljer *En i taget* eller *Samtidigt* och anger *Sätter betyg*. Frågan visas när en andra lärare får tid, och utan angiven delning hindras publiceringen. Delningen gäller lärarna utanför samläsning; en modellkonflikt som provet hittade är rättad. Faktiskt prov på 09c0626 PASS 88/88. Migrationen är installerad efter användarens ja, och 3012 kör 09c0626. Nästa steg: användarprov av delningen på 3012.
 
-**Användarbeslut D-31 2026-10-28 (flerlärarskap):** Delningsform per behov. *En i taget* och *Samtidigt* kommer först, och *Klassen delas i två grupper* kommer senare med undervisningsgrupper. *Sätter betyg* registreras och förifylls. Två lärare utan delningsform är ett publiceringshinder. Ingen HR-fråga nu. [Research](research/FLERLARARSKAP-2026-10-28.md). Inget är planerat eller byggt.
+**Användarbeslut D-31 2026-10-28 (flerlärarskap):** Delningsform per behov. *En i taget* och *Samtidigt* kommer först, och *Klassen delas i två grupper* kommer senare med undervisningsgrupper. *Sätter betyg* registreras och förifylls. Två lärare utan delningsform är ett publiceringshinder. Ingen HR-fråga nu. [Research](research/FLERLARARSKAP-2026-10-28.md). Genomfört i 05.1-33.
 
 **Plan 05.1-32 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-32-SUMMARY.md). Rättelser från användarprovet: Massregistrera visar redan fördelat behov; filter, lins och termin läser inte om; en vakant rad ersätts vid lärarval i stället för att behovet fördelas dubbelt. Faktiskt prov på 968512a PASS 87/87. 3012 kör 968512a efter användarens ”kör”. Användarens befintliga dubbelrad i SG27A (Svenska) ändras inte automatiskt.
 
