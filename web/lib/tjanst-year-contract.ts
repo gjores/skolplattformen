@@ -28,6 +28,9 @@ export type TjanstYearBasePayload = {
   delete_special: { specialId: string };
   save_joint: { jointId: string | null; name: string; rowIds: string[]; teachers: TjanstJointTeacher[] };
   dissolve_joint: { jointId: string };
+  /** 05.1-33 / D-31: delningsform och betygssättare för ett behov med flera lärare. */
+  save_sharing: { sourceKey: string; mode: 'sequential' | 'concurrent'; graderPersonIds: string[] };
+  clear_sharing: { sourceKey: string };
   discard_draft: Record<string, never>;
   publish: Record<string, never>;
 };
@@ -66,7 +69,7 @@ export type TjanstYearBatchReply = TjanstYearReplyBase & { mode: 'batch'; action
   jointTotals: { jointId: string; personId: string; ht: number; vt: number }[];
   blockers: { itemKey: string; groupId: string | null; code: typeof TJANST_YEAR_BLOCKERS[number] }[] };
 export type TjanstYearReply = TjanstYearCatalogReply | TjanstYearRowReply | TjanstYearBatchReply;
-export const TJANST_YEAR_EDIT_ACTIONS = ['add_teacher', 'remove_teacher', 'delete_row', 'save_special', 'delete_special', 'save_joint', 'dissolve_joint', 'discard_draft', 'publish'] as const;
+export const TJANST_YEAR_EDIT_ACTIONS = ['add_teacher', 'remove_teacher', 'delete_row', 'save_special', 'delete_special', 'save_joint', 'dissolve_joint', 'save_sharing', 'clear_sharing', 'discard_draft', 'publish'] as const;
 type EditAction = typeof TJANST_YEAR_EDIT_ACTIONS[number];
 export type TjanstYearPayload = { save_row: TjanstYearSaveRow } & {
   [A in EditAction]: (A extends 'publish' | 'discard_draft' ? object : TjanstYearBasePayload[A]) & { mutationContext: TjanstYearMutationContext }
@@ -143,6 +146,11 @@ function basePayload<A extends keyof TjanstYearBasePayload>(action: A, value: un
   else if (action === 'delete_row') parsed = { rowId: uuid(shape(value, ['rowId']).rowId) };
   else if (action === 'delete_special') parsed = { specialId: uuid(shape(value, ['specialId']).specialId) };
   else if (action === 'dissolve_joint') parsed = { jointId: uuid(shape(value, ['jointId']).jointId) };
+  else if (action === 'save_sharing') {
+    const p = shape(value, ['sourceKey', 'mode', 'graderPersonIds']); parseTjanstSourceKey('class_timplan', p.sourceKey);
+    const graderPersonIds = unique(list(p.graderPersonIds, 20, uuid), v => v); if (!graderPersonIds.length) bad('tjanst_sharing_grader');
+    parsed = { sourceKey: p.sourceKey as string, mode: choice(p.mode, ['sequential', 'concurrent'] as const), graderPersonIds };
+  } else if (action === 'clear_sharing') { const p = shape(value, ['sourceKey']); parseTjanstSourceKey('class_timplan', p.sourceKey); parsed = { sourceKey: p.sourceKey as string }; }
   else { shape(value, []); parsed = {}; }
   return parsed as TjanstYearBasePayload[A];
 }

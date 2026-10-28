@@ -131,6 +131,7 @@ async function matrix(tx, report, f) {
   await f.actor(tx, 'teacherSelf');
   assert.deepEqual(parseSelfReadReply(await selfRead(tx)).publications, []);
   await f.actor(tx, 'principalA');
+  if (modern) d = await shareBeforePublish(tx, report, d);
   r = await send(tx, await planCommand(A, Y, 'publish', d.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: d.version.contentHash }));
   d = r.detail; assert.equal(d.version.status, 'published'); assert.ok(d.version.publishedAt);
   await f.actor(tx, 'teacherSelf');
@@ -253,6 +254,7 @@ async function matrix(tx, report, f) {
   // D-24: äldre publicerade versioner läses i sin helhet.
   await f.actor(tx, 'principalA');
   d = await read(tx, A, Y);
+  if (modern) d = await shareBeforePublish(tx, report, d);
   r = await send(tx, await planCommand(A, Y, 'publish', d.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: d.version.contentHash }));
   const history = await read(tx, A, Y, published.id);
   assert.equal(history.version.status, 'superseded'); assert.deepEqual(history.actions, []); assert.deepEqual(history.rows.map(x => [x.teacherHt, x.teacherVt]), [[3000, 2400]]);
@@ -420,6 +422,7 @@ async function jointMatrix(tx, report, f) {
   d = r.detail;
   await deny(tx, report, 'CHECK nekar klass på annat uppdrag än mentor även vid direkt skrivning', t => t`update public.tjanst_special_assignments set class_id=${f.classes.group} where label='Programansvar GR'`, ['23514']);
   assert.deepEqual(teacherSums(p1.personId, d.rows, d.specials, d.joints).special, { ht: 1200, vt: 600, year: 1800 });
+  if (modern) d = await shareBeforePublish(tx, report, d);
   r = await send(tx, await planCommand(A, Y, 'publish', d.revision, modern ? (await capturePlanContext(tx, { unitId: A, schoolYear: Y, action: 'publish', payload: {} })).payload : {}, { expectedContentHash: d.version.contentHash }));
   d = r.detail;
   await f.actor(tx, 'teacherSelf');
@@ -468,6 +471,20 @@ async function currentDatabase(ephemeral, report) {
       report.currentCleanup=await s.cleanup();const after=await targetPendingMigrations();
       assert.equal(after.fingerprint,target.fingerprint);assert.deepEqual(after.journal,target.journal);report.targetUnchanged=true;}};
   }catch(e){await s.cleanup();throw e;}
+}
+
+/** 05.1-33 / D-31: två lärare på samma behov kräver en angiven delning före publicering (bara när delningsmigrationen finns). */
+async function shareBeforePublish(tx, report, d) {
+  if (!d.blockers.some(b => b.code === 'shared_need_unspecified')) return d;
+  const own = d.rows.filter(x => x.personId && !x.jointGroupId);
+  for (const sourceKey of [...new Set(own.map(x => x.sourceKey))].filter(k => new Set(own.filter(x => x.sourceKey === k).map(x => x.personId)).size > 1)) {
+    const graders = [...new Set(own.filter(x => x.sourceKey === sourceKey).map(x => x.personId))];
+    await send(tx, await planCommand(d.unitId, d.schoolYear, 'save_sharing', d.revision, (await capturePlanContext(tx, { unitId: d.unitId, schoolYear: d.schoolYear, action: 'save_sharing',
+      payload: { sourceKey, mode: 'sequential', graderPersonIds: graders } })).payload));
+    d = await read(tx, d.unitId, d.schoolYear);
+    check(report, '05.1-33: delat behov anges som en i taget före publicering (summering som tidigare)', { sourceKey });
+  }
+  return d;
 }
 
 export async function verifyTjanstPlan(out, { ephemeral = false, stage = 'current' } = {}) {

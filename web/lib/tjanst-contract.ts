@@ -17,7 +17,7 @@ export const TJANST_SOURCE_KINDS = ['class_timplan'] as const;
 export const TJANST_NEED_BASES = ['terms', 'even_split', 'weekly_calendar'] as const;
 export const TJANST_SPECIAL_KINDS = ['mentor', 'programansvar', 'speciallarare', 'annat'] as const;
 export const TJANST_PLAN_ACTIONS = ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
-  'save_joint', 'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk'] as const satisfies readonly TjanstYearAction[];
+  'save_joint', 'dissolve_joint', 'discard_draft', 'publish', 'move', 'bulk', 'save_sharing', 'clear_sharing'] as const satisfies readonly TjanstYearAction[];
 const LEGACY_PLAN_ACTIONS = ['create_draft', 'add_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
   'save_joint', 'dissolve_joint', 'discard_draft', 'publish'] as const;
 export const TJANST_PLAN_RECEIPT_ACTIONS = [...TJANST_PLAN_ACTIONS, 'create_draft'] as const;
@@ -60,6 +60,9 @@ export type TjanstSpecial = { id: string; lineageId: string; kind: TjanstSpecial
   classId: string | null; ht: number; vt: number; comment: string };
 export type TjanstJointTeacher = { personId: string; ht: number; vt: number };
 export type TjanstJoint = { id: string; lineageId: string; name: string; rowIds: string[]; teachers: TjanstJointTeacher[] };
+/** 05.1-33 / D-31: hur flera lärare delar ett behov och vem som sätter betyg (skollagen 3 kap. 16 §). */
+export type TjanstSharingMode = 'sequential' | 'concurrent';
+export type TjanstNeedSharing = { sourceKey: string; mode: TjanstSharingMode; graderPersonIds: string[] };
 export type TjanstPlanCapabilities = { canEdit: boolean; canPublish: boolean; canReadHistory: boolean };
 /** Lärarnas kvittenser och kommentarer för den publicerade versionen; bara i rektors och administratörens läsning (05.1-08). */
 export type TjanstFeedback = { versionNo: number; teachers: { personId: string; name: string; acknowledgedAt: string | null }[];
@@ -70,7 +73,9 @@ export type TjanstPlanRead = { contractVersion: typeof TJANST_CONTRACT_VERSION; 
   /** Distribution revision; every plan command expects it and the receipt returns it + 1. */
   revision: number; version: TjanstVersion | null; versions: TjanstVersion[]; teachers: TjanstTeacher[]; classes: TjanstClass[];
   rows: TjanstRow[]; specials: TjanstSpecial[]; joints: TjanstJoint[]; actions: TjanstPlanReceiptAction[]; blockers: TjanstBlocker[];
-  capabilities: TjanstPlanCapabilities; feedback?: TjanstFeedback };
+  capabilities: TjanstPlanCapabilities; feedback?: TjanstFeedback;
+  /** Saknas i äldre läsningar och tolkas då som tom. */
+  sharing: TjanstNeedSharing[] };
 /** Explicit continuous-planning decoder; legacy ingress stays separate until API integration. */
 export type TjanstYearPlanRead = Omit<TjanstPlanRead, 'actions'> & { actions: TjanstYearAction[] };
 
@@ -111,7 +116,9 @@ export type TjanstPersonalCommandReply = { receipt: TjanstPersonalReceipt; detai
 
 export type TjanstSelfRow = { id: string; className: string; rowKey: string; label: string; ht: number; vt: number;
   /** ht/vt is the teacher's time in the joint group, counted once per group (D-16). */
-  joint: null | { jointId: string; name: string; colleagues: string[]; ht: number; vt: number } };
+  joint: null | { jointId: string; name: string; colleagues: string[]; ht: number; vt: number };
+  /** 05.1-33: delning med andra lärare på samma behov och om läraren sätter betyg. Saknas i äldre läsningar. */
+  sharing: null | { mode: TjanstSharingMode; colleagues: string[]; grader: boolean } };
 export type TjanstSelfSpecial = { id: string; kind: TjanstSpecialKind; label: string; className: string | null; ht: number; vt: number };
 export type TjanstSelfComment = { id: string; body: string; at: string };
 export type TjanstSelfPublication = { versionId: string; versionNo: number; unitId: string; schoolName: string; schoolYear: number;
@@ -363,12 +370,16 @@ export function parsePlanLegacyReadReply(value: unknown, expected: TjanstPlanRea
     return detail;
   });
 }
+function parseSharing(value: unknown): TjanstNeedSharing {
+  const x = shape(value, ['sourceKey', 'mode', 'graderPersonIds']); parseTjanstSourceKey('class_timplan', x.sourceKey);
+  return { sourceKey: x.sourceKey as string, mode: choice(x.mode, ['sequential', 'concurrent'] as const), graderPersonIds: unique(list(x.graderPersonIds, 20, uuid), v => v) };
+}
 function parsePlanReadProjection<A extends string>(value: unknown, expected: TjanstPlanReadRequest,
   allowedActions: readonly A[], continuous: boolean): Omit<TjanstPlanRead, 'actions'> & { actions: A[] } {
   return guarded(() => {
     const request = parsePlanReadRequest(expected);
     const r = optionalShape(value, ['contractVersion', 'unitId', 'schoolName', 'schoolYear', 'revision', 'version', 'versions', 'teachers', 'classes',
-      'rows', 'specials', 'joints', 'actions', 'blockers', 'capabilities'], ['feedback']);
+      'rows', 'specials', 'joints', 'actions', 'blockers', 'capabilities'], ['feedback', 'sharing']);
     const unitId = uuid(r.unitId), year = schoolYear(r.schoolYear);
     if (unitId !== request.unitId || year !== request.schoolYear) bad('wrong_scope');
     const version = r.version === null ? null : parseVersion(r.version);
@@ -388,6 +399,8 @@ function parsePlanReadProjection<A extends string>(value: unknown, expected: Tja
     for (const joint of joints) if (joint.rowIds.some(id => !rowIds.has(id) || rows.find(row => row.id === id)!.jointGroupId !== joint.id)
       || joint.teachers.some(t => !people.has(t.personId))) bad();
     if (rows.some(row => row.jointGroupId !== null && !joints.find(j => j.id === row.jointGroupId)!.rowIds.includes(row.id))) bad();
+    const sharing = has(r, 'sharing') ? unique(list(r.sharing, TJANST_LIMITS.needs, parseSharing), x => x.sourceKey) : [];
+    if (sharing.some(x => x.graderPersonIds.some(id => !people.has(id)))) bad();
     const caps = shape(r.capabilities, ['canEdit', 'canPublish', 'canReadHistory']);
     const capabilities = { canEdit: bool(caps.canEdit), canPublish: bool(caps.canPublish), canReadHistory: bool(caps.canReadHistory) };
     const parsedActions = actions(r.actions, allowedActions);
@@ -407,7 +420,7 @@ function parsePlanReadProjection<A extends string>(value: unknown, expected: Tja
     if (feedback && !versions.some(v => v.status === 'published' && v.versionNo === feedback.versionNo)) bad();
     return { contractVersion: contract(r.contractVersion), unitId, schoolName: name(r.schoolName), schoolYear: year, revision: revision(r.revision),
       version, versions, teachers, classes, rows, specials, joints, actions: parsedActions, blockers: blockers(r.blockers), capabilities,
-      ...(feedback ? { feedback } : {}) };
+      ...(feedback ? { feedback } : {}), sharing };
   });
 }
 function checkPlanReceiptDetail(receipt: TjanstPlanReceipt, detail: TjanstPlanRead): void {
@@ -550,11 +563,14 @@ export function parsePersonalCommandReply(value: unknown, command: TjanstPersona
 
 function parseSelfPublication(value: unknown): TjanstSelfPublication {
   const p = shape(value, ['versionId', 'versionNo', 'unitId', 'schoolName', 'schoolYear', 'publishedAt', 'contentHash', 'rows', 'specials', 'acknowledgedAt', 'comments']);
-  const rows = unique(list(p.rows, TJANST_LIMITS.rows, v => { const r = shape(v, ['id', 'className', 'rowKey', 'label', 'ht', 'vt', 'joint']);
+  const rows = unique(list(p.rows, TJANST_LIMITS.rows, v => { const r = optionalShape(v, ['id', 'className', 'rowKey', 'label', 'ht', 'vt', 'joint'], ['sharing']);
     let joint: TjanstSelfRow['joint'] = null;
     if (r.joint !== null) { const j = shape(r.joint, ['jointId', 'name', 'colleagues', 'ht', 'vt']);
       joint = { jointId: uuid(j.jointId), name: name(j.name), colleagues: list(j.colleagues, 50, name), ht: minutes(j.ht), vt: minutes(j.vt) }; }
-    return { id: uuid(r.id), className: text(r.className, 60, false), rowKey: rowKey(r.rowKey), label: text(r.label, 300, false), ht: minutes(r.ht), vt: minutes(r.vt), joint }; }), r => r.id);
+    let sharing: TjanstSelfRow['sharing'] = null;
+    if (has(r, 'sharing') && r.sharing !== null) { const x = shape(r.sharing, ['mode', 'colleagues', 'grader']);
+      sharing = { mode: choice(x.mode, ['sequential', 'concurrent'] as const), colleagues: list(x.colleagues, 50, name), grader: bool(x.grader) }; }
+    return { id: uuid(r.id), className: text(r.className, 60, false), rowKey: rowKey(r.rowKey), label: text(r.label, 300, false), ht: minutes(r.ht), vt: minutes(r.vt), joint, sharing }; }), r => r.id);
   const specials = unique(list(p.specials, TJANST_LIMITS.specials, v => { const s = shape(v, ['id', 'kind', 'label', 'className', 'ht', 'vt']);
     const kind = choice(s.kind, TJANST_SPECIAL_KINDS), className = s.className === null ? null : text(s.className, 60, false);
     if (className !== null && kind !== 'mentor') bad();

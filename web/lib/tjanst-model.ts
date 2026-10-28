@@ -1,7 +1,7 @@
 import type { GymTimplanHours } from './gym-timplan.ts';
 import type { SchoolMinutes } from './timplan-time.ts';
 import { nationalTimplan } from './timplan-model.ts';
-import { TjanstContractError, type TjanstClass, type TjanstJoint, type TjanstNeedBasis, type TjanstRow, type TjanstSpecial,
+import { TjanstContractError, type TjanstClass, type TjanstJoint, type TjanstNeedBasis, type TjanstNeedSharing, type TjanstSharingMode, type TjanstRow, type TjanstSpecial,
   type TjanstSums, type TjanstTermMinutes } from './tjanst-contract.ts';
 
 export { tjanstCanonicalSerialize, tjanstHashCanonical, tjanstPayloadHash } from './tjanst-contract.ts';
@@ -105,8 +105,12 @@ export function teacherSums(personId: string, rows: TjanstRow[], specials: Tjans
   for (const s of specials) if (s.personId === personId) special = add(special, s);
   return { teaching: withYear(teaching), special: withYear(special), total: withYear(add(teaching, special)) };
 }
-/** Täckning per behov: egna rader plus, för samläsning, gruppens hela lärartid en gång per grupp. Vakanta rader täcker inte. */
-export function coverage(sourceKey: string, need: TjanstTermMinutes | null, rows: TjanstRow[], joints: TjanstJoint[]): TjanstCoverage {
+/**
+ * Täckning per behov: egna rader plus, för samläsning, gruppens hela lärartid en gång per grupp. Vakanta rader täcker inte.
+ * 05.1-33 / D-31: vid samtidig undervisning (concurrent) räknas behovet en gång: den största lärartiden per termin.
+ */
+export function coverage(sourceKey: string, need: TjanstTermMinutes | null, rows: TjanstRow[], joints: TjanstJoint[], sharing: TjanstNeedSharing[] = []): TjanstCoverage {
+  const concurrent = sharing.some(x => x.sourceKey === sourceKey && x.mode === 'concurrent');
   const joined = jointMap(joints), seen = new Set<string>(), teachers = new Set<string>();
   let covered = zero(), vacant = zero();
   for (const row of rows) {
@@ -116,9 +120,31 @@ export function coverage(sourceKey: string, need: TjanstTermMinutes | null, rows
       if (seen.has(joint.id)) continue; seen.add(joint.id);
       for (const t of joint.teachers) { covered = add(covered, t); teachers.add(t.personId); }
     } else if (row.personId === null) vacant = add(vacant, { ht: row.teacherHt, vt: row.teacherVt });
+    else if (concurrent) { covered = { ht: Math.max(covered.ht, row.teacherHt), vt: Math.max(covered.vt, row.teacherVt) }; teachers.add(row.personId); }
     else { covered = add(covered, { ht: row.teacherHt, vt: row.teacherVt }); teachers.add(row.personId); }
   }
   return { sourceKey, need, covered, vacant, teachers: teachers.size };
+}
+export type TjanstSharedNeedState = 'single' | 'unspecified' | 'sequential' | 'concurrent';
+/** Lärare med egen (icke samläst) rad på behovet. */
+export function needTeachers(sourceKey: string, rows: TjanstRow[]): string[] {
+  return [...new Set(rows.filter(r => r.sourceKey === sourceKey && r.personId !== null && r.jointGroupId === null).map(r => r.personId as string))];
+}
+/** D-31: två eller fler lärare kräver en angiven delning; annars är behovet ett publiceringshinder (shared_need_unspecified). */
+export function sharedNeedState(sourceKey: string, rows: TjanstRow[], sharing: TjanstNeedSharing[]): TjanstSharedNeedState {
+  if (needTeachers(sourceKey, rows).length < 2) return 'single';
+  return sharing.find(x => x.sourceKey === sourceKey)?.mode ?? 'unspecified';
+}
+/**
+ * Förvalda betygssättare (skollagen 3 kap. 16 §: den eller de lärare som undervisar när betyget sätts).
+ * En i taget: läraren med tid i den sista terminen med tid (VT före HT; vid lika alla). Samtidigt: alla.
+ */
+export function defaultGraders(mode: TjanstSharingMode, sourceKey: string, rows: TjanstRow[]): string[] {
+  const own = rows.filter(r => r.sourceKey === sourceKey && r.personId !== null && r.jointGroupId === null);
+  const all = [...new Set(own.map(r => r.personId as string))];
+  if (mode === 'concurrent') return all;
+  const vt = [...new Set(own.filter(r => r.teacherVt > 0).map(r => r.personId as string))];
+  return vt.length ? vt : all;
 }
 function knownNeed(ht: number | null, vt: number | null): TjanstTermMinutes | null {
   return ht === null && vt === null ? null : { ht: ht ?? 0, vt: vt ?? 0 };
@@ -134,7 +160,7 @@ export function coverageLabel(c: TjanstCoverage): string {
   return c.need === null ? `${covered} h · behov okänt · ${teachers}` : `${covered} av ${formatHours(c.need.ht + c.need.vt)} · ${teachers}`;
 }
 /** Skolans summor. Ej fördelad tid räknas bara på kopplade klasser med känt behov; okopplade klasser räknas separat. */
-export function schoolSums(classes: TjanstClass[], rows: TjanstRow[], specials: TjanstSpecial[], joints: TjanstJoint[]): TjanstSums {
+export function schoolSums(classes: TjanstClass[], rows: TjanstRow[], specials: TjanstSpecial[], joints: TjanstJoint[], sharing: TjanstNeedSharing[] = []): TjanstSums {
   const joined = jointMap(joints);
   const unallocated = zero();
   let teaching = zero(), special = zero(), vacant = zero();
@@ -145,7 +171,7 @@ export function schoolSums(classes: TjanstClass[], rows: TjanstRow[], specials: 
   for (const joint of joints) for (const t of joint.teachers) teaching = add(teaching, t);
   for (const s of specials) if (s.personId === null) vacant = add(vacant, s); else special = add(special, s);
   for (const c of classes) if (c.link) for (const n of c.needs) {
-    const cov = coverage(n.sourceKey, knownNeed(n.needHt, n.needVt), rows, joints);
+    const cov = coverage(n.sourceKey, knownNeed(n.needHt, n.needVt), rows, joints, sharing);
     if (n.needHt !== null) unallocated.ht = safe(unallocated.ht + Math.max(0, n.needHt - cov.covered.ht));
     if (n.needVt !== null) unallocated.vt = safe(unallocated.vt + Math.max(0, n.needVt - cov.covered.vt));
   }

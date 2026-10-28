@@ -52,7 +52,7 @@ const knownNeed = (n: TjanstNeed) => n.needHt === null && n.needVt === null ? nu
 export function needEntries(data: TjanstPlanRead): TjanstClassGroup[] {
   return data.classes.map(cls => ({ cls, entries: cls.needs.map(need => {
     const rows = data.rows.filter(r => r.sourceKey === need.sourceKey);
-    return { cls, need, rows, cov: coverage(need.sourceKey, knownNeed(need), data.rows, data.joints) };
+    return { cls, need, rows, cov: coverage(need.sourceKey, knownNeed(need), data.rows, data.joints, data.sharing) };
   }) }));
 }
 export function entryDeviation(e: TjanstNeedEntry, term: TjanstTermView): number | null {

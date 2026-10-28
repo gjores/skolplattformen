@@ -127,7 +127,7 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
   const options = <><option value="">Välj lärare</option>{draft.catalog?.candidates.map(p => <option key={p.personId} value={p.personId}>{p.displayName}{p.draft ? ' (under registrering)' : `${p.shareHere === null ? '' : ` (${p.shareHere} % här)`}${yearCandidatePeriod(p, snapshot.schoolYear) === 'part_year' ? ' · delår' : ''}`}</option>)}<option value="vakant">Vakant</option></>;
   // 05.1-32: visa vad som redan är fördelat och vad som återstår, så att förifyllda 0 h inte ser ut som ett fel (användarprov 2026-10-28).
   function allocation(sourceKey: string, needHt: number | null, needVt: number | null) {
-    const covered = coverage(sourceKey, null, snapshot.rows, snapshot.joints).covered, ids = new Set<string>();
+    const covered = coverage(sourceKey, null, snapshot.rows, snapshot.joints, snapshot.sharing).covered, ids = new Set<string>();
     for (const r of snapshot.rows) if (r.sourceKey === sourceKey) { const j = r.jointGroupId ? snapshot.joints.find(g => g.id === r.jointGroupId) : null;
       if (j) j.teachers.forEach(t => ids.add(t.personId)); else if (r.personId) ids.add(r.personId); }
     const left = { ht: prefill(needHt, covered.ht), vt: prefill(needVt, covered.vt) };
@@ -141,7 +141,7 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
     if (!selected) rowRequests.current.delete(sourceKey);
     update(old => { if (!selected) return { ...old, rows: old.rows.filter(r => r.sourceKey !== sourceKey) };
       if (old.rows.some(r => r.sourceKey === sourceKey)) return old;
-      const allocated = coverage(sourceKey, null, snapshot.rows, snapshot.joints).covered;
+      const allocated = coverage(sourceKey, null, snapshot.rows, snapshot.joints, snapshot.sharing).covered;
       return { ...old, rows: [...old.rows, { sourceKey, label: `${need.className} · ${need.label}`, support: null, supportError: false, choice: null, baseVersionId: snapshot.version?.id ?? null, basisHash: '', revision: snapshot.revision,
         ht: hoursInput(prefill(need.needHt, allocated.ht)), vt: hoursInput(prefill(need.needVt, allocated.vt)), comment: '' }] }; });
   }

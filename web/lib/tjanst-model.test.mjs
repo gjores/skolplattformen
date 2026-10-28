@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { capacityViolations, coverage, coverageLabel, deviation, formatHours, grNeedRowIds, gyNeedRowKey, needForTerm, prefill,
+import { capacityViolations, coverage, coverageLabel, defaultGraders, needTeachers, sharedNeedState, deviation, formatHours, grNeedRowIds, gyNeedRowKey, needForTerm, prefill,
   schoolSums, teacherSums, tjanstNeed } from './tjanst-model.ts';
 
 const uid = n => `51a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -159,4 +159,34 @@ test('05.1-27: jointWarnings för tid och APL', async () => {
   assert.deepEqual(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: 900 }, { classId: 'b', aplMinutes: 0 }]).apl, { withApl: ['a'], withoutApl: ['b'], unknown: [] });
   assert.deepEqual(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: 900 }, { classId: 'b', aplMinutes: null }]).apl, { withApl: ['a'], withoutApl: [], unknown: ['b'] });
   assert.equal(jointWarnings([r('a', 1, 1), r('b', 1, 1)], [{ classId: 'a', aplMinutes: null }, { classId: 'b', aplMinutes: 0 }]).apl, null);
+});
+
+// ---------- 05.1-33 / D-31: flera lärare på samma behov ----------
+test('samtidig undervisning täcker behovet en gång; en i taget och utan form summeras', () => {
+  const rows = [row(1, { personId: uid(20), teacherHt: h(48), teacherVt: h(48) }), row(2, { personId: uid(21), teacherHt: h(48), teacherVt: h(48) })];
+  const need = { ht: h(48), vt: h(48) };
+  assert.deepEqual(coverage(key(10), need, rows, []).covered, { ht: h(96), vt: h(96) }, 'ingen form: summa (avvikelse syns)');
+  assert.deepEqual(coverage(key(10), need, rows, [], [{ sourceKey: key(10), mode: 'sequential', graderPersonIds: [uid(21)] }]).covered, { ht: h(96), vt: h(96) });
+  assert.deepEqual(coverage(key(10), need, rows, [], [{ sourceKey: key(10), mode: 'concurrent', graderPersonIds: [uid(20)] }]).covered, { ht: h(48), vt: h(48) });
+  const uneven = [row(1, { personId: uid(20), teacherHt: h(48), teacherVt: 0 }), row(2, { personId: uid(21), teacherHt: h(20), teacherVt: h(48) })];
+  assert.deepEqual(coverage(key(10), need, uneven, [], [{ sourceKey: key(10), mode: 'concurrent', graderPersonIds: [uid(20)] }]).covered, { ht: h(48), vt: h(48) }, 'störst per termin');
+  assert.deepEqual(coverage(key(11), need, rows, [], [{ sourceKey: key(10), mode: 'concurrent', graderPersonIds: [] }]).covered, { ht: 0, vt: 0 }, 'annat behov påverkas inte');
+});
+
+test('delningstillstånd: en lärare, utan form, en i taget och samtidigt; vakant och samläsning räknas inte', () => {
+  const one = [row(1, { personId: uid(20) }), row(2, { personId: null })];
+  assert.equal(sharedNeedState(key(10), one, []), 'single');
+  const two = [row(1, { personId: uid(20) }), row(2, { personId: uid(21) })];
+  assert.equal(sharedNeedState(key(10), two, []), 'unspecified');
+  assert.equal(sharedNeedState(key(10), two, [{ sourceKey: key(10), mode: 'sequential', graderPersonIds: [uid(21)] }]), 'sequential');
+  assert.equal(sharedNeedState(key(10), two, [{ sourceKey: key(10), mode: 'concurrent', graderPersonIds: [uid(20)] }]), 'concurrent');
+  assert.deepEqual(needTeachers(key(10), [row(1, { personId: uid(20) }), row(2, { personId: uid(21), jointGroupId: uid(90) })]), [uid(20)], 'samläst rad räknas inte');
+});
+
+test('förvalda betygssättare: en i taget ger läraren i sista terminen med tid, samtidigt ger alla', () => {
+  const rows = [row(1, { personId: uid(20), teacherHt: h(48), teacherVt: 0 }), row(2, { personId: uid(21), teacherHt: 0, teacherVt: h(48) })];
+  assert.deepEqual(defaultGraders('sequential', key(10), rows), [uid(21)]);
+  assert.deepEqual(defaultGraders('concurrent', key(10), rows).sort(), [uid(20), uid(21)].sort());
+  const htOnly = [row(1, { personId: uid(20), teacherHt: h(24), teacherVt: 0 }), row(2, { personId: uid(21), teacherHt: h(24), teacherVt: 0 })];
+  assert.deepEqual(defaultGraders('sequential', key(10), htOnly).sort(), [uid(20), uid(21)].sort(), 'bara HT: alla med tid');
 });
