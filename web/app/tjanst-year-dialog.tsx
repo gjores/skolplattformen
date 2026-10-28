@@ -125,6 +125,17 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
   const affectedGroups = snapshot.joints.filter(g => g.rowIds.some(rowId => draft.selected.includes(`row:${rowId}`)));
   const objectCount = mode === 'bulk' ? draft.rows.length + draft.specials.length : new Set([...draft.selected, ...affectedGroups.flatMap(g => g.rowIds.map(rowId => `row:${rowId}`))]).size;
   const options = <><option value="">Välj lärare</option>{draft.catalog?.candidates.map(p => <option key={p.personId} value={p.personId}>{p.displayName}{p.draft ? ' (under registrering)' : `${p.shareHere === null ? '' : ` (${p.shareHere} % här)`}${yearCandidatePeriod(p, snapshot.schoolYear) === 'part_year' ? ' · delår' : ''}`}</option>)}<option value="vakant">Vakant</option></>;
+  // 05.1-32: visa vad som redan är fördelat och vad som återstår, så att förifyllda 0 h inte ser ut som ett fel (användarprov 2026-10-28).
+  function allocation(sourceKey: string, needHt: number | null, needVt: number | null) {
+    const covered = coverage(sourceKey, null, snapshot.rows, snapshot.joints).covered, ids = new Set<string>();
+    for (const r of snapshot.rows) if (r.sourceKey === sourceKey) { const j = r.jointGroupId ? snapshot.joints.find(g => g.id === r.jointGroupId) : null;
+      if (j) j.teachers.forEach(t => ids.add(t.personId)); else if (r.personId) ids.add(r.personId); }
+    const left = { ht: prefill(needHt, covered.ht), vt: prefill(needVt, covered.vt) };
+    const full = left.ht !== null && left.vt !== null && left.ht === 0 && left.vt === 0 && covered.ht + covered.vt > 0;
+    const who = [...ids].map(personName).join(', ');
+    const fmt = (v: number | null) => v === null ? 'okänt' : formatTime(v);
+    return { full, covered, who, text: covered.ht + covered.vt === 0 ? '' : `Fördelat HT ${formatTime(covered.ht)} · VT ${formatTime(covered.vt)}${who ? ` (${who})` : ''} · Återstår HT ${fmt(left.ht)} · VT ${fmt(left.vt)}` };
+  }
   function selectNeed(sourceKey: string, selected: boolean) {
     const need = allNeeds.find(n => n.sourceKey === sourceKey); if (!need) return;
     if (!selected) rowRequests.current.delete(sourceKey);
@@ -257,13 +268,16 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
           <p>Befintliga rader bevaras. Nya rader får ingen lärare förrän du gör ett aktivt val. Tiden utgår från det återstående behovet.</p>
           <Field id={`${id}-filter`} label="Sök behov"><input id={`${id}-filter`} value={filter} onChange={event => setFilter(event.target.value)} placeholder="Klass eller ämnesrad"/></Field>
           <fieldset className="tjanst-year-needs" aria-label="Behov att registrera">{allNeeds.filter(need => `${need.className} ${need.label}`.toLocaleLowerCase('sv').includes(filter.toLocaleLowerCase('sv'))).map(need => <label className="tjanst-year-check" key={need.sourceKey}>
-            <input type="checkbox" checked={draft.rows.some(row => row.sourceKey === need.sourceKey)} onChange={event => selectNeed(need.sourceKey, event.target.checked)}/><span>{need.className} · {need.label}<small>Behov HT {need.needHt === null ? 'okänt' : formatTime(need.needHt)} · VT {need.needVt === null ? 'okänt' : formatTime(need.needVt)}</small></span></label>)}</fieldset>
+            <input type="checkbox" checked={draft.rows.some(row => row.sourceKey === need.sourceKey)} onChange={event => selectNeed(need.sourceKey, event.target.checked)}/><span>{need.className} · {need.label}<small>Behov HT {need.needHt === null ? 'okänt' : formatTime(need.needHt)} · VT {need.needVt === null ? 'okänt' : formatTime(need.needVt)}</small>
+              {(() => { const a = allocation(need.sourceKey, need.needHt, need.needVt); return a.text ? <small className={a.full ? 'tjanst-year-allocated' : undefined}>{a.full ? 'Redan fördelat. ' : ''}{a.text}</small> : null; })()}</span></label>)}</fieldset>
           <Field id={`${id}-manual`} label="Lärare för markerade behov"><select id={`${id}-manual`} value={draft.manualPerson} onChange={event => update(old => ({ ...old, manualPerson: event.target.value }))}>{options}</select></Field>
           <CandidateFacts candidate={draft.catalog?.candidates.find(candidate => candidate.personId === draft.manualPerson)} year={snapshot.schoolYear}/>
           <Button type="button" variant="outline" disabled={!draft.manualPerson || !draft.rows.length || draft.rows.some(row => !row.support)} onClick={() => chooseRows(draft.rows.map(row => row.sourceKey), draft.manualPerson)}>Använd valet på markerade behov</Button>
           <small>Gäller bara behoven som redan är markerade. Senare tillagda behov börjar med tomt lärarval.</small>
           <div className="tjanst-year-selected">{draft.rows.map((row, index) => <section className="tjanst-year-item" key={row.sourceKey} aria-label={needName(row.sourceKey)}>
-            <h4>{needName(row.sourceKey)}</h4><p>{row.choice ? `Vald lärare: ${personName(row.choice.personId)}` : 'Ingen lärare vald'}{row.supportError ? ' · Underlaget kunde inte hämtas' : !row.support ? ' · Hämtar radens underlag…' : ''}</p>
+            <h4>{needName(row.sourceKey)}</h4>
+            {(() => { const need = allNeeds.find(n => n.sourceKey === row.sourceKey), a = need ? allocation(row.sourceKey, need.needHt, need.needVt) : null;
+              return a?.full ? <p className="tjanst-year-allocated">Behovet är redan fördelat{a.who ? ` till ${a.who}` : ''}, så tiden är förifylld med 0 h. Byter du lärare på befintliga rader, använd Flytta uppdrag. Vill du ändra tiden, gör det i matrisen.</p> : null; })()}<p>{row.choice ? `Vald lärare: ${personName(row.choice.personId)}` : 'Ingen lärare vald'}{row.supportError ? ' · Underlaget kunde inte hämtas' : !row.support ? ' · Hämtar radens underlag…' : ''}</p>
             <div className="tjanst-year-columns"><Field id={`${id}-ht-${index}`} label="Lärartid HT (timmar)"><input id={`${id}-ht-${index}`} inputMode="decimal" value={row.ht} onChange={event => update(old => ({ ...old, rows: old.rows.map(r => r.sourceKey === row.sourceKey ? { ...r, ht: event.target.value } : r) }))}/></Field>
               <Field id={`${id}-vt-${index}`} label="Lärartid VT (timmar)"><input id={`${id}-vt-${index}`} inputMode="decimal" value={row.vt} onChange={event => update(old => ({ ...old, rows: old.rows.map(r => r.sourceKey === row.sourceKey ? { ...r, vt: event.target.value } : r) }))}/></Field></div>
             <Field id={`${id}-comment-${index}`} label="Kommentar (valfri)"><textarea id={`${id}-comment-${index}`} maxLength={2000} value={row.comment} onChange={event => update(old => ({ ...old, rows: old.rows.map(r => r.sourceKey === row.sourceKey ? { ...r, comment: event.target.value } : r) }))}/></Field>

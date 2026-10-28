@@ -260,3 +260,5 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-same-course,.tjanst-allocation-note{margin:0;font-size:14px;color:var(--muted-foreground)}
 /* 05.1-31: hjälptext om direktval i tjänsteradens dialog. */
 .tjanst-direct-hint{margin:0;font-size:14px;color:var(--muted-foreground)}
+/* 05.1-32: redan fördelat behov i massregistrering. */
+.tjanst-year-allocated{color:var(--foreground);font-weight:500}

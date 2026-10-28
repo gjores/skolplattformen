@@ -114,6 +114,19 @@ test.describe('sammanhållen planering på dator',()=>{
   await page.evaluate(()=>(window as any).__hashPause.release());await expect(dialog(page)).toHaveCount(0);
   await expect.poll(()=>page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('tjanst:')).length)).toBe(0);expect(await commands(page)).toEqual([]);
  });
+ test('massregistrering visar redan fördelat behov och vad som återstår (05.1-32)',async({page})=>{
+  await open(page);await bulk(page);const needs=dialog(page).getByRole('group',{name:'Behov att registrera'});
+  const covered=needs.locator('label').filter({hasText:'TE26A · Engelska 5'}),open_=needs.locator('label').filter({hasText:'TE26A · Matematik 1c'});
+  await expect(covered).toContainText('Redan fördelat. Fördelat HT 50 h · VT 50 h (Anna Andersson, Bertil Berg) · Återstår HT 0 h · VT 0 h');
+  await expect(open_).not.toContainText('Fördelat');
+  await covered.getByRole('checkbox').check();
+  const card=dialog(page).getByRole('region',{name:'TE26A · Engelska 5',exact:true});
+  await expect(card).toContainText('Behovet är redan fördelat till Anna Andersson, Bertil Berg, så tiden är förifylld med 0 h.');
+  await expect(card.getByLabel('Lärartid HT (timmar)')).toHaveValue('0');
+  await open_.getByRole('checkbox').check();
+  await expect(dialog(page).getByRole('region',{name:'TE26A · Matematik 1c',exact:true}).getByLabel('Lärartid HT (timmar)')).toHaveValue('50');
+  expect(await commands(page)).toEqual([]);
+ });
  test('samma personnamn sammanför inte historik eller aktiva val',async({page})=>{
   await open(page,'?data=samma-namn');await math(page);
   await expect(dialog(page).getByRole('button',{name:'Välj Anna Andersson',exact:true})).toHaveCount(2);

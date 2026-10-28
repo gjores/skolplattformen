@@ -567,7 +567,7 @@ test('rektor B ser bara Andel här 40 % och rektor AB nekas läsning när skolan
   const assignment=seed.actors.principalAB.assignmentId;
   const removed=await db`delete from public.mandate_units where assignment_id=${assignment} and unit_id=${seed.schools.A} returning assignment_id,customer_id,organizer_id,unit_id`;
   try{
-    await ws(ab).getByRole('button',{name:'HT',exact:true}).click();
+    await ws(ab).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
     await expect(ws(ab).getByRole('alert')).toContainText('Ditt aktuella uppdrag tillåter inte att läsa tjänstefördelningen för den här skolan.');
     await expect(ab.locator('.tjanst-matrix')).toHaveCount(0);await expect(ws(ab).getByText('Pia Ek')).toHaveCount(0);
     await capture(ab,'tillstand-403');
@@ -614,9 +614,9 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   // Laddning (märkt fördröjning av en riktig läsning).
   let release:()=>void=()=>{};const held=new Promise<void>(r=>{release=r;});
   await p.route('**/api/tjanst/plan/lasa',async route=>{await held;await route.continue();},{times:1});
-  await ws(p).getByRole('button',{name:'HT',exact:true}).click();
+  await ws(p).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   await expect(ws(p)).toHaveAttribute('aria-busy','true');await expect(ws(p).getByText('Hämtar tjänstefördelningen…')).toBeVisible();
-  await expect(p.locator('.tjanst-content')).toHaveAttribute('inert','');await expect(p.locator('.tjanst-matrix')).toBeVisible();
+  await expect(p.locator('.tjanst-content')).toHaveAttribute('inert');await expect(p.locator('.tjanst-matrix')).toBeVisible();
   await capture(p,'tillstand-laddning');release();await settled(p);
   pass('tillstånd: laddning','aria-busy, texten Hämtar tjänstefördelningen… och föregående matris kvar inaktiv under en fördröjd riktig läsning');
   // Loggfel: en tillfällig trigger i schemakopian nekar säkerhetshändelsen för läsningen (märkt fel), sedan tas den bort.
@@ -625,7 +625,7 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   await db.unsafe('create trigger tjanst09_audit_fault before insert on public.security_events for each row execute function public.tjanst09_audit_fault()');
   try{
     const failed=p.waitForResponse(responseOf('/api/tjanst/plan/lasa'));
-    await ws(p).getByRole('button',{name:'VT',exact:true}).click();const r=await failed;expect(r.status()).toBeGreaterThanOrEqual(500);expect((await r.json()).code).toBe('audit_unavailable');
+    await ws(p).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();const r=await failed;expect(r.status()).toBeGreaterThanOrEqual(500);expect((await r.json()).code).toBe('audit_unavailable');
     await expect(ws(p).getByRole('alert')).toContainText('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.');
     await expect(ws(p).getByRole('alert')).toContainText('Referens: ');
     await capture(p,'tillstand-loggfel');

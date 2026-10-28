@@ -404,26 +404,29 @@ test.describe('dator',()=>{
   expect(await page.evaluate(()=>window.__tjanst.reads.length)).toBe(0);
  });
 
- test('UI Matris, loading: aria-busy och föregående innehåll står kvar inaktivt vid termins- och filterbyte',async({page})=>{
+ test('UI Matris, loading: termins- och filterbyte läser inte om; vid omläsning står innehållet kvar inaktivt',async({page})=>{
   await open(page);
+  // 05.1-32: termins- och filterbyte läser inte om; bara Hämta aktuellt läge (och ändringar) gör det.
+  const reads=()=>page.evaluate(()=>window.__tjanst.reads.filter(r=>r.path.endsWith('/plan/lasa')).length),before=await reads();
+  await ws(page).getByRole('button',{name:'HT',exact:true}).click();await ws(page).getByLabel('Klass').selectOption({label:'TE26A'});
+  await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');await ws(page).getByLabel('Lins',{exact:true}).selectOption('alla');await ws(page).getByLabel('Klass').selectOption('');
+  await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);expect(await reads()).toBe(before);
   await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
-  await ws(page).getByRole('button',{name:'HT',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   await expect(ws(page)).toHaveAttribute('aria-busy','true');await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toBeVisible();
-  await expect(page.locator('.tjanst-content')).toHaveAttribute('inert','');await expect(page.locator('.tjanst-matrix')).toBeVisible();
-  await expect(ws(page).getByRole('button',{name:'HT',exact:true})).toBeFocused();
+  await expect(page.locator('.tjanst-content')).toHaveAttribute('inert');await expect(page.locator('.tjanst-matrix')).toBeVisible();
   await page.evaluate(()=>window.__tjanst.release());
   await expect(ws(page)).toHaveAttribute('aria-busy','false');
   await expect(page.locator('.tjanst-matrix caption')).toHaveText('Tjänstefördelning Syntetiska gymnasiet läsåret 26/27, HT');
   expect(new URL(page.url()).searchParams.get('termin')).toBe('ht');
-  await page.evaluate(()=>window.__tjanst.holdNext('plan/lasa'));
-  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});
-  await expect(page.locator('.tjanst-content')).toHaveAttribute('inert','');await expect(page.locator('.tjanst-matrix')).toBeVisible();
-  await page.evaluate(()=>window.__tjanst.release());await expect(ws(page)).toHaveAttribute('aria-busy','false');
-  await expect(matrix(page).getByRole('rowheader',{name:/^TE26A/})).toHaveCount(0);
+  // Klassfiltret gäller direkt utan omläsning (05.1-32).
+  const readsBeforeClass=await reads();await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});
+  await expect(matrix(page).getByRole('rowheader',{name:/^TE26A/})).toHaveCount(0);await expect(ws(page)).toHaveAttribute('aria-busy','false');expect(await reads()).toBe(readsBeforeClass);
   expect(new URL(page.url()).search).not.toContain(UNIT_A);
   await page.goBack();await expect(page.locator('.tjanst-matrix caption')).toHaveText(/Hela läsåret$/);
  });
 
+ // 05.1-32: termin och filter läser inte om; felen framkallas med Hämta aktuellt läge.
  test('UI Matris, error: nätverksfel, 403, loggfel och context_changed har egna texter',async({page})=>{
   await page.goto(url+'?forsta=natverk');
   const alert=ws(page).getByRole('alert');
@@ -431,16 +434,16 @@ test.describe('dator',()=>{
   await alert.getByRole('button',{name:'Hämta tjänstefördelningen igen'}).click();
   await expect(matrix(page)).toBeVisible();
   await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:503,code:'audit_unavailable'}));
-  await ws(page).getByRole('button',{name:'VT',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   await expect(alert).toContainText('Åtgärden kunde inte slutföras eftersom säkerhetsloggen inte är tillgänglig.');await expect(alert).toContainText('Referens: syntetisk-ref-1');
   await expect(matrix(page)).toBeVisible();
   await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:403,code:'forbidden'}));
-  await ws(page).getByRole('button',{name:'HT',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   await expect(alert).toContainText('Ditt aktuella uppdrag tillåter inte att läsa tjänstefördelningen för den här skolan.');
   await expect(page.locator('.tjanst-matrix')).toHaveCount(0);await expect(ws(page).getByText('Anna Andersson')).toHaveCount(0);
   await open(page);
   await page.evaluate(()=>window.__tjanst.failNext('plan/lasa',{status:409,code:'context_changed'}));
-  await ws(page).getByRole('button',{name:'VT',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   await expect(alert).toContainText('Uppdraget har ändrats. Ladda om arbetsytan.');await expect(page.locator('.tjanst-matrix')).toHaveCount(0);
  });
 

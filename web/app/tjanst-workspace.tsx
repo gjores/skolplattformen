@@ -167,8 +167,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       setReadError(failure);
     } finally { if (token === generation.current) { reading.current = false; if (active.current) setReadDone(n => n + 1); } if (active.current && token === generation.current) setLoading(false); }
   }, [unitId, schoolYear, versionId]);
-  const filterKey = JSON.stringify(filter);
-  useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey, term, filterKey]);
+  // 05.1-32 (användarprov 2026-10-28): filter, lins och termin används bara i webbläsaren och läser inte om fördelningen.
+  useEffect(() => { queueMicrotask(() => void load()); }, [load, readKey]);
   const refresh = useCallback(() => setReadKey(n => n + 1), []);
   // readDone räknas upp efter varje avslutad läsning, även när loading true/false slås ihop i samma rendering.
 

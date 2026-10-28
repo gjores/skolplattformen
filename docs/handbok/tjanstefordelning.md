@@ -117,6 +117,8 @@ Hela berörda samläsningar visas. Lärarens grupptid räknas en gång, och andr
 
 Välj **Massregistrera** och markera behoven du vill fördela. Varje ny rad börjar utan lärare. Välj lärare per rad, eller välj **Lärare för markerade behov** och **Använd valet på markerade behov**. Det gemensamma valet gäller bara de behov som redan är markerade; senare markerade behov har fortfarande tomt lärarfält. Historiska förslag tilldelas aldrig automatiskt till ett helt urval.
 
+Tiden förifylls med det som återstår av behovet. Listan visar för varje behov vad som redan är fördelat och till vem, till exempel *Redan fördelat. Fördelat HT 45 h · VT 45 h (Kalle Knas) · Återstår HT 0 h · VT 0 h*. Markerar du ett sådant behov blir tiden 0 h. Vill du byta lärare på befintliga rader använder du **Flytta uppdrag**, och vill du ändra tiden gör du det i matrisen.
+
 Kontrollera tider och kommentarer för varje rad. Specialuppdrag läggs uttryckligen till i urvalet; mentorskap kräver en aktuell klass. Välj **Förhandsvisa**, granska resultatet och välj **Spara ändringarna**. Tidigare sparat arbete i läsåret bevaras.
 
 Flytt och massregistrering får omfatta högst 100 berörda objekt per omgång. Alla medlemmar i en berörd samläsning räknas in, även de som bevaras. Ett stort underlag med mycket text kan också behöva minskas. Appen delar inte upp sparningen automatiskt: spara ett uttryckligt mindre urval och fortsätt sedan med nästa.
