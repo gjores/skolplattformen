@@ -9,7 +9,7 @@ import {readFileSync,writeFileSync,mkdirSync,statSync,realpathSync} from 'node:f
 import {createHash} from 'node:crypto';
 import path from 'node:path';
 import {createRequire} from 'node:module';
-import {test,expect,type Browser,type BrowserContext,type Page,type TestInfo} from '@playwright/test';
+import {test,expect,type Browser,type BrowserContext,type Page,type Route,type TestInfo} from '@playwright/test';
 import {assertTarget} from '../../work/pilot/verify-target.mjs';
 import {createTjanstOidcFixture,seedTjanstActual,captureTjanstPlanHttp,seedTjanstYearCases,tjanstForeignFingerprint,withTjanstHistoryFailure,TJANST_ACTUAL_CASES,TJANST_ACTUAL_ROLES,TJANST_YEAR_CASES,TJANST_PHONE_YEAR_CASES} from '../../work/pilot/tjanst-oidc-fixtures.mjs';
 const postgres=createRequire(import.meta.url)('postgres');
@@ -611,11 +611,14 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   pass('två flikar: den andra får 409','flik 1 sparar VT 30 h, flik 2 får 409 med beskedet att underlaget har ändrats, inmatningen kvar och inget skrivs över (VT 1 800 min)',{row});
   // Avbrutet svar (märkt transportfel): Worker svarar 200, men svaret tappas innan klienten får det.
   let workerStatus=0;const [commandsBefore]=await db`select count(*)::int n from public.tjanst_commands where action='save_row' and customer_id=${seed.customerId}`;
-  await settled(p);await p.route('**/api/tjanst/plan/kommando',async route=>{const real=await route.fetch();workerStatus=real.status();await route.abort('failed');},{times:1});
+  // Rutten ligger kvar tills statussvaret har kommit: en engångsrutt (times:1) som avregistreras samtidigt som statusfrågan skickas
+  // lämnade ibland statusfrågan hängande i webbläsaren (faktiskt prov 05.1-33, statusfrågan nådde aldrig Worker).
+  let dropped=false;const dropFirst=async(route:Route)=>{if(dropped)return route.continue();dropped=true;const real=await route.fetch();workerStatus=real.status();await route.abort('failed');};
+  await settled(p);await p.route('**/api/tjanst/plan/kommando',dropFirst);
   const status=p.waitForResponse(responseOf('/api/tjanst/plan/status'));
   await cell(p,'Tor Berg','Matematik','SYNGR8').click();await p.getByRole('dialog').getByLabel('Lärartid HT (timmar)').fill('40');
   await p.getByRole('dialog').getByRole('button',{name:'Välj Tor Berg',exact:true}).click();
-  expect((await status).status()).toBe(200);
+  expect((await status).status()).toBe(200);await p.unroute('**/api/tjanst/plan/kommando',dropFirst);
   await expect(ws(p).getByText(`Tjänsteraden är sparad: ${name}, HT 40 h · VT 30 h.`)).toBeVisible();await settled(p);
   const [recovered]=await db`select r.teacher_ht_minutes::int ht,(select count(*)::int from public.tjanst_commands c where c.action='save_row' and c.customer_id=${seed.customerId}) commands from public.tjanst_rows r
     join public.tjanst_versions v on v.id=r.version_id join public.tjanst_distributions dd on dd.id=v.distribution_id and dd.unit_id=${seed.schools.A} and dd.school_year=${seed.year} where v.status='draft' and r.staff_person_id=${seed.people.t2} and r.source_key like ${'class_timplan:%:matematik'}`;
