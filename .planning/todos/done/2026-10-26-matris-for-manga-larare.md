@@ -2,7 +2,7 @@
 created: 2026-10-26
 title: Tjänstefördelning som fungerar med många lärare (matrislinser och fördelningsläge)
 area: tjanstefordelning
-status: pending
+status: done
 phase: "05.1"
 source: användarprov etapp 2 (3012, kandidat 1eb5467)
 ---
@@ -22,3 +22,5 @@ Research och förslag finns i [TJANST-MATRIS-ALTERNATIV.md](../../research/TJANS
 # Nästa steg
 
 Skisser (gsd-sketch) av förslag 1, 2 och 4 och ett kort användarprov med syntetisk skola med cirka 40 lärare. Därefter beslut och egen plan. Inget är beslutat eller byggt.
+
+**Genomförd:** linser i 05.1-29 och Fördela i 05.1-30 (3012 sedan 2026-10-27).
