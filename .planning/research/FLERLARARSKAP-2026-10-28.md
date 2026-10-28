@@ -47,7 +47,14 @@ Det skärmbilden visar (48 + 48 mot behovet 48) är **B eller C** om det är avs
 - **Fördela och Massregistrera** visar *Har redan tid på behovet* och erbjuder *Lägg till som andra lärare…*, som leder till samma fråga.
 - **Om formen saknas** behandlas en dubbel täckning som nu, som en avvikelse med texten *Två lärare utan angiven delning*. Den blir ett publiceringshinder som rektor löser uttryckligen, på samma sätt som D-28 hanterar blandade samläsningar.
 
-## Beslut som behövs innan planering
+## Användarbeslut D-31 (2026-10-28)
+
+1. **Former:** först *En i taget* (A) och *Samtidigt i samma grupp* (B). *Klassen delas i två grupper* (C) kommer tillsammans med undervisningsgrupper för valbara kurser. Stöd (D) hanteras via Specialuppdrag.
+2. **Betyg:** *Sätter betyg* registreras i tjänstefördelningen och förifylls efter formen (A: läraren i sista perioden; B: båda). Rektor kan ändra det. Okänd behörighet visas som upplysning.
+3. **Utan angiven delning:** två lärare med tid på samma behov utan delningsform är ett **publiceringshinder** (samma princip som D-28).
+4. **HR-fråga:** ingen nu. Båda lärarna får hela tiden i sin summa vid B, utan bedömning mot arbetstid (D-10).
+
+## Frågor som ställdes före beslutet
 
 1. Vilka former ska stödjas först? Förslag: A och B nu, C tillsammans med undervisningsgrupper för valbara kurser (todo), D via Specialuppdrag.
 2. Ska *Sätter betyg* registreras i tjänstefördelningen, eller ligga i en senare betygs- eller schemadel?

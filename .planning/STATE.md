@@ -26,6 +26,8 @@ milestone_name: milestone
 
 # Project State
 
+**Användarbeslut D-31 2026-10-28 (flerlärarskap):** Delningsform per behov. *En i taget* och *Samtidigt* kommer först, och *Klassen delas i två grupper* kommer senare med undervisningsgrupper. *Sätter betyg* registreras och förifylls. Två lärare utan delningsform är ett publiceringshinder. Ingen HR-fråga nu. [Research](research/FLERLARARSKAP-2026-10-28.md). Inget är planerat eller byggt.
+
 **Plan 05.1-32 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-32-SUMMARY.md). Rättelser från användarprovet: Massregistrera visar redan fördelat behov; filter, lins och termin läser inte om; en vakant rad ersätts vid lärarval i stället för att behovet fördelas dubbelt. Faktiskt prov på 968512a PASS 87/87. 3012 kör 968512a efter användarens ”kör”. Användarens befintliga dubbelrad i SG27A (Svenska) ändras inte automatiskt.
 
 **Plan 05.1-31 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-31-SUMMARY.md). Efter användarprov: ett klick på lärare, förslag eller Vakant i tjänsteradens dialog sparar direkt (D-30); tid och kommentar står överst. Den falska felrutan vid val är rättad. Faktiskt prov på 814697b PASS 87/87. 3012 kör 814697b efter användarens ja. Användarprov av 29–31 återstår.
