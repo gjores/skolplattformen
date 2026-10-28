@@ -44,3 +44,8 @@ Användaren misstog programplanens lista över befintliga klasser för timplanen
 ## Mobilens klistrade planeringskontext 2026-10-18
 
 Faktiskt telefonprov för VOCATIONAL-EXAM-2028 klarar granska/spara/skicka/godkänna. Elementscreenshots av det långa examensformsformuläret visar samtidigt att den befintliga klistrade skol-/läsårspanelen hamnar ovanpå delar av innehållet; statuskortets rubrik skymtar bakom panelen. Fälten kunde användas i provet, men bilderna är inte visuellt rena. Utred separat hur kontextpanelen tar plats vid mobilrullning och skärmbildtagning innan det breda mobil-UX-gapet stängs. Ingen ny användaracceptans eller generell mobilombyggnad ingår i detta delprov.
+
+
+## Tjänstefördelningens UX-granskning 2026-10-29
+
+Separat rapport och 15 väntande GSD-todos (B01–B06, F01–F09) finns i [samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md). Där ingår användarens önskemål om direkt tilldelning med ett klick i matrisen, med dialog för avancerade val. Implementera inte samma fynd dubbelt via denna övergripande todo. Ingen produktändring eller ny fasacceptans följer av registreringen.
