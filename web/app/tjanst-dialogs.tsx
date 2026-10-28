@@ -123,6 +123,7 @@ export function TjanstRowDialog(props: RowProps) {
     {props.supportNotice}
     <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     {stale && <p role="alert">Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.</p>}
+    {row && row.personId === null && <p className="tjanst-direct-hint">Behovet har en vakant rad. Väljer du en lärare ersätts Vakant, så att behovet inte fördelas dubbelt.</p>}
     {row && <p>Sparad tilldelning: {teacherName(data, row.personId)}{row.personId !== null && !support.candidates.some(p => p.personId === row.personId) ? '. Personen saknar aktuellt skoluppdrag i underlaget. Välj en aktuell lärare eller Vakant före sparning.' : ''}</p>}
     <form className="protected-form tjanst-form" onSubmit={e => { e.preventDefault(); submit(); }}><fieldset disabled={busy || disabled}>
       <Field id={`${id}-ht`} label="Lärartid HT (timmar)" error={errors.ht} help={liveDeviation('HT', ht, support.need.needHt, others.ht)}><input {...described(`${id}-ht`, errors.ht, 'help')} inputMode="decimal" value={ht} onChange={e => setHt(e.target.value)}/></Field>

@@ -644,7 +644,7 @@ test('samtidighet: två flikar och avbrutet svar; tillstånd: laddning, loggfel,
   // context_changed: sessionens epok ändras på servern; nästa läsning med gammal epok nekas.
   const s=await fixture!.view(p,'principalA');
   await db`update public.app_sessions set context_epoch=context_epoch+1 where id=${s.sessionId}`;
-  await ws(p).getByRole('button',{name:'Hela läsåret',exact:true}).click();
+  await ws(p).getByRole('button',{name:'Hämta aktuellt läge',exact:true}).click();
   // Skalet fångar context_changed för hela fliken (gemensam dialog) innan vyns egen text hinner visas.
   const changed=p.getByRole('alertdialog',{name:'Kontexten ändrades i en annan flik'});
   await expect(changed).toBeVisible();await expect(changed).toContainText('Innehållet i den här fliken har rensats.');

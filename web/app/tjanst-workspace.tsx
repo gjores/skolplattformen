@@ -397,12 +397,19 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const cls = data!.classes.find(c => c.classId === row.classId), need = cls?.needs.find(n => n.sourceKey === row.sourceKey);
     return { teacher: row.personId === null ? 'Vakant' : data!.teachers.find(t => t.personId === row.personId)?.displayName ?? 'Okänd lärare', course: need?.label ?? row.rowKey, cls: cls?.name ?? '' };
   };
+  // 05.1-32 (användarprov 2026-10-28): en ny rad för ett behov med en vakant rad ersätter den vakanta i stället för att fördela behovet dubbelt.
+  function vacantTarget(target: TjanstCellTarget): TjanstCellTarget {
+    if (target.rowId !== null || !data) return target;
+    const vacant = data.rows.find(r => r.sourceKey === target.sourceKey && r.personId === null && r.jointGroupId === null);
+    return vacant ? { ...target, rowId: vacant.id } : target;
+  }
   function linkMarked(from: HTMLElement) {
     if (!data) return;
     const rows = marked.map(id => data.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r);
     const joinedRow = rows.find(r => r.jointGroupId !== null);
     if (joinedRow) { const n = rowName(joinedRow); setMarkError(`${n.course} ${n.cls} ingår redan i samläsningen ${jointOf(joinedRow, data.joints)?.name ?? ''}. Lös upp den först eller ändra den samläsningen.`); return; }
-    if (rows.length < 2 || new Set(rows.map(r => r.classId)).size < 2) { setMarkError('Markera minst två rader i minst två olika klasser.'); return; }
+    if (rows.length >= 2 && new Set(rows.map(r => r.classId)).size < 2) { setMarkError(`Raderna gäller samma klass (${rowName(rows[0]).cls}). En samläsning behöver rader i minst två olika klasser. Två rader på samma behov i en klass är dubbel fördelning; ta bort den ena i matrisen.`); return; }
+    if (rows.length < 2) { setMarkError('Markera minst två rader i minst två olika klasser.'); return; }
     setMarkError(null); open({ kind: 'joint', rowIds: rows.map(r => r.id), jointId: null }, from);
   }
   const visibleKeys = useMemo(() => new Set(filtered.flatMap(g => g.entries.map(e => e.need.sourceKey))), [filtered]);
@@ -489,7 +496,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
-          onCell={(target, from) => open({ kind: 'row', target }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
+          onCell={(target, from) => open({ kind: 'row', target: vacantTarget(target) }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}

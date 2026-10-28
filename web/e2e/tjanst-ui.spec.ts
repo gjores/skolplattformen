@@ -103,6 +103,18 @@ test.describe('dator',()=>{
   await expect(svenska.getByText('Samläsning · olika lärare')).toBeVisible();
  });
 
+ test('val av lärare för ett behov med vakant rad ersätter Vakant i stället för att fördela dubbelt (05.1-32)',async({page})=>{
+  await open(page);
+  await matrix(page).getByRole('button',{name:'Anna Andersson, Svenska som andraspråk 1, IMSPR: ingen tid. Tilldela.'}).click();
+  const dialog=page.getByRole('dialog');
+  await expect(dialog.getByText('Behovet har en vakant rad. Väljer du en lärare ersätts Vakant, så att behovet inte fördelas dubbelt.')).toBeVisible();
+  await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('36');
+  await dialog.getByRole('button',{name:'Välj Anna Andersson',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);
+  expect(sent[0].body.payload).toMatchObject({rowId:'51a50000-0000-4000-8000-000000000305',personId:'51a50000-0000-4000-8000-000000000101'});
+  await expect(matrix(page).getByRole('button',{name:/^Vakant, Svenska som andraspråk 1, IMSPR: ingen tid/})).toBeVisible();
+ });
+
  test('fokus återgår till cellen när omläsningen efter sparning är fördröjd (09f5214)',async({page})=>{
   await open(page);
   await matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();
@@ -516,7 +528,7 @@ test.describe('dator',()=>{
   await course.getByRole('checkbox',{name:'Markera Engelska 5 TE26A, Bertil Berg'}).check();
   await expect(course.getByText('2 rader markerade')).toBeVisible();
   await course.getByRole('button',{name:'Koppla till samläsning…'}).click();
-  await expect(course.getByText('Markera minst två rader i minst två olika klasser.')).toBeVisible();
+  await expect(course.getByText('Raderna gäller samma klass (TE26A). En samläsning behöver rader i minst två olika klasser. Två rader på samma behov i en klass är dubbel fördelning; ta bort den ena i matrisen.')).toBeVisible();
   await expect(page.getByRole('dialog')).toHaveCount(0);
   await course.getByRole('button',{name:'Avmarkera alla'}).click();await expect(course.getByText(/rader markerade|rad markerad/)).toHaveCount(0);
  });
