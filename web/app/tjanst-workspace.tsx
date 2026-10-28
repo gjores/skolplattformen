@@ -337,10 +337,16 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     return () => window.removeEventListener('popstate', pop);
   }, []);
   // 05.1-34: Fördela öppnar med linsen Ofördelat; Alla behov väljs uttryckligen (till exempel för en andra lärare).
+  // Linsen delas mellan vyerna. En lins som Fördela satte automatiskt återställs när vyn lämnas, så att matrisen inte döljer fördelade rader.
+  const autoLens = useRef(initial.view === 'fordela' && initial.saved.filter.lens === 'ofordelat');
   function chooseView(next: TjanstView) {
     if (next === view) return;
-    const saved = next === 'fordela' && savedRef.current.filter.lens === 'alla' ? { ...savedRef.current, filter: { ...savedRef.current.filter, lens: 'ofordelat' as const } } : savedRef.current;
-    if (saved !== savedRef.current) setFilter(saved.filter);
+    const current = savedRef.current;
+    const lens = next === 'fordela' && current.filter.lens === 'alla' ? 'ofordelat' as const
+      : view === 'fordela' && autoLens.current && current.filter.lens === 'ofordelat' ? 'alla' as const : current.filter.lens;
+    autoLens.current = next === 'fordela' && lens !== current.filter.lens;
+    const saved = lens === current.filter.lens ? current : { ...current, filter: { ...current.filter, lens } };
+    if (saved !== current) setFilter(saved.filter);
     setView(next); setMarkError(null); writeLocation(next, term, saved, 'push');
   }
   // 05.1-27: kursnamn och samläsningsmärke leder till Per kurs/ämne. Kursen filtreras på kurskod; samläsningen fokuseras.
@@ -493,11 +499,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
       <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
-      <TjanstLensBar lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens } })} phone={phone} matrix={shownView === 'matris'}
+      <TjanstLensBar lens={filter.lens} onLens={lens => { autoLens.current = false; patchSaved({ filter: { ...filter, lens } }); }} phone={phone} matrix={shownView === 'matris'}
         shown={columns.length} total={teachers.length} showAll={showAll} onShowAll={setShowAll} filteredByTeacher={!!filter.personId}
         teachers={teachers} pinned={prefs.pinned} onPin={pin} compact={prefs.compact} onCompact={compact => updatePrefs({ ...prefs, compact })}
         saved={prefs.saved} onSave={saveLens} onDeleteSaved={name => updatePrefs({ ...prefs, saved: prefs.saved.filter(s => s.name !== name) })}
-        onApplySaved={lens => { patchSaved({ filter: { ...lens.filter, lens: lens.lens } }); setShowAll(lens.showAll); }}/>
+        onApplySaved={lens => { autoLens.current = false; patchSaved({ filter: { ...lens.filter, lens: lens.lens } }); setShowAll(lens.showAll); }}/>
       {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}

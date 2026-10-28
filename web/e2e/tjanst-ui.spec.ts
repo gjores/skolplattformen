@@ -1103,6 +1103,14 @@ test.describe('fördela lins',()=>{
   // Ett fördelat behov kan väljas under Alla behov, till exempel för en andra lärare.
   await all.getByRole('button',{name:'Engelska 5 · TE26A · Fördelat'}).click();
   await expect(fordela(page).getByRole('heading',{name:'Engelska 5 · TE26A'})).toBeVisible();
-  await noOverflow(page);expect(errors).toEqual([]);
+  await noOverflow(page);
+  // Ett uttryckligt linsval står kvar; en lins som Fördela satte själv återställs när vyn lämnas, så att matrisen visar alla rader.
+  await ws(page).getByRole('tab',{name:'Matris'}).click();await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('alla');
+  await ws(page).getByRole('tab',{name:'Fördela'}).click();await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
+  await ws(page).getByRole('tab',{name:'Matris'}).click();await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('alla');
+  await expect(matrix(page).getByRole('rowheader',{name:/^Engelska 5/u})).toBeVisible();
+  await ws(page).getByRole('tab',{name:'Fördela'}).click();await ws(page).getByLabel('Lins',{exact:true}).selectOption('alla');await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await ws(page).getByRole('tab',{name:'Matris'}).click();await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
+  expect(errors).toEqual([]);
  });
 });
