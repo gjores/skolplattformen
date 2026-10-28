@@ -557,7 +557,8 @@ export async function runYearApply({mode,report,revalidate,connect,install,readA
   finally{if(db)await db.end({timeout:5});}
   report.targetAfterInstall=await readAfter();
   assert.equal(report.targetAfterInstall.fingerprint,report.installed.afterFingerprint);
-  for(const key of ['columns','rows','invalidPublishedJoints'])assert.deepEqual(report.targetAfterInstall[key],report.targetBefore[key],'Efterinstallation ändrade '+key);
+  const afterState=withoutNewTables(report.targetAfterInstall,releaseOf(stage).newTables);
+  for(const key of ['columns','rows','invalidPublishedJoints'])assert.deepEqual(afterState[key],report.targetBefore[key],'Efterinstallation ändrade '+key);
   assert.deepEqual(report.targetAfterInstall.journal,releaseOf(stage).actualMigrations.map(p=>({version:p.split('/').at(-1).slice(0,14),sha256:currentMigrationSources([p])[p]})));
 }
 async function installYearTransaction(tx,expected,evidence,revalidate,rel=RELEASES.year){
