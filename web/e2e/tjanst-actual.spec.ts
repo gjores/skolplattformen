@@ -1161,7 +1161,8 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     yearPass(25,{suggestion:suggestionBody.payload.planningContext.choice.kind,manual:manualBody.payload.planningContext.choice.kind,staleRejectedThenRetried:true,cleanedRows:created25.length});
     // YEAR-26 (05.1-33 / D-31): två lärare på samma behov. Hinder utan delning, samtidigt och en i taget i UI, betygssättare,
     // samläsning och ogiltig betygssättare nekas, och delningen syns i lärarens Min tjänst efter riktig publicering.
-    const need26=year.bulk.needs[100],selfId=seed.people.p1,own26=(x:{sharing:{sourceKey:string}[]})=>x.sharing.filter(v=>v.sourceKey===need26.sourceKey),send26=async(action:string,payload:Record<string,unknown>,choice?:'manual')=>{
+    // Ett behov utan rader, så att lärarna och betygssättarna i fallet är exakt de två som läggs till; raderna tas bort i slutet.
+    const rows26=(await currentPlan(p)).rows,need26=[...year.bulk.needs].reverse().find(n=>!rows26.some(r=>r.sourceKey===n.sourceKey))!,selfId=seed.people.p1,own26=(x:{sharing:{sourceKey:string}[]})=>x.sharing.filter(v=>v.sourceKey===need26.sourceKey),send26=async(action:string,payload:Record<string,unknown>,choice?:'manual')=>{
       const c=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action,...(choice?{choice}:{}),payload} as never);return sendCaptured(p,'principalA',await createYearPlanCommand({...c,commandId:crypto.randomUUID()}));};
     expect((await send26('save_row',rowPayload(need26,selfId,30,0),'manual')).status).toBe(200);expect((await send26('save_row',rowPayload(need26,fullId,0,30),'manual')).status).toBe(200);
     let plan26=await currentPlan(p);expect(plan26.blockers.map(b=>b.code)).toContain('shared_need_unspecified');expect(own26(plan26)).toEqual([]);
