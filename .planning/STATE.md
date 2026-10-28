@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "Användarprov av 05.1-29 och 05.1-30 på 3012"
+current_plan: "Användarprov av 05.1-29–31 på 3012"
 status: in_progress
 stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
 last_updated: "2026-10-26"
@@ -15,7 +15,7 @@ progress:
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
+verification_worker_build_revision: 814697b
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_trial_local_delivery_health_pass
 worker_build_revision: 66c2bd46b92244e1d342b15dd311d36349002792
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Plan 05.1-31 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-31-SUMMARY.md). Efter användarprov: ett klick på lärare, förslag eller Vakant i tjänsteradens dialog sparar direkt (D-30); tid och kommentar står överst. Den falska felrutan vid val är rättad. Faktiskt prov på 814697b PASS 87/87. 3012 kör 814697b efter användarens ja. Användarprov av 29–31 återstår.
 
 **3012 bytt 2026-10-27 (lokal miljö):** Användaren svarade ”ja, byt 3012”. Kandidaten 66c2bd4 klonades till `runtime/tjanst-build-66c2bd4`, och artefaktmanifestet (1 370 filer) är lika med det faktiska provets. 258ba2e stoppades och 66c2bd4 startades. Hälsokontroll: `/api/health/db` ok, tjänstefördelningens rutter ger 401/405 och 9 tillgångar ger 200. Logg: `/private/tmp/tjanst-3012-66c2bd4.log`. Ingen migration. Återgång till `runtime/tjanst-build-258ba2e` är möjlig. Nästa steg är användarprov av matrislinser och Fördela. Inget mänskligt godkännande ännu.
 
