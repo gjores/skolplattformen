@@ -172,7 +172,7 @@ I matrisen får raden ett märke: **Två lärare · en i taget**, **Två lärare
 Två eller fler lärare på samma kurs utan angiven delning hindrar **Fastställ och publicera**. Det gör också en delning där ingen av de markerade betygssättarna längre har tid på kursen, till exempel efter en borttagen eller flyttad rad. Flyttas en lärares rad till en annan lärare med **Flytta uppdrag** följer betygsansvaret med.
 
 Begränsningar:
-- En kurs som ingår i en samläsning kan inte få en delning mellan lärare.
+- Samläsning och delning kombineras inte. Rader som ingår i en samläsning räknas inte till delningen. Har kursen i klassen både en samläst rad och två lärare utanför samläsningen gäller delningen bara dessa två, och bara de kan sätta betyg i delningen. Finns färre än två lärare utanför samläsningen kan kursen inte få någon delning.
 - Vakanta rader räknas inte som lärare.
 - *Klassen delas i två grupper* finns inte ännu. Stöd från till exempel speciallärare registreras som specialuppdrag.
 - Appen bedömer inte hur tvålärarskap räknas i arbetstid eller avtal.

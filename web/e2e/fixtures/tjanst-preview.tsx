@@ -299,8 +299,7 @@ async function apply(original:Unit,raw:unknown):Promise<Reply>{
  }else if(q.action==='bulk')for(const item of p.items){if(item.kind==='row')saveRow(item.payload);else saveSpecial(item.payload);}
  else if(q.action==='save_sharing'){
   const own=d.rows.filter(r=>r.sourceKey===p.sourceKey&&r.personId&&!r.jointGroupId);
-  if(d.rows.some(r=>r.sourceKey===p.sourceKey&&r.jointGroupId))fail('tjanst_sharing_joint');
-  if(new Set(own.map(r=>r.personId)).size<2)fail('tjanst_sharing_too_few');
+  if(new Set(own.map(r=>r.personId)).size<2)fail(d.rows.some(r=>r.sourceKey===p.sourceKey&&r.jointGroupId)?'tjanst_sharing_joint':'tjanst_sharing_too_few');
   if(!p.graderPersonIds.length||p.graderPersonIds.some((g:string)=>!own.some(r=>r.personId===g)))fail('tjanst_sharing_grader');
   d.sharing=[...(d.sharing??[]).filter(x=>x.sourceKey!==p.sourceKey),{sourceKey:p.sourceKey,mode:p.mode,graderPersonIds:[...p.graderPersonIds].sort()}];
  }else if(q.action==='clear_sharing'){if(!(d.sharing??[]).some(x=>x.sourceKey===p.sourceKey))fail('tjanst_invalid');d.sharing=(d.sharing??[]).filter(x=>x.sourceKey!==p.sourceKey);}

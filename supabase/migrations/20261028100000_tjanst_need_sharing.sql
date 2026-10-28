@@ -38,10 +38,13 @@ create function public.tjanst_plan_save_sharing(d public.tjanst_distributions,p 
 language plpgsql volatile security definer set search_path=pg_catalog,public as $$
 declare v public.tjanst_versions:=public.tjanst_current_draft(d);sk text:=p->>'sourceKey';teachers uuid[];graders uuid[];
 begin
- if exists(select 1 from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.version_id=v.id and r.source_key=sk) then
-  raise exception 'Joint need cannot be shared' using errcode='22023',hint='tjanst_sharing_joint';end if;
- select array_agg(distinct r.staff_person_id) into teachers from public.tjanst_rows r where r.version_id=v.id and r.source_key=sk and r.staff_person_id is not null;
- if coalesce(cardinality(teachers),0)<2 then raise exception 'Sharing needs two teachers' using errcode='22023',hint='tjanst_sharing_too_few';end if;
+ -- Delningen gäller lärarna med egen rad utanför samläsning, samma urval som hindret shared_need_unspecified räknar.
+ select array_agg(distinct r.staff_person_id) into teachers from public.tjanst_rows r where r.version_id=v.id and r.source_key=sk and r.staff_person_id is not null
+  and not exists(select 1 from public.tjanst_joint_members m where m.row_id=r.id);
+ if coalesce(cardinality(teachers),0)<2 then
+  if exists(select 1 from public.tjanst_rows r join public.tjanst_joint_members m on m.row_id=r.id where r.version_id=v.id and r.source_key=sk) then
+   raise exception 'Joint need cannot be shared' using errcode='22023',hint='tjanst_sharing_joint';end if;
+  raise exception 'Sharing needs two teachers' using errcode='22023',hint='tjanst_sharing_too_few';end if;
  select array_agg(distinct (x.value#>>'{}')::uuid) into graders from jsonb_array_elements(p->'graderPersonIds') x;
  if coalesce(cardinality(graders),0)=0 or not graders<@teachers then raise exception 'Invalid graders' using errcode='22023',hint='tjanst_sharing_grader';end if;
  insert into public.tjanst_need_sharing(version_id,source_key,mode) values(v.id,sk,p->>'mode')
@@ -291,9 +294,10 @@ begin
    where not exists(select 1 from public.tjanst_need_sharing s where s.version_id=v.id and s.source_key=x.source_key)) then
   result:=result||jsonb_build_array(jsonb_build_object('code','shared_need_unspecified','message','Två eller fler lärare har tid på samma kurs i en klass utan angiven delning. Ange om de undervisar en i taget eller samtidigt.'));end if;
  if exists(select 1 from public.tjanst_need_sharing s where s.version_id=v.id
-   and (select count(distinct r.staff_person_id) from public.tjanst_rows r where r.version_id=v.id and r.source_key=s.source_key and r.staff_person_id is not null)>1
+   and (select count(distinct r.staff_person_id) from public.tjanst_rows r where r.version_id=v.id and r.source_key=s.source_key and r.staff_person_id is not null
+    and not exists(select 1 from public.tjanst_joint_members m where m.row_id=r.id))>1
    and not exists(select 1 from public.tjanst_need_graders g join public.tjanst_rows r on r.version_id=v.id and r.source_key=g.source_key and r.staff_person_id=g.staff_person_id
-    where g.version_id=v.id and g.source_key=s.source_key)) then
+    where g.version_id=v.id and g.source_key=s.source_key and not exists(select 1 from public.tjanst_joint_members m where m.row_id=r.id))) then
   result:=result||jsonb_build_array(jsonb_build_object('code','grader_missing','message','En delad kurs saknar lärare som sätter betyg. Ange vem eller vilka av lärarna som sätter betyget.'));end if;
  return result;
 end $$;
@@ -427,9 +431,9 @@ begin
      'ht',r.teacher_ht_minutes,'vt',r.teacher_vt_minutes,
      'sharing',(select jsonb_build_object('mode',s.mode,
        'colleagues',coalesce((select jsonb_agg(distinct left(o.given_name||' '||o.family_name,200)) from public.tjanst_rows o_r join public.staff_people o on o.id=o_r.staff_person_id
-         where o_r.version_id=v.id and o_r.source_key=r.source_key and o.id<>p.id),'[]'::jsonb),
+         where o_r.version_id=v.id and o_r.source_key=r.source_key and o.id<>p.id and not exists(select 1 from public.tjanst_joint_members om where om.row_id=o_r.id)),'[]'::jsonb),
        'grader',exists(select 1 from public.tjanst_need_graders g where g.version_id=v.id and g.source_key=r.source_key and g.staff_person_id=p.id))
-      from public.tjanst_need_sharing s where s.version_id=v.id and s.source_key=r.source_key),
+      from public.tjanst_need_sharing s where s.version_id=v.id and s.source_key=r.source_key and not exists(select 1 from public.tjanst_joint_members m where m.row_id=r.id)),
      'joint',(select jsonb_build_object('jointId',g.id,'name',g.name,
        'colleagues',coalesce((select jsonb_agg(left(o.given_name||' '||o.family_name,200) order by o.family_name collate "C",o.given_name collate "C")
          from public.tjanst_joint_teacher_time t join public.staff_people o on o.id=t.staff_person_id where t.group_id=g.id and o.id<>p.id),'[]'::jsonb),

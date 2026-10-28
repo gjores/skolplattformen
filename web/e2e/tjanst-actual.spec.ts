@@ -1183,7 +1183,8 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     // Servern nekar betygssättare utan tid på behovet och delning av en samläst kurs.
     const other26=plan26.teachers.find(t=>t.personId!==selfId&&t.personId!==fullId)!;
     const badGrader=await send26('save_sharing',{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[other26.personId]});expect(badGrader.status).toBe(400);expect(badGrader.body.details.reason).toBe('tjanst_sharing_grader');
-    const jointRow26=plan26.rows.find(r=>r.jointGroupId!==null)!;expect(jointRow26).toBeTruthy();
+    const ownTeachers26=(k:string)=>new Set(plan26.rows.filter(r=>r.sourceKey===k&&r.personId&&!r.jointGroupId).map(r=>r.personId)).size;
+    const jointRow26=plan26.rows.find(r=>r.jointGroupId!==null&&ownTeachers26(r.sourceKey)<2)!;expect(jointRow26).toBeTruthy();
     const jointDenied=await send26('save_sharing',{sourceKey:jointRow26.sourceKey,mode:'concurrent',graderPersonIds:[jointRow26.personId]});expect(jointDenied.status).toBe(400);expect(jointDenied.body.details.reason).toBe('tjanst_sharing_joint');
     expect((await currentPlan(p)).sharing).toEqual(plan26.sharing);
     // Riktig publicering; läraren ser delningen och betygsansvaret i Min tjänst.

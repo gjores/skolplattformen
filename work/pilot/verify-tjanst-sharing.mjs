@@ -119,6 +119,19 @@ async function cases(db, report) {
     await denied(t, report, 'delning av ett samläst behov nekas (D-28 och D-31 kombineras inte)', () => sharing({ ...s, t }, 'concurrent', [s.p0]), '22023', 'tjanst_sharing_joint');
   });
   await rolledBack(db, async t => {
+    // Behov med en samläst rad och två lärare utanför samläsningen: hindret och delningen räknar samma lärare.
+    const s = await setup(t);
+    await saveRow(s, s.f.classes.other, s.p0);
+    const d0 = await read(s), rowIds = [d0.rows.find(r => r.sourceKey === s.need && r.personId === s.p0).id, d0.rows.find(r => r.sourceKey === s.key('matematik', s.f.classes.other)).id];
+    await send(s, 'save_joint', { jointId: null, name: 'Syntetisk samläsning', rowIds, teachers: [{ personId: s.p0, ht: 600, vt: 600 }] });
+    let d = await saveRow(s, s.f.classes.group, s.p4, 300, 300);
+    d = await read(s); assert.ok(codes(d).includes('shared_need_unspecified'));
+    await denied(t, report, 'samläst lärare kan inte vara betygssättare i delningen utanför samläsningen', () => sharing({ ...s, t }, 'sequential', [s.p0]), '22023', 'tjanst_sharing_grader');
+    d = await sharing(s, 'sequential', [s.p4]);
+    assert.deepEqual(d.sharing, [{ sourceKey: s.need, mode: 'sequential', graderPersonIds: [s.p4] }]); assert.ok(!codes(d).includes('shared_need_unspecified'));
+    check(report, 'delvis samläst behov: två lärare utanför samläsningen kan få delning, och hindret hävs');
+  });
+  await rolledBack(db, async t => {
     const s = await setup(t);
     await sharing(s, 'concurrent', [s.p0, s.p1]);
     let d = await send(s, 'publish', {}); assert.equal(d.version.status, 'published');

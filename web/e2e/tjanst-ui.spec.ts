@@ -962,7 +962,7 @@ test.describe('fördela telefon',()=>{
 });
 
 // 05.1-33 / D-31: flera lärare på samma behov.
-const ANNA='51a50000-0000-4000-8000-000000000101',BERTIL='51a50000-0000-4000-8000-000000000102',CECILIA='51a50000-0000-4000-8000-000000000103';
+const ANNA='51a50000-0000-4000-8000-000000000101',CECILIA='51a50000-0000-4000-8000-000000000103';
 const sharingDialog=(page:Page)=>page.getByRole('dialog',{name:'Hur delar lärarna kursen?'});
 const sharingSent=async(page:Page)=>(await commands(page)).filter(c=>c.body.action==='save_sharing'||c.body.action==='clear_sharing');
 const rowOf=(page:Page,label:RegExp)=>matrix(page).getByRole('row').filter({has:page.getByRole('rowheader',{name:label})});
