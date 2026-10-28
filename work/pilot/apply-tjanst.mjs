@@ -231,7 +231,7 @@ export function assertYearTransition(before, after, { functionCount = 86, stage 
   assert.ok(before.tables.every(t => !owned.has(t.relname)), 'Stegets tabeller finns redan före installationen');
   const relKey = { tables: 'relname', columns: 'relname', constraints: 'relname', indexes: 'tablename', triggers: 'relname', policies: 'tablename' };
   for (const [key, field] of Object.entries(relKey))
-    assert.deepEqual(after[key].filter(x => !owned.has(x[field])), before[key], 'year ändrar inte ' + key);
+    assert.deepEqual([...after[key]].filter(x => !owned.has(x[field])), [...before[key]], 'year ändrar inte ' + key);
   const addedTables = after.tables.filter(t => owned.has(t.relname));
   assert.deepEqual(sorted(addedTables.filter(t => t.relkind === 'r').map(t => t.relname)), sorted(r.newTables ?? []), 'Nya tabeller');
   assert.ok(addedTables.every(t => t.relkind === 'r' ? t.relrowsecurity && t.relforcerowsecurity : t.relkind === 'i'), 'Ny tabell utan tvingad RLS eller oväntad relation');
