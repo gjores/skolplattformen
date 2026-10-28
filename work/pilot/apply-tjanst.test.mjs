@@ -270,7 +270,7 @@ test('gaplägets repetition gör aldrig commit: utan --apply en transaktion som 
 });
 
 // ---------- year: exact release evidence and isolated rehearsal ----------
-import { SHARING_MIGRATIONS,SHARING_NEW_FUNCTIONS,SHARING_NEW_TABLES,SHARING_REPLACED_FUNCTIONS,SHARING_SQL_KINDS,RELEASES,TRIAL_MIGRATIONS,TRIAL_NEW_FUNCTIONS,TRIAL_REPLACED_FUNCTIONS,TRIAL_SQL_KINDS,YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
+import { withoutNewTables,SHARING_MIGRATIONS,SHARING_NEW_FUNCTIONS,SHARING_NEW_TABLES,SHARING_REPLACED_FUNCTIONS,SHARING_SQL_KINDS,RELEASES,TRIAL_MIGRATIONS,TRIAL_NEW_FUNCTIONS,TRIAL_REPLACED_FUNCTIONS,TRIAL_SQL_KINDS,YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
   assertYearTransition,requireYearEvidence,runOwnedYearRehearsal,runYearApply } from './apply-tjanst.mjs';
 import { randomUUID } from 'node:crypto';
 let auditSeq=0; // säkerhetsloggens id är heltal
@@ -485,4 +485,11 @@ test('sharing bevis: 88 fall, fem SQL-rapporter, pending = en migration; trial-b
   for(const change of [e=>{e.a.pendingMigrations=TRIAL_MIGRATIONS;},e=>{e.a.grants.closedFunctions=74;},e=>{delete e.sql['tjanst-need-sharing'];},
     e=>{e.a.checks.pop();},e=>{e.context.stage='trial';}]){const x=yearEvidence('sharing');change(x);const y=yearManifest(x);assert.throws(()=>requireYearEvidence(y.manifest,y.read,x.context));}
   const y=yearEvidence('trial'),ym=yearManifest(y);assert.throws(()=>requireYearEvidence(ym.manifest,ym.read,{...y.context,stage:'sharing'}));
+});
+test('sharing bevarande: nya tomma tabeller godtas, rader i dem eller ändrade befintliga tabeller godtas inte',()=>{
+  const before={columns:{tjanst_rows:['id']},rows:{tjanst_rows:{count:2,hash:'a'}},mandates:{count:1},published:{count:1}};
+  const after={columns:{...before.columns,tjanst_need_sharing:['version_id']},rows:{...before.rows,tjanst_need_sharing:{count:0,hash:'d41d8cd98f00b204e9800998ecf8427e'}},mandates:before.mandates,published:before.published};
+  assert.deepEqual(withoutNewTables(after,SHARING_NEW_TABLES),before);assert.notDeepEqual(withoutNewTables(after,[]),before);
+  assert.throws(()=>withoutNewTables({...after,rows:{...after.rows,tjanst_need_sharing:{count:1,hash:'x'}}},SHARING_NEW_TABLES),/har rader/u);
+  assert.notDeepEqual(withoutNewTables({...after,rows:{...after.rows,tjanst_rows:{count:3,hash:'b'}}},SHARING_NEW_TABLES),before);
 });

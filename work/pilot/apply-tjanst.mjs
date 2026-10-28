@@ -515,7 +515,13 @@ async function preservedYearState(tx){
   return {columns,rows,mandates,published,journalHash:sha(JSON.stringify(journal)),journalCount:journal.length};
 }
 /** Lifecycle is separately tested: cleanup and fresh read-only target proof run even after a failed transaction. */
-export async function runOwnedYearRehearsal({readTarget,createSnapshot,seed,preserve,structure,migrate,checkInstalled,report}){
+/** 05.1-33: stegets nya tabeller finns bara efter migreringen och ska då vara tomma; allt annat jämförs exakt. */
+export function withoutNewTables(state,newTables=[]){
+  const next=structuredClone(state);
+  for(const t of newTables){assert.ok(!next.rows?.[t]||next.rows[t].count===0,'Ny tabell har rader efter migreringen: '+t);delete next.rows?.[t];delete next.columns?.[t];}
+  return next;
+}
+export async function runOwnedYearRehearsal({readTarget,createSnapshot,seed,preserve,structure,migrate,checkInstalled,report,newTables=[]}){
   let snapshot,failure;
   report.targetBefore=await readTarget();report.committed=false;
   try{
@@ -528,7 +534,7 @@ export async function runOwnedYearRehearsal({readTarget,createSnapshot,seed,pres
     let completed=false;
     try{await snapshot.db.begin(async tx=>{
       await migrate(tx);
-      assert.deepEqual(await preserve(tx),before,'Migration ändrade ursprungliga rader, kolumner, mandat, andelar, publicering eller journal');
+      assert.deepEqual(withoutNewTables(await preserve(tx),newTables),before,'Migration ändrade ursprungliga rader, kolumner, mandat, andelar, publicering eller journal');
       report.rehearsal=await checkInstalled(tx,schema);completed=true;throw ROLLBACK;
     });}catch(e){if(e!==ROLLBACK)throw e;}
     assert.equal(completed,true);assert.deepEqual(await structure(snapshot.db),schema,'Rollback återställde inte schema');
@@ -570,7 +576,7 @@ async function installYearTransaction(tx,expected,evidence,revalidate,rel=RELEAS
   const sources=currentMigrationSources(rel.migrations);
   for(const p of rel.migrations){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}
   await tx`set constraints all immediate`;
-  assert.deepEqual(await preservedYearState(tx),before,'Befintliga rader/mandat/andelar/publicering/journal ändrades');
+  assert.deepEqual(withoutNewTables(await preservedYearState(tx),rel.newTables),before,'Befintliga rader/mandat/andelar/publicering/journal ändrades');
   const objects=assertYearTransition(beforeSchema,await schemaFingerprint(tx,true),{functionCount:rel.functionCount,stage:rel.stage});
   const privacy=assertPrivate(await newObjectPrivileges(tx),YEAR_ENTRYPOINTS);assert.equal(privacy.privateFunctions,rel.privateFunctions);
   const afterFingerprint=await schemaFingerprint(tx);assert.equal(afterFingerprint,evidence.actual.installedFingerprint);
@@ -579,7 +585,7 @@ async function installYearTransaction(tx,expected,evidence,revalidate,rel=RELEAS
   const journal=await tx`select version,name,statements from supabase_migrations.schema_migrations where version>=${'20261020000000'} order by version`;
   assert.equal(journal.length,rel.journalCount);
   for(const [i,p]of rel.actualMigrations.entries())assert.deepEqual(journal[i],{version:p.split('/').at(-1).slice(0,14),name:p.split('/').at(-1).slice(15,-4),statements:[readFileSync(resolve(root,p),'utf8')]});
-  const after=await preservedYearState(tx);for(const key of ['columns','rows','mandates','published'])assert.deepEqual(after[key],before[key]);
+  const after=withoutNewTables(await preservedYearState(tx),rel.newTables);for(const key of ['columns','rows','mandates','published'])assert.deepEqual(after[key],before[key]);
   return {afterFingerprint,...objects,privacy,preservedTables:Object.keys(before.rows).length,mandates:before.mandates,published:before.published};
 }
 async function mainYear(opts){
@@ -617,7 +623,7 @@ async function mainYear(opts){
       report.evidencePath=opts.out;report.evidenceSha256=sha(read(opts.out));
     }else{
       report.sqlEvidence={path:opts.evidencePath,sha256:sha(read(opts.evidencePath))};
-      await runOwnedYearRehearsal({readTarget,createSnapshot:createNamedTimplanSnapshot,seed:tx=>seedYearRehearsal(tx,rel),preserve:preservedYearState,
+      await runOwnedYearRehearsal({readTarget,createSnapshot:createNamedTimplanSnapshot,seed:tx=>seedYearRehearsal(tx,rel),preserve:preservedYearState,newTables:rel.newTables??[],
         structure:q=>schemaFingerprint(q,true),migrate:async tx=>{
           await tx`set local lock_timeout='5s'`;await tx`set local statement_timeout='180s'`;
           for(const p of rel.migrations){const sql=readFileSync(resolve(root,p),'utf8');assert.equal(sha(sql),TJANST_MIGRATION_REGISTRY.find(m=>m.file===p).sha256);await tx.unsafe(sql);}await tx`set constraints all immediate`;
