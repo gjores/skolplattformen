@@ -1158,10 +1158,10 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     yearPass(25,{suggestion:suggestionBody.payload.planningContext.choice.kind,manual:manualBody.payload.planningContext.choice.kind,staleRejectedThenRetried:true,cleanedRows:created25.length});
     // YEAR-26 (05.1-33 / D-31): två lärare på samma behov. Hinder utan delning, samtidigt och en i taget i UI, betygssättare,
     // samläsning och ogiltig betygssättare nekas, och delningen syns i lärarens Min tjänst efter riktig publicering.
-    const need26=year.bulk.needs[100],selfId=seed.people.p1,send26=async(action:string,payload:Record<string,unknown>,choice?:'manual')=>{
+    const need26=year.bulk.needs[100],selfId=seed.people.p1,own26=(x:{sharing:{sourceKey:string}[]})=>x.sharing.filter(v=>v.sourceKey===need26.sourceKey),send26=async(action:string,payload:Record<string,unknown>,choice?:'manual')=>{
       const c=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action,...(choice?{choice}:{}),payload} as never);return sendCaptured(p,'principalA',await createYearPlanCommand({...c,commandId:crypto.randomUUID()}));};
     expect((await send26('save_row',rowPayload(need26,selfId,30,0),'manual')).status).toBe(200);expect((await send26('save_row',rowPayload(need26,fullId,0,30),'manual')).status).toBe(200);
-    let plan26=await currentPlan(p);expect(plan26.blockers.map(b=>b.code)).toContain('shared_need_unspecified');expect(plan26.sharing).toEqual([]);
+    let plan26=await currentPlan(p);expect(plan26.blockers.map(b=>b.code)).toContain('shared_need_unspecified');expect(own26(plan26)).toEqual([]);
     const blocked26=await send26('publish',{});expect(blocked26.status).toBe(409);expect(blocked26.body.details.reason).toBe('tjanst_publish_blocked');
     const cls26=plan26.classes.find(c=>c.needs.some(n=>n.sourceKey===need26.sourceKey))!,label26=cls26.needs.find(n=>n.sourceKey===need26.sourceKey)!.label;
     const name26=(id:string)=>plan26.teachers.find(t=>t.personId===id)!.displayName,selfName=name26(selfId),fullName=name26(fullId);
@@ -1172,14 +1172,14 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     await expect(share26.getByRole('checkbox',{name:selfName,exact:true})).toBeChecked();await expect(share26.getByRole('checkbox',{name:fullName,exact:true})).toBeChecked();
     let res26=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await share26.getByRole('button',{name:'Spara delningen'}).click();expect((await res26).status()).toBe(200);
     await expect(share26).toHaveCount(0);await settled(p);
-    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([{sourceKey:need26.sourceKey,mode:'concurrent',graderPersonIds:[selfId,fullId].sort()}]);
+    plan26=await currentPlan(p);expect(own26(plan26)).toEqual([{sourceKey:need26.sourceKey,mode:'concurrent',graderPersonIds:[selfId,fullId].sort()}]);
     expect(plan26.blockers.map(b=>b.code)).not.toContain('shared_need_unspecified');
     await capture(p,'year-sharing-concurrent');
     await badge26('Två lärare · samtidigt').click();share26=p.getByRole('dialog',{name:'Hur delar lärarna kursen?'});
     await share26.getByRole('radio',{name:/^En i taget/u}).check();await share26.getByRole('checkbox',{name:fullName,exact:true}).uncheck();
     res26=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await share26.getByRole('button',{name:'Spara delningen'}).click();expect((await res26).status()).toBe(200);
     await expect(share26).toHaveCount(0);await expect(badge26('Två lärare · en i taget')).toBeVisible();
-    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[selfId]}]);
+    plan26=await currentPlan(p);expect(own26(plan26)).toEqual([{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[selfId]}]);
     // Servern nekar betygssättare utan tid på behovet och delning av en samläst kurs.
     const other26=plan26.teachers.find(t=>t.personId!==selfId&&t.personId!==fullId)!;
     const badGrader=await send26('save_sharing',{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[other26.personId]});expect(badGrader.status).toBe(400);expect(badGrader.body.details.reason).toBe('tjanst_sharing_grader');
@@ -1190,13 +1190,13 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
     expect(plan26.blockers).toEqual([]);
     const published26=await send26('publish',{});expect(published26.status,JSON.stringify(published26.body)).toBe(200);
     const t26=pages.teacherSelf,self26=await fixture!.request(t26,'teacherSelf','/api/tjanst/egen/lasa',{});expect(self26.status).toBe(200);
-    const selfRows26=(self26.body.publications as {rows:{sharing:unknown}[]}[]).flatMap(x=>x.rows).filter(r=>r.sharing);
+    const selfRows26=(self26.body.publications as {rows:{label:string;className:string;sharing:unknown}[]}[]).flatMap(x=>x.rows).filter(r=>r.label===label26&&r.className===cls26.name);
     expect(selfRows26.map(r=>r.sharing)).toEqual([{mode:'sequential',colleagues:[fullName],grader:true}]);
     await t26.reload();await expect(t26.getByText(`Delas med ${fullName} · En i taget · Sätter betyg`).first()).toBeVisible();await capture(t26,'year-sharing-self');
     // Städning i ny version: delningen tas bort före raderna, så att resten av provet har samma utgångsläge.
     expect((await send26('clear_sharing',{sourceKey:need26.sourceKey})).status).toBe(200);
     for(const row of (await currentPlan(p)).rows.filter(r=>r.sourceKey===need26.sourceKey))expect((await send26('delete_row',{rowId:row.id})).status).toBe(200);
-    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([]);expect(plan26.blockers).toEqual([]);
+    plan26=await currentPlan(p);expect(own26(plan26)).toEqual([]);expect(plan26.blockers).toEqual([]);
     await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
     yearPass(26,{blocked:blocked26.body.details.reason,concurrent:true,sequentialGrader:'self',deniedGrader:badGrader.body.details.reason,deniedJoint:jointDenied.body.details.reason,selfSharing:true});
   }
