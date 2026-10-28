@@ -26,6 +26,8 @@ milestone_name: milestone
 
 # Project State
 
+**Planering 2026-10-28:** [05.1-33](phases/05.1-tjanstefordelning/05.1-33-PLAN.md) Flera lärare på samma behov enligt D-31. Delningsform (en i taget eller samtidigt) och betygsansvar per behov, i en ny migration. Täckning, hinder, hash, kopiering, Bemanning och Min tjänst anpassas, och rektor får frågan när en andra lärare läggs till. Leveranssteget `sharing` och installation kräver användarens ja. Inget är byggt.
+
 **Användarbeslut D-31 2026-10-28 (flerlärarskap):** Delningsform per behov. *En i taget* och *Samtidigt* kommer först, och *Klassen delas i två grupper* kommer senare med undervisningsgrupper. *Sätter betyg* registreras och förifylls. Två lärare utan delningsform är ett publiceringshinder. Ingen HR-fråga nu. [Research](research/FLERLARARSKAP-2026-10-28.md). Inget är planerat eller byggt.
 
 **Plan 05.1-32 genomförd 2026-10-28:** [Resultat](phases/05.1-tjanstefordelning/05.1-32-SUMMARY.md). Rättelser från användarprovet: Massregistrera visar redan fördelat behov; filter, lins och termin läser inte om; en vakant rad ersätts vid lärarval i stället för att behovet fördelas dubbelt. Faktiskt prov på 968512a PASS 87/87. 3012 kör 968512a efter användarens ”kör”. Användarens befintliga dubbelrad i SG27A (Svenska) ändras inte automatiskt.
