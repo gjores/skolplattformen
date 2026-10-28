@@ -1,0 +1,762 @@
+{
+  "config": {
+    "argv": [
+      "/Users/petter.gjores/.hermes/node/bin/node",
+      "/Users/petter.gjores/dev/skolplattform/web/node_modules/.bin/playwright",
+      "test",
+      "-c",
+      "/private/tmp/tjanst-ux-playwright.config.mjs",
+      "--grep",
+      "fördela tom cell|fel bevarar tider|andra läraren ger frågan|telefon: öppnar Per lärare|telefon: per klass och specialuppdrag|läslista över ofördelade|tangentbord: frågan får fokus"
+    ],
+    "configFile": "/private/tmp/tjanst-ux-playwright.config.mjs",
+    "rootDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+    "failOnFlakyTests": false,
+    "forbidOnly": false,
+    "fullyParallel": false,
+    "globalSetup": null,
+    "globalTeardown": null,
+    "globalTimeout": 0,
+    "grep": {},
+    "grepInvert": null,
+    "maxFailures": 0,
+    "metadata": {
+      "actualWorkers": 1
+    },
+    "preserveOutput": "always",
+    "projects": [
+      {
+        "outputDir": "/private/tmp/tjanst-ux-regression",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "desktop",
+        "name": "desktop",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "tjanst-ui.spec.ts"
+        ],
+        "timeout": 30000
+      },
+      {
+        "outputDir": "/private/tmp/tjanst-ux-regression",
+        "repeatEach": 1,
+        "retries": 0,
+        "metadata": {
+          "actualWorkers": 1
+        },
+        "id": "phone",
+        "name": "phone",
+        "testDir": "/Users/petter.gjores/dev/skolplattform/web/e2e",
+        "testIgnore": [],
+        "testMatch": [
+          "tjanst-ui.spec.ts"
+        ],
+        "timeout": 30000
+      }
+    ],
+    "quiet": false,
+    "reporter": [
+      [
+        "list",
+        null
+      ],
+      [
+        "json",
+        {
+          "outputFile": "/Users/petter.gjores/dev/skolplattform/work/ux-review-2026-10-29/regression.json"
+        }
+      ]
+    ],
+    "reportSlowTests": {
+      "max": 5,
+      "threshold": 300000
+    },
+    "shard": null,
+    "tags": [],
+    "updateSnapshots": "missing",
+    "updateSourceMethod": "patch",
+    "version": "1.63.0",
+    "workers": 1,
+    "webServer": null
+  },
+  "suites": [
+    {
+      "title": "tjanst-ui.spec.ts",
+      "file": "tjanst-ui.spec.ts",
+      "column": 0,
+      "line": 0,
+      "specs": [],
+      "suites": [
+        {
+          "title": "dator",
+          "file": "tjanst-ui.spec.ts",
+          "line": 22,
+          "column": 6,
+          "specs": [
+            {
+              "title": "fördela tom cell",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 747,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:43.629Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-1116dcc4aea8c702251d",
+              "file": "tjanst-ui.spec.ts",
+              "line": 25,
+              "column": 2
+            },
+            {
+              "title": "fördela tom cell",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Matris och redigering finns bara på dator (D-15).",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 23,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:48.054Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Matris och redigering finns bara på dator (D-15).",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 23,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-55bc6834220d095e0ab3",
+              "file": "tjanst-ui.spec.ts",
+              "line": 25,
+              "column": 2
+            }
+          ]
+        },
+        {
+          "title": "telefon",
+          "file": "tjanst-ui.spec.ts",
+          "line": 739,
+          "column": 6,
+          "specs": [
+            {
+              "title": "telefon: öppnar Per lärare utan matris och utan redigeringskontroller",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Telefonprov.",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 740,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:44.565Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Telefonprov.",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 740,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-745afd37aa5413d3df8d",
+              "file": "tjanst-ui.spec.ts",
+              "line": 751,
+              "column": 2
+            },
+            {
+              "title": "telefon: per klass och specialuppdrag som kort med långa namn utan sidledsrullning",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Telefonprov.",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 740,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:44.578Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Telefonprov.",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 740,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-cbdc02dc9d829a94913e",
+              "file": "tjanst-ui.spec.ts",
+              "line": 773,
+              "column": 2
+            },
+            {
+              "title": "telefon: öppnar Per lärare utan matris och utan redigeringskontroller",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1364,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:48.074Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-8983c1528e103dbef77f",
+              "file": "tjanst-ui.spec.ts",
+              "line": 751,
+              "column": 2
+            },
+            {
+              "title": "telefon: per klass och specialuppdrag som kort med långa namn utan sidledsrullning",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 507,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:50.167Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-22fd777d0108d51279f2",
+              "file": "tjanst-ui.spec.ts",
+              "line": 773,
+              "column": 2
+            }
+          ]
+        },
+        {
+          "title": "fördela",
+          "file": "tjanst-ui.spec.ts",
+          "line": 870,
+          "column": 6,
+          "specs": [
+            {
+              "title": "fel bevarar tider och behov; Vakant med V efter omförsök",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 891,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:44.585Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-a878c2784640d2b11ec0",
+              "file": "tjanst-ui.spec.ts",
+              "line": 906,
+              "column": 2
+            },
+            {
+              "title": "fel bevarar tider och behov; Vakant med V efter omförsök",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Lärare väljs bara på dator (D-15).",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 871,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:50.682Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Lärare väljs bara på dator (D-15).",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 871,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-78ac33c33990aad2e7dc",
+              "file": "tjanst-ui.spec.ts",
+              "line": 906,
+              "column": 2
+            }
+          ]
+        },
+        {
+          "title": "fördela telefon",
+          "file": "tjanst-ui.spec.ts",
+          "line": 953,
+          "column": 6,
+          "specs": [
+            {
+              "title": "läslista över ofördelade behov utan val",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Telefonprov.",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 954,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:45.486Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Telefonprov.",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 954,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-1113646c562b207fb0d4",
+              "file": "tjanst-ui.spec.ts",
+              "line": 955,
+              "column": 2
+            },
+            {
+              "title": "läslista över ofördelade behov utan val",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 641,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:50.687Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-3420151d772c0fa7d516",
+              "file": "tjanst-ui.spec.ts",
+              "line": 955,
+              "column": 2
+            }
+          ]
+        },
+        {
+          "title": "delning",
+          "file": "tjanst-ui.spec.ts",
+          "line": 969,
+          "column": 6,
+          "specs": [
+            {
+              "title": "andra läraren ger frågan; en i taget summerar, samtidigt räknas en gång; betygssättare",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 1732,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:45.491Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-c4e1329ec04a55985be3",
+              "file": "tjanst-ui.spec.ts",
+              "line": 971,
+              "column": 2
+            },
+            {
+              "title": "tangentbord: frågan får fokus, Escape stänger och fokus återgår",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [],
+                  "expectedStatus": "passed",
+                  "projectId": "desktop",
+                  "projectName": "desktop",
+                  "results": [
+                    {
+                      "workerIndex": 0,
+                      "parallelIndex": 0,
+                      "status": "passed",
+                      "duration": 447,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:47.231Z",
+                      "annotations": [],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "expected"
+                }
+              ],
+              "id": "79e9d3ae997062212522-5685abc67aba726b890b",
+              "file": "tjanst-ui.spec.ts",
+              "line": 1054,
+              "column": 2
+            },
+            {
+              "title": "andra läraren ger frågan; en i taget summerar, samtidigt räknas en gång; betygssättare",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Delningen anges på dator (D-15).",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 970,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 1,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:51.334Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Delningen anges på dator (D-15).",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 970,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-b6aabc362976dc271e5c",
+              "file": "tjanst-ui.spec.ts",
+              "line": 971,
+              "column": 2
+            },
+            {
+              "title": "tangentbord: frågan får fokus, Escape stänger och fokus återgår",
+              "ok": true,
+              "tags": [],
+              "tests": [
+                {
+                  "timeout": 30000,
+                  "annotations": [
+                    {
+                      "type": "skip",
+                      "description": "Delningen anges på dator (D-15).",
+                      "location": {
+                        "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                        "line": 970,
+                        "column": 35
+                      }
+                    }
+                  ],
+                  "expectedStatus": "skipped",
+                  "projectId": "phone",
+                  "projectName": "phone",
+                  "results": [
+                    {
+                      "workerIndex": 1,
+                      "parallelIndex": 0,
+                      "status": "skipped",
+                      "duration": 0,
+                      "errors": [],
+                      "stdout": [],
+                      "stderr": [],
+                      "retry": 0,
+                      "startTime": "2026-10-28T23:34:51.344Z",
+                      "annotations": [
+                        {
+                          "type": "skip",
+                          "description": "Delningen anges på dator (D-15).",
+                          "location": {
+                            "file": "/Users/petter.gjores/dev/skolplattform/web/e2e/tjanst-ui.spec.ts",
+                            "line": 970,
+                            "column": 35
+                          }
+                        }
+                      ],
+                      "attachments": []
+                    }
+                  ],
+                  "status": "skipped"
+                }
+              ],
+              "id": "79e9d3ae997062212522-d85d2e78226da3e3a39d",
+              "file": "tjanst-ui.spec.ts",
+              "line": 1054,
+              "column": 2
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "errors": [],
+  "stats": {
+    "startTime": "2026-10-28T23:34:43.221Z",
+    "duration": 8156.866,
+    "expected": 7,
+    "skipped": 7,
+    "unexpected": 0,
+    "flaky": 0
+  }
+}

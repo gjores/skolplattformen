@@ -1,0 +1,62 @@
+[
+  {
+    "path": "web/app/tjanst-workspace.tsx",
+    "sha256": "37010f4229ab25d7b775fe070edacdc43ab9664199d0f1f88f90e73d836b498b"
+  },
+  {
+    "path": "web/app/tjanst-allocation.tsx",
+    "sha256": "f376db746df4f10601acba334d3c4efd9f9b5a9238629112c1612385bad6372b"
+  },
+  {
+    "path": "web/app/tjanst-views.tsx",
+    "sha256": "1a2ebdcf54551dfe4674e0ba9e2a61bb67df902d7d862b20880c370a2133ba7b"
+  },
+  {
+    "path": "web/app/tjanst-matrix.tsx",
+    "sha256": "603a5f39c4026c7f6148ee625daa66a2c6ddd831a5cf75e913f725c7df89d88e"
+  },
+  {
+    "path": "web/app/tjanst-lens-bar.tsx",
+    "sha256": "c2caa575866848feb68026a8a2b04a4aa09bda64f429de80365e4c3cc564eacb"
+  },
+  {
+    "path": "web/app/tjanst-planning-bar.tsx",
+    "sha256": "91cdefa21802a14497054cee5115935de323e7cf9f23a4592c62180b90e2e465"
+  },
+  {
+    "path": "web/app/tjanst-publish-panel.tsx",
+    "sha256": "35ccf135e43a43078332da2136816ff4bbe40dc7e0749e2d37e654f644a8f40a"
+  },
+  {
+    "path": "web/app/tjanst-dialogs.tsx",
+    "sha256": "eb462748947d161c8ff4408bdae6f37efc92a60b94e730b8cd1e1d6be336321d"
+  },
+  {
+    "path": "web/app/tjanst-year-dialog.tsx",
+    "sha256": "080aed0829a7cea90b6fe56e02cd988be701569a9c8f3cbc04654f0de8f32041"
+  },
+  {
+    "path": "web/app/tjanst-service-summary.tsx",
+    "sha256": "40b3915e9d89db08a6e96ca157bc32622d49d8876d2378753eaf7ad0700946a0"
+  },
+  {
+    "path": "web/app/tjanst-teacher-picker.tsx",
+    "sha256": "b6239a763fb8d4d889abf9cf6478ea896902667a997d683e17f687c261092bd5"
+  },
+  {
+    "path": "web/app/tjanst.css",
+    "sha256": "bcc658f167c6700dbb629108fe8d4c5efe20ce4c826d1cf1d262a76b56e96770"
+  },
+  {
+    "path": "web/lib/tjanst-lens.ts",
+    "sha256": "3d30b02b7989da28a8fd17b194be130f3c35b3ad3d15372655ff8301f817c1d2"
+  },
+  {
+    "path": "web/lib/tjanst-queue.ts",
+    "sha256": "e0414c06fbfc004c1670ebdf4ed242870284ba2828c69eed7e9a49f406c1ba1d"
+  },
+  {
+    "path": "web/e2e/fixtures/tjanst-preview.tsx",
+    "sha256": "009d8390f8bf96b327a9b3dc8f740dde4a5b60fde6e9b7a8a306fd0200f586ed"
+  }
+]

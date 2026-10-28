@@ -1,0 +1,42 @@
+[
+  {
+    "id": "B05-allocation-unsaved-input",
+    "marked": "false",
+    "before": "37",
+    "after": "50",
+    "commands": 0
+  },
+  {
+    "id": "B06-course-filter-history",
+    "before": "Visar alla klasser med kursen Matematik 1c. Markera rader för att koppla dem till en samläsning.",
+    "state": {
+      "filter": {
+        "classId": "",
+        "subject": "",
+        "personId": "",
+        "onlyIssues": false,
+        "course": "",
+        "lens": "alla"
+      },
+      "classId": "",
+      "personId": ""
+    },
+    "afterCourseFilterCount": 0
+  },
+  {
+    "id": "mobile-390",
+    "initial": "larare",
+    "accessible": "- combobox \"Vy\":\n  - option \"Fördela\"\n  - option \"Per klass\"\n  - option \"Per lärare\" [selected]\n  - option \"Specialuppdrag\"\n  - option \"Per kurs/ämne\"",
+    "text": "Här ser du ofördelade behov. Lärare väljs på dator.\n\nSök behov\nGruppera\nPer klass\nPer ämne\n\n2 ofördelade behov\n\nTE26A\nMatematik 1c · TE26A\nIMSPR\nSvenska som andraspråk 1 · IMSPR",
+    "pageWidth": 390
+  },
+  {
+    "id": "mobile-320-long",
+    "pageWidth": 320
+  },
+  {
+    "id": "mobile-webkit",
+    "view": "larare",
+    "pageWidth": 390
+  }
+]

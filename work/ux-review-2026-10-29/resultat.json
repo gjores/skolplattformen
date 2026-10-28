@@ -1,0 +1,109 @@
+{
+  "date": "2026-10-29",
+  "scope": "Current working tree; synthetic in-memory API at http://127.0.0.1:5209/e2e/fixtures/tjanst-preview.html; installed 3012 login only.",
+  "results": [
+    {
+      "id": "B01-hidden-class-filter",
+      "filtered": "Klass\nVälj klass\nTE26A\nEK26\nIMSPR\nNA26B\nTimplan\nTeknikprogrammet · version 2\nBehov\n100 h\nFördelat\n0 h\nTäckning\n0 av 100 h · 0 lärare\nKurs/ämne\tBehov HT\tBehov VT\tFördelat HT\tFördelat VT\tLärare\tAvvikelse\nMatematik 1c\t50 h\t50 h\t0 h\t0 h\t\n0 av 100 h · 0 lärare\n\t−100 h",
+      "all": "Klass\nVälj klass\nTE26A\nEK26\nIMSPR\nNA26B\nTimplan\nTeknikprogrammet · version 2\nBehov\n300 h\nFördelat\n200 h\nTäckning\n200 av 300 h · 2 lärare\nKurs/ämne\tBehov HT\tBehov VT\tFördelat HT\tFördelat VT\tLärare\tAvvikelse\nMatematik 1c\t50 h\t50 h\t0 h\t0 h\t\n0 av 100 h · 0 lärare\n\t−100 h\nSvenska 1\t50 h\t50 h\t50 h\t50 h\t\nBertil Berg · HT 50 h · VT 50 h\nSamläsning med EK26\n100 av 100 h · 1 lärare\n\t\nEngelska 5\t50 h\t50 h\t50 h\t50 h\t\nTvå lärare · en i taget · Sätter betyg: Bertil Berg\nAnna Andersson · HT 50 h · VT 0 h\nBertil Berg · HT 0 h · VT 50 h\n100 av 100 h · 2 lärare\n\t",
+      "bug": true,
+      "filterVisible": false
+    },
+    {
+      "id": "B02-course-without-rows",
+      "text": "Markera rader i olika klasser för att koppla dem till en samläsning.\n\nInga tjänsterader ännu.",
+      "bug": true,
+      "filters": "Klass\nAlla klasser\nTE26A\nEK26\nIMSPR\nNA26B\nÄmne\nAlla ämnen\nEngelska\nMatematik\nSvenska\nSvenska som andraspråk\nLärare\nAlla lärare\nAnna Andersson\nBertil Berg\nCecilia Dahl\nVisa bara avvikelser och saknade kopplingar\nLins\nAlla behov\nOfördelat\nSamläsningar\nVisar alla klasser med kursen Matematik 1c. Markera rader för att koppla dem till en samläsning.\nRensa filter"
+    },
+    {
+      "id": "B03-search",
+      "before": [
+        "Välj Anna Andersson",
+        "Välj Bertil Berg",
+        "Välj Cecilia Dahl",
+        "Välj David Ek"
+      ],
+      "after": [
+        "Välj Anna Andersson",
+        "Välj Bertil Berg"
+      ],
+      "bug": true
+    },
+    {
+      "id": "B04-term-teacher",
+      "unchanged": true,
+      "before": "Lärare\nAnna Andersson\nBertil Berg\nCecilia Dahl\nAnna Andersson\n\nPersonal-ID 51a50000-0000-4000-8000-000000000101\n\nUndervisning\nHT 100 h · VT 50 h · Läsår 150 h\nSpecialuppdrag\nHT 20 h · VT 20 h · Läsår 40 h\nTotalt\nHT 120 h · VT 70 h · Läsår 190 h\nAndel här\n60 %\nSchemalagd tid\nUnderlag saknas\nVisas när schemat finns i Skolplattformen.\nUndervisning\nKurs/ämne\tKlass\tHT\tVT\nEngelska 5\nDelas med Bertil Berg · En i taget\n\tTE26A\t50 h\t0 h\nMatematik 1b\tEK26\t50 h\t50 h\nSpecialuppdrag\nUppdrag\tGrupp\tHT\tVT\nMentor\tTE26A\t20 h\t20 h",
+      "htSelected": "true"
+    },
+    {
+      "id": "B04-term-special",
+      "unchanged": true
+    },
+    {
+      "id": "UX-first-viewport",
+      "viewport": 900,
+      "matrixY": 738.875,
+      "controls": 26
+    },
+    {
+      "id": "flow-row-dialog",
+      "text": "Ny tjänsterad\n\nMatematik 1c · TE26A\n\nBehov enligt timplanen\nHT 50 h · VT 50 h\nKälla: Teknikprogrammet version 2, ämnesrad Matematik 1c\nRedan fördelat till andra\nHT 0 h · VT 0 h\nSchemalagd tid\nUnderlag saknas\nLärartid HT (timmar)\nAvvikelse HT: ingen\nLärartid VT (timmar)\nAvvikelse VT: ingen\nKommentar (valfri)\n\nAnge tiden och välj sedan lärare eller Vakant. Raden sparas när du väljer.\n\nLärare\n\nIngen lärare vald\n\nFörslag utifrån tidigare planering\nAnna Andersson\n\nPlanerad för samma klass 2026/27\n\nPlanerad för samma klass 2025/26\n\nPlanerad för samma klass och ämnesrad 2025/26\n\nEgen andel på skolan: 60 %\n\n2026-07-01 – tills vidare · 60 %\nBehörighetsunderlag saknas\nVälj förslaget: Anna Andersson\nBertil Berg\n\nPlanerad för samma klass 2026/27\n\nPlanerad för samma klass 2026/27\n\nPlanerad för samma klass 2025/26\n\nPlanerad för samma klass 2025/26\n\nEgen andel på skolan: 100 %\n\n2026-07-01 – tills vidare · 100 %\nBehörighetsunderlag saknas\nVälj förslaget: Bertil Berg\nSök lärare\nAnna Andersson\n\nEgen andel på skolan: 60 %\n\n2026-07-01 – tills vidare · 60 %\nBehörighetsunderlag saknas\nVälj Anna Andersson\nBertil Berg\n\nEgen andel på skolan: 100 %\n\n2026-07-01 – tills vidare · 100 %\nBehörighetsunderlag saknas\nVälj Bertil Berg\nCecilia Dahl\n\nNy lärare – uppgifter kompletteras\n\nBehörighetsunderlag saknas\nVälj Cecilia Dahl\nDavid Ek\n\nEgen andel på skolan: 50 % · Gäller en del av läsåret\n\n2026-07-01 – 2027-01-31 · 50 %\nBehörighetsunderlag saknas\nVälj David Ek\nVälj Vakant\nStäng utan att spara",
+      "closed": true,
+      "focus": "Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela."
+    },
+    {
+      "id": "flow-special-dialog",
+      "text": "Lägg till specialuppdrag\n\nSyntetiska gymnasiet · läsåret 26/27. Specialuppdrag räknas skilt från undervisning.\n\nTyp\nVälj typ av uppdrag\nMentor\nProgramansvar\nSpeciallärare\nAnnat uppdrag\nBenämning (valfri)\nLärare\n\nIngen lärare vald\n\nSök lärare\nAnna Andersson\n\nEgen andel på skolan: 60 %\n\n2026-07-01 – tills vidare · 60 %\nBehörighetsunderlag saknas\nVälj Anna Andersson\nBertil Berg\n\nEgen andel på skolan: 100 %\n\n2026-07-01 – tills vidare · 100 %\nBehörighetsunderlag saknas\nVälj Bertil Berg\nCecilia Dahl\n\nNy lärare – uppgifter kompletteras\n\nBehörighetsunderlag saknas\nVälj Cecilia Dahl\nDavid Ek\n\nEgen andel på skolan: 50 % · Gäller en del av läsåret\n\n2026-07-01 – 2027-01-31 · 50 %\nBehörighetsunderlag saknas\nVälj David Ek\nVälj Vakant\nTid HT (timmar)\nTid VT (timmar)\nKommentar (valfri)\nSpara specialuppdraget\nStäng utan att spara"
+    },
+    {
+      "id": "flow-move-dialog",
+      "text": "Flytta uppdrag\n\nSyntetiska gymnasiet · 26/27. Välj uppdragen och granska förhandsvisningen innan du sparar i samma planering.\n\nLärarbehörighet: underlag saknas. Listan visar planeringsbara personer och deras andel vid skolan, inte verifierad ämnesbehörighet.\n\nFlytta från lärare\nVälj lärare\nAnna Andersson\nBertil Berg\nCecilia Dahl\nFlytta till lärare\nVälj lärare\nAnna Andersson (60 % här)\nBertil Berg (100 % här)\nCecilia Dahl (under registrering)\nDavid Ek (50 % här) · delår\nVakant\nBekräfta mållärare\n0 berörda objekt · högst 100 per omgång. Hela berörda samläsningar räknas in.\nFörhandsvisa\nHämta nytt planeringsstöd\nStäng utan att spara"
+    },
+    {
+      "id": "flow-bulk-dialog",
+      "text": "Massregistrera\n\nSyntetiska gymnasiet · 26/27. Välj uppdragen och granska förhandsvisningen innan du sparar i samma planering.\n\nLärarbehörighet: underlag saknas. Listan visar planeringsbara personer och deras andel vid skolan, inte verifierad ämnesbehörighet.\n\nBefintliga rader bevaras. Nya rader får ingen lärare förrän du gör ett aktivt val. Tiden utgår från det återstående behovet.\n\nSök behov\nTE26A · Matematik 1c\nBehov HT 50 h · VT 50 h\nTE26A · Svenska 1\nBehov HT 50 h · VT 50 h\nRedan fördelat. Fördelat HT 50 h · VT 50 h (Bertil Berg) · Återstår HT 0 h · VT 0 h\nTE26A · Engelska 5\nBehov HT 50 h · VT 50 h\nRedan fördelat. Fördelat HT 50 h · VT 50 h (Anna Andersson, Bertil Berg) · Återstår HT 0 h · VT 0 h\nEK26 · Svenska 1\nBehov HT 50 h · VT 50 h\nRedan fördelat. Fördelat HT 50 h · VT 50 h (Bertil Berg) · Återstår HT 0 h · VT 0 h\nEK26 · Matematik 1b\nBehov HT 50 h · VT 50 h\nRedan fördelat. Fördelat HT 50 h · VT 50 h (Anna Andersson) · Återstår HT 0 h · VT 0 h\nIMSPR · Svenska som andraspråk 1\nBehov HT 72 h · VT 72 h\nLärare för markerade behov\nVälj lärare\nAnna Andersson (60 % här)\nBertil Berg (100 % här)\nCecilia Dahl (under registrering)\nDavid Ek (50 % här) · delår\nVakant\nAnvänd valet på markerade behov\nGäller bara behoven som redan är markerade. Senare tillagda behov börjar med tomt lärarval.\nLägg till specialuppdrag i samma omgång\n0 berörda objekt · högst 100 per omgång. Hela berörda samläsningar räknas in.\nFörhandsvisa\nHämta nytt planeringsstöd\nStäng utan att spara"
+    },
+    {
+      "id": "flow-publish-blocker",
+      "before": "Ändringar ännu inte publicerade\nLärarna ser version 1, publicerad 2026-06-15.\nHistorik\nFastställ och publicera",
+      "text": "Fastställ och publicera\n\nÄndringarna är ännu inte publicerade. Lärarna ser den senaste publiceringen tills du publicerar på nytt.\n\n1 punkt behöver åtgärdas innan du kan fastställa.\n\nEn tjänsterad bygger på en äldre timplansversion.\nFastställ och publicera…\nTa bort opublicerade ändringar…",
+      "disabled": true
+    },
+    {
+      "id": "flow-history",
+      "status": "Historik\nHistorisk publicering\nVersion 1 · publicerad 2026-06-15\nTillbaka till planeringen\nFastställ och publicera\n\nDu läser version 1 skrivskyddat, publicerad 2026-06-15 av Rektor Syntetisk. Lärarna ser den här versionen.",
+      "editingButtons": 0
+    },
+    {
+      "id": "large-40-teachers",
+      "pageWidth": 1440,
+      "viewport": 1440,
+      "matrixWidth": 1406,
+      "matrixScrollWidth": 5440,
+      "buttons": 12640
+    },
+    {
+      "id": "desktop-1024",
+      "pageWidth": 1024,
+      "viewport": 1024,
+      "matrixY": 788.15625
+    },
+    {
+      "id": "mobile-390",
+      "initial": "larare",
+      "text": "Här ser du ofördelade behov. Lärare väljs på dator.\n\nSök behov\nGruppera\nPer klass\nPer ämne\n\n2 ofördelade behov\n\nTE26A\nMatematik 1c · TE26A\nIMSPR\nSvenska som andraspråk 1 · IMSPR",
+      "pageWidth": 390
+    },
+    {
+      "id": "mobile-320-long",
+      "pageWidth": 320,
+      "viewport": 320
+    },
+    {
+      "id": "mobile-webkit",
+      "view": "larare",
+      "pageWidth": 390
+    }
+  ],
+  "errors": []
+}
