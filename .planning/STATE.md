@@ -15,10 +15,10 @@ progress:
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 814697b
+verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
 verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 66c2bd46b92244e1d342b15dd311d36349002792
+worker_build_revision: 814697b9b0a9342f001f47bd2d7f60a9f2f7e923
 milestone_name: milestone
 ---
 
