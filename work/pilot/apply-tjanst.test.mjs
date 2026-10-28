@@ -479,7 +479,7 @@ test('sharing struktur: två stängda tabeller, två stängda funktioner, tio er
   const pre=structuredClone(before);pre.tables.push({relname:'tjanst_need_sharing',relkind:'r'});assert.throws(()=>assertYearTransition(pre,after,o),/finns redan/u);
   assert.throws(()=>assertYearTransition(before,after,{functionCount:87,stage:'trial'}));
 });
-test('sharing bevis: 88 fall, sju SQL-rapporter, pending = en migration; trial-bevis godtas inte',()=>{
+test('sharing bevis: 88 fall, fem SQL-rapporter, pending = en migration; trial-bevis godtas inte',()=>{
   const e=yearEvidence('sharing'),m=yearManifest(e);const r=requireYearEvidence(m.manifest,m.read,e.context);
   assert.equal(r.actual.checks,88);assert.equal(r.actual.functionCount,89);assert.deepEqual(Object.keys(r.sql).sort(),[...SHARING_SQL_KINDS].sort());
   for(const change of [e=>{e.a.pendingMigrations=TRIAL_MIGRATIONS;},e=>{e.a.grants.closedFunctions=74;},e=>{delete e.sql['tjanst-need-sharing'];},

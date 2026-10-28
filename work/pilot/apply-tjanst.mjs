@@ -117,7 +117,8 @@ export const SHARING_REPLACED_FUNCTIONS = ['tjanst_plan_parse(jsonb)',
   'tjanst_year_apply_batch(access_assignments,tjanst_distributions,jsonb,uuid,uuid,jsonb)', 'tjanst_plan_copy_extras(uuid,uuid)', 'tjanst_version_hash(uuid)',
   'tjanst_plan_blockers(access_assignments,tjanst_versions,uuid,integer,jsonb)', 'tjanst_plan_projection(access_assignments,uuid,integer,uuid)',
   'tjanst_command_ref(jsonb,text)', 'tjanst_school_sums(uuid,uuid,integer)', 'tjanst_self_projection(access_assignments)'];
-export const SHARING_SQL_KINDS = ['tjanst-need-sharing', ...TRIAL_SQL_KINDS];
+// Samläsnings- och APL-sviterna kräver sin egen migration som väntande; efter trial är de installerade och provas som regression i tillfällig databas.
+export const SHARING_SQL_KINDS = ['tjanst-need-sharing', ...YEAR_SQL_KINDS];
 STAGES.sharing = { migrations: SHARING_MIGRATIONS, prior: STAGES.trial.actualMigrations, actualMigrations: [...STAGES.trial.actualMigrations, ...SHARING_MIGRATIONS],
   newTables: SHARING_NEW_TABLES, replacedFunctions: SHARING_REPLACED_FUNCTIONS, constraintChanges: { removed: [], added: [] }, sqlKinds: SHARING_SQL_KINDS, functionTotal: true, selfLinks: true };
 /**
@@ -133,7 +134,7 @@ export const RELEASES = {
     uncheckedStage: ['tjanst-year-access', 'tjanst-joint-teacher', 'tjanst-class-apl'], caseCounts: [53, 13, 10, 9], checks: 85, journalCount: 14 },
   sharing: { stage: 'sharing', migrations: SHARING_MIGRATIONS, newTables: SHARING_NEW_TABLES, newFunctions: SHARING_NEW_FUNCTIONS, replacedFunctions: SHARING_REPLACED_FUNCTIONS,
     opened: [], functionCount: 89, privateFunctions: 76, sqlKinds: SHARING_SQL_KINDS,
-    uncheckedStage: ['tjanst-year-access', 'tjanst-joint-teacher', 'tjanst-class-apl', 'tjanst-need-sharing'], caseCounts: [56, 13, 10, 9], checks: 88, journalCount: 15 },
+    uncheckedStage: ['tjanst-year-access', 'tjanst-need-sharing'], caseCounts: [56, 13, 10, 9], checks: 88, journalCount: 15 },
 };
 for (const r of Object.values(RELEASES)) Object.assign(r, { prior: STAGES[r.stage].prior, actualMigrations: STAGES[r.stage].actualMigrations });
 const releaseOf = stage => { assert.ok(Object.hasOwn(RELEASES, stage)); return RELEASES[stage]; };
