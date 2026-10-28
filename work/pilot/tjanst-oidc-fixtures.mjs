@@ -77,6 +77,7 @@ export const TJANST_YEAR_CASES = Object.freeze([
   'YEAR-23 kursklick, samläsningsmärke och varning för APL-skillnad',
   'YEAR-24 relevanta lärarkolumner, fäst lärare och linsen Ofördelat',
   'YEAR-25 Fördela: förslagsval och manuellt val sparas direkt, inaktuellt underlag läses om',
+  'YEAR-26 två lärare på samma behov: hinder, samtidigt och en i taget, betygssättare, nekad samläsning och Min tjänst',
 ]);
 export const TJANST_PHONE_YEAR_CASES = Object.freeze([
   'PHONE-YEAR-01 publicerad tjänst består under pågående ändring',

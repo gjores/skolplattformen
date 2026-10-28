@@ -148,13 +148,34 @@ En samläsning är en undervisningsgrupp med elever från flera klasser.
 
 Lärartiden räknas en gång för läraren, och båda klasserna visas som täckta.
 
-En samläsning har en lärare för alla klasser. Har de markerade raderna olika lärare, eller både en lärare och vakant, visar dialogen det och **Spara samläsningen** är inaktiv. Byt lärare på raderna eller använd **Flytta uppdrag** först. Två lärare i samma grupp (flerlärarskap) hanteras inte som samläsning.
+En samläsning har en lärare för alla klasser. Har de markerade raderna olika lärare, eller både en lärare och vakant, visar dialogen det och **Spara samläsningen** är inaktiv. Byt lärare på raderna eller använd **Flytta uppdrag** först. Två lärare på samma kurs i en klass hanteras inte som samläsning; se [Flera lärare på samma kurs](#flera-lärare-på-samma-kurs).
 
 Dialogen och samläsningens avsnitt i **Per kurs/ämne** varnar när timplanstiden skiljer sig mellan klasserna per termin, och när en klass har APL under läsåret men en annan inte har det. Då kan gruppen inte schemaläggas tillsammans under APL-perioderna. Om APL inte går att avgöra för en klass står det att APL är okänd. Varningarna är stöd för beslutet och hindrar inte att du sparar.
 
 En vanlig radändring i en samläsning behåller lärare och kurs. Använd **Flytta uppdrag** för en granskad flytt till en annan lärare. Vill du ändra kurs eller gruppens sammansättning, ändra eller lös upp samläsningen först. Tid och kommentar på raden ändrar du som vanligt.
 
 En samläsning som inte uppfyller reglerna hindrar **Fastställ och publicera**. Panelen visar punkten, och knappen är inaktiv. Reglerna är att samläsningen har rader i minst två klasser, att alla rader har samma lärare och att lärartid bara gäller den läraren. En äldre samläsning med flera lärare märks **Samläsning · olika lärare** i matrisen. Appen rättar den inte automatiskt. När du har flyttat uppdragen till samma lärare eller löst upp samläsningen kan du publicera.
+
+## Flera lärare på samma kurs
+
+När två eller fler lärare har tid på samma kurs eller ämne i en klass anger du hur de delar den. Appen frågar direkt när den andra läraren får tid, både i tjänsteraden och i **Fördela**. Dialogen heter *Hur delar lärarna kursen?* och visar behovet och varje lärares tid.
+
+- **En i taget:** lärarna undervisar till exempel HT respektive VT, eller tar olika moment. Lärarnas tid räknas ihop mot behovet.
+- **Samtidigt i samma grupp (tvålärarskap):** båda undervisar gruppen samtidigt. Behovet räknas en gång, och täckningen per termin är den största av lärarnas tider. Varje lärare har hela sin tid i sin summa.
+
+Inget av valen är förvalt. **Bestäm senare** stänger dialogen utan att spara.
+
+**Sätter betyg:** markera vem eller vilka som sätter betyget. Enligt skollagen (3 kap. 16 §) beslutar den eller de lärare som undervisar när betyget sätts. Valet förifylls efter formen. Vid *En i taget* är det läraren med tid i den sista terminen med tid, och vid *Samtidigt* är det alla lärarna. Du kan ändra valet. Minst en av lärarna med tid på kursen måste vara markerad. Lärarnas behörighet kontrolleras inte här, eftersom behörighetsunderlag saknas tills vidare.
+
+I matrisen får raden ett märke: **Två lärare · en i taget**, **Två lärare · samtidigt** eller **Två lärare utan angiven delning** (varning). Avvikelsen och Fördelat räknas efter formen. Utan angiven delning räknas tiden ihop. Välj märket för att ändra delningen eller välja **Ta bort delningen**. **Per klass** och **Per kurs/ämne** visar formen och vem som sätter betyg. I **Per lärare** och i lärarens **Min tjänst** står *Delas med … · En i taget* eller *Samtidigt*, och *Sätter betyg* när det gäller läraren.
+
+Två eller fler lärare på samma kurs utan angiven delning hindrar **Fastställ och publicera**. Det gör också en delning där ingen av de markerade betygssättarna längre har tid på kursen, till exempel efter en borttagen eller flyttad rad. Flyttas en lärares rad till en annan lärare med **Flytta uppdrag** följer betygsansvaret med.
+
+Begränsningar:
+- En kurs som ingår i en samläsning kan inte få en delning mellan lärare.
+- Vakanta rader räknas inte som lärare.
+- *Klassen delas i två grupper* finns inte ännu. Stöd från till exempel speciallärare registreras som specialuppdrag.
+- Appen bedömer inte hur tvålärarskap räknas i arbetstid eller avtal.
 
 ## Fastställ och publicera
 

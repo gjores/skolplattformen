@@ -270,7 +270,7 @@ test('gaplägets repetition gör aldrig commit: utan --apply en transaktion som 
 });
 
 // ---------- year: exact release evidence and isolated rehearsal ----------
-import { RELEASES,TRIAL_MIGRATIONS,TRIAL_NEW_FUNCTIONS,TRIAL_REPLACED_FUNCTIONS,TRIAL_SQL_KINDS,YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
+import { SHARING_MIGRATIONS,SHARING_NEW_FUNCTIONS,SHARING_NEW_TABLES,SHARING_REPLACED_FUNCTIONS,SHARING_SQL_KINDS,RELEASES,TRIAL_MIGRATIONS,TRIAL_NEW_FUNCTIONS,TRIAL_REPLACED_FUNCTIONS,TRIAL_SQL_KINDS,YEAR_MIGRATIONS,YEAR_NEW_FUNCTIONS,YEAR_REPLACED_FUNCTIONS,YEAR_ENTRYPOINTS,YEAR_SQL_KINDS,
   assertYearTransition,requireYearEvidence,runOwnedYearRehearsal,runYearApply } from './apply-tjanst.mjs';
 import { randomUUID } from 'node:crypto';
 let auditSeq=0; // säkerhetsloggens id är heltal
@@ -445,4 +445,44 @@ test('trial bevis: 85 fall, sex SQL-rapporter, pending = två migrationer; year-
   for(const change of [e=>{e.a.pendingMigrations=YEAR_MIGRATIONS;},e=>{e.a.grants.closedFunctions=73;},e=>{delete e.sql['tjanst-class-apl'];},
     e=>{e.a.checks.pop();},e=>{e.context.stage='year';}]){const x=yearEvidence('trial');change(x);const y=yearManifest(x);assert.throws(()=>requireYearEvidence(y.manifest,y.read,x.context));}
   const y=yearEvidence('year'),ym=yearManifest(y);assert.throws(()=>requireYearEvidence(ym.manifest,ym.read,{...y.context,stage:'trial'}));
+});
+
+// ---------- sharing (05.1-33 / D-31): delning och betygsansvar per behov efter trial ----------
+test('sharing: en migration efter trial, femton journalposter och egen bevisfil',()=>{
+  assert.deepEqual(STAGES.sharing.prior,STAGES.trial.actualMigrations);assert.deepEqual(STAGES.sharing.migrations,SHARING_MIGRATIONS);assert.equal(STAGES.sharing.actualMigrations.length,15);
+  assert.equal(parseArgs(['--stage','sharing','--sql-evidence','/private/tmp/t.json','--apply']).mode,'apply');
+  assert.throws(()=>parseArgs(['--stage','sharing','--collect-evidence','/private/tmp/t.json','--reports','/private/tmp/s.json','--actual','/private/tmp/a.json']),/visual-review/u);
+  assert.equal(RELEASES.sharing.journalCount,15);assert.deepEqual(RELEASES.sharing.opened,[]);assert.equal(RELEASES.sharing.functionCount,89);assert.equal(RELEASES.sharing.privateFunctions,76);
+});
+function sharingStructures(){
+  const signatures=[...new Set([...WORKER_ENTRYPOINTS,'tjanst_year_preview(jsonb)',...SHARING_REPLACED_FUNCTIONS])];
+  while(signatures.length<87)signatures.push('tjanst_existing_'+signatures.length+'()');
+  const before={tables:[{relname:'tjanst_versions',relkind:'r',relrowsecurity:true,relforcerowsecurity:true}],columns:[{relname:'tjanst_versions',attname:'id'}],
+    constraints:[{relname:'tjanst_versions',conname:'tjanst_versions_pkey'}],indexes:[{tablename:'tjanst_versions',indexname:'tjanst_versions_pkey'}],
+    triggers:[{relname:'tjanst_versions',tgname:'g',definition:'x'}],policies:[],
+    functions:signatures.map(s=>f(s,'old',YEAR_ENTRYPOINTS.includes(s)?'{postgres=X/postgres,skolplattform_worker=X/postgres}':'{postgres=X/postgres}'))};
+  const after=structuredClone(before);after.functions=after.functions.map(v=>({...v,definition:SHARING_REPLACED_FUNCTIONS.includes(v.signature)?'new':v.definition}));
+  after.functions.push(...SHARING_NEW_FUNCTIONS.map(s=>f(s,'new','{postgres=X/postgres}')));
+  for(const t of SHARING_NEW_TABLES){after.tables.push({relname:t,relkind:'r',relrowsecurity:true,relforcerowsecurity:true},{relname:t+'_pkey',relkind:'i'});
+    after.columns.push({relname:t,attname:'version_id'});after.constraints.push({relname:t,conname:t+'_pkey'});after.indexes.push({tablename:t,indexname:t+'_pkey'});
+    after.triggers.push({relname:t,tgname:t+'_guard',definition:'CREATE TRIGGER x BEFORE INSERT ON public.'+t+' FOR EACH ROW EXECUTE FUNCTION tjanst_version_guard()'});}
+  return {before,after};
+}
+test('sharing struktur: två stängda tabeller, två stängda funktioner, tio ersatta och inga ändringar på befintliga relationer',()=>{
+  const {before,after}=sharingStructures(),o={functionCount:89,stage:'sharing'},r=assertYearTransition(before,after,o);
+  assert.deepEqual(r.addedFunctions,[...SHARING_NEW_FUNCTIONS].sort());assert.deepEqual(r.addedTables,[...SHARING_NEW_TABLES].sort());assert.equal(r.replacedFunctions.length,10);
+  for(const change of [a=>{a.functions.at(-1).acl='{postgres=X/postgres,skolplattform_worker=X/postgres}';},a=>{a.functions.find(v=>v.signature===SHARING_REPLACED_FUNCTIONS[4]).definition='old';},
+    a=>a.functions.push(f('tjanst_unlisted()')),a=>a.constraints.push({unexpected:true}),a=>a.columns.push({relname:'tjanst_versions',attname:'extra'}),
+    a=>{a.tables.find(t=>t.relname==='tjanst_need_sharing').relforcerowsecurity=false;},a=>a.policies.push({tablename:'tjanst_need_graders',policyname:'open'}),
+    a=>{a.triggers=a.triggers.filter(t=>t.relname!=='tjanst_need_graders');},a=>a.tables.push({relname:'tjanst_extra',relkind:'r',relrowsecurity:true,relforcerowsecurity:true}),
+    a=>{a.triggers[0].definition='changed';}]){const next=structuredClone(after);change(next);assert.throws(()=>assertYearTransition(before,next,o));}
+  const pre=structuredClone(before);pre.tables.push({relname:'tjanst_need_sharing',relkind:'r'});assert.throws(()=>assertYearTransition(pre,after,o),/finns redan/u);
+  assert.throws(()=>assertYearTransition(before,after,{functionCount:87,stage:'trial'}));
+});
+test('sharing bevis: 88 fall, sju SQL-rapporter, pending = en migration; trial-bevis godtas inte',()=>{
+  const e=yearEvidence('sharing'),m=yearManifest(e);const r=requireYearEvidence(m.manifest,m.read,e.context);
+  assert.equal(r.actual.checks,88);assert.equal(r.actual.functionCount,89);assert.deepEqual(Object.keys(r.sql).sort(),[...SHARING_SQL_KINDS].sort());
+  for(const change of [e=>{e.a.pendingMigrations=TRIAL_MIGRATIONS;},e=>{e.a.grants.closedFunctions=74;},e=>{delete e.sql['tjanst-need-sharing'];},
+    e=>{e.a.checks.pop();},e=>{e.context.stage='trial';}]){const x=yearEvidence('sharing');change(x);const y=yearManifest(x);assert.throws(()=>requireYearEvidence(y.manifest,y.read,x.context));}
+  const y=yearEvidence('trial'),ym=yearManifest(y);assert.throws(()=>requireYearEvidence(ym.manifest,ym.read,{...y.context,stage:'sharing'}));
 });

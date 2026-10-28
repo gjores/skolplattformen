@@ -377,9 +377,16 @@ test('samläsning en gång och två lärare på samma kurs; lägg upp ny lärare
   await addTeacher(p,'Ulla Sund');
   await saveRow(p,'Ulla Sund','Biologi','SYNGR8',{ht:'50',vt:'0'});
   await saveRow(p,'Tor Berg','Biologi','SYNGR8',{ht:'0',vt:'50'});
+  // 05.1-33 / D-31: den andra läraren ger frågan om delning; Ulla HT och Tor VT är en i taget, och Tor sätter betyg.
+  const sharing=p.getByRole('dialog',{name:'Hur delar lärarna kursen?'});await expect(sharing).toBeVisible();
+  await sharing.getByRole('radio',{name:/^En i taget/u}).check();await expect(sharing.getByRole('checkbox',{name:'Tor Berg',exact:true})).toBeChecked();
+  await expect(sharing.getByRole('checkbox',{name:'Ulla Sund',exact:true})).not.toBeChecked();
+  const shared=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await sharing.getByRole('button',{name:'Spara delningen'}).click();expect((await shared).status()).toBe(200);
+  await expect(sharing).toHaveCount(0);await settled(p);
   await ws(p).getByRole('tab',{name:'Per klass'}).click();await ws(p).getByLabel('Klass',{exact:true}).selectOption({label:'SYNGR8'});
   const bio=ws(p).getByRole('region',{name:'Per klass'}).getByRole('row').filter({hasText:'Biologi'});
   await expect(bio).toContainText('100 av 100 h · 2 lärare');await expect(bio).toContainText('Ulla Sund');await expect(bio).toContainText('Tor Berg');
+  await expect(bio.locator('.tjanst-sharing-line')).toHaveText('Två lärare · en i taget · Sätter betyg: Tor Berg');
   await capture(p,'per-klass-tva-larare');
   pass('två lärare på samma kurs','Biologi SYNGR8 med Ulla Sund (HT 50 h) och Tor Berg (VT 50 h) visar 100 av 100 h · 2 lärare');
   await ws(p).getByRole('tab',{name:'Matris'}).click();await settled(p);
@@ -1145,6 +1152,49 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
       expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...del,commandId:crypto.randomUUID()}))).status).toBe(200);}
     await capture(p,'year-allocation');await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
     yearPass(25,{suggestion:suggestionBody.payload.planningContext.choice.kind,manual:manualBody.payload.planningContext.choice.kind,staleRejectedThenRetried:true,cleanedRows:created25.length});
+    // YEAR-26 (05.1-33 / D-31): två lärare på samma behov. Hinder utan delning, samtidigt och en i taget i UI, betygssättare,
+    // samläsning och ogiltig betygssättare nekas, och delningen syns i lärarens Min tjänst efter riktig publicering.
+    const need26=year.bulk.needs[100],selfId=seed.people.p1,send26=async(action:string,payload:Record<string,unknown>,choice?:'manual')=>{
+      const c=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action,...(choice?{choice}:{}),payload} as never);return sendCaptured(p,'principalA',await createYearPlanCommand({...c,commandId:crypto.randomUUID()}));};
+    expect((await send26('save_row',rowPayload(need26,selfId,30,0),'manual')).status).toBe(200);expect((await send26('save_row',rowPayload(need26,fullId,0,30),'manual')).status).toBe(200);
+    let plan26=await currentPlan(p);expect(plan26.blockers.map(b=>b.code)).toContain('shared_need_unspecified');expect(plan26.sharing).toEqual([]);
+    const blocked26=await send26('publish',{});expect(blocked26.status).toBe(409);expect(blocked26.body.details.reason).toBe('tjanst_publish_blocked');
+    const cls26=plan26.classes.find(c=>c.needs.some(n=>n.sourceKey===need26.sourceKey))!,label26=cls26.needs.find(n=>n.sourceKey===need26.sourceKey)!.label;
+    const name26=(id:string)=>plan26.teachers.find(t=>t.personId===id)!.displayName,selfName=name26(selfId),fullName=name26(fullId);
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
+    const badge26=(text:string)=>matrix(p).getByRole('button',{name:`${text}: ange hur lärarna delar ${label26} i ${cls26.name}`,exact:true});
+    await badge26('Två lärare utan angiven delning').click();let share26=p.getByRole('dialog',{name:'Hur delar lärarna kursen?'});
+    await share26.getByRole('radio',{name:/^Samtidigt i samma grupp/u}).check();
+    await expect(share26.getByRole('checkbox',{name:selfName,exact:true})).toBeChecked();await expect(share26.getByRole('checkbox',{name:fullName,exact:true})).toBeChecked();
+    let res26=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await share26.getByRole('button',{name:'Spara delningen'}).click();expect((await res26).status()).toBe(200);
+    await expect(share26).toHaveCount(0);await settled(p);
+    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([{sourceKey:need26.sourceKey,mode:'concurrent',graderPersonIds:[selfId,fullId].sort()}]);
+    expect(plan26.blockers.map(b=>b.code)).not.toContain('shared_need_unspecified');
+    await capture(p,'year-sharing-concurrent');
+    await badge26('Två lärare · samtidigt').click();share26=p.getByRole('dialog',{name:'Hur delar lärarna kursen?'});
+    await share26.getByRole('radio',{name:/^En i taget/u}).check();await share26.getByRole('checkbox',{name:fullName,exact:true}).uncheck();
+    res26=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await share26.getByRole('button',{name:'Spara delningen'}).click();expect((await res26).status()).toBe(200);
+    await expect(share26).toHaveCount(0);await expect(badge26('Två lärare · en i taget')).toBeVisible();
+    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[selfId]}]);
+    // Servern nekar betygssättare utan tid på behovet och delning av en samläst kurs.
+    const other26=plan26.teachers.find(t=>t.personId!==selfId&&t.personId!==fullId)!;
+    const badGrader=await send26('save_sharing',{sourceKey:need26.sourceKey,mode:'sequential',graderPersonIds:[other26.personId]});expect(badGrader.status).toBe(400);expect(badGrader.body.details.reason).toBe('tjanst_sharing_grader');
+    const jointRow26=plan26.rows.find(r=>r.jointGroupId!==null)!;expect(jointRow26).toBeTruthy();
+    const jointDenied=await send26('save_sharing',{sourceKey:jointRow26.sourceKey,mode:'concurrent',graderPersonIds:[jointRow26.personId]});expect(jointDenied.status).toBe(400);expect(jointDenied.body.details.reason).toBe('tjanst_sharing_joint');
+    expect((await currentPlan(p)).sharing).toEqual(plan26.sharing);
+    // Riktig publicering; läraren ser delningen och betygsansvaret i Min tjänst.
+    expect(plan26.blockers).toEqual([]);
+    const published26=await send26('publish',{});expect(published26.status,JSON.stringify(published26.body)).toBe(200);
+    const t26=pages.teacherSelf,self26=await fixture!.request(t26,'teacherSelf','/api/tjanst/egen/lasa',{});expect(self26.status).toBe(200);
+    const selfRows26=(self26.body.publications as {rows:{sharing:unknown}[]}[]).flatMap(x=>x.rows).filter(r=>r.sharing);
+    expect(selfRows26.map(r=>r.sharing)).toEqual([{mode:'sequential',colleagues:[fullName],grader:true}]);
+    await t26.reload();await expect(t26.getByText(`Delas med ${fullName} · En i taget · Sätter betyg`).first()).toBeVisible();await capture(t26,'year-sharing-self');
+    // Städning i ny version: delningen tas bort före raderna, så att resten av provet har samma utgångsläge.
+    expect((await send26('clear_sharing',{sourceKey:need26.sourceKey})).status).toBe(200);
+    for(const row of (await currentPlan(p)).rows.filter(r=>r.sourceKey===need26.sourceKey))expect((await send26('delete_row',{rowId:row.id})).status).toBe(200);
+    plan26=await currentPlan(p);expect(plan26.sharing).toEqual([]);expect(plan26.blockers).toEqual([]);
+    await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris'}).click();
+    yearPass(26,{blocked:blocked26.body.details.reason,concurrent:true,sequentialGrader:'self',deniedGrader:badGrader.body.details.reason,deniedJoint:jointDenied.body.details.reason,selfSharing:true});
   }
   // Actual UI checks 100 needs, assigns only those, then proves the 101st remains blank.
   const bulkBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;

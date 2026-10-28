@@ -108,6 +108,18 @@ export const TRIAL_REPLACED_FUNCTIONS = ['tjanst_plan_save_joint(tjanst_distribu
 export const TRIAL_SQL_KINDS = ['tjanst-joint-teacher', 'tjanst-class-apl', ...YEAR_SQL_KINDS];
 STAGES.trial = { migrations: TRIAL_MIGRATIONS, prior: STAGES.year.actualMigrations, actualMigrations: [...STAGES.year.actualMigrations, ...TRIAL_MIGRATIONS],
   newTables: [], replacedFunctions: TRIAL_REPLACED_FUNCTIONS, constraintChanges: { removed: [], added: [] }, sqlKinds: TRIAL_SQL_KINDS, functionTotal: true, selfLinks: true };
+/** 05.1-33 / D-31: delning och betygsansvar per behov, installerad efter trial. Två nya stängda tabeller. */
+export const SHARING_MIGRATIONS = ['supabase/migrations/20261028100000_tjanst_need_sharing.sql'];
+export const SHARING_NEW_TABLES = ['tjanst_need_graders', 'tjanst_need_sharing'];
+export const SHARING_NEW_FUNCTIONS = ['tjanst_plan_save_sharing(tjanst_distributions,jsonb)', 'tjanst_plan_clear_sharing(tjanst_distributions,jsonb)'];
+export const SHARING_REPLACED_FUNCTIONS = ['tjanst_plan_parse(jsonb)',
+  'tjanst_year_apply_one(access_assignments,tjanst_distributions,text,jsonb,uuid,uuid)',
+  'tjanst_year_apply_batch(access_assignments,tjanst_distributions,jsonb,uuid,uuid,jsonb)', 'tjanst_plan_copy_extras(uuid,uuid)', 'tjanst_version_hash(uuid)',
+  'tjanst_plan_blockers(access_assignments,tjanst_versions,uuid,integer,jsonb)', 'tjanst_plan_projection(access_assignments,uuid,integer,uuid)',
+  'tjanst_command_ref(jsonb,text)', 'tjanst_school_sums(uuid,uuid,integer)', 'tjanst_self_projection(access_assignments)'];
+export const SHARING_SQL_KINDS = ['tjanst-need-sharing', ...TRIAL_SQL_KINDS];
+STAGES.sharing = { migrations: SHARING_MIGRATIONS, prior: STAGES.trial.actualMigrations, actualMigrations: [...STAGES.trial.actualMigrations, ...SHARING_MIGRATIONS],
+  newTables: SHARING_NEW_TABLES, replacedFunctions: SHARING_REPLACED_FUNCTIONS, constraintChanges: { removed: [], added: [] }, sqlKinds: SHARING_SQL_KINDS, functionTotal: true, selfLinks: true };
 /**
  * Strikta leveranssteg efter etapp 2 (year, trial): samma grindar, egna objektlistor och antal.
  * opened: nya funktioner som öppnas för Worker; uncheckedStage: SQL-sviter utan requestedStage.
@@ -119,10 +131,13 @@ export const RELEASES = {
   trial: { stage: 'trial', migrations: TRIAL_MIGRATIONS, newFunctions: TRIAL_NEW_FUNCTIONS, replacedFunctions: TRIAL_REPLACED_FUNCTIONS,
     opened: [], functionCount: 87, privateFunctions: 74, sqlKinds: TRIAL_SQL_KINDS,
     uncheckedStage: ['tjanst-year-access', 'tjanst-joint-teacher', 'tjanst-class-apl'], caseCounts: [53, 13, 10, 9], checks: 85, journalCount: 14 },
+  sharing: { stage: 'sharing', migrations: SHARING_MIGRATIONS, newTables: SHARING_NEW_TABLES, newFunctions: SHARING_NEW_FUNCTIONS, replacedFunctions: SHARING_REPLACED_FUNCTIONS,
+    opened: [], functionCount: 89, privateFunctions: 76, sqlKinds: SHARING_SQL_KINDS,
+    uncheckedStage: ['tjanst-year-access', 'tjanst-joint-teacher', 'tjanst-class-apl', 'tjanst-need-sharing'], caseCounts: [56, 13, 10, 9], checks: 88, journalCount: 15 },
 };
 for (const r of Object.values(RELEASES)) Object.assign(r, { prior: STAGES[r.stage].prior, actualMigrations: STAGES[r.stage].actualMigrations });
 const releaseOf = stage => { assert.ok(Object.hasOwn(RELEASES, stage)); return RELEASES[stage]; };
-const stageOf = name => { assert.ok(Object.hasOwn(STAGES, name ?? ''), '--stage etapp1|gap krävs (eller year|trial för isolerad repetition)'); return STAGES[name]; };
+const stageOf = name => { assert.ok(Object.hasOwn(STAGES, name ?? ''), '--stage etapp1|gap krävs (eller year|trial|sharing för isolerad repetition)'); return STAGES[name]; };
 const ROLES = ['anon', 'authenticated', 'service_role', 'skolplattform_worker'];
 const fn = s => s.replace(/^public\./u, '').replaceAll(', ', ',').replaceAll('public.', '');
 const isNewFunction = s => /^(tjanst|phase51)_/u.test(fn(s));
@@ -140,7 +155,7 @@ export function parseArgs(argv) {
   }
   const stage = o['--stage']; stageOf(stage);
   const release = Object.hasOwn(RELEASES, stage);
-  assert.ok(!o['--visual-review'] || (release && o['--collect-evidence']), '--visual-review hör bara till year|trial --collect-evidence');
+  assert.ok(!o['--visual-review'] || (release && o['--collect-evidence']), '--visual-review hör bara till year|trial|sharing --collect-evidence');
   if (o['--collect-evidence']) {
     assert.ok(!o['--apply'] && !o['--sql-evidence'] && !o['--out'], '--collect-evidence kan inte kombineras med --apply, --sql-evidence eller --out');
     if (release) assert.ok(o['--visual-review'], stage + ' kräver --visual-review');
@@ -209,9 +224,18 @@ export function requireEvidence(manifest, read, { stage, migrations, actualMigra
 
 // ---------- year: strict, independent release gates ----------
 export function assertYearTransition(before, after, { functionCount = 86, stage = 'year' } = {}) {
-  const r = releaseOf(stage);
-  for (const key of ['tables','columns','constraints','indexes','triggers','policies'])
-    assert.deepEqual(after[key], before[key], 'year ändrar inte ' + key);
+  const r = releaseOf(stage), newRel = new Set(r.newTables ?? []);
+  // 05.1-33: sharing lägger till stängda tabeller; allt på befintliga relationer ska vara identiskt.
+  const newIndexes = after.indexes.filter(i => newRel.has(i.tablename)).map(i => i.indexname), owned = new Set([...newRel, ...newIndexes]);
+  assert.ok(before.tables.every(t => !owned.has(t.relname)), 'Stegets tabeller finns redan före installationen');
+  const relKey = { tables: 'relname', columns: 'relname', constraints: 'relname', indexes: 'tablename', triggers: 'relname', policies: 'tablename' };
+  for (const [key, field] of Object.entries(relKey))
+    assert.deepEqual(after[key].filter(x => !owned.has(x[field])), before[key], 'year ändrar inte ' + key);
+  const addedTables = after.tables.filter(t => owned.has(t.relname));
+  assert.deepEqual(sorted(addedTables.filter(t => t.relkind === 'r').map(t => t.relname)), sorted(r.newTables ?? []), 'Nya tabeller');
+  assert.ok(addedTables.every(t => t.relkind === 'r' ? t.relrowsecurity && t.relforcerowsecurity : t.relkind === 'i'), 'Ny tabell utan tvingad RLS eller oväntad relation');
+  assert.equal(after.policies.filter(p => newRel.has(p.tablename)).length, 0, 'Policy på ny tabell');
+  for (const t of newRel) assert.ok(after.triggers.some(x => x.relname === t && /tjanst_version_guard/u.test(x.definition)), 'Versionsskydd saknas: ' + t);
   assert.equal(functionCount, r.functionCount);
   const old = new Map(before.functions.map(f => [fn(f.signature), f]));
   const next = new Map(after.functions.map(f => [fn(f.signature), f]));
@@ -235,7 +259,7 @@ export function assertYearTransition(before, after, { functionCount = 86, stage 
   const grantor=ownerGrant.split('/')[1];
   for(const name of added){const f=next.get(name);assert.equal(f.owner,anchor.owner,name);
     assert.equal(f.acl,'{'+ownerGrant+(r.opened.includes(name)?',skolplattform_worker=X/'+grantor:'')+'}',name+' ACL');}
-  return {addedTables:[],addedRelations:[],addedFunctions:sorted(added),replacedFunctions:sorted(changed),constraintChanges:{removed:[],added:[]}};
+  return {addedTables:sorted(r.newTables??[]),addedRelations:sorted(newIndexes),addedFunctions:sorted(added),replacedFunctions:sorted(changed),constraintChanges:{removed:[],added:[]}};
 }
 const hashPattern=/^[a-f0-9]{64}$/u;
 const relativeSource=p=>assert.ok(typeof p==='string'&&!isAbsolute(p)&&!p.split('/').includes('..'),'Ogiltig källsökväg');
