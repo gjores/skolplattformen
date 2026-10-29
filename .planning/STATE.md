@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-38 installerad på 3012; användarprov och åtta UX-förbättringar återstår"
+current_plan: "05.1-39 installerad på 3012; användarprov och åtta UX-förbättringar återstår"
 status: in_progress
-stopped_at: "Stabil matris och radlokalt Ångra verifierade: UI246 och faktiskt 88/88 PASS. 3012 kör 0814b28; användarprov väntar."
+stopped_at: "Alla lärare som standard även vid klass/ämne/avvikelsefilter: UI248, Node8, typ/lint och byggen PASS. 3012 kör 1d2b0ec; användarprov väntar."
 last_updated: "2026-10-29"
 last_activity: 2026-10-29
-last_activity_desc: "05.1-38 installerad: radfeedback utan hopp, Ångra under filter och fasta lärarrubriker."
+last_activity_desc: "05.1-39: behovsfilter behåller lärare; relevansurval är frivilligt. Installerad på 3012."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -16,15 +16,17 @@ progress:
   total_plans: 100
   completed_plans: 94
 verification_worker_build_revision: 0814b2840587b38f361bb7a4e96cd1ad617629a7
-verification_worker_status: tjanst_matrix_stable_worker_oidc_pass_installed_awaiting_user
+verification_worker_status: historical_05_1_38_pass_0814b28_not_rerun_for_39
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 0814b2840587b38f361bb7a4e96cd1ad617629a7
+worker_build_revision: 1d2b0ec32b408059f38dfb7ca009aed8eba1183a
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**05.1-39 installerad 2026-10-29:** B07 gällde både Ofördelat och klass/ämnesfilter. Slutkandidat 1d2b0ec visar alla lärare som standard; behovsfilter begränsar rader, specifikt lärarfilter begränsar lärare och Visa relevanta är ett frivilligt kolumnurval. Ofördelat visar alltid alla lärare. UI248, Node8, typ/lint, skyddat bygge och handbok PASS. 3012 kör fryst kandidat, 1 370 filer lika; hälsa och nio tillgångar PASS. Ingen migration eller ny faktisk OIDC/databasserie; 88/88 på 0814b28 är historiskt bevis. Mellanversion 79eaf69 och äldre 0814b28 bevarade för återgång. Användarprov och åtta förbättringar återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-39-SUMMARY.md).
 
 **05.1-38 installerad 2026-10-29:** Sparat och Ångra på behovsraden utan normal global sparnotis. Verktygsavsnitt ligger kvar under direkt sparning; osäkert skrivläge döljer fortfarande skrivkontroller. Senaste behandlade rad behålls för Ångra under Ofördelat/avvikelsefilter tills urval/termin/vy ändras. Kompakta lärarrubriker är fasta vid skrollning. UI246, typ/lint, skyddat bygge/handbok och faktiskt 88/88 PASS på 0814b28; full städning och oförändrat källmål. 3012 kör identisk 1 370-filsartefakt; hälsa och nio tillgångar PASS. Ingen migration; 8e26f3b bevarad för återgång. Användarprov väntar, åtta UX-förbättringar återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-38-SUMMARY.md).
 

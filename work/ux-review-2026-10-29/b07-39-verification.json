@@ -1,0 +1,50 @@
+{
+  "revision": "1d2b0ec32b408059f38dfb7ca009aed8eba1183a",
+  "sources": [
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "dfcfcec47fa809b7007a6f393507d65604e8196fdab29845a2db0206733966a1"
+    },
+    {
+      "path": "web/app/tjanst-lens-bar.tsx",
+      "sha256": "e0c397ace47d22b65b8f4d907cca6f4ecf6ff19ee9fd444196bdc555233d4e2b"
+    },
+    {
+      "path": "web/e2e/tjanst-oneclick.spec.ts",
+      "sha256": "a3c69911221b2ca0190a18371a0795a29540888ae518cccfd9783e15d7e983b5"
+    },
+    {
+      "path": "web/e2e/tjanst-ui.spec.ts",
+      "sha256": "bc32838c4faa28f928bc0ea3c365d88219e4a549ef8b6cb268d9ad515a5ef5bf"
+    },
+    {
+      "path": "web/e2e/tjanst-actual.spec.ts",
+      "sha256": "a30551443e2bafa01eeb03db9a7c243b0d2e2a0bd60729565701d696c07a961f"
+    }
+  ],
+  "syntheticUI": {
+    "startTime": "2026-10-29T11:00:14.246Z",
+    "duration": 330579.17500000005,
+    "expected": 248,
+    "skipped": 188,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "checks": {
+    "lensNodeTests": {
+      "passed": 8,
+      "failed": 0
+    },
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "actualWorker": {
+    "status": "not_run_for_this_presentation_change",
+    "previousVerifiedRevision": "0814b2840587b38f361bb7a4e96cd1ad617629a7"
+  },
+  "deployment": "local_3012_1d2b0ec",
+  "humanAcceptance": "awaiting_user",
+  "intermediateRevision": "79eaf6995db6c8b01d0b858cf39b3298ce2bea39"
+}

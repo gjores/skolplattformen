@@ -1,0 +1,54 @@
+{
+  "installedAt": "2026-10-29T10:56:44.508Z",
+  "revision": "79eaf6995db6c8b01d0b858cf39b3298ce2bea39",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "artifactSha256": "41faa07171fdd4ae5483a1a49a70dffcb89ccbdff7c36b3f7d36ba3de022bab6",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "assets": [
+    {
+      "path": "/_next/static/11f5bd5f-bdfe-450f-b8f9-be5eb6e4a8ab/_buildManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/11f5bd5f-bdfe-450f-b8f9-be5eb6e4a8ab/_ssgManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-0814b28",
+  "migrationsApplied": false,
+  "validation": "synthetic_ui_and_protected_build",
+  "humanAcceptance": "awaiting_user"
+}
