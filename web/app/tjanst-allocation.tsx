@@ -20,6 +20,7 @@ import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-sum
  */
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTermView; editable: boolean; phone: boolean;
   drafts: Record<string, TjanstAllocationDraft>; onDraft: (sourceKey: string, draft: TjanstAllocationDraft | null) => void;
+  initialSourceKey?: string | null;
   /** 05.1-34: kön följer linsen. Ofördelat ger bara ofördelade behov; Alla behov ger också fördelade (till exempel för en andra lärare). */
   lens?: TjanstLensId;
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
@@ -31,11 +32,11 @@ export type TjanstAllocationDraft = { ht: string; vt: string };
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
 
-export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, loadSupport, onSave, onOpenCourse }: Props) {
+export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, initialSourceKey = null, loadSupport, onSave, onOpenCourse }: Props) {
   const id = useId();
   const [groupBy, setGroupBy] = useState<TjanstQueueGroupBy>('klass'), [search, setSearch] = useState('');
   const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search, lens }), [groups, term, groupBy, search, lens]);
-  const [selectedKey, setSelectedKey] = useState<string | null>(null);
+  const [selectedKey, setSelectedKey] = useState<string | null>(initialSourceKey);
   const [saved, setSaved] = useState<string[]>([]);
   const previousQueue = useRef<TjanstQueueItem[]>(queue), pendingNext = useRef<{ key: string; revision: number } | null>(null);
   // Ett behov som just blev fördelat försvinner ur kön; panelen visar då första behovet tills nästa val är satt, så rubriken behåller fokus.
@@ -87,17 +88,17 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     time: entry.rows.filter(r => r.personId === p.personId).reduce((s, r) => { const t = rowTime(r, data.joints); return { ht: s.ht + t.ht, vt: s.vt + t.vt }; }, { ht: 0, vt: 0 }) })) : [], [reply, entry, onNeed, data.joints]);
   const picks: Pick[] = useMemo(() => {
     if (!reply) return [];
-    const byId = new Map(reply.candidates.map(p => [p.personId, p])), list: Pick[] = [], seen = new Set<string>(onNeed);
-    if (reply.recommendationStatus === 'ready') for (const s of sortYearSuggestions(reply)) { const p = byId.get(s.personId); if (!p || seen.has(p.personId)) continue; seen.add(p.personId);
-      list.push({ key: s.suggestionId, person: p, selection: { kind: 'suggestion', suggestionId: s.suggestionId }, reasons: [...new Set(s.references.map(yearEvidenceLabel))] }); }
     const q = query.trim().toLocaleLowerCase('sv');
+    const matches = (person: TjanstYearCandidate) => !q || person.displayName.toLocaleLowerCase('sv').includes(q);
+    const byId = new Map(reply.candidates.map(p => [p.personId, p])), list: Pick[] = [], seen = new Set<string>(onNeed);
+    if (reply.recommendationStatus === 'ready') for (const s of sortYearSuggestions(reply)) { const p = byId.get(s.personId); if (!p || seen.has(p.personId) || !matches(p)) continue; seen.add(p.personId);
+      list.push({ key: s.suggestionId, person: p, selection: { kind: 'suggestion', suggestionId: s.suggestionId }, reasons: [...new Set(s.references.map(yearEvidenceLabel))] }); }
     for (const p of [...reply.candidates].sort((a, b) => a.displayName.localeCompare(b.displayName, 'sv'))) {
-      if (seen.has(p.personId) || q && !p.displayName.toLocaleLowerCase('sv').includes(q)) continue;
+      if (seen.has(p.personId) || !matches(p)) continue;
       list.push({ key: p.personId, person: p, selection: { kind: 'manual', personId: p.personId }, reasons: [] });
     }
     return list;
   }, [reply, query, onNeed]);
-  const suggested = picks.filter(p => p.selection.kind === 'suggestion').length;
   const parsed = { ht: parseHours(ht), vt: parseHours(vt) };
   const added = { ht: 'minutes' in parsed.ht ? parsed.ht.minutes : 0, vt: 'minutes' in parsed.vt ? parsed.vt.minutes : 0 };
 
@@ -191,7 +192,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
             <h4>{yearRecommendationMessage(reply.recommendationStatus)}</h4>
             {reply.recommendationStatus === 'unavailable' && <p>Du kan fortfarande söka och välja en lärare.</p>}
             <div className="tjanst-field"><label htmlFor={`${id}-lsok`}>Sök lärare</label><input id={`${id}-lsok`} ref={searchRef} type="search" autoComplete="off" value={query} onChange={e => setQuery(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const p = picks[suggested]; if (p && query.trim()) void choose(p.selection, p.person.displayName); } }}/></div>
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); const p = picks[0]; if (p && query.trim()) void choose(p.selection, p.person.displayName); } }}/></div>
             {existing.length > 0 && <section className="tjanst-existing" aria-label="Har redan tid på behovet"><h4>Har redan tid på behovet</h4>
               {existing.map(x => <p key={x.person.personId}>{x.person.displayName}: HT {formatTime(x.time.ht)} · VT {formatTime(x.time.vt)}. Ändra raden i matrisen.</p>)}</section>}
             <ol className="tjanst-candidates" aria-label="Lärare att välja">{picks.slice(0, 60).map((p, i) => { const t = candidateTotals(p.person.personId, data.rows, data.specials, data.joints, added);

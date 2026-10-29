@@ -117,13 +117,14 @@ export function TjanstSpecialView({ data, editable, onEdit }: { data: TjanstPlan
   </section>;
 }
 
-type CourseProps = { data: TjanstPlanRead; editable: boolean; marked: string[]; onMark: (rowIds: string[]) => void; markError: string | null;
+type CourseProps = { data: TjanstPlanRead; groups: TjanstClassGroup[]; onAllocate?: (sourceKey: string) => void; editable: boolean; marked: string[]; onMark: (rowIds: string[]) => void; markError: string | null;
   onLink: (origin: HTMLElement) => void; onEditJoint: (joint: TjanstJoint, origin: HTMLElement) => void; onDissolve: (joint: TjanstJoint, origin: HTMLElement) => void; visible: Set<string>;
   /** 05.1-27: samläsningen som märket i matrisen eller Per klass pekade ut; fokuseras en gång. */
   focusJointId?: string | null; onFocusedJoint?: () => void };
 /** Skärm 5. Samläsning skapas bara genom markering; inget förslag skapas automatiskt (D-16). */
-export function TjanstCourseView({ data, editable, marked, onMark, markError, onLink, onEditJoint, onDissolve, visible, focusJointId = null, onFocusedJoint }: CourseProps) {
+export function TjanstCourseView({ data, groups, onAllocate, editable, marked, onMark, markError, onLink, onEditJoint, onDissolve, visible, focusJointId = null, onFocusedJoint }: CourseProps) {
   const rows = data.rows.filter(r => visible.has(r.sourceKey));
+  const needs = groups.flatMap(g => g.entries).filter(e => !e.rows.some(r => r.jointGroupId !== null));
   useEffect(() => { if (!focusJointId) return; const el = document.querySelector<HTMLElement>(`[data-joint="${CSS.escape(focusJointId)}"]`);
     if (el) { el.scrollIntoView({ block: 'start' }); el.focus(); } onFocusedJoint?.(); }, [focusJointId, onFocusedJoint]);
   const line = (r: TjanstRow) => { const t = rowTime(r, data.joints), label = rowLabel(data, r), cls = className(data, r.classId);
@@ -139,11 +140,13 @@ export function TjanstCourseView({ data, editable, marked, onMark, markError, on
     </li>; };
   const courses = new Map<string, TjanstRow[]>();
   for (const r of rows.filter(x => x.jointGroupId === null)) { const label = rowLabel(data, r); courses.set(label, [...(courses.get(label) ?? []), r]); }
+  // Behov finns före tilldelning: en kurs ska vara möjlig att hitta även utan tjänsterader.
+  for (const e of needs) if (!courses.has(e.need.label)) courses.set(e.need.label, []);
   const sorted = [...courses.entries()].sort(([a], [b]) => subjectOf(a).localeCompare(subjectOf(b), 'sv') || a.localeCompare(b, 'sv'));
   const joints = data.joints.filter(j => j.rowIds.some(id => rows.some(r => r.id === id)));
   return <section aria-label="Per kurs/ämne" className="tjanst-view">
-    {editable && marked.length === 0 && <p className="tjanst-empty-text">Markera rader i olika klasser för att koppla dem till en samläsning.</p>}
-    {rows.length === 0 && <p className="tjanst-empty-text">Inga tjänsterader ännu.</p>}
+    {editable && rows.length > 0 && marked.length === 0 && <p className="tjanst-empty-text">Markera rader i olika klasser för att koppla dem till en samläsning.</p>}
+    {rows.length === 0 && needs.length === 0 && <p className="tjanst-empty-text">Inga behov eller tjänsterader visas.</p>}
     {joints.map(j => <section key={j.id} className="tjanst-joint" aria-label={`Samläsning: ${j.name}`} data-joint={j.id} tabIndex={-1}><h3>Samläsning: {j.name}</h3>
       <ul className="tjanst-plain-list">{j.rowIds.map(id => data.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r).map(r => <li key={r.id} className="tjanst-joint-line">{rowLabel(data, r)}<ul className="tjanst-plain-list">{line(r)}</ul></li>)}</ul>
       <p>Lärartid för gruppen: {j.teachers.length ? j.teachers.map(t => `${personName(data, t.personId)} HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`).join('; ') : 'ingen lärare'}</p>
@@ -151,7 +154,16 @@ export function TjanstCourseView({ data, editable, marked, onMark, markError, on
       {editable && <div className="mandate-actions"><Button variant="outline" onClick={e => onEditJoint(j, e.currentTarget)}>Ändra samläsningen</Button>
         <Button variant="outline" onClick={e => onDissolve(j, e.currentTarget)}><Unlink size={16} aria-hidden="true"/>Lös upp samläsningen</Button></div>}
     </section>)}
-    {sorted.map(([label, list]) => <section key={label} className="tjanst-course-group" aria-label={label}><h3>{label}</h3><ul className="tjanst-plain-list">{list.map(line)}</ul></section>)}
+    {sorted.map(([label, list]) => <section key={label} className="tjanst-course-group" aria-label={label}><h3>{label}</h3>
+      <ul className="tjanst-plain-list" aria-label="Behov per klass">{needs.filter(e => e.need.label === label).map(e => <li key={e.need.sourceKey} className="tjanst-missing-card">
+        <strong>{e.cls.name}</strong>
+        <p>Behov HT {e.need.needHt === null ? 'okänt' : formatTime(e.need.needHt)} · VT {e.need.needVt === null ? 'okänt' : formatTime(e.need.needVt)}<br/>
+          Fördelat HT {formatTime(e.cov.covered.ht)} · VT {formatTime(e.cov.covered.vt)}</p>
+        {e.rows.length === 0 && <p>Ingen lärare tilldelad ännu.</p>}
+        {onAllocate && <Button type="button" variant="outline" onClick={() => onAllocate(e.need.sourceKey)}>Öppna behovet i Fördela</Button>}
+      </li>)}</ul>
+      {list.length > 0 && <ul className="tjanst-plain-list">{list.map(line)}</ul>}
+    </section>)}
     {editable && marked.length > 0 && <section className="tjanst-selection" aria-label="Markerade rader">
       <output>{marked.length} {marked.length === 1 ? 'rad markerad' : 'rader markerade'}</output>
       <Button aria-describedby={markError ? 'tjanst-mark-error' : undefined} onClick={e => onLink(e.currentTarget)}>Koppla till samläsning…</Button>

@@ -4,7 +4,7 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Den nya hela klassvyn och bevarade osparade tider i Fördela har hittills provats med simulerade svar i webbläsaren och ingår inte i det tidigare skyddade provet.
+**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Den hela klassvyn, bevarade osparade tider, enhetlig lärarsökning och rättelserna i kurs-/årsvyerna har hittills provats med simulerade svar i webbläsaren och ingår inte i det tidigare skyddade provet.
 
 ## Vem gör vad?
 
@@ -44,11 +44,13 @@ En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet 
 - **Per klass:** hela den valda klassens kurser med behov, fördelad tid och alla lärare på varje rad. Filter och linser i andra vyer begränsar inte denna sammanställning; dina filter finns kvar när du går tillbaka.
 - **Per lärare:** lärarens rader, specialuppdrag och summor per termin, andel på skolan och **Schemalagd tid: Underlag saknas**.
 - **Specialuppdrag:** alla uppdrag med lärare, grupp och tid.
-- **Per kurs/ämne:** raderna grupperade per ämne. Här kopplar du samläsning.
+- **Per kurs/ämne:** behov och sparade rader grupperade per kurs/ämne. Även klasser utan tilldelad lärare visar behov och fördelad tid. Här kopplar du samläsning mellan sparade rader. På dator öppnar **Öppna behovet i Fördela** rätt kurs och klass; ingen lärare tilldelas av det klicket.
+
+**Per lärare**, **Specialuppdrag** och **Per kurs/ämne** visar alltid **Hela läsåret · HT och VT**. Terminsknappar visas i Matris, Fördela och Per klass. Ditt terminsval finns kvar när du återgår till en sådan vy. I kursvyn räknas även avvikelsefilter och linser på hela läsåret.
 
 Filtren **Klass**, **Ämne** och **Lärare** samt **Visa bara avvikelser och saknade kopplingar** begränsar matrisen. Skola och läsår står inte i adressen.
 
-Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
+Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. Kursurvalet finns kvar om du laddar om sidan eller använder Bakåt och Framåt. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
 
 ### Lärarkolumner och linser
 
@@ -73,7 +75,7 @@ Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov 
 - **Panelen** till höger visar det valda behovet:
   - behov enligt timplanen och det som redan är fördelat
   - förslag utifrån tidigare planering, med skäl och källa
-  - sökning bland alla lärare
+  - sökning bland alla lärare; även historiska förslag filtreras efter namnet. Ingen träff ger inga kandidatval. Sökningen sparar inget; **Enter** i sökfältet väljer och sparar den första synliga träffen
   - lärartid HT och VT, förifylld med det som återstår. Du kan ändra tiden innan du väljer.
 - För varje lärare visas egen andel på skolan, *Behörighetsunderlag saknas* och lärarens undervisning **nu** och **efter valet** (HT, VT och läsår). Summorna visar fördelad tid, inte ledig tid.
 - **Välj** sparar raden direkt, och kön går vidare till nästa behov. Ingen lärare är förvald. Ett behov som är delvis fördelat ligger kvar i kön tills det är täckt. Om behovet har en vakant rad ersätts den av valet.
