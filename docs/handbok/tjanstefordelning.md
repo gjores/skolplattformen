@@ -80,6 +80,10 @@ Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov 
 - **Tangentbord:** <kbd>↑</kbd> och <kbd>↓</kbd> byter behov, <kbd>1</kbd>–<kbd>9</kbd> väljer läraren med den siffran, <kbd>V</kbd> väljer Vakant, <kbd>N</kbd> hoppar över och <kbd>/</kbd> går till sökningen.
 - **Samma kurs i andra klasser** visas som information. **Visa alla klasser med kursen** öppnar Per kurs/ämne, där du kan koppla en samläsning.
 - Om någon annan har ändrat fördelningen under tiden visas *Underlaget har ändrats*. Dina tider finns kvar. Panelen hämtar aktuellt underlag, och sedan väljer du igen.
+- Ändrade tider finns kvar per behov när du byter behov, filter eller vy inom samma planering. De finns också kvar om fönstret blir smalare och sedan återgår till datorläge. Ingen lärare väljs eller sparas genom att du går tillbaka till ett behov.
+- **Återställ tider för behovet** tar bort just det behovets osparade tider och visar åter det aktuella förslaget. **Återställ alla osparade tider i Fördela** tar bort alla sådana inmatningar i samma planering. Sparade tjänsterader ändras inte.
+- När en rad har sparats rensas bara dess osparade tider. Vid sparfel finns tiderna kvar. Om sparstatus är okänd behöver den kontrolleras innan du gör ett nytt försök; bevarad inmatning är inte ett besked om huruvida raden sparades.
+- Tiderna bevaras bara under besöket i den aktuella arbetsytan. Om du lämnar arbetsytan, byter skola, läsår eller uppdrag eller laddar om sidan varnas du för osparade ändringar. Väljer du att lämna dem försvinner inmatningen. Den följer inte med till en annan skola eller ett annat läsår. Historiska publiceringar visar sina sparade värden; vid återgång till samma aktuella planering finns dina osparade tider kvar.
 - Vill du ändra en sparad rad gör du det i matrisen. Fördela har ingen egen ångra-funktion.
 
 På telefon visar Fördela en lista över ofördelade behov, utan val.

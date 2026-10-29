@@ -21,7 +21,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
 import TjanstLensBar from './tjanst-lens-bar';
-import TjanstAllocation from './tjanst-allocation';
+import TjanstAllocation, { type TjanstAllocationDraft } from './tjanst-allocation';
 import TjanstSharingDialog, { SHARING_LABEL } from './tjanst-sharing-dialog';
 import { needTeachers, sharedNeedState } from '@/lib/tjanst-model.ts';
 import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
@@ -127,6 +127,16 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [support, setSupport] = useState<TjanstYearReply | null>(null), [acceptedCatalog, setAcceptedCatalog] = useState<TjanstYearCatalogReply | null>(null);
   const [supportBusy, setSupportBusy] = useState(false), [supportError, setSupportError] = useState<TjanstFailure | null>(null), [supportKey, setSupportKey] = useState(0);
   const [batchDraft, setBatchDraft] = useState<TjanstYearBatchDraft>();
+  // Endast i denna arbetsyta (uppdrag/skola/läsår), aldrig browserstorage eller historisk version.
+  const [allocationDrafts, setAllocationDrafts] = useState<Record<string, TjanstAllocationDraft>>({});
+  const allocationDraftCount = Object.keys(allocationDrafts).length;
+  const updateAllocationDraft = useCallback((sourceKey: string, draft: TjanstAllocationDraft | null) => {
+    setAllocationDrafts(previous => {
+      const next = { ...previous };
+      if (draft) next[sourceKey] = draft; else delete next[sourceKey];
+      return next;
+    });
+  }, []);
   const supportGeneration = useRef(0), supportInitialized = useRef(false), recoveryGate = useRef(true), uncertainGate = useRef(false);
   const onField = useCallback((key: string, value: unknown, dirty = true) => { setForm(old => ({ ...old, [key]: value })); if (dirty) setFormDirty(true); }, []);
   const phone = usePhone(), phoneRef = useRef(phone); useLayoutEffect(() => { phoneRef.current = phone; }, [phone]);
@@ -157,6 +167,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   useUnsavedChanges('navigation-block:tjanst', busy || checking || pendingCheck);
   useUnsavedChanges('tjanst-marked', marked.length > 0);
   useUnsavedChanges('tjanst-editor', !!pendingRowInput || !!dialog && (formDirty || !!batchDraft?.dirty));
+  useUnsavedChanges('tjanst-allocation', allocationDraftCount > 0);
 
   // Varje läsning hör till en generation. Svar från en äldre generation ignoreras (Beteendekontrakt 10).
   const load = useCallback(async () => {
@@ -516,6 +527,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
     <div className="tjanst-messages">
+      {allocationDraftCount > 0 && <output className="admin-notice">
+        Osparade tider i Fördela: {allocationDraftCount} behov. Tiderna finns kvar när du byter vy i samma planering.
+        {!versionId && !phone && <Button variant="outline" disabled={busy || checking || pendingCheck || recovering} onClick={() => setAllocationDrafts({})}>Återställ alla osparade tider i Fördela</Button>}
+      </output>}
       {pendingRowInput && <output className="admin-notice">Välj en aktuell tjänsterad. Dina tider och din kommentar tas med; välj lärare på nytt.<Button variant="outline" onClick={() => setPendingRowInput(null)}>Släpp den sparade inmatningen</Button></output>}
       {notice && !readError && !pageError && <output className="admin-notice"><CheckCheck size={16} aria-hidden="true"/><span>{notice}</span></output>}
       {pageError && !dialog && (pageError.mfa ? <MfaStepUpNotice message={pageError.mfa} returnTo={hereForStepUp()}/> : <div role="alert" className="validation-warning"><p>{pageError.error}</p>
@@ -538,6 +553,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
+          drafts={versionId ? {} : allocationDrafts} onDraft={updateAllocationDraft}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
           onSave={async (change, message) => { const outcome = await sendPrepared(change, () => message); if (outcome.ok) askSharingFor(change); return outcome; }}/>
       : shownView === 'klass' ? <TjanstClassView data={data} groups={groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>

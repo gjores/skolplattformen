@@ -19,17 +19,19 @@ import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-sum
  * val (D-29) och sparar raden direkt; inget är förvalt. Summorna är fördelad tid, inte ledig kapacitet (D-10).
  */
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTermView; editable: boolean; phone: boolean;
+  drafts: Record<string, TjanstAllocationDraft>; onDraft: (sourceKey: string, draft: TjanstAllocationDraft | null) => void;
   /** 05.1-34: kön följer linsen. Ofördelat ger bara ofördelade behov; Alla behov ger också fördelade (till exempel för en andra lärare). */
   lens?: TjanstLensId;
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
   onSave: (change: TjanstPreparedChange, message: string) => Promise<TjanstOutcome>; onOpenCourse: (code: string) => void };
 type Pick = { key: string; person: TjanstYearCandidate; selection: { kind: 'suggestion'; suggestionId: string } | { kind: 'manual'; personId: string }; reasons: string[] };
 type Existing = { person: TjanstYearCandidate; time: { ht: number; vt: number } };
+export type TjanstAllocationDraft = { ht: string; vt: string };
 
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
 
-export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', loadSupport, onSave, onOpenCourse }: Props) {
+export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, loadSupport, onSave, onOpenCourse }: Props) {
   const id = useId();
   const [groupBy, setGroupBy] = useState<TjanstQueueGroupBy>('klass'), [search, setSearch] = useState('');
   const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search, lens }), [groups, term, groupBy, search, lens]);
@@ -72,9 +74,10 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     return { ht: entry.cov.covered.ht, vt: entry.cov.covered.vt };
   }, [entry]);
   const base = useMemo(() => { try { return reply ? createYearRowEditor(reply, others) : null; } catch { return null; } }, [reply, others]);
-  const [times, setTimes] = useState<{ key: string; ht: string; vt: string } | null>(null);
-  const ht = times && times.key === target ? times.ht : hoursInput(base?.teacherHt ?? null), vt = times && times.key === target ? times.vt : hoursInput(base?.teacherVt ?? null);
-  const setTime = (field: 'ht' | 'vt', value: string) => target && setTimes({ key: target, ht, vt, [field]: value });
+  // Behåll bara inmatning här; val och revisionsunderlag hämtas alltid på nytt.
+  const draft = selected ? drafts[selected.sourceKey] : undefined;
+  const ht = draft?.ht ?? hoursInput(base?.teacherHt ?? null), vt = draft?.vt ?? hoursInput(base?.teacherVt ?? null);
+  const setTime = (field: 'ht' | 'vt', value: string) => selected && onDraft(selected.sourceKey, { ht, vt, [field]: value });
   const [query, setQuery] = useState(''), [failure, setFailure] = useState<string | null>(null), [busy, setBusy] = useState(false);
   const searchRef = useRef<HTMLInputElement>(null);
 
@@ -116,7 +119,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     previousQueue.current = queue; pendingNext.current = { key, revision: data.revision };
     const outcome = await onSave(change, `Tjänsteraden är sparad: ${who}, ${selected.label}, ${selected.className}, HT ${formatTime(h.minutes)} · VT ${formatTime(v.minutes)}.`);
     setBusy(false);
-    if (outcome.ok) { setSaved(s => [...s, key]); setQuery(''); }
+    if (outcome.ok) { onDraft(key, null); setSaved(s => [...s, key]); setQuery(''); }
     else { pendingNext.current = null; setFailure(outcome.code === 'tjanst_duplicate_row' ? `${who} har redan en rad för ${selected.label} i ${selected.className}. Ändra den befintliga raden i matrisen.`
       : outcome.error || 'Tjänsteraden kunde inte sparas. Dina uppgifter finns kvar.'); setReload(n => n + 1); }
   }
@@ -183,6 +186,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
               <div className="tjanst-field"><label htmlFor={`${id}-ht`}>Lärartid HT (timmar)</label><input id={`${id}-ht`} inputMode="decimal" value={ht} onChange={e => setTime('ht', e.target.value)}/></div>
               <div className="tjanst-field"><label htmlFor={`${id}-vt`}>Lärartid VT (timmar)</label><input id={`${id}-vt`} inputMode="decimal" value={vt} onChange={e => setTime('vt', e.target.value)}/></div>
             </div>
+            {draft && <Button type="button" variant="outline" disabled={busy} onClick={() => { onDraft(selected.sourceKey, null); setFailure(null); }}>Återställ tider för behovet</Button>}
             {busy && <output aria-busy="true">Sparar…</output>}
             <h4>{yearRecommendationMessage(reply.recommendationStatus)}</h4>
             {reply.recommendationStatus === 'unavailable' && <p>Du kan fortfarande söka och välja en lärare.</p>}
