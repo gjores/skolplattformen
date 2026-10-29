@@ -1,0 +1,54 @@
+{
+  "installedAt": "2026-10-29T14:23:58.508Z",
+  "revision": "8f6a58612b10409035ec8710a8b503a3281b39b0",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "artifactSha256": "2fa3437f9bcc0c8851dd2d8e8545a35e2cbf48bcfce9eacf5896e279b403e578",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "assets": [
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ANAT-2-4ShbcNYL.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ANIM-1-DiNnxxSK.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-1d2b0ec",
+  "migrationsApplied": false,
+  "validation": "synthetic_ui_and_protected_build",
+  "humanAcceptance": "awaiting_user"
+}

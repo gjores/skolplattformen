@@ -38,3 +38,5 @@ Varje todo anger berörda TJANST-krav och fas 05.1. Den kommande GSD-planen ska 
 F09:s följdrättelse 05.1-38 är installerad på 3012: radfeedback och Ångra utan hopp, senaste rad kvar under filter och fasta kompakta lärarrubriker. UI246 och faktiskt 88/88 PASS. [Resultat och användarprov som återstår](../phases/05.1-tjanstefordelning/05.1-38-SUMMARY.md).
 
 B07:s kolumnrättelse för Ofördelat och övriga behovsfilter är installerad på 3012 som 1d2b0ec. Alla lärare visas som standard; relevansurval är frivilligt. UI248 och fryst skyddat bygge PASS; ingen ny faktisk OIDC/databasserie. [Resultat](../phases/05.1-tjanstefordelning/05.1-39-SUMMARY.md).
+
+05.1-40: förenklat befintligt lärarbyte installerat på 3012 som 8f6a586, UI254/domän15 PASS. Det rapporterade generella sparfelet är inte återskapat; konkret användarprov väntar. [Resultat och begränsningar](../phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md). Åtta ursprungliga förbättringar kvarstår.

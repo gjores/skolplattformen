@@ -1,0 +1,43 @@
+{
+  "revision": "8f6a58612b10409035ec8710a8b503a3281b39b0",
+  "sources": [
+    {
+      "path": "web/app/tjanst-dialogs.tsx",
+      "sha256": "8fd502e04c7336daffc3f79266679c68277e0f25cec5592a00134c6897705731"
+    },
+    {
+      "path": "web/app/tjanst-teacher-picker.tsx",
+      "sha256": "608901aff03a9b5b39ab9ba5e927b50730b353f860cf9559247b3e03537cd5f8"
+    },
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "2eab1634fbc7bd439215b5b0690f20298a489223b83013d86b20e3ffba911b3b"
+    },
+    {
+      "path": "web/app/tjanst.css",
+      "sha256": "96ce13fbe307eeeee0bd03ec1675ce10e430d07e450db6bc6f747982e9ee3ae1"
+    },
+    {
+      "path": "web/e2e/tjanst-edit-teacher.spec.ts",
+      "sha256": "c01b4fd1e36c6ebc4b0049252e0450b7f36889717685ee93a14c5a688c38f026"
+    }
+  ],
+  "syntheticUI": {
+    "startTime": "2026-10-29T14:18:51.883Z",
+    "duration": 248026.555,
+    "expected": 254,
+    "skipped": 194,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "checks": {
+    "domainTests": 15,
+    "typescript": "PASS",
+    "lint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "actualWorker": "not_run",
+  "originalReportedSaveFailure": "not_generally_reproduced",
+  "humanAcceptance": "awaiting_user"
+}
