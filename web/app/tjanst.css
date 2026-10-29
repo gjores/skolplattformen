@@ -229,7 +229,7 @@
 .tjanst-pin{display:inline-flex;align-items:center;justify-content:center;min-width:44px;min-height:44px;margin-top:4px;border:1px solid transparent;border-radius:.375rem;background:transparent;color:var(--muted-foreground);cursor:pointer}
 .tjanst-pin:hover{border-color:var(--border);color:var(--foreground)}
 .tjanst-pin[aria-pressed="true"]{color:var(--primary);border-color:var(--border)}
-.tjanst-teacher.tjanst-teacher-compact{min-width:64px;width:72px;max-width:80px;position:relative;text-align:center}
+.tjanst-teacher.tjanst-teacher-compact{min-width:64px;width:72px;max-width:80px;text-align:center}
 .tjanst-teacher-initials{display:block;font-weight:600;letter-spacing:.02em}
 .tjanst-teacher-full{display:none;position:absolute;z-index:15;top:100%;left:50%;transform:translateX(-50%);width:max-content;max-width:220px;padding:4px 8px;background:var(--popover,var(--background));color:var(--popover-foreground,var(--foreground));border:1px solid var(--border);border-radius:.375rem;font-size:14px;font-weight:500;white-space:normal;box-shadow:0 4px 12px rgb(0 0 0 / .1)}
 .tjanst-teacher-compact:hover .tjanst-teacher-full,.tjanst-teacher-compact:focus-within .tjanst-teacher-full{display:block}
@@ -273,3 +273,8 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-sharing-line{display:block;font-size:.875rem;color:var(--muted-foreground,#52525b);overflow-wrap:anywhere}
 /* 05.1-34: status i Fördelas kö under Alla behov */
 .tjanst-queue-status{white-space:pre-wrap;color:var(--muted-foreground)}
+
+/* Reserverad radfeedback håller matrisens läge stabilt under direkt tilldelning. */
+.tjanst-row-feedback{height:32px;display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap;min-width:0}
+.tjanst-row-feedback output{overflow:hidden;text-overflow:ellipsis;min-width:0}
+.tjanst-row-feedback button{flex-shrink:0;min-height:32px}

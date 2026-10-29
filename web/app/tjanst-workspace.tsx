@@ -123,6 +123,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
   const [matrixAdvanced, setMatrixAdvanced] = useState(false), [quickBusy, setQuickBusy] = useState(false);
   const [matrixUndo, setMatrixUndo] = useState<MatrixUndo | null>(null);
+  const [matrixFeedback, setMatrixFeedback] = useState<{ sourceKey: string; text: string } | null>(null);
   const quickRunning = useRef(false);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
@@ -310,7 +311,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     });
     return () => { current = false; };
   }, [dialog, dialogData, phone, supportKey, loadPreview, refresh]);
-  async function sendPrepared(prepared: TjanstPreparedChange, message: (detail: TjanstPlanRead) => string = () => 'Ändringarna är sparade.', stillCurrent: () => boolean = () => true): Promise<TjanstOutcome> {
+  async function sendPrepared(prepared: TjanstPreparedChange, message: (detail: TjanstPlanRead) => string = () => 'Ändringarna är sparade.', stillCurrent: () => boolean = () => true, inlineMatrix = false): Promise<TjanstOutcome> {
     if (!active.current || !data || !unitId || running.current || recoveryGate.current || uncertainGate.current || pendingCheck || checking || phoneRef.current || readOnly || versionId || !scope || !data.capabilities.canEdit) return failed('Vänta tills föregående ändring är klar och använd aktuell planering på dator.');
     if (dialog && !['move', 'bulk'].includes(prepared.action) && (supportBusy || supportError)) return failed('Hämta och kontrollera planeringsstödet före sparning.');
     if (prepared.unitId !== unitId || prepared.schoolYear !== schoolYear) return failed('Arbetsytan har ändrats.');
@@ -326,7 +327,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         return result;
       }
       if (!active.current) return { ok: true };
-      setVersionId(''); setNotice(message(result.reply.detail)); if (phoneRef.current) close(); refresh(); return { ok: true };
+      setVersionId(''); const savedMessage = message(result.reply.detail);
+      if (inlineMatrix) { setNotice(null); setData(result.reply.detail); setReadError(null); } else { setNotice(savedMessage); refresh(); }
+      if (phoneRef.current) close(); return { ok: true };
     } catch { return failed('Ändringen kunde inte förberedas i den här fliken. Inget har skickats.'); }
     finally { running.current = false; if (active.current) setBusy(false); }
   }
@@ -489,7 +492,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const snapshot = data;
     const current = () => active.current && !phoneRef.current && !phoneViewport() && matrixCurrent.current.view === 'matris'
       && !matrixCurrent.current.versionId && matrixCurrent.current.data === snapshot;
-    quickRunning.current = true; setQuickBusy(true); setMatrixUndo(null); setPageError(null);
+    quickRunning.current = true; setQuickBusy(true); setMatrixUndo(null); setMatrixFeedback({ sourceKey: target.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
     origin.current = from; originCell.current = { sourceKey: target.sourceKey, personId: target.personId }; pendingFocus.current = from;
     try {
       const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, mode: 'row', sourceKey: target.sourceKey, rowId: effective.rowId });
@@ -507,11 +510,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       const outcome = await sendPrepared(change, detail => {
         const row = detail.rows.find(r => r.sourceKey === target.sourceKey && r.personId === target.personId);
         if (row && detail.version) setMatrixUndo({ revision: detail.revision, versionId: detail.version.id, row: structuredClone(row), previous: reply.currentRow ? structuredClone(reply.currentRow) : null });
-        return `Tjänsteraden är sparad: ${who}, ${need.label}, ${entry.cls.name}, HT ${formatTime(ht)} · VT ${formatTime(vt)}.`;
-      }, current);
-      if (!outcome.ok) setPageError(outcome); else askSharingFor(change);
+        setMatrixFeedback({ sourceKey: target.sourceKey, text: `Sparat · ${who}` });
+        return '';
+      }, current, true);
+      if (!outcome.ok) { setMatrixFeedback(null); setPageError(outcome); } else askSharingFor(change);
     } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte kontrolleras. Hämta aktuellt läge och välj på nytt.')); }
-    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); requestAnimationFrame(applyFocus); } }
+    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); setMatrixFeedback(value => value?.text === 'Kontrollerar ändringen i matrisen…' ? null : value); requestAnimationFrame(applyFocus); } }
   }
   const undoMatches = (snapshot: TjanstPlanRead | null, undo: MatrixUndo) => !!snapshot && snapshot.revision === undo.revision
     && snapshot.version?.id === undo.versionId && snapshot.rows.some(r => r.id === undo.row.id && sameMatrixRow(r, undo.row));
@@ -522,7 +526,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       && !matrixCurrent.current.versionId && undoMatches(matrixCurrent.current.data, undo);
     originCell.current = { sourceKey: undo.row.sourceKey, personId: undo.row.personId };
     pendingFocus.current = viewHeading.current; pendingMatrixFocus.current = true;
-    quickRunning.current = true; setQuickBusy(true); setPageError(null);
+    quickRunning.current = true; setQuickBusy(true); setMatrixFeedback({ sourceKey: undo.row.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
     try {
       const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, ...(undo.previous
         ? { mode: 'row' as const, sourceKey: undo.row.sourceKey, rowId: undo.row.id } : { mode: 'catalog' as const }) });
@@ -540,10 +544,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         change = { action: 'delete_row', unitId: reply.unitId, schoolYear: reply.schoolYear, expectedRevision: reply.currentRevision,
           payload: { rowId: undo.row.id, mutationContext: { baseVersionId: reply.baseVersionId, expectedBasisHash: reply.basisHash } } };
       } else { setMatrixUndo(null); setPageError(failed('Raden har ändrats. Ångra är inte längre tillgängligt.')); return; }
-      const outcome = await sendPrepared(change, () => 'Den senaste direkta tilldelningen är ångrad. Övriga rader är bevarade.', current);
+      const outcome = await sendPrepared(change, () => { setMatrixFeedback({ sourceKey: undo.row.sourceKey, text: 'Tilldelningen är ångrad.' }); return ''; }, current, true);
       if (outcome.ok) { setMatrixUndo(null); setAskSharing(null); } else setPageError(outcome);
     } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte ångras. Hämta aktuellt läge och kontrollera raden.')); }
-    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); requestAnimationFrame(applyFocus); } }
+    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); setMatrixFeedback(value => value?.text === 'Kontrollerar ändringen i matrisen…' ? null : value); requestAnimationFrame(applyFocus); } }
   }
   function linkMarked(from: HTMLElement) {
     if (!data) return;
@@ -612,20 +616,15 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
-    {data && editable && <div className="mandate-actions tjanst-actions">
-      {can('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
-      {can('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
-      {can('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
+    {data && !readOnly && !versionId && !phone && data.capabilities.canEdit && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
+      {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
+      {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
+      {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
       {data.actions.includes('move') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'move' }, e.currentTarget)}>Flytta uppdrag</Button>}
       {data.actions.includes('bulk') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'bulk' }, e.currentTarget)}>Massregistrera</Button>}
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
     <div className="tjanst-messages">
-      {quickBusy && <output aria-busy="true">Kontrollerar ändringen i matrisen…</output>}
-      {matrixUndo && !versionId && !phone && shownView === 'matris' && <div className="admin-notice">
-        {undoMatches(data, matrixUndo) ? <Button variant="outline" disabled={!editable || loading} onClick={() => void undoMatrix()}>Ångra senaste direkta tilldelningen</Button>
-          : loading ? 'Hämtar den sparade tilldelningen…' : 'Fördelningen har ändrats. Ändra raden i dialogen om tilldelningen ska ändras.'}
-      </div>}
       {allocationDraftCount > 0 && <output className="admin-notice">
         Osparade tider i Fördela: {allocationDraftCount} behov. Tiderna finns kvar när du byter vy i samma planering.
         {!versionId && !phone && <Button variant="outline" disabled={busy || checking || pendingCheck || recovering} onClick={() => setAllocationDrafts({})}>Återställ alla osparade tider i Fördela</Button>}
@@ -647,7 +646,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
-          advanced={matrixAdvanced} onAdvancedChange={setMatrixAdvanced}
+          advanced={matrixAdvanced} onAdvancedChange={!readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('save_row') ? setMatrixAdvanced : undefined}
+          feedback={versionId ? null : matrixFeedback} undoSourceKey={matrixUndo && undoMatches(data, matrixUndo) ? matrixUndo.row.sourceKey : null}
+          onUndo={() => void undoMatrix()} undoDisabled={!editable || loading}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
           onCell={(target, from, advanced) => void assignMatrix(target, from, advanced)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
@@ -667,7 +668,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
         {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
         {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
-    {data && can('remove_teacher') && <details className="tjanst-empty-columns"><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
+    {data && !readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('remove_teacher') && <details className="tjanst-empty-columns" inert={!editable || loading}><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
       {data.teachers.filter(t => !data.rows.some(r => r.personId === t.personId) && !data.specials.some(s => s.personId === t.personId) && !data.joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => <div key={t.personId}>{t.displayName} <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'removeTeacher', id: t.personId }, e.currentTarget)}>Ta bort tom lärarkolumn…</Button></div>)}</details>}
     {!phone && dialog && dialog.kind !== 'batch' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
       {supportError && <div><Problems failure={supportError} summary={false} checking={false}/><Button variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button><Button variant="outline" onClick={() => close()}>Stäng formuläret</Button></div>}

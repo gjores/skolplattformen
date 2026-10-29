@@ -48,6 +48,31 @@ test.describe('F09 dator',()=>{
   await page.keyboard.press('Escape');await advanced.uncheck();await cell(page).focus();await page.keyboard.press('Shift+Enter');await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');expect(await commands(page)).toHaveLength(0);await cell(page).focus();await page.keyboard.press('Enter');await saved(page);
  });
+ test('sparstatus och Ångra stannar på raden utan att flytta matrisen',async({page})=>{
+  await open(page);const scroll=ws(page).locator('.tjanst-matrix-scroll');const target=cell(page);await target.scrollIntoViewIfNeeded();
+  const key=await target.locator('xpath=ancestor::tr').getAttribute('data-need-row');
+  const row=scroll.locator(`tr[data-need-row="${key}"]`), feedback=row.locator('.tjanst-row-feedback');
+  const before=await scroll.boundingBox();const rowBefore=await row.boundingBox();
+  await page.evaluate(()=>window.__tjanst.holdNext('plan/forhandsvisa'));await target.click();
+  await expect(feedback.getByText('Kontrollerar ändringen i matrisen…')).toBeVisible();
+  const pending=await scroll.boundingBox();expect(pending!.y).toBeCloseTo(before!.y,0);
+  await page.evaluate(()=>window.__tjanst.release());await saved(page);
+  await expect(feedback.getByText('Sparat · Cecilia Dahl')).toBeVisible();await page.screenshot({path:'/private/tmp/tjanst38-row-feedback.png'});await expect(row.getByRole('button',{name:'Ångra senaste direkta tilldelningen'})).toBeEnabled();
+  expect((await scroll.boundingBox())!.y).toBeCloseTo(before!.y,0);expect((await row.boundingBox())!.height).toBeCloseTo(rowBefore!.height,0);
+  await expect(ws(page).locator('.tjanst-messages .admin-notice')).toHaveCount(0);
+  await undo(page).click();await expect(feedback.getByText('Tilldelningen är ångrad.')).toBeVisible();expect((await scroll.boundingBox())!.y).toBeCloseTo(before!.y,0);
+ });
+ test('kompakta och fulla lärarrubriker ligger kvar vid lodrät och vågrät skrollning',async({page})=>{
+  await open(page,'?data=stor');await ws(page).getByRole('button',{name:'Visa alla lärare (40)'}).click();
+  const compact=ws(page).getByRole('checkbox',{name:'Kompakta kolumner',exact:true});
+  for(const enabled of [true,false]){
+   await compact.setChecked(enabled);const scroll=ws(page).locator('.tjanst-matrix-scroll');
+   await scroll.evaluate(el=>{el.scrollTop=450;el.scrollLeft=350;});
+   const bounds=await scroll.boundingBox(),head=await scroll.locator('thead th.tjanst-teacher').nth(8).boundingBox();
+   expect(head!.y).toBeGreaterThanOrEqual(bounds!.y);expect(head!.y).toBeLessThan(bounds!.y+3);
+   const first=await scroll.locator('thead .tjanst-first').boundingBox();expect(first!.x).toBeCloseTo(bounds!.x+1,0);if(enabled) await scroll.screenshot({path:'/private/tmp/tjanst38-sticky-'+test.info().project.name+'.png'});
+  }
+ });
  test('dubbelklick under förhandskontroll skickar bara ett kommando',async({page})=>{
   await open(page);await page.evaluate(()=>window.__tjanst.holdNext('plan/forhandsvisa'));
   await cell(page).evaluate(el=>{(el as HTMLButtonElement).click();(el as HTMLButtonElement).click();});

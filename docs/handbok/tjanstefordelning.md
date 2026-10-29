@@ -102,7 +102,9 @@ För att öppna dialogen före en ny tilldelning kan du välja **Avancerade val 
 
 ### Ångra senaste direkta tilldelningen
 
-**Ångra senaste direkta tilldelningen** återtar bara den senaste direkta tilldelningen, med ny kontroll av aktuellt underlag. En nytillagd rad tas bort. Om valet ersatte en vakant rad återställs den radens tidigare tider och kommentar. Andra rader bevaras.
+Efter direkt tilldelning visas **Sparat** och knappen **Ångra** på behovsraden. Återkopplingen har en reserverad plats så att matrisen står kvar när du sparar. Lärarrubrikerna ligger kvar när du skrollar i matrisen, även med kompakta kolumner.
+
+**Ångra** återtar bara den senaste direkta tilldelningen, med ny kontroll av aktuellt underlag. En nytillagd rad tas bort. Om valet ersatte en vakant rad återställs den radens tidigare tider och kommentar. Andra rader bevaras.
 
 Ångra finns bara medan samma sparade version, revision och rad fortfarande gäller. Om fördelningen ändras, exempelvis när du sparar en delning eller ändrar en rad, använder du dialogen för fortsatta ändringar. Vid okänt sparsvar väljer du **Kontrollera sparstatus** innan du försöker igen. Att klicka igen skickar inte automatiskt om en osäker ändring; om Ångra saknas efter kontrollen ändrar du raden via dialogen.
 
