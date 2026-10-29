@@ -1,0 +1,45 @@
+{
+  "scope": "Synthetic in-memory UI; no real auth/database",
+  "results": [
+    {
+      "profile": "chromium 1440x900",
+      "case": "Partially allocated need retains class/need/covered totals",
+      "status": "PASS"
+    },
+    {
+      "profile": "chromium 1440x900",
+      "case": "Joint navigation survives Back/Forward/reload",
+      "status": "PASS"
+    },
+    {
+      "profile": "chromium 1024x768",
+      "case": "Partially allocated need retains class/need/covered totals",
+      "status": "PASS"
+    },
+    {
+      "profile": "chromium 1024x768",
+      "case": "Joint navigation survives Back/Forward/reload",
+      "status": "PASS"
+    },
+    {
+      "profile": "webkit 390x664",
+      "case": "Partially allocated need retains class/need/covered totals",
+      "status": "PASS"
+    },
+    {
+      "profile": "webkit 390x664",
+      "case": "Joint navigation survives Back/Forward/reload",
+      "status": "PASS"
+    },
+    {
+      "profile": "webkit 320x740",
+      "case": "Partially allocated need retains class/need/covered totals",
+      "status": "PASS"
+    },
+    {
+      "profile": "webkit 320x740",
+      "case": "Joint navigation survives Back/Forward/reload",
+      "status": "PASS"
+    }
+  ]
+}

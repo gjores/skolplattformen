@@ -1,19 +1,19 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
-[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). Användaren beställde att alla fynd och förbättringar skulle registreras som GSD-todos. 15 registrerade punkter (två lokalt rättade/komponentverifierade och 13 väntande): sex reproducerade UI-/UX-fel (B01–B06) och nio förbättringar (F01–F09).
+[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). Användaren beställde att alla fynd och förbättringar skulle registreras som GSD-todos. 15 registrerade punkter (sex lokalt rättade/komponentverifierade och nio väntande): sex reproducerade UI-/UX-fel (B01–B06) och nio förbättringar (F01–F09).
 
-F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Övriga förbättringar är rapportförslag att konkretisera i planering. Den ursprungliga registreringen innebar ingen implementation. B01 och B05 har därefter rättats lokalt i [05.1-35](../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md), utan installation eller ny kravacceptans; övriga punkter väntar. Aktuellt genomförandearbete i STATE ersätts inte.
+F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Övriga förbättringar är rapportförslag att konkretisera i planering. Den ursprungliga registreringen innebar ingen implementation. B01 och B05 har därefter rättats lokalt i [05.1-35](../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md), utan installation eller ny kravacceptans; B02/B03/B04/B06 har därefter rättats lokalt i [05.1-36](../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). De nio förbättringarna väntar. Aktuellt genomförandearbete i STATE ersätts inte.
 
 ## Uppföljning
 
 | Rapport-ID | Prioritet | GSD-todo | Status |
 | --- | --- | --- | --- |
 | B01 | P1 | [Visa klassens underlag utan dolda filter](../todos/done/2026-10-29-tjanst-ux-b01-dolda-filter-i-klassvyn.md) | Klar lokalt; komponentprov PASS, ej installerad |
-| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/pending/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | pending |
-| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/pending/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | pending |
-| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/pending/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | pending |
+| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/done/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | Klar lokalt; komponentprov PASS, ej installerad |
+| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/done/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | Klar lokalt; komponentprov PASS, ej installerad |
+| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/done/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | Klar lokalt; komponentprov PASS, ej installerad |
 | B05 | P1 | [Bevara osparad tid vid byte av vy](../todos/done/2026-10-29-tjanst-ux-b05-bevara-osparad-tid-i-fordela.md) | Klar lokalt; komponentprov PASS, ej installerad |
-| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/pending/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | pending |
+| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Klar lokalt; komponentprov PASS, ej installerad |
 | F01 | P2 | [Ge fördelningsarbetet större plats](../todos/pending/2026-10-29-tjanst-ux-f01-mer-arbetsyta-i-tjanstefordelningen.md) | pending |
 | F02 | P2 | [Gör huvudarbetsflödet lättare att hitta](../todos/pending/2026-10-29-tjanst-ux-f02-tydligare-navigation-i-tjanstefordelningen.md) | pending |
 | F03 | P2 | [Samla sekundära verktyg och tillägg](../todos/pending/2026-10-29-tjanst-ux-f03-samla-sekundara-verktyg-i-tjanstefordelningen.md) | pending |

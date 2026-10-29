@@ -2,7 +2,10 @@
 created: 2026-10-29
 title: "Låt lärarsökningen omfatta förslag"
 area: tjanstefordelning
-status: pending
+status: completed
+completed: 2026-10-29
+verification: synthetic_ui
+deployment: not_installed
 phase: "05.1"
 report_id: B03
 priority: P2
@@ -34,4 +37,4 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
-**Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+**Status:** completed — lokalt rättad och komponentverifierad i 05.1-36. Ingen installation, faktisk server-/databasverifiering eller ny krav-/fasacceptans. [Resultat och begränsningar](../../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).

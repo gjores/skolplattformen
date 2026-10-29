@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-29",
+  "implementation_commit": "b80570b",
+  "scope": "Synthetic in-memory API only. No actual authentication/database verification, migration or deployment.",
+  "full_ui_stats": {
+    "startTime": "2026-10-29T07:38:29.166Z",
+    "duration": 170808.825,
+    "expected": 212,
+    "skipped": 156,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "new_p2_profile_cases": 44,
+  "previous_p1_profile_cases": 42,
+  "existing_ui_profile_cases": 126,
+  "supplemental_cases": 8,
+  "domain_tests": 103,
+  "checks": {
+    "tsc": "PASS",
+    "oxlint_app_lib": "PASS",
+    "app_build": "PASS",
+    "docs_build": "PASS",
+    "independent_code_review": "No blocking findings; gaps for partial allocation and joint Back/Forward covered by supplemental script."
+  },
+  "sources": [
+    {
+      "path": "web/app/tjanst-allocation.tsx",
+      "sha256": "f79d06a9cc55803ab6193b94164d864614154ab6f1eea63085c0ccd20d6072cd"
+    },
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "5c2c4949e4881c4d79bc0b6daee682885df5d7d0455aad7790ec3621846d24f0"
+    },
+    {
+      "path": "web/app/tjanst-views.tsx",
+      "sha256": "61ae11d677b4b1be31e9e59317bdb194e10f0464b87ede6cb33d173a008f087d"
+    },
+    {
+      "path": "web/e2e/tjanst-p2-search.spec.ts",
+      "sha256": "04c79a1145eb025ca812f621e2575f85d73646a1b668e0f056cb062afbc97d5a"
+    },
+    {
+      "path": "web/e2e/tjanst-p2-navigation.spec.ts",
+      "sha256": "b7dbc064244949ec6b24c2a8aa5994cb61c58b1fda9ae9e6e0db7474706aad59"
+    },
+    {
+      "path": "web/playwright.tjanst-p2.config.ts",
+      "sha256": "268fdb37ce3c8b722d6ce55f5135eea85a04bb4eec84b92b26c6153b07da1c98"
+    },
+    {
+      "path": "docs/handbok/tjanstefordelning.md",
+      "sha256": "3e1fcb2eae4e148d61e4172eb60489317df88d14152bbec35ec319fb67004fec"
+    }
+  ]
+}
