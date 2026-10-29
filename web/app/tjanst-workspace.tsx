@@ -123,7 +123,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
   const [matrixAdvanced, setMatrixAdvanced] = useState(false), [quickBusy, setQuickBusy] = useState(false);
   const [matrixUndo, setMatrixUndo] = useState<MatrixUndo | null>(null);
-  const [matrixFeedback, setMatrixFeedback] = useState<{ sourceKey: string; text: string } | null>(null);
+  const [matrixFeedback, setMatrixFeedback] = useState<{ sourceKey: string; text: string; filterKey: string } | null>(null);
   const quickRunning = useRef(false);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
@@ -359,7 +359,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   useLayoutEffect(() => { savedRef.current = saved; });
   useEffect(() => { writeLocation(initial.view, initial.term, initial.saved, 'replace'); }, [initial]);
   useEffect(() => {
-    const pop = () => { const next = readLocation(); savedRef.current = next.saved; setAutoLens(next.saved.autoLens); setView(next.view); setTerm(next.term); setFilter(next.saved.filter); setClassId(next.saved.classId); setPersonId(next.saved.personId); };
+    const pop = () => { setMatrixFeedback(null); const next = readLocation(); savedRef.current = next.saved; setAutoLens(next.saved.autoLens); setView(next.view); setTerm(next.term); setFilter(next.saved.filter); setClassId(next.saved.classId); setPersonId(next.saved.personId); };
     window.addEventListener('popstate', pop);
     return () => window.removeEventListener('popstate', pop);
   }, []);
@@ -367,6 +367,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   // Linsen delas mellan vyerna. En lins som Fördela satte automatiskt återställs när vyn lämnas, så att matrisen inte döljer fördelade rader.
   function chooseView(next: TjanstView, patch?: Partial<Saved>) {
     if (next === view && !patch) return;
+    setMatrixFeedback(null);
     const current = { ...savedRef.current, ...patch };
     const automatic = next === 'fordela' && current.filter.lens === 'alla' && !patch?.filter;
     const lens = automatic ? 'ofordelat' as const
@@ -386,8 +387,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     chooseView('fordela', { filter: { ...EMPTY_FILTER, classId: cls.classId, course: courseCode(need) }, autoLens: false });
     setAllocationStart(sourceKey);
   }
-  function chooseTerm(next: TjanstTermView) { if (next === term) return; setTerm(next); writeLocation(view, next, savedRef.current, 'push'); }
+  function chooseTerm(next: TjanstTermView) { if (next === term) return; setMatrixFeedback(null); setTerm(next); writeLocation(view, next, savedRef.current, 'push'); }
   function patchSaved(patch: Partial<Saved>) {
+    setMatrixFeedback(null);
     const next = { ...savedRef.current, ...patch };
     savedRef.current = next; if (patch.autoLens !== undefined) setAutoLens(patch.autoLens);
     if (patch.filter) setFilter(patch.filter); if (patch.classId !== undefined) setClassId(patch.classId); if (patch.personId !== undefined) setPersonId(patch.personId);
@@ -413,7 +415,18 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const filterTerm = shownView === 'kurs' ? 'ar' : term;
   const teachers = useMemo(() => data ? sortTeachers(data.teachers) : [], [data]);
   const groups = useMemo(() => data ? needEntries(data) : [], [data]);
-  const filtered = useMemo(() => data ? filterGroups(groups, filter, filterTerm, data.joints) : [], [data, groups, filter, filterTerm]);
+  const matrixFilterKey = JSON.stringify({ filter, term: filterTerm });
+  const filtered = useMemo(() => {
+    if (!data) return [];
+    const visible = filterGroups(groups, filter, filterTerm, data.joints);
+    // Behåll senast behandlade behov för radfeedback/Ångra även när det precis blivit täckt.
+    if (shownView !== 'matris' || versionId || matrixFeedback?.filterKey !== matrixFilterKey) return visible;
+    return groups.flatMap(group => {
+      const shown = visible.find(g => g.cls.classId === group.cls.classId);
+      const entries = group.entries.filter(e => e.need.sourceKey === matrixFeedback.sourceKey || shown?.entries.some(v => v.need.sourceKey === e.need.sourceKey));
+      return shown || entries.length ? [{ ...group, entries }] : [];
+    });
+  }, [data, groups, filter, filterTerm, shownView, versionId, matrixFeedback, matrixFilterKey]);
   const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues || filter.course || filter.lens !== 'alla');
   // 05.1-29: fästa lärare, kompakta kolumner och sparade linser. Bara i den egna webbläsaren; utan identitet bara under besöket.
   const prefsKey = identityKey && unitId ? lensStorageKey(identityKey, unitId, schoolYear) : null;
@@ -492,7 +505,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const snapshot = data;
     const current = () => active.current && !phoneRef.current && !phoneViewport() && matrixCurrent.current.view === 'matris'
       && !matrixCurrent.current.versionId && matrixCurrent.current.data === snapshot;
-    quickRunning.current = true; setQuickBusy(true); setMatrixUndo(null); setMatrixFeedback({ sourceKey: target.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
+    quickRunning.current = true; setQuickBusy(true); setMatrixUndo(null); setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey: target.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
     origin.current = from; originCell.current = { sourceKey: target.sourceKey, personId: target.personId }; pendingFocus.current = from;
     try {
       const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, mode: 'row', sourceKey: target.sourceKey, rowId: effective.rowId });
@@ -510,7 +523,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       const outcome = await sendPrepared(change, detail => {
         const row = detail.rows.find(r => r.sourceKey === target.sourceKey && r.personId === target.personId);
         if (row && detail.version) setMatrixUndo({ revision: detail.revision, versionId: detail.version.id, row: structuredClone(row), previous: reply.currentRow ? structuredClone(reply.currentRow) : null });
-        setMatrixFeedback({ sourceKey: target.sourceKey, text: `Sparat · ${who}` });
+        setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey: target.sourceKey, text: `Sparat · ${who}` });
         return '';
       }, current, true);
       if (!outcome.ok) { setMatrixFeedback(null); setPageError(outcome); } else askSharingFor(change);
@@ -526,7 +539,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       && !matrixCurrent.current.versionId && undoMatches(matrixCurrent.current.data, undo);
     originCell.current = { sourceKey: undo.row.sourceKey, personId: undo.row.personId };
     pendingFocus.current = viewHeading.current; pendingMatrixFocus.current = true;
-    quickRunning.current = true; setQuickBusy(true); setMatrixFeedback({ sourceKey: undo.row.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
+    quickRunning.current = true; setQuickBusy(true); setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey: undo.row.sourceKey, text: 'Kontrollerar ändringen i matrisen…' }); setPageError(null);
     try {
       const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, ...(undo.previous
         ? { mode: 'row' as const, sourceKey: undo.row.sourceKey, rowId: undo.row.id } : { mode: 'catalog' as const }) });
@@ -544,7 +557,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         change = { action: 'delete_row', unitId: reply.unitId, schoolYear: reply.schoolYear, expectedRevision: reply.currentRevision,
           payload: { rowId: undo.row.id, mutationContext: { baseVersionId: reply.baseVersionId, expectedBasisHash: reply.basisHash } } };
       } else { setMatrixUndo(null); setPageError(failed('Raden har ändrats. Ångra är inte längre tillgängligt.')); return; }
-      const outcome = await sendPrepared(change, () => { setMatrixFeedback({ sourceKey: undo.row.sourceKey, text: 'Tilldelningen är ångrad.' }); return ''; }, current, true);
+      const outcome = await sendPrepared(change, () => { setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey: undo.row.sourceKey, text: 'Tilldelningen är ångrad.' }); return ''; }, current, true);
       if (outcome.ok) { setMatrixUndo(null); setAskSharing(null); } else setPageError(outcome);
     } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte ångras. Hämta aktuellt läge och kontrollera raden.')); }
     finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); setMatrixFeedback(value => value?.text === 'Kontrollerar ändringen i matrisen…' ? null : value); requestAnimationFrame(applyFocus); } }
@@ -616,7 +629,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
-    {data && !readOnly && !versionId && !phone && data.capabilities.canEdit && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
+    {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
       {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
       {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
       {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
@@ -646,7 +659,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
-          advanced={matrixAdvanced} onAdvancedChange={!readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('save_row') ? setMatrixAdvanced : undefined}
+          advanced={matrixAdvanced} onAdvancedChange={(editable || quickBusy) && !readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('save_row') ? setMatrixAdvanced : undefined}
           feedback={versionId ? null : matrixFeedback} undoSourceKey={matrixUndo && undoMatches(data, matrixUndo) ? matrixUndo.row.sourceKey : null}
           onUndo={() => void undoMatrix()} undoDisabled={!editable || loading}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
@@ -668,7 +681,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
         {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
         {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
-    {data && !readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('remove_teacher') && <details className="tjanst-empty-columns" inert={!editable || loading}><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
+    {data && (editable || quickBusy) && data.actions.includes('remove_teacher') && <details className="tjanst-empty-columns" inert={!editable || loading}><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
       {data.teachers.filter(t => !data.rows.some(r => r.personId === t.personId) && !data.specials.some(s => s.personId === t.personId) && !data.joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => <div key={t.personId}>{t.displayName} <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'removeTeacher', id: t.personId }, e.currentTarget)}>Ta bort tom lärarkolumn…</Button></div>)}</details>}
     {!phone && dialog && dialog.kind !== 'batch' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
       {supportError && <div><Problems failure={supportError} summary={false} checking={false}/><Button variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button><Button variant="outline" onClick={() => close()}>Stäng formuläret</Button></div>}

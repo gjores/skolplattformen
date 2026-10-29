@@ -102,7 +102,7 @@ För att öppna dialogen före en ny tilldelning kan du välja **Avancerade val 
 
 ### Ångra senaste direkta tilldelningen
 
-Efter direkt tilldelning visas **Sparat** och knappen **Ångra** på behovsraden. Återkopplingen har en reserverad plats så att matrisen står kvar när du sparar. Lärarrubrikerna ligger kvar när du skrollar i matrisen, även med kompakta kolumner.
+Efter direkt tilldelning visas **Sparat** och knappen **Ångra** på behovsraden. Återkopplingen har en reserverad plats så att matrisen står kvar när du sparar. Den senast behandlade raden ligger kvar för återkoppling och Ångra även om den precis blivit täckt under **Ofördelat** eller avvikelsefiltret. Byter du urval eller vy gäller filtret fullt ut igen. Lärarrubrikerna ligger kvar när du skrollar i matrisen, även med kompakta kolumner.
 
 **Ångra** återtar bara den senaste direkta tilldelningen, med ny kontroll av aktuellt underlag. En nytillagd rad tas bort. Om valet ersatte en vakant rad återställs den radens tidigare tider och kommentar. Andra rader bevaras.
 

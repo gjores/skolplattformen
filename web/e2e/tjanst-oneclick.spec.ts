@@ -62,6 +62,13 @@ test.describe('F09 dator',()=>{
   await expect(ws(page).locator('.tjanst-messages .admin-notice')).toHaveCount(0);
   await undo(page).click();await expect(feedback.getByText('Tilldelningen är ångrad.')).toBeVisible();expect((await scroll.boundingBox())!.y).toBeCloseTo(before!.y,0);
  });
+ test('Ofördelat behåller senast sparad rad för Ångra tills urvalet ändras',async({page})=>{
+  await open(page);await ws(page).getByRole('button',{name:'Visa alla lärare (3)',exact:true}).click();await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await cell(page).click();await saved(page);await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: 100 h. Ändra.');
+  await undo(page).click();await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.');
+  await cell(page).click();await saved(page);await ws(page).getByLabel('Lins',{exact:true}).selectOption('alla');await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
+  await expect(cell(page)).toHaveCount(0);
+ });
  test('kompakta och fulla lärarrubriker ligger kvar vid lodrät och vågrät skrollning',async({page})=>{
   await open(page,'?data=stor');await ws(page).getByRole('button',{name:'Visa alla lärare (40)'}).click();
   const compact=ws(page).getByRole('checkbox',{name:'Kompakta kolumner',exact:true});
