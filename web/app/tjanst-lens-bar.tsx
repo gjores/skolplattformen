@@ -27,7 +27,7 @@ export default function TjanstLensBar(p: Props) {
   return <div className="tjanst-lens-bar">
     {lensSelect}
     <output className="tjanst-lens-count">{p.filteredByTeacher ? 'Visar läraren i lärarfiltret' : `Visar ${p.shown} av ${p.total} lärare`}</output>
-    {!p.filteredByTeacher && <Button type="button" variant="outline" onClick={() => p.onShowAll(!p.showAll)}>{p.showAll ? 'Visa relevanta lärare' : `Visa alla lärare (${p.total})`}</Button>}
+    {!p.filteredByTeacher && p.lens !== 'ofordelat' && <Button type="button" variant="outline" onClick={() => p.onShowAll(!p.showAll)}>{p.showAll ? 'Visa relevanta lärare' : `Visa alla lärare (${p.total})`}</Button>}
     <label className="mandate-check"><input type="checkbox" checked={p.compact} onChange={e => p.onCompact(e.target.checked)}/>Kompakta kolumner</label>
     <details className="tjanst-lens-pins">
       <summary>Fäst lärare{p.pinned.length ? ` (${p.pinned.length})` : ''}</summary>

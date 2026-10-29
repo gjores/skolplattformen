@@ -56,10 +56,10 @@ Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Pe
 
 Med många lärare visar matrisen som standard bara **relevanta lärare**: de som har tid på raderna som syns. Lärare utan undervisning, till exempel en nyss tillagd lärare eller en lärare med bara specialuppdrag, visas när inget filter är valt. Väljer du ämnet Engelska syns alltså bara engelsklärarna. Raden ovanför matrisen visar *Visar 5 av 40 lärare*.
 
-- **Visa alla lärare (40)** visar alla kolumner. **Visa relevanta lärare** går tillbaka.
+- **Visa alla lärare (40)** visar alla kolumner. **Visa relevanta lärare** går tillbaka. I **Ofördelat** visas alla lärare automatiskt och denna växlingsknapp behövs inte.
 - **Fäst lärare:** en fäst lärare visas alltid. Du fäster med nålen i lärarens kolumnrubrik, eller med **Fäst lärare**, där du kan söka.
 - **Kompakta kolumner** visar initialer och lärarens totala tid. Hela namnet visas när du pekar på eller går till kolumnen.
-- **Lins:** **Alla behov**, **Ofördelat** (känt behov som lärarna inte täcker för vald tid) och **Samläsningar**. Linsen gäller tillsammans med övriga filter. Okänt behov räknas inte som ofördelat, utom när det har en vakant rad.
+- **Lins:** **Alla behov**, **Ofördelat** (känt behov som lärarna inte täcker för vald tid) och **Samläsningar**. Linsen gäller tillsammans med övriga filter. **Ofördelat** visar alla lärare i fördelningen så att du kan tilldela direkt, även när de redan undervisar på andra behov. Klass- och ämnesfilter begränsar behovsraderna; ett uttryckligt lärarfilter begränsar fortfarande till vald lärare. Okänt behov räknas inte som ofördelat, utom när det har en vakant rad.
 - **Överflödig vakant rad:** om lärarna redan täcker hela behovet men en vakant rad finns kvar visar raden en varning. Behovet räknas då som fördelat. Ta bort den vakanta raden i kolumnen **Vakant**.
 - **Sparade linser:** spara aktuell lins, filter och kolumnval under ett namn. Med **Använd** visas linsen igen, och med **Ta bort lins** tas den bort.
 

@@ -435,8 +435,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const prefs = useMemo(() => local && local.key === prefsKey ? local.prefs : known && prefsKey ? readLensPrefs(lensStorage(), prefsKey, known) : EMPTY_LENS_PREFS, [local, prefsKey, known]);
   function updatePrefs(next: TjanstLensPrefs) { setLocal({ key: prefsKey, prefs: next }); if (prefsKey) writeLensPrefs(lensStorage(), prefsKey, next); }
   const unassigned = useMemo(() => data ? teachersWithoutTeaching(data.teachers, data.rows, data.joints) : [], [data]);
-  const columns = useMemo(() => data ? visibleTeachers(filtered.flatMap(g => g.entries), teachers, data.joints, { pinned: prefs.pinned, showAll, personId: filter.personId, empty: hasFilter ? [] : unassigned }) : [],
-    [data, filtered, teachers, prefs.pinned, showAll, filter.personId, unassigned, hasFilter]);
+  const columns = useMemo(() => data ? visibleTeachers(filtered.flatMap(g => g.entries), teachers, data.joints, { pinned: prefs.pinned, showAll: showAll || filter.lens === 'ofordelat', personId: filter.personId, empty: hasFilter ? [] : unassigned }) : [],
+    [data, filtered, teachers, prefs.pinned, showAll, filter.personId, filter.lens, unassigned, hasFilter]);
   const pin = (id: string, on: boolean) => updatePrefs({ ...prefs, pinned: on ? [...new Set([...prefs.pinned, id])] : prefs.pinned.filter(x => x !== id) });
   function saveLens(name: string): string | null {
     const clean = name.trim(); if (!clean) return 'Skriv ett namn på linsen.';
