@@ -799,6 +799,7 @@ test.describe('linser',()=>{
   const errors=await open(page,'?data=manga');
   await expect(ws(page).getByText('Visar 40 av 40 lärare')).toBeVisible();await expect(headers(page)).toHaveCount(40);
   await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  await expect(headers(page)).toHaveCount(40);await ws(page).getByRole('button',{name:'Visa relevanta lärare',exact:true}).click();
   await expect(ws(page).getByText('Visar 5 av 40 lärare')).toBeVisible();await expect(headers(page)).toHaveCount(5);
   await expect(headers(page).first()).toContainText('Engelskalärare');
   await ws(page).getByRole('button',{name:'Visa alla lärare (40)'}).click();await expect(headers(page)).toHaveCount(40);
@@ -814,6 +815,7 @@ test.describe('linser',()=>{
  test('fäst lärare i rubriken och i listan, kompakt läge, kvar efter omladdning',async({page},info)=>{
   const errors=await open(page,'?data=manga');
   await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  await ws(page).getByRole('button',{name:'Visa relevanta lärare',exact:true}).click();
   const pin=matrix(page).getByRole('button',{name:/^Fäst .*Engelskalärare1$/});await pin.click();
   await expect(matrix(page).getByRole('button',{name:/^Lossa .*Engelskalärare1$/})).toHaveAttribute('aria-pressed','true');
   await ws(page).getByText('Fäst lärare (1)').click();await ws(page).getByLabel('Sök lärare').fill('Fysiklärare3');
@@ -829,7 +831,7 @@ test.describe('linser',()=>{
   expect(stored).toHaveLength(1);expect(stored[0][1]).not.toMatch(/lärare|Engelska/);
   await page.reload();await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
   await ws(page).getByLabel('Ämne').selectOption('Engelska');
-  await expect(headers(page)).toHaveCount(6);await expect(matrix(page).locator('th.tjanst-teacher-compact')).toHaveCount(6);
+  await ws(page).getByRole('button',{name:'Visa relevanta lärare',exact:true}).click();await expect(headers(page)).toHaveCount(6);await expect(matrix(page).locator('th.tjanst-teacher-compact')).toHaveCount(6);
   await matrix(page).getByRole('button',{name:/^Lossa .*Fysiklärare3$/}).click();await expect(headers(page)).toHaveCount(5);
   await noOverflow(page);expect(errors).toEqual([]);
  });
@@ -849,7 +851,7 @@ test.describe('linser',()=>{
   expect(errors).toEqual([]);
  });
  test('piltangenter går över synliga kolumner och Vakant',async({page})=>{
-  await open(page,'?data=manga');await ws(page).getByLabel('Ämne').selectOption('Engelska');
+  await open(page,'?data=manga');await ws(page).getByLabel('Ämne').selectOption('Engelska');await ws(page).getByRole('button',{name:'Visa relevanta lärare',exact:true}).click();
   const first=matrix(page).locator('[data-cell="0:0"]');await first.focus();
   for(let i=0;i<5;i++)await page.keyboard.press('ArrowRight');
   await expect(matrix(page).locator('[data-cell="0:5"]')).toBeFocused();await expect(page.locator(':focus')).toHaveAttribute('aria-label',/^Vakant, Engelska 1, MA1/);

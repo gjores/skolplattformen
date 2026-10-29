@@ -74,8 +74,16 @@ test.describe('F09 dator',()=>{
   await cell(page).click();await saved(page);await ws(page).getByLabel('Lins',{exact:true}).selectOption('alla');await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
   await expect(cell(page)).toHaveCount(0);
  });
+ test('klass, ämne och avvikelser behåller lärare; bara uttryckligt lärarfilter begränsar dem',async({page})=>{
+  await open(page);await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await ws(page).getByLabel('Ämne',{exact:true}).selectOption('Matematik');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);await expect(cell(page,'Cecilia Dahl','Matematik 1b','EK26')).toBeVisible();
+  await ws(page).getByLabel('Lärare',{exact:true}).selectOption({label:'Anna Andersson'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(1);await expect(matrix(page).locator('thead .tjanst-teacher')).toContainText('Anna Andersson');
+  await ws(page).getByLabel('Lärare',{exact:true}).selectOption('');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});await ws(page).getByRole('checkbox',{name:'Visa bara avvikelser och saknade kopplingar'}).check();await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await cell(page).click();await saved(page);await undo(page).click();await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.');
+ });
  test('kompakta och fulla lärarrubriker ligger kvar vid lodrät och vågrät skrollning',async({page})=>{
-  await open(page,'?data=stor');await ws(page).getByRole('button',{name:'Visa alla lärare (40)'}).click();
+  await open(page,'?data=stor');
   const compact=ws(page).getByRole('checkbox',{name:'Kompakta kolumner',exact:true});
   for(const enabled of [true,false]){
    await compact.setChecked(enabled);const scroll=ws(page).locator('.tjanst-matrix-scroll');

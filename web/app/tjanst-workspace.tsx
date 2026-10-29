@@ -430,7 +430,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const hasFilter = !!(filter.classId || filter.subject || filter.personId || filter.onlyIssues || filter.course || filter.lens !== 'alla');
   // 05.1-29: fästa lärare, kompakta kolumner och sparade linser. Bara i den egna webbläsaren; utan identitet bara under besöket.
   const prefsKey = identityKey && unitId ? lensStorageKey(identityKey, unitId, schoolYear) : null;
-  const [local, setLocal] = useState<{ key: string | null; prefs: TjanstLensPrefs } | null>(null), [showAll, setShowAll] = useState(false);
+  const [local, setLocal] = useState<{ key: string | null; prefs: TjanstLensPrefs } | null>(null), [showAll, setShowAll] = useState(true);
   const known = useMemo(() => data ? { teacherIds: data.teachers.map(t => t.personId), classIds: data.classes.map(c => c.classId) } : null, [data]);
   const prefs = useMemo(() => local && local.key === prefsKey ? local.prefs : known && prefsKey ? readLensPrefs(lensStorage(), prefsKey, known) : EMPTY_LENS_PREFS, [local, prefsKey, known]);
   function updatePrefs(next: TjanstLensPrefs) { setLocal({ key: prefsKey, prefs: next }); if (prefsKey) writeLensPrefs(lensStorage(), prefsKey, next); }
