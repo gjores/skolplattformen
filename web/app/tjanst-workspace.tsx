@@ -540,7 +540,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
           onSave={async (change, message) => { const outcome = await sendPrepared(change, () => message); if (outcome.ok) askSharingFor(change); return outcome; }}/>
-      : shownView === 'klass' ? <TjanstClassView data={data} groups={filtered.length ? groups.map(g => filtered.find(f => f.cls.classId === g.cls.classId) ?? g) : groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
+      : shownView === 'klass' ? <TjanstClassView data={data} groups={groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
       : shownView === 'special' ? <TjanstSpecialView data={data} editable={can('save_special')} onEdit={(special, from) => open({ kind: 'special', special }, from)}/>
       : <TjanstCourseView data={data} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} focusJointId={focusJoint} onFocusedJoint={clearFocusJoint} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}

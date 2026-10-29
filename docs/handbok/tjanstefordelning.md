@@ -41,7 +41,7 @@ En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet 
 
 Övriga vyer:
 
-- **Per klass:** klassens kurser med behov, fördelad tid och alla lärare på varje rad.
+- **Per klass:** hela den valda klassens kurser med behov, fördelad tid och alla lärare på varje rad. Filter och linser i andra vyer begränsar inte denna sammanställning; dina filter finns kvar när du går tillbaka.
 - **Per lärare:** lärarens rader, specialuppdrag och summor per termin, andel på skolan och **Schemalagd tid: Underlag saknas**.
 - **Specialuppdrag:** alla uppdrag med lärare, grupp och tid.
 - **Per kurs/ämne:** raderna grupperade per ämne. Här kopplar du samläsning.
