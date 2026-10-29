@@ -691,7 +691,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       onSave={async change => {
         if (change.action !== 'save_row') return failed('Tjänsteraden kunde inte kontrolleras.');
         const payload = change.payload, who = payload.personId === null ? 'Vakant' : support.candidates.find(p => p.personId === payload.personId)?.displayName ?? dialogData.teachers.find(t => t.personId === payload.personId)?.displayName ?? 'Läraren';
-        const result = await sendPrepared(change, () => `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(payload.teacherHt)} · VT ${formatTime(payload.teacherVt)}.`);
+        const inline = shownView === 'matris' && support.currentRow?.personId != null;
+        const result = await sendPrepared(change, () => {
+          if (inline) setMatrixFeedback({ sourceKey: dialogEntry.need.sourceKey, filterKey: matrixFilterKey, text: `Sparat · ${who}` });
+          return `Tjänsteraden är sparad: ${who}, ${dialogEntry.need.label}, ${dialogEntry.cls.name}, HT ${formatTime(payload.teacherHt)} · VT ${formatTime(payload.teacherVt)}.`;
+        }, () => true, inline);
         if (result.ok) askSharingFor(change);
         return !result.ok && result.code === 'tjanst_duplicate_row' ? { ...result, error: `${who} har redan en rad för ${dialogEntry.need.label} i ${dialogEntry.cls.name}. Ändra den befintliga raden.` } : result;
       }}/>}

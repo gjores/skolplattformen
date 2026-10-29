@@ -84,6 +84,8 @@ type RowProps = Base & { data: TjanstPlanRead; entry: TjanstNeedEntry; target: T
 export function TjanstRowDialog(props: RowProps) {
   const { open, checking, disabled, onClose, data, entry, support, onSave, onDelete } = props;
   const id = useId(), row = support.currentRow;
+  const editingTeacher = !!row && row.personId !== null;
+  const [changingTeacher, setChangingTeacher] = useState(false);
   const own = row ? rowTime(row, data.joints) : { ht: 0, vt: 0 };
   const others = { ht: entry.cov.covered.ht - (row?.personId ? own.ht : 0), vt: entry.cov.covered.vt - (row?.personId ? own.vt : 0) };
   const [editor, setEditor] = useDraftField<TjanstYearRowEditor>(props, 'editor', () => { const value = createYearRowEditor(support, others); return props.form?.resetChoice ? { ...value, choice: null, personId: null } : value; });
@@ -96,7 +98,7 @@ export function TjanstRowDialog(props: RowProps) {
   if (editor.choice) { try { yearRowSavePayload({ ...editor, teacherHt: 1, teacherVt: 1 }, support); } catch { choiceStale = true; } }
   const stale = editor.expectedRevision !== support.currentRevision || editor.expectedBasisHash !== support.basisHash || choiceStale;
   const liveDeviation = (term: string, raw: string, need: number | null, other: number) => { const parsed = parseHours(raw); return !raw.trim() || 'error' in parsed || need === null ? 'Behovet eller tiden är okänd.' : `Avvikelse ${term}: ${formatDeviation(other + parsed.minutes - need) || 'ingen'}`; };
-  // 05.1-31 (D-30): ett klick på en namngiven lärare eller Vakant sparar raden direkt med tiderna ovanför; Spara tjänsteraden finns kvar för en befintlig rad.
+  // 05.1-40: befintlig namngiven tilldelning väljer först och sparar uttryckligt. Ny/vakant rad behåller direktvalet.
   function submit(chosen: TjanstYearRowEditor = editor) {
     const h = parseHours(ht), v = parseHours(vt), next: Record<string, string> = {};
     let chosenStale = chosen !== editor ? false : stale;
@@ -117,26 +119,33 @@ export function TjanstRowDialog(props: RowProps) {
     const change: TjanstPreparedChange = { action: 'save_row', unitId: chosen.unitId, schoolYear: chosen.schoolYear, expectedRevision: chosen.expectedRevision, payload };
     void run(() => onSave(change));
   }
+  const selectedName = editor.choice?.personId ? support.candidates.find(p => p.personId === editor.choice?.personId)?.displayName ?? teacherName(data, editor.choice.personId) : editor.choice?.kind === 'unassigned' ? 'Vakant' : 'Välj aktuell lärare';
   return <Shell open={open} busy={busy} onClose={onClose} title={row ? 'Ändra tjänsteraden' : 'Ny tjänsterad'} description={`${entry.need.label} · ${entry.cls.name}`}>
-    <dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
-      <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl>
+    {!editingTeacher && <dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
+      <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl>}
     {props.supportNotice}
     <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
     {stale && <p role="alert">Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.</p>}
     {row && row.personId === null && <p className="tjanst-direct-hint">Behovet har en vakant rad. Väljer du en lärare ersätts Vakant, så att behovet inte fördelas dubbelt.</p>}
-    {row && <p>Sparad tilldelning: {teacherName(data, row.personId)}{row.personId !== null && !support.candidates.some(p => p.personId === row.personId) ? '. Personen saknar aktuellt skoluppdrag i underlaget. Välj en aktuell lärare eller Vakant före sparning.' : ''}</p>}
+    {row && !editingTeacher && <p>Sparad tilldelning: {teacherName(data, row.personId)}{row.personId !== null && !support.candidates.some(p => p.personId === row.personId) ? '. Personen saknar aktuellt skoluppdrag i underlaget. Välj en aktuell lärare eller Vakant före sparning.' : ''}</p>}
     <form className="protected-form tjanst-form" onSubmit={e => { e.preventDefault(); submit(); }}><fieldset disabled={busy || disabled}>
+      {editingTeacher && <div className="tjanst-edit-teacher"><strong>Lärare: {selectedName}</strong>
+        <Button type="button" variant="outline" aria-expanded={changingTeacher} onClick={() => setChangingTeacher(v => !v)}>Byt lärare</Button>
+        {editor.personId !== row?.personId && <output>Lärarbytet sparas när du väljer Spara tjänsteraden.</output>}</div>}
+
       <Field id={`${id}-ht`} label="Lärartid HT (timmar)" error={errors.ht} help={liveDeviation('HT', ht, support.need.needHt, others.ht)}><input {...described(`${id}-ht`, errors.ht, 'help')} inputMode="decimal" value={ht} onChange={e => setHt(e.target.value)}/></Field>
       <Field id={`${id}-vt`} label="Lärartid VT (timmar)" error={errors.vt} help={liveDeviation('VT', vt, support.need.needVt, others.vt)}><input {...described(`${id}-vt`, errors.vt, 'help')} inputMode="decimal" value={vt} onChange={e => setVt(e.target.value)}/></Field>
-      <Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field>
-      <p className="tjanst-direct-hint">{row ? 'Välj en annan lärare för att byta och spara direkt, eller ändra tid och kommentar och välj Spara tjänsteraden.' : 'Ange tiden och välj sedan lärare eller Vakant. Raden sparas när du väljer.'}</p>
-      <TjanstTeacherPicker candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
+      {!editingTeacher && <Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field>}
+      <>{editingTeacher && !changingTeacher && errors.person && <p role="alert" className="field-error">{errors.person}</p>}</><p className="tjanst-direct-hint">{editingTeacher ? 'Justera tid eller byt lärare och välj Spara tjänsteraden.' : row ? 'Välj en lärare för att ersätta Vakant och spara direkt.' : 'Ange tiden och välj sedan lärare eller Vakant. Raden sparas när du väljer.'}</p>
+      <>{(!editingTeacher || changingTeacher) && <TjanstTeacherPicker compact={editingTeacher} unavailablePersonIds={editingTeacher ? entry.rows.filter(r => r.id !== row?.id && r.personId !== null).map(r => r.personId!) : []} candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
         onSelect={selection => { let chosen: TjanstYearRowEditor; try { chosen = selectYearTeacher(editor, support, selection); } catch { setErrors({ person: 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.' }); return; }
-          setEditor(chosen); setErrors({}); submit(chosen); }}/>
-    </fieldset><div className="mandate-actions">{row && <Button type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>}
+          setEditor(chosen); setErrors({}); if (editingTeacher) { setChangingTeacher(false); requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(`${id}-save`)?.focus())); } else submit(chosen); }}/>}</>
+      {editingTeacher && <details className="tjanst-row-more" open={errors.comment ? true : undefined}><summary>{comment ? 'Fler val · kommentar finns' : 'Fler val och underlag'}</summary><dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
+      <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl><Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field><Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row!)}>Ta bort tjänsteraden…</Button></details>}
+    </fieldset><div className="mandate-actions">{row && <Button id={`${id}-save`} type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>}
       {!row && busy && <output aria-busy="true">Sparar…</output>}
       <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Stäng utan att spara</Button>
-      {row && <Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row)}>Ta bort tjänsteraden…</Button>}</div></form>
+      {row && !editingTeacher && <Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row)}>Ta bort tjänsteraden…</Button>}</div></form>
   </Shell>;
 }
 

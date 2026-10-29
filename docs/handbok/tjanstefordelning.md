@@ -114,7 +114,7 @@ Efter direkt tilldelning visas **Sparat** och knappen **Ångra** på behovsraden
 
 1. Kontrollera **Lärartid HT** och **Lärartid VT** överst. När behovet är känt förifylls det som återstår efter redan fördelad tid. Ändra vid behov, till exempel till `37,5` timmar. Om behovet är okänt är tidsfälten tomma; ange då tiden själv och skriv `0` om en termin saknar tid. Minst en termin måste ha tid. Skriv eventuell kommentar.
 2. Välj lärare. **Raden sparas när du väljer**: ett förslag, en lärare du har sökt fram eller **Vakant**. Ingen lärare är förvald, inte ens om du öppnade raden från en namngiven lärarkolumn. Om tiden är felaktig sparas inget, och felet visas vid fältet.
-3. För en sparad rad finns också **Spara tjänsteraden**, för att ändra bara tid eller kommentar utan att byta lärare. Väljer du en annan lärare sparas bytet direkt.
+3. På en befintlig namngiven tilldelning väljer du **Byt lärare**, väljer namnet och trycker **Spara tjänsteraden**. Namnvalet ensamt sparar ingenting; **Stäng utan att spara** lämnar raden oförändrad. Tiderna behålls vid lärarbyte. Kommentar, underlag och borttagning finns under **Fler val och underlag**. En lärare som redan har en egen rad på behovet går inte att välja som en dubblett; ändra den lärarens ruta i matrisen. Ny eller vakant tilldelning behåller direkt sparning vid lärarval.
 
 En vanlig tjänsterad behöver ingen separat förhandsvisning.
 
@@ -124,7 +124,7 @@ Lärarvalet visar egna skoluppdrag, andel och giltighetsdatum. En delårsperiod 
 
 Om historiska förslag inte kan hämtas visas det. Du kan fortfarande välja lärare manuellt eller välja Vakant om det aktuella behovet och lärarunderlaget går att kontrollera. Kan det aktuella underlaget inte kontrolleras stoppas sparningen.
 
-Efter sparningen läses fördelningen om och fokus går tillbaka till cellen. Behov och lärartid sparas var för sig, så avvikelsen syns även senare. En kurs kan ha flera lärare med var sin rad. När du ändrar en sparad rad bevaras dess val. Om läraren inte längre har ett aktuellt skoluppdrag visas den sparade tilldelningen, men du behöver välja en aktuell lärare eller Vakant. Valet sparar raden.
+Efter sparningen läses fördelningen om och fokus går tillbaka till cellen. Behov och lärartid sparas var för sig, så avvikelsen syns även senare. En kurs kan ha flera lärare med var sin rad. När du ändrar en sparad rad bevaras dess val. Om läraren inte längre har ett aktuellt skoluppdrag visas den sparade tilldelningen, men du behöver välja en aktuell lärare eller Vakant. På en namngiven befintlig tilldelning sparar du med **Spara tjänsteraden**; på en ny eller vakant rad sparar lärarvalet direkt.
 
 Du kan också använda **Lägg till lärare i fördelningen** för att lägga till en tom lärarkolumn. En person utan konto kan få rader och uppdrag.
 

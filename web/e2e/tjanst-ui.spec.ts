@@ -73,7 +73,7 @@ test.describe('dator',()=>{
   await open(page);
   const cell=matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'});
   await cell.click();
-  await page.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  await page.getByRole('dialog').locator('details.tjanst-row-more summary').click();await page.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
   const confirm=page.getByRole('dialog',{name:'Ta bort tjänsteraden?'});
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:400,code:'tjanst_joint_already'}));
   await confirm.getByRole('button',{name:'Ta bort tjänsteraden',exact:true}).click();
@@ -658,7 +658,7 @@ test.describe('dator',()=>{
   await page.keyboard.press('Enter');const dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Ändra tjänsteraden'})).toBeVisible();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');
   await dialog.getByRole('button',{name:'Stäng utan att spara'}).click();await expect(english).toBeFocused();
-  await page.keyboard.press('Space');await dialog.getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  await page.keyboard.press('Space');await dialog.locator('details.tjanst-row-more summary').click();await dialog.getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
   const confirm=page.getByRole('dialog');await expect(confirm.getByRole('button',{name:'Behåll raden'})).toBeFocused();
   await confirm.getByRole('button',{name:'Ta bort tjänsteraden'}).click();
   await expect(ws(page).getByText('Tjänsteraden är borttagen: Anna Andersson, Engelska 5, TE26A.')).toBeVisible();

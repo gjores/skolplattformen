@@ -278,3 +278,5 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-row-feedback{height:32px;display:flex;align-items:center;gap:8px;font-size:12px;white-space:nowrap;min-width:0}
 .tjanst-row-feedback output{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .tjanst-row-feedback button{flex-shrink:0;min-height:32px}
+
+.tjanst-edit-teacher{display:flex;flex-wrap:wrap;align-items:center;gap:8px;grid-column:1/-1}.tjanst-edit-teacher p{width:100%}.tjanst-row-more{grid-column:1/-1}.tjanst-row-more summary{cursor:pointer;padding:12px 0}.tjanst-row-more[open]{display:grid;gap:12px}.tjanst-teacher-picker-compact .tjanst-teacher-choice{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px}.tjanst-teacher-picker-compact .tjanst-teacher-choice small{flex-basis:100%}
