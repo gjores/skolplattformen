@@ -4,7 +4,7 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Den hela klassvyn, bevarade osparade tider, enhetlig lärarsökning och rättelserna i kurs-/årsvyerna har hittills provats med simulerade svar i webbläsaren och ingår inte i det tidigare skyddade provet.
+**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Rättelserna i klass-, sök- och årsvyerna och den nya direkta tilldelningen verifieras separat från det äldre skyddade provet. Ingen prövning med verkliga verksamhetsuppgifter påstås.
 
 ## Vem gör vad?
 
@@ -21,7 +21,7 @@ Du behöver ett aktuellt uppdrag för skolan för att läsa eller ändra fördel
 
 1. Välj **Tjänstefördelning** under PLANERING i menyn.
 2. Välj **Skola** och **Läsår** i planeringsvalet. En fördelning gäller en skola och ett läsår. Med **Alla behöriga skolor** visas texten *Välj en skola i planeringsvalet.*
-3. Skolans aktuella behov visas även om ingen tjänst ännu har fördelats. Välj ett behov i matrisen, välj lärare på raden och spara. Du behöver inte skapa en version först.
+3. Skolans aktuella behov visas även om ingen tjänst ännu har fördelats. Klicka i en tom lärarcell i matrisen för att tilldela återstående känd tid direkt till läraren i kolumnen. För mer avancerade val öppnar du dialogen. Du behöver inte skapa en version först.
 
 När du öppnar nästa läsår visas det årets klass–timplanskopplingar och behov. Nya lärarfält är tomma. Sparade val, tider och kommentarer finns kvar när du fortsätter en påbörjad planering; inget ersätts automatiskt med föregående års fördelning.
 
@@ -90,9 +90,25 @@ Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov 
 
 På telefon visar Fördela en lista över ofördelade behov, utan val.
 
+## Tilldela direkt i matrisen
+
+Klicka i en tom cell under lärarens namn. När behovet är känt och det återstår tid tilldelas läraren återstående timmar för **både HT och VT**, även om matrisen just visar en enda termin. Klicket väljer den namngivna läraren och sparar raden. Ingen ny lärarbekräftelse behövs. Behovet och ditt aktuella skoluppdrag kontrolleras före sparningen. Efteråt visas läraren och sparad tid och fokus går tillbaka till cellen när den fortfarande syns.
+
+Om behovet har en sparad vakant rad ersätter valet den raden; kommentaren bevaras. En andra lärare på ett delvis fördelat behov får bara återstående tid. Därefter frågar appen hur lärarna delar kursen och vem som sätter betyg när det behövs.
+
+Dialogen öppnas i stället när tiden är okänd, behovet redan är täckt, du klickar på **Vakant** eller en befintlig tilldelning, eller när behovet ingår i samläsning. Du behöver själv ange eventuell extra lärartid. Befintlig osparad inmatning tas också via dialogen och skrivs inte över av direktvalet.
+
+För att öppna dialogen före en ny tilldelning kan du välja **Avancerade val före tilldelning** ovanför matrisen. Du kan också använda **Skift+klick**, **Skift+Enter** eller **Skift+mellanslag** på cellen. Inställningen gäller den aktuella arbetsytan och sparas inte i webbläsaren.
+
+### Ångra senaste direkta tilldelningen
+
+**Ångra senaste direkta tilldelningen** återtar bara den senaste direkta tilldelningen, med ny kontroll av aktuellt underlag. En nytillagd rad tas bort. Om valet ersatte en vakant rad återställs den radens tidigare tider och kommentar. Andra rader bevaras.
+
+Ångra finns bara medan samma sparade version, revision och rad fortfarande gäller. Om fördelningen ändras, exempelvis när du sparar en delning eller ändrar en rad, använder du dialogen för fortsatta ändringar. Vid okänt sparsvar väljer du **Kontrollera sparstatus** innan du försöker igen. Att klicka igen skickar inte automatiskt om en osäker ändring; om Ångra saknas efter kontrollen ändrar du raden via dialogen.
+
 ## Tjänsterad: lärartid och avvikelse
 
-Välj en cell i matrisen. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
+Öppna cellen med avancerat val enligt ovan, eller välj en befintlig tilldelning. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
 
 1. Kontrollera **Lärartid HT** och **Lärartid VT** överst. När behovet är känt förifylls det som återstår efter redan fördelad tid. Ändra vid behov, till exempel till `37,5` timmar. Om behovet är okänt är tidsfälten tomma; ange då tiden själv och skriv `0` om en termin saknar tid. Minst en termin måste ha tid. Skriv eventuell kommentar.
 2. Välj lärare. **Raden sparas när du väljer**: ett förslag, en lärare du har sökt fram eller **Vakant**. Ingen lärare är förvald, inte ens om du öppnade raden från en namngiven lärarkolumn. Om tiden är felaktig sparas inget, och felet visas vid fältet.

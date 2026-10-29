@@ -24,6 +24,7 @@ import TjanstLensBar from './tjanst-lens-bar';
 import TjanstAllocation, { type TjanstAllocationDraft } from './tjanst-allocation';
 import TjanstSharingDialog, { SHARING_LABEL } from './tjanst-sharing-dialog';
 import { needTeachers, sharedNeedState } from '@/lib/tjanst-model.ts';
+import { createYearRowEditor, selectYearTeacher, yearRowSavePayload } from '@/lib/tjanst-year-model.ts';
 import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
 import './tjanst.css';
 
@@ -39,6 +40,8 @@ const TERMS: TjanstTermView[] = ['ar', 'ht', 'vt'];
 const LOCK_CODES = ['context_changed', 'assignment_ended', 'assignment_expired', 'membership_blocked'];
 type TjanstPlanAction = keyof TjanstPlanPayload;
 type Saved = { filter: TjanstFilter; classId: string; personId: string; autoLens: boolean };
+type MatrixUndo = { revision: number; versionId: string; row: TjanstRow; previous: TjanstRow | null };
+const sameMatrixRow = (a: TjanstRow, b: TjanstRow) => (Object.keys(b) as (keyof TjanstRow)[]).every(key => a[key] === b[key]);
 type Dialog =
   | { kind: 'row'; target: TjanstCellTarget }
   | { kind: 'special'; special: TjanstSpecial | null }
@@ -118,10 +121,15 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [initial] = useState(readLocation);
   const [autoLens, setAutoLens] = useState(initial.saved.autoLens);
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
+  const [matrixAdvanced, setMatrixAdvanced] = useState(false), [quickBusy, setQuickBusy] = useState(false);
+  const [matrixUndo, setMatrixUndo] = useState<MatrixUndo | null>(null);
+  const quickRunning = useRef(false);
   const [view, setView] = useState<TjanstView>(initial.view), [term, setTerm] = useState<TjanstTermView>(initial.term);
   const [filter, setFilter] = useState<TjanstFilter>(initial.saved.filter), [classId, setClassId] = useState(initial.saved.classId), [personId, setPersonId] = useState(initial.saved.personId);
   const [versionId, setVersionId] = useState(startVersion ?? ''), [readKey, setReadKey] = useState(0), [readDone, setReadDone] = useState(0);
   const [data, setData] = useState<TjanstPlanRead | null>(null), [loading, setLoading] = useState(!!unitId), [readError, setReadError] = useState<ReadFailure | null>(null);
+  const matrixCurrent = useRef({ data, view, versionId });
+  useLayoutEffect(() => { matrixCurrent.current = { data, view, versionId }; }, [data, view, versionId]);
   const [notice, setNotice] = useState<string | null>(null), [pageError, setPageError] = useState<TjanstFailure | null>(null), [pendingCheck, setPendingCheck] = useState(false), [recovering, setRecovering] = useState(true);
   const [dialog, setDialog] = useState<Dialog | null>(null), [marked, setMarked] = useState<string[]>([]), [markError, setMarkError] = useState<string | null>(null);
   const [panelOpen, setPanelOpen] = useState(false), [checking, setChecking] = useState(false), [busy, setBusy] = useState(false);
@@ -148,26 +156,28 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const originCell = useRef<{ sourceKey: string; personId: string | null } | null>(null), focusCell = useRef<() => HTMLElement | null>(() => null);
   const editableNow = useRef(false);
   const viewHeading = useRef<HTMLHeadingElement>(null), headingId = useId(), pendingFocus = useRef<HTMLElement | null>(null), reading = useRef(false);
+  const pendingMatrixFocus = useRef(false);
   // En läsning som redan har startat men ännu inte renderat inert får inte förbruka fokusmålet: cellen kan ersättas av läsningen
   // och fokus skulle då gå förlorat (faktiskt prov 05.1-22). Målet ligger kvar tills läsningen är klar.
   const applyFocus = useCallback(() => {
     const target = pendingFocus.current;
     // Under ett pågående kommando ritas cellerna utan knappar (inte redigerbara); vänta så att rätt cell kan hittas igen.
-    if (!target || reading.current || running.current) return;
+    if (!target || reading.current || running.current || quickRunning.current) return;
     // En cell ritas utan knapp medan arbetsytan inte är redigerbar. Vänta då på knappen i stället för att tappa fokus till rubriken.
     // 05.1-33: delningsmärket ritas om när formen ändras; det hittas igen med sin nyckel.
     const keyed = !target.isConnected && target.dataset.focusKey ? document.querySelector<HTMLElement>(`[data-focus-key="${CSS.escape(target.dataset.focusKey)}"]`) : null;
     if (!target.isConnected && target.dataset.focusKey && !keyed && !editableNow.current) return;
-    const cell = target.isConnected ? target : keyed ?? focusCell.current();
+    const cell = pendingMatrixFocus.current ? focusCell.current() : target.isConnected ? target : keyed ?? focusCell.current();
     if (!cell && originCell.current && !editableNow.current) return;
     const resolved = cell ?? viewHeading.current;
     if (!resolved || resolved.closest('[inert]')) return;
-    pendingFocus.current = null; resolved.focus();
+    pendingFocus.current = null; pendingMatrixFocus.current = false; resolved.focus();
   }, []);
   useLayoutEffect(() => { lost.current = onSessionLost; });
   useLayoutEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   const scope = useMemo<TjanstJournalScope | null>(() => identityKey ? { identityKey, assignmentId: context.assignmentId } : null, [identityKey, context.assignmentId]);
   useUnsavedChanges('navigation-block:tjanst', busy || checking || pendingCheck);
+  useUnsavedChanges('navigation-block:tjanst-quick', quickBusy);
   useUnsavedChanges('tjanst-marked', marked.length > 0);
   useUnsavedChanges('tjanst-editor', !!pendingRowInput || !!dialog && (formDirty || !!batchDraft?.dirty));
   useUnsavedChanges('tjanst-allocation', allocationDraftCount > 0);
@@ -245,7 +255,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   }, [refresh]);
 
   /** Journalen sparas före anropet; okänt utfall kontrolleras via status med samma commandId (Beteendekontrakt 6). */
-  async function tracked<R extends { receipt: { commandId: string } }>(ref: TjanstCommandRef, path: string, body: unknown, parse: (value: unknown) => R, op: Op): Promise<{ ok: true; reply: R } | TjanstFailure> {
+  async function tracked<R extends { receipt: { commandId: string } }>(ref: TjanstCommandRef, path: string, body: unknown, parse: (value: unknown) => R, op: Op, stillCurrent: () => boolean = () => true): Promise<{ ok: true; reply: R } | TjanstFailure> {
     if (!scope) return failed('Ändringen kunde inte förberedas i den här fliken. Inget har skickats.');
     let journal: TjanstJournal;
     try { journal = await persistTjanstJournal(window.sessionStorage, scope, ref); }
@@ -254,7 +264,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       return failed('Ändringen kunde inte förberedas i den här fliken. Inget har skickats.');
     }
     const forget = async () => { try { await removeTjanstJournal(window.sessionStorage, journal); } catch { /* Journalen kontrolleras vid nästa visning. */ } };
-    if (!active.current || phoneRef.current || phoneViewport()) { await forget(); return failed('Arbetsytan har ändrats. Inget har skickats.'); }
+    if (!active.current || phoneRef.current || phoneViewport() || !stillCurrent()) { await forget(); return failed('Arbetsytan har ändrats. Inget har skickats.'); }
     try {
       const reply = parse(await api.post(path, body));
       await forget();
@@ -300,17 +310,17 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     });
     return () => { current = false; };
   }, [dialog, dialogData, phone, supportKey, loadPreview, refresh]);
-  async function sendPrepared(prepared: TjanstPreparedChange, message: (detail: TjanstPlanRead) => string = () => 'Ändringarna är sparade.'): Promise<TjanstOutcome> {
+  async function sendPrepared(prepared: TjanstPreparedChange, message: (detail: TjanstPlanRead) => string = () => 'Ändringarna är sparade.', stillCurrent: () => boolean = () => true): Promise<TjanstOutcome> {
     if (!active.current || !data || !unitId || running.current || recoveryGate.current || uncertainGate.current || pendingCheck || checking || phoneRef.current || readOnly || versionId || !scope || !data.capabilities.canEdit) return failed('Vänta tills föregående ändring är klar och använd aktuell planering på dator.');
-    if (!['move', 'bulk'].includes(prepared.action) && (supportBusy || supportError)) return failed('Hämta och kontrollera planeringsstödet före sparning.');
+    if (dialog && !['move', 'bulk'].includes(prepared.action) && (supportBusy || supportError)) return failed('Hämta och kontrollera planeringsstödet före sparning.');
     if (prepared.unitId !== unitId || prepared.schoolYear !== schoolYear) return failed('Arbetsytan har ändrats.');
     running.current = true; setBusy(true); setNotice(null); setPageError(null);
     try {
       const command = await createPlanCommand({ ...prepared, commandId: crypto.randomUUID() });
-      if (!active.current || phoneRef.current || phoneViewport()) return failed('Arbetsytan har ändrats. Inget har skickats.');
+      if (!active.current || phoneRef.current || phoneViewport() || !stillCurrent()) return failed('Arbetsytan har ändrats. Inget har skickats.');
       if (!data.actions.includes(command.action)) return failed('Åtgärden är inte längre tillgänglig i aktuellt läge. Hämta aktuellt läge.');
       const result = await tracked(planCommandRef(command), command.action === 'publish' ? '/api/tjanst/plan/publicera' : '/api/tjanst/plan/kommando', command,
-        value => parsePlanCommandReply(value, command), command.action === 'publish' ? 'publish' : 'write');
+        value => parsePlanCommandReply(value, command), command.action === 'publish' ? 'publish' : 'write', stillCurrent);
       if (!result.ok) {
         if (active.current && (result.code?.includes('stale') || ['tjanst_revision_conflict', 'tjanst_published_meanwhile', 'tjanst_content_changed'].includes(result.code ?? '') || result.code === 'tjanst_publish_blocked')) { setSupportKey(n => n + 1); refresh(); }
         return result;
@@ -383,7 +393,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
 
   // Rektor och administratör får lärarnas återkoppling i läsningen; huvudmannens läsning har den aldrig (lib/server/tjanst.ts).
   const feedback = !versionId && !readOnly ? feedbackProp ?? data?.feedback : undefined;
-  const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !checking && !pendingCheck && !recovering;
+  const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !quickBusy && !checking && !pendingCheck && !recovering;
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
   // 05.1-33 / D-31: när en andra lärare får tid på ett behov frågar arbetsytan direkt hur lärarna delar kursen.
   // Frågan väntar tills omläsningen visar den nya lärarens rad; en lärare som redan hade tid på behovet ger ingen fråga.
@@ -439,7 +449,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const empty = !!data && data.rows.length === 0 && data.teachers.length === 0 && data.specials.length === 0;
 
   const open = (next: Dialog, from: HTMLElement | null) => {
-    if (!editable || running.current || recoveryGate.current || uncertainGate.current || !data) return;
+    if (!editable || quickRunning.current || running.current || recoveryGate.current || uncertainGate.current || !data) return;
     const cell = from?.dataset.cell?.split(':').map(Number), entry = cell ? filtered.flatMap(g => g.cls.link ? g.entries : [])[cell[0]] : null;
     originCell.current = entry && cell ? { sourceKey: entry.need.sourceKey, personId: columns[cell[1]]?.personId ?? null } : null;
     supportGeneration.current++; supportInitialized.current = false; origin.current = from; setPageError(null); setDialog(next); setDialogData(structuredClone(data)); setForm(next.kind === 'row' && pendingRowInput ? { ...pendingRowInput, resetChoice: true } : {}); setFormDirty(next.kind === 'row' && !!pendingRowInput); setPendingRowInput(null);
@@ -463,6 +473,77 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     if (target.rowId !== null || !data) return target;
     const vacant = data.rows.find(r => r.sourceKey === target.sourceKey && r.personId === null && r.jointGroupId === null);
     return vacant ? { ...target, rowId: vacant.id } : target;
+  }
+  async function assignMatrix(target: TjanstCellTarget, from: HTMLElement, advanced = false) {
+    if (quickRunning.current || !can('save_row') || !data) return;
+    const entry = groups.flatMap(g => g.entries).find(e => e.need.sourceKey === target.sourceKey);
+    if (!entry) return;
+    const { need, cov } = entry;
+    const ht = need.needHt === null ? null : Math.max(0, need.needHt - cov.covered.ht);
+    const vt = need.needVt === null ? null : Math.max(0, need.needVt - cov.covered.vt);
+    const effective = vacantTarget(target);
+    if (advanced || target.rowId !== null || target.personId === null || ht === null || vt === null || ht + vt === 0
+      || entry.rows.some(r => r.stale || r.jointGroupId !== null) || pendingRowInput || allocationDrafts[target.sourceKey]) {
+      open({ kind: 'row', target: effective }, from); return;
+    }
+    const snapshot = data;
+    const current = () => active.current && !phoneRef.current && !phoneViewport() && matrixCurrent.current.view === 'matris'
+      && !matrixCurrent.current.versionId && matrixCurrent.current.data === snapshot;
+    quickRunning.current = true; setQuickBusy(true); setMatrixUndo(null); setPageError(null);
+    origin.current = from; originCell.current = { sourceKey: target.sourceKey, personId: target.personId }; pendingFocus.current = from;
+    try {
+      const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, mode: 'row', sourceKey: target.sourceKey, rowId: effective.rowId });
+      if (!current()) return;
+      if ('ok' in reply) { setPageError(reply); return; }
+      if (reply.mode !== 'row' || reply.currentRevision !== snapshot.revision || reply.baseVersionId !== (snapshot.version?.id ?? null)
+        || reply.need.needHt !== need.needHt || reply.need.needVt !== need.needVt || reply.currentRow?.stale
+        || (reply.currentRow?.personId ?? null) !== null || reply.currentRow?.jointGroupId) {
+        setPageError(failed('Underlaget har ändrats. Inget har tilldelats. Hämta aktuellt läge och välj på nytt.', { refresh })); return;
+      }
+      const editor = selectYearTeacher(createYearRowEditor(reply, cov.covered), reply, { kind: 'manual', personId: target.personId });
+      const payload = yearRowSavePayload({ ...editor, teacherHt: ht, teacherVt: vt }, reply);
+      const change: TjanstPreparedChange = { action: 'save_row', unitId: reply.unitId, schoolYear: reply.schoolYear, expectedRevision: reply.currentRevision, payload };
+      const who = reply.candidates.find(p => p.personId === target.personId)!.displayName;
+      const outcome = await sendPrepared(change, detail => {
+        const row = detail.rows.find(r => r.sourceKey === target.sourceKey && r.personId === target.personId);
+        if (row && detail.version) setMatrixUndo({ revision: detail.revision, versionId: detail.version.id, row: structuredClone(row), previous: reply.currentRow ? structuredClone(reply.currentRow) : null });
+        return `Tjänsteraden är sparad: ${who}, ${need.label}, ${entry.cls.name}, HT ${formatTime(ht)} · VT ${formatTime(vt)}.`;
+      }, current);
+      if (!outcome.ok) setPageError(outcome); else askSharingFor(change);
+    } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte kontrolleras. Hämta aktuellt läge och välj på nytt.')); }
+    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); requestAnimationFrame(applyFocus); } }
+  }
+  const undoMatches = (snapshot: TjanstPlanRead | null, undo: MatrixUndo) => !!snapshot && snapshot.revision === undo.revision
+    && snapshot.version?.id === undo.versionId && snapshot.rows.some(r => r.id === undo.row.id && sameMatrixRow(r, undo.row));
+  async function undoMatrix() {
+    const undo = matrixUndo, snapshot = data;
+    if (quickRunning.current || !editable || !undo || !snapshot || !undoMatches(snapshot, undo)) return;
+    const current = () => active.current && !phoneRef.current && !phoneViewport() && matrixCurrent.current.view === 'matris'
+      && !matrixCurrent.current.versionId && undoMatches(matrixCurrent.current.data, undo);
+    originCell.current = { sourceKey: undo.row.sourceKey, personId: undo.row.personId };
+    pendingFocus.current = viewHeading.current; pendingMatrixFocus.current = true;
+    quickRunning.current = true; setQuickBusy(true); setPageError(null);
+    try {
+      const reply = await loadPreview({ unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, ...(undo.previous
+        ? { mode: 'row' as const, sourceKey: undo.row.sourceKey, rowId: undo.row.id } : { mode: 'catalog' as const }) });
+      if (!current()) return;
+      if ('ok' in reply) { setPageError(reply); return; }
+      if (reply.currentRevision !== undo.revision || reply.baseVersionId !== undo.versionId) {
+        setMatrixUndo(null); setPageError(failed('Fördelningen har ändrats. Ångra är inte längre tillgängligt. Ändra raden i dialogen.', { refresh })); return;
+      }
+      let change: TjanstPreparedChange;
+      if (undo.previous && reply.mode === 'row' && reply.currentRow && !reply.currentRow.stale && sameMatrixRow(reply.currentRow, undo.row)) {
+        const editor = selectYearTeacher(createYearRowEditor(reply), reply, { kind: 'unassigned' });
+        const payload = yearRowSavePayload({ ...editor, teacherHt: undo.previous.teacherHt, teacherVt: undo.previous.teacherVt, comment: undo.previous.comment }, reply);
+        change = { action: 'save_row', unitId: reply.unitId, schoolYear: reply.schoolYear, expectedRevision: reply.currentRevision, payload };
+      } else if (!undo.previous && reply.mode === 'catalog') {
+        change = { action: 'delete_row', unitId: reply.unitId, schoolYear: reply.schoolYear, expectedRevision: reply.currentRevision,
+          payload: { rowId: undo.row.id, mutationContext: { baseVersionId: reply.baseVersionId, expectedBasisHash: reply.basisHash } } };
+      } else { setMatrixUndo(null); setPageError(failed('Raden har ändrats. Ångra är inte längre tillgängligt.')); return; }
+      const outcome = await sendPrepared(change, () => 'Den senaste direkta tilldelningen är ångrad. Övriga rader är bevarade.', current);
+      if (outcome.ok) { setMatrixUndo(null); setAskSharing(null); } else setPageError(outcome);
+    } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte ångras. Hämta aktuellt läge och kontrollera raden.')); }
+    finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); requestAnimationFrame(applyFocus); } }
   }
   function linkMarked(from: HTMLElement) {
     if (!data) return;
@@ -499,7 +580,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {data.version?.status === 'published' && !viewingOld && data.version.publishedAt && <span>Lärarna ser version {data.version.versionNo}, publicerad {dateText(data.version.publishedAt)}.</span>}
       </div>
       <div className="tjanst-status-side">
-        {showChoices && !versionId && <Button variant="outline" disabled={loading || !!dialog || !!pendingRowInput || busy || pendingCheck} onClick={() => { setPendingRowInput(null); setVersionId(choices[0].id); }}>Historik</Button>}
+        {showChoices && !versionId && <Button variant="outline" disabled={loading || !!dialog || !!pendingRowInput || busy || quickBusy || pendingCheck} onClick={() => { setPendingRowInput(null); setVersionId(choices[0].id); }}>Historik</Button>}
         {!!versionId && <><label className="tjanst-inline-field">Historisk publicering<select value={versionId} disabled={loading} onChange={e => setVersionId(e.target.value)}>
           {choices.map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>
           {!readOnly && <Button variant="outline" onClick={() => setVersionId('')}>Tillbaka till planeringen</Button>}</>}
@@ -513,12 +594,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     {phone ? <><label className="tjanst-inline-field tjanst-view-select">Vy<select value={shownView} onChange={e => chooseView(e.target.value as TjanstView)}>
       {VIEWS.filter(v => v.id !== 'matris').map(v => <option key={v.id} value={v.id}>{v.label}</option>)}</select></label>
       <p className="tjanst-phone-text">Matrisen och all redigering finns på dator. Här kan du läsa fördelningen.</p></>
-      : <div className="tjanst-switch"><Tabs value={shownView} onValueChange={value => chooseView(value as TjanstView)}><TabsList variant="line" aria-label="Vy">
+      : <div className="tjanst-switch" inert={quickBusy}><Tabs value={shownView} onValueChange={value => chooseView(value as TjanstView)}><TabsList variant="line" aria-label="Vy">
         {VIEWS.map(v => <TabsTrigger key={v.id} value={v.id}>{v.label}</TabsTrigger>)}</TabsList></Tabs>
         {!annualView && <TermSwitch term={term} onTerm={chooseTerm}/>}</div>}
     {phone && !annualView && <TermSwitch term={term} onTerm={chooseTerm}/>}
     {annualView && <p className="tjanst-meta">Hela läsåret · HT och VT</p>}
-    {data && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') && <div className="protected-filter tjanst-filter">
+    {data && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') && <div className="protected-filter tjanst-filter" inert={quickBusy}>
       <div className="tjanst-field"><label htmlFor={`${headingId}-klass`}>Klass</label><select id={`${headingId}-klass`} value={filter.classId} onChange={e => patchSaved({ filter: { ...filter, classId: e.target.value } })}><option value="">Alla klasser</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
@@ -540,6 +621,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
     </div>}
     <div className="tjanst-messages">
+      {quickBusy && <output aria-busy="true">Kontrollerar ändringen i matrisen…</output>}
+      {matrixUndo && !versionId && !phone && shownView === 'matris' && <div className="admin-notice">
+        {undoMatches(data, matrixUndo) ? <Button variant="outline" disabled={!editable || loading} onClick={() => void undoMatrix()}>Ångra senaste direkta tilldelningen</Button>
+          : loading ? 'Hämtar den sparade tilldelningen…' : 'Fördelningen har ändrats. Ändra raden i dialogen om tilldelningen ska ändras.'}
+      </div>}
       {allocationDraftCount > 0 && <output className="admin-notice">
         Osparade tider i Fördela: {allocationDraftCount} behov. Tiderna finns kvar när du byter vy i samma planering.
         {!versionId && !phone && <Button variant="outline" disabled={busy || checking || pendingCheck || recovering} onClick={() => setAllocationDrafts({})}>Återställ alla osparade tider i Fördela</Button>}
@@ -554,15 +640,16 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {readError.retry && <Button variant="outline" aria-label="Hämta tjänstefördelningen igen" onClick={refresh}>Hämta igen</Button>}</div>}
       {loading && <output aria-busy="true">Hämtar tjänstefördelningen…</output>}
     </div>
-    {data && <div className="tjanst-content" inert={loading} aria-labelledby={headingId}>
+    {data && <div className="tjanst-content" inert={loading || quickBusy} aria-labelledby={headingId}>
       <h2 id={headingId} ref={viewHeading} tabIndex={-1} className="sr-only">{VIEWS.find(v => v.id === shownView)!.label}</h2>
       {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}
       {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först. En gymnasieklass behöver en koppling för varje läsår, även i årskurs 2 och 3.</p>
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
+          advanced={matrixAdvanced} onAdvancedChange={setMatrixAdvanced}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
-          onCell={(target, from) => open({ kind: 'row', target: vacantTarget(target) }, from)} onOpenCourse={openCourse} onOpenJoint={openJoint}
+          onCell={(target, from, advanced) => void assignMatrix(target, from, advanced)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
           onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}

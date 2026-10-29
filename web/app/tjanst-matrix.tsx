@@ -82,7 +82,8 @@ export function coverageText(covered: number, need: number | null): string {
 }
 
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
-  onCell: (target: TjanstCellTarget, origin: HTMLElement) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
+  onCell: (target: TjanstCellTarget, origin: HTMLElement, advanced?: boolean) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
+  advanced?: boolean; onAdvancedChange?: (advanced: boolean) => void;
   /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
   onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void;
   /** 05.1-29: fästa lärare och kompakta kolumner (initialer och summa, hela namnet vid hovring och fokus). */
@@ -93,7 +94,7 @@ type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: Tjans
 export const SHARING_BADGE: Record<Exclude<TjanstSharedNeedState, 'single'>, string> = {
   unspecified: 'Två lärare utan angiven delning', sequential: 'Två lärare · en i taget', concurrent: 'Två lärare · samtidigt' };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, advanced = false, onAdvancedChange, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
   const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
   const cells = useRef(new Map<string, HTMLButtonElement>());
@@ -121,7 +122,12 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
   for (const r of data.rows) if (r.personId === null && r.jointGroupId === null) { school.vacant.ht += r.teacherHt; school.vacant.vt += r.teacherVt; }
   const sums = new Map(teachers.map(t => [t.personId, teacherSums(t.personId, data.rows, data.specials, data.joints)]));
   let rowIndex = -1;
-  return <div className="tjanst-matrix-scroll" tabIndex={editable ? undefined : 0} role={editable ? undefined : 'region'} aria-label={editable ? undefined : 'Matris'}>
+  return <>
+    {editable && <div className="tjanst-matrix-tools">
+      {onAdvancedChange && <label className="mandate-check" style={{ display: 'flex' }}><input type="checkbox" checked={advanced} onChange={event => onAdvancedChange(event.target.checked)} aria-describedby={`${hintId}-assign`}/>Avancerade val före tilldelning</label>}
+      <p id={`${hintId}-assign`} className="tjanst-meta">Normalt tilldelar ett klick i en tom lärarcell återstående tid för HT och VT direkt. Befintliga tilldelningar och Vakant öppnas i dialog. Skift+klick, Skift+Enter eller Skift+mellanslag öppnar avancerade val.</p>
+    </div>}
+    <div className="tjanst-matrix-scroll" tabIndex={editable ? undefined : 0} role={editable ? undefined : 'region'} aria-label={editable ? undefined : 'Matris'}>
     <span id={`${hintId}-course`} hidden>Visar alla klasser med samma kurs i Per kurs/ämne.</span><span id={`${hintId}-joint`} hidden>Öppnar samläsningen i Per kurs/ämne.</span>
     <table className="tjanst-matrix">
       <caption className="sr-only">Tjänstefördelning {data.schoolName} läsåret {yearLabel(data.schoolYear)}, {TERM_LABEL[term]}</caption>
@@ -155,10 +161,17 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
               const label = `${name(personId)}, ${e.need.label}, ${g.cls.name}: ${row ? `${time(minutes)}. Ändra.` : 'ingen tid. Tilldela.'}`;
               const content = <>{joint && <Link2 size={16} aria-hidden="true"/>}{row && <span>{time(minutes)}</span>}</>;
               const isActive = current.r === r && current.c === c;
-              return <td key={personId ?? 'vakant'} className={personId === null ? 'tjanst-cell tjanst-vacant' : 'tjanst-cell'}>{editable ? <button type="button" data-cell={`${r}:${c}`} aria-label={label}
+              const activate = (origin: HTMLButtonElement, useAdvanced: boolean) => joint ? onJoint(joint.id, origin)
+                : onCell({ classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null }, origin, useAdvanced);
+              return <td key={personId ?? 'vakant'} className={personId === null ? 'tjanst-cell tjanst-vacant' : 'tjanst-cell'}>{editable ? <button type="button" data-cell={`${r}:${c}`} aria-label={label} aria-describedby={`${hintId}-assign`}
                 tabIndex={isActive ? 0 : -1} ref={el => { if (el) cells.current.set(`${r}:${c}`, el); else cells.current.delete(`${r}:${c}`); }}
-                onFocus={() => setActive({ r, c })} onKeyDown={onKey}
-                onClick={event => joint ? onJoint(joint.id, event.currentTarget) : onCell({ classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null }, event.currentTarget)}>
+                onFocus={() => setActive({ r, c })} onKeyDown={event => {
+                  if (event.shiftKey && (event.key === 'Enter' || event.key === ' ')) {
+                    event.preventDefault(); if (!event.repeat) activate(event.currentTarget, true); return;
+                  }
+                  onKey(event);
+                }}
+                onClick={event => activate(event.currentTarget, advanced || event.shiftKey)}>
                 {content}{!row && <Plus size={16} aria-hidden="true" className="tjanst-plus"/>}</button> : row ? <span className="tjanst-cell-text" aria-label={label}>{content}</span> : null}</td>;
             };
             return <tr key={e.need.sourceKey}>
@@ -194,5 +207,5 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
         </tr>)}
       </tfoot>
     </table>
-  </div>;
+  </div></>;
 }

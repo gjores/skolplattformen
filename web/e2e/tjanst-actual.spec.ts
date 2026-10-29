@@ -78,6 +78,8 @@ async function openTjanst(page:Page,unitId:string,{navigate=true}:{navigate?:boo
   if(await school.isEnabled()&&await school.inputValue()!==unitId)await school.selectOption(unitId);
   if(await year.inputValue()!==String(seed.year))await year.selectOption(String(seed.year));
   await expect(ws(page)).toBeVisible();await settled(page);
+  // These existing cases exercise the advanced dialog; normal one-click behavior is checked separately.
+  const advanced=ws(page).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true});if(await advanced.count())await advanced.check();
 }
 
 test.beforeAll(async({browser},info)=>{
@@ -137,7 +139,7 @@ async function addTeacher(page:Page,name:string,option=name){
 }
 /** Sparar en tjänsterad via matriscellen; tom sträng lämnar det förifyllda värdet. */
 async function saveRow(page:Page,teacher:string,course:string,cls:string,{ht,vt}:{ht?:string;vt?:string}){
-  const target=cell(page,teacher,course,cls);await target.click();
+  const target=cell(page,teacher,course,cls);await target.click({modifiers:['Shift']});
   // D-30 (05.1-31): tiden anges först; valet av lärare sparar raden.
   const dialog=page.getByRole('dialog');
   if(ht!==undefined)await dialog.getByLabel('Lärartid HT (timmar)').fill(ht);
@@ -157,7 +159,7 @@ async function shareOneAtATime(page:Page,grader:string,other:string){
 /** Ett aktivt personval och vanlig radskrivning; ingen separat skapa-utkast-väg. */
 async function beginRevision(page:Page){
   const target=matrix(page).getByRole('button',{name:/Ändra\.$/u}).first(),label=(await target.getAttribute('aria-label'))!;const teacher=label.split(', ')[0];
-  await target.click();const d=page.getByRole('dialog');await d.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();await expect(d).toHaveCount(0);await settled(page);
+  await target.click({modifiers:['Shift']});const d=page.getByRole('dialog');await d.getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();await expect(d).toHaveCount(0);await settled(page);
 }
 /** Öppnar rektors Fastställ-panel och publicerar; med stepUp kontrolleras att servern kräver engångskod och step-up görs via knappen. */
 async function publish(page:Page,role:string,versionNo:number,{stepUp=false}={}){
@@ -315,7 +317,15 @@ test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omlä
   // AE1: tom cell för Tor Berg (person utan konto), förifylld tid, ändrad VT, sparad och omläst.
   await addTeacher(p,'Tor Berg');
   const target=cell(p,'Tor Berg','Matematik','SYNGR8');await expect(target).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
-  await target.click();const dialog=p.getByRole('dialog');
+  // F09: direct click saves the remaining need, and exact undo removes only that new row.
+  await ws(p).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true}).uncheck();
+  const direct=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await target.click();expect((await direct).status()).toBe(200);await settled(p);
+  await expect(cell(p,'Tor Berg','Matematik','SYNGR8')).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: 90 h. Ändra.');
+  await expect(p.getByRole('dialog')).toHaveCount(0);
+  const undone=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await ws(p).getByRole('button',{name:'Ångra senaste direkta tilldelningen',exact:true}).click();expect((await undone).status()).toBe(200);await settled(p);
+  await expect(target).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
+  // The extended AE1 case also verifies F09 direct assignment and exact undo against the real Worker/database.
+  await target.click({modifiers:['Shift']});const dialog=p.getByRole('dialog');
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('45');await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('45');
   await dialog.getByLabel('Lärartid VT (timmar)').fill('40');await expect(dialog.getByText('Avvikelse VT: −5 h')).toBeVisible();
   await dialog.getByRole('button',{name:'Välj Tor Berg',exact:true}).click();

@@ -13,6 +13,8 @@ const desktop=(name:string)=>name.startsWith('desktop');
 async function open(page:Page,query=''){
  const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message));
  await page.goto(url+query);await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
+ // Existing dialog regressions explicitly select advanced mode; oneclick.spec covers the default click.
+ const advanced=ws(page).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true});if(await advanced.count())await advanced.check();
  return errors;
 }
 async function noOverflow(page:Page){expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);}
