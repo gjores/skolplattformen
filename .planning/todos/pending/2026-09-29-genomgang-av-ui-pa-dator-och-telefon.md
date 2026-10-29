@@ -48,4 +48,6 @@ Faktiskt telefonprov för VOCATIONAL-EXAM-2028 klarar granska/spara/skicka/godk�
 
 ## Tjänstefördelningens UX-granskning 2026-10-29
 
-Separat rapport och 15 väntande GSD-todos (B01–B06, F01–F09) finns i [samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md). Där ingår användarens önskemål om direkt tilldelning med ett klick i matrisen, med dialog för avancerade val. Implementera inte samma fynd dubbelt via denna övergripande todo. Ingen produktändring eller ny fasacceptans följer av registreringen.
+Separat rapport och 15 registrerade GSD-todos (B01–B06, F01–F09) finns i [samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md). Där ingår användarens önskemål om direkt tilldelning med ett klick i matrisen, med dialog för avancerade val. Implementera inte samma fynd dubbelt via denna övergripande todo. Ingen produktändring eller ny fasacceptans följer av registreringen.
+
+B01 och B05 rättades lokalt i [05.1-35](../../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md) med syntetiska UI-prov 2026-10-29. 13 punkter återstår; ingen installation eller ny helhetsacceptans.

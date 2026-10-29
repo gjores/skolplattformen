@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "Användarprov av 05.1-29–33 på 3012"
+current_plan: "05.1-35 lokalt klar; faktisk efterkontroll/leverans och 13 UX-todos återstår"
 status: in_progress
-stopped_at: "Plan14–22 genomförda. Plan22: faktiskt Worker/OIDC-prov 83/83 PASS på ren kandidat 1eb5467 och handbok byggd. Plan23–25: etapp 2 installerad efter användarens ja; 3012 kör 1eb5467; efterlägesprov 83/83 PASS. Användarprov väntar. Ingen installation eller ändrad fasacceptans."
-last_updated: "2026-10-28"
-last_activity: 2026-10-28
-last_activity_desc: "05.1-33: delning och betygsansvar per behov installerade efter användarens ja; 3012 kör 09c0626."
+stopped_at: "05.1-35 lokalt genomförd och komponentverifierad för B01/B05. Faktisk efterkontroll och separat leverans återstår; 3012 kvar på 1b8c5fe. 13 UX-todos väntar."
+last_updated: "2026-10-29"
+last_activity: 2026-10-29
+last_activity_desc: "05.1-35: B01/B05 rättade och komponentverifierade; ingen installation, 3012 kvar på 1b8c5fe."
 state_head: 55ea3da
 progress:
   total_phases: 8
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**P1-rättelser 05.1-35 klara lokalt 2026-10-29:** [Resultat](phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md). B01: Per klass visar hela klassen oberoende av andra vyers filter. B05: osparade tider per behov bevaras över vy-/filter-/storleksbyte, med återställning och osparat-skydd. B01 28/28, B05 slutserie 14/14 och befintliga UI-fall 126/126 PASS; domän103, typ/lint, app- och handboksbygge PASS. Två buggtodos avslutade lokalt; 13 UX-todos kvar. Ingen ny faktisk Worker/OIDC-körning, installation eller mänsklig acceptans. 3012 kör fortsatt Claude Codes 1b8c5fe.
 
 **UX-backlogg registrerad 2026-10-29:** [Rapportens uppföljning](research/TJANST-UX-2026-10-29-TODOS.md) spårar sex fynd och nio förbättringar som 15 väntande GSD-todos för fas 05.1. F09 fångar användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Endast dokumentation/backlogg; aktuellt genomförandesteg, kravacceptans och installerad miljö är oförändrade.
 

@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-29",
+  "implementation_commits": {
+    "B01": "f3dfcd6",
+    "B05": "30a1e14"
+  },
+  "scope": "Synthetic in-memory UI only; no authentication/database integration or installation in this plan.",
+  "profiles": [
+    "Chromium 1440x900",
+    "Chromium 1024x768",
+    "WebKit iPhone13 390x664",
+    "WebKit iPhone13 320x740"
+  ],
+  "class_regressions_passed": 28,
+  "draft_regressions_final_passed": 14,
+  "existing_ui_passed": 126,
+  "broad_initial_stats": {
+    "startTime": "2026-10-29T06:09:20.428Z",
+    "duration": 137469.055,
+    "expected": 164,
+    "skipped": 138,
+    "unexpected": 2,
+    "flaky": 0
+  },
+  "broad_initial_failures": "Two B05 profile cases incorrectly expected a network-failed command to be logged by the fixture; assertion corrected, final targeted suite passed.",
+  "draft_final_stats": {
+    "startTime": "2026-10-29T06:13:22.196Z",
+    "duration": 24639.751,
+    "expected": 14,
+    "skipped": 14,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "node_tests": {
+    "passed": 103,
+    "failed": 0
+  },
+  "checks": {
+    "tsc": "PASS",
+    "oxlint_app_lib": "PASS",
+    "app_build": "PASS",
+    "docs_build": "PASS",
+    "code_review": "No blocking findings; full-shell context confirmation reviewed in code, not newly run."
+  },
+  "sources": [
+    {
+      "path": "web/app/tjanst-allocation.tsx",
+      "sha256": "ed41dc5edb940bf2bdb13d41facca5e1627d9b8233d962bf9e48c612ac6582cd"
+    },
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "a4a5455492fa56b70c13f978f1608ef3ef5d6c6670be0d99fd7b3ad7b97700eb"
+    },
+    {
+      "path": "web/e2e/tjanst-p1-class.spec.ts",
+      "sha256": "77185ed7c2501473cc5b95f240dc08728c70d4198d2193d8809fc23d942be096"
+    },
+    {
+      "path": "web/e2e/tjanst-p1-drafts.spec.ts",
+      "sha256": "e0c7978ecbdefb9ff9992321d85c24bd2df632b3a03ab3c7c3f2ba6366dc8ce3"
+    },
+    {
+      "path": "docs/handbok/tjanstefordelning.md",
+      "sha256": "d9b89166603739896bb89c1084db6b59f0b23646cf690d725a6f2ca29b909bd6"
+    }
+  ]
+}

@@ -4,7 +4,7 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter.
+**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Den nya hela klassvyn och bevarade osparade tider i Fördela har hittills provats med simulerade svar i webbläsaren och ingår inte i det tidigare skyddade provet.
 
 ## Vem gör vad?
 
