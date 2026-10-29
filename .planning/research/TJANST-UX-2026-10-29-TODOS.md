@@ -8,12 +8,12 @@ F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i 
 
 | Rapport-ID | Prioritet | GSD-todo | Status |
 | --- | --- | --- | --- |
-| B01 | P1 | [Visa klassens underlag utan dolda filter](../todos/done/2026-10-29-tjanst-ux-b01-dolda-filter-i-klassvyn.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
-| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/done/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
-| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/done/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
-| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/done/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
-| B05 | P1 | [Bevara osparad tid vid byte av vy](../todos/done/2026-10-29-tjanst-ux-b05-bevara-osparad-tid-i-fordela.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
-| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
+| B01 | P1 | [Visa klassens underlag utan dolda filter](../todos/done/2026-10-29-tjanst-ux-b01-dolda-filter-i-klassvyn.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
+| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/done/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
+| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/done/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
+| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/done/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
+| B05 | P1 | [Bevara osparad tid vid byte av vy](../todos/done/2026-10-29-tjanst-ux-b05-bevara-osparad-tid-i-fordela.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
+| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (0814b28); användarprov väntar |
 | F01 | P2 | [Ge fördelningsarbetet större plats](../todos/pending/2026-10-29-tjanst-ux-f01-mer-arbetsyta-i-tjanstefordelningen.md) | pending |
 | F02 | P2 | [Gör huvudarbetsflödet lättare att hitta](../todos/pending/2026-10-29-tjanst-ux-f02-tydligare-navigation-i-tjanstefordelningen.md) | pending |
 | F03 | P2 | [Samla sekundära verktyg och tillägg](../todos/pending/2026-10-29-tjanst-ux-f03-samla-sekundara-verktyg-i-tjanstefordelningen.md) | pending |
@@ -22,7 +22,7 @@ F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i 
 | F06 | P2 | [Gör publiceringshinder synliga och handlingsbara](../todos/pending/2026-10-29-tjanst-ux-f06-handlingsbara-publiceringshinder.md) | pending |
 | F07 | P2 | [Förtydliga mobilens läsläge och verksamhetsspråk](../todos/pending/2026-10-29-tjanst-ux-f07-begripligt-mobilt-laslage-och-detaljer.md) | pending |
 | F08 | P3 | [Mät och förbättra matrisen för många lärare](../todos/pending/2026-10-29-tjanst-ux-f08-mat-och-forbattra-stor-tjanstematris.md) | pending |
-| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; isolerat faktiskt prov PASS, installerad på 3012 (8e26f3b); användarprov väntar |
+| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; isolerat faktiskt prov PASS, installerad på 3012 (0814b28); användarprov väntar |
 
 ## Föreslagen ordning och samordning
 
@@ -33,3 +33,5 @@ F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i 
 5. F08: mät stora underlag före optimeringsbeslut; inkludera tillgänglighet och fokus.
 
 Varje todo anger berörda TJANST-krav och fas 05.1. Den kommande GSD-planen ska precisera beroenden, SS 12000-version/mappning, handbok och verifieringsresultat. Inga kravrutor eller historiska användargodkännanden ändras. Bredare användarprov av föreslagen navigation är arbete som återstår, inte ett återkallat godkännande av tidigare funktioner.
+
+F09:s följdrättelse 05.1-38 är installerad på 3012: radfeedback och Ångra utan hopp, senaste rad kvar under filter och fasta kompakta lärarrubriker. UI246 och faktiskt 88/88 PASS. [Resultat och användarprov som återstår](../phases/05.1-tjanstefordelning/05.1-38-SUMMARY.md).

@@ -1,0 +1,69 @@
+{
+  "revision": "0814b2840587b38f361bb7a4e96cd1ad617629a7",
+  "sources": [
+    {
+      "path": "web/app/tjanst-matrix.tsx",
+      "sha256": "d445bcfc1d18c8d842b9eeaeaf059c7fd7226f20b22b2e5e6cfd444006a7e1e6"
+    },
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "ac65172d43abe2f7db50813684b644a23c7310c27b9583a1d8f77f9a984af143"
+    },
+    {
+      "path": "web/app/tjanst.css",
+      "sha256": "af2568beb0a92cab8c26ef2a8a41560421443585e73aa44cbaa59b027ee346c2"
+    },
+    {
+      "path": "web/e2e/tjanst-oneclick.spec.ts",
+      "sha256": "14f1fa95ad947ca40fff0cb46c3ec64e54ed0c847bbe302c31cc2fbdf39417ff"
+    }
+  ],
+  "syntheticUI": {
+    "startTime": "2026-10-29T10:28:14.814Z",
+    "duration": 264783.636,
+    "expected": 246,
+    "skipped": 186,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "limitations": [
+    "Komponentprov använder syntetiska minnesdata.",
+    "Mänskligt användarprov väntar."
+  ],
+  "checks": {
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "actualWorker": {
+    "status": "PASS",
+    "revision": "0814b2840587b38f361bb7a4e96cd1ad617629a7",
+    "checks": 88,
+    "notExecuted": 0,
+    "projects": [
+      "desktop",
+      "desktop-small",
+      "phone",
+      "phone-small"
+    ],
+    "originalArtifactPreserved": true,
+    "targetUnchanged": true,
+    "oidcCleanup": "complete",
+    "runtimeCleanup": "complete",
+    "snapshotCleanup": "complete",
+    "buildCopyRemoved": true
+  },
+  "previousActualAttempt": {
+    "revision": "d8897b3",
+    "status": "FAIL",
+    "reasons": [
+      "Skrivknappen Massregistrera fanns kvar vid osäkert sparsvar; rättat.",
+      "En transporttimeout på liten telefon."
+    ],
+    "cleanup": "complete",
+    "sourceTargetUnchanged": true,
+    "originalArtifactPreserved": true
+  },
+  "deployment": "local_3012_0814b28"
+}

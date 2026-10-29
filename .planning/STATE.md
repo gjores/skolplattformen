@@ -3,28 +3,30 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-37 installerad på 3012; användarprov och åtta UX-förbättringar återstår"
+current_plan: "05.1-38 installerad på 3012; användarprov och åtta UX-förbättringar återstår"
 status: in_progress
-stopped_at: "F09 genomförd, UI240 och faktiskt 88/88 PASS på 8e26f3b. Installerad på 3012 som 8e26f3b. Användarprov och åtta förbättringar kvar."
+stopped_at: "Stabil matris och radlokalt Ångra verifierade: UI246 och faktiskt 88/88 PASS. 3012 kör 0814b28; användarprov väntar."
 last_updated: "2026-10-29"
 last_activity: 2026-10-29
-last_activity_desc: "05.1-37: direkt tilldelning och säkert ångra verifierade; faktisk kedja 88/88 PASS; installerad på 3012 efter användarbeslut."
+last_activity_desc: "05.1-38 installerad: radfeedback utan hopp, Ångra under filter och fasta lärarrubriker."
 state_head: 55ea3da
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 8e26f3b9c1d3e17fdfd461c72db8cbe47e35b1ab
-verification_worker_status: tjanst_matrix_oneclick_worker_oidc_pass_installed_awaiting_user
+verification_worker_build_revision: 0814b2840587b38f361bb7a4e96cd1ad617629a7
+verification_worker_status: tjanst_matrix_stable_worker_oidc_pass_installed_awaiting_user
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 8e26f3b9c1d3e17fdfd461c72db8cbe47e35b1ab
+worker_build_revision: 0814b2840587b38f361bb7a4e96cd1ad617629a7
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**05.1-38 installerad 2026-10-29:** Sparat och Ångra på behovsraden utan normal global sparnotis. Verktygsavsnitt ligger kvar under direkt sparning; osäkert skrivläge döljer fortfarande skrivkontroller. Senaste behandlade rad behålls för Ångra under Ofördelat/avvikelsefilter tills urval/termin/vy ändras. Kompakta lärarrubriker är fasta vid skrollning. UI246, typ/lint, skyddat bygge/handbok och faktiskt 88/88 PASS på 0814b28; full städning och oförändrat källmål. 3012 kör identisk 1 370-filsartefakt; hälsa och nio tillgångar PASS. Ingen migration; 8e26f3b bevarad för återgång. Användarprov väntar, åtta UX-förbättringar återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-38-SUMMARY.md).
 
 **Lokal installation 2026-10-29 efter användarens ”Installera där så får jag titta”:** 3012 kör nu exakt provad 8e26f3b. Samtliga 1 370 byggfiler matchar provets SHA-256-manifest; databasens hälsokontroll och nio klientfiler PASS. Ingen migration. Tidigare runtime 1b8c5fe bevarad för återgång. Användarprov väntar. [Leveransbevis](../work/ux-review-2026-10-29/f09-37-deployment.json).
 

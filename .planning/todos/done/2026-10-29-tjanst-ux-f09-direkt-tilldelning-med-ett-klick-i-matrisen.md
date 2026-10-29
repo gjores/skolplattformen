@@ -5,7 +5,7 @@ area: tjanstefordelning
 status: completed
 completed: 2026-10-29
 verification: synthetic_ui_and_owned_worker_oidc
-deployment: local_3012_8e26f3b
+deployment: local_3012_0814b28
 phase: "05.1"
 report_id: F09
 priority: P2
@@ -40,3 +40,5 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
 **Status:** completed — genomförd i 05.1-37, UI240 och isolerat faktiskt Worker/OIDC/PostgreSQL-prov PASS. Installerad på 3012 efter användarbeslut; användarprov väntar. Ingen ny krav-/fasacceptans. [Resultat och begränsningar](../../phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md). [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+
+**Följdrättelse 05.1-38:** radlokal sparstatus/Ångra utan hopp och fasta lärarrubriker, även kompakt. Senaste behandlade behov behålls under Ofördelat/avvikelsefilter. Installerad på 3012 som 0814b28 efter UI246 och faktiskt 88/88 PASS. [Resultat](../../phases/05.1-tjanstefordelning/05.1-38-SUMMARY.md). Användarprov väntar.
