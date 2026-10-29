@@ -3,20 +3,20 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-36 lokalt klar; faktisk efterkontroll/leverans och nio UX-förbättringar återstår"
+current_plan: "05.1-37 verifierad i isolerad miljö; leverans och åtta UX-förbättringar återstår"
 status: in_progress
-stopped_at: "B01–B06 rättade och komponentverifierade i 05.1-35/36. Faktisk efterkontroll/leverans återstår; 3012 kvar på 1b8c5fe. Nio förbättringstodos väntar."
+stopped_at: "F09 genomförd, UI240 och faktiskt 88/88 PASS på 8e26f3b. Ingen installation; 3012 kvar på 1b8c5fe. Åtta förbättringar kvar."
 last_updated: "2026-10-29"
 last_activity: 2026-10-29
-last_activity_desc: "05.1-36: fyra P2-buggar rättade, UI212 och komplettering8 PASS; ingen installation."
+last_activity_desc: "05.1-37: direkt tilldelning och säkert ångra verifierade; faktisk kedja 88/88 PASS; ej installerat."
 state_head: 55ea3da
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 55ea3da5db1528f0e96bee67a797afc27c6b774a
-verification_worker_status: apl_central_content_worker_oidc_pass_install_pass
+verification_worker_build_revision: 8e26f3b9c1d3e17fdfd461c72db8cbe47e35b1ab
+verification_worker_status: tjanst_matrix_oneclick_worker_oidc_pass_not_installed
 worker_status: tjanst_trial_local_delivery_health_pass
 worker_build_revision: 1b8c5fe3680a278ee050d1d5e2236e51045bde41
 milestone_name: milestone
@@ -25,6 +25,8 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**F09 / 05.1-37 verifierad 2026-10-29:** [Resultat](phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md). Ett klick i tom namngiven cell tilldelar återstående känd HT/VT; avancerad dialog via checkbox/Skift eller befintlig rad. Exakt revisionsbundet Ångra tar bort ny rad eller återställer vakant tid/kommentar. UI240, domän103, typ/lint, skyddat bygge och handbok PASS; faktisk Worker/OIDC/PostgreSQL-kedja 88/88 på kandidat 8e26f3b, med full städning och oförändrad källjournal/schema. Första faktiska försöket hittade en äldre Enter-dialogförväntan som anpassades; hela kedjan omkörd. Ingen installation eller ny mänsklig/fasacceptans. 3012 kvar på 1b8c5fe; åtta UX-förbättringar återstår.
 
 **P2-rättelser 05.1-36 klara lokalt 2026-10-29:** [Resultat](phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). B03: enhetlig lärarsökning; B06: beständigt kursurval och linsavsikt i navigationshistorik; B02: kursbehov före tilldelning och länk till exakt behov; B04: tydliga årssammanställningar utan ineffektiva terminsknappar. Full UI212 och komplettering8, domän103, typ/lint och app-/handboksbygge PASS. Alla sex buggtodos nu klara lokalt, nio förbättringar återstår. Ingen ny faktisk server-/databasverifiering eller installation. 3012 kvar på Claude Codes 1b8c5fe.
 

@@ -1,8 +1,8 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
-[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). Användaren beställde att alla fynd och förbättringar skulle registreras som GSD-todos. 15 registrerade punkter (sex lokalt rättade/komponentverifierade och nio väntande): sex reproducerade UI-/UX-fel (B01–B06) och nio förbättringar (F01–F09).
+[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). Användaren beställde att alla fynd och förbättringar skulle registreras som GSD-todos. 15 registrerade punkter (sju genomförda — sex buggar och F09 — samt åtta väntande förbättringar): sex reproducerade UI-/UX-fel (B01–B06) och nio förbättringar (F01–F09).
 
-F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Övriga förbättringar är rapportförslag att konkretisera i planering. Den ursprungliga registreringen innebar ingen implementation. B01 och B05 har därefter rättats lokalt i [05.1-35](../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md), utan installation eller ny kravacceptans; B02/B03/B04/B06 har därefter rättats lokalt i [05.1-36](../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). De nio förbättringarna väntar. Aktuellt genomförandearbete i STATE ersätts inte.
+F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Övriga förbättringar är rapportförslag att konkretisera i planering. Den ursprungliga registreringen innebar ingen implementation. B01 och B05 har därefter rättats lokalt i [05.1-35](../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md), utan installation eller ny kravacceptans; B02/B03/B04/B06 har därefter rättats lokalt i [05.1-36](../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). F09 har genomförts och provats i [05.1-37](../phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md), utan installation. Åtta förbättringar väntar. Aktuellt genomförandearbete i STATE ersätts inte.
 
 ## Uppföljning
 
@@ -22,7 +22,7 @@ F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i 
 | F06 | P2 | [Gör publiceringshinder synliga och handlingsbara](../todos/pending/2026-10-29-tjanst-ux-f06-handlingsbara-publiceringshinder.md) | pending |
 | F07 | P2 | [Förtydliga mobilens läsläge och verksamhetsspråk](../todos/pending/2026-10-29-tjanst-ux-f07-begripligt-mobilt-laslage-och-detaljer.md) | pending |
 | F08 | P3 | [Mät och förbättra matrisen för många lärare](../todos/pending/2026-10-29-tjanst-ux-f08-mat-och-forbattra-stor-tjanstematris.md) | pending |
-| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/pending/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | pending |
+| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; isolerat faktiskt prov PASS, ej installerad |
 
 ## Föreslagen ordning och samordning
 

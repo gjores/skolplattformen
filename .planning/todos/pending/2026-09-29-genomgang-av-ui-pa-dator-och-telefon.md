@@ -53,3 +53,5 @@ Separat rapport och 15 registrerade GSD-todos (B01–B06, F01–F09) finns i [sa
 B01 och B05 rättades lokalt i [05.1-35](../../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md) med syntetiska UI-prov 2026-10-29. 13 punkter återstår; ingen installation eller ny helhetsacceptans.
 
 B02/B03/B04/B06 är lokalt rättade och komponentverifierade i [05.1-36](../../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). Alla sex buggtodos är avslutade lokalt; nio förbättringar kvar. Ingen installation eller ny helhetsacceptans.
+
+F09 är genomförd och verifierad i [05.1-37](../../phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md): direkt tilldelning, avancerad dialog och säkert ångra; UI240 och isolerat faktiskt prov PASS. Åtta förbättringar kvar, ingen installation eller ny helhetsacceptans.

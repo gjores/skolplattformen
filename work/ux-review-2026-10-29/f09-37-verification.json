@@ -1,0 +1,75 @@
+{
+  "date": "2026-10-29",
+  "implementation_commit": "5ad8312",
+  "tested_candidate": "8e26f3b9c1d3e17fdfd461c72db8cbe47e35b1ab",
+  "scope": "Actual local Worker/OIDC/PostgreSQL on owned schema-only copy with synthetic data; no real municipal connection or deployment.",
+  "ui_stats": {
+    "startTime": "2026-10-29T08:58:57.165Z",
+    "duration": 230458.855,
+    "expected": 240,
+    "skipped": 180,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "actual_cases": 88,
+  "actual_report_sha256": "30a89d3e36c31fbf4b7927b294ccc10b25aecda8a9a21b39242fc482399ad48d",
+  "actual_project_counts": {
+    "desktop": 56,
+    "desktop-small": 13,
+    "phone": 10,
+    "phone-small": 9
+  },
+  "actual_status": "PASS",
+  "protected_schema_and_journal_unchanged": true,
+  "candidate_artifact_preserved": true,
+  "cleanup": {
+    "oidcCleanup": "complete",
+    "runtimeCleanup": "complete",
+    "snapshotCleanup": "complete"
+  },
+  "verified_oidc_callbacks": 44,
+  "synthetic_foreign_data_unchanged": true,
+  "domain_tests": 103,
+  "checks": {
+    "type": "PASS",
+    "lint": "PASS",
+    "protected_build": "PASS",
+    "handbook_build": "PASS",
+    "code_review": "PASS after fixes for undo view guard and deterministic cell focus"
+  },
+  "prior_attempt": {
+    "candidate": "5ad8312",
+    "status": "FAIL",
+    "reason": "Legacy keyboard test expected normal Enter to open a dialog; updated to Shift+Enter. Owned test resources cleaned and protected source unchanged."
+  },
+  "sources": [
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "66f067287e5fa01f7d8c2d6ace26376744c60176d805858ef1efacab287e1b02"
+    },
+    {
+      "path": "web/app/tjanst-matrix.tsx",
+      "sha256": "91ece12ed7a3d74708c8b2293273fc759f202aba784e46ebc7cd3239be3fb367"
+    },
+    {
+      "path": "web/e2e/tjanst-oneclick.spec.ts",
+      "sha256": "10cf705ed38e6524b7e93ac90a962d19992f033acd9e32be55226bfe7318fbcd"
+    },
+    {
+      "path": "web/e2e/tjanst-actual.spec.ts",
+      "sha256": "7b637d3ee021855807ae56d1be2039afcc20317e5809665760739c95f5c3e9a4"
+    },
+    {
+      "path": "web/e2e/tjanst-ui.spec.ts",
+      "sha256": "d52a4f297c6a0ace34568654cd79478062181068f8def07d8df6be051d2bb443"
+    },
+    {
+      "path": "web/playwright.tjanst-oneclick.config.ts",
+      "sha256": "64274957ebc1c0ba68375a954ffd9fe1137f5a755a7f7548a77a35fa4e523e75"
+    },
+    {
+      "path": "docs/handbok/tjanstefordelning.md",
+      "sha256": "3489a6a170a3c65d9d515ce3d9660692d8ef40f224c888a7d2bffdbbcb9b50f4"
+    }
+  ]
+}

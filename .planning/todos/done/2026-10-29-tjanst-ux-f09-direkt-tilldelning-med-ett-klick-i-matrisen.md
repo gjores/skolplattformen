@@ -2,7 +2,10 @@
 created: 2026-10-29
 title: "Tilldela lärare med ett klick i matrisen"
 area: tjanstefordelning
-status: pending
+status: completed
+completed: 2026-10-29
+verification: synthetic_ui_and_owned_worker_oidc
+deployment: not_installed
 phase: "05.1"
 report_id: F09
 priority: P2
@@ -36,4 +39,4 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
-**Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+**Status:** completed — genomförd i 05.1-37, UI240 och isolerat faktiskt Worker/OIDC/PostgreSQL-prov PASS. Ingen installation eller ny krav-/fasacceptans. [Resultat och begränsningar](../../phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md). [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
