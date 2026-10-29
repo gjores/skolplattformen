@@ -325,6 +325,16 @@ test('äldre version läsbar skrivskyddat (D-24) och fördela tom cell med omlä
   const undone=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await ws(p).getByRole('button',{name:'Ångra senaste direkta tilldelningen',exact:true}).click();expect((await undone).status()).toBe(200);await settled(p);
   await expect(target).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
   // The extended AE1 case also verifies F09 direct assignment and exact undo against the real Worker/database.
+  // Verify exact restoration of a replaced vacant row, including its original time and comment.
+  await cell(p,'Vakant','Matematik','SYNGR8').click();let vacant=p.getByRole('dialog');
+  await vacant.getByLabel('Lärartid HT (timmar)').fill('20');await vacant.getByLabel('Lärartid VT (timmar)').fill('30');await vacant.getByLabel('Kommentar (valfri)').fill('Syntetiskt F09-underlag');
+  let write=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await vacant.getByRole('button',{name:'Välj Vakant',exact:true}).click();expect((await write).status()).toBe(200);await expect(vacant).toHaveCount(0);await settled(p);
+  write=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await target.click();expect((await write).status()).toBe(200);await settled(p);
+  write=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await ws(p).getByRole('button',{name:'Ångra senaste direkta tilldelningen',exact:true}).click();expect((await write).status()).toBe(200);await settled(p);
+  await cell(p,'Vakant','Matematik','SYNGR8').click();vacant=p.getByRole('dialog');
+  await expect(vacant.getByLabel('Lärartid HT (timmar)')).toHaveValue('20');await expect(vacant.getByLabel('Lärartid VT (timmar)')).toHaveValue('30');await expect(vacant.getByLabel('Kommentar (valfri)')).toHaveValue('Syntetiskt F09-underlag');
+  await vacant.getByRole('button',{name:'Ta bort tjänsteraden…',exact:true}).click();
+  write=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await p.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden',exact:true}).click();expect((await write).status()).toBe(200);await settled(p);
   await target.click({modifiers:['Shift']});const dialog=p.getByRole('dialog');
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('45');await expect(dialog.getByLabel('Lärartid VT (timmar)')).toHaveValue('45');
   await dialog.getByLabel('Lärartid VT (timmar)').fill('40');await expect(dialog.getByText('Avvikelse VT: −5 h')).toBeVisible();
@@ -751,7 +761,8 @@ async function keyboardChecks(p:Page,name:string){
   const tabStops=await matrix(p).locator('button[data-cell][tabindex="0"]').count();expect(tabStops).toBe(1);
   const ring=await p.evaluate(()=>{const s=getComputedStyle(document.activeElement!);return{outline:s.outlineStyle,width:parseFloat(s.outlineWidth),shadow:s.boxShadow};});
   expect(ring.outline!=='none'&&ring.width>=3||ring.shadow!=='none').toBe(true);
-  await p.keyboard.press('Enter');const dialog=p.getByRole('dialog');await expect(dialog).toBeVisible();
+  // F09: ordinary Enter assigns directly; this regression explicitly exercises the advanced dialog.
+  await p.keyboard.press('Shift+Enter');const dialog=p.getByRole('dialog');await expect(dialog).toBeVisible();
   const focusedName=home;await dialog.getByRole('button',{name:'Stäng utan att spara'}).click();await expect(dialog).toHaveCount(0);
   expect(await label()).toBe(focusedName);
   const small=await p.evaluate(()=>[...document.querySelectorAll('.tjanst button, .tjanst select, .tjanst [role="tab"], .tjanst input[type="checkbox"]')]
