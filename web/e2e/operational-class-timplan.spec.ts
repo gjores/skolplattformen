@@ -46,9 +46,9 @@ async function gymMock(page:Page,draft=false){const named={...operationPlan,canP
  await route.fulfill({json,headers:{'X-Context-Epoch':'1'}});
  });return{errors,count:()=>creates};}
 for(const draft of [false,true])test(`ny version använder aktuell källa och återanvänder befintligt utkast ${draft}`,async({page})=>{
- const state=await gymMock(page,draft);await page.goto(base+'?gym=1');await expect(page.getByRole('button',{name:'Skapa ny version',exact:true})).toBeVisible();await page.getByRole('button',{name:'Skapa ny version',exact:true}).click();
+ const state=await gymMock(page,draft);await page.goto(base+'?gym=1');await page.locator('details.gt-more > summary').click();await expect(page.getByRole('button',{name:'Skapa ny version',exact:true})).toBeVisible();await page.getByRole('button',{name:'Skapa ny version',exact:true}).click();
  if(!draft){await expect(page.getByRole('dialog')).toContainText('klasskopplingar bevaras');await page.getByRole('button',{name:'Granska',exact:true}).click();await page.getByRole('button',{name:'Bekräfta och spara',exact:true}).click();}
- await expect(page.locator('.gt-state')).toContainText('Timplan version 2');expect(state.count()).toBe(draft?0:1);expect(state.errors).toEqual([]);
+ await expect(page.locator('.gt-state')).toHaveText('Utkast · version 2');expect(state.count()).toBe(draft?0:1);expect(state.errors).toEqual([]);
 });
 
 for(const [start,firstYear] of [['2027-08-01',2027],['2027-01-15',2026],['2027-06-30',2026],['2027-07-01',2027]] as const){

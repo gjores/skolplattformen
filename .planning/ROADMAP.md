@@ -326,7 +326,7 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 
 ### Phase 05.1: Tjänstefördelning (INSERTED)
 
-**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Nytt användarprov och fem ursprungliga UX-punkter kvarstår.
+**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Senare användarprov U1–U8 är godkänt; fem ursprungliga UX-punkter ligger vilande som frivilligt finputs.
 
 **Historik 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
 
@@ -536,6 +536,8 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 
 Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till exempel CP-SAT eller egen sökning) avgörs i fasens research. Komponentbyte och extern adapter (SCHEMA-06) ligger i 05.6. Tjänstebedömningens schemaandel (TID-11) ingår inte; schemat kan senare lämna schemalagd tid via ett kontrakt.
 
+**Prioritering 2026-10-30 — valbara grupper före schemaberäkning:** Elever i samma klass ska kunna tillhöra olika undervisningsgrupper, exempelvis moderna språk. [Gruppkontext](phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md) och [GSD-todo](todos/pending/2026-10-30-valbara-undervisningsgrupper-fore-schema.md) finns. Detta är en förberedande gruppdel i 05.2, samordnad med klassunderlaget 05.3. Klassens identitet består, gruppmedlemskap får egna datum och underlagsrevision. Samläsning/lärartid och administrativa klassbyten ersätter inte detta. Ett valblock innebär inte automatiskt parallell undervisning. Behovet är beställt; detaljerat kontrakt och implementation återstår.
+
 ### Phase 05.3: Klassorganisation (INSERTED)
 
 **Goal**: Rektor och skoladministratör kan ändra klassorganisationen över tid (livscykel, delning, sammanslagning, befintliga och importerade klasser) med bevarad historik och synliga konsekvenser för tjänstefördelning och schema.
@@ -548,7 +550,7 @@ Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till 
 3. En befintlig eller importerad klass kan kopplas till en utbildning först när informationsägare och externt ID är kända; namnmatchning räcker inte. Verklig registerimport hör till fas 6. (KLASS-03)
 4. En ändrad klassorganisation visar konsekvenserna för tjänsterader och schemautkast och kräver uttrycklig ny tillämpning; inget fördelas om automatiskt. Dator, telefon och handbok ingår. (KLASS-04)
 
-**Plans**: 0 plans — kör `/gsd-plan-phase 05.3`. Underlag: [klassresearchen](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md), etapp C.
+**Planering 2026-10-30:** [Nulägesgranskning](phases/05.3-klassorganisation/05.3-READINESS.md) och [avstämd kontext](phases/05.3-klassorganisation/05.3-CONTEXT.md) klara. [Planeringsutkast](phases/05.3-klassorganisation/05.3-PHASE-PLAN.md) med sex förslag, ännu inga exekverbara eller genomförda PLAN-leveranser. Börja med samlad läsande klassöversikt och versionsbundet underlag; senare livscykel, namn-/källidentiteter och omorganisation avgränsas separat. Klassens datum är fortfarande bundna till kullstart och äldre länknycklar innehåller klassnamn. Befintlig A–B återanvänds. Äldre underlag: [klassresearchen](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md), etapp C.
 **UI hint**: yes
 
 Etapp A–B (CLASS-COHORT) är levererade i fas 5 och omprövas inte. Huvudmannen får inget nytt klassmandat utan separat beslut.
@@ -738,7 +740,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 **Etapp 2 genomförs 2026-10-24:** Plan14–21 klara. Plan20 verifierar exakt13 öppna Worker-entrypoints;21 ger sammanhållen arbetsyta och aktiva lärarval. Node84, typ/lint, isolerat bygge samt210 relevanta simulerade fall/profilkombinationer verifierade med redovisade avgränsade omprov; fyra Chromiumprofiler visuellt granskade. Nästa22: faktisk Worker/OIDC och handbok. Installation och nytt användarprov återstår. Ingen ny fasacceptans; äldre statusdetaljer kompletteras av respektive SUMMARY.
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.1.1 → 05.2 → 05.3 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.1.1 → 05.3 (förberedande klassunderlag) → 05.2 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -750,7 +752,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 05.1. Tjänstefördelning (INSERTED) | 41/41 skrivna PLAN-filer genomförda | In progress — årsetapp 14–25 och senare26–41 genomförda; 3012 kör 785b4ff. Plan 41: faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS, geometriavgränsning redovisad. Elva UX-punkter klara, fem kvar. Nytt användarprov av plan 41 möjligt; samlad fas-/kravacceptans fortsatt öppen | - |
 | 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/17 | Planned — 17 planer 2026-10-30; våg 1–4 utan migration, grind D-17 före plan 06 | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
-| 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
+| 05.3. Klassorganisation (INSERTED) | 0/TBD | Nuläge granskat; planutkast | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
 | 05.5. Interkommunal ersättning (INSERTED) | 0/TBD | Not started | - |
 | 05.6. Köpbara moduler (INSERTED) | 0/TBD | Not started | - |

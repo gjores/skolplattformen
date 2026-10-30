@@ -18,3 +18,7 @@ Ingen produktändring eller ny användaracceptans följer av denna todo. Använd
 **Avgränsning bekräftad 2026-10-15:** Användaren väljer ”Följ förslaget med oförändrade mandat”. [CLASS-COHORT-paketet](../../phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md) har elva granskade planer med endast samma utbildning/kull, separat timplanskoppling och bevarad befintlig klassmodell. SS 12000-mappning ingår. Genomförande och nytt användarprov återstår.
 
 **Avslutad funktionell etapp2026-10-15:** CLASS-COHORT:s11 planer är genomförda med automatisk verifiering och användarens ”ok allt funkar”. Enhet/delsteg är inte särredovisade. Smidighet och tekniska knappar följs i [samlad UI-genomgång](2026-09-29-genomgang-av-ui-pa-dator-och-telefon.md). Äldre planeringsbesked ovan är historik. Fulla krav/fasacceptans och bredare modell-/integrationsfrågor kvarstår.
+
+## Avstämning 2026-10-30
+
+A–B:s leverans och funktionella godkännande består. [Aktuell inventering av klassorganisation](../../phases/05.3-klassorganisation/05.3-READINESS.md) skiljer detta flöde från fas 05.3:s ännu öppna livscykel-/omorganisationsarbete. [Planeringsutkast](../../phases/05.3-klassorganisation/05.3-PHASE-PLAN.md) föreslår en samlad läsbild och versionsbundet klassunderlag först. Det återöppnar inte redan levererade A–B eller betyder att senare förslag är genomförda.

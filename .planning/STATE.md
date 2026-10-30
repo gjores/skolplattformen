@@ -1,14 +1,14 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: "05.1"
-current_phase_name: Tjänstefördelning
-current_plan: "Tjänstefördelningens U1–U8 godkända; nästa prioritering klassorganisation inför schema"
+current_phase: "05.3"
+current_phase_name: Klassorganisation
+current_plan: "Klassinventering klar; avgränsa valbara undervisningsgrupper och elevmedlemskap före schemaberäkningen"
 status: in_progress
-stopped_at: "Avslutande tjänsteprov användargodkänt 8/8. Ingen mer tjänste-UX beställd; klassorganisation prioriteras härnäst."
+stopped_at: "Klassinventering och planeringsutkast klara. Nästa beställda del är valbara undervisningsgrupper; klassunderlag stödjer arbetet. Skrivfunktioner kräver egna kontrakt."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
-last_activity_desc: "Användaren godkände U1–U8. Provet avslutat; frivilligt tjänste-UX-finputs fortsatt vilande. Klassorganisation före schema."
+last_activity_desc: "Aktuell kod granskad för klassorganisation; bevara CLASS-COHORT A–B. Dokumenterad modellkonflikt för egna datum och namnnycklar; förberedande klassunderlag prioriteras."
 state_head: 982444b
 progress:
   total_phases: 8
@@ -26,6 +26,10 @@ milestone_name: milestone
 
 # Project State
 
+## Aktuellt 2026-10-30 — klassorganisation inventerad
+
+[Nulägesgranskningen](phases/05.3-klassorganisation/05.3-READINESS.md) beskriver återanvändbara klass-/kullflöden, timplanskopplingar och elevperioder samt luckorna inför schema. Senare styrning prioriterar [valbara undervisningsgrupper och elevmedlemskap](phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md) före schemaberäkningen. En samlad läsande klassöversikt och ett ID-/versionsbundet underlag stödjer detta; klassgiltighet, namn-/källidentiteter och omorganisation behöver därefter egna kontrollerade kontrakt. [Kontext](phases/05.3-klassorganisation/05.3-CONTEXT.md) och [planeringsutkast](phases/05.3-klassorganisation/05.3-PHASE-PLAN.md) finns. Utkastet är inte genomförd implementation eller nya kravgodkännanden. Befintlig CLASS-COHORT A–B återanvänds. Tjänstefördelningen lämnas vilande enligt godkänt U1–U8. Ingen ny produktversion eller installation på 3012 i denna granskning.
+
 ## Användarprov godkänt 2026-10-30 — klassorganisation är nästa prioritering
 
 **Användarprovet är genomfört och godkänt 2026-10-30: U1–U8, 8/8.** [Resultat och ordagrant användarsvar](phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md). Inget strul eller blockerande problem rapporterades. Fortsatt tjänste-UX ligger vilande som frivilligt finputs till senare, inte som en beställning eller ett väntande helhetsprov. Klassorganisation är nästa prioritering. Den frivilliga extra publiceringen och specifika enheter är inte särredovisade; formella krav-/fas-/pilotantal ändras inte av denna registrering.
@@ -35,7 +39,7 @@ Klassorganisation prioriteras före schemaläggningen. Befintlig levererad CLASS
 Salsregister/salstabell är en uttryckligen önskad del av schemaläggningen. Registerfält, tillgänglighet, kapacitet/egenskaper och detaljroller ska avgränsas vid planeringen, inte behandlas som redan specificerade eller levererade. Stabila identiteter och informationsansvar, inklusive tillämplig SS12000:2024-mappning för klasser/lokaler/resurser, ska stämmas av före implementation. Ingen ny verifierad extern anslutning påstås.
 
 
-**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Nytt användarprov och fem ursprungliga UX-punkter kvarstår.
+**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Senare användarprov U1–U8 är godkänt; fem ursprungliga UX-punkter ligger vilande som frivilligt finputs.
 
 **Historik 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
 
