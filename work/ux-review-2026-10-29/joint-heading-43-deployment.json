@@ -1,0 +1,77 @@
+{
+  "installedAt": "2026-10-30T10:23:07.982Z",
+  "revision": "2d38095200ae50bb57fa7154a1e78a566e38aa87",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "actualArtifactEqual": null,
+  "artifactSha256": "a5d4df78ce39692b5a40693dce6ff0f13575f0642fa976ff40222f8f5d41e30a",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/tjanst/plan/lasa",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/elever/lista",
+      "method": "POST",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/8e8d0106-3aeb-4a4f-9521-12a5ac851573/_buildManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/8e8d0106-3aeb-4a4f-9521-12a5ac851573/_ssgManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-6692919",
+  "migrationsApplied": false,
+  "validation": "targeted_synthetic_ui_type_lint_and_protected_build",
+  "humanAcceptance": "awaiting_new_user_trial_43"
+}

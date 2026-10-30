@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-42 installerad på3012; fem UX-punkter och nytt användarprov återstår"
+current_plan: "05.1-43 installerad på3012; nytt användarprov och fem UX-punkter återstår"
 status: in_progress
-stopped_at: "Sex UX-anteckningar levererade som6692919; UI298/personal/år138/domän56/faktiskt88 PASS, full städning och lokal hälsa PASS."
+stopped_at: "43 levererad som2d38095 på3012; rubrik och samläsningsmärke delar rad. Riktade kontroller PASS, nytt användarprov återstår."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
-last_activity_desc: "05.1-42 verifierad och installerad; planer, handbok och UX-uppföljning avstämda."
-state_head: 6692919
+last_activity_desc: "43: samläsningsmärke vid rubriken. UI18/typ/lint/skyddat bygge och lokal hälsa PASS. Faktiskt88 på6692919 är tidigare bevis."
+state_head: 2d38095
 progress:
   total_phases: 8
   completed_phases: 3
@@ -26,7 +26,9 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt 2026-10-30 — 05.1-42 installerad:** De sex nya browseranteckningarna är genomförda: små markörer, tydligt första val vid lärarbyte, atomärt samläsningsbyte, nya tidskort/sökval i Per lärare och samlat Planeringsval. 3012 kör **6692919**, identisk med faktiskt fryst Worker/OIDC/PostgreSQL **88/88**; UI298, personal/år138, domän56, typ/lint/byggen/handbok och lokal hälsa PASS. Full provstädning och originalbevarande är verifierade. Fem ursprungliga UX-punkter återstår (F02/F04/F05/F07/F08); F05:s gemensamma kandidatväljare är inte färdig bara för att Per lärare nu är sökbar. Nytt användarprov av42 återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md). Inga migrationer, nya externa anslutningar eller ändrade formella krav-/fas-/pilotantal.
+**Aktuellt 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
+
+**Historik 2026-10-30 — 05.1-42 installerad:** De sex nya browseranteckningarna är genomförda: små markörer, tydligt första val vid lärarbyte, atomärt samläsningsbyte, nya tidskort/sökval i Per lärare och samlat Planeringsval. 3012 kör **6692919**, identisk med faktiskt fryst Worker/OIDC/PostgreSQL **88/88**; UI298, personal/år138, domän56, typ/lint/byggen/handbok och lokal hälsa PASS. Full provstädning och originalbevarande är verifierade. Fem ursprungliga UX-punkter återstår (F02/F04/F05/F07/F08); F05:s gemensamma kandidatväljare är inte färdig bara för att Per lärare nu är sökbar. Nytt användarprov av42 återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md). Inga migrationer, nya externa anslutningar eller ändrade formella krav-/fas-/pilotantal.
 
 **Historik 2026-10-30 — 05.1-41 installerad:** Mer arbetsyta, samlade verktyg och handlingsbara publiceringshinder är genomförda. Lokal 3012 kör **785b4ff**, samma frysta artefakt som har faktiskt Worker/OIDC/PostgreSQL PASS **88/88** (56/13/10/9), UI 274, personal/år 134, domän 56, typ/lint/byggen/handbok PASS. Etapp 2:s14–25 och senare26–40 är redan genomförda. F01/F03/F06 är klara; fem UX-punkter återstår (F02/F04/F05/F07/F08, F04/F05 delvis). [Resultat](phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md). Positiv återkoppling på tidigare senaste UX är registrerad; nytt prov av plan 41 kan nu göras. Det ursprungliga generella sparfelet är inte reproducerat. Formella kravrutor, samlad fasacceptans och historiska pilotantal ändras inte.
 
@@ -284,6 +286,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 **Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (etapp 1 planerad, genomförande nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
+
+Senaste avgränsade ändring är43: rubrik och samläsningsmärke delar rad.3012 kör2d38095 efter riktad UI-/bygg-/hälsokontroll. Nedanstående42 är den tidigare funktionella leveransen.
 
 05.1-42 är installerad och verifierad på3012 som6692919. Sex browseranteckningar är genomförda; nytt användarprov och fem ursprungliga UX-punkter återstår. Formell fas05.1-acceptans samt senare faser är inte avslutade av denna leverans. Se aktuell sammanfattning ovan.
 

@@ -1,6 +1,8 @@
 # Uppföljning av dina sex anteckningar — tjänstefördelning
 
-Status: genomfört och installerat på [3012](http://127.0.0.1:3012/?vy=tjanst), version **6692919**. Ladda om sidan för att se ändringarna. Nytt användarprov återstår.
+**Senare layoutuppföljning43:** Samläsningsmärket ligger nu bredvid ämnesrubriken på3012 som2d38095.18 riktade UI-prov och bygge/hälsa PASS. De88 faktiska kontrollerna nedan avser föregående6692919.
+
+Leveransen42: genomförd och installerad på [3012](http://127.0.0.1:3012/?vy=tjanst), version **6692919**. Ladda om sidan för att se ändringarna. Nytt användarprov återstår.
 
 | Anteckning | Ändring |
 | --- | --- |

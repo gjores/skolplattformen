@@ -1,6 +1,6 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
-[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 återstående** (F02/F04/F05/F07/F08). Senaste leverans är [05.1-42](../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md), installerad på3012 som6692919. De sex nya browseranteckningarna är genomförda; de fem ursprungliga återstående punkterna har fortsatt egen omfattning.
+[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 återstående** (F02/F04/F05/F07/F08). Senaste funktionella leverans är [05.1-42](../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md), installerad på3012 som6692919. De sex nya browseranteckningarna är genomförda; de fem ursprungliga återstående punkterna har fortsatt egen omfattning.
 
 B01/B05 genomfördes i35, B02/B03/B04/B06 i36 och direkt tilldelning F09 i37; alla ingår i senare installerade leveranser. F01/F03/F06 beställdes och genomfördes i plan 41. F04/F05 är delvis hanterade, med kvarstående omfattning i respektive todo. Positiv sammanfattande UX-återkoppling 30 oktober är registrerad; inget ospecificerat individuellt användarresultat tillskrivs den.
 
@@ -48,3 +48,5 @@ Fem punkter återstår. Nästa nya genomförande ska avgränsa deras kvarståend
 ## Aktuellt efter42
 
 Sex browseranteckningar är genomförda och verifierade: UI298, personal/år138, domän56 och faktiskt88/88 samt lokal installation6692919. Nytt användarprov återstår. F05 har nu sökbar Per lärare-väljare; gemensam kandidatlista i redigeringsflöden kvarstår. F04:s filterarbete och F07:s övergripande mobila språk/arbetsflöde avslutas inte av den nya planeringsraden respektive lärarkorten. F02/F04/F05/F07/F08 förblir pending. [Rapport](../../work/ux-review-2026-10-29/annotations-42.md).
+
+**Layoutuppföljning43:** samläsningsmärket har flyttats till ämnesrubriken enligt ny browseranteckning. Installerad2d38095 med riktade UI18/typ/lint/skyddat bygge/hälsa PASS.42:s faktiskt88/88 är tidigare bevis. Inga ursprungliga todo-statusar ändras. [Resultat43](../phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
