@@ -173,13 +173,14 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                 {content}{!row && <Plus size={16} aria-hidden="true" className="tjanst-plus"/>}</button> : row ? <span className="tjanst-cell-text" aria-label={label}>{content}</span> : null}</td>;
             };
             return <tr key={e.need.sourceKey} data-need-row={e.need.sourceKey}>
-              <th scope="row" className="tjanst-first">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
-                : <span className="tjanst-course">{e.need.label}</span>}<small>{code} · ämnesrad {e.need.label}</small>
+              <th scope="row" className="tjanst-first"><div className="tjanst-need-heading">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
+                : <span className="tjanst-course">{e.need.label}</span>}
                 {joined && (() => { const j = e.rows.map(x => jointOf(x, data.joints)).find(Boolean) ?? null, mixed = e.rows.some(x => { const jj = jointOf(x, data.joints); return !!jj && jointHasMixedTeachers(jj, data.rows); });
                   const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;
                   const cls = mixed ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
                   return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}><span className="tjanst-joint-chip">{content}</span></button>
-                    : <Badge variant="outline" className={cls}>{content}</Badge>; })()}
+                    : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</div>
+                <small>{code} · ämnesrad {e.need.label}</small>
                 {(() => { const state = sharedNeedState(e.need.sourceKey, data.rows, data.sharing); if (state === 'single') return null;
                   const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
                   const content = <>{warn ? <TriangleAlert size={16} aria-hidden="true"/> : <Users size={16} aria-hidden="true"/>}{SHARING_BADGE[state]}</>;

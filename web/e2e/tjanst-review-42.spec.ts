@@ -33,7 +33,7 @@ test.describe('matrisens vägval',()=>{
  });
  test('små färgmarkörer behåller tillgänglig knapp för samläsning',async({page})=>{
   const badge=ws(page).locator('thead .tjanst-new-teacher').first();expect((await badge.boundingBox())!.height).toBeLessThanOrEqual(20);expect(await badge.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
-  const button=ws(page).getByRole('button',{name:'Samläsning',exact:true}).first();expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);expect((await button.locator('.tjanst-joint-chip').boundingBox())!.height).toBeLessThanOrEqual(20);await button.focus();await page.keyboard.press('Enter');await expect(ws(page).locator('[data-joint]').first()).toBeFocused();
+  const button=ws(page).getByRole('button',{name:'Samläsning',exact:true}).first();expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);expect((await button.locator('.tjanst-joint-chip').boundingBox())!.height).toBeLessThanOrEqual(20);const course=button.locator('..').getByRole('button',{name:'Svenska 1',exact:true});const cb=(await course.boundingBox())!,bb=(await button.boundingBox())!;expect(bb.x).toBeGreaterThanOrEqual(cb.x+cb.width);expect(Math.abs((bb.y+bb.height/2)-(cb.y+cb.height/2))).toBeLessThan(1);await button.focus();await page.keyboard.press('Enter');await expect(ws(page).locator('[data-joint]').first()).toBeFocused();
  });
 });
 test('lärarvyn visar tydliga kort och sökning byter bara vid aktivt listval',async({page},info)=>{

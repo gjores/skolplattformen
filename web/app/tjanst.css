@@ -371,3 +371,8 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-matrix-actions>p{font-size:14px;line-height:1.5}
 .tjanst-matrix-action-choices{display:grid;gap:8px}
 .tjanst-matrix-action-choices>p{font-size:13px;line-height:1.5;color:var(--muted-foreground);margin:0 0 8px}
+
+/* Samläsning delar rubrikrad med ämnet; metadata använder hela kolumnbredden. */
+.tjanst-need-heading:has(>.tjanst-joint-status){display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:8px}
+.tjanst-need-heading>.tjanst-course{min-width:0}
+.tjanst-need-heading>.tjanst-joint-status{margin:0}
