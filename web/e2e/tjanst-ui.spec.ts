@@ -806,7 +806,7 @@ test.describe('linser',()=>{
   await viewOptions(page);await ws(page).getByRole('button',{name:'Visa relevanta lärare'}).click();await expect(headers(page)).toHaveCount(5);
   await ws(page).getByRole('button',{name:'Rensa filter'}).click();
   await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
-  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Fysik 1FYS02 · ämnesrad Fysik 1','Kemi 1KEM05 · ämnesrad Kemi 1']);
+  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Fysik 1FYS02','Kemi 1KEM05']);
   await expect(headers(page)).toHaveCount(40);await expect(ws(page).getByText('Visar 40 av 40 lärare')).toBeVisible();
   await expect(matrix(page).getByRole('button',{name:'Vakant, Fysik 1, MA1: ingen tid. Tilldela.'})).toBeVisible();
   await ws(page).getByLabel('Lins',{exact:true}).selectOption('samlasning');await expect(ws(page).getByText('Inga rader matchar filtret.')).toBeVisible();
@@ -844,7 +844,7 @@ test.describe('linser',()=>{
   await ws(page).getByRole('button',{name:'Rensa filter'}).click();await expect(headers(page)).toHaveCount(40);
   await ws(page).getByLabel('Sparad lins').selectOption('Kemi ofördelat');await ws(page).getByRole('button',{name:'Använd'}).click();
   await expect(ws(page).getByLabel('Ämne')).toHaveValue('Kemi');await expect(ws(page).getByLabel('Lins',{exact:true})).toHaveValue('ofordelat');
-  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Kemi 1KEM05 · ämnesrad Kemi 1']);await expect(headers(page)).toHaveCount(40);
+  await expect(matrix(page).locator('tbody th[scope=row]')).toHaveText(['Kemi 1KEM05']);await expect(headers(page)).toHaveCount(40);
   await page.evaluate(()=>{for(const k of Object.keys(localStorage))if(k.startsWith('tjanst-lins:'))localStorage.setItem(k,'{trasig');});
   await page.reload();await expect(ws(page).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
   await viewOptions(page);await expect(ws(page).getByText('Sparade linser',{exact:true})).toBeVisible();await expect(ws(page).getByText('Fäst lärare',{exact:true})).toBeVisible();

@@ -180,7 +180,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                   const cls = mixed ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
                   return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}><span className="tjanst-joint-chip">{content}</span></button>
                     : <Badge variant="outline" className={cls}>{content}</Badge>; })()}</div>
-                <small>{code} · ämnesrad {e.need.label}</small>
+                <small>{code}</small>
                 {(() => { const state = sharedNeedState(e.need.sourceKey, data.rows, data.sharing); if (state === 'single') return null;
                   const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
                   const content = <>{warn ? <TriangleAlert size={16} aria-hidden="true"/> : <Users size={16} aria-hidden="true"/>}{SHARING_BADGE[state]}</>;
