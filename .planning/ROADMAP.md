@@ -1,8 +1,8 @@
 # Roadmap: Skolplattformen
 
-## Användarprioritering2026-10-30 — avslutande tjänsteprov och nästa område
+## Användarprov godkänt 2026-10-30 — klassorganisation är nästa prioritering
 
-Användaren upplever tjänstefördelningen som i stort klar och vill göra ett kort användarprov senare innan eventuellt mer finputs beställs. [Provet](phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) är förberett, inte genomfört. Äldre öppna UX-todos är avstämningspunkter, inte automatiska utvecklingsbeställningar. Ingen formell fas-/kravacceptans tillskrivs den sammanfattande återkopplingen.
+**Användarprovet är genomfört och godkänt 2026-10-30: U1–U8, 8/8.** [Resultat och ordagrant användarsvar](phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md). Inget strul eller blockerande problem rapporterades. Fortsatt tjänste-UX ligger vilande som frivilligt finputs till senare, inte som en beställning eller ett väntande helhetsprov. Klassorganisation är nästa prioritering. Den frivilliga extra publiceringen och specifika enheter är inte särredovisade; formella krav-/fas-/pilotantal ändras inte av denna registrering.
 
 Klassorganisation prioriteras före schemaläggningen. Befintlig levererad CLASS-COHORT-funktion ska bevaras; precisera vad som faktiskt saknas före ny implementation. Fasnumren ändras inte: förberedande klassunderlag i05.3 kommer före05.2. Slutlig kontroll av konsekvenser för schemautkast iKLASS-04 kan göras först när schemadelen finns, utan att skapa ett cirkulärt beroende. Fastställd kalender05.1.1 är fortsatt nödvändigt schemaunderlag.
 

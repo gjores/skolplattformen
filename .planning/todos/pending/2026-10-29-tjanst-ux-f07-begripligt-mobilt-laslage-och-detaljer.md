@@ -5,6 +5,7 @@ area: tjanstefordelning
 status: pending
 on_hold: true
 review_before_execution: true
+disposition: optional_polish_after_accepted_user_trial
 phase: "05.1"
 report_id: F07
 priority: P2
@@ -17,9 +18,9 @@ files:
 
 ---
 
-## Aktuell prioritering2026-10-30
+## Aktuell prioritering 2026-10-30
 
-**Vilande före ny beställning.** Användaren upplever tjänstefördelningen som i stort klar. Stäm av denna äldre punkt mot vad som redan levererats och [det avslutande användarprovet](../../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) innan något mer genomförs. Pending nedan är historisk backloggstatus, inte ett besked om att hela problemet fortfarande finns. Nytt finputs bestäms efter provet; nästa prioritering är klassorganisation inför schema.
+**Vilande, frivilligt finputs.** Användaren har godkänt samtliga U1–U8 i [det avslutande användarprovet](../../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md). Inget strul eller blockerande problem rapporterades. Den äldre problemformuleringen nedan är historik och bevisar inte att problemet fortfarande finns. Punkten innebär ingen ny utvecklingsbeställning och stänger inte automatiskt alla föreslagna tekniska delmål som implementerade. Ta bara upp den igen vid konkret återkoppling eller ny beställning. Klassorganisation inför schema prioriteras nu.
 
 ## Problem
 

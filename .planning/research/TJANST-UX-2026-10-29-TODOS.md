@@ -1,9 +1,9 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
-**Senaste användarbeslut2026-10-30:** Tjänstefördelningen upplevs i stort klar. De fem äldre öppna punkterna är vilande för avstämning, inte fem automatiska implementationer. Ett [kort användarprov för senare](../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) avgör vad som eventuellt tas vidare. Klassorganisation prioriteras nu inför schemat, där salsregister/salstabell ingår. Ingen ny genomförd UAT eller formell fasacceptans påstås.
+**Aktuellt användarresultat 2026-10-30:** [Avslutande UX-prov](../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) är godkänt av användaren: **U1–U8, 8/8**. Inget strul rapporterat. De fem äldre öppna punkterna är frivilligt, vilande finputs; de är inte blockerande fel eller automatiska implementationer. Nästa prioritering är klassorganisation inför schema och salsregister ingår i schemadelen. Formella fas-/krav-/pilotantal är oförändrade.
 
 
-[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 återstående** (F02/F04/F05/F07/F08). Senaste funktionella leverans är [05.1-42](../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md), installerad på3012 som6692919. De sex nya browseranteckningarna är genomförda; de fem ursprungliga återstående punkterna har fortsatt egen omfattning.
+[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 vilande förbättringsidéer** (F02/F04/F05/F07/F08). Senaste funktionella leverans är [05.1-42](../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md), installerad på3012 som6692919. De sex nya browseranteckningarna är genomförda; de fem ursprungliga återstående punkterna har fortsatt egen omfattning.
 
 B01/B05 genomfördes i35, B02/B03/B04/B06 i36 och direkt tilldelning F09 i37; alla ingår i senare installerade leveranser. F01/F03/F06 beställdes och genomfördes i plan 41. F04/F05 är delvis hanterade, med kvarstående omfattning i respektive todo. Positiv sammanfattande UX-återkoppling 30 oktober är registrerad; inget ospecificerat individuellt användarresultat tillskrivs den.
 
@@ -19,13 +19,13 @@ B01/B05 genomfördes i35, B02/B03/B04/B06 i36 och direkt tilldelning F09 i37; al
 | B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Genomförd; ingår i installerad42 |
 | B07 | P1 | [Behåll valbara lärare vid behovsfilter](../todos/done/2026-10-29-tjanst-ux-b07-ofordelat-doljer-larare.md) | Genomförd; ingår i installerad42 |
 | F01 | P2 | [Ge fördelningsarbetet större plats](../todos/done/2026-10-29-tjanst-ux-f01-mer-arbetsyta-i-tjanstefordelningen.md) | Klar i plan 41; verifierad och installerad |
-| F02 | P2 | [Gör huvudarbetsflödet lättare att hitta](../todos/pending/2026-10-29-tjanst-ux-f02-tydligare-navigation-i-tjanstefordelningen.md) | pending |
+| F02 | P2 | [Gör huvudarbetsflödet lättare att hitta](../todos/pending/2026-10-29-tjanst-ux-f02-tydligare-navigation-i-tjanstefordelningen.md) | Vilande finputs; U1–U8 godkända |
 | F03 | P2 | [Samla sekundära verktyg och tillägg](../todos/done/2026-10-29-tjanst-ux-f03-samla-sekundara-verktyg-i-tjanstefordelningen.md) | Klar i plan 41; verifierad och installerad |
-| F04 | P2 | [Förenkla filter och visningsinställningar](../todos/pending/2026-10-29-tjanst-ux-f04-enklare-filter-och-visningsinstallningar.md) | Delvis hanterad; fortsatt pending |
-| F05 | P2 | [Gör lärarvalet kompakt och enhetligt](../todos/pending/2026-10-29-tjanst-ux-f05-kompakt-gemensamt-lararval.md) | Delvis hanterad; fortsatt pending |
+| F04 | P2 | [Förenkla filter och visningsinställningar](../todos/pending/2026-10-29-tjanst-ux-f04-enklare-filter-och-visningsinstallningar.md) | Vilande finputs; U1–U8 godkända |
+| F05 | P2 | [Gör lärarvalet kompakt och enhetligt](../todos/pending/2026-10-29-tjanst-ux-f05-kompakt-gemensamt-lararval.md) | Vilande finputs; U1–U8 godkända |
 | F06 | P2 | [Gör publiceringshinder synliga och handlingsbara](../todos/done/2026-10-29-tjanst-ux-f06-handlingsbara-publiceringshinder.md) | Klar i plan 41; verifierad och installerad |
-| F07 | P2 | [Förtydliga mobilens läsläge och verksamhetsspråk](../todos/pending/2026-10-29-tjanst-ux-f07-begripligt-mobilt-laslage-och-detaljer.md) | pending |
-| F08 | P3 | [Mät och förbättra matrisen för många lärare](../todos/pending/2026-10-29-tjanst-ux-f08-mat-och-forbattra-stor-tjanstematris.md) | pending |
+| F07 | P2 | [Förtydliga mobilens läsläge och verksamhetsspråk](../todos/pending/2026-10-29-tjanst-ux-f07-begripligt-mobilt-laslage-och-detaljer.md) | Vilande finputs; U1–U8 godkända |
+| F08 | P3 | [Mät och förbättra matrisen för många lärare](../todos/pending/2026-10-29-tjanst-ux-f08-mat-och-forbattra-stor-tjanstematris.md) | Vilande finputs; U1–U8 godkända |
 | F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; ingår i installerad42 |
 
 ## Föreslagen ordning och samordning
