@@ -223,6 +223,17 @@ Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital
 - [ ] **TJANST-06**: Planera nästa läsår i en sammanhållen tjänstefördelning med tomma lärarfält och aktivt valbara förslag från tidigare planering (D-25–D-27). Bevara gjorda val när året kompletteras. Flytta uppdrag mellan personer och massregistrera efter förhandsvisning, med atomär lagring och bevarade tidigare beslut.
 - [ ] **TJANST-07**: Person, anställning, tjänstgöringsgrad och skoluppdrag är separata uppgifter, skilda från systemmandat. En person kan finnas utan konto, och flera skoluppdrag delar samma planerade kapacitet.
 
+### Läsårskalender (fas 05.1.1)
+
+Användarbeslut 2026-10-30: demovyn *Läsår & skoldagar* ska föras in i skyddad drift, med en frontend som så långt som möjligt liknar den, som ett steg mot schemaläggningen. Kraven är registrerade men inte planerade, genomförda eller verifierade.
+
+- [ ] **LASAR-01**: Den skyddade läsårsvyn har demovyns arbetssätt och utseende (veckorader per termin, färgad dagstatus, flerval med högerklicksmeny, sammanfattning mot gränserna, begreppsförklaringar, kommentarer och historik) på dator och telefon. Avvikelser från demovyn redovisas och motiveras.
+- [ ] **LASAR-02**: Rektor föreslår för sina aktuella skolenheter och huvudmannen återsänder eller fastställer. Fastställd kalender är skrivskyddad tills den öppnas igen med orsak. Servern kontrollerar kund, mandat och skolenhet vid varje läsning och skrivning.
+- [ ] **LASAR-03**: Skoldagar, lovdagar, studiedagar, helgdagar, terminsgränser, gymnasiets 40 veckor och långa perioder utan lov kontrolleras i modell och på server vid förslag och fastställande. Fel hindrar och varningar visas.
+- [ ] **LASAR-04**: Avvikande dagar och korta veckor för årskurs eller klass knyts till stabila ID:n för utbildning och klass i stället för textnyckeln `group_key`, med avstämd överföring och bevarade beslut.
+- [ ] **LASAR-05**: Fastställd kalender är versionsbunden med kontrollsumma och läses exakt av tjänstefördelning, timplanens veckotid och schemaläggningen. Ändring efter fastställande ger spårbar avvikelse utan tyst omräkning.
+- [ ] **LASAR-06**: SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data samt uppdaterad och byggd handbokssida verifierar flödet.
+
 ### Klassorganisation (fas 05.3)
 
 Källa: [klassresearchen](research/KLASSER-KULLAR-OCH-PLANER-2026-10-15.md), etapp C. Etapp A–B levererades i fas 5 (CLASS-COHORT).
@@ -338,6 +349,12 @@ Fastställd av användaren 2026-10-19 tillsammans med faslistan. Varje krav har 
 | TJANST-05 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10). CR-01 (Egen tjänst på flera skolor) rättad, provad mot syntetiska data (SQL 44/44, Worker/OIDC 46 kontroller på 7d31489) och installerad lokalt 2026-10-22 (05.1-13; 3012 kör 7d31489). Omverifierad 2026-10-22. Användarprov rapporterat klart 2026-10-23; enskilda delsteg/enheter och gränsfall inte särredovisade |
 | TJANST-06 | Phase 05.1 | Omplanerad enligt D-25–D-27 i [etapp 2](phases/05.1-tjanstefordelning/05.1-ETAPP-2-PLANERING.md): samma arbetsyta, målårets behov med tomma lärarfält och aktivt val av förslag från tidigare planering; explicit flytt/massregistrering med förhandsvisning, atomär lagring och bevarad historik. Implementation och verifiering återstår; kravrutan är fortsatt öppen |
 | TJANST-07 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Användarprov rapporterat klart 2026-10-23; enskilda delsteg/enheter och gränsfall inte särredovisade |
+| LASAR-01 | Phase 05.1.1 | Pending |
+| LASAR-02 | Phase 05.1.1 | Pending |
+| LASAR-03 | Phase 05.1.1 | Pending |
+| LASAR-04 | Phase 05.1.1 | Pending |
+| LASAR-05 | Phase 05.1.1 | Pending |
+| LASAR-06 | Phase 05.1.1 | Pending |
 | SCHEMA-01 | Phase 05.2 | Pending |
 | SCHEMA-02 | Phase 05.2 | Pending |
 | SCHEMA-03 | Phase 05.2 | Pending |
@@ -375,7 +392,7 @@ Fastställd av användaren 2026-10-19 tillsammans med faslistan. Varje krav har 
 | EID-04 | Phase 05.8 | Pending |
 | EID-05 | Phase 05.8 | Pending |
 
-**Coverage, infogade faser:** 43/43 krav mappade; 0 omappade; 0 dubbla ansvariga faser; alla Pending.
+**Coverage, infogade faser:** 49/49 krav mappade (LASAR-01–06 tillagda 2026-10-30 för fas 05.1.1); 0 omappade; 0 dubbla ansvariga faser.
 
 ## Acceptance Boundaries
 

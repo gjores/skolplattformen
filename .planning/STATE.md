@@ -6,7 +6,7 @@ current_phase_name: Tjänstefördelning
 current_plan: "05.1-40 installerad på 3012; användarprov av lärarbyte och åtta UX-förbättringar återstår"
 status: in_progress
 stopped_at: "Förenklat uttryckligt lärarbyte: UI254, domän15, typ/lint och byggen PASS. 3012 kör 8f6a586; konkret tidigare sparfel ej generellt återskapat."
-last_updated: "2026-10-29"
+last_updated: "2026-10-30"
 last_activity: 2026-10-29
 last_activity_desc: "05.1-40 installerad: Byt lärare och Spara för befintlig tilldelning, Fler val för underlag/kommentar/borttagning."
 state_head: 55ea3da
@@ -518,6 +518,7 @@ Phases executed: 3 of 8 (fas 1–3 verifierade lokalt med syntetiska uppgifter)
 - Phase 05.6 inserted after Phase 5: Köpbara moduler (MODUL-01–04, SCHEMA-06) — användarbeslut 2026-10-19
 - Phase 05.7 inserted after Phase 5: SPAR-synk (SPAR-01–05) — användarbeslut 2026-10-19
 - Phase 05.8 inserted after Phase 5: Stark identitet och BankID (EID-01–05) — användarbeslut 2026-10-19
+- Phase 05.1.1 inserted after Phase 05.1: Läsårskalender i skyddad drift: demovyn Läsår & skoldagar förs in med så lik frontend som möjligt, som kalenderunderlag för schemaläggningen (användarbeslut 2026-10-30). Aktuell fas är fortsatt 05.1.
 
 ## Decisions Made
 

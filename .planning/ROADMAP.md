@@ -94,6 +94,7 @@ Heltalsfaser är planerad milstolpeomfattning. Eventuella decimalfaser förs in 
 - [ ] **Phase 4: Beständigt och skyddat elevregister** - Behörig administration kan söka, ändra, följa och exportera rätt elever.
 - [ ] **Phase 5: Bevarade utbildnings- och klassflöden** - Uppskattade skol-, utbildnings- och kullflöden fungerar med den nya säkerhetsgrunden.
 - [ ] **Phase 05.1: Tjänstefördelning** (INSERTED) - Rektor fördelar undervisning och uppdrag, fastställer och publicerar; läraren ser sin tjänst.
+- [ ] **Phase 05.1.1: Läsårskalender i skyddad drift** (INSERTED) - Rektor föreslår och huvudmannen fastställer läsårets kalender i en vy som liknar demovyn; kalenderunderlag för schemat.
 - [ ] **Phase 05.2: Schemaläggning med Rust-schemamotor** (INSERTED) - Schemat beräknas i en egen Rust-tjänst och granskas och publiceras i appen.
 - [ ] **Phase 05.3: Klassorganisation** (INSERTED) - Klassers livscykel, delning, sammanslagning och importerade klasser med bevarad historik.
 - [ ] **Phase 05.4: Lärarbehörigheter** (INSERTED) - Skolverkets behörighetsunderlag matchas mot tjänstefördelning och schema.
@@ -428,10 +429,33 @@ Plancheck av det reviderade paketet: [etapp 2:s granskning](phases/05.1-tjanstef
 
 Arbetstidsavtal, individuell tjänstebedömning och TID-01–12 ingår inte. En senare koppling till tjanstebedomning-appen sker via ett SS 12000-liknande utbyte, inte via delad databas. Import från Plan Digital och BIA-export ingår inte.
 
+### Phase 05.1.1: Läsårskalender i skyddad drift (INSERTED)
+
+**Goal**: Rektor föreslår och huvudmannen fastställer skolenhetens läsårskalender i den skyddade appen: terminernas början och slut, lovdagar, studiedagar, avvikande dagar för årskurs eller klass och korta veckor. Vyn följer så långt som möjligt den uppskattade demovyn *Läsår & skoldagar*. Den fastställda kalendern blir versionsbundet kalenderunderlag för tjänstefördelningen och för schemaläggningen i 05.2.
+**Depends on**: Phase 5 (mandat, skolurval och planeringsår). Tjänstefördelningen i 05.1 läser redan `school_years`; fasen kan påbörjas medan 05.1:s återstående UX-arbete pågår, om användaren vill.
+**Requirements**: LASAR-01, LASAR-02, LASAR-03, LASAR-04, LASAR-05, LASAR-06
+**Success Criteria** (what must be TRUE):
+
+1. Den skyddade vyn har demovyns arbetssätt och utseende: veckorader per termin med veckonummer och månad, färgad dagstatus, markering av flera dagar med högerklicksmeny, sammanfattning mot författningens gränser, begreppsförklaringar med källa, kommentarer och historik. Den fungerar på dator och telefon. Varje avvikelse från demovyn är redovisad och motiverad i planen. (LASAR-01)
+2. Rektor redigerar och föreslår bara för sina aktuella skolenheter. Huvudmannen återsänder eller fastställer. En fastställd kalender är skrivskyddad tills den uttryckligen öppnas igen med angiven orsak. Servern kontrollerar kund, mandat och skolenhet vid varje läsning och skrivning; demovyns rollväxlare finns inte i skyddad drift. (LASAR-02)
+3. Minst 178 skoldagar, minst 12 lovdagar, högst 5 studiedagar, allmänna helgdagar, terminer från augusti till juni, gymnasiets 40 veckor och långa perioder utan lov kontrolleras i modellen och på servern vid förslag och fastställande. Fel hindrar och varningar visas, utan att någon regel luckras upp tyst. (LASAR-03)
+4. Avvikande dagar för årskurs eller klass (nationellt prov, APL, friluftsdag, annat) och fyradagarsveckor i åk 1–2 knyts till stabila ID:n för utbildning och klass i stället för dagens textnyckel `group_key`. Befintliga rader förs över avstämt, och tidigare beslut bevaras. (LASAR-04)
+5. En fastställd kalender har version och kontrollsumma. Tjänstefördelningens IM-behov, timplanens veckotid och schemaläggningen läser exakt den versionen. En ändring efter fastställandet ger spårbar avvikelse i beroende underlag och ingen tyst omräkning. Timplanernas IM-text stämmer med Tjänstefördelning (todo 2026-10-21). (LASAR-05)
+6. SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data visar mandatgränser, regler, fastställande, återöppning och läsning från tjänstefördelningen. Handbokssidan om läsår och skoldagar är uppdaterad och byggd. (LASAR-06)
+
+**Plans**: 0 plans — kör `/gsd-discuss-phase 05.1.1` och därefter `/gsd-plan-phase 05.1.1`.
+**UI hint**: yes
+
+Förlaga är demovyn [`web/app/lasar-view.tsx`](../web/app/lasar-view.tsx) med modellen [`web/lib/lasar-model.ts`](../web/lib/lasar-model.ts) (användarbeslut 2026-10-30: ”Jag vill att frontenden i så stort som möjligt liknar detta”). Modellen och tabellerna `school_years`, `school_year_days`, `school_year_group_days`, `school_year_short_weeks` och `school_year_events` finns redan (migration 20260905170000). I dag fylls de i skyddad drift bara av testfixturer, och ingen skyddad vy eller serverväg skriver dem. Demovyns lokala tillstånd och `signInDemo` används inte i skyddad drift.
+
+**SS 12000:** Planen ska stämma av mot SS 12000:2024 (OpenAPI 2.1.0, som projektet redan har avstämt på schemanivå). Standardens kalenderhändelser avser schemapass. Läsårets terminer, lovdagar och studiedagar har troligen inget eget objekt, vilket ska bekräftas i fasens research och redovisas som utanför standardens omfattning om det stämmer. Skolenhet, klass och utbildning ska ha stabila ID:n som kan bevaras vid utbyte; textnyckeln `group_key` är en känd modellkonflikt som hanteras i LASAR-04 före implementation.
+
+Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassernas livscykel hör till 05.3. Publicering av kalendern till elever och vårdnadshavare ingår inte.
+
 ### Phase 05.2: Schemaläggning med Rust-schemamotor (INSERTED)
 
 **Goal**: Behörig schemaläggare kan beräkna, granska och publicera skolans schema från plan-, tjänste- och kalenderunderlag. Beräkningen körs i en egen Rust-tjänst; resten av appen ligger kvar i TypeScript.
-**Depends on**: Phase 05.1
+**Depends on**: Phase 05.1, Phase 05.1.1 (fastställd läsårskalender som kalenderunderlag)
 **Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, SCHEMA-07, SCHEMA-08
 **Success Criteria** (what must be TRUE):
 
@@ -650,7 +674,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 
 **Etapp 2 genomförs 2026-10-24:** Plan14–21 klara. Plan20 verifierar exakt13 öppna Worker-entrypoints;21 ger sammanhållen arbetsyta och aktiva lärarval. Node84, typ/lint, isolerat bygge samt210 relevanta simulerade fall/profilkombinationer verifierade med redovisade avgränsade omprov; fyra Chromiumprofiler visuellt granskade. Nästa22: faktisk Worker/OIDC och handbok. Installation och nytt användarprov återstår. Ingen ny fasacceptans; äldre statusdetaljer kompletteras av respektive SUMMARY.
 
-**Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.2 → 05.3 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
+**Execution Order:** 1 → 2 → 3 → 4 → 5 → 05.1 → 05.1.1 → 05.2 → 05.3 → 05.4 → 05.5 → 05.6 → 05.7 → 05.8 → 6 → 7 → 8. 05.5, 05.7 och 05.8 beror bara på fas 5 och kan köras parallellt med 05.1–05.4 om användaren vill. Förberedelser för externa anslutningar och drift löper från början; de ändrar inte godkännandegränserna.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -660,6 +684,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 05.1. Tjänstefördelning (INSERTED) | 22/26 | In progress — etapp 1 installerad lokalt 2026-10-21 (05.1-10, svar A). Gap 05.1-11 (CR-01, WR-02) provad i SQL och 05.1-12 (WR-07, CR-01, WR-02) provad faktiskt mot syntetiska data; 05.1-13 (svar A) installerade rättelsen lokalt 2026-10-22, och 3012 kör 7d31489. Omverifierad 2026-10-22: 6/7. Användarprov rapporterat klart 2026-10-23, utan särredovisning av delsteg/enheter. D-25–D-27 tillkom efter planeringen 2026-10-23: en sammanhållen fördelning med förslag på raden och tomma lärarfält för nya behov. Plan 16–25 är omarbetad; 14–21 är nu genomförda och avgränsat verifierade. Sammanhållen arbetsyta provad i simulator och separat bygge; plan22 genomför faktisk HTTP/OIDC-verifiering och handbok, därefter återstår installation och nytt användarprov | - |
+| 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/TBD | Not started | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
