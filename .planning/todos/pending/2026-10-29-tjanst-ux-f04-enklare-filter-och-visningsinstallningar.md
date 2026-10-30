@@ -3,6 +3,8 @@ created: 2026-10-29
 title: "Förenkla filter och visningsinställningar"
 area: tjanstefordelning
 status: pending
+on_hold: true
+review_before_execution: true
 phase: "05.1"
 report_id: F04
 priority: P2
@@ -15,6 +17,10 @@ files:
   - work/ux-review-2026-10-29/rapport.html
 
 ---
+
+## Aktuell prioritering2026-10-30
+
+**Vilande före ny beställning.** Användaren upplever tjänstefördelningen som i stort klar. Stäm av denna äldre punkt mot vad som redan levererats och [det avslutande användarprovet](../../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) innan något mer genomförs. Pending nedan är historisk backloggstatus, inte ett besked om att hela problemet fortfarande finns. Nytt finputs bestäms efter provet; nästa prioritering är klassorganisation inför schema.
 
 ## Problem
 

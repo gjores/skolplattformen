@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-44 installerad på3012; nytt användarprov och fem UX-punkter återstår"
+current_plan: "Tjänstefördelning inväntar senare användarprov; nästa prioritering klassorganisation inför schema"
 status: in_progress
-stopped_at: "44 levererad som982444b på3012; ämnesrubrik och kurskod utan dubbel information. Riktade kontroller PASS."
+stopped_at: "Inget mer tjänste-UX genomförs automatiskt. Inväntar användarprov; klassorganisation är nästa prioriterade område."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
-last_activity_desc: "44: upprepat ämnesnamn borttaget. UI28/typ/lint/skyddat bygge och lokal hälsa PASS; faktiskt88 på6692919 är tidigare bevis."
+last_activity_desc: "Kort tjänsteprov förberett. Äldre UX-finputs vilande tills avstämning. Klassorganisation före schema; salsregister ingår i schemadelens planering."
 state_head: 982444b
 progress:
   total_phases: 8
@@ -25,6 +25,15 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+## Användarprioritering2026-10-30 — avslutande tjänsteprov och nästa område
+
+Användaren upplever tjänstefördelningen som i stort klar och vill göra ett kort användarprov senare innan eventuellt mer finputs beställs. [Provet](phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) är förberett, inte genomfört. Äldre öppna UX-todos är avstämningspunkter, inte automatiska utvecklingsbeställningar. Ingen formell fas-/kravacceptans tillskrivs den sammanfattande återkopplingen.
+
+Klassorganisation prioriteras före schemaläggningen. Befintlig levererad CLASS-COHORT-funktion ska bevaras; precisera vad som faktiskt saknas före ny implementation. Fasnumren ändras inte: förberedande klassunderlag i05.3 kommer före05.2. Slutlig kontroll av konsekvenser för schemautkast iKLASS-04 kan göras först när schemadelen finns, utan att skapa ett cirkulärt beroende. Fastställd kalender05.1.1 är fortsatt nödvändigt schemaunderlag.
+
+Salsregister/salstabell är en uttryckligen önskad del av schemaläggningen. Registerfält, tillgänglighet, kapacitet/egenskaper och detaljroller ska avgränsas vid planeringen, inte behandlas som redan specificerade eller levererade. Stabila identiteter och informationsansvar, inklusive tillämplig SS12000:2024-mappning för klasser/lokaler/resurser, ska stämmas av före implementation. Ingen ny verifierad extern anslutning påstås.
+
 
 **Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Nytt användarprov och fem ursprungliga UX-punkter kvarstår.
 

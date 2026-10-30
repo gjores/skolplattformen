@@ -1,5 +1,8 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
+**Senaste användarbeslut2026-10-30:** Tjänstefördelningen upplevs i stort klar. De fem äldre öppna punkterna är vilande för avstämning, inte fem automatiska implementationer. Ett [kort användarprov för senare](../phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) avgör vad som eventuellt tas vidare. Klassorganisation prioriteras nu inför schemat, där salsregister/salstabell ingår. Ingen ny genomförd UAT eller formell fasacceptans påstås.
+
+
 [Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 återstående** (F02/F04/F05/F07/F08). Senaste funktionella leverans är [05.1-42](../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md), installerad på3012 som6692919. De sex nya browseranteckningarna är genomförda; de fem ursprungliga återstående punkterna har fortsatt egen omfattning.
 
 B01/B05 genomfördes i35, B02/B03/B04/B06 i36 och direkt tilldelning F09 i37; alla ingår i senare installerade leveranser. F01/F03/F06 beställdes och genomfördes i plan 41. F04/F05 är delvis hanterade, med kvarstående omfattning i respektive todo. Positiv sammanfattande UX-återkoppling 30 oktober är registrerad; inget ospecificerat individuellt användarresultat tillskrivs den.

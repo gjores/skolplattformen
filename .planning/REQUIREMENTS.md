@@ -167,6 +167,8 @@ Se [beslut och gränser](phases/05-bevarade-utbildnings-och-klassfloden/05-PLANN
 - **SCHEMA-07**: Ändringar i plan-, grupp-, resurs- och kalendermoduler ger versionsbunden, avstämd synk och synliga konsekvenser i schemat, utan dubbletter, förlorade ändringar eller automatisk ombindning av tidigare beslut.
 - **SCHEMA-08**: Behörig personal kan jämföra, låsa, granska och publicera rätt schemaversion och följa undervisningsbehov, schemalagd, inställd och genomförd tid som skilda uppgifter.
 
+**Förtydligande2026-10-30:** Användaren ser salsregister/salstabell som en självklar del av schemaläggningen. Detta ingår i planeringen av resursunderlag, regler och versionsbunden synk iSCHEMA-01/03/07. Exakta registerfält och villkor återstår att avgränsa; inget stöd är levererat eller verifierat genom denna notering. Klassorganisationens förberedande underlag prioriteras före05.2 enligt uppdaterad ROADMAP; schemaföljder iKLASS-04 verifieras när schemautkast finns. Kravrutor och pilotens historiska antal ändras inte.
+
 ### Lärarlegitimation och undervisningsbehörighet — planeringsöversyn 2026-10-05
 
 Användaren har beställt en översyn av hur Skolverkets lärarregister kan beaktas och integreras. Följande är **föreslagna planeringsmål**, inte fastställda leveranskrav, nya pilotkrav eller verifierade funktioner. [Research och integrationsförslag](research/LARARBEHORIGHET-SKOLVERKET-2026-10-05.md) anger ansvariga steg L1–L4 och framtida verifieringsfall; genomförandeplacering och omfattning återstår. Pilotens 42 krav och deras fasfördelning behålls.

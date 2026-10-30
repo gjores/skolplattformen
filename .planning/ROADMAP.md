@@ -1,5 +1,14 @@
 # Roadmap: Skolplattformen
 
+## Användarprioritering2026-10-30 — avslutande tjänsteprov och nästa område
+
+Användaren upplever tjänstefördelningen som i stort klar och vill göra ett kort användarprov senare innan eventuellt mer finputs beställs. [Provet](phases/05.1-tjanstefordelning/05.1-CLOSING-USER-TRIAL.md) är förberett, inte genomfört. Äldre öppna UX-todos är avstämningspunkter, inte automatiska utvecklingsbeställningar. Ingen formell fas-/kravacceptans tillskrivs den sammanfattande återkopplingen.
+
+Klassorganisation prioriteras före schemaläggningen. Befintlig levererad CLASS-COHORT-funktion ska bevaras; precisera vad som faktiskt saknas före ny implementation. Fasnumren ändras inte: förberedande klassunderlag i05.3 kommer före05.2. Slutlig kontroll av konsekvenser för schemautkast iKLASS-04 kan göras först när schemadelen finns, utan att skapa ett cirkulärt beroende. Fastställd kalender05.1.1 är fortsatt nödvändigt schemaunderlag.
+
+Salsregister/salstabell är en uttryckligen önskad del av schemaläggningen. Registerfält, tillgänglighet, kapacitet/egenskaper och detaljroller ska avgränsas vid planeringen, inte behandlas som redan specificerade eller levererade. Stabila identiteter och informationsansvar, inklusive tillämplig SS12000:2024-mappning för klasser/lokaler/resurser, ska stämmas av före implementation. Ingen ny verifierad extern anslutning påstås.
+
+
 **Användarprov rapporterat klart 2026-10-23:** Användaren meddelar ”användarprovet är klart” efter lägesgenomgången av tjänstefördelningens etapp 1. Provet registreras som användarrapporterat klart och ska inte efterfrågas igen som ett väntande helhetsprov. Roller, enheter, enskilda steg och särskilda gränsfall särredovisas inte i svaret; inga nya tekniska provresultat tillskrivs det. TJANST-06 (etapp 2) och granskningspunkterna, däribland WR-10 och WR-11, kvarstår. Fasstatus är fortsatt gaps_found, 6/7. Nästa steg är att hantera granskningspunkterna och planera etapp 2 enligt D-18.
 
 **Nya faser 05.1–05.8 inlagda 2026-10-19:** Användaren godkände faslistan för tjänstefördelning, schemaläggning med Rust-schemamotor som egen tjänst, klassorganisation, lärarbehörigheter, interkommunal ersättning, köpbara moduler, SPAR-synk samt stark identitet och BankID. Faserna ligger mellan fas 5 och faserna 6–8, som behåller sitt innehåll. Tjänstebedömningen är utflyttad till repot `tjanstebedomning`; se [beslutsdokumentet](phases/05.1-tjanstefordelning/05.1-SPLIT-DECISION.md). Vid införandet var inget planerat eller genomfört i de nya faserna. Aktuellt läge för 05.1 finns ovan och i framstegstabellen. Fas 5 är fortsatt öppen, och historiska 88/100 och 3/8 består. Vid den historiska gapleveransen2026-10-22 installerade05.1-13 migration20261021120000 och3012 körde7d31489; aktuell leverans anges i05.1-avsnittet och STATE.
@@ -510,7 +519,7 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 ### Phase 05.2: Schemaläggning med Rust-schemamotor (INSERTED)
 
 **Goal**: Behörig schemaläggare kan beräkna, granska och publicera skolans schema från plan-, tjänste- och kalenderunderlag. Beräkningen körs i en egen Rust-tjänst; resten av appen ligger kvar i TypeScript.
-**Depends on**: Phase 05.1, Phase 05.1.1 (fastställd läsårskalender som kalenderunderlag)
+**Depends on**: Phase 05.1 (tjänsteunderlag), Phase 05.1.1 (fastställd läsårskalender), Phase 05.3:s förberedande klassunderlag enligt användarprioritering2026-10-30; inte full acceptans av den ännu framtida schemakopplingen iKLASS-04
 **Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, SCHEMA-07, SCHEMA-08
 **Success Criteria** (what must be TRUE):
 
@@ -530,7 +539,7 @@ Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till 
 ### Phase 05.3: Klassorganisation (INSERTED)
 
 **Goal**: Rektor och skoladministratör kan ändra klassorganisationen över tid (livscykel, delning, sammanslagning, befintliga och importerade klasser) med bevarad historik och synliga konsekvenser för tjänstefördelning och schema.
-**Depends on**: Phase 05.2
+**Depends on**: Phase 5 och Phase 05.1; klassorganisationens förberedande del kommer före05.2. Konsekvenser i verkliga schemautkast verifieras tillsammans med05.2 när sådana finns.
 **Requirements**: KLASS-01, KLASS-02, KLASS-03, KLASS-04
 **Success Criteria** (what must be TRUE):
 
