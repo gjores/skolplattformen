@@ -152,6 +152,18 @@ begin
  set_config('app.elective_token_hash',token_hex,true),set_config('app.elective_epoch',expected_epoch::text,true);
  return s;
 end $$;
+-- Called only by the server with its configured idle timeout, after a successful participant operation.
+create function public.elective_participant_touch(sid uuid,ident uuid,token_hex text,expected_epoch integer,idle_seconds integer) returns void
+language plpgsql volatile security definer set search_path=pg_catalog,public as $$
+declare s public.app_sessions;
+begin
+ if idle_seconds is null or idle_seconds<1 or idle_seconds>86400 then raise exception 'Invalid idle policy' using errcode='22023';end if;
+ s:=public.elective_participant_session(sid,ident,token_hex,expected_epoch);
+ if s.last_seen_at<=clock_timestamp()-interval '60 seconds' then
+  update public.app_sessions set last_seen_at=clock_timestamp(),expires_at=least(clock_timestamp()+make_interval(secs=>idle_seconds),absolute_expires_at)
+  where id=s.id and revoked_at is null and expires_at>clock_timestamp() and absolute_expires_at>clock_timestamp();
+ end if;
+end $$;
 create function public.elective_participant_scope(sid uuid,ident uuid,token_hex text,expected_epoch integer,unit uuid,pupil uuid,kind text) returns jsonb
 language plpgsql volatile security definer set search_path=pg_catalog,public as $$
 declare s public.app_sessions;b public.elective_participant_bindings;cust uuid;
@@ -212,8 +224,8 @@ begin
 end $$;
 revoke all on function public.elective_binding_scope(uuid,uuid),public.elective_binding_json(public.elective_participant_bindings),public.elective_binding_audit(text,uuid,uuid),
  public.elective_bindings_read(jsonb),public.elective_binding_command(jsonb),public.elective_binding_status(jsonb),
- public.elective_participant_session(uuid,uuid,text,integer),public.elective_participant_scope(uuid,uuid,text,integer,uuid,uuid,text),public.elective_participant_actor(),
+ public.elective_participant_session(uuid,uuid,text,integer),public.elective_participant_touch(uuid,uuid,text,integer,integer),public.elective_participant_scope(uuid,uuid,text,integer,uuid,uuid,text),public.elective_participant_actor(),
  public.elective_participant_audit(text,uuid,jsonb),public.elective_participant_contexts(uuid,uuid,text,integer) from public,anon,authenticated,skolplattform_worker;
 grant execute on function public.elective_bindings_read(jsonb),public.elective_binding_command(jsonb),public.elective_binding_status(jsonb),
- public.elective_participant_scope(uuid,uuid,text,integer,uuid,uuid,text),public.elective_participant_contexts(uuid,uuid,text,integer) to skolplattform_worker;
+ public.elective_participant_scope(uuid,uuid,text,integer,uuid,uuid,text),public.elective_participant_contexts(uuid,uuid,text,integer),public.elective_participant_touch(uuid,uuid,text,integer,integer) to skolplattform_worker;
 commit;

@@ -47,6 +47,10 @@ try{
  await deny('another child rejected',()=>worker('principalA',t=>scope(t,studentSession,ident,token,1,unit,f.pupils.outside)),['42501']);
  await deny('pupil cannot impersonate guardian',()=>worker('principalA',t=>scope(t,studentSession,ident,token,1,unit,pupil,'guardian')),['42501']);
  await deny('old context epoch rejected',()=>worker('principalA',t=>scope(t,studentSession,ident,token,2)),['40001']);
+ await db`update public.app_sessions set last_seen_at=clock_timestamp()-interval '2 minutes',expires_at=clock_timestamp()+interval '10 seconds' where id=${studentSession}`;
+ await worker('principalA',async t=>{await scope(t);await t`select public.elective_participant_touch(${studentSession},${ident},${token.toString('hex')},1,1800)`;});
+ const refreshed=(await db`select expires_at>clock_timestamp()+interval '25 minutes' as extended,expires_at<=absolute_expires_at as capped,last_seen_at>clock_timestamp()-interval '10 seconds' as touched from public.app_sessions where id=${studentSession}`)[0];assert.ok(refreshed.extended&&refreshed.capped&&refreshed.touched);pass('valid participant activity refreshes idle timeout within absolute cap');
+ await deny('client cannot resurrect expired session through idle refresh',async()=>{await db`update public.app_sessions set expires_at=clock_timestamp()-interval '1 second' where id=${studentSession}`;return worker('principalA',t=>t`select public.elective_participant_touch(${studentSession},${ident},${token.toString('hex')},1,1800)`);},['42501']);
  await db`update public.app_sessions set expires_at=clock_timestamp()-interval '1 second' where id=${studentSession}`;
  await deny('expired live session rejected',()=>worker('principalA',t=>scope(t)),['42501']);
  await db`update public.app_sessions set expires_at=clock_timestamp()+interval '1 hour',revoked_at=clock_timestamp() where id=${studentSession}`;

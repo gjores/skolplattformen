@@ -5,6 +5,7 @@ import { logEvent, type EventInput } from './events.ts';
 import { correlationId, json } from './http.ts';
 import { mandateOperation } from './mandate-route.ts';
 import { readSession, tokenHash } from './session.ts';
+import { serverEnv } from './env.ts';
 
 /** SQL messages and account data never leave this mapping. */
 export async function electiveAuthorityOperation<T>(run:()=>Promise<T>):Promise<T>{return mandateOperation(async()=>{try{return await run();}catch(error){
@@ -31,6 +32,7 @@ async function authenticate(request:Request,corr:string){
  if(!Number.isSafeInteger(epoch)||epoch<1||epoch!==s.epoch)throw new Deny('context_changed',409);
  const bytes=await tokenHash(current.token),hex=Array.from(bytes,b=>b.toString(16).padStart(2,'0')).join('');return{...current,epoch,hex};
 }
+async function touch(tx:Tx,live:Awaited<ReturnType<typeof authenticate>>){const seconds=Number(serverEnv().SESSION_IDLE_SECONDS);if(!Number.isSafeInteger(seconds)||seconds<1||seconds>86400)throw new AuditUnavailable();await electiveAuthorityOperation(()=>tx`select public.elective_participant_touch(${live.session.id},${live.session.identityId},${live.hex},${live.epoch},${seconds})`);}
 function context(request:Request,corr:string,live:Awaited<ReturnType<typeof authenticate>>,authority:ParticipantAuthority|null):SessionContext&{request:Request}{return{sessionId:live.session.id,identityId:live.session.identityId,membershipId:null,assignmentId:null,customerId:authority?.customerId??null,organizerId:authority?.organizerId??null,unitId:authority?.unitId??null,identity:{issuer:live.session.issuer,subject:live.session.subject,authUserId:null},accessFunction:null,appRole:null,scopeKind:'elective_participant',correlationId:corr,request};}
 /** Same cookie, separately locked participant authority. Never an administrative context. */
 export async function participantRoute(request:Request,action:string,opts:{mutating:boolean;scope:ParticipantScope;expectedBindingRevision?:number},handler:(ctx:ParticipantContext,tx:Tx)=>Promise<ParticipantResult>):Promise<Response>{
@@ -44,7 +46,7 @@ export async function participantRoute(request:Request,action:string,opts:{mutat
    if(opts.expectedBindingRevision!==undefined&&opts.expectedBindingRevision!==authority.bindingRevision)throw new Deny('conflict',409);
    const ctx:ParticipantContext={...context(request,corr,live,authority),epoch:live.epoch,authority,request};hint=ctx;
    const value=await handler(ctx,tx);if(!value.event)throw new AuditUnavailable();
-   try{await logEvent(tx,ctx,{...value.event,outcome:'ok'});}catch{throw new AuditUnavailable();}return value;
+   try{await logEvent(tx,ctx,{...value.event,outcome:'ok'});}catch{throw new AuditUnavailable();}await touch(tx,live);return value;
   });return json(result.body,{status:result.status,correlationId:corr,epoch:live.epoch});
  }catch(error){return denyResponse(error,request,corr,action,hint);}
 }
@@ -55,7 +57,7 @@ export async function participantIndexRoute(request:Request):Promise<Response>{
   const result=await withLoginPhase(corr,async tx=>{
    const raw=one(await electiveAuthorityOperation(()=>tx<{result:unknown}[]>`select public.elective_participant_contexts(${live.session.id},${live.session.identityId},${live.hex},${live.epoch}) result`));
    let body;try{body=parseSelfIndex(raw);if(body.epoch!==live.epoch)throw new Error('epoch');}catch{throw new AuditUnavailable();}
-   try{await logEvent(tx,ctx,{action:'elective_self_contexts_read',objectType:'elective_participant',outcome:'ok',details:{count:body.participants.length}});}catch{throw new AuditUnavailable();}return body;
+   try{await logEvent(tx,ctx,{action:'elective_self_contexts_read',objectType:'elective_participant',outcome:'ok',details:{count:body.participants.length}});}catch{throw new AuditUnavailable();}await touch(tx,live);return body;
   });return json(result,{correlationId:corr,epoch:live.epoch});
  }catch(error){return denyResponse(error,request,corr,'elective_self_contexts_read',hint);}
 }
