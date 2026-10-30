@@ -1,3 +1,4 @@
+import { PROGRAMPLAN_LANGUAGES, PROGRAMPLAN_LANGUAGE_LADDERS } from './programplan-languages.ts';
 import { tjanstHashCanonical } from './tjanst-contract.ts';
 /** Internal elective offering contract. These objects do not claim an SS 12000 export. */
 export const ELECTIVE_CONTRACT_VERSION = 'elective_block_v1' as const;
@@ -6,8 +7,9 @@ export const ELECTIVE_ACTIONS = ['save_block', 'apply_groups', 'set_policy', 'op
 export type ElectiveBlockKind = typeof ELECTIVE_BLOCK_KINDS[number];
 export type ElectiveScope = { unitId: string; schoolYear: number };
 export type ElectiveNeedBasis = 'terms' | 'even_split' | 'weekly_calendar';
+export type ElectiveTimeDetailRef = { id: string; revision: number; positionId: string };
 export type ElectiveSource = ElectiveScope & {
-  classId: string; className: string; sourceKey: string; rowKey: string; label: string;
+  classId: string; className: string; sourceKey: string; frameSourceKey: string; timeDetailRef: ElectiveTimeDetailRef | null; rowKey: string; label: string;
   linkRevision: number; timplanId: string; timplanVersion: number; seriesId: string;
   column: string; schoolform: 'gymnasium' | 'grundskola' | 'introduktionsprogram';
   needHt: number | null; needVt: number | null; needBasis: ElectiveNeedBasis;
@@ -19,7 +21,7 @@ export type ElectiveGroupDraft = { id: string; optionId: string; name: string; s
 export type ElectiveGroup = ElectiveGroupDraft & { memberCount: number | null; membershipRevision: number };
 export type ElectiveBlockDraft = { id: string; kind: ElectiveBlockKind; name: string; startsOn: string; endsOn: string;
   sourceRefs: ElectiveSource[]; options: ElectiveOption[]; groups: ElectiveGroupDraft[] };
-export type ElectiveBlock = Omit<ElectiveBlockDraft, 'groups'> & { revision: number; applied: boolean; groups: ElectiveGroup[] };
+export type ElectiveBlock = Omit<ElectiveBlockDraft, 'groups'> & { revision: number; offeringRevision: number; applied: boolean; appliedRevision: number | null; groups: ElectiveGroup[] };
 export type ElectivePolicy = { unitId: string; revision: number; guardianConfirmation: boolean | null };
 export type ElectivePupil = { id: string; name: string; classIds: string[] };
 export type ElectiveRound = { id: string; blockId: string; blockRevision: number; revision: number; offeringRevision: number;
@@ -103,23 +105,33 @@ export function parseElectiveScope(value: unknown): ElectiveScope { const r=elec
 function scopeFields(r: Record<string,unknown>): ElectiveScope { return {unitId:electiveUuid(r.unitId),schoolYear:electiveInteger(r.schoolYear,1900,9998)}; }
 function sameScope(a:ElectiveScope,b:ElectiveScope):void{if(a.unitId!==b.unitId.toLowerCase()||a.schoolYear!==b.schoolYear)electiveFail('elective_scope');}
 export function parseElectiveSource(value: unknown): ElectiveSource {
-  const r=electiveShape(value,['unitId','schoolYear','classId','className','sourceKey','rowKey','label','linkRevision','timplanId','timplanVersion','seriesId','column','schoolform','needHt','needVt','needBasis','blockKind','allowedOptionCodes']);
-  const scope=scopeFields(r),classId=electiveUuid(r.classId),rowKey=electiveText(r.rowKey,160),sourceKey=electiveText(r.sourceKey,250),column=electiveText(r.column,16);
+  const r=electiveShape(value,['unitId','schoolYear','classId','className','sourceKey','frameSourceKey','timeDetailRef','rowKey','label','linkRevision','timplanId','timplanVersion','seriesId','column','schoolform','needHt','needVt','needBasis','blockKind','allowedOptionCodes']);
+  const scope=scopeFields(r),classId=electiveUuid(r.classId),rowKey=electiveText(r.rowKey,160),sourceKey=electiveText(r.sourceKey,320),column=electiveText(r.column,16);
+  const frameSourceKey=electiveText(r.frameSourceKey,250),timeDetailRef=nullable(r.timeDetailRef,v=>{const p=electiveShape(v,['id','revision','positionId']);return {id:electiveUuid(p.id),revision:revision(p.revision),positionId:electiveUuid(p.positionId)};});
   const schoolform=electiveEnum(r.schoolform,['gymnasium','grundskola','introduktionsprogram']);
-  if(sourceKey!==`class_timplan:${classId}:${scope.schoolYear}:${rowKey}`||(schoolform==='gymnasium'?!/^ar[1-3]$/u.test(column):schoolform==='grundskola'?!/^ak[1-9]$/u.test(column):column!=='vecka'))electiveFail('elective_source_identity');
-  return {...scope,classId,className:electiveText(r.className),sourceKey,rowKey,label:electiveText(r.label,300),linkRevision:electiveInteger(r.linkRevision),
+  if(frameSourceKey!==`class_timplan:${classId}:${scope.schoolYear}:${rowKey}`||sourceKey!==(frameSourceKey+(timeDetailRef?`:position:${timeDetailRef.positionId}`:''))||(schoolform==='gymnasium'?!/^ar[1-3]$/u.test(column):schoolform==='grundskola'?!/^ak[1-9]$/u.test(column):column!=='vecka'))electiveFail('elective_source_identity');
+  return {...scope,classId,className:electiveText(r.className),sourceKey,frameSourceKey,timeDetailRef,rowKey,label:electiveText(r.label,300),linkRevision:electiveInteger(r.linkRevision),
     timplanId:electiveUuid(r.timplanId),timplanVersion:revision(r.timplanVersion),seriesId:electiveUuid(r.seriesId),column,
     schoolform,needHt:nullable(r.needHt,v=>electiveInteger(v,0,6000000)),needVt:nullable(r.needVt,v=>electiveInteger(v,0,6000000)),
     needBasis:electiveEnum(r.needBasis,['terms','even_split','weekly_calendar']),blockKind:electiveEnum(r.blockKind,ELECTIVE_BLOCK_KINDS),
     allowedOptionCodes:unique(electiveArray(r.allowedOptionCodes,v=>electiveText(v,80)),x=>x)};
 }
+export function electiveOptionLanguage(levelCode:string,language:unknown):string|null{
+  const ladder=PROGRAMPLAN_LANGUAGE_LADDERS.find(x=>x.steps.some(step=>step.itemCode===levelCode));
+  const needed=ladder?.languageRequired??(levelCode.startsWith('MOD')||['GRGRMSP01','GRGRMOD01'].includes(levelCode));
+  if(language===null){if(needed)electiveFail('elective_language_required');return null;}
+  const code=electiveText(language,16);
+  if(!needed||!PROGRAMPLAN_LANGUAGES.some(l=>l.code===code)||ladder?.languageCode&&ladder.languageCode!==code)electiveFail('elective_language_invalid');
+  return code;
+}
 export function parseElectiveOption(value: unknown): ElectiveOption {
-  const r=electiveShape(value,['id','name','subjectCode','levelCode','language','points']);return {id:electiveUuid(r.id),name:electiveText(r.name),subjectCode:electiveText(r.subjectCode,80),levelCode:electiveText(r.levelCode,80),language:nullable(r.language,v=>electiveText(v,80)),points:nullable(r.points,v=>electiveInteger(v,1,2500))};
+  const r=electiveShape(value,['id','name','subjectCode','levelCode','language','points']),levelCode=electiveText(r.levelCode,80);
+  return {id:electiveUuid(r.id),name:electiveText(r.name),subjectCode:electiveText(r.subjectCode,80),levelCode,language:electiveOptionLanguage(levelCode,r.language),points:nullable(r.points,v=>electiveInteger(v,1,2500))};
 }
 export function parseElectiveGroupDraft(value:unknown):ElectiveGroupDraft{
   const r=electiveShape(value,['id','optionId','name','startsOn','endsOn','classIds','sourceKeys','estimatedPupils']);
   const startsOn=electiveDate(r.startsOn),endsOn=electiveDate(r.endsOn);period(startsOn,endsOn);
-  return {id:electiveUuid(r.id),optionId:electiveUuid(r.optionId),name:electiveText(r.name),startsOn,endsOn,classIds:electiveIds(r.classIds),sourceKeys:unique(electiveArray(r.sourceKeys,v=>electiveText(v,250)),x=>x),estimatedPupils:nullable(r.estimatedPupils,v=>electiveInteger(v,0,10000))};
+  return {id:electiveUuid(r.id),optionId:electiveUuid(r.optionId),name:electiveText(r.name),startsOn,endsOn,classIds:electiveIds(r.classIds),sourceKeys:unique(electiveArray(r.sourceKeys,v=>electiveText(v,320)),x=>x),estimatedPupils:nullable(r.estimatedPupils,v=>electiveInteger(v,0,10000))};
 }
 function groupFromRead(value:unknown):ElectiveGroup{
   const r=electiveShape(value,['id','optionId','name','startsOn','endsOn','classIds','sourceKeys','estimatedPupils','memberCount','membershipRevision']);
@@ -133,27 +145,28 @@ export function parseElectiveBlockDraft(value:unknown):ElectiveBlockDraft{
   const options=unique(electiveArray(r.options,parseElectiveOption,100),o=>o.id),groups=unique(electiveArray(r.groups,parseElectiveGroupDraft,200),g=>g.id);
   if(!sourceRefs.length||!options.length)electiveFail('elective_source_missing');
   if(startsOn!==`${sourceRefs[0].schoolYear}-07-01`||endsOn!==`${sourceRefs[0].schoolYear+1}-06-30`)electiveFail('elective_period_time_source');
+  if(new Set(sourceRefs.map(s=>s.classId)).size!==sourceRefs.length)electiveFail('elective_one_position_per_class');
   for(const source of sourceRefs){sameScope(source,sourceRefs[0]);if(source.blockKind!==kind)electiveFail('elective_frame_mismatch');}
-  for(const option of options){if((kind==='modernLanguage'||kind==='languageChoice')&&!option.language)electiveFail('elective_language_required');if(sourceRefs.some(s=>!s.allowedOptionCodes.includes(option.levelCode)))electiveFail('elective_option_not_allowed');}
+  for(const option of options){if(sourceRefs.some(s=>!s.allowedOptionCodes.includes(option.levelCode)))electiveFail('elective_option_not_allowed');}
   const keys=new Map(sourceRefs.map(s=>[s.sourceKey,s]));
   for(const group of groups){if(!options.some(o=>o.id===group.optionId)||!group.sourceKeys.length||!group.classIds.length||group.startsOn!==startsOn||group.endsOn!==endsOn)electiveFail('elective_group_reference');
     const sources=group.sourceKeys.map(k=>keys.get(k));if(sources.some(s=>!s)||sources.length!==group.classIds.length||sources.some(s=>!group.classIds.includes(s!.classId)))electiveFail('elective_group_reference');}
   return {id:electiveUuid(r.id),kind,name:electiveText(r.name),startsOn,endsOn,sourceRefs,options,groups};
 }
 export function parseElectiveBlock(value:unknown):ElectiveBlock{
-  const r=electiveShape(value,['id','kind','name','startsOn','endsOn','sourceRefs','options','groups','revision','applied']);
-  const groups=electiveArray(r.groups,groupFromRead,200),{revision:rev,applied,...draft}=r;
+  const r=electiveShape(value,['id','kind','name','startsOn','endsOn','sourceRefs','options','groups','revision','offeringRevision','applied','appliedRevision']);
+  const groups=electiveArray(r.groups,groupFromRead,200),{revision:rev,offeringRevision:_offeringRevision,applied,appliedRevision:_appliedRevision,...draft}=r;
   const block=parseElectiveBlockDraft({...draft,groups:groups.map(({memberCount:_n,membershipRevision:_r,...g})=>g)});
-  return {...block,groups,revision:revision(rev),applied:electiveBoolean(applied)};
+  return {...block,groups,revision:revision(rev),offeringRevision:revision(r.offeringRevision),applied:electiveBoolean(applied),appliedRevision:nullable(r.appliedRevision,revision)};
 }
 export function electiveDraftFromBlock(block:ElectiveBlock):ElectiveBlockDraft{
-  const {revision:_revision,applied:_applied,...draft}=block;
+  const {revision:_revision,offeringRevision:_offeringRevision,applied:_applied,appliedRevision:_appliedRevision,...draft}=block;
   return {...draft,groups:draft.groups.map(({memberCount:_n,membershipRevision:_r,...g})=>g)};
 }
 export function parseElectivePolicy(value:unknown):ElectivePolicy{const r=electiveShape(value,['unitId','revision','guardianConfirmation']);return {unitId:electiveUuid(r.unitId),revision:revision(r.revision),guardianConfirmation:nullable(r.guardianConfirmation,electiveBoolean)};}
 export function parseElectiveRound(value:unknown):ElectiveRound{
   const r=electiveShape(value,['id','blockId','blockRevision','revision','offeringRevision','policyRevision','guardianConfirmation','opensAt','closesAt','status','minChoices','maxChoices','optionIds','pupilIds']);
-  const opensAt=electiveInstant(r.opensAt),closesAt=electiveInstant(r.closesAt),minChoices=electiveInteger(r.minChoices,1,100),maxChoices=electiveInteger(r.maxChoices,minChoices,100),optionIds=electiveIds(r.optionIds,100);
+  const opensAt=electiveInstant(r.opensAt),closesAt=electiveInstant(r.closesAt),minChoices=electiveInteger(r.minChoices,1,1),maxChoices=electiveInteger(r.maxChoices,1,1),optionIds=electiveIds(r.optionIds,100);
   if(opensAt>=closesAt||optionIds.length<maxChoices)electiveFail('elective_round_rule');
   return {id:electiveUuid(r.id),blockId:electiveUuid(r.blockId),blockRevision:revision(r.blockRevision),revision:revision(r.revision),offeringRevision:revision(r.offeringRevision),policyRevision:revision(r.policyRevision),guardianConfirmation:electiveBoolean(r.guardianConfirmation),opensAt,closesAt,status:electiveEnum(r.status,['open','closed']),minChoices,maxChoices,optionIds,pupilIds:nullable(r.pupilIds,electiveIds)};
 }
@@ -176,7 +189,7 @@ export function parseElectiveCommand(value:unknown):ElectiveCommand{
     case 'save_block':{const p=electiveShape(r.payload,['expectedBlockRevision','block']),block=parseElectiveBlockDraft(p.block);for(const source of block.sourceRefs)sameScope(source,scope);return {...base,action,payload:{expectedBlockRevision:nullable(p.expectedBlockRevision,revision),block}};}
     case 'apply_groups':{const p=electiveShape(r.payload,['blockId','expectedBlockRevision']);return {...base,action,payload:{blockId:electiveUuid(p.blockId),expectedBlockRevision:revision(p.expectedBlockRevision)}};}
     case 'set_policy':{const p=electiveShape(r.payload,['guardianConfirmation']);return {...base,action,payload:{guardianConfirmation:electiveBoolean(p.guardianConfirmation)}};}
-    case 'open_round':{const p=electiveShape(r.payload,['roundId','blockId','expectedBlockRevision','opensAt','closesAt','minChoices','maxChoices','pupilIds']),opensAt=electiveInstant(p.opensAt),closesAt=electiveInstant(p.closesAt),minChoices=electiveInteger(p.minChoices,1,100),maxChoices=electiveInteger(p.maxChoices,minChoices,100),pupilIds=electiveIds(p.pupilIds,10000);if(opensAt>=closesAt||!pupilIds.length)electiveFail('elective_round_rule');return {...base,action,payload:{roundId:electiveUuid(p.roundId),blockId:electiveUuid(p.blockId),expectedBlockRevision:revision(p.expectedBlockRevision),opensAt,closesAt,minChoices,maxChoices,pupilIds}};}
+    case 'open_round':{const p=electiveShape(r.payload,['roundId','blockId','expectedBlockRevision','opensAt','closesAt','minChoices','maxChoices','pupilIds']),opensAt=electiveInstant(p.opensAt),closesAt=electiveInstant(p.closesAt),minChoices=electiveInteger(p.minChoices,1,1),maxChoices=electiveInteger(p.maxChoices,1,1),pupilIds=electiveIds(p.pupilIds,10000);if(opensAt>=closesAt||!pupilIds.length)electiveFail('elective_round_rule');return {...base,action,payload:{roundId:electiveUuid(p.roundId),blockId:electiveUuid(p.blockId),expectedBlockRevision:revision(p.expectedBlockRevision),opensAt,closesAt,minChoices,maxChoices,pupilIds}};}
     case 'close_round':{const p=electiveShape(r.payload,['roundId','expectedRoundRevision']);return {...base,action,payload:{roundId:electiveUuid(p.roundId),expectedRoundRevision:revision(p.expectedRoundRevision)}};}
     case 'record_choice':{const p=electiveShape(r.payload,['roundId','pupilId','offeringRevision','expectedChoiceRevision','selectedOptionIds']);return {...base,action,payload:{roundId:electiveUuid(p.roundId),pupilId:electiveUuid(p.pupilId),offeringRevision:revision(p.offeringRevision),expectedChoiceRevision:nullable(p.expectedChoiceRevision,revision),selectedOptionIds:electiveIds(p.selectedOptionIds,100)}};}
     case 'confirm_choice':{const p=electiveShape(r.payload,['choiceId','expectedChoiceRevision']);return {...base,action,payload:{choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision)}};}

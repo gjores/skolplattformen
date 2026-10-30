@@ -4,11 +4,11 @@ import { parseElectiveSource, parseElectiveBlockDraft, parseElectiveCommand, par
   parseElectiveReceipt, parseElectiveStatusReply, electiveGroupSourceKey, createElectiveCommandRef, parseElectiveCommandRef } from './elective-block-contract.ts';
 const id=n=>`75300100-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2027};
-const source=(n=2)=>({...scope,classId:id(n),className:'SA27A',sourceKey:`class_timplan:${id(n)}:2027:block:mosp`,rowKey:'block:mosp',
+const source=(n=2)=>({...scope,classId:id(n),className:'SA27A',sourceKey:`class_timplan:${id(n)}:2027:block:mosp`,frameSourceKey:`class_timplan:${id(n)}:2027:block:mosp`,timeDetailRef:null,rowKey:'block:mosp',
   label:'Moderna språk',linkRevision:1,timplanId:id(3),timplanVersion:2,seriesId:id(4),column:'ar1',schoolform:'gymnasium',
   needHt:2700,needVt:2700,needBasis:'terms',blockKind:'modernLanguage',allowedOptionCodes:['MODO1000X']});
 const draft=()=>({id:id(10),kind:'modernLanguage',name:'Språkval SA27',startsOn:'2027-07-01',endsOn:'2028-06-30',sourceRefs:[source()],
-  options:[{id:id(11),name:'Franska',subjectCode:'MODO',levelCode:'MODO1000X',language:'franska',points:100}],
+  options:[{id:id(11),name:'Franska',subjectCode:'MODO',levelCode:'MODO1000X',language:'fr',points:100}],
   groups:[{id:id(12),optionId:id(11),name:'Franska 1',startsOn:'2027-07-01',endsOn:'2028-06-30',classIds:[id(2)],sourceKeys:[source().sourceKey],estimatedPupils:15}]});
 const command=()=>({...scope,commandId:id(20),expectedRevision:1,action:'save_block',payload:{expectedBlockRevision:null,block:draft()}});
 const invalid=run=>assert.throws(run,e=>e.name==='ElectiveBlockError');
@@ -75,4 +75,20 @@ test('kortare grupp eller block får inte ärva hela tillämpningsårets timmar'
  const d=draft();invalid(()=>parseElectiveBlockDraft({...d,startsOn:'2027-08-01'}));
  invalid(()=>parseElectiveBlockDraft({...d,groups:[{...d.groups[0],startsOn:'2027-08-01'}]}));
  invalid(()=>parseElectiveBlockDraft({...d,groups:[{...d.groups[0],endsOn:'2027-12-31'}]}));
+});
+
+test('språkidentitet är kanonisk medan svenska/engelska i GR inte kräver modernt språk',()=>{
+ const d=draft();invalid(()=>parseElectiveBlockDraft({...d,options:[{...d.options[0],language:'Franska'}]}));
+ const ref={...source(),schoolform:'grundskola',column:'ak7',blockKind:'languageChoice',allowedOptionCodes:['GRGRSVE01','GRGRENG01','GRGRMSP01']};
+ const option={...d.options[0],subjectCode:'GRGRSVE01',levelCode:'GRGRSVE01',language:null,points:null};
+ assert.equal(parseElectiveBlockDraft({...d,kind:'languageChoice',sourceRefs:[ref],options:[option]}).options[0].language,null);
+ assert.equal(parseElectiveBlockDraft({...d,kind:'languageChoice',sourceRefs:[ref],options:[{...option,subjectCode:'GRGRENG01',levelCode:'GRGRENG01'}]}).options[0].language,null);
+ invalid(()=>parseElectiveBlockDraft({...d,kind:'languageChoice',sourceRefs:[ref],options:[{...option,subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01'}]}));
+});
+test('en position har egen nyckel och exakt fryst detaljreferens, inte en falsk timplansrad',()=>{
+ const s=source(),positionId=id(40),withPosition={...s,sourceKey:s.frameSourceKey+':position:'+positionId,timeDetailRef:{id:id(41),revision:2,positionId}};
+ assert.deepEqual(parseElectiveSource(withPosition),withPosition);
+ invalid(()=>parseElectiveSource({...withPosition,sourceKey:s.frameSourceKey}));
+ invalid(()=>parseElectiveSource({...withPosition,timeDetailRef:{...withPosition.timeDetailRef,revision:0}}));
+ const d=draft();invalid(()=>parseElectiveBlockDraft({...d,sourceRefs:[s,withPosition]}));
 });

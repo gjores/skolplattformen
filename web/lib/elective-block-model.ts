@@ -6,12 +6,14 @@ import { electiveFail, electiveHash, parseElectiveSource, electiveDate, elective
 export function inheritElectiveTime(input: readonly ElectiveSource[]): { needHt: number; needVt: number; needBasis: ElectiveNeedBasis } {
   if (!input.length) electiveFail('elective_source_missing');
   const sources=input.map(parseElectiveSource),first=sources[0];
+  if(new Set(sources.map(s=>s.classId)).size!==sources.length)electiveFail('elective_one_position_per_class');
   if(sources.some(s=>s.unitId!==first.unitId||s.schoolYear!==first.schoolYear))electiveFail('elective_source_scope');
   if(sources.some(s=>s.needHt===null||s.needVt===null))electiveFail('elective_time_missing');
   if(sources.some(s=>s.needHt!==first.needHt||s.needVt!==first.needVt||s.needBasis!==first.needBasis))electiveFail('elective_time_conflict');
   return {needHt:first.needHt!,needVt:first.needVt!,needBasis:first.needBasis};
 }
 export function validateElectiveSelection(round:ElectiveRound,pupilId:string,selected:readonly string[],offeringRevision:number,now:string):string[]{
+  if(round.minChoices!==1||round.maxChoices!==1)electiveFail('elective_combination_not_supported');
   const ids=electiveIds(selected,100),pupil=electiveUuid(pupilId),at=electiveInstant(now);
   if(round.status!=='open'||at<round.opensAt||at>round.closesAt)electiveFail('elective_round_closed');
   if(offeringRevision!==round.offeringRevision)electiveFail('elective_stale_offer');
