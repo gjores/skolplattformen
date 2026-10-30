@@ -1,0 +1,783 @@
+{
+  "revision": "785b4ff0f769342dac0c43a6a28becca7830dfc3",
+  "sources": [
+    {
+      "path": "web/app/tjanst-action-menu.tsx",
+      "sha256": "557bab7b156f2b63dbe4ceaca17e99811d897a1b320462411720758581076819"
+    },
+    {
+      "path": "web/app/tjanst-lens-bar.tsx",
+      "sha256": "8743c81bb7cfa0d9f3da8acc5f7561f2832e7de3cdb39b7568e8cae88aca1b0c"
+    },
+    {
+      "path": "web/app/tjanst-matrix.tsx",
+      "sha256": "b7bd5cee0c68dffe9bb939ea5e25fda9ab541ca33bc450617b02d2fb176d695f"
+    },
+    {
+      "path": "web/app/tjanst-planning-bar.tsx",
+      "sha256": "8b02e10d0138850579b3f0d214b8ec995f604dd9b60736a643d51f49241c9e03"
+    },
+    {
+      "path": "web/app/tjanst-publish-panel.tsx",
+      "sha256": "59d79f5e392576ce4d3f84ee6ca2810e01bd12a288ffcdd22714009e145532c1"
+    },
+    {
+      "path": "web/app/tjanst-workspace.tsx",
+      "sha256": "69ae1714557caa084ad5ae5991ffce7d004626c4f84ef2459dd2bed055aa7473"
+    },
+    {
+      "path": "web/app/tjanst.css",
+      "sha256": "c6999811ae9a94c066d2f165e702d041b6460ef2912964daefa6ba7715008d1d"
+    },
+    {
+      "path": "web/lib/tjanst-blocker-actions.ts",
+      "sha256": "cf94039f6fb988a6b00c9987d49bc39c602c5b9ba71f0470dab3bfd796a15bce"
+    },
+    {
+      "path": "web/lib/tjanst-blocker-actions.test.mjs",
+      "sha256": "b8ba115a58a2d5a80eefdc243bcc8b2f0c54e36a233dc3fdca9bb53135e8b933"
+    },
+    {
+      "path": "web/e2e/fixtures/tjanst-preview.tsx",
+      "sha256": "56840a8a730c9045d2ba381ded890a0da149395308d3fc929702b54ccf7577e0"
+    },
+    {
+      "path": "web/e2e/tjanst-actual.spec.ts",
+      "sha256": "55209fd98d8f19c01a2d7d336941a6a60e6c0d321f55e8a4d3001afcf4696df4"
+    },
+    {
+      "path": "web/e2e/tjanst-oneclick.spec.ts",
+      "sha256": "ebb8081fe15f1096ec6018fef9608718cf5f871294f17d3a3b1a0f80b831e9b7"
+    },
+    {
+      "path": "web/e2e/tjanst-p1-class.spec.ts",
+      "sha256": "f23c391a78a82bf3babca5a7bd17444d33a51995a340f7efaef3713e7044597a"
+    },
+    {
+      "path": "web/e2e/tjanst-p1-drafts.spec.ts",
+      "sha256": "b0d8cb5617e0bafa06f0f8c6ed16d9172151692daffd5ef91e6913eda370bcd4"
+    },
+    {
+      "path": "web/e2e/tjanst-p2-navigation.spec.ts",
+      "sha256": "96ccf7c864f1f0628f42fb11a7e2e93ebd26b53434f1edef42bf33fb3d655244"
+    },
+    {
+      "path": "web/e2e/tjanst-staff.spec.ts",
+      "sha256": "2e0ceb2a39afd9b9de9aea1da418d4cade662c84604c53a92810926466649e6c"
+    },
+    {
+      "path": "web/e2e/tjanst-toolbar.ts",
+      "sha256": "c2e7c01dd194b4bf3493e4fed32827ae6a7d2d98799b72c1e2d24b7b0488d1b1"
+    },
+    {
+      "path": "web/e2e/tjanst-ui.spec.ts",
+      "sha256": "5d36a276a7bcbdd51598371562e1d1f0e54fe329401b1b7a428ae70cba021228"
+    },
+    {
+      "path": "web/e2e/tjanst-workspace-ux.spec.ts",
+      "sha256": "e8931b7afc9709071e3661bcaeca4f551f63d721667788ea422b5313d1e64405"
+    },
+    {
+      "path": "web/e2e/tjanst-year.spec.ts",
+      "sha256": "e88c42ef6981ddb205fbeb4ac967f51c81977c42fd9e33cd47d0206a85822cd3"
+    },
+    {
+      "path": "web/playwright.tjanst-oneclick.config.ts",
+      "sha256": "91b330eb955cd8a27d552478b28f482cdb2e4db430f1d6af1b834228c685d9c8"
+    }
+  ],
+  "checks": {
+    "nodeTests": 56,
+    "typescript": "PASS",
+    "lint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "syntheticUI": {
+    "startTime": "2026-10-30T08:37:26.130Z",
+    "duration": 266468.764,
+    "expected": 274,
+    "skipped": 198,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "syntheticStaffYearUI": {
+    "startTime": "2026-10-30T08:41:53.324Z",
+    "duration": 193702.262,
+    "expected": 134,
+    "skipped": 70,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "actual": {
+    "status": "PASS",
+    "checks": 88,
+    "casesPerProject": {
+      "desktop": {
+        "required": 56,
+        "passed": 56
+      },
+      "desktop-small": {
+        "required": 13,
+        "passed": 13
+      },
+      "phone": {
+        "required": 10,
+        "passed": 10
+      },
+      "phone-small": {
+        "required": 9,
+        "passed": 9
+      }
+    },
+    "projects": [
+      "desktop",
+      "desktop-small",
+      "phone",
+      "phone-small"
+    ],
+    "browsers": {
+      "desktop": {
+        "name": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": {
+          "width": 1440,
+          "height": 900
+        }
+      },
+      "desktop-small": {
+        "name": "chromium",
+        "version": "153.0.8010.12",
+        "viewport": {
+          "width": 1024,
+          "height": 768
+        }
+      },
+      "phone": {
+        "name": "webkit",
+        "version": "26.6",
+        "viewport": {
+          "width": 390,
+          "height": 664
+        }
+      },
+      "phone-small": {
+        "name": "webkit",
+        "version": "26.6",
+        "viewport": {
+          "width": 320,
+          "height": 740
+        }
+      }
+    },
+    "notExecuted": [],
+    "candidateSourceBinding": {
+      "revision": "785b4ff0f769342dac0c43a6a28becca7830dfc3",
+      "fileCount": 1108,
+      "manifestSha256": "d472a7e5d4716a3c16c35507e65c599946466ae9ff9732895d3ab6cf39d7848c",
+      "matched": true
+    },
+    "originalArtifactSha256": "321497e45bd15dcdaab58ec28833b689b6d0f65ae0d58e624b894362c3d73a05",
+    "originalArtifactFiles": 1370,
+    "startedAt": "2026-10-30T08:38:03.554Z",
+    "finishedAt": "2026-10-30T08:51:20.248Z",
+    "cleanup": {
+      "oidcCleanup": "complete",
+      "runtimeCleanup": "complete",
+      "snapshotCleanup": "complete"
+    },
+    "targetUnchanged": true,
+    "originalArtifactPreserved": true,
+    "buildCopyRemoved": true,
+    "cases": [
+      {
+        "project": "desktop",
+        "case": "spår",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "GR/IM-klass i Timplaner med behov",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "okopplad klass utan nollor",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "ny version: läraren ser den tidigare",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "äldre version skrivskyddad (D-24)",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "fördela tom cell",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "person utan konto får rader",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "annan skola och annat läsår nekas",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "specialuppdrag",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "två lärare på samma kurs",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "samläsning räknas en gång",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "utkastlärare från rektor",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "administratör utan knapp och 403 vid publicering",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "kvittens till tjanst_feedback",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "versionshistorik med aktör och tid",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "huvudmannens Bemanning utan beslutsknapp och 403 vid publicering",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "personal: utan konto och utkastlärare",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "andelar 60 % + 40 % sparas och 60 % + 50 % nekas med engångskod",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "rektor B ser bara Andel här 40 %",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tillstånd: 403",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "två flikar: den andra får 409",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "avbrutet svar återhämtas via status",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tillstånd: laddning",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tillstånd: loggfel",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tillstånd: MFA",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tillstånd: context_changed",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "Bemanning: Visa fördelningen visar publicerad version trots utkast",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "tangentbord, fokus och 44 px",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "Egen tjänst på två skolor: rektor B ger mandatet i Mandat och läraren kvitterar på B (CR-01)",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "samläsning: lärarbyte på samläst rad nekas och ogiltig samläsning stoppar publicering (WR-02)",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-01 verkliga Gy25-GR-IM-behov och tomma nya lärarfält",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-02 historik föreslår utan att tilldela",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-03 aktivt val och direkt Spara tjänsteraden",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-04 manuellt påbörjad plan bevaras",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-05 namntvilling, ny klass och obelagd nivå binds till rätt ID",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-06 delår, giltighetsdatum och okänd behörighet",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-07 valfri historik fallerar men manuellt val fungerar",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-08 vanlig ändring efter publicering bevarar self-vyn",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-09 ändrad personandel via annan session nekar fryst rad",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-10 ändrad klasskälla via annan session nekar fryst rad",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-11 ny historisk publicering via annan session nekar fryst förslagsval",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-12 kontextlös payload nekas utan delresultat",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-13 explicit helgruppsflytt flyttar samläsningen och bevarar andra lärares rader",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-22 samläsning med olika lärare nekas och äldre blandad grupp blockerar publicering",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-23 kursklick, samläsningsmärke och varning för APL-skillnad",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-24 relevanta lärarkolumner, fäst lärare och linsen Ofördelat",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-25 Fördela: förslagsval och manuellt val sparas direkt, inaktuellt underlag läses om",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-26 två lärare på samma behov: hinder, samtidigt och en i taget, betygssättare, nekad samläsning och Min tjänst",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-14 massarbete 100 plus 1 i påbörjad plan",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-15 loggfel stoppar radstöd och batchpreview",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-18 administratörens lärarval och nekade roller/skolor",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-19 WR10 repareras genom explicit flytt och tomkolumnsborttagning",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-20 tomkolumnsborttagning nekar kvarvarande uppdrag och replay är ofarligt",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-16 tappat normalt svar återhämtas med samma kommando",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-17 vanligt kommando och batch delar journalspärr",
+        "ok": true
+      },
+      {
+        "project": "desktop",
+        "case": "YEAR-21 sena svar, uppdaterat stöd och storleksbyte bevarar aktiva inmatningar",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "fördela",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "samläsning",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "tangentbord, fokus och 44 px",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "publicera",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-01 verkliga Gy25-GR-IM-behov och tomma nya lärarfält",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-02 historik föreslår utan att tilldela",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-03 aktivt val och direkt Spara tjänsteraden",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-04 manuellt påbörjad plan bevaras",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-06 delår, giltighetsdatum och okänd behörighet",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-13 explicit helgruppsflytt flyttar samläsningen och bevarar andra lärares rader",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-14 massarbete 100 plus 1 i påbörjad plan",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-17 vanligt kommando och batch delar journalspärr",
+        "ok": true
+      },
+      {
+        "project": "desktop-small",
+        "case": "YEAR-21 sena svar, uppdaterat stöd och storleksbyte bevarar aktiva inmatningar",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "Min tjänst på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "Per lärare på telefon utan redigeringskontroller",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "Bemanning på telefon utan redigeringskontroller",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "44 px på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "Bemanning: Visa fördelningen visar publicerad version trots utkast",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "Min tjänst med två skolkort på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "PHONE-YEAR-01 publicerad tjänst består under pågående ändring",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "PHONE-YEAR-02 nya rad-, batch- och tomkolumnsåtgärder saknas",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "PHONE-YEAR-03 aktuell publicering kan läsas och kvitteras",
+        "ok": true
+      },
+      {
+        "project": "phone",
+        "case": "PHONE-YEAR-04 år, delår och innehåll läsbara utan sidledsrullning",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "Min tjänst på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "Per lärare på telefon utan redigeringskontroller",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "Bemanning på telefon utan redigeringskontroller",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "44 px på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "Min tjänst med två skolkort på telefon",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "PHONE-YEAR-01 publicerad tjänst består under pågående ändring",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "PHONE-YEAR-02 nya rad-, batch- och tomkolumnsåtgärder saknas",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "PHONE-YEAR-03 aktuell publicering kan läsas och kvitteras",
+        "ok": true
+      },
+      {
+        "project": "phone-small",
+        "case": "PHONE-YEAR-04 år, delår och innehåll läsbara utan sidledsrullning",
+        "ok": true
+      }
+    ]
+  },
+  "controlledFullAppGeometry": [
+    {
+      "project": "desktop",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "beforeRevision": "8f6a58612b10409035ec8710a8b503a3281b39b0",
+      "afterRevision": "785b4ff0f769342dac0c43a6a28becca7830dfc3",
+      "before": {
+        "x": 297,
+        "y": 1189.640625,
+        "width": 760,
+        "height": 114
+      },
+      "after": {
+        "x": 273,
+        "y": 616.796875,
+        "width": 760,
+        "height": 114
+      },
+      "teacherAfter": {
+        "x": 817,
+        "y": 651.296875,
+        "width": 120,
+        "height": 44
+      },
+      "firstNeedMovedUpPx": 572.84,
+      "kind": "controlled_synthetic_full_shell_unfiltered"
+    },
+    {
+      "project": "desktop-small",
+      "viewport": {
+        "width": 1024,
+        "height": 768
+      },
+      "beforeRevision": "8f6a58612b10409035ec8710a8b503a3281b39b0",
+      "afterRevision": "785b4ff0f769342dac0c43a6a28becca7830dfc3",
+      "before": {
+        "x": 277,
+        "y": 1405.921875,
+        "width": 760,
+        "height": 114
+      },
+      "after": {
+        "x": 273,
+        "y": 655.796875,
+        "width": 760,
+        "height": 114
+      },
+      "teacherAfter": {
+        "x": 817,
+        "y": 690.296875,
+        "width": 120,
+        "height": 44
+      },
+      "firstNeedMovedUpPx": 750.12,
+      "kind": "controlled_synthetic_full_shell_unfiltered"
+    }
+  ],
+  "actualClassFilteredGeometry": [
+    {
+      "project": "desktop",
+      "geometry": {
+        "width": 1440,
+        "scrollWidth": 1440,
+        "viewport": {
+          "w": 1440,
+          "h": 900
+        },
+        "details": {
+          "firstNeed": {
+            "x": 273,
+            "y": 603.859375,
+            "width": 760,
+            "height": 139
+          },
+          "teacher": {
+            "x": 817,
+            "y": 650.859375,
+            "width": 120,
+            "height": 44
+          },
+          "first44pxVisible": true,
+          "workingClass": "SYNBF1",
+          "menusInitiallyClosed": true
+        }
+      },
+      "screenshotSha256": "06a00a950b785bc4c643ff9945f6eca6ea28a15b97d5acbca23bac602bcb769d",
+      "privateScreenshotRetained": true
+    },
+    {
+      "project": "desktop-small",
+      "geometry": {
+        "width": 1024,
+        "scrollWidth": 1024,
+        "viewport": {
+          "w": 1024,
+          "h": 768
+        },
+        "details": {
+          "firstNeed": {
+            "x": 273,
+            "y": 674.859375,
+            "width": 760,
+            "height": 114
+          },
+          "teacher": {
+            "x": 817,
+            "y": 709.359375,
+            "width": 120,
+            "height": 44
+          },
+          "first44pxVisible": true,
+          "workingClass": "SYNGR8",
+          "menusInitiallyClosed": true
+        }
+      },
+      "screenshotSha256": "bdde645a5bac8443344b9b301a358d3dd03a192c644ada802944b8573a389f5e",
+      "privateScreenshotRetained": true
+    }
+  ],
+  "baselineHarnessSha256": "8f9bec5812c8259510607c00e26352283335c9b5461f5f53ffb9ea3edaaf6759",
+  "firstActualAttempt": {
+    "revision": "f04c2bf6004fef4e7a2c3e7127e1ef7927838f23",
+    "status": "FAIL",
+    "registeredChecks": 20,
+    "causes": [
+      "test_raced_compact_editor_mount",
+      "unfiltered_geometry_with_long_context_missing_class_and_add_notice"
+    ],
+    "cleanup": "complete",
+    "targetUnchanged": true,
+    "originalArtifactPreserved": true
+  },
+  "intermediateActual": {
+    "revision": "f602125940fa7a6cf156029ecf4cd03c903d0330",
+    "status": "PASS",
+    "checks": 88,
+    "subsequentVisualFinding": "right_aligned_action_menu_was_clipped_then_fixed_in_final_revision"
+  },
+  "limitations": [
+    "Synthetic data and isolated PostgreSQL/OIDC; no municipal integration or formal phase acceptance.",
+    "Controlled unfiltered geometry uses the same valid fixture before and after. Actual geometry uses an explicit persisted working class and shows Filter/Rensa; clearing the filter restores deliberately unlinked classes.",
+    "Warnings, open panels and confirmations can push working rows below the initial viewport.",
+    "F02/F04/F05/F07/F08 remain; F04/F05 partially addressed.",
+    "Original general teacher-save failure was not reproduced; positive user feedback applies to the latest earlier UX, not enumerated trial cases."
+  ]
+}

@@ -3,28 +3,30 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-40 installerad på 3012; användarprov av lärarbyte och åtta UX-förbättringar återstår"
+current_plan: "05.1-41 installerad på 3012; fem UX-förbättringar återstår"
 status: in_progress
-stopped_at: "Förenklat uttryckligt lärarbyte: UI254, domän15, typ/lint och byggen PASS. 3012 kör 8f6a586; konkret tidigare sparfel ej generellt återskapat."
+stopped_at: "Arbetsyta, verktyg och hinder levererade som 785b4ff; UI 274/personal/år 134/domän 56/faktiskt prov 88 PASS, full städning och lokal hälsa PASS."
 last_updated: "2026-10-30"
-last_activity: 2026-10-29
-last_activity_desc: "05.1-40 installerad: Byt lärare och Spara för befintlig tilldelning, Fler val för underlag/kommentar/borttagning."
-state_head: 55ea3da
+last_activity: 2026-10-30
+last_activity_desc: "05.1-41 installerad; planstatus avstämd och F01/F03/F06 avslutade."
+state_head: 785b4ff
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 0814b2840587b38f361bb7a4e96cd1ad617629a7
-verification_worker_status: historical_05_1_38_pass_0814b28_not_rerun_for_40
+verification_worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
+verification_worker_status: pass_05_1_41_full_frozen_88
 worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 8f6a58612b10409035ec8710a8b503a3281b39b0
+worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
 milestone_name: milestone
 ---
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+**Aktuellt 2026-10-30 — 05.1-41 installerad:** Mer arbetsyta, samlade verktyg och handlingsbara publiceringshinder är genomförda. Lokal 3012 kör **785b4ff**, samma frysta artefakt som har faktiskt Worker/OIDC/PostgreSQL PASS **88/88** (56/13/10/9), UI 274, personal/år 134, domän 56, typ/lint/byggen/handbok PASS. Etapp 2:s14–25 och senare26–40 är redan genomförda. F01/F03/F06 är klara; fem UX-punkter återstår (F02/F04/F05/F07/F08, F04/F05 delvis). [Resultat](phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md). Positiv återkoppling på tidigare senaste UX är registrerad; nytt prov av plan 41 kan nu göras. Det ursprungliga generella sparfelet är inte reproducerat. Formella kravrutor, samlad fasacceptans och historiska pilotantal ändras inte.
 
 **05.1-40 installerad 2026-10-29:** Befintlig namngiven tilldelning har Byt lärare och explicit Spara; Fler val samlar kommentar, underlag och borttagning. Kort namnsökning och dubblettspärr. Ny/vakant rad behåller direktval. UI254, domän15, typ/lint och båda byggena PASS; hälsa/nio tillgångar PASS. 3012 kör fryst 8f6a586; 1d2b0ec finns för återgång. Ingen migration eller ny faktisk OIDC/databasserie. Tidigare rapporterat generellt sparfel ej reproducerat; användarprov av konkret fall och åtta förbättringar återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md).
 
@@ -433,15 +435,15 @@ Phase: 05 (Bevarade utbildnings- och klassflöden) — 05-01–05-16, 05-18–05
 Fas 4: 04-01–04-21, 04-23, 04-24 och 04-25 klara; mänsklig checkpoint 04-22 kvarstår separat.
 Fas 1: 10 av 10 planer genomförda och verifierade 2026-09-12 (`01-VERIFICATION.md`, status passed).
 Fas 2: 12 av 12 planer genomförda och verifierade 2026-09-21 (`02-VERIFICATION.md`, status passed).
-**Current Phase:** 05
-**Current Phase Name:** Bevarade utbildnings- och klassflöden
+**Historisk Current Phase:** 05
+**Historisk Current Phase Name:** Bevarade utbildnings- och klassflöden
 **Total Phases:** 8
-**Current Plan:** CLASS-COHORT-01, redo efter plancheck PASS; endast paketets beroendekedja ska genomföras.
+**Historisk Current Plan:** CLASS-COHORT-01, redo efter plancheck PASS; endast paketets beroendekedja ska genomföras.
 **Total Plans in Phase:** Historiska totalsiffror är inte omräknade. CLASS-COHORT och tidigare namngivna tillägg redovisas separat i sina paketöversikter.
-**Status:** CLASS-COHORT plancheck PASS; genomförande ej startat. Godkända användarprov består; full fasacceptans och äldre integritetsavvikelser är fortsatt öppna.
+**Historisk Status:** CLASS-COHORT plancheck PASS; genomförande ej startat. Godkända användarprov består; full fasacceptans och äldre integritetsavvikelser är fortsatt öppna.
 **Detailed scope:** Approved — användaren godkände 42 detaljkrav och färdplanens åtta faser 2026-09-11.
-**Last Activity:** 2026-10-15
-**Last Activity Description:** Elva planer granskade mot kod, bekräftad omfattning och SS 12000; nästa är CLASS-COHORT-01.
+**Historisk Last Activity:** 2026-10-15
+**Historisk Last Activity Description:** Elva planer granskade mot kod, bekräftad omfattning och SS 12000; nästa är CLASS-COHORT-01.
 
 **Senaste förtydligande:** Jev och liknande AI ska utvärderas för schemamodulen, inte specificeras som obligatorisk produktfunktion. SCHEMA-05 och S2 anger jämförelse mot samma motor utan AI och dokumenterad rekommendation; att avstå är ett giltigt utfall. Kunden ska kunna köpa moduler var för sig. MODUL-01–04 tillagda för separat modultillgång/personmandat, externa databeroenden och tillägg/avslut med bevarade ID:n/historik. S1/S4 utökade med kontrakt och provmål; modulkatalog, priser och beställnings-/betalningsprocess återstår.
 

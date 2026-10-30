@@ -1,0 +1,77 @@
+{
+  "installedAt": "2026-10-30T08:52:11.046Z",
+  "revision": "785b4ff0f769342dac0c43a6a28becca7830dfc3",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "actualArtifactEqual": true,
+  "artifactSha256": "321497e45bd15dcdaab58ec28833b689b6d0f65ae0d58e624b894362c3d73a05",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/tjanst/plan/lasa",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/elever/lista",
+      "method": "POST",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/933336b2-8a20-4596-a1e3-6409279144a8/_buildManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/933336b2-8a20-4596-a1e3-6409279144a8/_ssgManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-8f6a586",
+  "migrationsApplied": false,
+  "validation": "frozen_actual_worker_oidc_postgres_and_synthetic_ui",
+  "humanAcceptance": "awaiting_new_user_trial_41"
+}

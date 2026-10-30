@@ -1,29 +1,29 @@
 # Tjänstefördelning — UX-todos 2026-10-29
 
-[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). Användaren beställde att alla fynd och förbättringar skulle registreras som GSD-todos. 16 registrerade punkter (åtta genomförda — sju buggar och F09 — samt åtta väntande förbättringar): sex ursprungliga UI-/UX-fel (B01–B06), användarfynd B07 och nio förbättringar (F01–F09).
+[Rapport med skärmbilder](../../work/ux-review-2026-10-29/rapport.html). 16 registrerade punkter: **11 genomförda** (B01–B07 samt F01/F03/F06/F09) och **5 återstående** (F02/F04/F05/F07/F08). Senaste leverans är [05.1-41](../phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md), installerad på 3012 som 785b4ff.
 
-F09 tillkom efter användarens önskemål om direkt tilldelning med ett klick i matrisen och dialog för avancerade val. Övriga förbättringar är rapportförslag att konkretisera i planering. Den ursprungliga registreringen innebar ingen implementation. B01 och B05 har därefter rättats lokalt i [05.1-35](../phases/05.1-tjanstefordelning/05.1-35-SUMMARY.md), utan installation eller ny kravacceptans; B02/B03/B04/B06 har därefter rättats lokalt i [05.1-36](../phases/05.1-tjanstefordelning/05.1-36-SUMMARY.md). F09 har genomförts och provats i [05.1-37](../phases/05.1-tjanstefordelning/05.1-37-SUMMARY.md), utan installation. Åtta förbättringar väntar. Aktuellt genomförandearbete i STATE ersätts inte.
+B01/B05 genomfördes i35, B02/B03/B04/B06 i36 och direkt tilldelning F09 i37; alla ingår i senare installerade leveranser. F01/F03/F06 beställdes och genomfördes i plan 41. F04/F05 är delvis hanterade, med kvarstående omfattning i respektive todo. Positiv sammanfattande UX-återkoppling 30 oktober är registrerad; inget ospecificerat individuellt användarresultat tillskrivs den.
 
 ## Uppföljning
 
 | Rapport-ID | Prioritet | GSD-todo | Status |
 | --- | --- | --- | --- |
-| B01 | P1 | [Visa klassens underlag utan dolda filter](../todos/done/2026-10-29-tjanst-ux-b01-dolda-filter-i-klassvyn.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/done/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/done/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/done/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B05 | P1 | [Bevara osparad tid vid byte av vy](../todos/done/2026-10-29-tjanst-ux-b05-bevara-osparad-tid-i-fordela.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Klar lokalt; komponentprov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
-| B07 | P1 | [Behåll valbara lärare vid behovsfilter](../todos/done/2026-10-29-tjanst-ux-b07-ofordelat-doljer-larare.md) | Installerad på 3012 (1d2b0ec); UI248 PASS, användarprov väntar |
-| F01 | P2 | [Ge fördelningsarbetet större plats](../todos/pending/2026-10-29-tjanst-ux-f01-mer-arbetsyta-i-tjanstefordelningen.md) | pending |
+| B01 | P1 | [Visa klassens underlag utan dolda filter](../todos/done/2026-10-29-tjanst-ux-b01-dolda-filter-i-klassvyn.md) | Genomförd; ingår i installerad41 |
+| B02 | P2 | [Visa ofördelade behov i kursvyn](../todos/done/2026-10-29-tjanst-ux-b02-kursvy-for-ofordelade-behov.md) | Genomförd; ingår i installerad41 |
+| B03 | P2 | [Låt lärarsökningen omfatta förslag](../todos/done/2026-10-29-tjanst-ux-b03-lararsokning-filtrerar-alla-kandidater.md) | Genomförd; ingår i installerad41 |
+| B04 | P2 | [Gör terminsväljarens effekt tydlig](../todos/done/2026-10-29-tjanst-ux-b04-terminsval-i-alla-vyer.md) | Genomförd; ingår i installerad41 |
+| B05 | P1 | [Bevara osparad tid vid byte av vy](../todos/done/2026-10-29-tjanst-ux-b05-bevara-osparad-tid-i-fordela.md) | Genomförd; ingår i installerad41 |
+| B06 | P2 | [Bevara kursfiltret vid omladdning och navigation](../todos/done/2026-10-29-tjanst-ux-b06-bevara-kursfilter-i-navigationshistoriken.md) | Genomförd; ingår i installerad41 |
+| B07 | P1 | [Behåll valbara lärare vid behovsfilter](../todos/done/2026-10-29-tjanst-ux-b07-ofordelat-doljer-larare.md) | Genomförd; ingår i installerad41 |
+| F01 | P2 | [Ge fördelningsarbetet större plats](../todos/done/2026-10-29-tjanst-ux-f01-mer-arbetsyta-i-tjanstefordelningen.md) | Klar i plan 41; verifierad och installerad |
 | F02 | P2 | [Gör huvudarbetsflödet lättare att hitta](../todos/pending/2026-10-29-tjanst-ux-f02-tydligare-navigation-i-tjanstefordelningen.md) | pending |
-| F03 | P2 | [Samla sekundära verktyg och tillägg](../todos/pending/2026-10-29-tjanst-ux-f03-samla-sekundara-verktyg-i-tjanstefordelningen.md) | pending |
-| F04 | P2 | [Förenkla filter och visningsinställningar](../todos/pending/2026-10-29-tjanst-ux-f04-enklare-filter-och-visningsinstallningar.md) | pending |
-| F05 | P2 | [Gör lärarvalet kompakt och enhetligt](../todos/pending/2026-10-29-tjanst-ux-f05-kompakt-gemensamt-lararval.md) | pending |
-| F06 | P2 | [Gör publiceringshinder synliga och handlingsbara](../todos/pending/2026-10-29-tjanst-ux-f06-handlingsbara-publiceringshinder.md) | pending |
+| F03 | P2 | [Samla sekundära verktyg och tillägg](../todos/done/2026-10-29-tjanst-ux-f03-samla-sekundara-verktyg-i-tjanstefordelningen.md) | Klar i plan 41; verifierad och installerad |
+| F04 | P2 | [Förenkla filter och visningsinställningar](../todos/pending/2026-10-29-tjanst-ux-f04-enklare-filter-och-visningsinstallningar.md) | Delvis hanterad; fortsatt pending |
+| F05 | P2 | [Gör lärarvalet kompakt och enhetligt](../todos/pending/2026-10-29-tjanst-ux-f05-kompakt-gemensamt-lararval.md) | Delvis hanterad; fortsatt pending |
+| F06 | P2 | [Gör publiceringshinder synliga och handlingsbara](../todos/done/2026-10-29-tjanst-ux-f06-handlingsbara-publiceringshinder.md) | Klar i plan 41; verifierad och installerad |
 | F07 | P2 | [Förtydliga mobilens läsläge och verksamhetsspråk](../todos/pending/2026-10-29-tjanst-ux-f07-begripligt-mobilt-laslage-och-detaljer.md) | pending |
 | F08 | P3 | [Mät och förbättra matrisen för många lärare](../todos/pending/2026-10-29-tjanst-ux-f08-mat-och-forbattra-stor-tjanstematris.md) | pending |
-| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; isolerat faktiskt prov PASS, installerad på 3012 (1d2b0ec); användarprov väntar |
+| F09 | P2 | [Tilldela lärare med ett klick i matrisen](../todos/done/2026-10-29-tjanst-ux-f09-direkt-tilldelning-med-ett-klick-i-matrisen.md) | Genomförd; ingår i installerad41 |
 
 ## Föreslagen ordning och samordning
 
@@ -39,4 +39,8 @@ F09:s följdrättelse 05.1-38 är installerad på 3012: radfeedback och Ångra u
 
 B07:s kolumnrättelse för Ofördelat och övriga behovsfilter är installerad på 3012 som 1d2b0ec. Alla lärare visas som standard; relevansurval är frivilligt. UI248 och fryst skyddat bygge PASS; ingen ny faktisk OIDC/databasserie. [Resultat](../phases/05.1-tjanstefordelning/05.1-39-SUMMARY.md).
 
-05.1-40: förenklat befintligt lärarbyte installerat på 3012 som 8f6a586, UI254/domän15 PASS. Det rapporterade generella sparfelet är inte återskapat; konkret användarprov väntar. [Resultat och begränsningar](../phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md). Åtta ursprungliga förbättringar kvarstår.
+**Historik vid respektive leveranstillfälle:** 05.1-40: förenklat befintligt lärarbyte installerat på 3012 som 8f6a586, UI254/domän15 PASS. Det rapporterade generella sparfelet är inte återskapat; konkret användarprov väntar. [Resultat och begränsningar](../phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md). Åtta ursprungliga förbättringar kvarstår.
+
+## Aktuellt efter41
+
+Fem punkter återstår. Nästa nya genomförande ska avgränsa deras kvarstående omfattning, inte upprepa redan levererad Filter/Visning eller lärarbyte. Ursprungligt generellt sparfel är fortsatt inte reproducerat. Äldre väntande användarprovsnotiser ovan avser respektive historiskt leveranstillfälle; positiv sammanfattande återkoppling på senaste tidigare UX är registrerad30 oktober. Nytt prov av plan 41 kan nu göras på 3012. Ingen formell TJANST-/fas-/pilotacceptans eller verklig kommunanslutning.

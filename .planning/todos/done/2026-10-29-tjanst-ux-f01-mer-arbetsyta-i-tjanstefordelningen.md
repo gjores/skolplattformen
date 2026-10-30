@@ -2,7 +2,8 @@
 created: 2026-10-29
 title: "Ge fördelningsarbetet större plats"
 area: tjanstefordelning
-status: pending
+status: done
+completed: 2026-10-30
 phase: "05.1"
 report_id: F01
 priority: P2
@@ -35,4 +36,4 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
-**Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+**Status:** klar i05.1-41; installerad på 3012 som 785b4ff. UI 274/års134/domän 56/faktiskt prov 88PASS inom [redovisad avgränsning](../../phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md). Ingen formell krav-/fasacceptans.

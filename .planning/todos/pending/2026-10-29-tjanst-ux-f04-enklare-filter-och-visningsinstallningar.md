@@ -37,3 +37,5 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
 **Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+
+**Avstämning30 oktober:** delvis hanterad, fortsatt pending. Filter/Visning och aktivt filterantal är genomförda i plan 41; rensning, sparade linser och kolumner har regressioner. Borttagbara etiketter och resterande förenkling av linsval återstår. Alla lärare visas som standard; endast uttryckligt lärarfilter eller eget relevansval begränsar kolumnerna. [Senaste leverans](../../phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md).
