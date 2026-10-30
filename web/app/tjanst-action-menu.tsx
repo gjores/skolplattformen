@@ -3,6 +3,17 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { ChevronDown } from 'lucide-react';
 
+/** Behåll den öppnade panelen inom skärmen; långa listor rullar inne i menyn. */
+function placePanel(root: HTMLDetailsElement | null) {
+  if (!root?.open) return;
+  const panel = root.querySelector<HTMLElement>(':scope > .tjanst-action-panel'), summary = root.querySelector('summary');
+  if (!panel || !summary || getComputedStyle(panel).position !== 'absolute') return;
+  const box = summary.getBoundingClientRect(), below = Math.max(0, innerHeight - box.bottom - 12), above = Math.max(0, box.top - 12);
+  const upward = below < 180 && above > below;
+  panel.style.top = upward ? 'auto' : 'calc(100% + 6px)'; panel.style.bottom = upward ? 'calc(100% + 6px)' : 'auto';
+  panel.style.maxHeight = `${Math.max(44, Math.min(innerHeight * .6, upward ? above : below))}px`;
+}
+
 /** Disclosure med vanliga knappar: native tangentbordsstöd, inga nya behörighetsregler. */
 export function TjanstActionMenu({ label, children, className = '' }: { label: string; children: ReactNode; className?: string }) {
   const ref = useRef<HTMLDetailsElement>(null);
@@ -16,12 +27,15 @@ export function TjanstActionMenu({ label, children, className = '' }: { label: s
       const button = event.target instanceof Element ? event.target.closest('button') : null;
       if (button && !button.disabled && ref.current?.contains(button)) ref.current.open = false;
     };
+    const reposition = () => placePanel(ref.current);
     const root = ref.current; root?.addEventListener('click', choose);
+    window.addEventListener('resize', reposition); document.addEventListener('scroll', reposition, true);
     document.addEventListener('pointerdown', outside); document.addEventListener('keydown', escape);
-    return () => { root?.removeEventListener('click', choose); document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
+    return () => { window.removeEventListener('resize', reposition); document.removeEventListener('scroll', reposition, true); root?.removeEventListener('click', choose); document.removeEventListener('pointerdown', outside); document.removeEventListener('keydown', escape); };
   }, []);
   return <details ref={ref} className={`tjanst-action-menu ${className}`} onToggle={event => {
     if (!event.currentTarget.open) return;
+    placePanel(event.currentTarget);
     for (const other of document.querySelectorAll<HTMLDetailsElement>('details.tjanst-action-menu[open]')) if (other !== event.currentTarget) other.open = false;
   }}>
     <summary>{label}<ChevronDown size={16} aria-hidden="true"/></summary>

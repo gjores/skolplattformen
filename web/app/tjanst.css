@@ -355,3 +355,6 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
  .planning-context:has(.planning-context-help) .planning-context-years label{flex:1 1 128px}
  .planning-context:has(.planning-context-help) .planning-context-controls>button{max-width:116px;line-height:1.25}
 }
+
+.tjanst-actions .tjanst-action-panel{left:auto;right:0}
+@media(max-width:800px){.tjanst-filter-options[open]{flex-basis:100%}.tjanst-filter-options .tjanst-action-panel{position:static;width:100%;min-width:0;max-width:none}}

@@ -39,3 +39,14 @@ test('samläsningshinder fokuserar exakt objekt även med tidigare filter',async
  await open(page,'?data=samlasning&hinder=blandad');if(info.project.name.startsWith('phone'))await ws(page).getByRole('combobox',{name:'Vy',exact:true}).selectOption('klass');await selectFilter(page,'Klass',{label:'EK26'});await ws(page).getByRole('button',{name:'Visa 1 hinder för publicering',exact:true}).click();
  const panel=ws(page).getByRole('region',{name:'Fastställ och publicera',exact:true});await panel.getByRole('button',{name:/^(Öppna|Visa) Samläsning:/}).click();const joint=ws(page).locator('[data-joint]').first();await expect(joint).toBeFocused();await expect(joint).toBeInViewport();expect(await commands(page)).toHaveLength(0);
 });
+
+test('verktygsmeny och filter ryms inom skärmens bredd; verktyg ryms också på höjden',async({page},info)=>{
+ await open(page);const width=page.viewportSize()!.width,height=page.viewportSize()!.height;
+ if(!info.project.name.startsWith('phone')){
+  const tools=ws(page).locator('.tjanst-actions > details').filter({hasText:'Verktyg'});await tools.locator(':scope > summary').click();const panel=tools.locator(':scope > fieldset');
+  await expect.poll(async()=>{const box=await panel.boundingBox();return !!box&&box.x>=0&&box.x+box.width<=width+1&&box.y>=0&&box.y+box.height<=height+1;}).toBe(true);
+  await page.keyboard.press('Escape');await expect(tools.locator(':scope > summary')).toBeFocused();
+ }else await ws(page).getByRole('combobox',{name:'Vy',exact:true}).selectOption('kurs');
+ const filters=ws(page).locator('.tjanst-filter-options');await filters.locator(':scope > summary').click();const panel=await filters.locator(':scope > fieldset').boundingBox();expect(panel!.x).toBeGreaterThanOrEqual(0);expect(panel!.x+panel!.width).toBeLessThanOrEqual(width+1);
+ await filters.getByLabel('Ämne',{exact:true}).selectOption('Matematik');await page.keyboard.press('Escape');await expect(filters.locator(':scope > summary')).toHaveText('Filter (1)');await expect(filters.locator(':scope > summary')).toBeFocused();expect(await commands(page)).toHaveLength(0);
+});
