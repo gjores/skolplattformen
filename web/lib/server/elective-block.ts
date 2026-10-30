@@ -5,7 +5,7 @@ import { AuditUnavailable } from './authz.ts';
 import { Deny, type SessionContext, type Tx } from './db.ts';
 import { tjanstRequest } from './tjanst.ts';
 export type ElectiveAuthority = Pick<SessionContext,'identityId'|'assignmentId'|'accessFunction'>;
-const conflicts=new Set(['elective_revision_conflict','elective_command_conflict','elective_stale_source','elective_block_in_use','elective_group_in_use','elective_stale_offer','elective_choice_conflict','elective_policy_conflict']);
+const conflicts=new Set(['elective_revision_conflict','elective_command_conflict','elective_stale_source','elective_block_in_use','elective_group_in_use','elective_stale_offer','elective_choice_conflict','elective_policy_conflict','elective_round_closed','elective_round_conflict','elective_policy_missing','elective_confirmation_required','elective_confirmation_conflict','elective_duplicate_course','elective_time_conflict','elective_self_conflict']);
 const inputs=new Set(['elective_invalid','elective_time_missing','elective_time_conflict','elective_option_not_allowed','elective_alternative_time_missing','elective_action_unavailable','elective_round_closed','elective_policy_missing','elective_guardian_missing','elective_guardian_required','elective_choice_invalid','elective_placement_invalid']);
 async function operation<T>(fn:()=>Promise<T>):Promise<T>{
   try{return await fn();}catch(error){
@@ -13,7 +13,7 @@ async function operation<T>(fn:()=>Promise<T>):Promise<T>{
     if(e?.code==='42501')throw new Deny('forbidden',403);
     if(e?.code==='55000')throw new AuditUnavailable();
     if(e?.code==='40001'&&typeof e.hint==='string'&&conflicts.has(e.hint))throw new Deny('conflict',409,{reason:e.hint});
-    if(e?.code==='22023'&&typeof e.hint==='string'&&inputs.has(e.hint))throw new Deny('bad_request',400,{reason:e.hint});
+    if(e?.code==='22023')throw new Deny('bad_request',400,typeof e.hint==='string'&&inputs.has(e.hint)?{reason:e.hint}:undefined);
     if(['08001','08003','08006','57P01','57P02','57P03','ECONNREFUSED','CONNECTION_CLOSED','CONNECT_TIMEOUT'].includes(String(e?.code)))throw new Deny('db_unreachable',503);
     throw new AuditUnavailable();
   }

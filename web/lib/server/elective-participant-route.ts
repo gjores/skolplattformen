@@ -15,7 +15,7 @@ export async function electiveAuthorityOperation<T>(run:()=>Promise<T>):Promise<
  if(e.code==='42501'&&e.hint==='elective_session_expired')throw new Deny('session_expired',401);
  if(e.code==='42501')throw new Deny('forbidden',403);
  if(e.code==='40001'&&e.hint==='elective_context_changed')throw new Deny('context_changed',409);
- if(e.code==='40001'&&e.hint==='elective_binding_conflict')throw new Deny('conflict',409);
+ if(e.code==='40001'&&typeof e.hint==='string'&&['elective_binding_conflict','elective_self_conflict','elective_stale_offer','elective_round_closed','elective_choice_conflict','elective_round_conflict','elective_policy_missing','elective_confirmation_required','elective_confirmation_conflict','elective_time_conflict','elective_stale_source','elective_duplicate_course'].includes(e.hint))throw new Deny('conflict',409,{reason:e.hint});
  if(e.code==='22023'||e.code==='22P02'||e.code==='22007'||e.code==='22008')throw new Deny('bad_request',400);
  if(typeof e.code==='string'&&['08001','08003','08006','57P01','57P02','57P03','ECONNREFUSED','CONNECTION_CLOSED','CONNECT_TIMEOUT'].includes(e.code))throw new Deny('db_unreachable',503);
  if(error instanceof Deny||error instanceof AuditUnavailable)throw error;
@@ -35,11 +35,12 @@ async function authenticate(request:Request,corr:string){
 async function touch(tx:Tx,live:Awaited<ReturnType<typeof authenticate>>){const seconds=Number(serverEnv().SESSION_IDLE_SECONDS);if(!Number.isSafeInteger(seconds)||seconds<1||seconds>86400)throw new AuditUnavailable();await electiveAuthorityOperation(()=>tx`select public.elective_participant_touch(${live.session.id},${live.session.identityId},${live.hex},${live.epoch},${seconds})`);}
 function context(request:Request,corr:string,live:Awaited<ReturnType<typeof authenticate>>,authority:ParticipantAuthority|null):SessionContext&{request:Request}{return{sessionId:live.session.id,identityId:live.session.identityId,membershipId:null,assignmentId:null,customerId:authority?.customerId??null,organizerId:authority?.organizerId??null,unitId:authority?.unitId??null,identity:{issuer:live.session.issuer,subject:live.session.subject,authUserId:null},accessFunction:null,appRole:null,scopeKind:'elective_participant',correlationId:corr,request};}
 /** Same cookie, separately locked participant authority. Never an administrative context. */
-export async function participantRoute(request:Request,action:string,opts:{mutating:boolean;scope:ParticipantScope;expectedBindingRevision?:number},handler:(ctx:ParticipantContext,tx:Tx)=>Promise<ParticipantResult>):Promise<Response>{
+export async function participantRoute(request:Request,action:string,opts:{mutating:boolean;scope:ParticipantScope|(()=>Promise<ParticipantScope>);expectedBindingRevision?:number},handler:(ctx:ParticipantContext,tx:Tx)=>Promise<ParticipantResult>):Promise<Response>{
  const corr=correlationId();let hint:Partial<SessionContext>|undefined;
  try{
   if(opts.mutating)requireSameOrigin(request);
-  const scope=parseParticipantScope(opts.scope),live=await authenticate(request,corr);hint=context(request,corr,live,null);
+  const live=await authenticate(request,corr);hint=context(request,corr,live,null);
+  const scope=parseParticipantScope(typeof opts.scope==='function'?await opts.scope():opts.scope);
   const result=await withLoginPhase(corr,async tx=>{
    const raw=one(await electiveAuthorityOperation(()=>tx<{result:unknown}[]>`select public.elective_participant_scope(${live.session.id},${live.session.identityId},${live.hex},${live.epoch},${scope.unitId},${scope.pupilId},${scope.participant}) result`));
    let authority:ParticipantAuthority;try{authority=parseParticipantAuthority(raw,scope,live.session.identityId,live.epoch);}catch{throw new AuditUnavailable();}

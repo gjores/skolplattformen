@@ -38,3 +38,10 @@ test('HTTPrequest valideras slutet och storleksgränsen gäller verkliga strömm
  await rejects(()=>electiveRequest(request({...q(),identityId:id(5)}),parseElectiveCommand),'bad_request');
  await rejects(()=>electiveRequest(request({x:'x'.repeat(65537)}),parseElectiveCommand),'bad_request');
 });
+
+test('valomgångs- och VH-hinder blir avstämningskonflikt med säker orsak, aldrig okänd pending500',async()=>{
+ for(const hint of ['elective_stale_offer','elective_round_closed','elective_round_conflict','elective_choice_conflict','elective_policy_missing','elective_confirmation_required','elective_confirmation_conflict','elective_duplicate_course','elective_time_conflict']){
+  await assert.rejects(()=>readElectiveBlocks(fixture(null,{code:'40001',hint,message:'privat databastext'}).tx,authority,scope),error=>error.code==='conflict'&&error.status===409&&error.details.reason===hint);
+ }
+ await assert.rejects(()=>readElectiveBlocks(fixture(null,{code:'22023',message:'privat databastext'}).tx,authority,scope),error=>error.code==='bad_request'&&error.status===400&&error.details===undefined);
+});
