@@ -50,3 +50,5 @@ Fem punkter återstår. Nästa nya genomförande ska avgränsa deras kvarståend
 Sex browseranteckningar är genomförda och verifierade: UI298, personal/år138, domän56 och faktiskt88/88 samt lokal installation6692919. Nytt användarprov återstår. F05 har nu sökbar Per lärare-väljare; gemensam kandidatlista i redigeringsflöden kvarstår. F04:s filterarbete och F07:s övergripande mobila språk/arbetsflöde avslutas inte av den nya planeringsraden respektive lärarkorten. F02/F04/F05/F07/F08 förblir pending. [Rapport](../../work/ux-review-2026-10-29/annotations-42.md).
 
 **Layoutuppföljning43:** samläsningsmärket har flyttats till ämnesrubriken enligt ny browseranteckning. Installerad2d38095 med riktade UI18/typ/lint/skyddat bygge/hälsa PASS.42:s faktiskt88/88 är tidigare bevis. Inga ursprungliga todo-statusar ändras. [Resultat43](../phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
+
+**Layoutuppföljning44:** upprepat ämnesnamn borttaget i matrisen; bara koden visas under rubriken. Installerad982444b med riktade UI28/typ/lint/skyddat bygge/hälsa PASS. Inga ursprungliga todo-statusar ändras. [Resultat44](../phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md).

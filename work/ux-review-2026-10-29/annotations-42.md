@@ -1,5 +1,7 @@
 # Uppföljning av dina sex anteckningar — tjänstefördelning
 
+**Layoutuppföljning44:** Ämnesnamnet visas nu en gång med endast koden under. Installerad982444b på3012; UI28/typ/lint/bygge/hälsa PASS. Tidigare leveranser och deras faktiska prov redovisas nedan.
+
 **Senare layoutuppföljning43:** Samläsningsmärket ligger nu bredvid ämnesrubriken på3012 som2d38095.18 riktade UI-prov och bygge/hälsa PASS. De88 faktiska kontrollerna nedan avser föregående6692919.
 
 Leveransen42: genomförd och installerad på [3012](http://127.0.0.1:3012/?vy=tjanst), version **6692919**. Ladda om sidan för att se ändringarna. Nytt användarprov återstår.

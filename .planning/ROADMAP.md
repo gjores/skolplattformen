@@ -317,7 +317,9 @@ Tjänstebedömning (arbetstidsavtal, rektors individuella bedömning, undantag e
 
 ### Phase 05.1: Tjänstefördelning (INSERTED)
 
-**Aktuellt 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
+**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Nytt användarprov och fem ursprungliga UX-punkter kvarstår.
+
+**Historik 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
 
 **Historik 2026-10-30 — 05.1-42 installerad:** De sex nya browseranteckningarna är genomförda: små markörer, tydligt första val vid lärarbyte, atomärt samläsningsbyte, nya tidskort/sökval i Per lärare och samlat Planeringsval. 3012 kör **6692919**, identisk med faktiskt fryst Worker/OIDC/PostgreSQL **88/88**; UI298, personal/år138, domän56, typ/lint/byggen/handbok och lokal hälsa PASS. Full provstädning och originalbevarande är verifierade. Fem ursprungliga UX-punkter återstår (F02/F04/F05/F07/F08); F05:s gemensamma kandidatväljare är inte färdig bara för att Per lärare nu är sökbar. Nytt användarprov av42 återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md). Inga migrationer, nya externa anslutningar eller ändrade formella krav-/fas-/pilotantal.
 
@@ -455,6 +457,7 @@ Plancheck av det reviderade paketet: [etapp 2:s granskning](phases/05.1-tjanstef
 | [41](phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md) | Större arbetsyta, samlade verktyg och handlingsbara hinder | Genomförd och installerad785b4ff; faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS. Fem UX-punkter kvar |
 | [42](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md) | Sex UX-anteckningar: lärarbyte, markörer, läraröversikt/sökval och Planeringsval | Genomförd och installerad6692919; faktiskt88/UI298/personal/år138/domän56 PASS. Nytt användarprov och fem UX-punkter kvar |
 | [43](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md) | Samläsningsmärke bredvid ämnesrubrik | Installerad2d38095; riktade UI18/typ/lint/skyddat bygge/hälsa PASS. Ingen ny faktisk serie |
+| [44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md) | Ämnesnamn en gång, endast kod på underraden | Installerad982444b; riktade UI28/typ/lint/skyddat bygge/hälsa PASS. Ingen ny faktisk serie |
 
 Planernas genomförandestatus innebär inte att samtliga TJANST-krav eller fas 05.1 är formellt accepterade. Positiv senaste UX-återkoppling 2026-10-30 tillskrivs inte äldre U1–U14 eller en ny faktisk provkörning.
 

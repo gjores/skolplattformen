@@ -1,0 +1,77 @@
+{
+  "installedAt": "2026-10-30T10:26:55.984Z",
+  "revision": "982444b67ae2d7e8817072bc45f8503e901b5e16",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "actualArtifactEqual": null,
+  "artifactSha256": "bbfc6ae4ae6340958892f580f56981b4b45c072e8ebfc04f1951e3df5fb55ea4",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/tjanst/plan/lasa",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/elever/lista",
+      "method": "POST",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/3d330703-da8e-48b3-ba08-5b22c8e4c7a3/_buildManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/3d330703-da8e-48b3-ba08-5b22c8e4c7a3/_ssgManifest.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-2d38095",
+  "migrationsApplied": false,
+  "validation": "targeted_synthetic_ui_type_lint_and_protected_build",
+  "humanAcceptance": "awaiting_new_user_trial_44"
+}

@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-43 installerad på3012; nytt användarprov och fem UX-punkter återstår"
+current_plan: "05.1-44 installerad på3012; nytt användarprov och fem UX-punkter återstår"
 status: in_progress
-stopped_at: "43 levererad som2d38095 på3012; rubrik och samläsningsmärke delar rad. Riktade kontroller PASS, nytt användarprov återstår."
+stopped_at: "44 levererad som982444b på3012; ämnesrubrik och kurskod utan dubbel information. Riktade kontroller PASS."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
-last_activity_desc: "43: samläsningsmärke vid rubriken. UI18/typ/lint/skyddat bygge och lokal hälsa PASS. Faktiskt88 på6692919 är tidigare bevis."
-state_head: 2d38095
+last_activity_desc: "44: upprepat ämnesnamn borttaget. UI28/typ/lint/skyddat bygge och lokal hälsa PASS; faktiskt88 på6692919 är tidigare bevis."
+state_head: 982444b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -26,7 +26,9 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
+**Aktuellt 2026-10-30 — 05.1-44 installerad:** Ämnesnamnet visas en gång i matrisrubriken; underraden innehåller bara kurs-/nivåkoden. 3012 kör982444b efter28 riktade UI-prov, typ/lint/skyddat bygge och hälsokontroll PASS. Ingen ny faktisk databas-/OIDC-serie;42:s88/88 på6692919 är historiskt bevis. [Resultat44](phases/05.1-tjanstefordelning/05.1-44-SUMMARY.md). Nytt användarprov och fem ursprungliga UX-punkter kvarstår.
+
+**Historik 2026-10-30 — 05.1-43 installerad:** Samläsningsmärket ligger nu bredvid ämnesrubriken, med kurskoden under. Klickyta, fokus och grupplänk är bevarade. 3012 kör **2d38095**; riktade UI18, typ/lint/skyddat bygge och lokal hälsa PASS. Ingen ny faktisk databas-/OIDC-serie för denna presentationsändring;42:s88/88 på6692919 är historiskt bevis. Nytt användarprov och fem ursprungliga UX-punkter återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-43-SUMMARY.md).
 
 **Historik 2026-10-30 — 05.1-42 installerad:** De sex nya browseranteckningarna är genomförda: små markörer, tydligt första val vid lärarbyte, atomärt samläsningsbyte, nya tidskort/sökval i Per lärare och samlat Planeringsval. 3012 kör **6692919**, identisk med faktiskt fryst Worker/OIDC/PostgreSQL **88/88**; UI298, personal/år138, domän56, typ/lint/byggen/handbok och lokal hälsa PASS. Full provstädning och originalbevarande är verifierade. Fem ursprungliga UX-punkter återstår (F02/F04/F05/F07/F08); F05:s gemensamma kandidatväljare är inte färdig bara för att Per lärare nu är sökbar. Nytt användarprov av42 återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md). Inga migrationer, nya externa anslutningar eller ändrade formella krav-/fas-/pilotantal.
 
@@ -286,6 +288,8 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 **Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (etapp 1 planerad, genomförande nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
+
+Senaste ändring är44: ämnesnamn en gång och kod under rubriken.3012 kör982444b efter UI28/typ/lint/bygge/hälsa PASS. Tidigare leveranser nedan är historik.
 
 Senaste avgränsade ändring är43: rubrik och samläsningsmärke delar rad.3012 kör2d38095 efter riktad UI-/bygg-/hälsokontroll. Nedanstående42 är den tidigare funktionella leveransen.
 
