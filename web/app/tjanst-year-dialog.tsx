@@ -21,7 +21,8 @@ export type TjanstYearBatchDraft = { scopeKey: string; mode: 'move' | 'bulk'; sn
   catalog: TjanstYearCatalogReply | null; sourcePerson: string; targetPerson: string; moveChoice: TjanstYearChoice | null; moveChoiceRevision: number | null;
   selected: string[]; rows: BulkRow[]; specials: Extract<TjanstYearBulkItem, { kind: 'special' }>[];
   manualPerson: string; specialForm: SpecialForm; preview: { batch: TjanstYearBatch; reply: TjanstYearBatchReply } | null };
-type Props = { mode: 'move' | 'bulk'; data: TjanstPlanRead; scopeKey: string; disabled: boolean; checking: boolean;
+export type TjanstScopedMove = { rowIds: string[]; fromPersonId: string; targetPersonId?: string };
+type Props = { mode: 'move' | 'bulk'; scopedMove?: TjanstScopedMove; data: TjanstPlanRead; scopeKey: string; disabled: boolean; checking: boolean;
   loadPreview: (request: TjanstYearRequest) => Promise<TjanstYearReply | TjanstFailure>;
   onSave: (prepared: TjanstPreparedChange) => Promise<TjanstOutcome>; onClose: () => void; onRefreshPlan: () => void;
   initialDraft?: TjanstYearBatchDraft; onDraftChange?: (draft: TjanstYearBatchDraft) => void };
@@ -62,11 +63,18 @@ function CandidateFacts({ candidate, year }: { candidate: TjanstYearCandidate | 
 }
 
 /** Secondary batch tool. All mutations go through the same workspace journal as ordinary row edits. */
-export default function TjanstYearDialog({ mode, data, scopeKey, disabled, checking, loadPreview, onSave, onClose, onRefreshPlan, initialDraft, onDraftChange }: Props) {
+export default function TjanstYearDialog({ mode, scopedMove, data, scopeKey, disabled, checking, loadPreview, onSave, onClose, onRefreshPlan, initialDraft, onDraftChange }: Props) {
   const id = useId();
-  const [draft, setDraft] = useState<TjanstYearBatchDraft>(() => initialDraft?.scopeKey === scopeKey && initialDraft.mode === mode ? initialDraft : {
-    scopeKey, mode, snapshot: structuredClone(data), dirty: false, catalog: null, sourcePerson: '', targetPerson: '', moveChoice: null, moveChoiceRevision: null,
-    selected: [], rows: [], specials: [], manualPerson: '', specialForm: emptySpecial(), preview: null });
+  const scoped = mode === 'move' ? scopedMove : undefined;
+  const restoreDraft = initialDraft?.scopeKey === scopeKey && initialDraft.mode === mode && (!scoped
+    || initialDraft.sourcePerson === scoped.fromPersonId && initialDraft.selected.length === scoped.rowIds.length
+      && scoped.rowIds.every(rowId => initialDraft.selected.includes(`row:${rowId}`)));
+  // A matrix target is an explicit user choice, but its person hash must come from fresh support.
+  // A restored draft keeps its frozen choice; reopening or refreshing must not silently reselect it.
+  const initialTarget = useRef(!restoreDraft ? scoped?.targetPersonId : undefined);
+  const [draft, setDraft] = useState<TjanstYearBatchDraft>(() => restoreDraft ? initialDraft! : {
+    scopeKey, mode, snapshot: structuredClone(data), dirty: !!scoped, catalog: null, sourcePerson: scoped?.fromPersonId ?? '', targetPerson: scoped?.targetPersonId ?? '', moveChoice: null, moveChoiceRevision: null,
+    selected: scoped?.rowIds.map(rowId => `row:${rowId}`) ?? [], rows: [], specials: [], manualPerson: '', specialForm: emptySpecial(), preview: null });
   const current = useRef(draft), lifecycle = useRef({ active: false, epoch: 0 }), busy = useRef(false), rowSequence = useRef(0), rowRequests = useRef(new Map<string, number>());
   const callbacks = useRef({ loadPreview, onDraftChange, onRefreshPlan });
   useLayoutEffect(() => { callbacks.current = { loadPreview, onDraftChange, onRefreshPlan }; }, [loadPreview, onDraftChange, onRefreshPlan]);
@@ -90,8 +98,17 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
     setLoading(false);
     if ('ok' in reply) { setProblem(reply); return; }
     if (reply.mode !== 'catalog' || !matches(reply, snapshot)) { setProblem(failure('Planeringen har ändrats. Hämta aktuellt läge före ett nytt urval.')); callbacks.current.onRefreshPlan(); return; }
-    // A new catalog never replaces an already chosen person or its frozen hash.
-    setDraft(old => ({ ...old, catalog: reply, preview: null }));
+    // Only the initial explicit matrix click may be prepared automatically, once, from fresh support.
+    // Later catalogs never replace an already chosen person or its frozen hash.
+    const clickedTarget = initialTarget.current; initialTarget.current = undefined;
+    setDraft(old => {
+      if (!clickedTarget || old.moveChoice || old.targetPerson !== clickedTarget) return { ...old, catalog: reply, preview: null };
+      const groups = old.snapshot.joints.filter(group => group.rowIds.some(rowId => old.selected.includes(`row:${rowId}`)));
+      const candidate = reply.candidates.find(person => person.personId === clickedTarget && person.personId !== old.sourcePerson
+        && !groups.some(group => group.teachers.some(teacher => teacher.personId === person.personId)));
+      return { ...old, catalog: reply, preview: null, targetPerson: candidate ? clickedTarget : '',
+        moveChoice: candidate ? manualChoice(reply, clickedTarget) : null, moveChoiceRevision: candidate ? snapshot.revision : null };
+    });
   }, [read]);
   useEffect(() => { if (!current.current.catalog) void loadCatalog(); }, [loadCatalog]); // This component mounts on desktop only.
 
@@ -123,6 +140,13 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
   const moveRows = snapshot.rows.filter(r => r.personId === draft.sourcePerson), moveSpecials = snapshot.specials.filter(s => s.personId === draft.sourcePerson);
   const unavailableSelection = draft.selected.filter(key => !moveRows.some(row => key === `row:${row.id}`) && !moveSpecials.some(item => key === `special:${item.id}`));
   const affectedGroups = snapshot.joints.filter(g => g.rowIds.some(rowId => draft.selected.includes(`row:${rowId}`)));
+  const scopedRows = scoped ? snapshot.rows.filter(row => scoped.rowIds.includes(row.id)) : [];
+  const scopedJoint = scopedRows[0]?.jointGroupId ? snapshot.joints.find(group => group.id === scopedRows[0].jointGroupId) : undefined;
+  const scopedInvalid = !!scoped && (!scoped.rowIds.length || new Set(scoped.rowIds).size !== scoped.rowIds.length
+    || scopedRows.length !== scoped.rowIds.length || draft.sourcePerson !== scoped.fromPersonId || !scopedJoint
+    || scopedRows.some(row => row.personId !== scoped.fromPersonId || row.jointGroupId !== scopedJoint.id || !scopedJoint.rowIds.includes(row.id))
+    || snapshot.rows.some(row => row.jointGroupId === scopedJoint.id && row.personId === scoped.fromPersonId && !scoped.rowIds.includes(row.id))
+    || draft.selected.length !== scoped.rowIds.length || scoped.rowIds.some(rowId => !draft.selected.includes(`row:${rowId}`)));
   const objectCount = mode === 'bulk' ? draft.rows.length + draft.specials.length : new Set([...draft.selected, ...affectedGroups.flatMap(g => g.rowIds.map(rowId => `row:${rowId}`))]).size;
   const options = <><option value="">Välj lärare</option>{draft.catalog?.candidates.map(p => <option key={p.personId} value={p.personId}>{p.displayName}{p.draft ? ' (under registrering)' : `${p.shareHere === null ? '' : ` (${p.shareHere} % här)`}${yearCandidatePeriod(p, snapshot.schoolYear) === 'part_year' ? ' · delår' : ''}`}</option>)}<option value="vakant">Vakant</option></>;
   // 05.1-32: visa vad som redan är fördelat och vad som återstår, så att förifyllda 0 h inte ser ut som ett fel (användarprov 2026-10-28).
@@ -175,6 +199,7 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
     } catch (error) { setProblem(failure(errorText(error))); }
   }
   function buildBatch(): TjanstYearBatch {
+    if (scopedInvalid) throw new Error('Samläsningens uppdrag har ändrats. Stäng och öppna lärarbytet från den aktuella samläsningen.');
     if (objectCount > 100) throw new Error(BLOCKER_LABELS.batch_too_large);
     if (mode === 'move') {
       if (!draft.sourcePerson || !draft.moveChoice) throw new Error('Välj lärare att flytta från och bekräfta en ny lärare eller Vakant.');
@@ -213,7 +238,7 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
     finally { busy.current = false; if (lifecycle.current.active) setLoading(false); }
   }
   async function save() {
-    if (busy.current || locked || !draft.preview || draft.preview.reply.blockers.length) return;
+    if (busy.current || locked || scopedInvalid || !draft.preview || draft.preview.reply.blockers.length) return;
     const shown = draft.preview; busy.current = true; setSaving(true); setProblem(null);
     try {
       const common = { unitId: snapshot.unitId, schoolYear: snapshot.schoolYear, expectedRevision: shown.reply.currentRevision };
@@ -230,7 +255,8 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
     // Explicit refresh rebases only the displayed plan. Choices keep their old hashes/revision until actively reconfirmed.
     // Existing move IDs are never translated to copied draft IDs by name, source key or lineage.
     rowRequests.current.clear();
-    update(old => ({ ...old, snapshot: structuredClone(data), catalog: null, rows: old.rows.map(row => ({ ...row, support: null, supportError: false })) }), false);
+    initialTarget.current = undefined;
+    update(old => ({ ...old, snapshot: structuredClone(data), catalog: null, ...(scoped ? { targetPerson: '', moveChoice: null, moveChoiceRevision: null } : {}), rows: old.rows.map(row => ({ ...row, support: null, supportError: false })) }), false);
     void loadCatalog(data);
   }
   const shown = draft.preview;
@@ -241,14 +267,25 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
   const patchSpecial = (patch: Partial<SpecialForm>) => update(old => ({ ...old, specialForm: { ...old.specialForm, ...patch } }));
   return <Dialog open onOpenChange={open => { if (!open && !saving && !checking) onClose(); }}>
     <DialogContent className="mandate-dialog tjanst-dialog tjanst-year-dialog" showCloseButton={false}>
-      <DialogTitle>{mode === 'move' ? 'Flytta uppdrag' : 'Massregistrera'}</DialogTitle>
-      <DialogDescription>{snapshot.schoolName} · {yearLabel(snapshot.schoolYear)}. Välj uppdragen och granska förhandsvisningen innan du sparar i samma planering.</DialogDescription>
+      <DialogTitle>{scoped ? 'Byt lärare i samläsning' : mode === 'move' ? 'Flytta uppdrag' : 'Massregistrera'}</DialogTitle>
+      <DialogDescription>{snapshot.schoolName} · {yearLabel(snapshot.schoolYear)}. {scoped ? 'Bytet gäller lärarens hela uppdrag i samläsningen. Granska förhandsvisningen innan du bekräftar.' : 'Välj uppdragen och granska förhandsvisningen innan du sparar i samma planering.'}</DialogDescription>
       <Problems failure={problem} checking={checking} summary={false}/>
       {scopeChanged && <p role="alert">Skola, läsår eller uppdrag har ändrats. Stäng denna dialog och öppna verktyget i den aktuella planeringen.</p>}
+      {scopedInvalid && <p role="alert">Samläsningens uppdrag har ändrats. Stäng och öppna lärarbytet från den aktuella samläsningen.</p>}
       <fieldset disabled={locked || loading} className="tjanst-form">
         {!draft.catalog && <output>{loading ? 'Hämtar lärarlistan…' : 'Lärarlistan är inte tillgänglig.'}</output>}
-        {draft.catalog && <p className="tjanst-muted">Lärarbehörighet: underlag saknas. Listan visar planeringsbara personer och deras andel vid skolan, inte verifierad ämnesbehörighet.</p>}
-        {mode === 'move' ? <>
+        {draft.catalog && !scoped && <p className="tjanst-muted">Lärarbehörighet: underlag saknas. Listan visar planeringsbara personer och deras andel vid skolan, inte verifierad ämnesbehörighet.</p>}
+        {scoped ? <>
+          <section aria-label="Berörd samläsning"><h3>{scopedJoint?.name ?? 'Samläsning'}</h3><p>Från lärare: {personName(draft.sourcePerson)}</p>
+            <ul>{scopedRows.map(row => <li key={row.id}>{needName(row.sourceKey)}</li>)}</ul>
+            <p>Samläsningens tider och övriga lärare bevaras.</p>
+          </section>
+          <Field id={`${id}-to`} label="Till lärare"><select id={`${id}-to`} value={draft.moveChoice ? draft.targetPerson : ''} onChange={event => {
+            const value = event.target.value; initialTarget.current = undefined;
+            const choice = value && draft.catalog ? manualChoice(draft.catalog, value) : null;
+            update(old => ({ ...old, targetPerson: value, moveChoice: choice, moveChoiceRevision: choice ? snapshot.revision : null }));
+          }}><option value="">Välj lärare</option>{draft.catalog?.candidates.filter(person => person.personId !== draft.sourcePerson && !scopedJoint?.teachers.some(teacher => teacher.personId === person.personId)).map(person => <option key={person.personId} value={person.personId}>{person.displayName}{yearCandidatePeriod(person, snapshot.schoolYear) === 'part_year' ? ' · delår' : ''}</option>)}</select></Field>
+        </> : mode === 'move' ? <>
           <div className="tjanst-year-columns">
             <Field id={`${id}-from`} label="Flytta från lärare"><select id={`${id}-from`} value={draft.sourcePerson} onChange={event => update(old => ({ ...old, sourcePerson: event.target.value, selected: [] }))}>
               <option value="">Välj lärare</option>{snapshot.teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></Field>
@@ -305,13 +342,13 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
               <Button type="button" disabled={!rowPerson || !draft.catalog} onClick={() => { try { const choice = manualChoice(draft.catalog!, rowPerson); update(old => ({ ...old, specials: old.specials.map(s => s.itemKey === item.itemKey ? { ...s, choice, payload: { ...s.payload, personId: choice.personId } } : s) })); setExpanded(null); } catch (error) { setProblem(failure(errorText(error))); } }}>Bekräfta lärarval för uppdraget</Button></div>}
             <Button type="button" variant="outline" onClick={() => update(old => ({ ...old, specials: old.specials.filter(s => s.itemKey !== item.itemKey) }))}>Ta bort uppdrag ur urvalet</Button></li>)}</ul>}
         </>}
-        <output>{objectCount} berörda objekt · högst 100 per omgång. Hela berörda samläsningar räknas in.</output>
+        {!scoped && <output>{objectCount} berörda objekt · högst 100 per omgång. Hela berörda samläsningar räknas in.</output>}
         {objectCount > 100 && <p role="alert" className="validation-warning">{BLOCKER_LABELS.batch_too_large}</p>}
-        <div className="mandate-actions"><Button type="button" disabled={!draft.catalog || objectCount === 0 || objectCount > 100} onClick={() => void preview()}>Förhandsvisa</Button>
+        <div className="mandate-actions"><Button type="button" disabled={!draft.catalog || objectCount === 0 || objectCount > 100 || scopedInvalid || !!scoped && !draft.moveChoice} onClick={() => void preview()}>Förhandsvisa</Button>
           <Button type="button" variant="outline" onClick={refreshSupport}>Hämta nytt planeringsstöd</Button></div>
       </fieldset>
       {loading && <output>Kontrollerar underlaget…</output>}
-      {affectedGroups.length > 0 && <section aria-label="Hela berörda samläsningar"><h3>Hela berörda samläsningar</h3>{affectedGroups.map(group => <div key={group.id} className="tjanst-year-item"><h4>{group.name}</h4>
+      {!scoped && affectedGroups.length > 0 && <section aria-label="Hela berörda samläsningar"><h3>Hela berörda samläsningar</h3>{affectedGroups.map(group => <div key={group.id} className="tjanst-year-item"><h4>{group.name}</h4>
         <ul>{group.rowIds.map(rowId => { const row = snapshot.rows.find(r => r.id === rowId); return row && <li key={rowId}>{needName(row.sourceKey)} · {personName(row.personId)} · {draft.selected.includes(`row:${rowId}`) ? 'vald för flytt' : 'bevaras'}</li>; })}</ul>
         <p>Grupptid räknas en gång per lärare:</p><ul>{group.teachers.map(teacher => <li key={teacher.personId}>{personName(teacher.personId)} · HT {formatTime(teacher.ht)} · VT {formatTime(teacher.vt)}</li>)}</ul>
         <Button type="button" variant="outline" disabled={locked || loading} onClick={() => update(old => ({ ...old, selected: [...new Set([...old.selected, ...snapshot.rows.filter(row => group.rowIds.includes(row.id) && row.personId === old.sourcePerson).map(row => `row:${row.id}`)])] }))}>Markera lärarens alla rader i samläsningen</Button>
@@ -325,12 +362,12 @@ export default function TjanstYearDialog({ mode, data, scopeKey, disabled, check
         <div className="tjanst-year-table-scroll"><table><thead><tr><th>Uppdrag</th><th>Före</th><th>Efter</th></tr></thead><tbody>{shown.reply.items.map(item => <tr key={item.itemKey}><th scope="row">{item.kind === 'row' ? needName(item.sourceKey) : <>{draft.specials.find(s => s.itemKey === item.itemKey)?.payload.label ?? snapshot.specials.find(s => s.id === item.id)?.label ?? 'Specialuppdrag'}{item.classId ? ` · ${className(item.classId)}` : ''}</>}</th>
           <td>{item.before ? <>{personName(item.before.personId)}<small>HT {formatTime(item.before.ht)} · VT {formatTime(item.before.vt)}</small></> : 'Ny rad'}</td><td>{item.after ? <>{personName(item.after.personId)}<small>HT {formatTime(item.after.ht)} · VT {formatTime(item.after.vt)}{item.jointGroupId ? ' · Grupptid gäller' : ''}</small></> : 'Kan inte sparas'}</td></tr>)}</tbody></table></div>
         {shown.reply.jointTotals.length > 0 && <><h4>Samläsningens tid efter flytten</h4><ul>{shown.reply.jointTotals.map(time => <li key={`${time.jointId}:${time.personId}`}>{snapshot.joints.find(g => g.id === time.jointId)?.name} · {personName(time.personId)} · HT {formatTime(time.ht)} · VT {formatTime(time.vt)}</li>)}</ul><p>Andra lärares grupptid bevaras.</p></>}
-        {!shown.reply.blockers.length && <><h4>Lärarnas summering före → efter</h4><ul className="tjanst-plain-list">{changedPeople.map(personId => {
+        {!scoped && !shown.reply.blockers.length && <><h4>Lärarnas summering före → efter</h4><ul className="tjanst-plain-list">{changedPeople.map(personId => {
           const before = teacherSums(personId, snapshot.rows, snapshot.specials, snapshot.joints), after = afterMove ? teacherSums(personId, afterMove.rows, afterMove.specials, afterMove.joints) : structuredClone(before);
           if (shown.batch.action === 'bulk') for (const item of shown.reply.items) if (item.after?.personId === personId) { const sum = item.kind === 'row' ? after.teaching : after.special; sum.ht += item.after.ht; sum.vt += item.after.vt; }
           return <li key={personId}><strong>{personName(personId)}</strong><small>Undervisning HT {formatTime(before.teaching.ht)} → {formatTime(after.teaching.ht)} · VT {formatTime(before.teaching.vt)} → {formatTime(after.teaching.vt)}</small><small>Specialuppdrag HT {formatTime(before.special.ht)} → {formatTime(after.special.ht)} · VT {formatTime(before.special.vt)} → {formatTime(after.special.vt)}</small></li>;
         })}</ul></>}
-        <Button type="button" disabled={locked || loading || shown.reply.blockers.length > 0} onClick={() => void save()}>{saving ? 'Sparar…' : 'Spara ändringarna'}</Button>
+        <Button type="button" disabled={locked || loading || scopedInvalid || shown.reply.blockers.length > 0} onClick={() => void save()}>{saving ? 'Sparar…' : scoped ? 'Bekräfta lärarbyte' : 'Spara ändringarna'}</Button>
       </section>}
       <div className="mandate-actions"><Button type="button" variant="outline" disabled={saving || checking} onClick={onClose}>Stäng utan att spara</Button></div>
     </DialogContent>

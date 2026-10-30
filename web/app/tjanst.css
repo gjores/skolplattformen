@@ -358,3 +358,16 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 
 .tjanst-actions .tjanst-action-panel{left:auto;right:0}
 @media(max-width:800px){.tjanst-filter-options[open]{flex-basis:100%}.tjanst-filter-options .tjanst-action-panel{position:static;width:100%;min-width:0;max-width:none}}
+
+/* 05.1-42: små färgmarkörer, med separata pekytor för klickbara funktioner. */
+.tjanst .tjanst-new-teacher{display:inline-flex;align-items:center;vertical-align:middle;width:max-content;min-height:0;height:auto;padding:1px 5px;border:0;border-radius:4px;background:#e8efff;color:#284899;font-size:11px;line-height:16px;font-weight:500;white-space:nowrap}
+.tjanst .tjanst-joint-status{padding:0;border:0;background:transparent;min-height:0;height:auto;font-size:11px}
+.tjanst .tjanst-joint-status.tjanst-badge-button{min-height:44px;min-width:44px;justify-content:flex-start}
+.tjanst-joint-chip{display:inline-flex;align-items:center;gap:4px;padding:1px 5px;background:#e3f3ee;color:#155d4a;border-radius:4px;font-size:11px;line-height:16px;font-weight:500}
+.tjanst-joint-chip>svg{width:12px;height:12px}
+.tjanst-badge-warning .tjanst-joint-chip{background:#fff1d6;color:#7c470b}
+.tjanst-matrix-actions{max-width:430px}
+.tjanst-matrix-actions .tjanst-field{display:grid;gap:6px;font-size:14px}
+.tjanst-matrix-actions>p{font-size:14px;line-height:1.5}
+.tjanst-matrix-action-choices{display:grid;gap:8px}
+.tjanst-matrix-action-choices>p{font-size:13px;line-height:1.5;color:var(--muted-foreground);margin:0 0 8px}

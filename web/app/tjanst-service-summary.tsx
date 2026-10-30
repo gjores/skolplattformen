@@ -41,7 +41,7 @@ export type TjanstSummaryRow = { id: string; course: string; className: string; 
   /** 05.1-33: "Delas med … · En i taget/Samtidigt · Sätter betyg" när flera lärare har tid på behovet. */
   sharing?: string | null };
 export type TjanstSummarySpecial = { id: string; kind: TjanstSpecialKind; label: string; group: string | null; ht: number; vt: number };
-type Props = { name: string; teaching: TjanstSummaryRow[]; specials: TjanstSummarySpecial[]; sums: TjanstTeacherSums; shareHere?: number | null;
+type Props = { name: string; teaching: TjanstSummaryRow[]; specials: TjanstSummarySpecial[]; sums: TjanstTeacherSums; shareHere?: number | null; overview?: boolean;
   /** Kommentarer, kvittens eller annat som vyn lägger till efter sammanfattningen. */
   children?: ReactNode };
 
@@ -52,16 +52,16 @@ export function sharingWith(mode: 'sequential' | 'concurrent' | null, colleagues
 }
 
 const jointText = (classes: string[]) => `Samläsning med ${classes.join(', ')}`;
-export default function TjanstServiceSummary({ name, teaching, specials, sums, shareHere, children }: Props) {
+export default function TjanstServiceSummary({ name, teaching, specials, sums, shareHere, children, overview = true }: Props) {
   const empty = teaching.length === 0 && specials.length === 0;
   return <div className="tjanst-summary">
-    <dl className="mandate-facts tjanst-facts" aria-label={`Sammanfattning för ${name}`}>
+    {overview && <dl className="mandate-facts tjanst-facts" aria-label={`Sammanfattning för ${name}`}>
       <div><dt>Undervisning</dt><dd>{termsText(sums.teaching)}</dd></div>
       <div><dt>Specialuppdrag</dt><dd>{termsText(sums.special)}</dd></div>
       <div><dt>Totalt</dt><dd>{termsText(sums.total)}</dd></div>
       {shareHere !== undefined && <div><dt>Andel här</dt><dd>{shareHere === null ? 'Inte angiven' : `${shareHere}\u00a0%`}</dd></div>}
       <div><dt>Schemalagd tid</dt><dd>Underlag saknas<small>Visas när schemat finns i Skolplattformen.</small></dd></div>
-    </dl>
+    </dl>}
     {empty ? <p className="tjanst-empty-text">{name} har ingen undervisning eller något uppdrag i den här versionen.</p> : <>
       <h3>Undervisning</h3>
       {teaching.length === 0 ? <p>Ingen undervisning i den här versionen.</p> : <>

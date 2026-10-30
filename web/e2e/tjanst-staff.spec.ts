@@ -1,3 +1,4 @@
+import {expectTeacherTimes} from './tjanst-toolbar';
 // Synthetic component evidence for Min tjänst, Personal, Bemanning and navigation (05.1-07). The real shell (ProtectedHome) runs;
 // every /api/* request is answered here with synthetic people and schools. No database, server or live authentication.
 // Komponentprov, inte faktiskt prov (det görs i 05.1-09).
@@ -519,7 +520,7 @@ test.describe('Bemanning',()=>{
   await expect(page.locator('.tjanst-readonly')).toHaveText('Du läser version 2 skrivskyddat, publicerad 2026-09-01 av Rektor Syntetisk. Lärarna ser den här versionen.');
   await noOverflow(page);
   // De publicerade summorna (50 + 50 h), inte utkastets (20 + 20 h).
-  if(phone(info))await expect(page.locator('.tjanst dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 50 h · Läsår 100 h');
+  if(phone(info))await expectTeacherTimes(page,'Undervisning','50 h','50 h','100 h');
   else await expect(page.locator('[data-sum="Undervisning:Anna Andersson"]')).toHaveText('100 h');
   const select=page.locator('.tjanst').getByLabel('Historisk publicering');
   await expect(select).toHaveValue(id(605));
@@ -543,4 +544,9 @@ test('fullapp arbetsyta visar första behovet och valbar lärare',async({page},i
  const prefix=process.env.TJANST_WORKSPACE_BASELINE?'before':'after';await page.screenshot({path:`/private/tmp/tjanst41-fullapp-${prefix}-${info.project.name}.png`});
  const {writeFileSync}=await import('node:fs');writeFileSync(`/private/tmp/tjanst41-fullapp-${prefix}-${info.project.name}.json`,JSON.stringify(geometry,null,2)+'\n');
  if(!process.env.TJANST_WORKSPACE_BASELINE){expect(box!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);expect(teacher!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);await expect(row.getByRole('button',{name:/Anna Andersson/})).toBeInViewport();}
+});
+
+test('planeringsval behåller skola, årsnavigering och återgång i den nya utformningen',async({page})=>{
+ const m=await mock(page,{role:'rektor'});await page.goto(url+'?vy=tjanst&skola='+A);const bar=page.getByRole('region',{name:'Planeringsval'});await bar.getByLabel('Planeringsskola',{exact:true}).selectOption(A);await expect(bar.getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(YEAR));
+ await bar.getByRole('button',{name:'Nästa planeringsläsår'}).click();await expect(bar.getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(YEAR+1));await bar.getByRole('button',{name:'Till aktuellt läsår'}).click();await expect(bar.getByLabel('Planeringsläsår',{exact:true})).toHaveValue(String(YEAR));await expect(page.locator('.tjanst-content')).toBeVisible();await expect(bar.getByLabel('Planeringsskola',{exact:true})).toHaveValue(A);await noOverflow(page);expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').some(b=>b.body.schoolYear===YEAR+1)).toBe(true);
 });

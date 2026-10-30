@@ -19,9 +19,9 @@ Du behöver ett aktuellt uppdrag för skolan för att läsa eller ändra fördel
 
 1. Välj **Tjänstefördelning** under PLANERING i menyn.
 2. Välj **Skola** och **Läsår** i planeringsvalet. En fördelning gäller en skola och ett läsår. Med **Alla behöriga skolor** visas texten *Välj en skola i planeringsvalet.*
-3. Skolans aktuella behov visas även om ingen tjänst ännu har fördelats. Klicka i en tom lärarcell i matrisen för att tilldela återstående känd tid direkt till läraren i kolumnen. För mer avancerade val öppnar du dialogen. Du behöver inte skapa en version först.
+3. Skolans aktuella behov visas även om ingen tjänst ännu har fördelats. På ett behov som ännu inte har någon namngiven lärare klickar du i en tom lärarcell för att tilldela återstående känd tid direkt till läraren i kolumnen. Har behovet redan en lärare väljer du först vad du vill göra. För mer avancerade val öppnar du dialogen. Du behöver inte skapa en version först.
 
-Skola och läsår är alltid direkt synliga i planeringsvalet. Öppna **Planering** bredvid dessa val om du vill läsa förklaringen av vad valet gäller. Öppna **Om tjänstefördelningen** i arbetsytans huvud för den korta introduktionen och ansvarsfördelningen.
+Skola och läsår är alltid direkt synliga och samlade i planeringsvalet. Välj läsår i listan eller använd pilarna för föregående och nästa läsår. **Till aktuellt läsår** tar dig tillbaka till innevarande läsår. Har du osparade ändringar behöver du bekräfta att de får lämnas innan du byter skola eller läsår. Under en pågående sparning eller kontroll av sparstatus kan planeringsvalet inte bytas. Öppna **Planering** bredvid dessa val om du vill läsa förklaringen av vad valet gäller. Öppna **Om tjänstefördelningen** i arbetsytans huvud för den korta introduktionen och ansvarsfördelningen.
 
 När du öppnar nästa läsår visas det årets klass–timplanskopplingar och behov. Nya lärarfält är tomma. Sparade val, tider och kommentarer finns kvar när du fortsätter en påbörjad planering; inget ersätts automatiskt med föregående års fördelning.
 
@@ -44,12 +44,14 @@ Behovet räknas så här:
 - **Grundskolan:** årskursens årstimmar delas lika på HT och VT.
 - **Introduktionsprogram:** timmar per vecka gånger skolans skoldagar per termin enligt den fastställda läsårskalendern. Utan fastställd kalender är behovet okänt.
 
+Samläsning, delningsform och **Ny lärare** visas med små textmärken. Färger kompletterar texten.
+
 En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet är okänt, inte noll.* Klassen ger inga nollor i behov eller summor.
 
 Övriga vyer:
 
 - **Per klass:** hela den valda klassens kurser med behov, fördelad tid och alla lärare på varje rad. Filter och linser i andra vyer begränsar inte denna sammanställning; dina filter finns kvar när du går tillbaka.
-- **Per lärare:** lärarens rader, specialuppdrag och summor per termin, andel på skolan och **Schemalagd tid: Underlag saknas**.
+- **Per lärare:** sökbar lärarväljare, tidskort för **Totalt**, **Undervisning** och **Specialuppdrag**, följt av lärarens rader och eventuell återkoppling. Andel på skolan och **Schemalagd tid: Underlag saknas** visas för sig.
 - **Specialuppdrag:** alla uppdrag med lärare, grupp och tid.
 - **Per kurs/ämne:** behov och sparade rader grupperade per kurs/ämne. Även klasser utan tilldelad lärare visar behov och fördelad tid. Här kopplar du samläsning mellan sparade rader. På dator öppnar **Öppna behovet i Fördela** rätt kurs och klass; ingen lärare tilldelas av det klicket.
 
@@ -58,6 +60,12 @@ En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet 
 Öppna **Filter** för **Klass**, **Ämne**, **Lärare** och **Visa bara avvikelser och saknade kopplingar**. När något av dessa fyra filter är valt visar kontrollen antalet aktiva filter, till exempel **Filter (2)**. **Lins** väljs separat och ingår inte i det antalet. Ett kursurval från matrisen visas separat vid arbetsytan. Skola och läsår står inte i adressen.
 
 Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. Kursurvalet finns kvar om du laddar om sidan eller använder Bakåt och Framåt. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
+
+### Läs en lärares tjänst
+
+I **Per lärare** söker du på namn i fältet **Lärare** och väljer personen i listan. Söktexten byter inte den visade tjänsten. Med tangentbord använder du piltangenterna och **Enter** för ett listval; **Escape** stänger listan. Lärare med samma namn skiljs åt med *alternativ 1*, *alternativ 2* och så vidare. Om listan saknar lärare eller sökningen inte ger träff visas det. Valet ändrar bara vilken tjänst du läser och sparar ingen tilldelning.
+
+De tre tidskorten visar läsårets summa samt **HT** och **VT**. Undervisning och specialuppdrag redovisas separat. Tiden för en samläsning räknas en gång för läraren. **Andel här** är en upplysning och jämförs inte med timmarna. Undervisningsrader och specialuppdrag visas i tabeller på dator och som kort på telefon. För en publicerad version visas även kvittens och kommentarer under **Återkoppling**. Öppna **Tekniska detaljer** om du behöver se lärarens personal-ID.
 
 ### Lärarkolumner och linser
 
@@ -103,13 +111,26 @@ På telefon visar Fördela en lista över ofördelade behov, utan val.
 
 Öppna **Verktyg → Så fungerar tilldelning** för en kort hjälp om matrisens tilldelning och tangentbordsval.
 
-Klicka i en tom cell under lärarens namn. När behovet är känt och det återstår tid tilldelas läraren återstående timmar för **både HT och VT**, även om matrisen just visar en enda termin. Klicket väljer den namngivna läraren och sparar raden. Ingen ny lärarbekräftelse behövs. Behovet och ditt aktuella skoluppdrag kontrolleras före sparningen. Efteråt visas läraren och sparad tid och fokus går tillbaka till cellen när den fortfarande syns.
+Klicka i en tom cell under lärarens namn på ett behov som ännu inte har någon namngiven lärare. När behovet är känt och det återstår tid tilldelas läraren återstående timmar för **både HT och VT**, även om matrisen just visar en enda termin. Klicket väljer läraren i kolumnen och sparar raden. Behovet och ditt aktuella skoluppdrag kontrolleras före sparningen. Efteråt visas läraren och sparad tid och fokus går tillbaka till cellen när den fortfarande syns.
 
-Om behovet har en sparad vakant rad ersätter valet den raden; kommentaren bevaras. En andra lärare på ett delvis fördelat behov får bara återstående tid. Därefter frågar appen hur lärarna delar kursen och vem som sätter betyg när det behövs.
+Om behovet bara har en sparad vakant rad ersätter valet den raden; kommentaren bevaras. Direktvalet används inte när någon namngiven lärare redan har tilldelats behovet, även om du klickar i en annan lärares tomma kolumn.
 
-Dialogen öppnas i stället när tiden är okänd, behovet redan är täckt, du klickar på **Vakant** eller en befintlig tilldelning, eller när behovet ingår i samläsning. Du behöver själv ange eventuell extra lärartid. Befintlig osparad inmatning tas också via dialogen och skrivs inte över av direktvalet.
+När tiden är okänd, du klickar på **Vakant**, det saknas återstående tid eller det finns osparade inmatningar används dialogen. Du behöver själv ange eventuell extra lärartid. Osparade uppgifter skrivs inte över av ett direktval.
 
-För att öppna dialogen före en ny tilldelning öppnar du **Verktyg** och väljer **Avancerade val före tilldelning**. Du kan också använda **Skift+klick**, **Skift+Enter** eller **Skift+mellanslag** på cellen. Inställningen gäller den aktuella arbetsytan och sparas inte i webbläsaren.
+### Byt lärare på ett bemannat behov
+
+1. Klicka på behovets lärarcell, antingen hos den befintliga läraren eller i den nya lärarens kolumn. Dialogen **Vad vill du göra?** visar vilka som redan är tilldelade.
+2. Finns flera tilldelningar väljer du **Tilldelning att byta**. Appen gissar inte vilken lärare som ska ersättas. Klickade du på en befintlig tilldelning är den vald.
+3. Välj **Byt lärare**. För en enskild tjänsterad behålls raden och dess tider. Klickade du i en annan lärares kolumn förbereds den personen som mål, om personen kan väljas i det aktuella underlaget. Klickade du på den befintliga läraren öppnas en kompakt lärarväljare där du väljer en annan person. Om det förberedda målet inte kan användas behöver du välja en aktuell lärare.
+4. Kontrollera läraren och tiderna och välj **Spara tjänsteraden**. Att öppna dialogen eller välja ett namn sparar inte bytet. **Stäng utan att spara** lämnar raden oförändrad.
+
+Gäller bytet en samläsning öppnas i stället **Byt lärare i samläsning**. Bytet omfattar den avgående lärarens samtliga medlemsrader i gruppen. Välj **Till lärare**, granska berörda klasser och välj **Förhandsvisa**. Kontrollera resultatet och välj **Bekräfta lärarbyte**. Gruppens tider och övriga lärare bevaras. Namnval och förhandsvisning sparar ingenting.
+
+### Ändra tid, delning eller andra uppgifter
+
+Välj **Avancerade val** i **Vad vill du göra?** när du vill göra mer än ett lärarbyte, till exempel lägga till ytterligare en lärare eller justera uppgifter. För en samläsning öppnas den separata gruppdialogen för samläsningens uppgifter.
+
+För att öppna dialogen direkt öppnar du **Verktyg** och väljer **Avancerade val före tilldelning**. Du kan också använda **Skift+klick**, **Skift+Enter** eller **Skift+mellanslag** på cellen. Inställningen gäller den aktuella arbetsytan och sparas inte i webbläsaren. En andra lärare på ett delvis fördelat behov får ett förslag på återstående tid i dialogen; kontrollera tiden före lärarvalet. Efter sparningen frågar appen hur lärarna delar kursen och vem som sätter betyg när det behövs.
 
 ### Ångra senaste direkta tilldelningen
 
@@ -121,13 +142,13 @@ Efter direkt tilldelning visas **Sparat** och knappen **Ångra** på behovsraden
 
 ## Tjänsterad: lärartid och avvikelse
 
-Öppna cellen med avancerat val enligt ovan, eller välj en befintlig tilldelning. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
+Öppna cellen med avancerat val enligt ovan. På ett bemannat behov kan du också välja **Avancerade val** i **Vad vill du göra?**. Dialogen **Ny tjänsterad** visar timplanens behov med källa, tid som redan är fördelad till andra och **Schemalagd tid: Underlag saknas**.
 
 1. Kontrollera **Lärartid HT** och **Lärartid VT** överst. När behovet är känt förifylls det som återstår efter redan fördelad tid. Ändra vid behov, till exempel till `37,5` timmar. Om behovet är okänt är tidsfälten tomma; ange då tiden själv och skriv `0` om en termin saknar tid. Minst en termin måste ha tid. Skriv eventuell kommentar.
 2. Välj lärare. **Raden sparas när du väljer**: ett förslag, en lärare du har sökt fram eller **Vakant**. Ingen lärare är förvald, inte ens om du öppnade raden från en namngiven lärarkolumn. Om tiden är felaktig sparas inget, och felet visas vid fältet.
-3. På en befintlig namngiven tilldelning väljer du **Byt lärare**, väljer namnet och trycker **Spara tjänsteraden**. Namnvalet ensamt sparar ingenting; **Stäng utan att spara** lämnar raden oförändrad. Tiderna behålls vid lärarbyte. Kommentar, underlag och borttagning finns under **Fler val och underlag**. En lärare som redan har en egen rad på behovet går inte att välja som en dubblett; ändra den lärarens ruta i matrisen. Ny eller vakant tilldelning behåller direkt sparning vid lärarval.
+3. På en befintlig namngiven tilldelning kontrollerar du det valda namnet, eller använder **Byt lärare** för att välja ett annat, och trycker **Spara tjänsteraden**. Namnvalet ensamt sparar ingenting; **Stäng utan att spara** lämnar raden oförändrad. Tiderna behålls vid lärarbyte. Kommentar, underlag och borttagning finns under **Fler val och underlag**. En lärare som redan har en egen rad på behovet går inte att välja som en dubblett; ändra den lärarens ruta i matrisen. Ny eller vakant tilldelning behåller direkt sparning vid lärarval.
 
-En vanlig tjänsterad behöver ingen separat förhandsvisning.
+En enskild tjänsterad behöver ingen separat förhandsvisning. Lärarbyte i en samläsning förhandsvisas enligt ovan.
 
 Förslagen förklarar vilken tidigare planering de bygger på, exempelvis samma klass föregående läsår. Det är inte bevis på vem som faktiskt har undervisat eller vem som är behörig. Samma namn, liknande klassnamn eller en följande kursnivå skapar inte en koppling. Att skriva i sökfältet eller trycka Enter där väljer ingen person; använd personens väljknapp.
 

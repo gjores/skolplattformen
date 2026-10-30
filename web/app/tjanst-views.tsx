@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
 import { jointWarnings, needTeachers, sharedNeedState, teacherSums } from '@/lib/tjanst-model.ts';
-import { classCoverage, entryDeviation, jointOf, rowTime, SHARING_BADGE, sortTeachers, subjectOf, TjanstClassLinkButtons, TjanstJointWarningBox, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
+import { classCoverage, entryDeviation, jointOf, rowTime, SHARING_BADGE, subjectOf, TjanstClassLinkButtons, TjanstJointWarningBox, type TjanstClassGroup, type TjanstOpenClassLinks } from './tjanst-matrix';
 import type { TjanstFeedback } from './tjanst-publish-panel';
 import { timeText } from './tjanst-publish-panel';
+import TjanstTeacherSelect from './tjanst-teacher-select';
+import './tjanst-teacher-view.css';
 import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_KIND_LABEL, sharingWith, termValue, yearLabel, type TjanstSummaryRow, type TjanstTermView } from './tjanst-service-summary';
 
 const personName = (data: TjanstPlanRead, personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
@@ -66,7 +68,7 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
 
 /** Skärm 3. Samma innehåll som lärarens egen vy, utan kvittensformulär. Andra skolors uppgifter visas aldrig här (D-11). */
 export function TjanstTeacherView({ data, personId, onTeacher, feedback }: { data: TjanstPlanRead; personId: string; onTeacher: (personId: string) => void; feedback?: TjanstFeedback }) {
-  const id = useId(), teacher = data.teachers.find(t => t.personId === personId) ?? null;
+  const teacher = data.teachers.find(t => t.personId === personId) ?? null;
   const teaching: TjanstSummaryRow[] = [], seen = new Set<string>();
   if (teacher) for (const r of data.rows) {
     const j = jointOf(r, data.joints);
@@ -83,17 +85,25 @@ export function TjanstTeacherView({ data, personId, onTeacher, feedback }: { dat
   }
   const specials = data.specials.filter(s => s.personId === personId).map(s => ({ id: s.id, kind: s.kind, label: s.label, group: s.classId ? className(data, s.classId) : null, ht: s.ht, vt: s.vt }));
   const ack = feedback?.teachers.find(t => t.personId === personId), comments = feedback?.comments.filter(c => c.personId === personId) ?? [];
-  return <section aria-label="Per lärare" className="tjanst-view">
-    <div className="protected-filter tjanst-picker"><label htmlFor={id}>Lärare</label><select id={id} value={personId} onChange={e => onTeacher(e.target.value)}>
-      {!teacher && <option value="">Välj lärare</option>}{sortTeachers(data.teachers).map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
+  const sums = teacherSums(personId, data.rows, data.specials, data.joints);
+  return <section aria-label="Per lärare" className="tjanst-view tjanst-teacher-view">
+    <TjanstTeacherSelect teachers={data.teachers} personId={personId} onTeacher={onTeacher}/>
     {!teacher ? <p className="tjanst-empty-text">{data.teachers.length ? 'Välj en lärare för att se tjänsten.' : 'Inga lärare finns i fördelningen ännu.'}</p> : <>
-      <h2>{teacher.displayName}{teacher.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}</h2>
-      <p className="tjanst-meta">Personal-ID {teacher.personId}</p>
-      <TjanstServiceSummary name={teacher.displayName} teaching={teaching} specials={specials} sums={teacherSums(personId, data.rows, data.specials, data.joints)} shareHere={teacher.shareHere}>
+      <header className="tjanst-teacher-heading"><h2>{teacher.displayName}{teacher.draft && <span className="tjanst-new-teacher">Ny lärare</span>}</h2><p>Tjänst på {data.schoolName} · {yearLabel(data.schoolYear)}</p></header>
+      <section className="tjanst-teacher-metrics" aria-label={`Sammanfattning för ${teacher.displayName}`}>
+        {([{ label: 'Totalt', time: sums.total }, { label: 'Undervisning', time: sums.teaching }, { label: 'Specialuppdrag', time: sums.special }]).map(metric => <article key={metric.label} aria-label={metric.label}>
+          <h3>{metric.label}</h3><p className="tjanst-teacher-year"><strong>{formatTime(metric.time.ht + metric.time.vt)}</strong><span>Hela läsåret</span></p>
+          <dl><div><dt>HT</dt><dd>{formatTime(metric.time.ht)}</dd></div><div><dt>VT</dt><dd>{formatTime(metric.time.vt)}</dd></div></dl>
+        </article>)}
+      </section>
+      <dl className="tjanst-teacher-context"><div><dt>Andel här</dt><dd>{teacher.shareHere === null ? 'Inte angiven' : `${teacher.shareHere} %`}</dd></div>
+        <div><dt>Schemalagd tid</dt><dd>Underlag saknas<small>Visas när schemat finns i Skolplattformen.</small></dd></div></dl>
+      <TjanstServiceSummary overview={false} name={teacher.displayName} teaching={teaching} specials={specials} sums={sums} shareHere={teacher.shareHere}>
         {feedback && <section className="tjanst-feedback" aria-label="Återkoppling"><h3>Återkoppling för version {feedback.versionNo}</h3>
           <p><Badge variant="outline" className="tjanst-badge">{ack?.acknowledgedAt ? `Kvitterad ${timeText(ack.acknowledgedAt)}` : 'Inte kvitterad'}</Badge></p>
           {comments.length ? <ul className="tjanst-comments">{comments.map(c => <li key={c.id}><strong>{timeText(c.at)}</strong><p>{c.body}</p></li>)}</ul> : <p>Inga kommentarer.</p>}</section>}
       </TjanstServiceSummary>
+      <details className="tjanst-teacher-details"><summary>Tekniska detaljer</summary><dl><div><dt>Personal-ID</dt><dd>{teacher.personId}</dd></div></dl></details>
     </>}
   </section>;
 }

@@ -49,6 +49,13 @@ function standardUnit():Unit{
  const v2:TjanstVersion={id:tid(602),versionNo:2,status:'draft',contentHash:hash(2),basedOnVersionId:v1.id,publishedByName:null,publishedAt:null};
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
  const unit:Unit={schoolYear:YEAR,coreGeneration:0,evidenceGeneration:0,unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.get('hinder')==='samlasning'?[{code:'joint_invalid',message:JOINT_INVALID}]:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
+ // 05.1-42: välj en vanlig rad uttryckligen när samma behov också har en eller två samläsningar.
+ if(params.has('blandadgrupp')){
+  draft.rows.push(row(307,C.te,te,'SVESVE01',P.anna,600,600));
+  if(params.get('blandadgrupp')==='flera'){
+   const sa=gy(C.sa,'SA26','Samhällsvetenskapsprogrammet',1,[need(C.sa,'SVESVE01','Svenska 1',3000,3000)]);unit.classes.push(sa);draft.rows.find(r=>r.id===tid(307))!.jointGroupId=tid(402);draft.rows.push(row(308,C.sa,sa,'SVESVE01',P.anna,600,600,tid(402)),row(309,C.te,te,'SVESVE01',P.cecilia,300,300));draft.joints.push({id:tid(402),lineageId:tid(5402),name:'Svenska 1 TE26A + SA26',rowIds:[tid(307),tid(308)],teachers:[{personId:P.anna,ht:600,vt:600}]});
+  }
+ }
  if(params.get('hinder')==='rad'||params.get('hinder')==='flera')draft.rows.find(r=>r.id===tid(306))!.stale=true;
  if(params.get('hinder')==='flera')unit.blockers.push({code:'person_not_at_school',message:'En lärare saknar giltigt skoluppdrag på skolan för läsåret.'},{code:'unknown_rule',message:'Kontrollera planeringsunderlaget.'});
  if(params.get('hinder')==='blandad')unit.blockers=[{code:'joint_mixed_teachers',message:'Samläsningen har flera lärare.'}];

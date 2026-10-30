@@ -7,6 +7,7 @@ import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { confirmDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { PLANNING_SCOPE_TEXT } from './planning-context';
 import './planning-context.css';
+import './tjanst-planning-bar.css';
 
 /**
  * Planeringsvalet för Tjänstefördelning och Bemanning. Samma läsning (/api/planering/urval), samma etiketter och samma
@@ -68,14 +69,14 @@ function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, chil
     {!error && <output>Läser planeringsval…</output>}{error && <p role="alert">{error} <button type="button" onClick={() => { setError(null); setRetry(n => n + 1); }}>Försök igen</button></p>}
   </section>;
   return <>
-    <section className="planning-context" aria-label="Planeringsval">
+    <section className="planning-context tjanst-planning-context" aria-label="Planeringsval">
       <div className="planning-context-controls">{schoolChoice ? <details className="planning-context-help"><summary>Planering</summary><p>{PLANNING_SCOPE_TEXT}</p></details> : <strong>Planering</strong>}
-        <label>Skola<select aria-label="Planeringsskola" value={selection.unitId ?? 'all'} disabled={!schoolChoice} onChange={e => change({ unitId: e.target.value === 'all' ? null : e.target.value })}>
+        <label><span>Skola</span><select aria-label="Planeringsskola" value={selection.unitId ?? 'all'} disabled={!schoolChoice} onChange={e => change({ unitId: e.target.value === 'all' ? null : e.target.value })}>
           <option value="all">Alla behöriga skolor</option>{schoolChoice && setup.units.map(unit => <option key={unit.unitId} value={unit.unitId}>{unit.schoolName}</option>)}
         </select></label>
         <div className="planning-context-years"><button type="button" aria-label="Föregående planeringsläsår" disabled={selection.schoolYear <= setup.minimumYear}
           onClick={() => change({ schoolYear: selection.schoolYear - 1 })}>‹</button>
-          <label>Läsår<select aria-label="Planeringsläsår" value={selection.schoolYear} onChange={e => change({ schoolYear: Number(e.target.value) })}>
+          <label><span>Läsår</span><select aria-label="Planeringsläsår" value={selection.schoolYear} onChange={e => change({ schoolYear: Number(e.target.value) })}>
             {Array.from({ length: setup.maximumYear - setup.minimumYear + 1 }, (_, i) => setup.minimumYear + i)
               .map(year => <option key={year} value={year}>{planningYearLabel(year)}{year === setup.currentYear ? ' · aktuellt' : ''}</option>)}
           </select></label>

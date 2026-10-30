@@ -4,6 +4,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { CheckCheck, Plus, UserRoundPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { BlockerTarget } from '@/lib/tjanst-blocker-actions.ts';
+import TjanstMatrixActions from './tjanst-matrix-actions';
 import { TjanstActionMenu, actionOrigin } from './tjanst-action-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -11,7 +12,7 @@ import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, par
   parseStatusReply, personalCommandRef, planCommandRef, TjanstContractError, type TjanstCommandRef, type TjanstJoint,
   type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
 import { parseYearReply, parseYearRequest, type TjanstYearRequest, type TjanstYearReply, type TjanstYearCatalogReply, type TjanstYearBasePayload as TjanstPlanPayload } from '@/lib/tjanst-year-contract.ts';
-import TjanstYearDialog, { type TjanstYearBatchDraft } from './tjanst-year-dialog';
+import TjanstYearDialog, { type TjanstYearBatchDraft, type TjanstScopedMove } from './tjanst-year-dialog';
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
@@ -45,10 +46,11 @@ type Saved = { filter: TjanstFilter; classId: string; personId: string; autoLens
 type MatrixUndo = { revision: number; versionId: string; row: TjanstRow; previous: TjanstRow | null };
 const sameMatrixRow = (a: TjanstRow, b: TjanstRow) => (Object.keys(b) as (keyof TjanstRow)[]).every(key => a[key] === b[key]);
 type Dialog =
-  | { kind: 'row'; target: TjanstCellTarget }
+  | { kind: 'row'; target: TjanstCellTarget; replaceTeacher?: boolean; advanced?: boolean }
+  | { kind: 'matrixActions'; target: TjanstCellTarget }
   | { kind: 'special'; special: TjanstSpecial | null }
   | { kind: 'joint'; rowIds: string[]; jointId: string | null }
-  | { kind: 'batch'; mode: 'move' | 'bulk' }
+  | { kind: 'batch'; mode: 'move' | 'bulk'; scopedMove?: TjanstScopedMove }
   | { kind: 'addTeacher' } | { kind: 'newTeacher' }
   | { kind: 'sharing'; sourceKey: string }
   | { kind: 'confirm'; confirm: 'removeTeacher' | 'deleteRow' | 'deleteSpecial' | 'discard' | 'dissolve' | 'publish'; id: string };
@@ -296,7 +298,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   }, [unitId, schoolYear]);
   useEffect(() => {
     const token = ++supportGeneration.current;
-    if (!dialog || !dialogData || phone || dialog.kind === 'newTeacher' || dialog.kind === 'batch') return;
+    if (!dialog || !dialogData || phone || dialog.kind === 'newTeacher' || dialog.kind === 'batch' || dialog.kind === 'matrixActions') return;
     const request: TjanstYearRequest = { unitId: dialogData.unitId, schoolYear: dialogData.schoolYear, ...(dialog.kind === 'row'
       ? { mode: 'row' as const, sourceKey: dialog.target.sourceKey, rowId: dialog.target.rowId } : { mode: 'catalog' as const }) };
     let current = true;
@@ -500,9 +502,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const ht = need.needHt === null ? null : Math.max(0, need.needHt - cov.covered.ht);
     const vt = need.needVt === null ? null : Math.max(0, need.needVt - cov.covered.vt);
     const effective = vacantTarget(target);
+    if (!advanced && entry.rows.some(row => row.personId !== null)) { open({ kind: 'matrixActions', target }, from); return; }
     if (advanced || target.rowId !== null || target.personId === null || ht === null || vt === null || ht + vt === 0
       || entry.rows.some(r => r.stale || r.jointGroupId !== null) || pendingRowInput || allocationDrafts[target.sourceKey]) {
-      open({ kind: 'row', target: effective }, from); return;
+      open({ kind: 'row', target: effective, advanced }, from); return;
     }
     const snapshot = data;
     const current = () => active.current && !phoneRef.current && !phoneViewport() && matrixCurrent.current.view === 'matris'
@@ -599,7 +602,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     <div className="admin-empty tjanst-state"><h2>Välj skola</h2><p>Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.</p></div>
   </div>;
 
-  const dialogEntry = dialog?.kind === 'row' ? (dialogData ? needEntries(dialogData) : []).flatMap(g => g.entries).find(e => e.need.sourceKey === dialog.target.sourceKey) ?? null : null;
+  const dialogEntry = (dialog?.kind === 'row' || dialog?.kind === 'matrixActions') ? (dialogData ? needEntries(dialogData) : []).flatMap(g => g.entries).find(e => e.need.sourceKey === dialog.target.sourceKey) ?? null : null;
   const jointDialog = dialog?.kind === 'joint' ? { joint: dialog.jointId ? dialogData?.joints.find(j => j.id === dialog.jointId) ?? null : null } : null;
   const confirm = dialog?.kind === 'confirm' ? dialog : null;
   const catalogStale = support?.mode === 'catalog' && acceptedCatalog !== null && (acceptedCatalog.basisHash !== support.basisHash || acceptedCatalog.currentRevision !== support.currentRevision);
@@ -700,7 +703,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
           onCell={(target, from, advanced) => void assignMatrix(target, from, advanced)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
-          onJoint={(jointId, from) => open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from)}/></section>
+          onJoint={(jointId, from, advanced, target) => advanced || !target ? open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from) : open({ kind: 'matrixActions', target }, from)}/></section>
       : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           drafts={versionId ? {} : allocationDrafts} onDraft={updateAllocationDraft}
           initialSourceKey={allocationStart}
@@ -716,10 +719,24 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
         {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
         {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
-    {!phone && dialog && dialog.kind !== 'batch' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
+    {!phone && dialog && dialog.kind !== 'batch' && dialog.kind !== 'matrixActions' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
       {supportError && <div><Problems failure={supportError} summary={false} checking={false}/><Button variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button><Button variant="outline" onClick={() => close()}>Stäng formuläret</Button></div>}
 </>}
-    {!phone && dialogData && dialog?.kind === 'row' && dialogEntry && support?.mode === 'row' && <TjanstRowDialog {...base} key={`${dialog.target.sourceKey}:${dialog.target.rowId}`} data={dialogData} entry={dialogEntry} target={dialog.target} support={support}
+    {!phone && dialogData && dialog?.kind === 'matrixActions' && dialogEntry && <TjanstMatrixActions data={dialogData} rows={dialogEntry.rows.filter(row => row.personId !== null)} target={dialog.target} description={`${dialogEntry.need.label} · ${dialogEntry.cls.name}`} onClose={() => close()}
+      onReplace={row => {
+        if (data?.revision !== dialogData.revision) { close(); setPageError(failed('Underlaget har ändrats. Välj tilldelningen på nytt.')); return; }
+        const personId = dialog.target.personId !== row.personId && !dialogEntry.rows.some(r => r.id !== row.id && r.personId === dialog.target.personId) ? dialog.target.personId : null;
+        if (row.jointGroupId) { const joint = dialogData.joints.find(j => j.id === row.jointGroupId); if (!joint || row.personId === null) return;
+          open({ kind: 'batch', mode: 'move', scopedMove: { fromPersonId: row.personId, rowIds: joint.rowIds.filter(id => dialogData.rows.some(r => r.id === id && r.personId === row.personId)), ...(personId ? { targetPersonId: personId } : {}) } }, origin.current);
+        } else open({ kind: 'row', target: { ...dialog.target, rowId: row.id, personId: personId ?? row.personId }, replaceTeacher: true }, origin.current);
+      }} onAdvanced={row => {
+        if (data?.revision !== dialogData.revision) { close(); setPageError(failed('Underlaget har ändrats. Välj tilldelningen på nytt.')); return; }
+        const ids = [...new Set(dialogEntry.rows.flatMap(r => r.jointGroupId ? [r.jointGroupId] : []))], jointId = row ? row.jointGroupId : (ids.length === 1 ? ids[0] : null);
+        const joint = dialogData.joints.find(j => j.id === jointId);
+        if (joint) open({ kind: 'joint', jointId: joint.id, rowIds: joint.rowIds }, origin.current);
+        else { const target = row && (row.id === dialog.target.rowId || dialogEntry.rows.filter(r => r.personId !== null).length > 1) ? { ...dialog.target, rowId: row.id, personId: row.personId } : dialog.target; open({ kind: 'row', target, advanced: true }, origin.current); }
+      }}/>}
+    {!phone && dialogData && dialog?.kind === 'row' && dialogEntry && support?.mode === 'row' && <TjanstRowDialog {...base} key={`${dialog.target.sourceKey}:${dialog.target.rowId}`} data={dialogData} entry={dialogEntry} target={dialog.target} support={support} replaceTeacher={dialog.replaceTeacher} advanced={dialog.advanced}
       onClose={() => close()} onDelete={row => open({ kind: 'confirm', confirm: 'deleteRow', id: row.id }, origin.current)}
       onSave={async change => {
         if (change.action !== 'save_row') return failed('Tjänsteraden kunde inte kontrolleras.');
@@ -748,7 +765,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     {!phone && dialogData && dialog?.kind === 'newTeacher' && <TjanstNewTeacherDialog {...base} schoolName={dialogData.schoolName} onClose={() => close()} onSave={newTeacher}/>}
     {!phone && dialogData && confirm && support?.mode === 'catalog' && <Confirmation key={`${confirm.confirm}:${confirm.id}`} data={dialogData} dialog={confirm} base={base} rowName={rowName}
       onClose={focus => close(focus)} plan={plan} classHeading={id => document.querySelector<HTMLElement>(`[data-class-heading="${CSS.escape(id)}"]`)}/>}
-    {!phone && data && dialog?.kind === 'batch' && <TjanstYearDialog mode={dialog.mode} data={data} scopeKey={scopeKey} disabled={busy || checking || pendingCheck || recovering || !data.capabilities.canEdit}
+    {!phone && data && dialog?.kind === 'batch' && <TjanstYearDialog mode={dialog.mode} scopedMove={dialog.scopedMove} data={data} scopeKey={scopeKey} disabled={busy || checking || pendingCheck || recovering || !data.capabilities.canEdit}
       checking={checking} loadPreview={loadPreview} onSave={sendPrepared} onClose={() => close()} onRefreshPlan={refresh} initialDraft={batchDraft} onDraftChange={setBatchDraft}/>}
 
   </div>;

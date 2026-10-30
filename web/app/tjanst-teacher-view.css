@@ -1,0 +1,55 @@
+/* Per lärare: påverkar inte Min tjänst eller övriga sammanställningar. */
+.tjanst-teacher-view .tjanst-teacher-select{display:grid;gap:6px;width:min(100%,36rem);min-width:0}
+.tjanst-teacher-select>label{font-weight:500}
+.tjanst-teacher-select>p,.tjanst-teacher-heading>p{font-size:14px;color:var(--muted-foreground);margin:0;overflow-wrap:anywhere}
+.tjanst-teacher-view .tjanst-teacher-combobox{width:100%;height:auto;min-height:46px;background:var(--card);border:1px solid var(--border);border-radius:8px}
+.tjanst-teacher-combobox input{font:inherit;font-size:16px;min-width:0;min-height:44px;width:100%;padding-inline:12px}
+.tjanst-teacher-combobox button{min-width:44px;min-height:44px}
+.tjanst-teacher-combobox:focus-within{outline:2px solid var(--ring);outline-offset:2px}
+.tjanst-teacher-select-popup{width:var(--anchor-width);min-width:0;max-width:calc(100vw - 24px);background:var(--popover,var(--card));color:var(--foreground)}
+.tjanst-teacher-select-popup [data-slot="combobox-list"]{max-height:min(45vh,22rem,calc(var(--available-height,45vh) - 8px))}
+.tjanst-teacher-select-popup [data-slot="combobox-item"]{min-height:44px;line-height:1.4;padding:10px 36px 10px 12px;font-size:16px;white-space:normal;overflow-wrap:anywhere}
+.tjanst-teacher-select-popup [data-slot="combobox-item"]>span:first-child{min-width:0}
+.tjanst-teacher-select-popup [data-slot="combobox-item"][data-highlighted]{background:var(--accent);color:var(--accent-foreground)}
+.tjanst-teacher-select-popup [data-slot="combobox-empty"]{padding:16px;font-size:16px;overflow-wrap:anywhere}
+.tjanst-teacher-view .tjanst-teacher-heading{display:grid;gap:6px}
+.tjanst-teacher-view .tjanst-teacher-heading h2{margin:0}
+.tjanst-teacher-view .tjanst-teacher-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;min-width:0}
+.tjanst-teacher-view .tjanst-teacher-metrics>article{border:1px solid var(--border);border-radius:12px;background:var(--card);padding:18px;display:grid;gap:14px;min-width:0}
+.tjanst-teacher-view .tjanst-teacher-metrics>article:first-child{background:var(--muted)}
+.tjanst-teacher-view .tjanst-teacher-metrics h3{color:var(--muted-foreground);font-size:14px;margin:0}
+.tjanst-teacher-view .tjanst-teacher-year{display:grid;gap:4px;margin:0;overflow-wrap:anywhere}
+.tjanst-teacher-year strong{font-size:clamp(20px,2.3vw,28px);font-weight:600;font-variant-numeric:tabular-nums;line-height:1.2}
+.tjanst-teacher-year span{font-size:14px;color:var(--muted-foreground)}
+.tjanst-teacher-metrics dl{display:flex;flex-wrap:wrap;gap:8px 24px;margin:0;font-variant-numeric:tabular-nums}
+.tjanst-teacher-metrics dt,.tjanst-teacher-context dt{font-size:14px;color:var(--muted-foreground)}
+.tjanst-teacher-metrics dd,.tjanst-teacher-context dd,.tjanst-teacher-details dd{margin:4px 0 0;overflow-wrap:anywhere}
+.tjanst-teacher-view .tjanst-teacher-context{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:12px;margin:0}
+.tjanst-teacher-context>div{padding:12px 16px;border:1px solid var(--border);border-radius:8px;min-width:0}
+.tjanst-teacher-context small{display:block;font-size:14px;color:var(--muted-foreground);margin-top:4px}
+/* Delade läsvyn behåller tabeller och telefonkort; tidsfakta visas i korten ovan. */
+.tjanst-teacher-view .tjanst-summary{border:1px solid var(--border);border-radius:12px;padding:16px;gap:12px}
+.tjanst-teacher-view .tjanst-summary>h3{padding-top:16px;border-top:1px solid var(--border)}
+.tjanst-teacher-view .tjanst-summary>h3:first-child{padding-top:0;border-top:0}
+.tjanst-teacher-view .tjanst-feedback{border-top:1px solid var(--border);padding-top:16px;display:grid;gap:12px}
+.tjanst-teacher-view .tjanst-feedback p{margin:0}
+.tjanst-teacher-view .tjanst-feedback .tjanst-badge{margin:0;font-size:14px;white-space:normal;overflow-wrap:anywhere}
+.tjanst-teacher-view .tjanst-comments{margin:0;padding:0;list-style:none;display:grid;gap:12px}
+.tjanst-teacher-view .tjanst-comments>li{padding:12px;border-radius:8px;background:var(--muted);display:grid;gap:8px;min-width:0;overflow-wrap:anywhere}
+.tjanst-teacher-view .tjanst-comments>li>strong{font-size:14px;font-weight:500}
+.tjanst-teacher-view .tjanst-comments>li>p{white-space:pre-wrap}
+.tjanst-teacher-view .tjanst-teacher-details{font-size:14px;border-top:1px solid var(--border)}
+.tjanst-teacher-details summary{min-height:44px;display:list-item;align-content:center;cursor:pointer;padding:10px 4px;color:var(--muted-foreground)}
+.tjanst-teacher-details summary:focus-visible{outline:2px solid var(--ring);outline-offset:2px;border-radius:4px}
+.tjanst-teacher-details dl{margin:4px 0 12px;padding:0 4px}
+@media(max-width:700px){
+  .tjanst-teacher-view .tjanst-teacher-metrics{grid-template-columns:minmax(0,1fr)}
+  .tjanst-teacher-view .tjanst-teacher-metrics>article{padding:16px;gap:10px}
+  .tjanst-teacher-view .tjanst-teacher-context{grid-template-columns:minmax(0,1fr)}
+  .tjanst-teacher-view .tjanst-summary{padding:12px}
+}
+
+/* InputGroup äger ramen; globala administrationsfält får inte skapa en andra ram/ring. */
+.tjanst .tjanst-teacher-combobox{box-shadow:none}
+.tjanst .tjanst-teacher-combobox input:not([type=checkbox]){border:0;border-radius:0;outline:none;box-shadow:none;background:transparent}
+.tjanst .tjanst-teacher-combobox input:not([type=checkbox]):focus{outline:none;box-shadow:none}

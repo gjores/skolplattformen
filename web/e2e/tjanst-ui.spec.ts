@@ -1,3 +1,4 @@
+import {expectTeacherTimes} from './tjanst-toolbar';
 import {advancedMode,clickToolbarAction,selectFilter,toolbarAction,viewOptions} from './tjanst-toolbar';
 // Synthetic component evidence for Tjänstefördelning (05.1-05). /api/tjanst/* is answered by the fixture's in-browser mock;
 // no database, server or live authentication. Komponentprov, inte faktiskt prov.
@@ -74,7 +75,7 @@ test.describe('dator',()=>{
   await open(page);
   const cell=matrix(page).getByRole('button',{name:'Anna Andersson, Engelska 5, TE26A: 50 h. Ändra.'});
   await cell.click();
-  await page.getByRole('dialog').locator('details.tjanst-row-more summary').click();await page.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  if(await page.getByRole('dialog').locator('details.tjanst-row-more').getAttribute('open')===null)await page.getByRole('dialog').locator('details.tjanst-row-more summary').click();await page.getByRole('dialog').getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
   const confirm=page.getByRole('dialog',{name:'Ta bort tjänsteraden?'});
   await page.evaluate(()=>window.__tjanst.failNext('plan/kommando',{status:400,code:'tjanst_joint_already'}));
   await confirm.getByRole('button',{name:'Ta bort tjänsteraden',exact:true}).click();
@@ -184,9 +185,7 @@ test.describe('dator',()=>{
   await expect(mentor).toContainText('Anna Andersson');await expect(mentor).toContainText('TE26A');await expect(mentor).toContainText('40 h');
   await expect(program).toContainText('Bertil Berg');await expect(program).toContainText('Ingen grupp');
   await ws(page).getByRole('tab',{name:'Per lärare'}).click();
-  const facts=ws(page).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts');
-  await expect(facts).toContainText('UndervisningHT 100 h · VT 50 h · Läsår 150 h');await expect(facts).toContainText('SpecialuppdragHT 20 h · VT 20 h · Läsår 40 h');
-  await expect(facts).toContainText('TotaltHT 120 h · VT 70 h · Läsår 190 h');await expect(facts).toContainText('Andel här60 %');await expect(facts).toContainText('Schemalagd tidUnderlag saknas');
+  await expectTeacherTimes(page,'Undervisning','100 h','50 h','150 h');await expectTeacherTimes(page,'Specialuppdrag','20 h','20 h','40 h');await expectTeacherTimes(page,'Totalt','120 h','70 h','190 h');const facts=ws(page).locator('.tjanst-teacher-context');await expect(facts).toContainText('Andel här60 %');await expect(facts).toContainText('Schemalagd tidUnderlag saknas');
   await clickToolbarAction(page,'Lägg till specialuppdrag');
   const dialog=page.getByRole('dialog');
   await dialog.getByRole('button',{name:'Spara specialuppdraget'}).click();
@@ -374,7 +373,7 @@ test.describe('dator',()=>{
   await expect(ws(page).getByRole('region',{name:'Specialuppdrag'}).getByRole('row').filter({hasText:'Mentor'})).toBeVisible();
   await expect(ws(page).getByRole('button',{name:/Ändra uppdraget/})).toHaveCount(0);
   await ws(page).getByRole('tab',{name:'Per lärare'}).click();
-  await expect(ws(page).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 0 h · Läsår 50 h');
+  await expectTeacherTimes(page,'Undervisning','50 h','0 h','50 h');
   await ws(page).getByRole('button',{name:'Tillbaka till planeringen'}).click();
   await expect(ws(page).getByText(/Du läser version 1/)).toHaveCount(0);await expect(await toolbarAction(page,'Lägg till specialuppdrag')).toBeVisible();
  });
@@ -518,9 +517,9 @@ test.describe('dator',()=>{
   await expect(view.getByRole('row').filter({hasText:'Engelska 5'})).toContainText('Bertil Berg · HT 0 h · VT 50 h');
   await ws(page).getByRole('tab',{name:'Per lärare'}).click();await selectFilter(page,'Lärare',{label:'Bertil Berg'});
   const teacher=ws(page).getByRole('region',{name:'Per lärare'});
-  await expect(teacher.locator('dl')).toContainText('UndervisningHT 50 h · VT 100 h · Läsår 150 h');await expect(teacher.locator('dl')).toContainText('Andel här100 %');
+  await expectTeacherTimes(page,'Undervisning','50 h','100 h','150 h');await expect(teacher.locator('.tjanst-teacher-context')).toContainText('Andel här100 %');
   await expect(teacher.getByRole('row').filter({hasText:'Svenska 1'})).toContainText('Samläsning med EK26');
-  await expect(teacher.getByText(/^Personal-ID 51a50000-0000-4000-8000-000000000102$/)).toBeVisible();
+  const technical=teacher.locator('.tjanst-teacher-details');await expect(technical.getByText('51a50000-0000-4000-8000-000000000102',{exact:true})).not.toBeVisible();await technical.locator('summary').click();await expect(technical.getByText('51a50000-0000-4000-8000-000000000102',{exact:true})).toBeVisible();
   expect(new URL(page.url()).search).not.toContain('000000000102');
  });
 
@@ -659,7 +658,7 @@ test.describe('dator',()=>{
   await page.keyboard.press('Enter');const dialog=page.getByRole('dialog');await expect(dialog.getByRole('heading',{name:'Ändra tjänsteraden'})).toBeVisible();
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');
   await dialog.getByRole('button',{name:'Stäng utan att spara'}).click();await expect(english).toBeFocused();
-  await page.keyboard.press('Space');await dialog.locator('details.tjanst-row-more summary').click();await dialog.getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
+  await page.keyboard.press('Space');if(await dialog.locator('details.tjanst-row-more').getAttribute('open')===null)await dialog.locator('details.tjanst-row-more summary').click();await dialog.getByRole('button',{name:'Ta bort tjänsteraden…'}).click();
   const confirm=page.getByRole('dialog');await expect(confirm.getByRole('button',{name:'Behåll raden'})).toBeFocused();
   await confirm.getByRole('button',{name:'Ta bort tjänsteraden'}).click();
   await expect(ws(page).getByText('Tjänsteraden är borttagen: Anna Andersson, Engelska 5, TE26A.')).toBeVisible();
@@ -1023,7 +1022,7 @@ test.describe('delning',()=>{
   const math=ws(page).getByRole('region',{name:'Per klass'}).getByRole('row').filter({hasText:'Matematik 1c'});
   await expect(math.locator('.tjanst-sharing-line')).toHaveText('Två lärare · samtidigt · Sätter betyg: Anna Andersson, Cecilia Dahl');
   await ws(page).getByRole('tab',{name:'Per lärare'}).click();
-  await ws(page).getByRole('region',{name:'Per lärare'}).getByLabel('Lärare',{exact:true}).selectOption({label:'Cecilia Dahl'});
+  await selectFilter(page,'Lärare',{label:'Cecilia Dahl'});
   await expect(ws(page).getByRole('region',{name:'Per lärare'}).getByRole('row').filter({hasText:'Matematik 1c'})).toContainText('Delas med Anna Andersson · Samtidigt · Sätter betyg');
   await noOverflow(page);expect(errors).toEqual([]);
  });

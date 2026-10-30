@@ -82,7 +82,7 @@ export function coverageText(covered: number, need: number | null): string {
 }
 
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
-  onCell: (target: TjanstCellTarget, origin: HTMLElement, advanced?: boolean) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
+  onCell: (target: TjanstCellTarget, origin: HTMLElement, advanced?: boolean) => void; onJoint: (jointId: string, origin: HTMLElement, advanced?: boolean, target?: TjanstCellTarget) => void; onOpenClassLinks?: TjanstOpenClassLinks;
   feedback?: { sourceKey: string; text: string } | null; undoSourceKey?: string | null; onUndo?: () => void; undoDisabled?: boolean;
   advanced?: boolean;
   /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
@@ -139,7 +139,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
             <span className="tjanst-teacher-full" aria-hidden="true">{t.displayName}</span>
             <small data-compact-sum={t.displayName}>{time(termValue(sums.get(t.personId)!.total, term))}</small>{pin}</th>
           : <th scope="col" key={t.personId} className="tjanst-teacher"><span className="tjanst-teacher-name">{t.displayName}</span>
-            {t.shareHere !== null && <small>Andel här {t.shareHere}{'\u00a0'}%</small>}{t.draft && <Badge variant="outline" className="tjanst-badge">Ny lärare</Badge>}{pin}</th>; })}
+            {t.shareHere !== null && <small>Andel här {t.shareHere}{'\u00a0'}%</small>}{t.draft && <Badge variant="outline" className="tjanst-new-teacher">Ny lärare</Badge>}{pin}</th>; })}
         <th scope="col" className="tjanst-num tjanst-vacant">Vakant</th>
       </tr></thead>
       {groups.map(g => {
@@ -159,7 +159,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
               const label = `${name(personId)}, ${e.need.label}, ${g.cls.name}: ${row ? `${time(minutes)}. Ändra.` : 'ingen tid. Tilldela.'}`;
               const content = <>{joint && <Link2 size={16} aria-hidden="true"/>}{row && <span>{time(minutes)}</span>}</>;
               const isActive = current.r === r && current.c === c;
-              const activate = (origin: HTMLButtonElement, useAdvanced: boolean) => joint ? onJoint(joint.id, origin)
+              const activate = (origin: HTMLButtonElement, useAdvanced: boolean) => joint ? onJoint(joint.id, origin, useAdvanced, { classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null })
                 : onCell({ classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null }, origin, useAdvanced);
               return <td key={personId ?? 'vakant'} className={personId === null ? 'tjanst-cell tjanst-vacant' : 'tjanst-cell'}>{editable ? <button type="button" data-cell={`${r}:${c}`} aria-label={label} aria-describedby={`${hintId}-assign`}
                 tabIndex={isActive ? 0 : -1} ref={el => { if (el) cells.current.set(`${r}:${c}`, el); else cells.current.delete(`${r}:${c}`); }}
@@ -177,11 +177,11 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                 : <span className="tjanst-course">{e.need.label}</span>}<small>{code} · ämnesrad {e.need.label}</small>
                 {joined && (() => { const j = e.rows.map(x => jointOf(x, data.joints)).find(Boolean) ?? null, mixed = e.rows.some(x => { const jj = jointOf(x, data.joints); return !!jj && jointHasMixedTeachers(jj, data.rows); });
                   const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;
-                  const cls = mixed ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
-                  return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}>{content}</button>
+                  const cls = mixed ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
+                  return onOpenJoint && j ? <button type="button" className={`${cls} tjanst-badge-button`} aria-describedby={`${hintId}-joint`} onClick={() => onOpenJoint(j.id)}><span className="tjanst-joint-chip">{content}</span></button>
                     : <Badge variant="outline" className={cls}>{content}</Badge>; })()}
                 {(() => { const state = sharedNeedState(e.need.sourceKey, data.rows, data.sharing); if (state === 'single') return null;
-                  const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning' : 'tjanst-badge';
+                  const warn = state === 'unspecified', cls = warn ? 'tjanst-badge tjanst-badge-warning tjanst-joint-status' : 'tjanst-badge tjanst-joint-status';
                   const content = <>{warn ? <TriangleAlert size={16} aria-hidden="true"/> : <Users size={16} aria-hidden="true"/>}{SHARING_BADGE[state]}</>;
                   return onOpenSharing ? <button type="button" data-focus-key={`sharing:${e.need.sourceKey}`} className={`${cls} tjanst-badge-button`} aria-label={`${SHARING_BADGE[state]}: ange hur lärarna delar ${e.need.label} i ${g.cls.name}`}
                     onClick={event => onOpenSharing(e.need.sourceKey, event.currentTarget)}>{content}</button> : <Badge variant="outline" className={cls}>{content}</Badge>; })()}

@@ -1,0 +1,16 @@
+/* En sammanhållen kontrollrad, med kvarvarande skol-/läsårsval och navigering. */
+.workspace>section.tjanst-planning-context.planning-context{padding:12px 16px;border:1px solid var(--border);border-radius:12px;background:var(--card);box-shadow:0 1px 2px #14213d05;margin-bottom:16px}
+.planning-context.tjanst-planning-context .planning-context-controls{gap:12px;align-items:center}
+.planning-context.tjanst-planning-context .planning-context-help>summary{font-size:12px;letter-spacing:.02em;color:var(--muted-foreground);font-weight:600;padding-right:4px}
+.planning-context.tjanst-planning-context .planning-context-controls>label{display:flex;flex-direction:row;align-items:center;gap:10px;flex:1 1 180px;max-width:400px;min-width:0}
+.planning-context.tjanst-planning-context label>span{font-size:12px;font-weight:500;color:var(--muted-foreground);white-space:nowrap}
+.planning-context.tjanst-planning-context select{border:1px solid var(--border);background:var(--background);border-radius:8px;font-size:14px;font-weight:500;min-width:0;padding:8px 12px}
+.planning-context.tjanst-planning-context .planning-context-years{display:flex;align-items:center;gap:0;flex:0 1 280px;border:1px solid var(--border);border-radius:8px;background:var(--background);overflow:hidden}
+.planning-context.tjanst-planning-context .planning-context-years>label{display:flex;align-items:center;flex-direction:row;gap:8px;flex:1 1 auto;min-width:0;padding-left:8px}
+.planning-context.tjanst-planning-context .planning-context-years select{border:0;box-shadow:none;background:transparent;padding-left:4px;min-width:90px}
+.planning-context.tjanst-planning-context .planning-context-years>button{border:0;background:transparent;border-radius:0;flex:0 0 44px;font-size:22px;line-height:1}
+.planning-context.tjanst-planning-context .planning-context-years>button:hover:not(:disabled){background:var(--muted)}
+.planning-context.tjanst-planning-context .planning-context-current{font-size:12px;color:var(--muted-foreground);padding:4px 8px;background:var(--muted);border-radius:5px;white-space:nowrap}
+.planning-context.tjanst-planning-context .planning-context-controls>button{font-size:13px;border-radius:8px;max-width:none!important;padding:6px 12px;background:var(--card)}
+.planning-context.tjanst-planning-context .planning-context-years:focus-within{outline:2px solid var(--ring);outline-offset:2px}
+@media(max-width:800px){.workspace>section.tjanst-planning-context.planning-context{padding:12px}.planning-context.tjanst-planning-context .planning-context-controls>label{flex-basis:100%;max-width:none}.planning-context.tjanst-planning-context .planning-context-years{flex:1 1 230px}.planning-context.tjanst-planning-context .planning-context-help{flex-basis:100%}}

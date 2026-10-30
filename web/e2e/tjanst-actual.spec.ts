@@ -1,3 +1,4 @@
+import {expectTeacherTimes} from './tjanst-toolbar';
 import {advancedMode,clickToolbarAction,selectFilter,toolbarAction,viewOptions} from './tjanst-toolbar';
 // 05.1-09: faktiskt prov av tjänstefördelningen mot egen Worker (127.0.0.1:3015), egen schemakopia och riktig OIDC.
 // Föräldern (work/pilot/verify-tjanst-actual.mjs) äger kandidaten, schemakopian, migrationerna och Worker. Det här provet
@@ -400,8 +401,7 @@ test('specialuppdrag: mentor med klass och programansvar utan grupp, skilt från
   await expect(program).toContainText('Tor Berg');await expect(program).toContainText('Ingen grupp');
   await capture(p,'specialuppdrag');
   await ws(p).getByRole('tab',{name:'Per lärare'}).click();await selectFilter(p,'Lärare',{label:'Pia Ek'});
-  const facts=ws(p).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts');
-  await expect(facts).toContainText('SpecialuppdragHT 10 h · VT 10 h · Läsår 20 h');
+  await expectTeacherTimes(p,'Specialuppdrag','10 h','10 h','20 h');
   const specials=Array.from(await db`select s.kind,s.class_id,s.ht_minutes::int ht,s.vt_minutes::int vt from public.tjanst_special_assignments s join public.tjanst_versions v on v.id=s.version_id
     join public.tjanst_distributions dd on dd.id=v.distribution_id and dd.unit_id=${seed.schools.A} and dd.school_year=${seed.year} where v.status='draft' order by s.kind`) as {kind:string;class_id:string|null;ht:number;vt:number}[];
   expect(specials.map(x=>[x.kind,x.class_id===null?null:'klass',x.ht,x.vt])).toEqual([['mentor','klass',600,600],['programansvar',null,1200,1200]]);
@@ -595,7 +595,7 @@ test('rektor B ser bara Andel här 40 % och rektor AB nekas läsning när skolan
   await expect(matrix(b).getByRole('columnheader',{name:/Sara Dahl/u})).toContainText('Andel här 40\u00a0%');
   await ws(b).getByRole('tab',{name:'Per lärare'}).click();await selectFilter(b,'Lärare',{label:'Sara Dahl'});
   const view=ws(b).getByRole('region',{name:'Per lärare'});
-  await expect(view.locator('dl.tjanst-facts')).toContainText('Andel här40\u00a0%');
+  await expect(view.locator('.tjanst-teacher-context')).toContainText('Andel här40\u00a0%');
   await expect(view).not.toContainText(/\b60\s%/u);await expect(ws(b)).not.toContainText('Syntetisk skola A');await expect(view.getByText(/På andra skolor/u)).toHaveCount(0);
   const read=await fixture!.request(b,'principalB','/api/tjanst/personal/lasa',{unitId:seed.schools.B});
   const sara=(read.body.people as {givenName:string;duties:{unitId:string;percent:number}[]}[]).find(x=>x.givenName==='Sara')!;
@@ -740,7 +740,7 @@ async function bemanningPublished(browser:Browser,info:TestInfo){
   await expect(h.getByRole('heading',{name:'Tjänstefördelning',level:1})).toBeVisible();await settled(h);
   await expect(ws(h).locator('.tjanst-readonly')).toHaveText(new RegExp(`^Du läser version ${published.no} skrivskyddat, publicerad \\d{4}-\\d\\d-\\d\\d av .+\\. Lärarna ser den här versionen\\.$`,'u'));
   if(project==='desktop')await expect(footer(h,'Undervisning',teacher.name)).toHaveText(fmt(shown.ht+shown.vt));
-  else await expect(ws(h).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText(`UndervisningHT ${fmt(shown.ht)} · VT ${fmt(shown.vt)} · Läsår ${fmt(shown.ht+shown.vt)}`);
+  else await expectTeacherTimes(h,'Undervisning',fmt(shown.ht),fmt(shown.vt),fmt(shown.ht+shown.vt));
   const choices=ws(h).getByLabel('Historisk publicering');
   const options=await choices.count()?await choices.locator('option').allInnerTexts():[];
   expect(options.filter(o=>/Utkast|Aktuell version/u.test(o))).toEqual([]);
@@ -960,7 +960,7 @@ test('telefon: Min tjänst, Per lärare och Bemanning utan redigeringskontroller
   const p=await signIn(browser,info,'principalA');await openTjanst(p,seed.schools.A);
   await expect(ws(p).getByText('Matrisen och all redigering finns på dator. Här kan du läsa fördelningen.')).toBeVisible();
   await expect(ws(p).getByLabel('Vy')).toHaveValue('larare');
-  await expect(ws(p).getByRole('region',{name:'Per lärare'}).locator('dl.tjanst-facts')).toContainText('UndervisningHT 50 h · VT 40 h · Läsår 90 h');
+  await expectTeacherTimes(p,'Undervisning','50 h','40 h','90 h');
   for(const name of ['Ändra i ny version','Lägg till lärare i fördelningen','Lägg upp ny lärare','Lägg till specialuppdrag'])await expect(p.getByRole('button',{name,exact:true})).toHaveCount(0);
   await expect(p.locator('.tjanst-matrix')).toHaveCount(0);await expect(p.getByRole('checkbox')).toHaveCount(0);
   await ws(p).getByRole('region',{name:'Per lärare'}).scrollIntoViewIfNeeded();await capture(p,'per-larare');
@@ -1044,7 +1044,7 @@ async function openNeed(page:Page,need:Need){
 }
 async function closeEditor(page:Page){await page.getByRole('dialog').getByRole('button',{name:'Stäng utan att spara',exact:true}).click();await expect(page.getByRole('dialog')).toHaveCount(0);}
 async function batchApply(page:Page,personId:string){const d=page.getByRole('dialog');await d.getByLabel('Lärare för markerade behov').selectOption(personId);await expect(d.getByRole('button',{name:'Använd valet på markerade behov'})).toBeEnabled();await d.getByRole('button',{name:'Använd valet på markerade behov'}).click();}
-async function batchSave(page:Page,shot?:string){const d=page.getByRole('dialog');await d.getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(d.getByRole('button',{name:'Spara ändringarna',exact:true})).toBeEnabled();if(shot){await d.getByRole('heading',{name:'Förhandsvisning',exact:true}).evaluate(e=>e.scrollIntoView({block:'start'}));await capture(page,shot);}const reply=page.waitForResponse(responseOf('/api/tjanst/plan/kommando')),request=page.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/kommando');await d.getByRole('button',{name:'Spara ändringarna',exact:true}).click();expect((await reply).status()).toBe(200);const sent=(await request).postDataJSON();await expect(d).toHaveCount(0);await settled(page);return sent;}
+async function batchSave(page:Page,shot?:string,saveLabel='Spara ändringarna'){const d=page.getByRole('dialog');await d.getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(d.getByRole('button',{name:saveLabel,exact:true})).toBeEnabled();if(shot){await d.getByRole('heading',{name:'Förhandsvisning',exact:true}).evaluate(e=>e.scrollIntoView({block:'start'}));await capture(page,shot);}const reply=page.waitForResponse(responseOf('/api/tjanst/plan/kommando')),request=page.waitForRequest(r=>new URL(r.url()).pathname==='/api/tjanst/plan/kommando');await d.getByRole('button',{name:saveLabel,exact:true}).click();expect((await reply).status()).toBe(200);const sent=(await request).postDataJSON();await expect(d).toHaveCount(0);await settled(page);return sent;}
 function yearPass(index:number,details?:unknown){pass(TJANST_YEAR_CASES[index-1],'verifierat mot egen Worker/OIDC och SQL',details);}
 const rowFacts=(rows:Awaited<ReturnType<typeof currentPlan>>['rows'])=>rows.map(r=>({sourceKey:r.sourceKey,personId:r.personId,teacherHt:r.teacherHt,teacherVt:r.teacherVt,comment:r.comment}));
 
@@ -1080,8 +1080,8 @@ test('år: verkliga behov, aktiva val, historik och explicit batch genom Worker'
   const partRowsBefore=state.rows.filter(r=>year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey)&&r.personId===partId);expect(partRowsBefore).toHaveLength(2);
   const jointCapture=await captureTjanstPlanHttp(fixture!,p,'principalA',{...scopeA(),action:'save_joint',payload:{jointId:null,name:'Syntetisk årssamläsning',rowIds:groupRows.filter(r=>r.personId===fullId).map(r=>r.id),teachers:[{personId:fullId,ht:600,vt:600}]}});
   expect((await sendCaptured(p,'principalA',await createYearPlanCommand({...jointCapture,commandId:crypto.randomUUID()})))).toMatchObject({status:200});
-  await p.reload();await settled(p);await clickToolbarAction(p,'Flytta uppdrag');d=p.getByRole('dialog');await d.getByLabel('Flytta från lärare').selectOption(fullId);await d.getByLabel('Flytta till lärare').selectOption(year.people.moveTarget.personId);await d.getByRole('button',{name:'Bekräfta mållärare',exact:true}).click();
-  await d.getByRole('checkbox',{name:new RegExp(esc(year.joint.needs[0].className)+' · '+esc(year.joint.needs[0].label))}).check();await d.getByRole('button',{name:'Markera lärarens alla rader i samläsningen'}).click();await batchSave(p,'year-group-preview');
+  await p.reload();await settled(p);await ws(p).getByRole('tab',{name:'Matris',exact:true}).click();const groupNeed=year.joint.needs[0];await cell(p,state.teachers.find(t=>t.personId===fullId)!.displayName,groupNeed.label,groupNeed.className).click();d=p.getByRole('dialog',{name:'Vad vill du göra?'});await d.getByRole('button',{name:'Byt lärare',exact:true}).click();d=p.getByRole('dialog',{name:'Byt lärare i samläsning'});await d.getByLabel('Till lärare').selectOption(year.people.moveTarget.personId);
+  const groupMove=await batchSave(p,'year-group-preview','Bekräfta lärarbyte');expect(groupMove.action).toBe('move');expect(groupMove.payload.items).toHaveLength(2);
   state=await currentPlan(p);const group=state.joints.find(j=>j.name==='Syntetisk årssamläsning')!;expect(group.teachers).toEqual([{personId:year.people.moveTarget.personId,ht:600,vt:600}]);
   expect(state.rows.filter(r=>r.jointGroupId===group.id).map(r=>r.personId)).toEqual([year.people.moveTarget.personId,year.people.moveTarget.personId]);
   expect(state.rows.filter(r=>r.personId===partId&&year.joint.needs.some((n:Need)=>n.sourceKey===r.sourceKey))).toEqual(partRowsBefore);

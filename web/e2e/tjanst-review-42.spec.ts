@@ -1,0 +1,47 @@
+import {test,expect,type Page} from '@playwright/test';
+const ws=(p:Page)=>p.locator('.tjanst');
+const cell=(p:Page,teacher:string,course='Matematik 1b',cls='EK26')=>ws(p).getByRole('button',{name:new RegExp(`^${teacher}, ${course}, ${cls}:`)});
+const commands=(p:Page)=>p.evaluate(()=>window.__tjanst.commands);
+const snapshot=(p:Page)=>p.evaluate(()=>window.__tjanst.snapshotOf()) as Promise<any>;
+async function open(p:Page,query=''){await p.goto('/e2e/fixtures/tjanst-preview.html'+query);await expect(ws(p).locator('.tjanst-content')).toBeVisible();}
+test.describe('matrisens vägval',()=>{
+ test.beforeEach(async({page},info)=>{test.skip(!info.project.name.startsWith('desktop'),'Redigering finns på dator.');await open(page);});
+ test('tom rad tilldelas direkt; befintlig rad byter till klickad lärare utan dubblett eller tappad tid',async({page})=>{
+  await cell(page,'Cecilia Dahl','Matematik 1c','TE26A').click();await expect(ws(page).getByText('Sparat · Cecilia Dahl',{exact:true})).toBeVisible();await expect(page.getByRole('dialog')).toHaveCount(0);
+  const before=await snapshot(page);await cell(page,'Cecilia Dahl').click();let d=page.getByRole('dialog');await expect(d.getByRole('heading',{name:'Vad vill du göra?'})).toBeVisible();expect(await commands(page)).toHaveLength(1);
+  await d.getByRole('button',{name:'Byt lärare',exact:true}).click();d=page.getByRole('dialog');await expect(d.getByText('Lärare: Cecilia Dahl',{exact:true})).toBeVisible();await expect(d.getByLabel('Lärartid HT (timmar)')).toHaveValue('50');expect(await commands(page)).toHaveLength(1);
+  await d.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();await expect(d).toHaveCount(0);const after=await snapshot(page);expect(after.draft.rows.length).toBe(before.draft.rows.length);
+  const row=after.draft.rows.find((r:any)=>r.id.endsWith('306'));expect(row.personId).toBe('51a50000-0000-4000-8000-000000000103');expect(row.teacherHt).toBe(3000);expect(row.teacherVt).toBe(3000);expect((await commands(page)).at(-1)!.body.payload.rowId).toBe(row.id);
+ });
+ test('befintlig cell ger samma vägval, avancerade detaljer och Escape tillbaka till cellen',async({page})=>{
+  const target=cell(page,'Anna Andersson');await target.click();await expect(page.getByRole('dialog').getByRole('button',{name:'Avancerade val',exact:true})).toBeVisible();expect(await commands(page)).toHaveLength(0);await page.keyboard.press('Escape');await expect(target).toBeFocused();
+  await target.click();await page.getByRole('dialog').getByRole('button',{name:'Avancerade val',exact:true}).click();await expect(page.getByRole('dialog').getByLabel('Kommentar (valfri)')).toBeVisible();expect(await commands(page)).toHaveLength(0);
+ });
+ test('flera tilldelningar kräver ett uttryckligt val av den lärare som byts',async({page})=>{
+  await cell(page,'Cecilia Dahl','Engelska 5','TE26A').click();const d=page.getByRole('dialog');await expect(d.getByRole('button',{name:'Byt lärare',exact:true})).toBeDisabled();await d.getByLabel('Tilldelning att byta').selectOption({label:'Anna Andersson · HT 50 h · VT 0 h'});await d.getByRole('button',{name:'Byt lärare',exact:true}).click();await expect(page.getByRole('dialog').getByText('Lärare: Cecilia Dahl',{exact:true})).toBeVisible();expect(await commands(page)).toHaveLength(0);
+ });
+ test('klickad lärare som redan finns på behovet kan inte förväljas som dubblett',async({page})=>{
+  await cell(page,'Bertil Berg','Engelska 5','TE26A').click();const d=page.getByRole('dialog');await d.getByLabel('Tilldelning att byta').selectOption('51a50000-0000-4000-8000-000000000301');await d.getByRole('button',{name:'Byt lärare',exact:true}).click();await expect(page.getByRole('dialog').getByRole('button',{name:'Välj Bertil Berg',exact:true})).toBeDisabled();await expect(page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true})).toBeEnabled();expect(await commands(page)).toHaveLength(0);
+ });
+ test('samläsning byts samlat, med förhandsvisning och en bekräftad skrivning',async({page})=>{
+  const before=await snapshot(page);await cell(page,'Cecilia Dahl','Svenska 1','TE26A').click();await page.getByRole('dialog').getByRole('button',{name:'Byt lärare',exact:true}).click();const d=page.getByRole('dialog',{name:'Byt lärare i samläsning'});await expect(d.getByLabel('Till lärare')).toHaveValue('51a50000-0000-4000-8000-000000000103');expect(await commands(page)).toHaveLength(0);
+  await d.getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(d.getByRole('heading',{name:'Förhandsvisning',exact:true})).toBeVisible();expect(await commands(page)).toHaveLength(0);await d.getByRole('button',{name:'Bekräfta lärarbyte',exact:true}).click();await expect(d).toHaveCount(0);
+  const cmd=(await commands(page))[0].body;expect(cmd.action).toBe('move');expect(cmd.payload.items).toHaveLength(2);const after=await snapshot(page);expect(after.draft.rows.length).toBe(before.draft.rows.length);expect(after.draft.joints[0].teachers[0].personId).toBe('51a50000-0000-4000-8000-000000000103');expect(after.draft.joints[0].teachers[0].ht).toBe(before.draft.joints[0].teachers[0].ht);
+ });
+ for(const multiple of [false,true])test(`avancerade val följer vald vanlig rad bland ${multiple?'två samläsningar':'en samläsning'}`,async({page})=>{
+  await open(page,'?blandadgrupp='+(multiple?'flera':'en'));await cell(page,'Bertil Berg','Svenska 1','TE26A').click();const d=page.getByRole('dialog',{name:'Vad vill du göra?'}),rowId='51a50000-0000-4000-8000-'+(multiple?'000000000309':'000000000307');await d.getByLabel('Tilldelning att byta').selectOption(rowId);await d.getByRole('button',{name:'Avancerade val',exact:true}).click();await expect(page.getByRole('dialog').getByLabel('Kommentar')).toBeVisible();const reads=await page.evaluate(()=>window.__tjanst.reads);expect(reads.filter(r=>r.body.mode==='row').at(-1)!.body.rowId).toBe(rowId);expect(await commands(page)).toHaveLength(0);
+ });
+ test('små färgmarkörer behåller tillgänglig knapp för samläsning',async({page})=>{
+  const badge=ws(page).locator('thead .tjanst-new-teacher').first();expect((await badge.boundingBox())!.height).toBeLessThanOrEqual(20);expect(await badge.evaluate(el=>getComputedStyle(el).backgroundColor)).not.toBe('rgba(0, 0, 0, 0)');
+  const button=ws(page).getByRole('button',{name:'Samläsning',exact:true}).first();expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);expect((await button.locator('.tjanst-joint-chip').boundingBox())!.height).toBeLessThanOrEqual(20);await button.focus();await page.keyboard.press('Enter');await expect(ws(page).locator('[data-joint]').first()).toBeFocused();
+ });
+});
+test('lärarvyn visar tydliga kort och sökning byter bara vid aktivt listval',async({page},info)=>{
+ await open(page);if(info.project.name.startsWith('phone'))await ws(page).getByRole('combobox',{name:'Vy',exact:true}).selectOption('larare');else await ws(page).getByRole('tab',{name:'Per lärare',exact:true}).click();
+ const input=ws(page).getByRole('combobox',{name:'Lärare',exact:true});await expect(ws(page).locator('.tjanst-teacher-metrics>article')).toHaveCount(3);await input.fill('Cecilia');await expect(page.getByRole('option',{name:/^Cecilia Dahl/})).toBeVisible();await expect(ws(page).locator('.tjanst-teacher-heading h2')).toContainText('Anna Andersson');await page.getByRole('option',{name:'Cecilia Dahl',exact:true}).click();await expect(ws(page).getByRole('heading',{name:/^Cecilia Dahl/})).toBeVisible();
+ await input.fill('ingen sådan person');await expect(page.getByText('Ingen lärare matchar sökningen.',{exact:true})).toBeVisible();await page.keyboard.press('Escape');await expect(ws(page).getByRole('heading',{name:/^Cecilia Dahl/})).toBeVisible();await input.fill('Anna');await expect(page.getByRole('option',{name:'Anna Andersson',exact:true})).toBeVisible();await page.keyboard.press('ArrowDown');await page.keyboard.press('Enter');await expect(ws(page).getByRole('heading',{name:'Anna Andersson',exact:true})).toBeVisible();expect(await commands(page)).toHaveLength(0);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1)).toBe(true);await page.screenshot({path:`/private/tmp/tjanst42-teacher-${info.project.name}.png`,fullPage:true});
+});
+
+test('lång lärarlista går att rulla i låg vy utan att klippas',async({page},info)=>{
+ await page.setViewportSize({width:info.project.name.startsWith('phone')?320:1024,height:420});await open(page,'?data=manga');if(info.project.name.startsWith('phone'))await ws(page).getByRole('combobox',{name:'Vy',exact:true}).selectOption('larare');else await ws(page).getByRole('tab',{name:'Per lärare',exact:true}).click();const input=ws(page).getByRole('combobox',{name:'Lärare',exact:true});await input.fill('');await input.click();const list=page.locator('.tjanst-teacher-select-popup [data-slot=combobox-list]');await expect(list).toBeVisible();await expect.poll(()=>list.evaluate(el=>el.scrollHeight>el.clientHeight)).toBe(true);await list.evaluate(el=>el.scrollTop=el.scrollHeight);const last=list.getByRole('option').last();await expect(last).toBeInViewport();const label=await last.innerText();await last.click();await expect(ws(page).locator('.tjanst-teacher-heading h2')).toContainText(label);expect(await commands(page)).toHaveLength(0);
+});

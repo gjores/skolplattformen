@@ -81,14 +81,15 @@ const teacherName = (data: TjanstPlanRead, personId: string | null) => personId 
 
 type RowProps = Base & { data: TjanstPlanRead; entry: TjanstNeedEntry; target: TjanstCellTarget; support: TjanstYearRowReply;
   onSave: (change: TjanstPreparedChange) => Promise<TjanstOutcome>; onDelete: (row: TjanstRow) => void };
-export function TjanstRowDialog(props: RowProps) {
+export function TjanstRowDialog(props: RowProps & { replaceTeacher?: boolean; advanced?: boolean }) {
   const { open, checking, disabled, onClose, data, entry, support, onSave, onDelete } = props;
   const id = useId(), row = support.currentRow;
   const editingTeacher = !!row && row.personId !== null;
-  const [changingTeacher, setChangingTeacher] = useState(false);
+  const [changingTeacher, setChangingTeacher] = useState(!!props.replaceTeacher && (props.target.personId === row?.personId || !support.candidates.some(p => p.personId === props.target.personId)));
   const own = row ? rowTime(row, data.joints) : { ht: 0, vt: 0 };
   const others = { ht: entry.cov.covered.ht - (row?.personId ? own.ht : 0), vt: entry.cov.covered.vt - (row?.personId ? own.vt : 0) };
-  const [editor, setEditor] = useDraftField<TjanstYearRowEditor>(props, 'editor', () => { const value = createYearRowEditor(support, others); return props.form?.resetChoice ? { ...value, choice: null, personId: null } : value; });
+  const [editor, setEditor] = useDraftField<TjanstYearRowEditor>(props, 'editor', () => { const value = createYearRowEditor(support, others); if (props.form?.resetChoice) return { ...value, choice: null, personId: null };
+    if (props.replaceTeacher && props.target.personId !== null && props.target.personId !== row?.personId) { try { return selectYearTeacher(value, support, { kind: 'manual', personId: props.target.personId }); } catch { return { ...value, choice: null, personId: null }; } } return value; });
   const [ht, setHt] = useDraftField(props, 'ht', () => hoursInput(editor.teacherHt));
   const [vt, setVt] = useDraftField(props, 'vt', () => hoursInput(editor.teacherVt));
   const [comment, setComment] = useDraftField(props, 'comment', editor.comment);
@@ -140,7 +141,7 @@ export function TjanstRowDialog(props: RowProps) {
       <>{(!editingTeacher || changingTeacher) && <TjanstTeacherPicker compact={editingTeacher} unavailablePersonIds={editingTeacher ? entry.rows.filter(r => r.id !== row?.id && r.personId !== null).map(r => r.personId!) : []} candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
         onSelect={selection => { let chosen: TjanstYearRowEditor; try { chosen = selectYearTeacher(editor, support, selection); } catch { setErrors({ person: 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.' }); return; }
           setEditor(chosen); setErrors({}); if (editingTeacher) { setChangingTeacher(false); requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(`${id}-save`)?.focus())); } else submit(chosen); }}/>}</>
-      {editingTeacher && <details className="tjanst-row-more" open={errors.comment ? true : undefined}><summary>{comment ? 'Fler val · kommentar finns' : 'Fler val och underlag'}</summary><dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
+      {editingTeacher && <details className="tjanst-row-more" open={props.advanced || errors.comment ? true : undefined}><summary>{comment ? 'Fler val · kommentar finns' : 'Fler val och underlag'}</summary><dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
       <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl><Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field><Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row!)}>Ta bort tjänsteraden…</Button></details>}
     </fieldset><div className="mandate-actions">{row && <Button id={`${id}-save`} type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>}
       {!row && busy && <output aria-busy="true">Sparar…</output>}

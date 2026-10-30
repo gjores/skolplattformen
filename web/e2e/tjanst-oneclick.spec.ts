@@ -34,15 +34,15 @@ test.describe('F09 dator',()=>{
   expect((await commands(page))[0].body.payload).toMatchObject({rowId:'51a50000-0000-4000-8000-000000000305',teacherHt:4320,teacherVt:4320});
   await undo(page).click();await expect(undo(page)).toHaveCount(0);expect((await draft(page)).rows).toEqual(before.rows);
  });
- test('delvis fördelat behov får bara återstående tid och obligatorisk delningsfråga',async({page})=>{
-  await open(page,'?data=manga&delvis=1');const target=matrix(page).getByRole('button',{name:/, Historia 1, MA3: ingen tid\. Tilldela\.$/}).first();await target.click();
+ test('delvis fördelat behov kräver avancerat tillägg, bara återstående tid och obligatorisk delningsfråga',async({page})=>{
+  await open(page,'?data=manga&delvis=1');const target=matrix(page).getByRole('button',{name:/, Historia 1, MA3: ingen tid\. Tilldela\.$/}).first();const teacher=(await target.getAttribute('aria-label'))!.split(', Historia 1')[0];await target.click();expect(await commands(page)).toHaveLength(0);await page.getByRole('dialog').getByRole('button',{name:'Avancerade val',exact:true}).click();await page.getByRole('dialog').getByLabel('Sök lärare').fill(teacher);await page.getByRole('dialog').getByRole('button',{name:`Välj ${teacher}`,exact:true}).click();
   await expect(page.getByRole('dialog',{name:'Hur delar lärarna kursen?'})).toBeVisible();
   const sent=(await commands(page)).filter(c=>c.body.action==='save_row');expect(sent).toHaveLength(1);expect(sent[0].body.payload).toMatchObject({teacherHt:0,teacherVt:1500});
  });
  test('okänd tid och redan täckt behov kräver dialog, utan automatisk extratid',async({page})=>{
   await open(page,'?data=okand-tid');await cell(page).click();await expect(page.getByRole('dialog')).toBeVisible();expect(await commands(page)).toHaveLength(0);
   await page.getByRole('dialog').getByRole('button',{name:'Stäng utan att spara',exact:true}).click();
-  await cell(page,'Cecilia Dahl','Matematik 1b','EK26').click();const d=page.getByRole('dialog');await expect(d.getByLabel('Lärartid HT (timmar)')).toHaveValue('0');await expect(d.getByLabel('Lärartid VT (timmar)')).toHaveValue('0');expect(await commands(page)).toHaveLength(0);
+  await cell(page,'Cecilia Dahl','Matematik 1b','EK26').click();await page.getByRole('dialog').getByRole('button',{name:'Avancerade val',exact:true}).click();const d=page.getByRole('dialog');await expect(d.getByLabel('Lärartid HT (timmar)')).toHaveValue('0');await expect(d.getByLabel('Lärartid VT (timmar)')).toHaveValue('0');expect(await commands(page)).toHaveLength(0);
  });
  test('avancerat läge och Skift+Enter öppnar dialog; vanlig Enter sparar',async({page})=>{
   await open(page);await advancedMode(page);await cell(page).click();await expect(page.getByRole('dialog')).toBeVisible();
@@ -117,7 +117,7 @@ test.describe('F09 dator',()=>{
   const n=(await commands(page)).length;await ws(page).getByRole('button',{name:'Kontrollera sparstatus',exact:true}).click();await expect(cell(page)).toBeVisible();expect((await commands(page)).length).toBe(n);
  });
  test('ändrad rad gör tidigare ångra otillgängligt',async({page})=>{
-  await open(page);await cell(page).click();await saved(page);await cell(page).click();const d=page.getByRole('dialog');await d.getByLabel('Lärartid HT (timmar)').fill('40');await d.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();await expect(d).toHaveCount(0);await expect(undo(page)).toHaveCount(0);await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: 90 h. Ändra.');
+  await open(page);await cell(page).click();await saved(page);await cell(page).click({modifiers:['Shift']});const d=page.getByRole('dialog');await d.getByLabel('Lärartid HT (timmar)').fill('40');await d.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();await expect(d).toHaveCount(0);await expect(undo(page)).toHaveCount(0);await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: 90 h. Ändra.');
  });
  test('ångra avbryts om Bakåt lämnar matrisen före förhandskontrollen',async({page})=>{
   await open(page,'?tjvy=klass');await ws(page).getByRole('tab',{name:'Matris',exact:true}).click();await cell(page).click();await saved(page);
