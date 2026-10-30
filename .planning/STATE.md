@@ -1,11 +1,11 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: "05.3"
-current_phase_name: Klassorganisation
-current_plan: "Klassinventering klar; avgränsa valbara undervisningsgrupper och elevmedlemskap före schemaberäkningen"
+current_phase: "05.2"
+current_phase_name: Valbara block inför schemaläggning
+current_plan: "VB-01 kontrakt och VB-05 identitetsgrund; därefter block, tjänsteunderlag, elev-/VH-vyer och verifierad installation3012"
 status: in_progress
-stopped_at: "Klassinventering och planeringsutkast klara. Nästa beställda del är valbara undervisningsgrupper; klassunderlag stödjer arbetet. Skrivfunktioner kräver egna kontrakt."
+stopped_at: "Genomförande beställt och pågår. Behåll nuvarande3012 tills alla VB-delar är verifierade; ingen delinstallation anges som färdig leverans."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
 last_activity_desc: "Aktuell kod granskad för klassorganisation; bevara CLASS-COHORT A–B. Dokumenterad modellkonflikt för egna datum och namnnycklar; förberedande klassunderlag prioriteras."
@@ -25,6 +25,10 @@ milestone_name: milestone
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 
 # Project State
+
+## Pågående — valbara block, beställt genomförande2026-10-30
+
+Användaren har beställt planering, genomförande, ordentliga prov och installation på3012 av hela det avstämda blockflödet. [VB-paketet](phases/05.2-schemamodul/05.2-VB-IMPLEMENTATION.md) genomförs, inte hela schemamotorn. [Kontrakt](phases/05.2-schemamodul/05.2-VB-CONTRACT.md) och [SS12000-baslinje](phases/05.2-schemamodul/05.2-VB-SS12000.md) styr genomförandet. Först rena DTO/policyregler och verifierad elev-/VH-bindning på samma befintliga OIDC-session, därefter beständiga block, verkliga grupprader, arbetsytor och faktisk provkedja. Ordinarie3012 bevaras tills en fryst komplett kandidat är grön. Ingen produktleverans eller ny extern anslutning är ännu verifierad. Tidigare inventering nedan är underlag, inte aktuell slutstatus.
 
 ## Aktuellt 2026-10-30 — klassorganisation inventerad
 
