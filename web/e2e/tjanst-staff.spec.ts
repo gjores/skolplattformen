@@ -183,10 +183,10 @@ test.describe('Egen tjänst och navigering',()=>{
   expect(items.indexOf('Tjänstefördelning')).toBe(items.indexOf('APL-planering')+1);
   await page.locator('.nav-button:visible',{hasText:'Tjänstefördelning'}).click();
   await expect(heading(page,'Tjänstefördelning')).toBeVisible();
-  await expect(page.getByText('Gäller årsöverblick, programplaner, timplaner och tjänstefördelning.')).toBeVisible();
+  await page.locator('.planning-context-help > summary').click();await expect(page.getByText('Gäller årsöverblick, programplaner, timplaner och tjänstefördelning.')).toBeVisible();await page.locator('.planning-context-help > summary').click();
   await expect(page.getByText('Välj en skola i planeringsvalet. En tjänstefördelning gäller en skola.')).toBeVisible();
   await page.getByLabel('Planeringsskola').selectOption(A);
-  await expect(page.locator('.tjanst .admin-kicker')).toHaveText(`PLANERING · ${SCHOOL_A}`);
+  await expect(page.locator('.tjanst .tjanst-subline')).toContainText(SCHOOL_A);
   await expect(page.getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);
   expect(m.bodies.filter(b=>b.path==='/api/tjanst/plan/lasa').map(b=>b.body)).toEqual([{unitId:A,schoolYear:YEAR}]);
   expect(new URL(page.url()).searchParams.get('vy')).toBe('tjanst');
@@ -532,4 +532,15 @@ test.describe('Bemanning',()=>{
   await expect(page.getByRole('button',{name:`Visa fördelningen för ${SCHOOL_A}`}).locator('visible=true')).toBeFocused();
   await noOverflow(page);
  });
+});
+
+// Full ProtectedHome shell with synthetic API responses; the actual Worker test supplies separate evidence.
+test('fullapp arbetsyta visar första behovet och valbar lärare',async({page},info)=>{
+ test.skip(phone(info),'Telefonen har läsvyer.');await mock(page,{role:'rektor'});await page.goto(url+'?vy=tjanst&skola='+A);
+ await expect(page.getByLabel('Planeringsskola',{exact:true})).toBeVisible();await page.getByLabel('Planeringsskola',{exact:true}).selectOption(A);
+ const row=page.locator('.tjanst [data-need-row]').first();await expect(row).toBeVisible();await page.evaluate(async()=>{await document.fonts.ready;for(let el=document.querySelector('.tjanst');el;el=el.parentElement)el.scrollTop=0;window.scrollTo(0,0);});
+ const teacher=await row.getByRole('button',{name:/Anna Andersson/}).boundingBox(),box=await row.boundingBox(),geometry={viewport:page.viewportSize(),firstNeed:box,teacher,source:process.env.TJANST_WORKSPACE_BASELINE?'8f6a586':'plan41'};
+ const prefix=process.env.TJANST_WORKSPACE_BASELINE?'before':'after';await page.screenshot({path:`/private/tmp/tjanst41-fullapp-${prefix}-${info.project.name}.png`});
+ const {writeFileSync}=await import('node:fs');writeFileSync(`/private/tmp/tjanst41-fullapp-${prefix}-${info.project.name}.json`,JSON.stringify(geometry,null,2)+'\n');
+ if(!process.env.TJANST_WORKSPACE_BASELINE){expect(box!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);expect(teacher!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);await expect(row.getByRole('button',{name:/Anna Andersson/})).toBeInViewport();}
 });

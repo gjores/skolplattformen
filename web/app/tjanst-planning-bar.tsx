@@ -69,7 +69,7 @@ function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, chil
   </section>;
   return <>
     <section className="planning-context" aria-label="Planeringsval">
-      <div className="planning-context-controls"><strong>Planering</strong>
+      <div className="planning-context-controls">{schoolChoice ? <details className="planning-context-help"><summary>Planering</summary><p>{PLANNING_SCOPE_TEXT}</p></details> : <strong>Planering</strong>}
         <label>Skola<select aria-label="Planeringsskola" value={selection.unitId ?? 'all'} disabled={!schoolChoice} onChange={e => change({ unitId: e.target.value === 'all' ? null : e.target.value })}>
           <option value="all">Alla behöriga skolor</option>{schoolChoice && setup.units.map(unit => <option key={unit.unitId} value={unit.unitId}>{unit.schoolName}</option>)}
         </select></label>
@@ -84,7 +84,7 @@ function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, chil
         {selection.schoolYear === setup.currentYear ? <span className="planning-context-current">Aktuellt läsår</span> :
           <button type="button" onClick={() => change({ schoolYear: setup.currentYear })}>Till aktuellt läsår</button>}
       </div>
-      <p className="planning-context-scope">{PLANNING_SCOPE_TEXT}</p>
+      {!schoolChoice && <p className="planning-context-scope">{PLANNING_SCOPE_TEXT}</p>}
       {notice && <output>{notice}</output>}
     </section>
     {children(selection)}

@@ -1,3 +1,4 @@
+import {onlyIssues,selectFilter} from './tjanst-toolbar';
 // Synthetic UI evidence for 05.1-36; no real database or authentication.
 import {test,expect,type Page} from '@playwright/test';
 const ws=(p:Page)=>p.locator('.tjanst'), course=(p:Page)=>ws(p).getByRole('region',{name:'Per kurs/ämne',exact:true});
@@ -23,7 +24,7 @@ test('B02 behovslänken öppnar exakt kurs och klass utan tilldelning',async({pa
  expect(await page.evaluate(()=>window.__tjanst.commands)).toHaveLength(0);
 });
 test('B06 kursklick överlever omladdning samt bakåt och framåt',async({page})=>{
- test.skip(phone(page),'Matrisen finns på dator.');await open(page,'');await ws(page).getByLabel('Ämne',{exact:true}).selectOption('Matematik');await ws(page).getByRole('button',{name:'Matematik 1c',exact:true}).click();
+ test.skip(phone(page),'Matrisen finns på dator.');await open(page,'');await selectFilter(page,'Ämne','Matematik');await ws(page).getByRole('button',{name:'Matematik 1c',exact:true}).click();
  expect(await page.evaluate(()=>history.state.tjanst.filter.course)).toBe('MATMAT01c');await page.reload();await expect(region(page,'Matematik 1c')).toBeVisible();await expect(region(page,'Matematik 1b')).toHaveCount(0);
  await page.goBack();await expect(ws(page).getByRole('tab',{name:'Matris',exact:true})).toHaveAttribute('aria-selected','true');await expect(ws(page).getByLabel('Ämne',{exact:true})).toHaveValue('Matematik');expect(await page.evaluate(()=>history.state.tjanst.filter.course)).toBe('');
  await page.goForward();await expect(region(page,'Matematik 1c')).toBeVisible();await expect(region(page,'Matematik 1b')).toHaveCount(0);
@@ -39,5 +40,5 @@ for(const id of ['larare','special','kurs'] as const)test(`B04 ${labels[id]} är
  await open(page,'?tjvy='+id+'&termin=ht');await expect(ws(page).getByText('Hela läsåret · HT och VT',{exact:true})).toBeVisible();await expect(ws(page).getByRole('button',{name:'HT',exact:true})).toHaveCount(0);await view(page,'klass');await expect(ws(page).getByRole('button',{name:'HT',exact:true})).toHaveAttribute('aria-pressed','true');await expect(ws(page).getByRole('region',{name:'Per klass',exact:true}).locator('.tjanst-facts')).toContainText('150 h');
 });
 test('B04 kursens avvikelsefilter använder hela året, inte dolt HT-val',async({page})=>{
- await open(page,'?tjvy=kurs&termin=ht&data=apl');await ws(page).getByLabel('Visa bara avvikelser och saknade kopplingar',{exact:true}).check();await expect(region(page,'Matematik 1b')).toContainText('Behov HT 50 h · VT 30 h');await expect(region(page,'Matematik 1b')).toContainText('Fördelat HT 50 h · VT 50 h');
+ await open(page,'?tjvy=kurs&termin=ht&data=apl');await onlyIssues(page);await expect(region(page,'Matematik 1b')).toContainText('Behov HT 50 h · VT 30 h');await expect(region(page,'Matematik 1b')).toContainText('Fördelat HT 50 h · VT 50 h');
 });

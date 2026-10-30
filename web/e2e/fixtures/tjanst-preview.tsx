@@ -49,6 +49,10 @@ function standardUnit():Unit{
  const v2:TjanstVersion={id:tid(602),versionNo:2,status:'draft',contentHash:hash(2),basedOnVersionId:v1.id,publishedByName:null,publishedAt:null};
  const old:Content={teachers:teachers.slice(0,2),rows:draft.rows.slice(0,2),specials:draft.specials.slice(0,1),joints:[]};
  const unit:Unit={schoolYear:YEAR,coreGeneration:0,evidenceGeneration:0,unitId:A,schoolName:long?'Syntetiska gymnasiet för teknik, naturvetenskap och samhällsvetenskap i Exempelstad':'Syntetiska gymnasiet',revision:7,classes:[te,ek,im,na],versions:[v1,v2],draft,snapshots:new Map([[v1.id,old]]),blockers:params.get('hinder')==='samlasning'?[{code:'joint_invalid',message:JOINT_INVALID}]:params.has('hinder')?[{code:'stale_rows',message:'En tjänsterad bygger på en äldre timplansversion.'}]:[]};
+ if(params.get('hinder')==='rad'||params.get('hinder')==='flera')draft.rows.find(r=>r.id===tid(306))!.stale=true;
+ if(params.get('hinder')==='flera')unit.blockers.push({code:'person_not_at_school',message:'En lärare saknar giltigt skoluppdrag på skolan för läsåret.'},{code:'unknown_rule',message:'Kontrollera planeringsunderlaget.'});
+ if(params.get('hinder')==='blandad')unit.blockers=[{code:'joint_mixed_teachers',message:'Samläsningen har flera lärare.'}];
+ if(params.get('hinder')==='okant')unit.blockers=[{code:'unknown_rule',message:'Kontrollera planeringsunderlaget.'}];
  if(variant==='apl'){te.aplMinutes=0;ek.aplMinutes=20700;ek.needs.find(n=>n.rowKey==='MATMAT01b')!.needVt=1800;draft.rows.find(r=>r.id===tid(306))!.needVt=1800;}
  if(variant==='okand-tid'){te.needs[0].needHt=null;te.needs[0].needVt=null;}
  if(variant==='tom'){unit.revision=0;unit.versions=[];unit.snapshots=new Map();unit.draft=null;}
@@ -139,7 +143,7 @@ function sharingBlockers(d:Content){
  if((d.sharing??[]).some(x=>shared.includes(x.sourceKey)&&!x.graderPersonIds.some(g=>own.some(r=>r.sourceKey===x.sourceKey&&r.personId===g))))out.push({code:'grader_missing',message:'En delad kurs saknar lärare som sätter betyg. Ange vem eller vilka av lärarna som sätter betyget.'});
  return out;
 }
-const allBlockers=(u:Unit)=>{const v=current(u);return v?.status==='draft'?[...u.blockers,...sharingBlockers(u.draft!)]:[...u.blockers];};
+const allBlockers=(u:Unit)=>{const v=current(u),base=['rad','flera'].includes(params.get('hinder')??'')?u.blockers.filter(b=>b.code!=='stale_rows'||content(u).rows.some(r=>r.stale)):u.blockers;return v?.status==='draft'?[...base,...sharingBlockers(u.draft!)]:[...base];};
 function read(u:Unit,versionId?:string):TjanstPlanRead{
  const v=versionId?u.versions.find(v=>v.id===versionId):current(u);if(versionId&&(!v||!['published','superseded'].includes(v.status)))throw new TjanstContractError('wrong_scope');
  const data=v===null?blank():v!.status==='draft'?u.draft!:u.snapshots.get(v!.id)!;
@@ -268,7 +272,7 @@ async function apply(original:Unit,raw:unknown):Promise<Reply>{
   if(payload.personId!==null&&d.rows.some(r=>r.personId===payload.personId&&r.sourceKey===payload.sourceKey&&r!==existing))fail('tjanst_duplicate_row');
   addTeacher(payload.personId);
   const value={personId:payload.personId,teacherHt:payload.teacherHt,teacherVt:payload.teacherVt,comment:payload.comment};
-  if(existing)Object.assign(existing,value);else d.rows.push({id:crypto.randomUUID(),lineageId:crypto.randomUUID(),sourceKind:'class_timplan',sourceKey:payload.sourceKey,classId:cls.classId,rowKey:n.rowKey,needHt:n.needHt,needVt:n.needVt,needBasis:n.needBasis,stale:false,jointGroupId:null,...value});
+  if(existing)Object.assign(existing,value,{stale:false,needHt:n.needHt,needVt:n.needVt,needBasis:n.needBasis});else d.rows.push({id:crypto.randomUUID(),lineageId:crypto.randomUUID(),sourceKind:'class_timplan',sourceKey:payload.sourceKey,classId:cls.classId,rowKey:n.rowKey,needHt:n.needHt,needVt:n.needVt,needBasis:n.needBasis,stale:false,jointGroupId:null,...value});
  };
  const saveSpecial=(payload:any)=>{if(payload.kind==='mentor'&&!u.classes.some(c=>c.classId===payload.classId))fail('tjanst_unknown_source');addTeacher(payload.personId);
   const existing=payload.specialId?d.specials.find(s=>s.id===id(payload.specialId)):null;if(payload.specialId&&!existing)fail('wrong_scope');

@@ -280,3 +280,70 @@ button.tjanst-queue-item:hover{border-color:var(--border)}
 .tjanst-row-feedback button{flex-shrink:0;min-height:32px}
 
 .tjanst-edit-teacher{display:flex;flex-wrap:wrap;align-items:center;gap:8px;grid-column:1/-1}.tjanst-edit-teacher p{width:100%}.tjanst-row-more{grid-column:1/-1}.tjanst-row-more summary{cursor:pointer;padding:12px 0}.tjanst-row-more[open]{display:grid;gap:12px}.tjanst-teacher-picker-compact .tjanst-teacher-choice{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px}.tjanst-teacher-picker-compact .tjanst-teacher-choice small{flex-basis:100%}
+
+/* 05.1-41: arbetsyta först, förklaringar och sekundära verktyg nära till hands. */
+.tjanst{gap:8px}
+.tjanst .tjanst-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tjanst .tjanst-heading h1{font-size:24px;line-height:1.3;margin:0}
+.tjanst .tjanst-heading .tjanst-subline{font-size:14px;line-height:1.5;margin:4px 0 0}
+.tjanst .tjanst-status{padding:10px 14px;gap:8px 12px}
+.tjanst .tjanst-filter{display:flex;flex-wrap:wrap;align-items:end;gap:8px 12px}
+.tjanst-filter>.tjanst-field{flex:1 1 180px;min-width:0}
+.tjanst .tjanst-filter>.tjanst-lens-bar{flex-basis:100%}
+.tjanst .tjanst-field>label{font-size:14px;line-height:20px}
+.tjanst .tjanst-lens-bar{gap:8px 12px}
+.tjanst .tjanst-lens-bar>.mandate-check{display:flex;align-items:center;min-height:44px}
+.tjanst-action-menu,.tjanst-intro,.tjanst-matrix-help{position:relative}
+.tjanst-action-menu>summary,.tjanst-intro>summary,.tjanst-matrix-help>summary{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;cursor:pointer;box-sizing:border-box;background:var(--card);font-size:14px}
+.tjanst-action-menu>summary:focus-visible,.tjanst-intro>summary:focus-visible,.tjanst-matrix-help>summary:focus-visible{outline:3px solid var(--ring);outline-offset:3px}
+.tjanst-action-panel,.tjanst-intro[open]>p,.tjanst-matrix-help[open]>p{position:absolute;left:0;top:calc(100% + 4px);z-index:40;width:min(360px,calc(100vw - 48px));max-height:60dvh;overflow:auto;display:grid;gap:8px;padding:12px;margin:0;border:1px solid var(--border);border-radius:8px;background:var(--card);box-shadow:0 8px 24px rgb(0 0 0 / .12);box-sizing:border-box}
+.tjanst-action-panel{min-width:0}
+.tjanst-action-panel button{width:100%;justify-content:flex-start;text-align:left}
+.tjanst-action-panel .tjanst-empty-columns{margin:0;padding:0;border:0}
+.tjanst-intro[open]>p{left:auto;right:0;font-size:14px}
+.tjanst-matrix-tools{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px;margin-bottom:8px}
+.tjanst-view-options>summary{width:max-content}
+.tjanst .tjanst-lens-bar .tjanst-view-options[open]{flex-basis:100%}
+.tjanst-display-controls{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding-top:8px}
+.tjanst-display-controls .tjanst-lens-panel{left:auto;right:0}
+.tjanst-blocker-count{font-weight:600}
+.tjanst-blockers ul{display:grid;gap:16px;padding-left:20px;margin:0}
+.tjanst-blockers li>p{margin:0 0 6px}
+.tjanst-blocker-guidance{font-size:14px}
+.tjanst-blockers .mandate-actions{margin-top:8px}
+@media(max-width:800px){.tjanst .tjanst-heading h1{font-size:22px}.tjanst-action-panel,.tjanst-intro[open]>p{max-width:calc(100vw - 32px)}}
+.admin-workspace.protected-admin.tjanst{gap:8px}
+.tjanst .tjanst-heading{flex-direction:row;text-align:left}
+.tjanst .tjanst-heading>div{flex:1 1 300px}
+.admin-workspace.tjanst>.tjanst-actions{margin:0}
+
+/* Hela appens planeringsram: behåll skola, läsår och mandat nära arbetsytan. */
+.workspace:has(>.tjanst){padding:16px 24px}
+.workspace:has(>.tjanst)>.planning-context{padding:8px 12px;margin-bottom:16px}
+.planning-context:has(.planning-context-help) .planning-context-controls{gap:8px}
+.planning-context:has(.planning-context-help) label{flex-direction:row;align-items:center;gap:6px}
+.planning-context-help{position:relative;font-size:12px}
+.planning-context-help>summary{min-height:44px;display:flex;align-items:center;cursor:pointer;font-weight:600}
+.planning-context-help>p{position:absolute;left:0;top:100%;z-index:40;width:280px;max-width:calc(100vw - 48px);padding:12px;border:1px solid var(--border);border-radius:8px;background:var(--card);font-size:14px;box-shadow:0 8px 24px #0002}
+.tjanst-controls{display:flex;align-items:flex-end;flex-wrap:wrap;gap:8px 12px}
+.tjanst-controls>.tjanst-filter{flex:1 1 340px;margin:0;padding:0;border:0}
+.tjanst-controls>.tjanst-actions{margin:0;display:flex;gap:8px}
+.tjanst .tjanst-filter .tjanst-field{flex:0 1 auto}
+.tjanst .tjanst-filter .tjanst-lens-bar{gap:8px;align-items:flex-end}
+.tjanst .tjanst-filter .tjanst-lens-bar>.tjanst-field{width:156px}
+.tjanst-filter-options .tjanst-action-panel{display:grid;gap:12px;min-width:280px}
+.tjanst-filter-options .tjanst-action-panel .tjanst-field{width:100%;display:grid;gap:4px}
+.tjanst-filter-options .tjanst-action-panel select{width:100%}
+.tjanst .tjanst-status{gap:8px;padding:8px 12px}
+.tjanst-status-main{gap:4px 8px;font-size:14px}
+.tjanst-status-side{gap:8px}
+.tjanst-switch{gap:4px}
+.tjanst .tjanst-matrix thead .tjanst-teacher{padding-right:8px}
+.tjanst-teacher>.tjanst-teacher-name{padding-right:28px}
+.tjanst-teacher:not(.tjanst-teacher-compact)>.tjanst-pin{position:absolute;top:4px;right:2px}
+@media(min-width:801px){.application:has(.tjanst)>.protected-topbar{padding:8px 20px;gap:8px}.application:has(.tjanst)>.protected-topbar .breadcrumbs>span{display:none}.application:has(.tjanst)>.protected-topbar .top-actions{gap:6px}}
+
+.tjanst-controls>.tjanst-filter{order:2;flex-basis:100%}
+.tjanst-controls>.tjanst-actions{order:1;margin-left:auto}
+.tjanst .tjanst-filter .tjanst-lens-bar>.tjanst-field{min-width:156px}
+@media(max-width:800px){.tjanst-controls>.tjanst-actions{margin-left:0}.workspace:has(>.tjanst){padding:14px}.planning-context:has(.planning-context-help) label{flex-direction:column;align-items:stretch}}

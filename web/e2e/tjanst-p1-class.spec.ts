@@ -1,3 +1,4 @@
+import {selectFilter,onlyIssues} from './tjanst-toolbar';
 // 05.1-35 / B01: synthetic component evidence; no real server, authentication or database.
 import { test, expect, type Page } from '@playwright/test';
 
@@ -32,7 +33,7 @@ const cases: FilterCase[] = [
 ];
 for (const c of cases) test(`B01: hel klass efter ${c.name}; urvalet finns kvar vid återgång`, async ({ page }) => {
   await open(page);
-  for (const f of c.values) await ws(page).getByLabel(f.label, { exact: true }).selectOption(f.value);
+  for (const f of c.values) await selectFilter(page,f.label,f.value);
   if (c.empty) await expect(ws(page).getByText('Inga rader matchar filtret.', { exact: true })).toBeVisible();
   await choose(page, 'klass');
   await fullClass(page);
@@ -57,7 +58,7 @@ test('B01: historiskt kursurval begränsar inte klassens underlag', async ({ pag
 
 test('B01: avvikelsefilter ändrar inte full klass eller okopplad klass', async ({ page }) => {
   await open(page);
-  await ws(page).getByLabel('Visa bara avvikelser och saknade kopplingar').check();
+  await onlyIssues(page);
   await choose(page, 'klass');
   await fullClass(page);
   const cls = ws(page).getByRole('region', { name: 'Per klass', exact: true });

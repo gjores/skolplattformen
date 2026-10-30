@@ -3,6 +3,8 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCheck, Plus, UserRoundPlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import type { BlockerTarget } from '@/lib/tjanst-blocker-actions.ts';
+import { TjanstActionMenu, actionOrigin } from './tjanst-action-menu';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, parsePlanCommandReply, parsePlanReadReply, parsePlanStatusReply,
@@ -562,6 +564,25 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     } catch { if (active.current) setPageError(failed('Tilldelningen kunde inte ångras. Hämta aktuellt läge och kontrollera raden.')); }
     finally { quickRunning.current = false; if (active.current) { setQuickBusy(false); setMatrixFeedback(value => value?.text === 'Kontrollerar ändringen i matrisen…' ? null : value); requestAnimationFrame(applyFocus); } }
   }
+  function showPublishPanel() {
+    setPanelOpen(true);
+    requestAnimationFrame(() => document.getElementById(`${headingId}-publish`)?.focus());
+  }
+  function openBlockerTarget(target: BlockerTarget, from: HTMLElement) {
+    if (!data || loading || busy || quickBusy || checking || pendingCheck) return;
+    const need = 'sourceKey' in target ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === target.sourceKey) : null;
+    if (target.kind === 'row' && need) {
+      const row = data.rows.find(r => r.id === target.rowId && r.sourceKey === target.sourceKey);
+      if (row && can('save_row') && row.jointGroupId === null) { originCell.current = null; open({ kind: 'row', target: { classId: need.cls.classId, sourceKey: need.need.sourceKey, rowId: row.id, personId: row.personId } }, from); return; }
+    }
+    if (target.kind === 'sharing' && need && can('save_sharing')) { open({ kind: 'sharing', sourceKey: target.sourceKey }, from); return; }
+    if (target.kind === 'joint') { openJoint(target.jointId); return; }
+    else if (need) chooseView(phone ? 'klass' : 'kurs', { filter: { ...EMPTY_FILTER, course: courseCode(need.need) }, classId: need.cls.classId, autoLens: false });
+    else if (target.kind === 'allocation') chooseView(phone ? 'klass' : 'fordela', { filter: { ...EMPTY_FILTER, lens: 'ofordelat' }, autoLens: false });
+    else if (target.kind === 'teachers') chooseView('larare');
+    else chooseView('kurs', { filter: EMPTY_FILTER, autoLens: false });
+    requestAnimationFrame(() => { viewHeading.current?.focus(); viewHeading.current?.scrollIntoView({ block: 'start' }); });
+  }
   function linkMarked(from: HTMLElement) {
     if (!data) return;
     const rows = marked.map(id => data.rows.find(r => r.id === id)).filter((r): r is TjanstRow => !!r);
@@ -592,6 +613,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     <Heading schoolName={data?.schoolName ?? null} schoolYear={schoolYear} forms={schoolforms} admin={context.function === 'administrator'} readOnly={readOnly}/>
     {data && <div className="tjanst-status protected-card">
       <div className="tjanst-status-main">
+        {context.function === 'huvudman' && <span>Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning.</span>}
+        {context.function === 'administrator' && <span>Du kan förbereda fördelningen. Rektor fastställer och publicerar.</span>}
         <strong>{viewingOld ? 'Historik' : data.version?.status === 'published' ? 'Publicerad' : published ? 'Ändringar ännu inte publicerade' : 'Pågående planering'}</strong>
         {data.version?.status === 'draft' && published?.publishedAt && <span>Lärarna ser version {published.versionNo}, publicerad {dateText(published.publishedAt)}.</span>}
         {data.version?.status === 'published' && !viewingOld && data.version.publishedAt && <span>Lärarna ser version {data.version.versionNo}, publicerad {dateText(data.version.publishedAt)}.</span>}
@@ -602,10 +625,11 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           {choices.map(v => <option key={v.id} value={v.id}>Version {v.versionNo} · {v.publishedAt ? `publicerad ${dateText(v.publishedAt)}` : STATUS_LABEL[v.status]}</option>)}</select></label>
           {!readOnly && <Button variant="outline" onClick={() => setVersionId('')}>Tillbaka till planeringen</Button>}</>}
         {feedback && <span>{ackSummary(feedback)}</span>}
+        {!readOnly && !versionId && data.blockers.length > 0 && <Button variant="outline" className="tjanst-blocker-count" aria-label={`Visa ${data.blockers.length} hinder för publicering`} aria-controls={`${headingId}-publish`} disabled={loading || busy || quickBusy || checking || pendingCheck} onClick={showPublishPanel}>{data.blockers.length} hinder för publicering</Button>}
         {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{phone ? panelOpen ? 'Dölj publiceringsstatus' : 'Publiceringsstatus' : panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
       </div>
       {viewingOld && data.version && <p className="tjanst-readonly">Du läser version {data.version.versionNo} skrivskyddat{data.version.publishedAt ? `, publicerad ${dateText(data.version.publishedAt)} av ${data.version.publishedByName}` : ''}. {published && published.id !== data.version.id ? `Lärarna ser version ${published.versionNo}.` : data.version.status === 'published' ? `Lärarna ser den här versionen.` : ''}</p>}
-      {panelOpen && !readOnly && <TjanstPublishPanel data={data} phone={phone} busy={!editable || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
+      {panelOpen && !readOnly && <TjanstPublishPanel id={`${headingId}-publish`} onBlockerAction={openBlockerTarget} navigationBusy={loading || busy || quickBusy || checking || pendingCheck} data={data} phone={phone} busy={!editable || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
         onDiscard={() => open({ kind: 'confirm', confirm: 'discard', id: data.version!.id }, document.activeElement as HTMLElement)}/>}
     </div>}
     {phone ? <><label className="tjanst-inline-field tjanst-view-select">Vy<select value={shownView} onChange={e => chooseView(e.target.value as TjanstView)}>
@@ -613,15 +637,18 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <p className="tjanst-phone-text">Matrisen och all redigering finns på dator. Här kan du läsa fördelningen.</p></>
       : <div className="tjanst-switch" inert={quickBusy}><Tabs value={shownView} onValueChange={value => chooseView(value as TjanstView)}><TabsList variant="line" aria-label="Vy">
         {VIEWS.map(v => <TabsTrigger key={v.id} value={v.id}>{v.label}</TabsTrigger>)}</TabsList></Tabs>
-        {!annualView && <TermSwitch term={term} onTerm={chooseTerm}/>}</div>}
-    {phone && !annualView && <TermSwitch term={term} onTerm={chooseTerm}/>}
+        </div>}
+
     {annualView && <p className="tjanst-meta">Hela läsåret · HT och VT</p>}
+    <div className="tjanst-controls">
+      {!annualView && <TermSwitch term={term} onTerm={chooseTerm}/>}
     {data && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') && <div className="protected-filter tjanst-filter" inert={quickBusy}>
+      <TjanstLensBar extra={<TjanstActionMenu className="tjanst-filter-options" label={`Filter${[filter.classId, filter.subject, filter.personId, filter.onlyIssues].filter(Boolean).length ? ` (${[filter.classId, filter.subject, filter.personId, filter.onlyIssues].filter(Boolean).length})` : ''}`}>
       <div className="tjanst-field"><label htmlFor={`${headingId}-klass`}>Klass</label><select id={`${headingId}-klass`} value={filter.classId} onChange={e => patchSaved({ filter: { ...filter, classId: e.target.value } })}><option value="">Alla klasser</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
-      <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
-      <TjanstLensBar lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens }, autoLens: false })} phone={phone} matrix={shownView === 'matris'}
+<label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
+      </TjanstActionMenu>} lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens }, autoLens: false })} phone={phone} matrix={shownView === 'matris'}
         shown={columns.length} total={teachers.length} showAll={showAll} onShowAll={setShowAll} filteredByTeacher={!!filter.personId}
         teachers={teachers} pinned={prefs.pinned} onPin={pin} compact={prefs.compact} onCompact={compact => updatePrefs({ ...prefs, compact })}
         saved={prefs.saved} onSave={saveLens} onDeleteSaved={name => updatePrefs({ ...prefs, saved: prefs.saved.filter(s => s.name !== name) })}
@@ -630,13 +657,21 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
     </div>}
     {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
-      {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
-      {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, e.currentTarget)}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
-      {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, e.currentTarget)}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
-      {data.actions.includes('move') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'move' }, e.currentTarget)}>Flytta uppdrag</Button>}
-      {data.actions.includes('bulk') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'bulk' }, e.currentTarget)}>Massregistrera</Button>}
-      <Button variant="outline" disabled={loading} onClick={refresh}>Hämta aktuellt läge</Button>
+      <TjanstActionMenu label="Lägg till">
+      {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
+      {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, actionOrigin(e.currentTarget))}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
+      {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
+      </TjanstActionMenu><TjanstActionMenu label="Verktyg">
+        {shownView === 'matris' && data.capabilities.canEdit && data.actions.includes('save_row') && !phone && <label className="mandate-check"><input type="checkbox" checked={matrixAdvanced} onChange={e => setMatrixAdvanced(e.target.checked)}/>Avancerade val före tilldelning</label>}
+        <details className="tjanst-assignment-help"><summary>Så fungerar tilldelning</summary><p>Normalt tilldelar ett klick i en tom lärarcell återstående tid för HT och VT direkt. Befintliga tilldelningar och Vakant öppnas i dialog. Skift+klick, Skift+Enter eller Skift+mellanslag öppnar avancerade val.</p></details>
+      {data.actions.includes('move') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'move' }, actionOrigin(e.currentTarget))}>Flytta uppdrag</Button>}
+      {data.actions.includes('bulk') && <Button variant="outline" onClick={e => open({ kind: 'batch', mode: 'bulk' }, actionOrigin(e.currentTarget))}>Massregistrera</Button>}
+      <Button variant="outline" disabled={loading} onClick={e => { pendingFocus.current = actionOrigin(e.currentTarget); pendingMatrixFocus.current = false; refresh(); }}>Hämta aktuellt läge</Button>
+    {data && (editable || quickBusy) && data.actions.includes('remove_teacher') && <details className="tjanst-empty-columns" inert={!editable || loading}><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
+      {data.teachers.filter(t => !data.rows.some(r => r.personId === t.personId) && !data.specials.some(s => s.personId === t.personId) && !data.joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => <div key={t.personId}>{t.displayName} <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'removeTeacher', id: t.personId }, actionOrigin(e.currentTarget))}>Ta bort tom lärarkolumn…</Button></div>)}</details>}
+      </TjanstActionMenu>
     </div>}
+    </div>
     <div className="tjanst-messages">
       {allocationDraftCount > 0 && <output className="admin-notice">
         Osparade tider i Fördela: {allocationDraftCount} behov. Tiderna finns kvar när du byter vy i samma planering.
@@ -659,7 +694,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
       : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
-          advanced={matrixAdvanced} onAdvancedChange={(editable || quickBusy) && !readOnly && !versionId && !phone && data.capabilities.canEdit && data.actions.includes('save_row') ? setMatrixAdvanced : undefined}
+          advanced={matrixAdvanced}
           feedback={versionId ? null : matrixFeedback} undoSourceKey={matrixUndo && undoMatches(data, matrixUndo) ? matrixUndo.row.sourceKey : null}
           onUndo={() => void undoMatrix()} undoDisabled={!editable || loading}
           pinned={prefs.pinned} onPin={phone ? undefined : pin} compact={prefs.compact}
@@ -681,8 +716,6 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
         {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
         {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
-    {data && (editable || quickBusy) && data.actions.includes('remove_teacher') && <details className="tjanst-empty-columns" inert={!editable || loading}><summary>Tomma lärarkolumner</summary><p>En tom kolumn kan tas bort ur fördelningen. Personen finns kvar i Personal.</p>
-      {data.teachers.filter(t => !data.rows.some(r => r.personId === t.personId) && !data.specials.some(s => s.personId === t.personId) && !data.joints.some(j => j.teachers.some(p => p.personId === t.personId))).map(t => <div key={t.personId}>{t.displayName} <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'removeTeacher', id: t.personId }, e.currentTarget)}>Ta bort tom lärarkolumn…</Button></div>)}</details>}
     {!phone && dialog && dialog.kind !== 'batch' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
       {supportError && <div><Problems failure={supportError} summary={false} checking={false}/><Button variant="outline" onClick={() => setSupportKey(n => n + 1)}>Hämta planeringsstöd igen</Button><Button variant="outline" onClick={() => close()}>Stäng formuläret</Button></div>}
 </>}
@@ -728,12 +761,12 @@ function TermSwitch({ term, onTerm }: { term: TjanstTermView; onTerm: (term: Tja
 }
 function Heading({ schoolName, schoolYear, forms, admin, readOnly }: { schoolName: string | null; schoolYear: number; forms: string[]; admin: boolean; readOnly: boolean }) {
   return <div className="admin-heading tjanst-heading"><div>
-    <span className="admin-kicker">PLANERING{schoolName ? ` · ${schoolName}` : ''}</span>
     <h1>Tjänstefördelning</h1>
-    <p className="tjanst-subline">Läsåret {yearLabel(schoolYear)}{forms.length ? ` · ${forms.join(' · ')}` : ''}</p>
-    {readOnly ? <p>Huvudmannen följer upp bemanningen. Rektor fastställer och publicerar skolans fördelning.</p>
-      : <p>Fördela skolans undervisning och specialuppdrag på lärare. Behovet kommer från klassernas timplaner. Lärarna ser fördelningen först när du har fastställt och publicerat den.{admin ? ' Du kan förbereda fördelningen. Rektor fastställer och publicerar.' : ''}</p>}
-  </div></div>;
+    <p className="tjanst-subline">{schoolName ? `${schoolName} · ` : ''}Läsåret {yearLabel(schoolYear)}{forms.length ? ` · ${forms.join(' · ')}` : ''}</p>
+  </div><details className="tjanst-intro"><summary>Om tjänstefördelningen</summary>
+    <p>{readOnly ? 'Här kan du läsa skolans fördelning utan att ändra den.'
+      : `Fördela skolans undervisning och specialuppdrag på lärare. Behovet kommer från klassernas timplaner. Lärarna ser fördelningen först när rektor har fastställt och publicerat.${admin ? ' Du kan förbereda fördelningen. Rektor fattar publiceringsbeslutet.' : ''}`}</p>
+  </details></div>;
 }
 
 type PlanFn = <A extends TjanstPlanAction>(action: A, payload: TjanstPlanPayload[A], message: (detail: TjanstPlanRead) => string) => Promise<TjanstOutcome>;

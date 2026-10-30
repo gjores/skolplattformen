@@ -84,7 +84,7 @@ export function coverageText(covered: number, need: number | null): string {
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
   onCell: (target: TjanstCellTarget, origin: HTMLElement, advanced?: boolean) => void; onJoint: (jointId: string, origin: HTMLElement) => void; onOpenClassLinks?: TjanstOpenClassLinks;
   feedback?: { sourceKey: string; text: string } | null; undoSourceKey?: string | null; onUndo?: () => void; undoDisabled?: boolean;
-  advanced?: boolean; onAdvancedChange?: (advanced: boolean) => void;
+  advanced?: boolean;
   /** 05.1-27: öppnar Per kurs/ämne filtrerad på kursen respektive fokuserad på samläsningen. */
   onOpenCourse?: (code: string) => void; onOpenJoint?: (jointId: string) => void;
   /** 05.1-29: fästa lärare och kompakta kolumner (initialer och summa, hela namnet vid hovring och fokus). */
@@ -95,7 +95,7 @@ type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: Tjans
 export const SHARING_BADGE: Record<Exclude<TjanstSharedNeedState, 'single'>, string> = {
   unspecified: 'Två lärare utan angiven delning', sequential: 'Två lärare · en i taget', concurrent: 'Två lärare · samtidigt' };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, feedback, undoSourceKey, onUndo, undoDisabled, advanced = false, onAdvancedChange, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, feedback, undoSourceKey, onUndo, undoDisabled, advanced = false, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
   const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
   const cells = useRef(new Map<string, HTMLButtonElement>());
@@ -124,10 +124,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
   const sums = new Map(teachers.map(t => [t.personId, teacherSums(t.personId, data.rows, data.specials, data.joints)]));
   let rowIndex = -1;
   return <>
-    {onAdvancedChange && <div className="tjanst-matrix-tools">
-      {onAdvancedChange && <label className="mandate-check" style={{ display: 'flex' }}><input type="checkbox" checked={advanced} onChange={event => onAdvancedChange(event.target.checked)} aria-describedby={`${hintId}-assign`}/>Avancerade val före tilldelning</label>}
-      <p id={`${hintId}-assign`} className="tjanst-meta">Normalt tilldelar ett klick i en tom lärarcell återstående tid för HT och VT direkt. Befintliga tilldelningar och Vakant öppnas i dialog. Skift+klick, Skift+Enter eller Skift+mellanslag öppnar avancerade val.</p>
-    </div>}
+    <p className="sr-only" id={`${hintId}-assign`}>Normalt tilldelar ett klick i en tom lärarcell återstående tid för HT och VT direkt. Befintliga tilldelningar och Vakant öppnas i dialog. Skift+klick, Skift+Enter eller Skift+mellanslag öppnar avancerade val.</p>
     <div className="tjanst-matrix-scroll" tabIndex={editable ? undefined : 0} role={editable ? undefined : 'region'} aria-label={editable ? undefined : 'Matris'}>
     <span id={`${hintId}-course`} hidden>Visar alla klasser med samma kurs i Per kurs/ämne.</span><span id={`${hintId}-joint`} hidden>Öppnar samläsningen i Per kurs/ämne.</span>
     <table className="tjanst-matrix">

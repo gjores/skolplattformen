@@ -1,3 +1,4 @@
+import {selectFilter} from './tjanst-toolbar';
 // Synthetic in-memory component evidence for B05; no real database/authentication.
 import {test,expect,type Page} from '@playwright/test';
 const ws=(p:Page)=>p.locator('.tjanst');
@@ -16,7 +17,7 @@ test('B05 tider per behov över vybyte och filter, även ogiltig inmatning',asyn
  await im(page);await expect(ht(page)).toHaveValue('36');await ht(page).fill('ej tid');
  await view(page,'Per lärare');await expect(ws(page).getByText('Osparade tider i Fördela: 2 behov.',{exact:false})).toBeVisible();
  await view(page,'Fördela');await math(page);await expect(ht(page)).toHaveValue('37');
- await ws(page).getByLabel('Ämne',{exact:true}).selectOption('Engelska');await expect(ht(page)).toHaveCount(0);
+ await selectFilter(page,'Ämne','Engelska');await expect(ht(page)).toHaveCount(0);
  await ws(page).locator('.tjanst-filter').getByRole('button',{name:'Rensa filter',exact:true}).click();
  // Rensa filter väljer Alla behov. Återställ Ofördelat för att hitta båda osparade behoven.
  await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');

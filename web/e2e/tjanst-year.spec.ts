@@ -1,3 +1,4 @@
+import {advancedMode,clickToolbarAction,toolbarAction} from './tjanst-toolbar';
 // Synthetic browser transport, no actual SQL/OIDC or municipal integration.
 // Writes below are produced by real UI interactions; controls change source data or delay already-produced replies only.
 import {test,expect,type Page,type Locator} from '@playwright/test';
@@ -6,12 +7,12 @@ const id=(n:number)=>`51a50000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const ws=(p:Page)=>p.locator('.tjanst');
 const dialog=(p:Page)=>p.getByRole('dialog');
 const commands=(p:Page)=>p.evaluate(()=>window.__tjanst.commands);
-async function open(p:Page,query=''){await p.goto(URL+query);await expect(ws(p).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);await expect(ws(p).getByRole('heading',{name:'Tjänstefördelning',exact:true})).toBeVisible();}
+async function open(p:Page,query=''){await p.goto(URL+query);await expect(ws(p).getByText('Hämtar tjänstefördelningen…')).toHaveCount(0);await expect(ws(p).getByRole('heading',{name:'Tjänstefördelning',exact:true})).toBeVisible();await advancedMode(p);}
 async function math(p:Page){await ws(p).getByRole('region',{name:'Matris',exact:true}).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'}).click();await expect(dialog(p).getByText('Ingen lärare vald',{exact:true})).toBeVisible();}
 async function choose(p:Page,name='Cecilia Dahl'){await dialog(p).getByRole('button',{name:`Välj ${name}`,exact:true}).click();}
 // D-30 (05.1-31): valet av lärare sparar en ny rad direkt; save väntar bara på att dialogen stängs.
 async function save(p:Page){await expect(dialog(p)).toHaveCount(0);}
-async function bulk(p:Page){await ws(p).getByRole('button',{name:'Massregistrera',exact:true}).click();await expect(dialog(p).getByLabel('Lärare för markerade behov')).toBeVisible();}
+async function bulk(p:Page){await clickToolbarAction(p,'Massregistrera');await expect(dialog(p).getByLabel('Lärare för markerade behov')).toBeVisible();}
 async function assignBulk(p:Page,person=id(104)){await dialog(p).getByLabel('Lärare för markerade behov').selectOption(person);const apply=dialog(p).getByRole('button',{name:'Använd valet på markerade behov',exact:true});await expect(apply).toBeEnabled();await apply.click();}
 async function previewSave(p:Page){await dialog(p).getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(dialog(p).getByRole('heading',{name:'Förhandsvisning',exact:true})).toBeVisible();await dialog(p).getByRole('button',{name:'Spara ändringarna',exact:true}).click();await expect(dialog(p)).toHaveCount(0);}
 async function clickNeeds(group:Locator,count:number){for(let n=0;n<count;n++)await group.getByRole('checkbox').nth(n).check();}
@@ -60,7 +61,7 @@ test.describe('sammanhållen planering på dator',()=>{
   expect((await commands(page)).map(c=>c.body.action)).toEqual(['save_row']);
   await ws(page).getByRole('button',{name:'Historik',exact:true}).click();await expect(ws(page).getByRole('button',{name:'Massregistrera',exact:true})).toHaveCount(0);
   await expect(ws(page).getByRole('region',{name:'Matris',exact:true}).getByRole('button',{name:/Tilldela\.|Ändra\./})).toHaveCount(0);await ws(page).getByRole('button',{name:'Tillbaka till planeringen'}).click();
-  await expect(ws(page).getByRole('button',{name:'Massregistrera',exact:true})).toBeVisible();
+  await expect(await toolbarAction(page,'Massregistrera')).toBeVisible();
  });
  for(const kind of ['core','person','evidence'] as const)test(`ändrad ${kind} kräver nytt aktivt val men bevarar tid och kommentar`,async({page})=>{
   await open(page);await math(page);
@@ -78,9 +79,9 @@ test.describe('sammanhållen planering på dator',()=>{
   const after=await page.evaluate(()=>window.__tjanst.snapshotOf()) as any;expect(after.revision).toBe(8);expect(after.draft.rows.at(-1).teacherHt).toBe(720);
  });
  test('administratör lägger till via snäv katalog och tom kolumn tas bort uttryckligt',async({page})=>{
-  await open(page,'?roll=administrator');await ws(page).getByRole('button',{name:'Lägg till lärare i fördelningen',exact:true}).click();await choose(page,'David Ek');await dialog(page).getByRole('button',{name:'Lägg till läraren',exact:true}).click();await expect(dialog(page)).toHaveCount(0);
+  await open(page,'?roll=administrator');await clickToolbarAction(page,'Lägg till lärare i fördelningen');await choose(page,'David Ek');await dialog(page).getByRole('button',{name:'Lägg till läraren',exact:true}).click();await expect(dialog(page)).toHaveCount(0);
   expect(await page.evaluate(()=>window.__tjanst.reads.some(r=>r.path.endsWith('/personal/lasa')))).toBe(false);
-  await ws(page).locator('.tjanst-empty-columns summary').click();await ws(page).locator('.tjanst-empty-columns > div').filter({hasText:'David Ek'}).getByRole('button',{name:'Ta bort tom lärarkolumn…'}).click();
+  await toolbarAction(page,'Hämta aktuellt läge');await ws(page).locator('.tjanst-empty-columns summary').click();await ws(page).locator('.tjanst-empty-columns > div').filter({hasText:'David Ek'}).getByRole('button',{name:'Ta bort tom lärarkolumn…'}).click();
   await expect(dialog(page)).toContainText('Personal');await dialog(page).getByRole('button',{name:'Ta bort kolumnen',exact:true}).click();await expect(dialog(page)).toHaveCount(0);
   expect((await commands(page)).map(c=>c.body.action)).toEqual(['add_teacher','remove_teacher']);
   await expect(ws(page).locator('.tjanst-empty-columns > div').filter({hasText:'Bertil Berg'})).toHaveCount(0);
@@ -110,7 +111,7 @@ test.describe('sammanhållen planering på dator',()=>{
    crypto.subtle.digest=async(algorithm,bytes)=>{if(!state.held&&new TextDecoder().decode(bytes).includes(needle)){state.held=true;await new Promise<void>(resolve=>{state.release=resolve;});}return original(algorithm,bytes);};
   },stage==='command'?'save_row':'tjanst_journal_scope_v1');
   await choose(page);await expect.poll(()=>page.evaluate(()=>(window as any).__hashPause.held)).toBe(true);
-  if(change==='scope')await page.evaluate(()=>{const b=[...document.querySelectorAll('main > div > button')].find(b=>b.textContent==='Byt läsår') as HTMLButtonElement;b.click();});else{await page.setViewportSize({width:390,height:844});await expect(ws(page).getByLabel('Vy',{exact:true})).toBeVisible();}
+  if(change==='scope')await page.evaluate(()=>{const b=[...document.querySelectorAll('main > div > button')].find(b=>b.textContent==='Byt läsår') as HTMLButtonElement;b.click();});else{await page.setViewportSize({width:390,height:844});await expect(ws(page).getByRole('combobox',{name:'Vy',exact:true})).toBeVisible();}
   await page.evaluate(()=>(window as any).__hashPause.release());await expect(dialog(page)).toHaveCount(0);
   await expect.poll(()=>page.evaluate(()=>Object.keys(sessionStorage).filter(k=>k.startsWith('tjanst:')).length)).toBe(0);expect(await commands(page)).toEqual([]);
  });
@@ -154,11 +155,11 @@ test.describe('sammanhållen planering på dator',()=>{
   await expect(ws(page).getByRole('button',{name:'Massregistrera',exact:true})).toHaveCount(0);await expect(ws(page).getByRole('region',{name:'Matris',exact:true}).getByRole('button',{name:/Tilldela\.|Ändra\./})).toHaveCount(0);
   expect(await commands(page)).toHaveLength(1);const journal=await page.evaluate(()=>Object.entries(sessionStorage).filter(([k])=>k.startsWith('tjanst:')).map(([,v])=>v).join(''));expect(journal).not.toMatch(/teacherHt|planningContext|Cecilia|David/);
   await page.screenshot({path:`/private/tmp/tjanst-year-${info.project.name}-unknown-${first}.png`,fullPage:true});
-  await ws(page).getByRole('button',{name:'Kontrollera sparstatus'}).click();await expect(ws(page).getByRole('button',{name:'Massregistrera',exact:true})).toBeVisible();expect(await commands(page)).toHaveLength(1);
+  await ws(page).getByRole('button',{name:'Kontrollera sparstatus'}).click();await expect(await toolbarAction(page,'Massregistrera')).toBeVisible();expect(await commands(page)).toHaveLength(1);
  });
  test('hel samläsning flyttas med grupptid en gång och andra lärare bevaras',async({page},info)=>{
   await open(page,'?data=samlasning');const before=await page.evaluate(()=>window.__tjanst.snapshotOf()) as any;
-  await ws(page).getByRole('button',{name:'Flytta uppdrag',exact:true}).click();await dialog(page).getByLabel('Flytta från lärare').selectOption(id(102));await dialog(page).getByLabel('Flytta till lärare').selectOption(id(104));await dialog(page).getByRole('button',{name:'Bekräfta mållärare'}).click();
+  await clickToolbarAction(page,'Flytta uppdrag');await dialog(page).getByLabel('Flytta från lärare').selectOption(id(102));await dialog(page).getByLabel('Flytta till lärare').selectOption(id(104));await dialog(page).getByRole('button',{name:'Bekräfta mållärare'}).click();
   const selection=dialog(page).getByRole('region',{name:'Uppdrag att flytta'});await selection.getByRole('checkbox',{name:/TE26A · Svenska 1/}).check();await dialog(page).getByRole('button',{name:'Förhandsvisa',exact:true}).click();
   await expect(dialog(page).getByRole('button',{name:'Spara ändringarna',exact:true})).toBeDisabled();
   await dialog(page).getByRole('button',{name:'Markera lärarens alla rader i samläsningen'}).click();await dialog(page).getByRole('button',{name:'Förhandsvisa',exact:true}).click();await expect(dialog(page).getByRole('button',{name:'Spara ändringarna',exact:true})).toBeEnabled();

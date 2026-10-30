@@ -1,3 +1,4 @@
+import {advancedMode,onlyIssues,selectFilter,viewOptions} from './tjanst-toolbar';
 // F09 / 05.1-37: synthetic in-memory component evidence, no actual auth/database.
 import {test,expect,type Page} from '@playwright/test';
 const ws=(p:Page)=>p.locator('.tjanst'), matrix=(p:Page)=>ws(p).getByRole('region',{name:'Matris',exact:true});
@@ -21,7 +22,7 @@ test('F09 telefon och historik erbjuder ingen direkt tilldelning',async({page},i
 test.describe('F09 dator',()=>{
  test.beforeEach(({},info)=>test.skip(!info.project.name.startsWith('desktop'),'Tilldelning sker bara på dator.'));
  test('ett klick tilldelar namngiven lärare och ångra bevarar övriga rader',async({page})=>{
-  await open(page);const before=await draft(page);await expect(ws(page).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true})).not.toBeChecked();
+  await open(page);const before=await draft(page);await expect(ws(page).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true,includeHidden:true})).not.toBeChecked();
   await cell(page).click();await saved(page);await expect(page.getByRole('dialog')).toHaveCount(0);
   await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: 100 h. Ändra.');await expect(cell(page)).toBeFocused();
   const sent=await commands(page);expect(sent).toHaveLength(1);expect(sent[0].body.payload).toMatchObject({personId:'51a50000-0000-4000-8000-000000000103',teacherHt:3000,teacherVt:3000,planningContext:{choice:{kind:'manual'}}});
@@ -44,8 +45,8 @@ test.describe('F09 dator',()=>{
   await cell(page,'Cecilia Dahl','Matematik 1b','EK26').click();const d=page.getByRole('dialog');await expect(d.getByLabel('Lärartid HT (timmar)')).toHaveValue('0');await expect(d.getByLabel('Lärartid VT (timmar)')).toHaveValue('0');expect(await commands(page)).toHaveLength(0);
  });
  test('avancerat läge och Skift+Enter öppnar dialog; vanlig Enter sparar',async({page})=>{
-  await open(page);const advanced=ws(page).getByRole('checkbox',{name:'Avancerade val före tilldelning',exact:true});await advanced.check();await cell(page).click();await expect(page.getByRole('dialog')).toBeVisible();
-  await page.keyboard.press('Escape');await advanced.uncheck();await cell(page).focus();await page.keyboard.press('Shift+Enter');await expect(page.getByRole('dialog')).toBeVisible();
+  await open(page);await advancedMode(page);await cell(page).click();await expect(page.getByRole('dialog')).toBeVisible();
+  await page.keyboard.press('Escape');await advancedMode(page,false);await cell(page).focus();await page.keyboard.press('Shift+Enter');await expect(page.getByRole('dialog')).toBeVisible();
   await page.keyboard.press('Escape');expect(await commands(page)).toHaveLength(0);await cell(page).focus();await page.keyboard.press('Enter');await saved(page);
  });
  test('sparstatus och Ångra stannar på raden utan att flytta matrisen',async({page})=>{
@@ -66,7 +67,7 @@ test.describe('F09 dator',()=>{
   await open(page);await ws(page).getByLabel('Lins',{exact:true}).selectOption('ofordelat');
   await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);await expect(ws(page).getByText('Visar 3 av 3 lärare')).toBeVisible();
   await expect(ws(page).getByRole('button',{name:/Visa alla lärare|Visa relevanta lärare/})).toHaveCount(0);
-  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});await ws(page).getByLabel('Ämne',{exact:true}).selectOption('Matematik');
+  await selectFilter(page,'Klass',{label:'TE26A'});await selectFilter(page,'Ämne','Matematik');
   await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
   await expect(cell(page,'Anna Andersson')).toBeVisible();await expect(cell(page,'Bertil Berg')).toBeVisible();
   await cell(page).click();await saved(page);await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: 100 h. Ändra.');
@@ -75,16 +76,16 @@ test.describe('F09 dator',()=>{
   await expect(cell(page)).toHaveCount(0);
  });
  test('klass, ämne och avvikelser behåller lärare; bara uttryckligt lärarfilter begränsar dem',async({page})=>{
-  await open(page);await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'EK26'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
-  await ws(page).getByLabel('Ämne',{exact:true}).selectOption('Matematik');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);await expect(cell(page,'Cecilia Dahl','Matematik 1b','EK26')).toBeVisible();
-  await ws(page).getByLabel('Lärare',{exact:true}).selectOption({label:'Anna Andersson'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(1);await expect(matrix(page).locator('thead .tjanst-teacher')).toContainText('Anna Andersson');
-  await ws(page).getByLabel('Lärare',{exact:true}).selectOption('');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
-  await ws(page).getByLabel('Klass',{exact:true}).selectOption({label:'TE26A'});await ws(page).getByRole('checkbox',{name:'Visa bara avvikelser och saknade kopplingar'}).check();await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await open(page);await selectFilter(page,'Klass',{label:'EK26'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await selectFilter(page,'Ämne','Matematik');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);await expect(cell(page,'Cecilia Dahl','Matematik 1b','EK26')).toBeVisible();
+  await selectFilter(page,'Lärare',{label:'Anna Andersson'});await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(1);await expect(matrix(page).locator('thead .tjanst-teacher')).toContainText('Anna Andersson');
+  await selectFilter(page,'Lärare','');await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
+  await selectFilter(page,'Klass',{label:'TE26A'});await onlyIssues(page);await expect(matrix(page).locator('thead .tjanst-teacher')).toHaveCount(3);
   await cell(page).click();await saved(page);await undo(page).click();await expect(cell(page)).toHaveAccessibleName('Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.');
  });
  test('kompakta och fulla lärarrubriker ligger kvar vid lodrät och vågrät skrollning',async({page})=>{
   await open(page,'?data=stor');
-  const compact=ws(page).getByRole('checkbox',{name:'Kompakta kolumner',exact:true});
+  await viewOptions(page);const compact=ws(page).getByRole('checkbox',{name:'Kompakta kolumner',exact:true});
   for(const enabled of [true,false]){
    await compact.setChecked(enabled);const scroll=ws(page).locator('.tjanst-matrix-scroll');
    await scroll.evaluate(el=>{el.scrollTop=450;el.scrollLeft=350;});

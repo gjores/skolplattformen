@@ -4,8 +4,6 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-**Provstatus:** Arbetsgången nedan, med läsårets behov, aktiva lärarval, förslag, flytt, massregistrering och borttagning av tom lärarkolumn, är provad i oktober 2026 mot ett eget skyddat bygge. Provet gjordes med riktig inloggning, en egen databaskopia och bara syntetiska skolor, klasser och lärare. Datorn provades i 1440 × 900 och 1024 × 768 och telefonen i 390 × 664 och 320 × 740 (Safari-motor). Arbetsgången är inte prövad med verkliga användare eller verkliga uppgifter. Rättelserna i klass-, sök- och årsvyerna verifieras separat från det äldre skyddade provet. Direkt tilldelning, Ångra och avancerad dialog har också provats mot ett skyddat bygge med riktig lokal inloggning och en egen databas med syntetiska uppgifter. Ingen prövning med verkliga verksamhetsuppgifter påstås.
-
 ## Vem gör vad?
 
 | Funktion | Kan |
@@ -23,6 +21,8 @@ Du behöver ett aktuellt uppdrag för skolan för att läsa eller ändra fördel
 2. Välj **Skola** och **Läsår** i planeringsvalet. En fördelning gäller en skola och ett läsår. Med **Alla behöriga skolor** visas texten *Välj en skola i planeringsvalet.*
 3. Skolans aktuella behov visas även om ingen tjänst ännu har fördelats. Klicka i en tom lärarcell i matrisen för att tilldela återstående känd tid direkt till läraren i kolumnen. För mer avancerade val öppnar du dialogen. Du behöver inte skapa en version först.
 
+Skola och läsår är alltid direkt synliga i planeringsvalet. Öppna **Planering** bredvid dessa val om du vill läsa förklaringen av vad valet gäller. Öppna **Om tjänstefördelningen** i arbetsytans huvud för den korta introduktionen och ansvarsfördelningen.
+
 När du öppnar nästa läsår visas det årets klass–timplanskopplingar och behov. Nya lärarfält är tomma. Sparade val, tider och kommentarer finns kvar när du fortsätter en påbörjad planering; inget ersätts automatiskt med föregående års fördelning.
 
 Behovet hämtas bara för klasser som är kopplade till en timplan för läsåret. En gymnasieklass behöver en koppling för **varje** läsår, även i årskurs 2 och 3. Gymnasiets klasser kopplas under timplanens **Klasser och läsår**, där du väljer **Läsår för klassens timplan**, se [Koppla en eller flera klasser till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Grundskolans och introduktionsprogrammets klasser kopplas i Timplaner, se [Koppla GR- och IM-klasser](./timplaner.md#koppla-gr--och-im-klasser). Saknar en klass koppling för läsåret visas knapparna **Klasskopplingar för gymnasiet** och **Klasskopplingar för GR och IM**. Välj den som gäller klassen. Läsåret följer med.
@@ -30,6 +30,13 @@ Behovet hämtas bara för klasser som är kopplade till en timplan för läsåre
 ## Matris och vyer
 
 **Matris** visar en rad per kurs eller ämne och klass och en kolumn per lärare. Varje klass har en rubrikrad med timplan, version och täckning, till exempel *100 av 100 h · 2 lärare*. Kolumnerna **Behov**, **Fördelat** och **Avvikelse** gäller vald tid: **Hela läsåret**, **HT** eller **VT**. Fotraden visar **Undervisning**, **Specialuppdrag** och **Totalt** per lärare. Under lärarens namn står **Andel här**, lärarens andel på skolan enligt huvudmannens personaluppgifter. Andelen är en upplysning. Appen jämför inte tiden med andelen.
+
+På dator är tillägg och övriga verktyg samlade i två menyer:
+
+- **Lägg till:** **Lägg till lärare i fördelningen**, **Lägg upp ny lärare** och **Lägg till specialuppdrag**. Vilka val du ser beror på ditt aktuella uppdrag.
+- **Verktyg:** **Flytta uppdrag**, **Massregistrera**, **Tomma lärarkolumner** och **Hämta aktuellt läge**. I matrisen finns här också **Avancerade val före tilldelning** och hjälpen **Så fungerar tilldelning**.
+
+Välj menyn och sedan åtgärden. Menyn stängs när du väljer en åtgärdsknapp. Du kan också stänga med **Escape** eller genom att klicka utanför. När du stänger en dialog återgår fokus till menyn som öppnade den.
 
 Behovet räknas så här:
 
@@ -46,15 +53,17 @@ En klass utan koppling visas som *KLASS · koppling saknas* och texten *Behovet 
 - **Specialuppdrag:** alla uppdrag med lärare, grupp och tid.
 - **Per kurs/ämne:** behov och sparade rader grupperade per kurs/ämne. Även klasser utan tilldelad lärare visar behov och fördelad tid. Här kopplar du samläsning mellan sparade rader. På dator öppnar **Öppna behovet i Fördela** rätt kurs och klass; ingen lärare tilldelas av det klicket.
 
-**Per lärare**, **Specialuppdrag** och **Per kurs/ämne** visar alltid **Hela läsåret · HT och VT**. Terminsknappar visas i Matris, Fördela och Per klass. Ditt terminsval finns kvar när du återgår till en sådan vy. I kursvyn räknas även avvikelsefilter och linser på hela läsåret.
+**Per lärare**, **Specialuppdrag** och **Per kurs/ämne** visar alltid **Hela läsåret · HT och VT**. Terminsknappar visas i Matris, Fördela och Per klass. På dator finns tidsvalet i samma kontrollrad som **Lägg till** och **Verktyg**. Ditt terminsval finns kvar när du återgår till en sådan vy. I kursvyn räknas även avvikelsefilter och linser på hela läsåret.
 
-Filtren **Klass**, **Ämne** och **Lärare** samt **Visa bara avvikelser och saknade kopplingar** begränsar matrisen. Skola och läsår står inte i adressen.
+Öppna **Filter** för **Klass**, **Ämne**, **Lärare** och **Visa bara avvikelser och saknade kopplingar**. När något av dessa fyra filter är valt visar kontrollen antalet aktiva filter, till exempel **Filter (2)**. **Lins** väljs separat och ingår inte i det antalet. Ett kursurval från matrisen visas separat vid arbetsytan. Skola och läsår står inte i adressen.
 
 Välj ett **kursnamn** i matrisen för att se alla klasser med samma kurs i **Per kurs/ämne**. Kurserna jämförs med kurskod eller ämnesrad, inte bara namn. Därifrån kan du markera rader för en samläsning. Kursurvalet finns kvar om du laddar om sidan eller använder Bakåt och Framåt. **Rensa filter** visar alla kurser igen. Märket **Samläsning** på en rad, och *Samläsning med …* i **Per klass**, öppnar den aktuella samläsningen i **Per kurs/ämne**.
 
 ### Lärarkolumner och linser
 
 Matrisen visar som standard **alla lärare i fördelningen**. Klass, ämne, kurs och avvikelser begränsar behovsraderna utan att dölja lärarna som du kan tilldela. Väljer du en bestämd lärare i lärarfiltret visas bara den läraren. Raden ovanför matrisen visar hur många lärarkolumner som syns.
+
+Linsväljaren och antalet synliga lärare finns direkt på arbetsytan. Öppna **Visning** på samma rad som **Lins** för kolumnurval, kompakta kolumner, fästa lärare och sparade linser.
 
 - **Visa relevanta lärare** är ett frivilligt kolumnurval för större underlag: de som har tid på synliga rader, fästa lärare och, utan behovsfilter, lärare utan undervisning. **Visa alla lärare (40)** återställer alla kolumner. I **Ofördelat** visas alla lärare automatiskt och denna växlingsknapp behövs inte.
 - **Fäst lärare:** en fäst lärare visas alltid. Du fäster med nålen i lärarens kolumnrubrik, eller med **Fäst lärare**, där du kan söka.
@@ -63,7 +72,7 @@ Matrisen visar som standard **alla lärare i fördelningen**. Klass, ämne, kurs
 - **Överflödig vakant rad:** om lärarna redan täcker hela behovet men en vakant rad finns kvar visar raden en varning. Behovet räknas då som fördelat. Ta bort den vakanta raden i kolumnen **Vakant**.
 - **Sparade linser:** spara aktuell lins, filter och kolumnval under ett namn. Med **Använd** visas linsen igen, och med **Ta bort lins** tas den bort.
 
-Behöver du en lärare som inte syns, välj cellen i kolumnen **Vakant** och sök läraren i dialogen, eller välj **Visa alla lärare**.
+Behöver du en lärare som inte syns, välj cellen i kolumnen **Vakant** och sök läraren i dialogen, eller öppna **Visning** och välj **Visa alla lärare**.
 
 Fästa lärare, kompakta kolumner och sparade linser sparas bara i den här webbläsaren, för ditt konto, skolan och läsåret. De följer inte med till en annan dator och syns inte för andra. Om webbläsaren inte sparar uppgifterna visas matrisen som standard.
 
@@ -92,13 +101,15 @@ På telefon visar Fördela en lista över ofördelade behov, utan val.
 
 ## Tilldela direkt i matrisen
 
+Öppna **Verktyg → Så fungerar tilldelning** för en kort hjälp om matrisens tilldelning och tangentbordsval.
+
 Klicka i en tom cell under lärarens namn. När behovet är känt och det återstår tid tilldelas läraren återstående timmar för **både HT och VT**, även om matrisen just visar en enda termin. Klicket väljer den namngivna läraren och sparar raden. Ingen ny lärarbekräftelse behövs. Behovet och ditt aktuella skoluppdrag kontrolleras före sparningen. Efteråt visas läraren och sparad tid och fokus går tillbaka till cellen när den fortfarande syns.
 
 Om behovet har en sparad vakant rad ersätter valet den raden; kommentaren bevaras. En andra lärare på ett delvis fördelat behov får bara återstående tid. Därefter frågar appen hur lärarna delar kursen och vem som sätter betyg när det behövs.
 
 Dialogen öppnas i stället när tiden är okänd, behovet redan är täckt, du klickar på **Vakant** eller en befintlig tilldelning, eller när behovet ingår i samläsning. Du behöver själv ange eventuell extra lärartid. Befintlig osparad inmatning tas också via dialogen och skrivs inte över av direktvalet.
 
-För att öppna dialogen före en ny tilldelning kan du välja **Avancerade val före tilldelning** ovanför matrisen. Du kan också använda **Skift+klick**, **Skift+Enter** eller **Skift+mellanslag** på cellen. Inställningen gäller den aktuella arbetsytan och sparas inte i webbläsaren.
+För att öppna dialogen före en ny tilldelning öppnar du **Verktyg** och väljer **Avancerade val före tilldelning**. Du kan också använda **Skift+klick**, **Skift+Enter** eller **Skift+mellanslag** på cellen. Inställningen gäller den aktuella arbetsytan och sparas inte i webbläsaren.
 
 ### Ångra senaste direkta tilldelningen
 
@@ -126,11 +137,11 @@ Om historiska förslag inte kan hämtas visas det. Du kan fortfarande välja lä
 
 Efter sparningen läses fördelningen om och fokus går tillbaka till cellen. Behov och lärartid sparas var för sig, så avvikelsen syns även senare. En kurs kan ha flera lärare med var sin rad. När du ändrar en sparad rad bevaras dess val. Om läraren inte längre har ett aktuellt skoluppdrag visas den sparade tilldelningen, men du behöver välja en aktuell lärare eller Vakant. På en namngiven befintlig tilldelning sparar du med **Spara tjänsteraden**; på en ny eller vakant rad sparar lärarvalet direkt.
 
-Du kan också använda **Lägg till lärare i fördelningen** för att lägga till en tom lärarkolumn. En person utan konto kan få rader och uppdrag.
+Öppna **Lägg till** och välj **Lägg till lärare i fördelningen** för att lägga till en tom lärarkolumn. En person utan konto kan få rader och uppdrag.
 
 ## Flytta uppdrag
 
-1. Välj **Flytta uppdrag** och välj läraren som uppdragen ska flyttas från.
+1. Öppna **Verktyg**, välj **Flytta uppdrag** och välj läraren som uppdragen ska flyttas från.
 2. Välj mållärare eller Vakant och välj **Bekräfta mållärare**.
 3. Markera exakt vilka undervisningsrader och specialuppdrag som ska flyttas.
 4. Välj **Förhandsvisa**. Granska före och efter, berörda samläsningar och lärarnas tidssummor.
@@ -140,7 +151,7 @@ Hela berörda samläsningar visas. Lärarens grupptid räknas en gång, och andr
 
 ## Massregistrera
 
-Välj **Massregistrera** och markera behoven du vill fördela. Varje ny rad börjar utan lärare. Välj lärare per rad, eller välj **Lärare för markerade behov** och **Använd valet på markerade behov**. Det gemensamma valet gäller bara de behov som redan är markerade; senare markerade behov har fortfarande tomt lärarfält. Historiska förslag tilldelas aldrig automatiskt till ett helt urval.
+Öppna **Verktyg**, välj **Massregistrera** och markera behoven du vill fördela. Varje ny rad börjar utan lärare. Välj lärare per rad, eller välj **Lärare för markerade behov** och **Använd valet på markerade behov**. Det gemensamma valet gäller bara de behov som redan är markerade; senare markerade behov har fortfarande tomt lärarfält. Historiska förslag tilldelas aldrig automatiskt till ett helt urval.
 
 Tiden förifylls med det som återstår av behovet. Listan visar för varje behov vad som redan är fördelat och till vem, till exempel *Redan fördelat. Fördelat HT 45 h · VT 45 h (Kalle Knas) · Återstår HT 0 h · VT 0 h*. Markerar du ett sådant behov blir tiden 0 h. Vill du byta lärare på befintliga rader använder du **Flytta uppdrag**, och vill du ändra tiden gör du det i matrisen.
 
@@ -150,17 +161,17 @@ Flytt och massregistrering får omfatta högst 100 berörda objekt per omgång. 
 
 ## Ta bort en tom lärarkolumn
 
-Öppna **Tomma lärarkolumner**, välj **Ta bort tom lärarkolumn…** och bekräfta. Kolumnen får inte ha kvar undervisningsrader, specialuppdrag eller samläsningstid. Åtgärden tar bara bort kolumnen ur planeringen. Personen finns kvar i **Personal**, och tidigare publiceringar ändras inte.
+Öppna **Verktyg** och sedan **Tomma lärarkolumner**, välj **Ta bort tom lärarkolumn…** och bekräfta. Kolumnen får inte ha kvar undervisningsrader, specialuppdrag eller samläsningstid. Åtgärden tar bara bort kolumnen ur planeringen. Personen finns kvar i **Personal**, och tidigare publiceringar ändras inte.
 
 Om en lärares skoluppdrag har upphört kan det hindra publicering. Flytta eller ändra de kvarvarande uppdragen och ta därefter uttryckligen bort den tomma kolumnen. Appen rensar inte bort planerat innehåll automatiskt.
 
 ## Ny lärare som huvudmannen kompletterar
 
-Finns läraren inte i personalen väljer du **Lägg upp ny lärare** och anger förnamn och efternamn, och vid behov ett meddelande till huvudmannen. Läraren läggs upp som ny lärare för skolan, med märket **Ny lärare** i matrisen. Huvudmannen kompletterar anställning och andel i **Personal**, se [Personal och bemanning](./personal-och-bemanning.md).
+Finns läraren inte i personalen öppnar du **Lägg till**, väljer **Lägg upp ny lärare** och anger förnamn och efternamn, och vid behov ett meddelande till huvudmannen. Läraren läggs upp som ny lärare för skolan, med märket **Ny lärare** i matrisen. Huvudmannen kompletterar anställning och andel i **Personal**, se [Personal och bemanning](./personal-och-bemanning.md).
 
 ## Specialuppdrag
 
-Välj **Lägg till specialuppdrag** och ange **Typ** (Mentor, Programansvar, Speciallärare eller Annat uppdrag), **Lärare** eller Vakant, tid för HT och VT och vid behov en kommentar. Bara mentor kan kopplas till en klass. Övriga uppdrag får ingen grupp. Specialuppdrag räknas för sig i lärarens summa **Specialuppdrag** och blandas inte med undervisningen.
+Öppna **Lägg till**, välj **Lägg till specialuppdrag** och ange **Typ** (Mentor, Programansvar, Speciallärare eller Annat uppdrag), **Lärare** eller Vakant, tid för HT och VT och vid behov en kommentar. Bara mentor kan kopplas till en klass. Övriga uppdrag får ingen grupp. Specialuppdrag räknas för sig i lärarens summa **Specialuppdrag** och blandas inte med undervisningen.
 
 ## Samläsning
 
@@ -204,7 +215,13 @@ Begränsningar:
 
 ## Fastställ och publicera
 
-Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**.
+Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
+
+Antalet gäller **olika typer av publiceringshinder**, inte antalet felande rader. En punkt kan beröra flera tilldelningar eller samläsningar. Vanliga planeringsavvikelser, till exempel skillnad mellan behov och fördelad tid, visas i fördelningen och är inte i sig samma sak som ett publiceringshinder.
+
+Under varje hinder står vad du behöver granska och, när underlaget pekar ut berörda objekt, knappar med kurs och klass, lärare eller samläsningens namn. Välj **Öppna …** för att komma till den berörda raden, delningen eller sammanställningen. Om flera objekt berörs visas flera val. Att öppna ett mål ändrar eller sparar ingen tilldelning. Granska underlaget och spara eventuella ändringar där du arbetar; publiceringen behöver fortfarande bekräftas separat.
+
+Vissa meddelanden pekar inte ut en viss rad eller person. Då visas en bredare väg, till exempel **Öppna Lärare i fördelningen** eller **Öppna Samlad granskning**, tillsammans med vägledning. Hämta vid behov aktuellt underlag via **Verktyg → Hämta aktuellt läge**. Appen pekar inte ut en viss lärare som orsak när meddelandet saknar den uppgiften och rättar inte hindret automatiskt. Läs det aktuella beskedet även efter en ändring: ett hinder kan finnas kvar eller behöva granskas på nytt.
 
 1. Välj **Fastställ och publicera…**.
 2. Bekräfta i dialogen. **Behåll utkastet** har fokus från början.
@@ -232,7 +249,7 @@ Efter publiceringen kan lärare med Egen tjänst kvittera att de har läst tjän
 
 ## På telefon
 
-På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. Linsväljaren finns i Per kurs/ämne och Fördela. Fästa lärare och sparade linser finns bara på dator. Fördela visar på telefon bara en lista över ofördelade behov. **Publiceringsstatus** öppnar en läspanel utan publicerings- eller borttagningsknappar. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
+På telefon kan rektor och skoladministratör läsa fördelningen i vyerna Per lärare, Per klass, Specialuppdrag och Per kurs/ämne. Matris, redigering, flytt och massregistrering finns bara på dator. Linsväljaren och **Filter** finns i Per kurs/ämne och Fördela. Filter används bara för att begränsa det du läser. Fästa lärare och sparade linser finns bara på dator. Fördela visar på telefon bara en lista över ofördelade behov. **Publiceringsstatus**, eller det synliga antalet hinder, öppnar en läspanel utan publicerings- eller borttagningsknappar. Hindrets **Visa …**-knappar leder till läsbart underlag; gör ändringarna på dator. Menyerna **Lägg till**, **Verktyg** och **Visning** finns bara på dator. Läraren läser och kvitterar sin publicerade tjänst i Min tjänst. Om fönstret blir smalare under pågående inmatning bevaras formuläret för återgång till datorläget; byt inte skola, läsår eller uppdrag för att fortsätta samma inmatning.
 
 ## Begränsningar
 
