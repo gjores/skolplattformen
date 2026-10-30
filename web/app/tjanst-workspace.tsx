@@ -648,13 +648,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       <div className="tjanst-field"><label htmlFor={`${headingId}-amne`}>Ämne</label><select id={`${headingId}-amne`} value={filter.subject} onChange={e => patchSaved({ filter: { ...filter, subject: e.target.value } })}><option value="">Alla ämnen</option>{subjects.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
       <div className="tjanst-field"><label htmlFor={`${headingId}-larare`}>Lärare</label><select id={`${headingId}-larare`} value={filter.personId} onChange={e => patchSaved({ filter: { ...filter, personId: e.target.value } })}><option value="">Alla lärare</option>{teachers.map(t => <option key={t.personId} value={t.personId}>{t.displayName}</option>)}</select></div>
 <label className="mandate-check"><input type="checkbox" checked={filter.onlyIssues} onChange={e => patchSaved({ filter: { ...filter, onlyIssues: e.target.checked } })}/>Visa bara avvikelser och saknade kopplingar</label>
-      </TjanstActionMenu>} lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens }, autoLens: false })} phone={phone} matrix={shownView === 'matris'}
+      </TjanstActionMenu>} clear={hasFilter ? <Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button> : null} lens={filter.lens} onLens={lens => patchSaved({ filter: { ...filter, lens }, autoLens: false })} phone={phone} matrix={shownView === 'matris'}
         shown={columns.length} total={teachers.length} showAll={showAll} onShowAll={setShowAll} filteredByTeacher={!!filter.personId}
         teachers={teachers} pinned={prefs.pinned} onPin={pin} compact={prefs.compact} onCompact={compact => updatePrefs({ ...prefs, compact })}
         saved={prefs.saved} onSave={saveLens} onDeleteSaved={name => updatePrefs({ ...prefs, saved: prefs.saved.filter(s => s.name !== name) })}
         onApplySaved={lens => { patchSaved({ filter: { ...lens.filter, lens: lens.lens }, autoLens: false }); setShowAll(lens.showAll); }}/>
       {filter.course && <output className="tjanst-course-filter">Visar alla klasser med kursen {courseLabel}. Markera rader för att koppla dem till en samläsning.</output>}
-      {hasFilter && <div className="mandate-actions"><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>}
+
     </div>}
     {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
       <TjanstActionMenu label="Lägg till">

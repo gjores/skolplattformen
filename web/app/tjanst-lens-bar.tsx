@@ -9,7 +9,7 @@ import { TJANST_LENSES, type TjanstLensId, type TjanstSavedLens } from '@/lib/tj
  * 05.1-29: linsrad ovanför matrisen. Lins, antal synliga lärare, Visa alla, Fäst lärare, Kompakta kolumner och sparade linser.
  * På telefon (läsläge, D-15) visas bara linsväljaren. Inställningarna sparas bara i den egna webbläsaren.
  */
-type Props = { extra?: ReactNode; lens: TjanstLensId; onLens: (lens: TjanstLensId) => void; phone: boolean; matrix: boolean;
+type Props = { clear?: ReactNode; extra?: ReactNode; lens: TjanstLensId; onLens: (lens: TjanstLensId) => void; phone: boolean; matrix: boolean;
   shown: number; total: number; showAll: boolean; onShowAll: (all: boolean) => void; filteredByTeacher: boolean;
   teachers: TjanstTeacher[]; pinned: string[]; onPin: (personId: string, pin: boolean) => void;
   compact: boolean; onCompact: (compact: boolean) => void;
@@ -20,14 +20,14 @@ export default function TjanstLensBar(p: Props) {
   const [search, setSearch] = useState(''), [name, setName] = useState(''), [chosen, setChosen] = useState(''), [message, setMessage] = useState<string | null>(null);
   const lensSelect = <div className="tjanst-field"><label htmlFor={`${id}-lins`}>Lins</label>
     <select id={`${id}-lins`} value={p.lens} onChange={e => p.onLens(e.target.value as TjanstLensId)}>{TJANST_LENSES.map(l => <option key={l.id} value={l.id}>{l.label}</option>)}</select></div>;
-  if (p.phone || !p.matrix) return <div className="tjanst-lens-bar">{lensSelect}{p.extra}</div>;
+  if (p.phone || !p.matrix) return <div className="tjanst-lens-bar">{lensSelect}{p.extra}{p.clear}</div>;
   const q = search.trim().toLocaleLowerCase('sv');
   const matches = q ? p.teachers.filter(t => t.displayName.toLocaleLowerCase('sv').includes(q)) : p.teachers;
   const current = p.saved.find(s => s.name === chosen) ?? null;
   return <div className="tjanst-lens-bar">
     {lensSelect}
     <output className="tjanst-lens-count">{p.filteredByTeacher ? 'Visar läraren i lärarfiltret' : `Visar ${p.shown} av ${p.total} lärare`}</output>
-    {p.extra}
+    {p.extra}{p.clear}
     <details className="tjanst-view-options"><summary>Visning</summary><div className="tjanst-display-controls">
     {!p.filteredByTeacher && p.lens !== 'ofordelat' && <Button type="button" variant="outline" onClick={() => p.onShowAll(!p.showAll)}>{p.showAll ? 'Visa relevanta lärare' : `Visa alla lärare (${p.total})`}</Button>}
     <label className="mandate-check"><input type="checkbox" checked={p.compact} onChange={e => p.onCompact(e.target.checked)}/>Kompakta kolumner</label>

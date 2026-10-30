@@ -41,10 +41,12 @@ async function capture(page:Page,name:string,details?:unknown){
   await page.screenshot({path:output,fullPage:false});result.screenshots.push({file,sha256:sha(readFileSync(output)),geometry});save();
 }
 
-async function workspaceSpace(page:Page){
+async function workspaceSpace(page:Page,klass:string){
+ // Inspect a persisted working class. Deliberately unlinked classes stay visible when the user clears this filter.
+ await selectFilter(page,'Klass',{label:klass});await page.reload();await settled(page);await advancedMode(page);
  await page.evaluate(async()=>{await document.fonts.ready;for(let el=document.querySelector('.tjanst');el;el=el.parentElement)el.scrollTop=0;window.scrollTo(0,0);});
  const row=ws(page).locator('[data-need-row]').first();const firstNeed=await row.boundingBox();expect(firstNeed).not.toBeNull();expect(firstNeed!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);
- const teacherChoice=row.getByRole('button',{name:/Ändra\.$|Tilldela\.$/u}).first(),teacher=await teacherChoice.boundingBox();expect(teacher!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);await expect(teacherChoice).toBeInViewport();await capture(page,'workspace-compact',{firstNeed,teacher,first44pxVisible:true,menusInitiallyClosed:await ws(page).locator('.tjanst-action-menu[open]').count()===0});
+ const teacherChoice=row.getByRole('button',{name:/Ändra\.$|Tilldela\.$/u}).first(),teacher=await teacherChoice.boundingBox();expect(teacher!.y+44).toBeLessThanOrEqual(page.viewportSize()!.height);await expect(teacherChoice).toBeInViewport();await capture(page,'workspace-compact',{firstNeed,teacher,first44pxVisible:true,workingClass:klass,menusInitiallyClosed:await ws(page).locator('.tjanst-action-menu[open]').count()===0});
 }
 
 async function context(browser:Browser,info:TestInfo,role:string){
@@ -167,7 +169,7 @@ async function shareOneAtATime(page:Page,grader:string,other:string){
 /** Ett aktivt personval och vanlig radskrivning; ingen separat skapa-utkast-väg. */
 async function beginRevision(page:Page){
   const target=matrix(page).getByRole('button',{name:/Ändra\.$/u}).first(),label=(await target.getAttribute('aria-label'))!;const teacher=label.split(', ')[0];
-  await target.click({modifiers:['Shift']});const d=page.getByRole('dialog');await d.getByRole('button',{name:await d.getByRole('button',{name:'Byt lärare',exact:true}).count()?'Spara tjänsteraden':`Välj ${teacher}`,exact:true}).click();await expect(d).toHaveCount(0);await settled(page);
+  await target.click({modifiers:['Shift']});const d=page.getByRole('dialog');await d.getByRole('button',{name:teacher==='Vakant'?'Välj Vakant':'Spara tjänsteraden',exact:true}).click();await expect(d).toHaveCount(0);await settled(page);
 }
 /** Öppnar rektors Fastställ-panel och publicerar; med stepUp kontrolleras att servern kräver engångskod och step-up görs via knappen. */
 async function publish(page:Page,role:string,versionNo:number,{stepUp=false}={}){
@@ -225,7 +227,7 @@ test('spår: rektor A tilldelar en Gy25-rad och publicerar med engångskod; P1 s
   const p=await signIn(browser,info,'principalA');
   await openTjanst(p,seed.schools.A);
   await expect(matrix(p)).toBeVisible();expect(await versionsOf(seed.schools.A)).toEqual([]);
-  await addTeacher(p,'Pia Ek');await workspaceSpace(p);
+  await addTeacher(p,'Pia Ek');await workspaceSpace(p,'SYNBF1');await ws(p).getByRole('button',{name:'Rensa filter',exact:true}).click();
   await expect(ws(p).getByText('Pågående planering',{exact:true})).toBeVisible();
   const first=matrix(p).getByRole('button',{name:/^Pia Ek, .*, SYNBF1: ingen tid\. Tilldela\.$/u}).first();
   const cellName=(await first.getAttribute('aria-label'))??'';const course=cellName.split(', ')[1];
@@ -889,7 +891,7 @@ test('WR-02: byte av lärare på samläst rad ger 400 tjanst_joint_already; ogil
 test('liten dator: fördela, samläsning och publicera',async({browser},info)=>{
   test.skip(project!=='desktop-small','Körs på projektet desktop-small.');
   const p=await signIn(browser,info,'principalA');await openTjanst(p,seed.schools.A);
-  await addTeacher(p,'Tor Berg');await workspaceSpace(p);
+  await addTeacher(p,'Tor Berg');await workspaceSpace(p,'SYNGR8');await ws(p).getByRole('button',{name:'Rensa filter',exact:true}).click();
   await expect(cell(p,'Tor Berg','Matematik','SYNGR8')).toHaveAccessibleName('Tor Berg, Matematik, SYNGR8: ingen tid. Tilldela.');
   await cell(p,'Tor Berg','Matematik','SYNGR8').click();const dialog=p.getByRole('dialog');
   await expect(dialog.getByLabel('Lärartid HT (timmar)')).toHaveValue('45');await dialog.getByLabel('Lärartid VT (timmar)').fill('40');
