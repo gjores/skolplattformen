@@ -479,7 +479,26 @@ Arbetstidsavtal, individuell tjänstebedömning och TID-01–12 ingår inte. En 
 5. En fastställd kalender har version och kontrollsumma. Tjänstefördelningens IM-behov, timplanens veckotid och schemaläggningen läser exakt den versionen. En ändring efter fastställandet ger spårbar avvikelse i beroende underlag och ingen tyst omräkning. Timplanernas IM-text stämmer med Tjänstefördelning (todo 2026-10-21). (LASAR-05)
 6. SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data visar mandatgränser, regler, fastställande, återöppning och läsning från tjänstefördelningen. Handbokssidan om läsår och skoldagar är uppdaterad och byggd. (LASAR-06)
 
-**Plans**: 0 plans — kör `/gsd-discuss-phase 05.1.1` och därefter `/gsd-plan-phase 05.1.1`.
+**Plans**: 17 plans (planerade 2026-10-30 och delade efter plancheck samma dag; inget genomfört). Våg 1–4 är utan migration; plan 06 börjar med grinden D-17 (05.1 avslutad).
+
+Plans:
+- [ ] 05.1.1-01-PLAN.md — Demons baslinje före utbrytningen (våg 1)
+- [ ] 05.1.1-02-PLAN.md — Modellstöd: kopiering, ramjämförelse, regelkoder, stabila grupp-ID:n och kontrollsumma (våg 1)
+- [ ] 05.1.1-03-PLAN.md — Tracer utan migration: en lovdag i skyddad vy och delade presentationskomponenter (våg 2)
+- [ ] 05.1.1-04-PLAN.md — Fullständigt kontrakt och arbetsflödet i skyddad vy, simulerat (våg 3)
+- [ ] 05.1.1-05-PLAN.md — Startval, kopiering, huvudmannens ram och undervisningspanelen, simulerat (våg 4)
+- [ ] 05.1.1-06-PLAN.md — Grind och tracer: en lovdag från rektor till fastställd version (våg 5)
+- [ ] 05.1.1-07-PLAN.md — Kärnflödet på servern: utkastkommandon, beslut, regler och återhämtning (våg 6)
+- [ ] 05.1.1-08-PLAN.md — Stabila grupp-ID:n (LASAR-04) och gruppernas dagar (våg 7)
+- [ ] 05.1.1-09-PLAN.md — Ny version, ändringsbegäran och låsta passerade dagar (våg 8)
+- [ ] 05.1.1-10-PLAN.md — Huvudmannens ram och arbetssätt (våg 9)
+- [ ] 05.1.1-11-PLAN.md — Kopiera förra läsåret och kalenderstatus per skola på servern (våg 10)
+- [ ] 05.1.1-12-PLAN.md — Kalenderstatus i Läsårsöverblick och skollistan i vyn (våg 11)
+- [ ] 05.1.1-13-PLAN.md — Kalenderns sammanfattning för beroende underlag (våg 11)
+- [ ] 05.1.1-14-PLAN.md — IM-text i Timplaner och markering i Tjänstefördelning (våg 12)
+- [ ] 05.1.1-15-PLAN.md — Faktiskt Worker/OIDC-prov och handbok (våg 13)
+- [ ] 05.1.1-16-PLAN.md — Lokal leverans efter användarens ja (våg 14)
+- [ ] 05.1.1-17-PLAN.md — Användarprov (våg 15)
 **UI hint**: yes
 
 Förlaga är demovyn [`web/app/lasar-view.tsx`](../web/app/lasar-view.tsx) med modellen [`web/lib/lasar-model.ts`](../web/lib/lasar-model.ts) (användarbeslut 2026-10-30: ”Jag vill att frontenden i så stort som möjligt liknar detta”). Modellen och tabellerna `school_years`, `school_year_days`, `school_year_group_days`, `school_year_short_weeks` och `school_year_events` finns redan (migration 20260905170000). I dag fylls de i skyddad drift bara av testfixturer, och ingen skyddad vy eller serverväg skriver dem. Demovyns lokala tillstånd och `signInDemo` används inte i skyddad drift.
@@ -720,7 +739,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 4. Beständigt och skyddat elevregister | 24/25 | In progress — våg 14 klar: 04-21 (handbok byggd, förnyad lokal syntetisk fullgrind PASS på 8923529, browser 39/39, SQL 17/17); nästa våg 15: 04-22 användarprov och fasverifiering | - |
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 05.1. Tjänstefördelning (INSERTED) | 41/41 skrivna PLAN-filer genomförda | In progress — årsetapp 14–25 och senare26–41 genomförda; 3012 kör 785b4ff. Plan 41: faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS, geometriavgränsning redovisad. Elva UX-punkter klara, fem kvar. Nytt användarprov av plan 41 möjligt; samlad fas-/kravacceptans fortsatt öppen | - |
-| 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/TBD | Not started | - |
+| 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/17 | Planned — 17 planer 2026-10-30; våg 1–4 utan migration, grind D-17 före plan 06 | - |
 | 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Not started | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
