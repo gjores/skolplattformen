@@ -1,0 +1,77 @@
+{
+  "installedAt": "2026-10-30T10:02:43.699Z",
+  "revision": "6692919eca9c5757be062102517eef64742d5838",
+  "url": "http://127.0.0.1:3012",
+  "artifactEqual": true,
+  "actualArtifactEqual": true,
+  "artifactSha256": "fc1dbf4770d01e30a60e61f8f50fac0ecf2e9647f1acd87bc914bd2558f8d738",
+  "artifactFiles": 1370,
+  "health": {
+    "status": 200,
+    "ok": true
+  },
+  "routes": [
+    {
+      "path": "/",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "method": "GET",
+      "status": 401
+    },
+    {
+      "path": "/api/tjanst/plan/lasa",
+      "method": "POST",
+      "status": 401
+    },
+    {
+      "path": "/api/elever/lista",
+      "method": "POST",
+      "status": 401
+    }
+  ],
+  "assets": [
+    {
+      "path": "/_next/static/chunks/ADMI-1-C1H8hGoE.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AFFA-1-ubpXF0cd.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKRO-1-NS2_YLYe.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTI-1-CT2ziQpl.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKTV-1-Bc9wexU2.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/AKUT-1-BS9UNBBY.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ALLM-1-BVvtJ9Fq.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ANAT-2-4ShbcNYL.js",
+      "status": 200
+    },
+    {
+      "path": "/_next/static/chunks/ANIM-1-DiNnxxSK.js",
+      "status": 200
+    }
+  ],
+  "rollbackRuntime": "work/pilot/targets/protected/runtime/tjanst-build-785b4ff",
+  "migrationsApplied": false,
+  "validation": "frozen_actual_worker_oidc_postgres_and_synthetic_ui",
+  "humanAcceptance": "awaiting_new_user_trial_42"
+}

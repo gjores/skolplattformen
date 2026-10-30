@@ -1,0 +1,71 @@
+{
+  "kind": "tjanst-browser-annotations-42",
+  "status": "PASS",
+  "candidateRevision": "6692919eca9c5757be062102517eef64742d5838",
+  "productImplementationRevision": "aa1342870215db151db6e67f83dbd4cfe944ab6b",
+  "scope": "synthetic_components_and_isolated_actual_worker_oidc_postgresql",
+  "ui": {
+    "startTime": "2026-10-30T09:47:15.740Z",
+    "duration": 390116.29,
+    "expected": 298,
+    "skipped": 214,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "staffAndYear": {
+    "startTime": "2026-10-30T09:47:19.157Z",
+    "duration": 262878.33599999995,
+    "expected": 138,
+    "skipped": 70,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "domainTests": {
+    "passed": 56,
+    "failed": 0
+  },
+  "typecheck": "PASS",
+  "lint": "PASS",
+  "normalBuild": "PASS on identical product tree aa13428",
+  "protectedBuild": "PASS on exact frozen6692919",
+  "handbookBuild": "PASS",
+  "actual": {
+    "passed": 88,
+    "notExecuted": 0,
+    "perProject": {
+      "desktop": {
+        "required": 56,
+        "passed": 56
+      },
+      "desktop-small": {
+        "required": 13,
+        "passed": 13
+      },
+      "phone": {
+        "required": 10,
+        "passed": 10
+      },
+      "phone-small": {
+        "required": 9,
+        "passed": 9
+      }
+    },
+    "reportSha256": "55da4f5321faaf84bfe311a2959c01051b43bf51090d00a72cedc12fa4c4b5ea",
+    "fullSuite": true,
+    "finishedAt": "2026-10-30T10:02:17.231Z",
+    "targetUnchanged": true,
+    "originalArtifactPreserved": true,
+    "buildCopyRemoved": true,
+    "oidcCleanup": "complete",
+    "runtimeCleanup": "complete",
+    "snapshotCleanup": "complete"
+  },
+  "deployment": "annotations-42-deployment.json",
+  "humanAcceptance": "awaiting_new_user_trial_42",
+  "limitations": [
+    "synthetic data only",
+    "phone emulation and reduced viewport; no physical keyboard trial",
+    "no new external SS12000 connection",
+    "F02/F04/F05/F07/F08 remain pending within remaining scope"
+  ]
+}

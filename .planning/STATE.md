@@ -3,20 +3,20 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1"
 current_phase_name: Tjänstefördelning
-current_plan: "05.1-41 installerad på 3012; fem UX-förbättringar återstår"
+current_plan: "05.1-42 installerad på3012; fem UX-punkter och nytt användarprov återstår"
 status: in_progress
-stopped_at: "Arbetsyta, verktyg och hinder levererade som 785b4ff; UI 274/personal/år 134/domän 56/faktiskt prov 88 PASS, full städning och lokal hälsa PASS."
+stopped_at: "Sex UX-anteckningar levererade som6692919; UI298/personal/år138/domän56/faktiskt88 PASS, full städning och lokal hälsa PASS."
 last_updated: "2026-10-30"
 last_activity: 2026-10-30
-last_activity_desc: "05.1-41 installerad; planstatus avstämd och F01/F03/F06 avslutade."
-state_head: 785b4ff
+last_activity_desc: "05.1-42 verifierad och installerad; planer, handbok och UX-uppföljning avstämda."
+state_head: 6692919
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
-verification_worker_status: pass_05_1_41_full_frozen_88
+verification_worker_build_revision: 6692919eca9c5757be062102517eef64742d5838
+verification_worker_status: pass_05_1_42_full_frozen_88
 worker_status: tjanst_trial_local_delivery_health_pass
 worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
 milestone_name: milestone
@@ -26,7 +26,9 @@ milestone_name: milestone
 
 # Project State
 
-**Aktuellt 2026-10-30 — 05.1-41 installerad:** Mer arbetsyta, samlade verktyg och handlingsbara publiceringshinder är genomförda. Lokal 3012 kör **785b4ff**, samma frysta artefakt som har faktiskt Worker/OIDC/PostgreSQL PASS **88/88** (56/13/10/9), UI 274, personal/år 134, domän 56, typ/lint/byggen/handbok PASS. Etapp 2:s14–25 och senare26–40 är redan genomförda. F01/F03/F06 är klara; fem UX-punkter återstår (F02/F04/F05/F07/F08, F04/F05 delvis). [Resultat](phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md). Positiv återkoppling på tidigare senaste UX är registrerad; nytt prov av plan 41 kan nu göras. Det ursprungliga generella sparfelet är inte reproducerat. Formella kravrutor, samlad fasacceptans och historiska pilotantal ändras inte.
+**Aktuellt 2026-10-30 — 05.1-42 installerad:** De sex nya browseranteckningarna är genomförda: små markörer, tydligt första val vid lärarbyte, atomärt samläsningsbyte, nya tidskort/sökval i Per lärare och samlat Planeringsval. 3012 kör **6692919**, identisk med faktiskt fryst Worker/OIDC/PostgreSQL **88/88**; UI298, personal/år138, domän56, typ/lint/byggen/handbok och lokal hälsa PASS. Full provstädning och originalbevarande är verifierade. Fem ursprungliga UX-punkter återstår (F02/F04/F05/F07/F08); F05:s gemensamma kandidatväljare är inte färdig bara för att Per lärare nu är sökbar. Nytt användarprov av42 återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md). Inga migrationer, nya externa anslutningar eller ändrade formella krav-/fas-/pilotantal.
+
+**Historik 2026-10-30 — 05.1-41 installerad:** Mer arbetsyta, samlade verktyg och handlingsbara publiceringshinder är genomförda. Lokal 3012 kör **785b4ff**, samma frysta artefakt som har faktiskt Worker/OIDC/PostgreSQL PASS **88/88** (56/13/10/9), UI 274, personal/år 134, domän 56, typ/lint/byggen/handbok PASS. Etapp 2:s14–25 och senare26–40 är redan genomförda. F01/F03/F06 är klara; fem UX-punkter återstår (F02/F04/F05/F07/F08, F04/F05 delvis). [Resultat](phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md). Positiv återkoppling på tidigare senaste UX är registrerad; nytt prov av plan 41 kan nu göras. Det ursprungliga generella sparfelet är inte reproducerat. Formella kravrutor, samlad fasacceptans och historiska pilotantal ändras inte.
 
 **05.1-40 installerad 2026-10-29:** Befintlig namngiven tilldelning har Byt lärare och explicit Spara; Fler val samlar kommentar, underlag och borttagning. Kort namnsökning och dubblettspärr. Ny/vakant rad behåller direktval. UI254, domän15, typ/lint och båda byggena PASS; hälsa/nio tillgångar PASS. 3012 kör fryst 8f6a586; 1d2b0ec finns för återgång. Ingen migration eller ny faktisk OIDC/databasserie. Tidigare rapporterat generellt sparfel ej reproducerat; användarprov av konkret fall och åtta förbättringar återstår. [Resultat](phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md).
 
@@ -283,7 +285,9 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Aktuellt 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); våg 1–4 genomförda (01–08 inklusive 04B), inget installerat. Nästa är 05.1-09 (faktiskt prov kräver lokal miljö) och 05.1-10 (installation efter uttryckligt ja). Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
+05.1-42 är installerad och verifierad på3012 som6692919. Sex browseranteckningar är genomförda; nytt användarprov och fem ursprungliga UX-punkter återstår. Formell fas05.1-acceptans samt senare faser är inte avslutade av denna leverans. Se aktuell sammanfattning ovan.
+
+Historisk lägesbild 2026-10-19: APL centralt innehåll levererat, 3012 kör 55ea3da. Fas 5 är inte stängd (mänskliga prov och gap kvar). Fas 05.1 Tjänstefördelning: etapp 1 i 11 planer ([kontext](phases/05.1-tjanstefordelning/05.1-CONTEXT.md), [UI-kontrakt](phases/05.1-tjanstefordelning/05.1-UI-SPEC.md)); våg 1–4 genomförda (01–08 inklusive 04B), inget installerat. Nästa är 05.1-09 (faktiskt prov kräver lokal miljö) och 05.1-10 (installation efter uttryckligt ja). Etapp 2 (årsrutiner) planeras separat; 05.2–05.8 väntar. Äldre: 05-43 inklusive användarprov avslutad,88/100 planer. Användaren godkände årsplaneringsprovet2026-10-09. Nästa är planering av återstående gap, bland annat rektors färdigmarkering/huvudmannens godkännande. Nedanstående daterade delsteg är bevarad historik.
 
 **UI42 källintegration2026-10-08:** Exakta sju carrymål aafe5524/home9e3e/O3ea5 integrerade ovanpå faktiskt avslutad41/4f10256; alla tidigare41beroenden hashbevarade.52 rena location/timplan/årsmodellprov, fulltyp/lint/fixture-syntax och list36 PASS. Ingen ny DB/API/browserkörning eller GR/IM-beteende-PASS ännu. SOURCErelease-V5 versionshanteras före ROOTpreO/nya isolerade bygget/O36.86/100,3/8 och vanlig3012 består.
 

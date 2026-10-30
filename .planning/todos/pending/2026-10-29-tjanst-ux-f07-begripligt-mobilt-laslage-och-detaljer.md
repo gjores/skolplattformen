@@ -36,3 +36,5 @@ Planera berörda dator-/telefonflöden, meningsfulla regressioner och relevanta 
 Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, externa ID:n, giltighetstider och käll-/skrivansvar. Presentationen i sig är intern och bevisar inget standardstöd. GSD-planen ska ange tillämplig specifikationsversion och berörda objekt/relationer, eller motivera varför ändringen ligger utanför informationsutbytet. Synliggör modellkonflikter före implementation.
 
 **Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
+
+**Avstämning efter42, 2026-10-30:** Per lärare har staplade tidskort, sökbart läsval och sekundära tekniska detaljer även på telefon. Övergripande mobilt språk/arbetsflöde återstår; fortsatt pending. UI298 och faktiskt88/88 samt installation6692919 PASS. Nytt användarprov återstår. [Resultat](../../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md).

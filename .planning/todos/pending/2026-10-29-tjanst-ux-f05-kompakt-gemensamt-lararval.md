@@ -39,3 +39,5 @@ Avsikten är att bevara person-, klass-, timplans- och samläsningsidentiteter, 
 **Status:** pending — registrerat för avgränsad planering i fas 05.1. Ingen ny krav-/fasacceptans eller installation. [Samlad uppföljning](../../research/TJANST-UX-2026-10-29-TODOS.md).
 
 **Avstämning30 oktober:** delvis hanterad, fortsatt pending. Sökningen rättades i36 och befintligt lärarbyte förenklades i40, med uttryckligt Spara. Den fulla väljaren för nya behov har fortfarande separata historiska förslag/manuella kandidater och upprepade skäl; en gemensam lista och unikare förklaringar återstår. [Senaste leverans](../../phases/05.1-tjanstefordelning/05.1-41-SUMMARY.md).
+
+**Avstämning efter42, 2026-10-30:** Per lärare har sökbar, tillgänglig väljare med aktivt listval och nya tidskort. Gemensamt kandidatval i alla redigeringsflöden kvarstår; fortsatt pending. UI298 och faktiskt88/88 samt installation6692919 PASS. Nytt användarprov återstår. [Resultat](../../phases/05.1-tjanstefordelning/05.1-42-SUMMARY.md).
