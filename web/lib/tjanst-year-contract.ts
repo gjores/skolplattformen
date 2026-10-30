@@ -1,7 +1,7 @@
 import { gymArray, gymBoolean, gymInteger, gymObject, gymShape, gymUuid } from './gym-timplan.ts';
 import { isValidDate } from './pupil-register-model.ts';
-import { parseTjanstSourceKey, TjanstContractError, TJANST_LIMITS, TJANST_NEED_BASES,
-  tjanstHashCanonical, type TjanstNeed, type TjanstRow, type TjanstSpecialKind, type TjanstJointTeacher } from './tjanst-contract.ts';
+import { parseTjanstSourceKey, parseTjanstAnySourceKey, parseTjanstRow, TjanstContractError, TJANST_LIMITS, TJANST_NEED_BASES,
+  tjanstHashCanonical, type TjanstNeed, type TjanstSourceKind, type TjanstRow, type TjanstSpecialKind, type TjanstJointTeacher } from './tjanst-contract.ts';
 
 /** Etapp 2. Strict boundary; wired into the plan family in 05.1-19, never a second write route.
  * SS 12000:2024 / OpenAPI 2.1.0: stable Person/Group/Duty references, inclusive dates and separate
@@ -20,7 +20,7 @@ export type TjanstYearChoice =
 export type TjanstYearPlanningContext = TjanstYearMutationContext & { choice: TjanstYearChoice };
 /** Independent base payloads: the legacy parser may delegate here in plan 19 without recursion. */
 export type TjanstYearBasePayload = {
-  save_row: { rowId: string | null; sourceKind: 'class_timplan'; sourceKey: string; personId: string | null; teacherHt: number; teacherVt: number; comment: string };
+  save_row: { rowId: string | null; sourceKind: TjanstSourceKind; sourceKey: string; personId: string | null; teacherHt: number; teacherVt: number; comment: string };
   add_teacher: { personId: string };
   remove_teacher: { personId: string };
   delete_row: { rowId: string };
@@ -38,7 +38,7 @@ export type TjanstYearSaveRow = TjanstYearBasePayload['save_row'] & { planningCo
 export type TjanstYearDuty = { dutyId: string; startsOn: string; endsOn: string | null; percent: number };
 export type TjanstYearCandidate = { personId: string; displayName: string; draft: boolean; shareHere: number | null;
   duties: TjanstYearDuty[]; personBasisHash: string; qualificationStatus: 'unknown' };
-export type TjanstYearNeed = TjanstNeed & { classId: string; className: string };
+export type TjanstYearNeed = TjanstNeed & ({sourceKind:'class_timplan';classId:string;className:string} | {sourceKind:'teaching_group';classId:null;className:string;groupId:string;classIds:string[]});
 export type TjanstYearEvidence = { reason: TjanstYearReason; unitId: string; schoolYear: number; versionId: string;
   rowId: string; personId: string; classId: string; rowKey: string; sourceKey: string };
 export type TjanstYearSuggestion = { suggestionId: string; personId: string; evidenceHash: string;
@@ -95,7 +95,7 @@ function date(v: unknown): string { if (!isValidDate(v)) bad(); return v as stri
 function list<T>(v: unknown, max: number, fn: (v: unknown) => T): T[] { return gymArray(v, max).map(fn); }
 function unique<T>(v: T[], key: (v: T) => string): T[] { if (new Set(v.map(key)).size !== v.length) bad('tjanst_duplicate_row'); return v; }
 function source(v: unknown, schoolYear: number) {
-  const s = parseTjanstSourceKey('class_timplan', v); if (s.schoolYear !== schoolYear) bad('wrong_scope'); return s;
+  const s = parseTjanstAnySourceKey(v); if (s.schoolYear !== schoolYear) bad('wrong_scope'); return s;
 }
 /** Reject rather than truncate. HTTP must enforce this against received bytes BEFORE JSON parsing too. */
 export function assertTjanstYearInputSize(value: unknown): void {
@@ -147,10 +147,10 @@ function basePayload<A extends keyof TjanstYearBasePayload>(action: A, value: un
   else if (action === 'delete_special') parsed = { specialId: uuid(shape(value, ['specialId']).specialId) };
   else if (action === 'dissolve_joint') parsed = { jointId: uuid(shape(value, ['jointId']).jointId) };
   else if (action === 'save_sharing') {
-    const p = shape(value, ['sourceKey', 'mode', 'graderPersonIds']); parseTjanstSourceKey('class_timplan', p.sourceKey);
+    const p = shape(value, ['sourceKey', 'mode', 'graderPersonIds']); parseTjanstAnySourceKey(p.sourceKey);
     const graderPersonIds = unique(list(p.graderPersonIds, 20, uuid), v => v); if (!graderPersonIds.length) bad('tjanst_sharing_grader');
     parsed = { sourceKey: p.sourceKey as string, mode: choice(p.mode, ['sequential', 'concurrent'] as const), graderPersonIds };
-  } else if (action === 'clear_sharing') { const p = shape(value, ['sourceKey']); parseTjanstSourceKey('class_timplan', p.sourceKey); parsed = { sourceKey: p.sourceKey as string }; }
+  } else if (action === 'clear_sharing') { const p = shape(value, ['sourceKey']); parseTjanstAnySourceKey(p.sourceKey); parsed = { sourceKey: p.sourceKey as string }; }
   else { shape(value, []); parsed = {}; }
   return parsed as TjanstYearBasePayload[A];
 }
@@ -207,18 +207,16 @@ function candidate(value: unknown, schoolYear: number): TjanstYearCandidate {
     duties, personBasisHash: hash(c.personBasisHash), qualificationStatus: choice(c.qualificationStatus, ['unknown'] as const) };
 }
 function need(value: unknown, schoolYear: number): TjanstYearNeed {
-  const n = shape(value, ['classId', 'className', 'sourceKind', 'sourceKey', 'rowKey', 'label', 'needHt', 'needVt', 'needBasis']);
-  const s = source(n.sourceKey, schoolYear); if (n.sourceKind !== 'class_timplan' || n.classId !== s.classId || n.rowKey !== s.rowKey) bad();
-  return { classId: s.classId, className: text(n.className, 60), sourceKind: 'class_timplan', sourceKey: n.sourceKey as string, rowKey: s.rowKey,
-    label: text(n.label, 300), needHt: n.needHt === null ? null : minutes(n.needHt), needVt: n.needVt === null ? null : minutes(n.needVt), needBasis: choice(n.needBasis, TJANST_NEED_BASES) };
+  const raw=gymObject(value),group=raw.sourceKind==='teaching_group';
+  const n=shape(raw,['classId','className','sourceKind','sourceKey','rowKey','label','needHt','needVt','needBasis',...(group?['groupId','classIds']:[])]);
+  const s=source(n.sourceKey,schoolYear);if(n.sourceKind!==s.sourceKind||n.rowKey!==s.rowKey||n.classId!==s.classId)bad();
+  const common={sourceKey:n.sourceKey as string,rowKey:s.rowKey,label:text(n.label,300),needHt:n.needHt===null?null:minutes(n.needHt),needVt:n.needVt===null?null:minutes(n.needVt),needBasis:choice(n.needBasis,TJANST_NEED_BASES)};
+  if(s.sourceKind==='class_timplan')return {...common,sourceKind:'class_timplan',classId:s.classId,className:text(n.className,60)};
+  const classIds=unique(list(n.classIds,TJANST_LIMITS.classes,uuid),x=>x);if(!classIds.length||uuid(n.groupId)!==s.groupId)bad();
+  return {...common,sourceKind:'teaching_group',classId:null,className:text(n.className),groupId:s.groupId,classIds};
 }
-function currentRow(value: unknown, schoolYear: number): TjanstRow {
-  const r = shape(value, ['id', 'lineageId', 'sourceKind', 'sourceKey', 'classId', 'rowKey', 'personId', 'teacherHt', 'teacherVt', 'needHt', 'needVt', 'needBasis', 'stale', 'jointGroupId', 'comment']);
-  const p = basePayload('save_row', { rowId: r.id, sourceKind: r.sourceKind, sourceKey: r.sourceKey, personId: r.personId, teacherHt: r.teacherHt, teacherVt: r.teacherVt, comment: r.comment });
-  const s = source(p.sourceKey, schoolYear); if (r.classId !== s.classId || r.rowKey !== s.rowKey) bad();
-  return { id: uuid(r.id), lineageId: uuid(r.lineageId), sourceKind: p.sourceKind, sourceKey: p.sourceKey, classId: s.classId, rowKey: s.rowKey,
-    personId: p.personId, teacherHt: p.teacherHt, teacherVt: p.teacherVt, comment: p.comment,
-    needHt: r.needHt === null ? null : minutes(r.needHt), needVt: r.needVt === null ? null : minutes(r.needVt), needBasis: choice(r.needBasis, TJANST_NEED_BASES), stale: gymBoolean(r.stale), jointGroupId: nullableUuid(r.jointGroupId) };
+function currentRow(value:unknown,schoolYear:number):TjanstRow{
+  const r=parseTjanstRow(value);source(r.sourceKey,schoolYear);return r;
 }
 function suggestion(value: unknown, scope: TjanstYearScope, target: TjanstYearNeed, baseVersionId: string | null): TjanstYearSuggestion {
   const s = shape(value, ['suggestionId', 'personId', 'evidenceHash', 'reasons', 'references']), personId = uuid(s.personId);
@@ -226,7 +224,8 @@ function suggestion(value: unknown, scope: TjanstYearScope, target: TjanstYearNe
   const references = unique(list(s.references, TJANST_LIMITS.rows, v => {
     const r = shape(v, ['reason', 'unitId', 'schoolYear', 'versionId', 'rowId', 'personId', 'classId', 'rowKey', 'sourceKey']);
     const reason = choice(r.reason, TJANST_YEAR_REASONS), schoolYear = year(r.schoolYear), src = source(r.sourceKey, schoolYear);
-    const sameClass = src.classId === target.classId, sameRow = src.rowKey === target.rowKey;
+    if(src.sourceKind!=='class_timplan'||target.sourceKind!=='class_timplan')bad('tjanst_evidence_mismatch');
+    const sameClass = src.sourceKind==='class_timplan'&&target.sourceKind==='class_timplan'&&src.classId === target.classId, sameRow = src.rowKey === target.rowKey;
     if (reason === 'current_same_class' && r.versionId !== baseVersionId || r.unitId !== scope.unitId || r.personId !== personId || r.classId !== src.classId || r.rowKey !== src.rowKey
       || schoolYear !== scope.schoolYear - (reason === 'current_same_class' ? 0 : 1)
       || (reason === 'current_same_class' || reason === 'previous_same_class' || reason === 'previous_same_class_row') && !sameClass

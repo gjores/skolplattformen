@@ -1,4 +1,4 @@
-import { TjanstContractError, parseTjanstSourceKey, type TjanstClass, type TjanstJoint, type TjanstRow, type TjanstSpecial, type TjanstTermMinutes } from './tjanst-contract.ts';
+import { TjanstContractError, parseTjanstSourceKey, type TjanstClass, type TjanstTeachingGroup, type TjanstJoint, type TjanstRow, type TjanstSpecial, type TjanstTermMinutes } from './tjanst-contract.ts';
 import { coverage, prefill, teacherSums } from './tjanst-model.ts';
 import { assertYearRowContext, parseYearBatch, parseYearReply, TJANST_YEAR_REASONS, type TjanstYearCandidate, type TjanstYearChoice,
   type TjanstYearEvidence, type TjanstYearMoveItem, type TjanstYearNeed, type TjanstYearReason, type TjanstYearRowReply, type TjanstYearSaveRow,
@@ -9,7 +9,7 @@ export type TjanstYearProjectedRow = { rowId: string | null; sourceKey: string; 
   savedRow: TjanstRow | null; personId: string | null; teacherHt: number | null; teacherVt: number | null };
 /** Projection only. Stable source keys, never names, connect current needs to saved work.
  * Removed/stale needs keep their saved row visible instead of dropping manually started work. */
-export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joints: TjanstJoint[]): TjanstYearProjectedRow[] {
+export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joints: TjanstJoint[], groups:TjanstTeachingGroup[]=[]): TjanstYearProjectedRow[] {
   const result: TjanstYearProjectedRow[] = [], seen = new Set<string>();
   for (const cls of classes) for (const value of cls.needs) {
     if (seen.has(value.sourceKey)) bad('tjanst_duplicate_row'); seen.add(value.sourceKey);
@@ -23,11 +23,18 @@ export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joint
         teacherHt: prefill(value.needHt, allocated.ht), teacherVt: prefill(value.needVt, allocated.vt) });
     }
   }
+  for(const group of groups){
+    if(seen.has(group.sourceKey))bad('tjanst_duplicate_row');seen.add(group.sourceKey);
+    const need:TjanstYearNeed={sourceKind:'teaching_group',sourceKey:group.sourceKey,rowKey:group.rowKey,label:group.label,needHt:group.needHt,needVt:group.needVt,needBasis:group.needBasis,classId:null,className:group.name,groupId:group.groupId,classIds:group.classIds};
+    const saved=rows.filter(r=>r.sourceKey===group.sourceKey);
+    if(saved.length)for(const row of saved)result.push({rowId:row.id,sourceKey:row.sourceKey,need,savedRow:structuredClone(row),personId:row.personId,teacherHt:row.teacherHt,teacherVt:row.teacherVt});
+    else{const allocated=coverage(group.sourceKey,null,rows,joints).covered;result.push({rowId:null,sourceKey:group.sourceKey,need,savedRow:null,personId:null,teacherHt:prefill(group.needHt,allocated.ht),teacherVt:prefill(group.needVt,allocated.vt)});}
+  }
   for (const row of rows) if (!seen.has(row.sourceKey)) result.push({ rowId: row.id, sourceKey: row.sourceKey, need: null,
     savedRow: structuredClone(row), personId: row.personId, teacherHt: row.teacherHt, teacherVt: row.teacherVt });
   return result;
 }
-export type TjanstYearRowEditor = TjanstYearScope & { sourceKey: string; rowId: string | null; baseVersionId: string | null;
+export type TjanstYearRowEditor = TjanstYearScope & { sourceKind?:'teaching_group'; sourceKey: string; rowId: string | null; baseVersionId: string | null;
   expectedRevision: number; expectedBasisHash: string; personId: string | null; choice: TjanstYearChoice | null; teacherHt: number | null; teacherVt: number | null; comment: string };
 function checkSupport(value: TjanstYearRowReply): TjanstYearRowReply {
   const parsed = parseYearReply(value, { unitId: value.unitId, schoolYear: value.schoolYear, mode: 'row', sourceKey: value.sourceKey, rowId: value.rowId });
@@ -39,7 +46,7 @@ export function createYearRowEditor(support: TjanstYearRowReply, allocated: Tjan
   const s = checkSupport(support), row = s.currentRow, person = s.candidates.find(p => p.personId === row?.personId);
   return { unitId: s.unitId, schoolYear: s.schoolYear, sourceKey: s.sourceKey, rowId: s.rowId, baseVersionId: s.baseVersionId, expectedRevision: s.currentRevision, expectedBasisHash: s.basisHash,
     personId: row?.personId ?? null, choice: row === null ? null : row.personId === null ? { kind: 'unassigned', personId: null } : person ? manual(person) : null,
-    teacherHt: row ? row.teacherHt : prefill(s.need.needHt, allocated.ht), teacherVt: row ? row.teacherVt : prefill(s.need.needVt, allocated.vt), comment: row?.comment ?? '' };
+    teacherHt: row ? row.teacherHt : prefill(s.need.needHt, allocated.ht), teacherVt: row ? row.teacherVt : prefill(s.need.needVt, allocated.vt), comment: row?.comment ?? '',...(s.need.sourceKind==='teaching_group'?{sourceKind:'teaching_group' as const}:{}) };
 }
 function sameTarget(editor: TjanstYearRowEditor, support: TjanstYearRowReply): boolean {
   return editor.unitId === support.unitId && editor.schoolYear === support.schoolYear && editor.sourceKey === support.sourceKey && editor.rowId === support.rowId;
@@ -68,7 +75,7 @@ export function yearRowSavePayload(editor: TjanstYearRowEditor, support: TjanstY
   const s = checkSupport(support); if (!sameTarget(editor, s)) bad('wrong_scope');
   if (editor.choice === null) bad('tjanst_choice_required');
   if (editor.teacherHt === null || editor.teacherVt === null) bad('tjanst_time_required');
-  const payload: TjanstYearSaveRow = { rowId: editor.rowId, sourceKind: 'class_timplan', sourceKey: editor.sourceKey, personId: editor.personId,
+  const payload: TjanstYearSaveRow = { rowId: editor.rowId, sourceKind: editor.sourceKind??'class_timplan', sourceKey: editor.sourceKey, personId: editor.personId,
     teacherHt: editor.teacherHt, teacherVt: editor.teacherVt, comment: editor.comment,
     planningContext: { baseVersionId: editor.baseVersionId, expectedBasisHash: editor.expectedBasisHash, choice: editor.choice } };
   assertYearRowContext(payload, s); return payload;
