@@ -1,0 +1,62 @@
+{
+  "kind": "elective-ux-local-delivery",
+  "status": "PASS",
+  "installedAt": "2026-10-31T08:03:31.083Z",
+  "revision": "531a2b2957182bc04750ef62e260cc34278b9689",
+  "url": "http://127.0.0.1:3012/?vy=valbara",
+  "runtimeDirectory": "work/pilot/targets/protected/runtime/elective-ux-531a2b2957/web/dist-protected",
+  "rollbackRuntimeDirectory": "work/pilot/targets/protected/runtime/elective-final-20261031-b-launcher/web/dist-protected",
+  "artifactSha256": "9ff3041169391653f39026bbc254776dbeb6de8df0cf6990fcb73becfb9d907b",
+  "artifactFiles": 1401,
+  "artifactEqual": true,
+  "health": "PASS",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/?vy=valbara",
+      "status": 200
+    },
+    {
+      "path": "/val",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/egen/urval",
+      "status": 401
+    }
+  ],
+  "httpAssets": {
+    "count": 14,
+    "byteEqual": true
+  },
+  "browser": {
+    "desktop": "PASS",
+    "phone": "PASS",
+    "authenticated": false
+  },
+  "schemaBefore": "4d48c1ad07d4c3416ddec752724a68312369d2746bda4dfcd7cccc76743bc6f0",
+  "schemaAfter": "4d48c1ad07d4c3416ddec752724a68312369d2746bda4dfcd7cccc76743bc6f0",
+  "migrationsApplied": 0,
+  "testDataCreated": false,
+  "humanAcceptance": "pending",
+  "checks": {
+    "componentUi": 60,
+    "finalBlockCases": 22,
+    "domainNode": 946,
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "handbookBuild": "PASS",
+    "protectedBuild": "PASS"
+  }
+}
