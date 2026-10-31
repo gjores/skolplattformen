@@ -3,31 +3,33 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB15–19 installerat/verifierat: nytt användarprov U1–U7 återstår"
+current_plan: "VB15–19 samt programplanens visningsrättningar installerade; förståelseprov U1–U7 återstår"
 status: awaiting_user_trial
-stopped_at: "VB15–19 levererat på3012, kod b6c3bb0.146 UI/80 actual/45 SQL gröna;144 ursprungliga tabeller bevarade. GR-förberedelse och adoption av manuell tidsfördelning har dokumenterade gränser."
+stopped_at: "Tre programplans-/timplansrättningar installerade på3012, kod 494f951.36 UI/30 Node gröna; kodinstallation utan migration. Valbara blocks U1–U7 återstår."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "Användarbeställd tom GY-provskola Nystartsgymnasiet skapad med separat rektorsuppdrag för befintligt konto. Gamla skolors data bevarade; inget nytt appbygge."
-state_head: b6c3bb0
+last_activity_desc: "Tre browseranteckningar rättade: nationell programversion förklarad, synliga fältlänkade granskningsfel och utbildningens namn som exempel i timplan. Installerat utan verksamhetsdataskrivningar."
+state_head: 494f951
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
-verification_worker_status: pass_vb19_actual26_legacy54_install_afterproof
-worker_status: elective_preparation_vb19_installed_afterproof_pass
-worker_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
-verification_ui_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
-verification_ui_status: vb19_component146_and_actual_root_ui_pass
+verification_worker_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
+verification_worker_status: code_only_install_health_401_schema_pass_prior_oidc_b6c3bb0
+worker_status: programplan_feedback_code_only_installed_smoke_pass
+worker_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
+verification_ui_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
+verification_ui_status: programplan_feedback_component36_and_anonymous_install_smoke_pass
 user_trial_status: pending_preparation_u1_u7
 milestone_name: milestone
 ---
 
+**Senaste visningsrättningar2026-10-31:** [Programplan/timplan](phases/05.2-schemamodul/05.2-PROGRAMPLAN-FEEDBACK-SUMMARY.md), kod 494f951, är installerade på3012. Nationell programversion förklarad separat, granskningsfel synliga vid knappen med fältlänkar och utbildningens namn som timplansexempel.36 komponentprov på dator/telefon och30 Node PASS. Skyddat bygge, TypeScript, lint, handbok samt installationens fil-/hälso-/schemakontroll PASS. Kodinstallation med0 migrationer och inga verksamhetsdataskrivningar. Ny inloggad auth-kedja är inte körd; tidigare VB19-auth gäller dess artefakt b6c3bb0. Valbara blocks U1–U7 väntar fortfarande på användaren.
+
 **Ny arbetsyta på användarens begäran2026-10-31:** **Nystartsgymnasiet**, syntetisk lokal GY-provskola33000013, är skapad i befintlig provorganisation. Samma konto har ett separat giltigt rektorsuppdrag med endast den nya skolan i scope. Inga gamla utbildningar, klasser, planer, kalender, lärare eller fördelningar kopierades;12 tomhetskontroller är gröna. Rollback-prov och faktisk apply bevarade ursprungliga rader i147 tabeller och ändrade inte schemat. Ingen inloggningssession fabricerades eller ändrades. Ladda om3012 och välj Nystartsgymnasiet under Uppdrag. [Sanerat resultat](../work/valbara-block-2026-10-31/nystartsgymnasiet.json). Detta är lokal provadministration, inte registerverifierad verklig skola eller ny extern anslutning. Apprevision b6c3bb0 och väntande förståelseprov består.
 
-**Aktuell leverans2026-10-31:** [VB19](phases/05.2-schemamodul/05.2-VB-19-SUMMARY.md) installerat på3012, kod b6c3bb0. Samlad förberedelse från godkänd GY-timplan, klasslöst utkast, två separata100p-val och källbunden bemanning är verifierade.146 dator-/telefonprov,80 riktiga lokala auth/Worker/SQL-kontroller,45 isolerade SQL-prov,979 app-Node och25 installerar-/snapshot-Node PASS.144 ursprungliga tabellers data bevarade;1 migration/3 tomma nya tabeller/1 egen audit, inga provdata. [Kort användarprov](phases/05.2-schemamodul/05.2-VB-PREPARATION-UAT.md) är ännu inte godkänt. GR:s nya förberedelse väntar på verifierad historisk årskurskarta; gamla manuella tidsupplägg/block skyddas och öppnas i sin befintliga väg. Ingen verklig kommunanslutning eller hela schemamodulen påstås levererad.
+**Funktionell VB19-baslinje, ursprunglig leverans2026-10-31:** [VB19](phases/05.2-schemamodul/05.2-VB-19-SUMMARY.md) installerat på3012, kod b6c3bb0. Samlad förberedelse från godkänd GY-timplan, klasslöst utkast, två separata100p-val och källbunden bemanning är verifierade.146 dator-/telefonprov,80 riktiga lokala auth/Worker/SQL-kontroller,45 isolerade SQL-prov,979 app-Node och25 installerar-/snapshot-Node PASS.144 ursprungliga tabellers data bevarade;1 migration/3 tomma nya tabeller/1 egen audit, inga provdata. [Kort användarprov](phases/05.2-schemamodul/05.2-VB-PREPARATION-UAT.md) är ännu inte godkänt. GR:s nya förberedelse väntar på verifierad historisk årskurskarta; gamla manuella tidsupplägg/block skyddas och öppnas i sin befintliga väg. Ingen verklig kommunanslutning eller hela schemamodulen påstås levererad.
 
 **Historik — beställning2026-10-31:** Användaren har godkänt planering/genomförande enligt researchen, ordentliga prov och installation på3012. [Genomförandepaket VB15–19](phases/05.2-schemamodul/05.2-VB-PREPARATION-IMPLEMENTATION.md) är genomfört enligt VB19 ovan. Inget nytt detaljgodkännande behövdes. Förberedelse utan klass och samlat skapande ingår; befintliga manuella upplägg skyddas utan automatisk adoption.
 

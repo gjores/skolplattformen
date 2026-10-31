@@ -1,0 +1,96 @@
+{
+  "kind": "programplan-feedback-code-only-delivery",
+  "status": "PASS",
+  "installedAt": "2026-10-31T17:37:31.174Z",
+  "revision": "494f951ee88dc9389a7f71b432b9557f83ccea7d",
+  "url": "http://127.0.0.1:3012/?vy=programplaner",
+  "runtimeDirectory": "work/pilot/targets/protected/runtime/programplan-feedback-494f951ee8/web/dist-protected",
+  "rollbackRuntimeDirectory": "work/pilot/targets/protected/runtime/elective-preparation-b6c3bb0cd3/web/dist-protected",
+  "artifactSha256": "25051e4fda048be8e9f59d1ebd759a6bebc8ee03a22c217a1f6a60af6fa30102",
+  "artifactFiles": 1406,
+  "artifactEqual": true,
+  "health": "PASS",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/?vy=programplaner",
+      "status": 200
+    },
+    {
+      "path": "/?vy=timplaner",
+      "status": 200
+    },
+    {
+      "path": "/val",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "status": 401
+    },
+    {
+      "path": "/api/programplaner/val",
+      "status": 401
+    },
+    {
+      "path": "/api/programplaner/utbildning/skapa",
+      "status": 401
+    },
+    {
+      "path": "/api/timplaner/gym/planer/skapa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/kommando",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/status",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/egen/urval",
+      "status": 401
+    }
+  ],
+  "httpAssets": {
+    "count": 14,
+    "byteEqual": true
+  },
+  "browser": {
+    "desktop": "PASS",
+    "phone": "PASS",
+    "authenticated": false
+  },
+  "schemaBefore": "9520ada4e2c1d7f4d7032bb5dba87de8a17a3452c4550799662155916e622e06",
+  "schemaAfter": "9520ada4e2c1d7f4d7032bb5dba87de8a17a3452c4550799662155916e622e06",
+  "migrationsApplied": 0,
+  "databaseWrites": false,
+  "testDataCreated": false,
+  "humanAcceptance": "pending",
+  "checks": {
+    "programplanFeedbackComponentUi": 4,
+    "namedTimplanRegressionUi": 32,
+    "domainNode": 30,
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "handbookBuild": "PASS",
+    "protectedBuild": "PASS"
+  },
+  "limits": [
+    "UI flow checks use the real component with synthetic intercepted API responses",
+    "Installed artifact smoke is anonymous; earlier authenticated VB19 checks remain evidence for its older artifact",
+    "No new standard information exchange or municipality connection claimed"
+  ]
+}
