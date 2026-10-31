@@ -1,0 +1,36 @@
+{
+  "kind": "user-requested-clean-local-trial-school",
+  "status": "PASS",
+  "createdAt": "2026-10-31T12:47:07.382Z",
+  "school": {
+    "id": "efe5d3b6-40f6-46b9-ac1b-91f3b42944db",
+    "name": "Nystartsgymnasiet",
+    "code": "33000013"
+  },
+  "schoolForm": "GY",
+  "source": "local-synthetic-not-registry-verified",
+  "existingAccountReused": true,
+  "newRectorAssignment": true,
+  "assignmentScopeUnits": 1,
+  "counts": {
+    "offerings": 0,
+    "offering_units": 0,
+    "timplans": 0,
+    "school_classes": 0,
+    "class_timplans": 0,
+    "tjanst_distributions": 0,
+    "elective_blocks": 0,
+    "elective_preparations": 0,
+    "staff_school_duties": 0,
+    "pupil_placements": 0,
+    "school_years": 0,
+    "tjanst_versions": 0
+  },
+  "originalTablesPreserved": 147,
+  "oldRowsPreserved": true,
+  "schemaUnchanged": true,
+  "fakeSessionCreated": false,
+  "existingSessionChanged": false,
+  "ss12000": "Stable internal school Organisation identity; existing person/staff identity reused; no external exchange claimed",
+  "open": "Reload3012 and select Nystartsgymnasiet under Uppdrag"
+}
