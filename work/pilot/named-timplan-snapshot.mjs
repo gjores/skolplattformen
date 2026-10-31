@@ -14,6 +14,17 @@ const ident=s=>'"'+s.replaceAll('"','""')+'"';
 const literal=s=>"'"+s.replaceAll("'","''")+"'";
 const binaries='/opt/homebrew/opt/postgresql@18/bin/';
 
+// pg_restore flattens these two pure AND checks. Keep the existing source canonical form;
+// do not normalize any changed bound/operator, other rule or other table.
+const electiveConstraintForms=[
+ ['elective_participant_bindings','elective_participant_bindings_source_reference_check','CHECK ((((length(source_reference) >= 1) AND (length(source_reference) <= 120)) AND (source_reference = btrim(source_reference))))','CHECK (((length(source_reference) >= 1) AND (length(source_reference) <= 120) AND (source_reference = btrim(source_reference))))'],
+ ['elective_rounds','elective_rounds_check1','CHECK ((((max_choices >= 1) AND (max_choices <= 100)) AND (max_choices >= min_choices)))','CHECK (((max_choices >= 1) AND (max_choices <= 100) AND (max_choices >= min_choices)))'],
+];
+export function normalizeElectiveSnapshotConstraint(constraint){
+ const match=electiveConstraintForms.find(([table,name,,flat])=>constraint.relname===table&&constraint.conname===name&&constraint.definition===flat);
+ return match?match[2]:constraint.definition;
+}
+
 // Canonical public DDL/ACL fingerprint; migration-journal ROWS are deliberately
 // excluded because schema-only cloning must not copy any source table data.
 export async function schemaFingerprint(db,details=false){
@@ -28,6 +39,7 @@ export async function schemaFingerprint(db,details=false){
  // reparses two historical nested AND checks into an associative flat AND.
  // Normalize only these exact known equivalents; all other DDL must match.
  for(const c of constraints){
+  c.definition=normalizeElectiveSnapshotConstraint(c);
   const name=c.relname==='class_timplans'&&c.conname==='class_timplans_class_name_check'?'class_name':c.relname==='school_classes'&&c.conname==='school_classes_name_check'?'name':null;
   if(name){const nested=`CHECK ((((length(${name}) >= 1) AND (length(${name}) <= 60)) AND (${name} = upper(btrim(${name})))))`;
    const flat=`CHECK (((length(${name}) >= 1) AND (length(${name}) <= 60) AND (${name} = upper(btrim(${name})))))`;
