@@ -3,26 +3,26 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB-10 slutartefaktens faktiska integration; därefter VB-11 verifierad installation3012"
-status: in_progress
-stopped_at: "Backend och UI genomförda;44 nya UI-fall,946Node och298 äldre UX-fall gröna. Slutbygge B, faktisk OIDC-kedja och verifierad installation återstår;3012 ännu orörd."
+current_plan: "VB-UAT: användarprov av valbara block på3012; VB01–11 lokalt genomförda"
+status: ready_for_verification
+stopped_at: "Valbara block installerade/efterverifierade på3012.14SQL,54 faktiska kedjeprov,66 UI-prov och120 gamla tabeller bevarade. Mänskligt VB-UAT återstår; schemamotor ej genomförd."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "Valbara block och självservice genomförda;44 nya UI-fall,946Node och298 äldre UX-fall gröna. Slutartefaktens faktiska OIDC-prov och installation3012 återstår."
-state_head: eb1eee7
+last_activity_desc: "VB01–11 lokalt klara. R7/defaultgrants rättat med157; faktisk B2 och målrollback/apply/efterprov PASS. Användaren kan nu granska på3012."
+state_head: 7965e70
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 6692919eca9c5757be062102517eef64742d5838
-verification_worker_status: pass_05_1_42_full_frozen_88
-worker_status: tjanst_trial_local_delivery_health_pass
-worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
+verification_worker_build_revision: 8ae6c6b2b6f7a29d97b3179538eef4c523eb9a7b
+verification_worker_status: pass_vb_b2_actual54_install_afterproof
+worker_status: elective_blocks_local_delivery_afterproof_pass
+worker_build_revision: 8ae6c6b2b6f7a29d97b3179538eef4c523eb9a7b
 milestone_name: milestone
 ---
 
-**Aktuellt2026-10-31:** Valbara block01–09 inklusive02B/03B är genomförda och delverifierade. [UI04](phases/05.2-schemamodul/05.2-VB-04-SUMMARY.md), [självservice08](phases/05.2-schemamodul/05.2-VB-08-SUMMARY.md) och handbok är klara. VB10: slutbygge B och faktisk slutkedja återstår. VB11: lokalt förprovat installationsverktyg finns; faktisk repetition, installation och efterprov återstår.3012 kör ännu föregående982444b. De formella ursprungliga milstolperäknarna nedan är historiska och räknas inte om av detta förarbete.
+**Aktuellt2026-10-31:** Valbara block01–11 inklusive02B/03B genomförda och maskinverifierade,14SQL och samma frysta B2-artefakt installerade på3012. [Leverans/återställningsgränser](phases/05.2-schemamodul/05.2-VB-11-SUMMARY.md), [användarprov](phases/05.2-schemamodul/05.2-VB-UAT.md). Mänskligt godkännande återstår. Schemat och återstående klassorganisation är inte därmed levererade. Formella ursprungliga milstolperäknare är historiska.
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 

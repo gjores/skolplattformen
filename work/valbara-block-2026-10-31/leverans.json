@@ -1,0 +1,111 @@
+{
+  "kind": "elective-local-deployment",
+  "status": "PASS",
+  "installedAt": "2026-10-31T02:29:23.270Z",
+  "revision": "8ae6c6b2b6f7a29d97b3179538eef4c523eb9a7b",
+  "url": "http://127.0.0.1:3012",
+  "artifactSha256": "91c713bc2fddd002dfb22198c2172a52415985f43494870d29a0ae53f0b635e7",
+  "artifactFiles": 1401,
+  "artifactEqual": true,
+  "health": {
+    "status": 200,
+    "ok": true,
+    "runtime": "workerd"
+  },
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/val",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "status": 401
+    },
+    {
+      "path": "/api/tjanst/plan/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/egen/urval",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/placering/forhandsvisa",
+      "status": 401
+    }
+  ],
+  "assets": {
+    "verified": 14,
+    "byteEqual": true
+  },
+  "browser": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "status": "PASS",
+      "pageErrors": 0
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "status": "PASS",
+      "pageErrors": 0
+    }
+  ],
+  "sql": {
+    "migrations": 14,
+    "committed": true,
+    "preservedTables": 120,
+    "newTables": 24,
+    "journalCount": 143,
+    "auditRowsAdded": 1,
+    "installedFingerprint": "4d48c1ad07d4c3416ddec752724a68312369d2746bda4dfcd7cccc76743bc6f0",
+    "privileges": {
+      "status": "PASS",
+      "tableCount": 24,
+      "functionCount": 71,
+      "workerEntryCount": 16
+    }
+  },
+  "migrationFiles": {
+    "files": 14,
+    "copied": 14,
+    "verified": true
+  },
+  "humanAcceptance": "pending",
+  "limits": [
+    "Post-install browser uses anonymous context; authenticated end-to-end proof is isolated actual B2",
+    "Runtime dependencies linked to local installed node_modules; frozen package lock and launcher sources retained",
+    "No automatic schema rollback or deletion of newly entered choices"
+  ],
+  "runtimeDirectory": "work/pilot/targets/protected/runtime/elective-final-20261031-b-launcher/web/dist-protected",
+  "rollbackRuntimeDirectory": "work/pilot/targets/protected/runtime/tjanst-build-982444b/web/dist-protected",
+  "verification": {
+    "actualB2": 54,
+    "componentDesktopPhone": 66,
+    "domainNode": 946,
+    "installerNode": 41,
+    "ownedInstallerCheckpoints": 11,
+    "providerAclCheckpoints": 9,
+    "legacyTjanstExecuted": 298,
+    "legacyTjanstDeviceSpecificSkipped": 214,
+    "typeScript": "PASS",
+    "oxlint": "PASS",
+    "protectedBuild": "PASS",
+    "handbookBuild": "PASS"
+  },
+  "configurationVerified": true,
+  "privateConfigurationMode": "0600"
+}
