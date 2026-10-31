@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
-import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstRow, type TjanstSpecial, type TjanstSpecialKind } from '@/lib/tjanst-contract.ts';
+import { TJANST_SPECIAL_KINDS, type TjanstJoint, type TjanstPlanRead, type TjanstTeachingGroup, type TjanstRow, type TjanstSpecial, type TjanstSpecialKind } from '@/lib/tjanst-contract.ts';
 import type { TjanstYearCandidate, TjanstYearChoice, TjanstYearCommand, TjanstYearRowReply } from '@/lib/tjanst-year-contract.ts';
 import { createYearRowEditor, selectYearTeacher, yearRowSavePayload, type TjanstYearRowEditor } from '@/lib/tjanst-year-model.ts';
 import { jointWarnings, mixedTeachers } from '@/lib/tjanst-model.ts';
@@ -21,9 +21,9 @@ export type TjanstFailure = { ok: false; error: string; code?: string; correlati
 export type TjanstOutcome = { ok: true } | TjanstFailure;
 export type TjanstPreparedChange = TjanstYearCommand extends infer C ? C extends TjanstYearCommand ? Omit<C, 'commandId' | 'payloadHash'> : never : never;
 export type TjanstFormCache = Record<string, unknown>;
-type Base = { open: boolean; checking: boolean; disabled?: boolean; onClose: () => void; supportNotice?: ReactNode; form?: TjanstFormCache; onField?: (key: string, value: unknown, dirty?: boolean) => void };
+type Base = { open: boolean; checking: boolean; disabled?: boolean; onClose: () => void; onDiscard?: () => void; supportNotice?: ReactNode; form?: TjanstFormCache; onField?: (key: string, value: unknown, dirty?: boolean) => void };
 /** Formulärägaren finns i arbetsytan så ett telefonbyte kan avmontera alla redigerare. */
-function useDraftField<T>(base: Pick<Base, 'form' | 'onField'>, key: string, initial: T | (() => T)): [T, (next: T | ((old: T) => T)) => void] {
+export function useDraftField<T>(base: Pick<Base, 'form' | 'onField'>, key: string, initial: T | (() => T)): [T, (next: T | ((old: T) => T)) => void] {
   const [local, setLocal] = useState<T>(() => key in (base.form ?? {}) ? base.form![key] as T : typeof initial === 'function' ? (initial as () => T)() : initial);
   const current = useRef(local); useLayoutEffect(() => { current.current = local; }, [local]);
   const { form, onField } = base;
@@ -79,11 +79,13 @@ export function useSubmit(onSaved: () => void) {
 }
 const teacherName = (data: TjanstPlanRead, personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
 
-type RowProps = Base & { data: TjanstPlanRead; entry: TjanstNeedEntry; target: TjanstCellTarget; support: TjanstYearRowReply;
+type RowProps = Base & { data: TjanstPlanRead; entry: TjanstNeedEntry | { group: TjanstTeachingGroup; need: TjanstTeachingGroup; rows: TjanstRow[]; cov: TjanstNeedEntry['cov'] }; target: Pick<TjanstCellTarget, 'sourceKey' | 'personId' | 'rowId'>; support: TjanstYearRowReply;
   onSave: (change: TjanstPreparedChange) => Promise<TjanstOutcome>; onDelete: (row: TjanstRow) => void };
 export function TjanstRowDialog(props: RowProps & { replaceTeacher?: boolean; advanced?: boolean }) {
   const { open, checking, disabled, onClose, data, entry, support, onSave, onDelete } = props;
   const id = useId(), row = support.currentRow;
+  const ownerName = 'cls' in entry ? entry.cls.name : entry.group.name;
+  const sourceHint = 'cls' in entry ? `${entry.cls.link?.seriesName ?? 'Timplan'} version ${entry.cls.link?.timplanVersion ?? ''}, ämnesrad ${support.need.label}` : entry.group.sourceRefs.map(source => `${source.className}: ${source.label}, version ${source.timplanVersion}`).join('; ');
   const editingTeacher = !!row && row.personId !== null;
   const [changingTeacher, setChangingTeacher] = useState(!!props.replaceTeacher && (props.target.personId === row?.personId || !support.candidates.some(p => p.personId === props.target.personId)));
   const own = row ? rowTime(row, data.joints) : { ht: 0, vt: 0 };
@@ -121,8 +123,8 @@ export function TjanstRowDialog(props: RowProps & { replaceTeacher?: boolean; ad
     void run(() => onSave(change));
   }
   const selectedName = editor.choice?.personId ? support.candidates.find(p => p.personId === editor.choice?.personId)?.displayName ?? teacherName(data, editor.choice.personId) : editor.choice?.kind === 'unassigned' ? 'Vakant' : 'Välj aktuell lärare';
-  return <Shell open={open} busy={busy} onClose={onClose} title={row ? 'Ändra tjänsteraden' : 'Ny tjänsterad'} description={`${entry.need.label} · ${entry.cls.name}`}>
-    {!editingTeacher && <dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
+  return <Shell open={open} busy={busy} onClose={onClose} title={row ? 'Ändra tjänsteraden' : 'Ny tjänsterad'} description={`${entry.need.label} · ${ownerName}`}>
+    {!editingTeacher && <dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {sourceHint}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
       <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl>}
     {props.supportNotice}
     <Problems failure={failure} checking={checking} summary={Object.values(errors).some(Boolean)}/>
@@ -141,11 +143,11 @@ export function TjanstRowDialog(props: RowProps & { replaceTeacher?: boolean; ad
       <>{(!editingTeacher || changingTeacher) && <TjanstTeacherPicker compact={editingTeacher} unavailablePersonIds={editingTeacher ? entry.rows.filter(r => r.id !== row?.id && r.personId !== null).map(r => r.personId!) : []} candidates={support.candidates} schoolYear={support.schoolYear} choice={editor.choice} support={support} error={errors.person}
         onSelect={selection => { let chosen: TjanstYearRowEditor; try { chosen = selectYearTeacher(editor, support, selection); } catch { setErrors({ person: 'Underlaget har ändrats. Dina uppgifter finns kvar. Välj lärare på nytt.' }); return; }
           setEditor(chosen); setErrors({}); if (editingTeacher) { setChangingTeacher(false); requestAnimationFrame(() => requestAnimationFrame(() => document.getElementById(`${id}-save`)?.focus())); } else submit(chosen); }}/>}</>
-      {editingTeacher && <details className="tjanst-row-more" open={props.advanced || errors.comment ? true : undefined}><summary>{comment ? 'Fler val · kommentar finns' : 'Fler val och underlag'}</summary><dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {entry.cls.link?.seriesName} version {entry.cls.link?.timplanVersion}, ämnesrad {support.need.label}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
+      {editingTeacher && <details className="tjanst-row-more" open={props.advanced || errors.comment ? true : undefined}><summary>{comment ? 'Fler val · kommentar finns' : 'Fler val och underlag'}</summary><dl className="mandate-facts tjanst-facts"><div><dt>Behov enligt timplanen</dt><dd>HT {support.need.needHt === null ? 'okänt' : formatTime(support.need.needHt)} · VT {support.need.needVt === null ? 'okänt' : formatTime(support.need.needVt)}<small>Källa: {sourceHint}{support.need.needBasis === 'even_split' ? ", årets tid delad lika på HT och VT" : ''}</small></dd></div>
       <div><dt>Redan fördelat till andra</dt><dd>HT {formatTime(others.ht)} · VT {formatTime(others.vt)}</dd></div><div><dt>Schemalagd tid</dt><dd>Underlag saknas</dd></div></dl><Field id={`${id}-comment`} label="Kommentar (valfri)" error={errors.comment}><textarea {...described(`${id}-comment`, errors.comment)} maxLength={2000} value={comment} onChange={e => setComment(e.target.value)}/></Field><Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row!)}>Ta bort tjänsteraden…</Button></details>}
     </fieldset><div className="mandate-actions">{row && <Button id={`${id}-save`} type="submit" disabled={busy || disabled || stale}>{busy ? 'Sparar…' : 'Spara tjänsteraden'}</Button>}
       {!row && busy && <output aria-busy="true">Sparar…</output>}
-      <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Stäng utan att spara</Button>
+      <Button type="button" variant="outline" disabled={busy} onClick={props.onDiscard ?? onClose}>Stäng utan att spara</Button>
       {row && !editingTeacher && <Button type="button" variant="outline" disabled={busy || disabled} onClick={() => onDelete(row)}>Ta bort tjänsteraden…</Button>}</div></form>
   </Shell>;
 }

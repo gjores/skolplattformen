@@ -20,7 +20,7 @@ import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-sum
  */
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTermView; editable: boolean; phone: boolean;
   drafts: Record<string, TjanstAllocationDraft>; onDraft: (sourceKey: string, draft: TjanstAllocationDraft | null) => void;
-  initialSourceKey?: string | null;
+  initialSourceKey?: string | null; onOpenElectiveBlocks?: () => void;
   /** 05.1-34: kön följer linsen. Ofördelat ger bara ofördelade behov; Alla behov ger också fördelade (till exempel för en andra lärare). */
   lens?: TjanstLensId;
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
@@ -32,7 +32,7 @@ export type TjanstAllocationDraft = { ht: string; vt: string };
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
 
-export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, initialSourceKey = null, loadSupport, onSave, onOpenCourse }: Props) {
+export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, initialSourceKey = null, loadSupport, onSave, onOpenCourse, onOpenElectiveBlocks }: Props) {
   const id = useId();
   const [groupBy, setGroupBy] = useState<TjanstQueueGroupBy>('klass'), [search, setSearch] = useState('');
   const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search, lens }), [groups, term, groupBy, search, lens]);
@@ -42,6 +42,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   // Ett behov som just blev fördelat försvinner ur kön; panelen visar då första behovet tills nästa val är satt, så rubriken behåller fokus.
   const selected = queue.find(i => i.sourceKey === selectedKey) ?? queue.find(i => i.status === 'open') ?? queue[0] ?? null;
   const entry = selected ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === selected.sourceKey) ?? null : null;
+  const organizationPending = entry?.need.organizationPending;
   const vacantRow = entry?.rows.find(r => r.personId === null && r.jointGroupId === null) ?? null;
 
   // Efter en sparning och omläsning: gå vidare till nästa ofördelade behov. Ett delvis fördelat behov ligger kvar i kön men hoppas över.
@@ -57,7 +58,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   const [support, setSupport] = useState<{ key: string; reply: TjanstYearRowReply } | null>(null), [supportError, setSupportError] = useState<string | null>(null), [reload, setReload] = useState(0);
   const target = selected ? `${selected.sourceKey}|${vacantRow?.id ?? ''}` : null;
   useEffect(() => {
-    if (phone || !editable || !selected || !target) return;
+    if (phone || !editable || !selected || !target || organizationPending) return;
     let current = true; const token = `${target}|${data.revision}|${reload}`;
     void loadSupport(selected.sourceKey, vacantRow?.id ?? null).then(reply => {
       if (!current) return;
@@ -66,7 +67,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
     });
     return () => { current = false; };
   // data.revision: ett nytt underlag hämtas efter varje ändring; inmatade tider ligger kvar.
-  }, [target, data.revision, reload, phone, editable]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [target, data.revision, reload, phone, editable, organizationPending]); // eslint-disable-line react-hooks/exhaustive-deps
   // Bara stöd som hör till aktuellt behov, aktuell revision och senaste omhämtning går att välja ur; annat är inaktuellt.
   const reply = support && support.key === `${target}|${data.revision}|${reload}` ? support.reply : null;
 
@@ -103,7 +104,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
   const added = { ht: 'minutes' in parsed.ht ? parsed.ht.minutes : 0, vt: 'minutes' in parsed.vt ? parsed.vt.minutes : 0 };
 
   async function choose(selection: Pick['selection'] | { kind: 'unassigned' }, who: string) {
-    if (!reply || !base || !selected || !entry || busy || !editable) return;
+    if (!reply || !base || !selected || !entry || busy || !editable || entry.need.organizationPending) return;
     const h = parseHours(ht), v = parseHours(vt);
     if ('error' in h || 'error' in v) { setFailure('error' in h ? h.error : 'error' in v ? v.error : ''); return; }
     if (h.minutes === 0 && v.minutes === 0) { setFailure('Ange tid för minst en termin.'); return; }
@@ -181,7 +182,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
           {sameCourse.length > 0 && <p className="tjanst-same-course">Samma kurs finns i {sameCourse.length === 1 ? 'en annan klass' : `${sameCourse.length} andra klasser`}: {sameCourse.map(s => s.cls).join(', ')}.{' '}
             <Button type="button" variant="outline" onClick={() => onOpenCourse(courseCode({ rowKey: data.classes.flatMap(x => x.needs).find(n => n.sourceKey === selected.sourceKey)?.rowKey ?? '' }))}>Visa alla klasser med kursen</Button></p>}
           {failure && <p role="alert" className="validation-warning">{failure}</p>}
-          {!editable ? <p>Fördelningen kan inte ändras just nu.</p> : supportError ? <div role="alert"><p>{supportError}</p><Button type="button" variant="outline" onClick={() => setReload(n => n + 1)}>Hämta planeringsstöd igen</Button></div>
+          {entry?.need.organizationPending ? <p>Återstår att organisera i valbara undervisningsgrupper. {onOpenElectiveBlocks && <Button variant="outline" onClick={onOpenElectiveBlocks}>Lägg till valbart block</Button>}</p> : !editable ? <p>Fördelningen kan inte ändras just nu.</p> : supportError ? <div role="alert"><p>{supportError}</p><Button type="button" variant="outline" onClick={() => setReload(n => n + 1)}>Hämta planeringsstöd igen</Button></div>
           : !reply || !base ? <output aria-busy="true">Hämtar planeringsstöd…</output> : <>
             <div className="tjanst-allocation-times">
               <div className="tjanst-field"><label htmlFor={`${id}-ht`}>Lärartid HT (timmar)</label><input id={`${id}-ht`} inputMode="decimal" value={ht} onChange={e => setTime('ht', e.target.value)}/></div>

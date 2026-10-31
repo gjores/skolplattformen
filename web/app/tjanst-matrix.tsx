@@ -82,6 +82,7 @@ export function coverageText(covered: number, need: number | null): string {
 }
 
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: TjanstTeacher[]; term: TjanstTermView; editable: boolean;
+  onGroupBody?: (element: HTMLTableSectionElement | null) => void; additionalCoverage?: {need: TjanstNeed; cov: TjanstCoverage}[]; onOpenElectiveBlocks?: () => void;
   onCell: (target: TjanstCellTarget, origin: HTMLElement, advanced?: boolean) => void; onJoint: (jointId: string, origin: HTMLElement, advanced?: boolean, target?: TjanstCellTarget) => void; onOpenClassLinks?: TjanstOpenClassLinks;
   feedback?: { sourceKey: string; text: string } | null; undoSourceKey?: string | null; onUndo?: () => void; undoDisabled?: boolean;
   advanced?: boolean;
@@ -95,19 +96,20 @@ type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; teachers: Tjans
 export const SHARING_BADGE: Record<Exclude<TjanstSharedNeedState, 'single'>, string> = {
   unspecified: 'Två lärare utan angiven delning', sequential: 'Två lärare · en i taget', concurrent: 'Två lärare · samtidigt' };
 
-export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, feedback, undoSourceKey, onUndo, undoDisabled, advanced = false, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing }: Props) {
+export default function TjanstMatrix({ data, groups, teachers, term, editable, onCell, onJoint, feedback, undoSourceKey, onUndo, undoDisabled, advanced = false, onOpenClassLinks, onOpenCourse, onOpenJoint, pinned = [], onPin, compact = false, onOpenSharing, onGroupBody, additionalCoverage = [], onOpenElectiveBlocks }: Props) {
   const hintId = useId();
   const [active, setActive] = useState({ r: 0, c: 0 });
+  const matrixTable = useRef<HTMLTableElement | null>(null);
   const cells = useRef(new Map<string, HTMLButtonElement>());
   const columns = teachers.length + 1;
   const navigable = groups.flatMap(g => g.cls.link ? g.entries : []);
-  const current = { r: Math.min(active.r, Math.max(0, navigable.length - 1)), c: Math.min(active.c, columns - 1) };
+  const current = { r: Math.min(active.r, Math.max(0, navigable.length + additionalCoverage.length - 1)), c: Math.min(active.c, columns - 1) };
   const totalColumns = 4 + columns;
   const time = (minutes: number) => formatTime(minutes);
   const name = (personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
   function move(r: number, c: number) {
-    const next = { r: Math.max(0, Math.min(navigable.length - 1, r)), c: Math.max(0, Math.min(columns - 1, c)) };
-    setActive(next); cells.current.get(`${next.r}:${next.c}`)?.focus();
+    const next = { r: Math.max(0, Math.min(navigable.length + additionalCoverage.length - 1, r)), c: Math.max(0, Math.min(columns - 1, c)) };
+    setActive(next); (cells.current.get(`${next.r}:${next.c}`) ?? matrixTable.current?.querySelector<HTMLButtonElement>(`[data-group-cell="${next.r - navigable.length}:${next.c}"]`))?.focus();
   }
   function onKey(event: KeyboardEvent<HTMLButtonElement>) {
     const keys: Record<string, () => void> = { ArrowRight: () => move(current.r, current.c + 1), ArrowLeft: () => move(current.r, current.c - 1),
@@ -116,7 +118,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
     event.preventDefault(); action();
   }
   const school = { teaching: { ht: 0, vt: 0 }, need: null as number | null, covered: 0, vacant: { ht: 0, vt: 0 } };
-  for (const g of groups) for (const e of g.entries) {
+  for (const e of [...groups.flatMap(group => group.entries), ...additionalCoverage]) {
     const n = needValue(e.need.needHt, e.need.needVt, term); if (n !== null) school.need = (school.need ?? 0) + n;
     school.covered += termValue(e.cov.covered, term);
   }
@@ -127,7 +129,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
     <p className="sr-only" id={`${hintId}-assign`}>Normalt tilldelar ett klick i en tom lärarcell återstående tid för HT och VT direkt. Befintliga tilldelningar och Vakant öppnas i dialog. Skift+klick, Skift+Enter eller Skift+mellanslag öppnar avancerade val.</p>
     <div className="tjanst-matrix-scroll" tabIndex={editable ? undefined : 0} role={editable ? undefined : 'region'} aria-label={editable ? undefined : 'Matris'}>
     <span id={`${hintId}-course`} hidden>Visar alla klasser med samma kurs i Per kurs/ämne.</span><span id={`${hintId}-joint`} hidden>Öppnar samläsningen i Per kurs/ämne.</span>
-    <table className="tjanst-matrix">
+    <table ref={matrixTable} className="tjanst-matrix">
       <caption className="sr-only">Tjänstefördelning {data.schoolName} läsåret {yearLabel(data.schoolYear)}, {TERM_LABEL[term]}</caption>
       <thead><tr>
         <th scope="col" className="tjanst-first">Kurs · klass</th><th scope="col" className="tjanst-num">Behov</th><th scope="col" className="tjanst-num">Fördelat</th><th scope="col" className="tjanst-num">Avvikelse</th>
@@ -161,7 +163,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
               const isActive = current.r === r && current.c === c;
               const activate = (origin: HTMLButtonElement, useAdvanced: boolean) => joint ? onJoint(joint.id, origin, useAdvanced, { classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null })
                 : onCell({ classId: g.cls.classId, sourceKey: e.need.sourceKey, personId, rowId: row?.id ?? null }, origin, useAdvanced);
-              return <td key={personId ?? 'vakant'} className={personId === null ? 'tjanst-cell tjanst-vacant' : 'tjanst-cell'}>{editable ? <button type="button" data-cell={`${r}:${c}`} aria-label={label} aria-describedby={`${hintId}-assign`}
+              return <td key={personId ?? 'vakant'} className={personId === null ? 'tjanst-cell tjanst-vacant' : 'tjanst-cell'}>{editable && !e.need.organizationPending ? <button type="button" data-cell={`${r}:${c}`} aria-label={label} aria-describedby={`${hintId}-assign`}
                 tabIndex={isActive ? 0 : -1} ref={el => { if (el) cells.current.set(`${r}:${c}`, el); else cells.current.delete(`${r}:${c}`); }}
                 onFocus={() => setActive({ r, c })} onKeyDown={event => {
                   if (event.shiftKey && (event.key === 'Enter' || event.key === ' ')) {
@@ -173,7 +175,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                 {content}{!row && <Plus size={16} aria-hidden="true" className="tjanst-plus"/>}</button> : row ? <span className="tjanst-cell-text" aria-label={label}>{content}</span> : null}</td>;
             };
             return <tr key={e.need.sourceKey} data-need-row={e.need.sourceKey}>
-              <th scope="row" className="tjanst-first"><div className="tjanst-need-heading">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
+              <th scope="row" className="tjanst-first">{e.need.organizationPending && <Button variant="ghost" onClick={onOpenElectiveBlocks}>Återstår att gruppindela</Button>}<div className="tjanst-need-heading">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
                 : <span className="tjanst-course">{e.need.label}</span>}
                 {joined && (() => { const j = e.rows.map(x => jointOf(x, data.joints)).find(Boolean) ?? null, mixed = e.rows.some(x => { const jj = jointOf(x, data.joints); return !!jj && jointHasMixedTeachers(jj, data.rows); });
                   const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;
@@ -199,6 +201,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
           })}
         </tbody>;
       })}
+      <tbody ref={onGroupBody}/>
       <tfoot>
         {(['Undervisning', 'Specialuppdrag', 'Totalt'] as const).map(label => <tr key={label}>
           <th scope="row" className="tjanst-first">{label}</th>

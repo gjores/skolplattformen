@@ -24,6 +24,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import { formatTime, TERM_LABEL, yearLabel, type TjanstTermView } from './tjanst-service-summary';
 import { TjanstClassView, TjanstCourseView, TjanstSpecialView, TjanstTeacherView } from './tjanst-views';
 import TjanstLensBar from './tjanst-lens-bar';
+import TjanstGroupMatrix, { teachingGroupEntries } from './tjanst-group-matrix';
 import TjanstAllocation, { type TjanstAllocationDraft } from './tjanst-allocation';
 import TjanstSharingDialog, { SHARING_LABEL } from './tjanst-sharing-dialog';
 import { needTeachers, sharedNeedState } from '@/lib/tjanst-model.ts';
@@ -57,7 +58,7 @@ type Dialog =
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
-  identityKey?: string | null; feedback?: TjanstFeedback; onOpenClassLinks?: TjanstOpenClassLinks; onSessionLost?: () => void;
+  identityKey?: string | null; feedback?: TjanstFeedback; onOpenElectiveBlocks?: () => void; onOpenClassLinks?: TjanstOpenClassLinks; onSessionLost?: () => void;
   /** Huvudmannens Visa fördelningen (Bemanning): skrivskyddad, utan åtgärdsrad, panel och beslutsknapp (D-01). */
   readOnly?: boolean;
   /** Versionen som läses först. Bemanning skickar skolans publicerade version, så att huvudmannen aldrig ser rektors utkast (WR-07). */
@@ -121,10 +122,11 @@ export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
   return <Workspace key={`${props.epoch}-${props.context.assignmentId}-${props.unitId ?? 'alla'}-${props.schoolYear}-${props.versionId ?? 'aktuell'}`} {...props}/>;
 }
 
-function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onSessionLost, readOnly = false, versionId: startVersion = null }: TjanstWorkspaceProps) {
+function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onOpenElectiveBlocks, onSessionLost, readOnly = false, versionId: startVersion = null }: TjanstWorkspaceProps) {
   const [initial] = useState(readLocation);
   const [autoLens, setAutoLens] = useState(initial.saved.autoLens);
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
+  const [matrixGroupBody, setMatrixGroupBody] = useState<HTMLTableSectionElement | null>(null);
   const [matrixAdvanced, setMatrixAdvanced] = useState(false), [quickBusy, setQuickBusy] = useState(false);
   const [matrixUndo, setMatrixUndo] = useState<MatrixUndo | null>(null);
   const [matrixFeedback, setMatrixFeedback] = useState<{ sourceKey: string; text: string; filterKey: string } | null>(null);
@@ -454,8 +456,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const column = target.personId === null ? columns.length : columns.findIndex(t => t.personId === target.personId);
     return row < 0 || column < 0 ? null : document.querySelector<HTMLElement>(`[data-cell="${row}:${column}"]`);
   }; }, [filtered, columns]);
-  const subjects = useMemo(() => [...new Set(groups.flatMap(g => g.entries.map(e => subjectOf(e.need.label))))].sort((a, b) => a.localeCompare(b, 'sv')), [groups]);
-    const courseLabel = filter.course ? groups.flatMap(g => g.entries).find(e => courseCode(e.need) === filter.course)?.need.label ?? filter.course : '';
+  const subjects = [...new Set([...groups.flatMap(g => g.entries.map(e => subjectOf(e.need.label))), ...(data?.groups ?? []).map(group => subjectOf(group.label))])].sort((a, b) => a.localeCompare(b, 'sv'));
+    const courseLabel = filter.course ? groups.flatMap(g => g.entries).find(e => courseCode(e.need) === filter.course)?.need.label ?? data?.groups?.find(group => (group.levelCode ?? group.subjectCode) === filter.course)?.label ?? filter.course : '';
   const effectivePerson = personId && data?.teachers.some(t => t.personId === personId) ? personId : teachers[0]?.personId ?? '';
   const effectiveClass = classId && data?.classes.some(c => c.classId === classId) ? classId : data?.classes[0]?.classId ?? '';
   const published = data?.versions.find(v => v.status === 'published') ?? null;
@@ -485,8 +487,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   // Fokus återgår till cellen eller knappen som öppnade dialogen, efter omläsningen (innehållet är inert under läsning).
   function close(focus?: HTMLElement | null) { pendingFocus.current = focus ?? origin.current ?? viewHeading.current; supportGeneration.current++; setDialog(null); setForm({}); setFormDirty(false); setBatchDraft(undefined); requestAnimationFrame(applyFocus); }
   const rowName = (row: TjanstRow) => {
-    const cls = data!.classes.find(c => c.classId === row.classId), need = cls?.needs.find(n => n.sourceKey === row.sourceKey);
-    return { teacher: row.personId === null ? 'Vakant' : data!.teachers.find(t => t.personId === row.personId)?.displayName ?? 'Okänd lärare', course: need?.label ?? row.rowKey, cls: cls?.name ?? '' };
+    const frame = data!.groups?.flatMap(group => group.sourceRefs).find(source => source.sourceKey === row.sourceKey || source.frameSourceKey === row.sourceKey), cls = data!.classes.find(c => c.classId === row.classId), group = row.sourceKind === 'teaching_group' ? data!.groups?.find(value => value.groupId === row.groupId) : null, need = cls?.needs.find(n => n.sourceKey === row.sourceKey) ?? group;
+    return { teacher: row.personId === null ? 'Vakant' : data!.teachers.find(t => t.personId === row.personId)?.displayName ?? 'Okänd lärare', course: need?.label ?? frame?.label ?? (row.sourceKind === 'teaching_group' ? 'Gruppunderlag saknas' : row.rowKey), cls: cls?.name ?? group?.name ?? '' };
   };
   // 05.1-32 (användarprov 2026-10-28): en ny rad för ett behov med en vakant rad ersätter den vakanta i stället för att fördela behovet dubbelt.
   function vacantTarget(target: TjanstCellTarget): TjanstCellTarget {
@@ -499,6 +501,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     const entry = groups.flatMap(g => g.entries).find(e => e.need.sourceKey === target.sourceKey);
     if (!entry) return;
     const { need, cov } = entry;
+    if (need.organizationPending) { onOpenElectiveBlocks?.(); return; }
     const ht = need.needHt === null ? null : Math.max(0, need.needHt - cov.covered.ht);
     const vt = need.needVt === null ? null : Math.max(0, need.needVt - cov.covered.vt);
     const effective = vacantTarget(target);
@@ -573,12 +576,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   }
   function openBlockerTarget(target: BlockerTarget, from: HTMLElement) {
     if (!data || loading || busy || quickBusy || checking || pendingCheck) return;
+    if (target.kind === 'elective_blocks') { onOpenElectiveBlocks?.(); return; }
     const need = 'sourceKey' in target ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === target.sourceKey) : null;
     if (target.kind === 'row' && need) {
       const row = data.rows.find(r => r.id === target.rowId && r.sourceKey === target.sourceKey);
       if (row && can('save_row') && row.jointGroupId === null) { originCell.current = null; open({ kind: 'row', target: { classId: need.cls.classId, sourceKey: need.need.sourceKey, rowId: row.id, personId: row.personId } }, from); return; }
     }
-    if (target.kind === 'sharing' && need && can('save_sharing')) { open({ kind: 'sharing', sourceKey: target.sourceKey }, from); return; }
+    if (target.kind === 'sharing' && (need || data.groups?.some(group => group.sourceKey === target.sourceKey)) && can('save_sharing')) { open({ kind: 'sharing', sourceKey: target.sourceKey }, from); return; }
     if (target.kind === 'joint') { openJoint(target.jointId); return; }
     else if (need) chooseView(phone ? 'klass' : 'kurs', { filter: { ...EMPTY_FILTER, course: courseCode(need.need) }, classId: need.cls.classId, autoLens: false });
     else if (target.kind === 'allocation') chooseView(phone ? 'klass' : 'fordela', { filter: { ...EMPTY_FILTER, lens: 'ofordelat' }, autoLens: false });
@@ -661,6 +665,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     </div>}
     {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
       <TjanstActionMenu label="Lägg till">
+      {onOpenElectiveBlocks && <Button variant="outline" onClick={onOpenElectiveBlocks}><Plus size={16} aria-hidden="true"/>Lägg till valbart block</Button>}
       {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
       {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, actionOrigin(e.currentTarget))}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
       {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
@@ -695,8 +700,9 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}
       {!linked && shownView === 'matris' ? <div className="admin-empty tjanst-state"><h2>Inga klasser med timplan</h2><p>Ingen klass på skolan har en timplan för läsåret {yearLabel(schoolYear)}. Koppla klasserna till timplaner först. En gymnasieklass behöver en koppling för varje läsår, även i årskurs 2 och 3.</p>
         {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div>
-      : hasFilter && filtered.length === 0 && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
+      : hasFilter && filtered.length === 0 && !teachingGroupEntries(data, filter, term, matrixFeedback?.filterKey === matrixFilterKey ? matrixFeedback.sourceKey : undefined).length && (shownView === 'matris' || shownView === 'kurs' || shownView === 'fordela') ? <div className="admin-empty tjanst-state"><p>Inga rader matchar filtret.</p><Button variant="outline" onClick={() => patchSaved({ filter: EMPTY_FILTER })}>Rensa filter</Button></div>
       : shownView === 'matris' ? <section aria-label="Matris"><TjanstMatrix data={data} groups={filtered} teachers={columns} term={term} editable={editable && can('save_row')} onOpenClassLinks={onOpenClassLinks}
+          onGroupBody={setMatrixGroupBody} additionalCoverage={teachingGroupEntries(data, filter, term, matrixFeedback?.filterKey === matrixFilterKey ? matrixFeedback.sourceKey : undefined)} onOpenElectiveBlocks={onOpenElectiveBlocks}
           advanced={matrixAdvanced}
           feedback={versionId ? null : matrixFeedback} undoSourceKey={matrixUndo && undoMatches(data, matrixUndo) ? matrixUndo.row.sourceKey : null}
           onUndo={() => void undoMatrix()} undoDisabled={!editable || loading}
@@ -704,7 +710,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           onCell={(target, from, advanced) => void assignMatrix(target, from, advanced)} onOpenCourse={openCourse} onOpenJoint={openJoint}
           onOpenSharing={can('save_sharing') ? (sourceKey, from) => open({ kind: 'sharing', sourceKey }, from) : undefined}
           onJoint={(jointId, from, advanced, target) => advanced || !target ? open({ kind: 'joint', rowIds: data.joints.find(j => j.id === jointId)?.rowIds ?? [], jointId }, from) : open({ kind: 'matrixActions', target }, from)}/></section>
-      : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
+      : shownView === 'fordela' && !filtered.length && teachingGroupEntries(data, filter, term).length > 0 ? <p>Fördela lärartiden på undervisningsgrupperna nedan.</p>
+      : shownView === 'fordela' ? <TjanstAllocation data={data} groups={filtered} term={term} lens={filter.lens} onOpenElectiveBlocks={onOpenElectiveBlocks} editable={editable && can('save_row')} phone={phone} onOpenCourse={openCourse}
           drafts={versionId ? {} : allocationDrafts} onDraft={updateAllocationDraft}
           initialSourceKey={allocationStart}
           loadSupport={(sourceKey, rowId) => loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'row', sourceKey, rowId })}
@@ -712,11 +719,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : shownView === 'klass' ? <TjanstClassView data={data} groups={groups} classId={effectiveClass} term={term} onClass={id => patchSaved({ classId: id })} onOpenClassLinks={onOpenClassLinks} onOpenJoint={openJoint}/>
       : shownView === 'larare' ? <TjanstTeacherView data={data} personId={effectivePerson} onTeacher={id => patchSaved({ personId: id })} feedback={feedback}/>
       : shownView === 'special' ? <TjanstSpecialView data={data} editable={can('save_special')} onEdit={(special, from) => open({ kind: 'special', special }, from)}/>
-      : <TjanstCourseView data={data} groups={filtered} onAllocate={can('save_row') ? openAllocation : undefined} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} focusJointId={focusJoint} onFocusedJoint={clearFocusJoint} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
+      : !filtered.length && teachingGroupEntries(data, filter, term).length > 0 ? null : <TjanstCourseView data={data} groups={filtered} onAllocate={can('save_row') ? openAllocation : undefined} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} focusJointId={focusJoint} onFocusedJoint={clearFocusJoint} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
           onEditJoint={(joint, from) => open({ kind: 'joint', rowIds: joint.rowIds, jointId: joint.id }, from)} onDissolve={(joint, from) => open({ kind: 'confirm', confirm: 'dissolve', id: joint.id }, from)}/>}
     </div>}
-    {data && data.rows.some(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))) && <section className="protected-card"><h2>Sparade rader som behöver stämmas av</h2><p>Dessa rader finns kvar trots att behovet saknas i aktuellt underlag.</p>
-      {data.rows.filter(r => !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {r.rowKey} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
+    {data && <TjanstGroupMatrix key={`${data.unitId}:${data.schoolYear}:${versionId ?? 'draft'}`} data={data} teachers={columns} filter={shownView === 'klass' ? { ...EMPTY_FILTER, classId: effectiveClass } : filter} term={term} editable={editable && can('save_row')} phone={phone} advanced={matrixAdvanced} inMatrix={shownView === 'matris'} matrixBody={matrixGroupBody} visible={['matris','fordela','klass','kurs'].includes(shownView)} onFeedback={(sourceKey, text) => setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey, text })} onOpenCourse={openCourse} onBusy={setQuickBusy} onOpenBlocks={onOpenElectiveBlocks} loadPreview={loadPreview}
+      onSave={(change, accepted) => sendPrepared(change, detail => { accepted?.(detail); return ''; }, () => active.current && !phoneRef.current, true)}/>}
+    {data && data.rows.some(r => r.sourceKind === 'teaching_group' ? !data.groups?.some(group => group.sourceKey === r.sourceKey) : !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey && !e.need.organizationPending))) && <section className="protected-card"><h2>Sparade rader som behöver stämmas av</h2><p>Granska dessa fördelningar mot aktuellt underlag. En tidigare klassram kan ha ersatts av undervisningsgrupper.</p>
+      {data.rows.filter(r => r.sourceKind === 'teaching_group' ? !data.groups?.some(group => group.sourceKey === r.sourceKey) : !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey && !e.need.organizationPending))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {rowName(r).course} · {rowName(r).cls} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
         {can('delete_row') && !r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'deleteRow', id: r.id }, e.currentTarget)}>Ta bort tjänsteraden…</Button>}
         {can('dissolve_joint') && r.jointGroupId && <Button variant="outline" onClick={e => open({ kind: 'confirm', confirm: 'dissolve', id: r.jointGroupId! }, e.currentTarget)}>Lös upp samläsningen…</Button>}</div>)}</section>}
     {!phone && dialog && dialog.kind !== 'batch' && dialog.kind !== 'matrixActions' && !support && <>{supportBusy && <output aria-busy="true">Hämtar planeringsstöd…</output>}
@@ -756,7 +765,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       onSave={async draft => { const outcome = await plan('save_joint', { jointId: dialog.jointId, name: draft.name, rowIds: dialog.rowIds, teachers: draft.teachers }, () => `Samläsningen ${draft.name} är sparad. Lärartiden räknas en gång och klasserna ${[...new Set(dialog.rowIds.map(id => rowName(dialogData.rows.find(r => r.id === id)!).cls))].join(' och ')} visas som täckta.`); if (outcome.ok) setMarked([]); return outcome; }}/>
     }
     {!phone && dialogData && dialog?.kind === 'sharing' && support?.mode === 'catalog' && <TjanstSharingDialog {...base} key={dialog.sourceKey} data={dialogData} sourceKey={dialog.sourceKey}
-      title={(() => { const cls = dialogData.classes.find(c => c.needs.some(n => n.sourceKey === dialog.sourceKey)); const need = cls?.needs.find(n => n.sourceKey === dialog.sourceKey); return `${need?.label ?? ''} · ${cls?.name ?? ''}`; })()}
+      title={(() => { const group = dialogData.groups?.find(group => group.sourceKey === dialog.sourceKey); if (group) return `${group.label} · ${group.name}`; const cls = dialogData.classes.find(c => c.needs.some(n => n.sourceKey === dialog.sourceKey)); const need = cls?.needs.find(n => n.sourceKey === dialog.sourceKey); return `${need?.label ?? ''} · ${cls?.name ?? ''}`; })()}
       onClose={() => close()}
       onSave={(mode, graderPersonIds) => plan('save_sharing', { sourceKey: dialog.sourceKey, mode, graderPersonIds }, () => `Delningen är sparad: ${SHARING_LABEL[mode]}. Sätter betyg: ${graderPersonIds.map(id => dialogData.teachers.find(t => t.personId === id)?.displayName ?? 'Okänd lärare').join(', ')}.`)}
       onClear={() => plan('clear_sharing', { sourceKey: dialog.sourceKey }, () => 'Delningen är borttagen. Ange en ny delning före publicering.')}/>}
@@ -798,7 +807,7 @@ function Confirmation({ data, dialog, base, rowName, onClose, plan, classHeading
   if (dialog.confirm === 'deleteRow') {
     const row = data.rows.find(r => r.id === dialog.id); if (!row) return null; const n = rowName(row);
     // Efter borttagen rad går fokus till klassrubriken; avbryt återför fokus till cellen.
-    return <TjanstConfirmDialog {...base} onClose={() => onClose(deleted.current ? classHeading(row.classId) : undefined)} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur planeringen. Publicerade versioner ändras inte.`}
+    return <TjanstConfirmDialog {...base} onClose={() => onClose(deleted.current ? row.sourceKind === 'class_timplan' ? classHeading(row.classId) : undefined : undefined)} title="Ta bort tjänsteraden?" text={`${n.teacher}, ${n.course}, ${n.cls} tas bort ur planeringen. Publicerade versioner ändras inte.`}
       keepLabel="Behåll raden" confirmLabel="Ta bort tjänsteraden" destructive onConfirm={async () => { const o = await plan('delete_row', { rowId: row.id }, () => `Tjänsteraden är borttagen: ${n.teacher}, ${n.course}, ${n.cls}.`);
         deleted.current = o.ok; return o; }}/>;
   }

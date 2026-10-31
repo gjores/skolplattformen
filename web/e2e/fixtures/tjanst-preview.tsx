@@ -207,7 +207,7 @@ async function support(u:Unit,q:TjanstYearRequest):Promise<TjanstYearReply>{
   for(const src of [u,units.get(scopeKey(u.unitId,u.schoolYear-1))].filter((x):x is Unit=>!!x)){
    const v=src===u?current(src):src.versions.find(v=>v.status==='published');if(!v)continue;
    const rows=src===u?content(src).rows:src.snapshots.get(v.id)?.rows??[];
-   for(const r of rows){if(!r.personId||!available.some(c=>c.personId===r.personId))continue;
+   for(const r of rows){if(r.sourceKind==='teaching_group')continue;if(!r.personId||!available.some(c=>c.personId===r.personId))continue;
     const reason=yearEvidenceReason({unitId:u.unitId,schoolYear:u.schoolYear,classId:cls.classId,rowKey:n.rowKey},{unitId:src.unitId,schoolYear:src.schoolYear,classId:r.classId,rowKey:r.rowKey,versionStatus:v.status});
     if(reason)refs.push({reason,unitId:u.unitId,schoolYear:src.schoolYear,versionId:v.id,rowId:r.id,personId:r.personId,classId:r.classId,rowKey:r.rowKey,sourceKey:r.sourceKey});
    }

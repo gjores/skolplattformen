@@ -9,7 +9,7 @@ import { rowTime, type TjanstCellTarget } from './tjanst-matrix';
 
 /** Ett aktivt vägval för ett redan bemannat behov. Här görs inga läs- eller skrivkommandon. */
 export default function TjanstMatrixActions({ data, rows, target, description, onClose, onReplace, onAdvanced }: {
-  data: TjanstPlanRead; rows: TjanstRow[]; target: TjanstCellTarget; description: string;
+  data: TjanstPlanRead; rows: TjanstRow[]; target: Pick<TjanstCellTarget, 'sourceKey' | 'personId' | 'rowId'>; description: string;
   onClose: () => void; onReplace: (row: TjanstRow) => void; onAdvanced: (row: TjanstRow | null) => void;
 }) {
   const id = useId();

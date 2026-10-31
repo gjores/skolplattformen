@@ -16,9 +16,14 @@ import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_K
 
 const personName = (data: TjanstPlanRead, personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
 const className = (data: TjanstPlanRead, classId: string) => data.classes.find(c => c.classId === classId)?.name ?? 'Okänd klass';
-const rowLabel = (data: TjanstPlanRead, row: TjanstRow) => data.classes.find(c => c.classId === row.classId)?.needs.find(n => n.sourceKey === row.sourceKey)?.label ?? row.rowKey;
+const ownerId = (row: TjanstRow) => row.sourceKind === 'teaching_group' ? row.groupId : row.classId;
+const ownerName = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind === 'teaching_group'
+  ? data.groups?.find(group => group.groupId === row.groupId)?.name ?? 'Undervisningsgrupp' : className(data, row.classId);
+const rowLabel = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind === 'teaching_group'
+  ? data.groups?.find(group => group.groupId === row.groupId)?.label ?? 'Undervisning i grupp'
+  : data.classes.find(c => c.classId === row.classId)?.needs.find(n => n.sourceKey === row.sourceKey)?.label ?? row.rowKey;
 const jointClasses = (data: TjanstPlanRead, joint: TjanstJoint, except: string) =>
-  [...new Set(joint.rowIds.map(id => data.rows.find(r => r.id === id)?.classId).filter((c): c is string => !!c && c !== except))].map(c => className(data, c));
+  [...new Map(joint.rowIds.flatMap(id => { const row = data.rows.find(value => value.id === id); return row && ownerId(row) !== except ? [[ownerId(row), ownerName(data, row)] as const] : []; })).values()];
 
 /** 05.1-33 / D-31: delningsform och betygssättare för ett behov med flera lärare, annars null. */
 export function sharingText(data: TjanstPlanRead, sourceKey: string) {
@@ -30,8 +35,9 @@ export function sharingText(data: TjanstPlanRead, sourceKey: string) {
 export function TjanstClassView({ data, groups, classId, term, onClass, onOpenClassLinks, onOpenJoint }: { data: TjanstPlanRead; groups: TjanstClassGroup[]; classId: string; term: TjanstTermView;
   onClass: (classId: string) => void; onOpenClassLinks?: TjanstOpenClassLinks; onOpenJoint?: (jointId: string) => void }) {
   const id = useId(), group = groups.find(g => g.cls.classId === classId) ?? null;
+  const hasTeachingGroups = !!data.groups?.some(value => value.classIds.includes(classId));
   const teachersOf = (rows: TjanstRow[]) => rows.map(r => { const j = jointOf(r, data.joints), t = rowTime(r, data.joints);
-    return { id: r.id, text: `${personName(data, r.personId)} · HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`, joint: j ? `Samläsning med ${jointClasses(data, j, r.classId).join(', ')}` : null, jointId: j?.id ?? null }; });
+    return { id: r.id, text: `${personName(data, r.personId)} · HT ${formatTime(t.ht)} · VT ${formatTime(t.vt)}`, joint: j ? `Samläsning med ${jointClasses(data, j, ownerId(r)).join(', ')}` : null, jointId: j?.id ?? null }; });
   return <section aria-label="Per klass" className="tjanst-view">
     <div className="protected-filter tjanst-picker"><label htmlFor={id}>Klass</label><select id={id} value={classId} onChange={e => onClass(e.target.value)}>
       <option value="" disabled>Välj klass</option>{data.classes.map(c => <option key={c.classId} value={c.classId}>{c.name}</option>)}</select></div>
@@ -40,11 +46,12 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
       {onOpenClassLinks && <TjanstClassLinkButtons onOpen={onOpenClassLinks}/>}</div> : <>
       <dl className="mandate-facts tjanst-facts">
         <div><dt>Timplan</dt><dd>{group.cls.link.seriesName} · version {group.cls.link.timplanVersion}</dd></div>
-        <div><dt>Behov</dt><dd>{(() => { const n = group.entries.reduce<number | null>((sum, e) => { const v = needValue(e.need.needHt, e.need.needVt, term); return v === null ? sum : (sum ?? 0) + v; }, null); return n === null ? 'Okänt' : formatTime(n); })()}</dd></div>
-        <div><dt>Fördelat</dt><dd>{formatTime(group.entries.reduce((sum, e) => sum + termValue(e.cov.covered, term), 0))}</dd></div>
-        <div><dt>Täckning</dt><dd>{classCoverage(group.entries, term, data.joints)}</dd></div>
+        <div><dt>{hasTeachingGroups ? 'Behov på klassrader' : 'Behov'}</dt><dd>{(() => { const n = group.entries.reduce<number | null>((sum, e) => { const v = needValue(e.need.needHt, e.need.needVt, term); return v === null ? sum : (sum ?? 0) + v; }, null); return n === null ? hasTeachingGroups && !group.entries.length ? 'Ingen klassram återstår' : 'Okänt' : formatTime(n); })()}</dd></div>
+        <div><dt>{hasTeachingGroups ? 'Fördelat på klassrader' : 'Fördelat'}</dt><dd>{formatTime(group.entries.reduce((sum, e) => sum + termValue(e.cov.covered, term), 0))}</dd></div>
+        <div><dt>{hasTeachingGroups ? 'Täckning på klassrader' : 'Täckning'}</dt><dd>{hasTeachingGroups && !group.entries.length ? 'Se undervisningsgrupperna nedan' : classCoverage(group.entries, term, data.joints)}</dd></div>
       </dl>
-      {group.entries.length === 0 ? <p className="tjanst-empty-text">Inga rader matchar filtret.</p> : <>
+      {hasTeachingGroups && <p>Valbara undervisningsgrupper och deras bemanning visas nedan. De räknas på gruppnivå när elever kommer från flera klasser.</p>}
+      {group.entries.length === 0 ? <p className="tjanst-empty-text">{hasTeachingGroups ? 'Klassens undervisning planeras i grupperna.' : 'Inga rader matchar filtret.'}</p> : <>
         <Table className="tjanst-table tjanst-wide"><TableHeader><TableRow>{['Kurs/ämne', 'Behov HT', 'Behov VT', 'Fördelat HT', 'Fördelat VT', 'Lärare', 'Avvikelse'].map((h, i) =>
           <TableHead scope="col" key={h} className={i > 0 && i < 5 || i === 6 ? 'tjanst-num' : undefined}>{h}</TableHead>)}</TableRow></TableHeader>
           <TableBody>{group.entries.map(e => <TableRow key={e.need.sourceKey}>
@@ -76,10 +83,10 @@ export function TjanstTeacherView({ data, personId, onTeacher, feedback }: { dat
       const t = j.teachers.find(x => x.personId === personId);
       if (!t || seen.has(j.id)) continue; seen.add(j.id);
       const first = data.rows.find(x => x.id === j.rowIds[0])!;
-      teaching.push({ id: j.id, course: rowLabel(data, first), className: className(data, first.classId), ht: t.ht, vt: t.vt, jointWith: jointClasses(data, j, first.classId) });
+      teaching.push({ id: j.id, course: rowLabel(data, first), className: ownerName(data, first), ht: t.ht, vt: t.vt, jointWith: jointClasses(data, j, ownerId(first)) });
     } else if (r.personId === personId) {
       const others = needTeachers(r.sourceKey, data.rows).filter(p => p !== personId), share = data.sharing.find(x => x.sourceKey === r.sourceKey);
-      teaching.push({ id: r.id, course: rowLabel(data, r), className: className(data, r.classId), ht: r.teacherHt, vt: r.teacherVt, jointWith: null,
+      teaching.push({ id: r.id, course: rowLabel(data, r), className: ownerName(data, r), ht: r.teacherHt, vt: r.teacherVt, jointWith: null,
         sharing: others.length ? sharingWith(share?.mode ?? null, others.map(p => personName(data, p)), !!share?.graderPersonIds.includes(personId)) : null });
     }
   }
@@ -137,7 +144,7 @@ export function TjanstCourseView({ data, groups, onAllocate, editable, marked, o
   const needs = groups.flatMap(g => g.entries).filter(e => !e.rows.some(r => r.jointGroupId !== null));
   useEffect(() => { if (!focusJointId) return; const el = document.querySelector<HTMLElement>(`[data-joint="${CSS.escape(focusJointId)}"]`);
     if (el) { el.scrollIntoView({ block: 'start' }); el.focus(); } onFocusedJoint?.(); }, [focusJointId, onFocusedJoint]);
-  const line = (r: TjanstRow) => { const t = rowTime(r, data.joints), label = rowLabel(data, r), cls = className(data, r.classId);
+  const line = (r: TjanstRow) => { const t = rowTime(r, data.joints), label = rowLabel(data, r), cls = ownerName(data, r);
     return <li key={r.id} className="tjanst-course-row">
       {editable && <label className="tjanst-mark"><input type="checkbox" checked={marked.includes(r.id)} onChange={e => onMark(e.target.checked ? [...marked, r.id] : marked.filter(id => id !== r.id))}/>
         <span className="sr-only">Markera {label} {cls}, {personName(data, r.personId)}</span></label>}

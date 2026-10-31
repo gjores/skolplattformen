@@ -1,0 +1,45 @@
+.elective-workspace { display: grid; gap: 1rem; color: var(--foreground, #17283f); }
+.elective-workspace h1, .elective-workspace h2, .elective-workspace h3, .elective-workspace p { margin: 0; }
+.elective-heading, .elective-toolbar, .elective-actions { display: flex; align-items: center; justify-content: space-between; gap: .75rem; flex-wrap: wrap; }
+.elective-muted { color: var(--muted-foreground, #61718a); font-size: .875rem; }
+.elective-card { border: 1px solid var(--border, #dfe5ee); background: var(--card, #fff); border-radius: .75rem; padding: 1rem; display: grid; gap: .875rem; min-width: 0; }
+.elective-columns { display: grid; grid-template-columns: minmax(14rem, 1fr) minmax(0, 2.5fr); gap: 1rem; align-items: start; }
+.elective-list { display: grid; gap: .5rem; }
+.elective-list button { text-align: left; border: 1px solid var(--border, #dfe5ee); border-radius: .5rem; padding: .75rem; background: var(--card, #fff); color: inherit; }
+.elective-list button[aria-pressed="true"] { border-color: #475fe8; background: #f0f3ff; }
+.elective-list button:focus-visible, .elective-workspace input:focus-visible, .elective-workspace select:focus-visible { outline: 2px solid #475fe8; outline-offset: 2px; }
+.elective-list button small { display: block; color: var(--muted-foreground, #61718a); margin-top: .25rem; }
+.elective-form { display: grid; gap: .75rem; }
+.elective-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: .75rem; }
+.elective-workspace label { display: grid; gap: .375rem; font-size: .875rem; }
+.elective-workspace input:not([type="checkbox"]):not([type="radio"]), .elective-workspace select { width: 100%; min-height: 2.75rem; border: 1px solid var(--border, #ccd5e2); border-radius: .5rem; background: var(--background, #fff); color: inherit; padding: .5rem .625rem; }
+.elective-workspace fieldset { display: grid; gap: .5rem; border: 1px solid var(--border, #dfe5ee); border-radius: .5rem; padding: .75rem; min-width: 0; }
+.elective-workspace legend { font-weight: 600; padding: 0 .25rem; }
+.elective-check { display: flex !important; align-items: start; gap: .5rem !important; padding: .25rem 0; }
+.elective-check input { margin-top: .2rem; flex-shrink: 0; }
+.elective-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .25rem .625rem; align-items: start; padding: .75rem; border: 1px solid var(--border, #dfe5ee); border-radius: .5rem; }
+.elective-choice input { margin-top: .25rem; }
+.elective-choice small { display: block; color: var(--muted-foreground, #61718a); }
+.elective-status { display: inline-flex; font-size: .75rem; font-weight: 500; color: #325d4c; background: #eaf5ef; border-radius: .25rem; padding: .125rem .375rem; width: fit-content; }
+.elective-status[data-pending="true"] { color: #795221; background: #fff6e7; }
+.elective-feedback { border-left: 3px solid #367b5a; background: #f0f8f3; padding: .75rem; border-radius: .25rem; }
+.elective-error { border-left: 3px solid #b04435; background: #fff3f0; padding: .75rem; border-radius: .25rem; overflow-wrap: anywhere; }
+.elective-table-wrap { overflow-x: auto; }
+.elective-table { width: 100%; border-collapse: collapse; text-align: left; font-size: .875rem; }
+.elective-table th, .elective-table td { padding: .625rem; border-bottom: 1px solid var(--border, #dfe5ee); vertical-align: top; }
+.elective-table th { color: var(--muted-foreground, #61718a); font-weight: 500; }
+.elective-time { display: flex; gap: 1rem; flex-wrap: wrap; background: #f5f7fa; padding: .75rem; border-radius: .5rem; }
+.elective-time strong { display: block; }
+.elective-self-page { max-width: 48rem; margin: 0 auto; padding: clamp(1rem, 4vw, 2.5rem); }
+.elective-workspace details > summary { cursor: pointer; padding: .5rem 0; }
+@media (max-width: 760px) {
+  .elective-columns { grid-template-columns: minmax(0, 1fr); }
+  .elective-card { padding: .875rem; }
+  .elective-actions { justify-content: flex-start; }
+  .elective-actions > button { flex-grow: 1; }
+}
+
+/* Safari behöver uttrycklig storlek på radioknappar efter appens formulärreset. */
+.elective-workspace input[type="radio"], .elective-workspace input[type="checkbox"] { appearance: auto; -webkit-appearance: auto; display: inline-block; width: 1.125rem; height: 1.125rem; min-width: 1.125rem; min-height: 1.125rem; accent-color: #475fe8; }
+
+.elective-card{overflow-wrap:anywhere}.elective-check{min-height:44px}.tjanst-group-workspace{margin-top:16px}

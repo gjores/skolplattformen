@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB-01 kontrakt och VB-05 identitetsgrund; därefter block, tjänsteunderlag, elev-/VH-vyer och verifierad installation3012"
+current_plan: "VB-10 slutartefaktens faktiska integration; därefter VB-11 verifierad installation3012"
 status: in_progress
-stopped_at: "Genomförande beställt och pågår. Behåll nuvarande3012 tills alla VB-delar är verifierade; ingen delinstallation anges som färdig leverans."
-last_updated: "2026-10-30"
-last_activity: 2026-10-30
-last_activity_desc: "Aktuell kod granskad för klassorganisation; bevara CLASS-COHORT A–B. Dokumenterad modellkonflikt för egna datum och namnnycklar; förberedande klassunderlag prioriteras."
-state_head: 982444b
+stopped_at: "Backend och UI genomförda;44 nya UI-fall,946Node och298 äldre UX-fall gröna. Slutbygge B, faktisk OIDC-kedja och verifierad installation återstår;3012 ännu orörd."
+last_updated: "2026-10-31"
+last_activity: 2026-10-31
+last_activity_desc: "Valbara block och självservice genomförda;44 nya UI-fall,946Node och298 äldre UX-fall gröna. Slutartefaktens faktiska OIDC-prov och installation3012 återstår."
+state_head: eb1eee7
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,6 +21,8 @@ worker_status: tjanst_trial_local_delivery_health_pass
 worker_build_revision: 785b4ff0f769342dac0c43a6a28becca7830dfc3
 milestone_name: milestone
 ---
+
+**Aktuellt2026-10-31:** Valbara block01–09 inklusive02B/03B är genomförda och delverifierade. [UI04](phases/05.2-schemamodul/05.2-VB-04-SUMMARY.md), [självservice08](phases/05.2-schemamodul/05.2-VB-08-SUMMARY.md) och handbok är klara. VB10: slutbygge B och faktisk slutkedja återstår. VB11: lokalt förprovat installationsverktyg finns; faktisk repetition, installation och efterprov återstår.3012 kör ännu föregående982444b. De formella ursprungliga milstolperäknarna nedan är historiska och räknas inte om av detta förarbete.
 
 **Historik — återupptagen kontroll före slutverifiering2026-10-15:** Tre faktiska datorfall på88145bc passerar. Telefonens första fall klarade verksamhetsflödet men stoppade före cleanup på saknad callbackobservation; två telefonfall är ej körda. Exakt egen återhämtning och observerdiagnos pågår före nästa actual6. Ordinarie3012-processen hade avslutats vid återupptagningen; samma197-fils f4987b6-artefakt har återstartats efter bytekontroll, utan ombyggnad eller databas-/IdP-omstart. Kandidaten88145bc kör separat på3013. Ingen lokal leverans eller mänsklig acceptans ännu.
 

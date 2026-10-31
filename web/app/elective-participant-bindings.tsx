@@ -9,6 +9,7 @@ import type { ElectivePupil } from '@/lib/elective-block-contract.ts';
 import { createBindingCommandRef, parseBindingCommand, parseBindingCommandRef, parseBindingRead, parseBindingReply, parseBindingStatusReply,
   type BindingCommand, type BindingCommandRef, type ElectiveBinding } from '@/lib/elective-self-contract.ts';
 import './elective-staff-tools.css';
+import MfaStepUpNotice from './mfa-step-up';
 
 type Props = { unitId: string; schoolYear: number; scopeKey: string; pupils: ElectivePupil[]; disabled?: boolean; onSessionLost: () => void };
 type Draft = { id: string; revision: number; identityId: string; participant: '' | 'pupil' | 'guardian'; confirmationRequired: boolean; startsOn: string; endsOn: string; sourceReference: string; attested: boolean };
@@ -30,6 +31,7 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
   const [search, setSearch] = useState(''), [bindings, setBindings] = useState<ElectiveBinding[]>([]), [loaded, setLoaded] = useState(false), [retry, setRetry] = useState(0);
   const [draft, setDraft] = useState<Draft | null>(null), [revoke, setRevoke] = useState<ElectiveBinding | null>(null);
   const [busy, setBusy] = useState(false), [locked, setLocked] = useState(false), [review, setReview] = useState(false);
+  const [mfa, setMfa] = useState(false);
   const [error, setError] = useState<string | null>(null), [feedback, setFeedback] = useState<string | null>(null);
   const alive = useRef(true), submitting = useRef(false), selectedRef = useRef(selected), lostRef = useRef(onSessionLost);
   useLayoutEffect(() => { selectedRef.current = selected; lostRef.current = onSessionLost; }, [selected, onSessionLost]);
@@ -41,14 +43,15 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
   useEffect(() => { alive.current = true; const stop = onEpochChange(() => loseSession()), stopChannel = onSessionMessage(message => { if(shouldLock({knownEpoch:null},message).lock)loseSession(); }); return () => { alive.current = false; stop(); stopChannel(); }; }, []);
   const load = useCallback(async (pupilId: string, signal?: AbortSignal) => {
     const scope = { unitId, pupilId }, next = parseBindingRead(await api.post(`${BASE}/lasa`, scope, signal), scope);
-    if (alive.current && !signal?.aborted && selectedRef.current === pupilId) { setBindings(next.bindings); setLoaded(true); }
+    if (alive.current && !signal?.aborted && selectedRef.current === pupilId) { setBindings(next.bindings); setLoaded(true); setMfa(false); }
   }, [unitId]);
   useEffect(() => {
     if (!selected || locked) return;
     const controller = new AbortController();
     void load(selected, controller.signal).catch(caught => {
       if (controller.signal.aborted || !alive.current) return;
-      if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession();
+      if (caught instanceof ApiError && caught.code === 'mfa_required') { setMfa(true); setError('Verifiera med engångskod för att fortsätta.'); }
+      else if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession();
       else setError('Kontokopplingarna kunde inte hämtas. Försök igen.');
     });
     return () => controller.abort();
@@ -61,34 +64,45 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
   async function send(command: BindingCommand) {
     if (blocked || submitting.current || !eligible) return;
     submitting.current = true; setBusy(true); setError(null); setFeedback(null);
-    let sent = false;
+    let sent = false, acknowledged = false;
     try {
       const input = parseBindingCommand(command), ref = await createBindingCommandRef(input);
       if (!alive.current) return;
       journal(ref); sent = true;
       const raw = await api.post(`${BASE}/kommando`, input);
       if (!alive.current) return;
-      parseBindingReply(raw, input); done(); await load(input.pupilId);
+      parseBindingReply(raw, input); acknowledged = true; done(); await load(input.pupilId);
     } catch (caught) {
       if (!alive.current) return;
-      if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession();
+      if (acknowledged) { savedReadFailed(caught); return; }
+      if (caught instanceof ApiError && caught.code === 'mfa_required') { journal(null); setMfa(true); setError('Verifiera med engångskod för att fortsätta.'); }
+      else if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession();
       else {
         if (!sent || caught instanceof ApiError && [400, 409].includes(caught.status)) { journal(null); if (caught instanceof ApiError && caught.status === 409) { setReview(true); void load(command.pupilId).catch(() => {}); } }
         setError(errorText(caught));
       }
     } finally { submitting.current = false; if (alive.current) setBusy(false); }
   }
+  function savedReadFailed(caught: unknown) {
+    setLoaded(false); setBindings([]);
+    if (caught instanceof ApiError && [401, 403].includes(caught.status) && caught.code !== 'mfa_required') { loseSession(); return; }
+    if (caught instanceof ApiError && caught.code === 'mfa_required') setMfa(true);
+    setError('Kontokopplingen är sparad, men listan kunde inte läsas. Hämta kontokopplingarna igen.');
+  }
   async function checkStatus() {
     if (!pending || busy || disabled || locked || submitting.current) return;
+    let acknowledged = false;
     submitting.current = true; setBusy(true); setError(null);
     try {
       const result = await parseBindingStatusReply(await api.post(`${BASE}/status`, pending), pending);
       if (!alive.current) return;
-      if (result.status === 'done') { done(); if (selectedRef.current === pending.pupilId) await load(pending.pupilId); }
+      if (result.status === 'done') { acknowledged = true; done(); if (selectedRef.current === pending.pupilId) await load(pending.pupilId); }
       else { journal(null); setReview(true); setError('Inget sparat kvitto hittades. Läs om kopplingarna och granska underlaget innan du skickar igen.'); }
     } catch (caught) {
       if (!alive.current) return;
-      if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession(); else setError(errorText(caught));
+      if (acknowledged) { savedReadFailed(caught); return; }
+      if (caught instanceof ApiError && caught.code === 'mfa_required') { setMfa(true); setError('Verifiera med engångskod för att fortsätta.'); }
+      else if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession(); else setError(errorText(caught));
     } finally { submitting.current = false; if (alive.current) setBusy(false); }
   }
   function start(binding?: ElectiveBinding) {
@@ -106,11 +120,12 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
   return <section className="elective-card" aria-labelledby={`${id}-heading`}>
     <h2 id={`${id}-heading`}>Kontokopplingar för elevval</h2>
     <p className="elective-muted">Eleven eller vårdnadshavaren hittar sin kontoreferens på sidan Mina val efter inloggning. Skolan kontrollerar identiteten och registrerar underlaget för kopplingen.</p>
-    {error && <div role="alert" className="elective-error">{error}</div>}{feedback && <output>{feedback}</output>}
+    {mfa && <MfaStepUpNotice message="Verifiera inloggningen för att hantera kontokopplingar." detail="Osparade uppgifter följer inte med." returnTo="/?vy=valbara"/>}
+    {error && !mfa && <div role="alert" className="elective-error">{error}</div>}{feedback && <output>{feedback}</output>}
     {pending && <div><output>Sparstatus behöver kontrolleras innan du fortsätter.</output><Button variant="outline" disabled={disabled || busy || locked} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></div>}
     <div className="elective-fields"><label>Sök elev för kontokoppling<input type="search" value={search} disabled={blocked} onChange={event => setSearch(event.target.value)}/></label>
       <label>Elev för kontokoppling<select value={selected} disabled={blocked} onChange={event => { if ((draft || revoke) && !confirmDiscard()) return; setDraft(null); setRevoke(null); setReview(false); setBindings([]); setLoaded(false); setError(null); setFeedback(null); setSelected(event.target.value); }}><option value="">Välj elev</option>{pupils.filter(pupil => pupil.id === selected || pupil.name.toLocaleLowerCase('sv').includes(search.trim().toLocaleLowerCase('sv'))).map(pupil => <option key={pupil.id} value={pupil.id}>{pupil.name}</option>)}</select></label></div>
-    {selected && !loaded && !locked && <Button disabled={busy} variant="outline" onClick={() => setRetry(value => value + 1)}>Hämta kontokopplingar</Button>}
+    {selected && !loaded && !locked && <Button disabled={busy} variant="outline" onClick={() => { setError(null); setRetry(value => value + 1); }}>Hämta kontokopplingar</Button>}
     {eligible && loaded && !locked && <>
       <div className="elective-list">{bindings.length === 0 && <p>Inga kontokopplingar för eleven.</p>}{bindings.map(binding => <article key={binding.id} className="elective-binding-entry"><div><strong>{binding.participant === 'guardian' ? 'Vårdnadshavarkonto' : 'Elevkonto'}</strong><p>Kontoreferens: <code className="elective-account-reference">{binding.identityId}</code></p><p>{binding.startsOn} – {binding.endsOn ?? 'tills vidare'}{binding.revokedAt ? ' · Avslutad' : ''}</p>{binding.participant === 'guardian' && <p>{binding.confirmationRequired ? 'Ska lämna VH-bekräftelse när skolans inställning kräver det.' : 'Ingår inte bland dem som måste bekräfta.'}</p>}<small>Underlag: {binding.sourceReference}</small></div>
         {!binding.revokedAt && <div className="elective-toolbar"><Button variant="outline" disabled={blocked} onClick={() => start(binding)}>Ändra koppling</Button><Button variant="ghost" disabled={blocked} onClick={() => { if ((draft || revoke) && !confirmDiscard()) return; setDraft(null); setRevoke(binding); }}>Avsluta koppling</Button></div>}</article>)}</div>

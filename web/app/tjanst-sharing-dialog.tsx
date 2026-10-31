@@ -4,7 +4,7 @@ import { useId, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import type { TjanstNeedSharing, TjanstPlanRead, TjanstSharingMode } from '@/lib/tjanst-contract.ts';
 import { defaultGraders, needTeachers } from '@/lib/tjanst-model.ts';
-import { Problems, Shell, useSubmit, type TjanstOutcome } from './tjanst-dialogs';
+import { Problems, Shell, useSubmit, useDraftField, type TjanstFormCache, type TjanstOutcome } from './tjanst-dialogs';
 import { formatTime } from './tjanst-service-summary';
 
 /**
@@ -13,18 +13,18 @@ import { formatTime } from './tjanst-service-summary';
  * Behörigheten är okänd till fas 05.4 och visas bara som upplysning.
  */
 type Props = { open: boolean; checking: boolean; disabled?: boolean; supportNotice?: React.ReactNode; data: TjanstPlanRead; sourceKey: string; title: string;
-  onClose: () => void; onSave: (mode: TjanstSharingMode, graderPersonIds: string[]) => Promise<TjanstOutcome>; onClear: () => Promise<TjanstOutcome> };
+  form?: TjanstFormCache; onField?: (key: string, value: unknown, dirty?: boolean) => void; onClose: () => void; onDiscard?: () => void; onSave: (mode: TjanstSharingMode, graderPersonIds: string[]) => Promise<TjanstOutcome>; onClear: () => Promise<TjanstOutcome> };
 export const SHARING_LABEL: Record<TjanstSharingMode, string> = { sequential: 'En i taget', concurrent: 'Samtidigt i samma grupp' };
 
-export default function TjanstSharingDialog({ open, checking, disabled = false, supportNotice, data, sourceKey, title, onClose, onSave, onClear }: Props) {
+export default function TjanstSharingDialog({ open, checking, disabled = false, supportNotice, data, sourceKey, title, form, onField, onClose, onDiscard, onSave, onClear }: Props) {
   const id = useId();
   const current: TjanstNeedSharing | undefined = data.sharing.find(x => x.sourceKey === sourceKey);
   const teachers = needTeachers(sourceKey, data.rows);
   const name = (personId: string) => data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
   const time = (personId: string) => data.rows.filter(r => r.sourceKey === sourceKey && r.personId === personId).reduce((s, r) => ({ ht: s.ht + r.teacherHt, vt: s.vt + r.teacherVt }), { ht: 0, vt: 0 });
-  const need = data.classes.flatMap(c => c.needs).find(n => n.sourceKey === sourceKey);
-  const [mode, setMode] = useState<TjanstSharingMode | null>(current?.mode ?? null);
-  const [graders, setGraders] = useState<string[]>(current?.graderPersonIds.filter(g => teachers.includes(g)) ?? []);
+  const need = data.classes.flatMap(c => c.needs).find(n => n.sourceKey === sourceKey) ?? data.groups?.find(group => group.sourceKey === sourceKey);
+  const [mode, setMode] = useDraftField<TjanstSharingMode | null>({ form, onField }, 'sharingMode', current?.mode ?? null);
+  const [graders, setGraders] = useDraftField<string[]>({ form, onField }, 'sharingGraders', current?.graderPersonIds.filter(g => teachers.includes(g)) ?? []);
   const [touched, setTouched] = useState(!!current), [error, setError] = useState<string | null>(null);
   const { busy, failure, run } = useSubmit(onClose);
   function choose(next: TjanstSharingMode) { setMode(next); if (!touched) setGraders(defaultGraders(next, sourceKey, data.rows)); setError(null); }
@@ -37,7 +37,7 @@ export default function TjanstSharingDialog({ open, checking, disabled = false, 
   const sum = teachers.reduce((s, p) => { const t = time(p); return { ht: s.ht + t.ht, vt: s.vt + t.vt }; }, { ht: 0, vt: 0 });
   const max = teachers.reduce((s, p) => { const t = time(p); return { ht: Math.max(s.ht, t.ht), vt: Math.max(s.vt, t.vt) }; }, { ht: 0, vt: 0 });
   const needText = need ? `HT ${need.needHt === null ? 'okänt' : formatTime(need.needHt)} · VT ${need.needVt === null ? 'okänt' : formatTime(need.needVt)}` : 'okänt';
-  return <Shell open={open} busy={busy} onClose={onClose} title="Hur delar lärarna kursen?" description={`${title}. Flera lärare har tid på samma kurs i klassen.`}>
+  return <Shell open={open} busy={busy} onClose={onClose} title="Hur delar lärarna kursen?" description={`${title}. Flera lärare har tid på ${need?.sourceKind === 'teaching_group' ? 'samma undervisning i gruppen' : 'samma kurs i klassen'}.`}>
     {supportNotice}
     <Problems failure={failure} checking={checking} summary={false}/>
     <dl className="mandate-facts tjanst-facts">
@@ -57,7 +57,7 @@ export default function TjanstSharingDialog({ open, checking, disabled = false, 
     {error && <p role="alert" className="validation-warning">{error}</p>}
     <div className="mandate-actions">
       <Button type="button" disabled={busy || disabled} onClick={save}>{busy ? 'Sparar…' : 'Spara delningen'}</Button>
-      <Button type="button" variant="outline" disabled={busy} onClick={onClose}>Bestäm senare</Button>
+      <Button type="button" variant="outline" disabled={busy} onClick={onDiscard ?? onClose}>Bestäm senare</Button>
       {current && <Button type="button" variant="outline" disabled={busy || disabled} onClick={() => void run(onClear)}>Ta bort delningen</Button>}
     </div>
     {!current && <p className="tjanst-direct-hint">Bestäm senare: raden markeras som Två lärare utan angiven delning, och fördelningen kan inte publiceras förrän delningen är angiven.</p>}

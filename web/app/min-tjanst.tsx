@@ -44,9 +44,10 @@ export function selfSums(publication: TjanstSelfPublication): TjanstTeacherSums 
   return { teaching: year(teaching), special: year(special), total: year({ ht: teaching.ht + special.ht, vt: teaching.vt + special.vt }) };
 }
 function summaryRows(publication: TjanstSelfPublication): TjanstSummaryRow[] {
+  const owner = (row: TjanstSelfPublication['rows'][number]) => row.sourceKind === 'teaching_group' ? `${row.groupName} · ${row.classRefs.map(cls => cls.name).join(', ')}` : row.className;
   return publication.rows.map(row => {
-    const others = row.joint ? [...new Set(publication.rows.filter(r => r.joint?.jointId === row.joint!.jointId && r.id !== row.id).map(r => r.className))] : [];
-    return { id: row.id, course: row.label, className: row.className, ht: row.ht, vt: row.vt, jointWith: row.joint ? others.length ? others : [row.joint.name] : null,
+    const others = row.joint ? [...new Set(publication.rows.filter(r => r.joint?.jointId === row.joint!.jointId && r.id !== row.id).map(owner))] : [];
+    return { id: row.id, course: row.label, className: owner(row), ht: row.ht, vt: row.vt, jointWith: row.joint ? others.length ? others : [row.joint.name] : null,
       sharing: row.sharing ? sharingWith(row.sharing.mode, row.sharing.colleagues, row.sharing.grader) : null };
   });
 }

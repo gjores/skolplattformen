@@ -10,6 +10,15 @@ const cls = (c = 1, label = 'Klass A') => ({ classId: id(c), name: label, link: 
 const plan = (code, extra = {}) => ({ contractVersion: 'fixture', unitId: id(999), schoolName: 'Syntetisk skola', schoolYear: 2026, revision: 1, version: null,
   versions: [], teachers: [{ personId: id(11), displayName: 'Lärare A', draft: false, shareHere: 100 }], classes: [cls()], rows: [], specials: [], joints: [], sharing: [],
   actions: [], blockers: code ? [{ code, message: 'Serverns meddelande' }] : [], capabilities: { canEdit: true, canPublish: false, canReadHistory: true }, ...extra });
+
+test('grupporganisationens verkliga publiceringshinder leder till valbara block', () => {
+  for (const code of ['organization_pending', 'group_sources_changed']) {
+    const result = blockerActions(plan(code), code);
+    assert.deepEqual(result.targets, [{ kind: 'elective_blocks', label: 'Valbara block' }]);
+    assert.match(result.guidance, /grupper|grupp/u);
+  }
+  assert.deepEqual(blockerActions(plan(null), 'organization_pending').targets, []);
+});
 const keys = result => result.targets.map(t => t.kind === 'row' ? t.rowId : t.kind === 'sharing' ? t.sourceKey : t.kind === 'joint' ? t.jointId : t.kind);
 
 test('inga rapporterade hinder skapar inga navigationsmål eller nya publiceringsregler', () => {

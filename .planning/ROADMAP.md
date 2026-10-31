@@ -753,7 +753,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 05.1. Tjänstefördelning (INSERTED) | 41/41 skrivna PLAN-filer genomförda | In progress — årsetapp 14–25 och senare26–41 genomförda; 3012 kör 785b4ff. Plan 41: faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS, geometriavgränsning redovisad. Elva UX-punkter klara, fem kvar. Nytt användarprov av plan 41 möjligt; samlad fas-/kravacceptans fortsatt öppen | - |
 | 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/17 | Planned — 17 planer 2026-10-30; våg 1–4 utan migration, grind D-17 före plan 06 | - |
-| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | 0/TBD | Not started | - |
+| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | VB 11/13; motor TBD | Förarbete pågår; motor ej startad | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Nuläge granskat; planutkast | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
 | 05.5. Interkommunal ersättning (INSERTED) | 0/TBD | Not started | - |
@@ -794,3 +794,8 @@ OPERATIONAL-01–06 är lokalt genomförda för gymnasiet: beständig klass → 
 ## APL i autofördelningen —2026-10-18
 
 **APL-autofördelning levererad2026-10-18:** Förval med GUT och minst345h års-APL inom totalen, ändringsbart ämnesurval och granskning före sparande. Befintlig APL bevaras; perioder planeras senare. Node45, UI22+24 samt slutligt mobilprov2, faktisk Worker/OIDC17 och lokal leverans med76 verksamhetstabeller bevarade PASS.3012 kör29b870f utan migration. [Verifiering](phases/05-bevarade-utbildnings-och-klassfloden/05-TIMPLAN-APL-AUTO-VERIFICATION.md). Ny mänsklig begriplighetsbedömning återstår; historiska88/100 och3/8 består.
+
+
+## Valbara block före schema — genomförandestatus 2026-10-31
+
+Användaren har beställt planering, genomförande, ordentlig verifiering och lokal leverans på3012. [VB-paketet](phases/05.2-schemamodul/05.2-VB-IMPLEMENTATION.md) och dess kontrakt preciserar timplansärvda tidspositioner, stabila undervisningsgrupper, elevval, valbar skolpolicy för VH och daterad placering. Backend01/02/02B/03/03B/05/06/07/09 samt UI04/08 är genomförda med delverifiering; slutartefaktens faktiska kedja10 och lokal leverans11 återstår. Detta slutför inte schemamotorn eller hela klassorganisationens livscykel. Två separata100-tidspositioner är första versionens lösning för två val inom200, ingen generell välj2-av10-poolmotor.
