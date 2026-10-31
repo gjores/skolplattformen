@@ -1,16 +1,14 @@
 'use client';
 
-import { useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges, useHasUnsaved, confirmDiscard } from '@/lib/unsaved-changes.tsx';
 import { parseElectiveRead, parseElectiveBlockDraft, parseElectiveCommand, parseElectiveReceipt, parseElectiveStatusReply, createElectiveCommandRef, parseElectiveCommandRef,
   type ElectiveRead, type ElectiveBlock, type ElectiveBlockDraft, type ElectiveBlockKind,
   type ElectiveCommand, type ElectiveCommandRef, type ElectiveSource, type ElectiveOption } from '@/lib/elective-block-contract.ts';
-import { PROGRAMPLAN_LANGUAGES, PROGRAMPLAN_LANGUAGE_LADDERS, programplanLanguageName } from '@/lib/programplan-languages.ts';
+import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { inheritElectiveTime } from '@/lib/elective-block-model.ts';
-import { parseProgramplanCatalog } from '@/lib/programplan-catalog.ts';
-import catalogArtifact from '@/lib/programplan-catalog.generated.json';
 import { formatTime } from './tjanst-service-summary';
 import './elective-blocks.css';
 import ProtectedElectiveTimplanTime from './protected-elective-timplan-time';
@@ -18,16 +16,12 @@ import ElectivePlacementForm from './elective-placement-form';
 import ElectivePlacementList from './elective-placement-list';
 import ElectiveRetireGroup from './elective-retire-group';
 import MfaStepUpNotice from './mfa-step-up';
-import { nationalTimplan } from '@/lib/timplan-model.ts';
+import ElectiveCatalogPicker, { electiveLanguageRule as languageRule, electiveOptionLabel } from './elective-catalog-picker';
 import ElectiveParticipantBindings from './elective-participant-bindings';
 import ElectiveStaffChoice from './elective-staff-choice';
 
 const KIND: Record<ElectiveBlockKind, string> = { modernLanguage: 'Moderna språk', individualChoice: 'Individuellt val', specialization: 'Programfördjupning', languageChoice: 'Språkval', schoolChoice: 'Skolans val' };
 const CHOICE_STATE: Record<string, string> = { stale_offer: 'Utbudet har ändrats', policy_missing: 'Skolinställning saknas', guardian_bindings_missing: 'VH-koppling saknas', guardian_declined: 'VH har avböjt', awaiting_guardian: 'Väntar på VH', ready_for_confirmation: 'Klar att bekräfta', confirmed: 'Bekräftat' };
-const catalog = parseProgramplanCatalog(catalogArtifact);
-const levels = catalog.subjects.flatMap(subject => subject.items.map(item => ({ ...item, subjectCode: subject.code, subjectName: subject.name })));
-const GR_NAMES: Record<string, string> = { ...Object.fromEntries(nationalTimplan.flatMap(subject => subject.code ? [[subject.code, subject.name]] : [])), GRGRSVE01: 'Svenska', GRGRSVA01: 'Svenska som andraspråk', GRGRENG01: 'Engelska', GRGRMSP01: 'Moderna språk', GRGRMOD01: 'Moderna språk' };
-function languageRule(code: string) { const ladder = PROGRAMPLAN_LANGUAGE_LADDERS.find(value => value.steps.some(step => step.itemCode === code)); return { required: ladder?.languageRequired ?? ['GRGRMSP01', 'GRGRMOD01'].includes(code), fixed: ladder?.languageCode ?? null }; }
 function lastValInstant(date: string): string {
   const noon = new Date(`${date}T12:00:00Z`), zone = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Stockholm', timeZoneName: 'shortOffset' }).formatToParts(noon).find(part => part.type === 'timeZoneName')?.value;
   const match = zone?.match(/^GMT([+-])(\d{1,2})(?::(\d{2}))?$/u);
@@ -69,6 +63,7 @@ function Workspace({ unitId, schoolYear, scopeKey, contextEpoch = null, onSessio
     } catch { return null; }
   });
   const [error, setError] = useState<string | null>(null), [feedback, setFeedback] = useState<string | null>(null), [retry, setRetry] = useState(0);
+  const [editingRevision, setEditingRevision] = useState<number | null>(null);
   const [review, setReview] = useState(false), [mfa, setMfa] = useState(false);
   const [policyReview, setPolicyReview] = useState<boolean | null>(null), [timeFrame, setTimeFrame] = useState<string | null>(null);
   const hasUnsaved = useHasUnsaved(), navigationBlocked = useHasUnsaved('navigation-block:');
@@ -134,9 +129,16 @@ function Workspace({ unitId, schoolYear, scopeKey, contextEpoch = null, onSessio
     if (data && (data.policy.guardianConfirmation !== null || data.rounds.some(round => round.status === 'open'))) setPolicyReview(value);
     else void send('set_policy', { guardianConfirmation: value });
   }
+  async function refreshDraft() {
+    if (busy || pending) return;
+    setBusy(true); setError(null);
+    try { const next = await load(); setDraft(current => current ? { ...current, sourceRefs: current.sourceRefs.map(source => next.sources.find(value => value.sourceKey === source.sourceKey) ?? source) } : null); setReview(false); if (draft && editingRevision !== null && next.blocks.find(block => block.id === draft.id)?.revision !== editingRevision) setError('Blocket har ändrats av någon annan. Dina uppgifter finns kvar. Avbryt och öppna blocket igen för att använda den sparade versionen.'); }
+    catch (caught) { if (caught instanceof ApiError && caught.code === 'mfa_required') setMfa(true); else if (caught instanceof ApiError && [401, 403].includes(caught.status)) { setDraft(null); setData(null); onSessionLost(); } setError(message(caught)); }
+    finally { setBusy(false); }
+  }
   function start(block?: ElectiveBlock) {
     if (!data || draft || navigationBlocked || hasUnsaved && !confirmDiscard()) return;
-    setError(null); setFeedback(null); setReview(false);
+    setError(null); setFeedback(null); setReview(false); setEditingRevision(block?.revision ?? null);
     setDraft(block ? { id: block.id, kind: block.kind, name: block.name, startsOn: block.startsOn, endsOn: block.endsOn,
       sourceRefs: block.sourceRefs.map(source => data.sources.find(current => current.sourceKey === source.sourceKey) ?? source), options: block.options, groups: block.groups.map(({ memberCount: _count, membershipRevision: _revision, ...group }) => group) }
       : { id: newId(), kind: data.sources[0]?.blockKind ?? 'modernLanguage', name: '', startsOn: `${schoolYear}-07-01`, endsOn: `${schoolYear + 1}-06-30`, sourceRefs: [], options: [], groups: [] });
@@ -146,24 +148,24 @@ function Workspace({ unitId, schoolYear, scopeKey, contextEpoch = null, onSessio
       <div className="elective-actions">{onTjanst && <Button variant="outline" onClick={onTjanst}>Till tjänstefördelningen</Button>}
         <Button disabled={disabled || draft !== null || timeFrame !== null} onClick={() => start()}>Lägg till valbart block</Button></div>
     </header>
-    {mfa && <MfaStepUpNotice message="Verifiera inloggningen för att fortsätta." detail={pending ? 'Kontrollera sparstatus efter verifieringen innan du försöker spara igen.' : 'Osparade uppgifter följer inte med. Du kommer tillbaka till valbara block efter verifieringen.'} returnTo="/?vy=valbara"/>}
-    {error && !mfa && <div className="elective-error" role="alert">{error}{!pending && <Button variant="ghost" disabled={busy} onClick={() => { setError(null); setRetry(value => value + 1); }}>Hämta aktuellt läge</Button>}</div>}
-    {pending && <div className="elective-card" aria-live="polite"><p>Kontrollera sparstatus innan du fortsätter.</p><Button disabled={busy} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></div>}
+    {mfa && !draft && <MfaStepUpNotice message="Verifiera inloggningen för att fortsätta." detail={pending ? 'Kontrollera sparstatus efter verifieringen innan du försöker spara igen.' : 'Osparade uppgifter följer inte med. Du kommer tillbaka till valbara block efter verifieringen.'} returnTo="/?vy=valbara"/>}
+    {error && !mfa && !draft && <div className="elective-error" role="alert">{error}{!pending && <Button variant="ghost" disabled={busy} onClick={() => { setError(null); setRetry(value => value + 1); }}>Hämta aktuellt läge</Button>}</div>}
+    {pending && !draft && <div className="elective-card" aria-live="polite"><p>Kontrollera sparstatus innan du fortsätter.</p><Button disabled={busy} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></div>}
     {!data ? <p aria-busy="true">Hämtar skolans valbara block…</p> : <>
-      <details className="elective-card"><summary>Skolinställning för VH-bekräftelse <span className="elective-muted">{data.policy.guardianConfirmation === null ? 'Inte vald' : data.policy.guardianConfirmation ? 'På' : 'Av'}</span></summary>
+      {!draft && <details className="elective-card"><summary>Skolinställning för VH-bekräftelse <span className="elective-muted">{data.policy.guardianConfirmation === null ? 'Inte vald' : data.policy.guardianConfirmation ? 'På' : 'Av'}</span></summary>
         <p>Välj om elevval behöver bekräftas av vårdnadshavare innan skolan kan bekräfta och placera eleven.</p>
         <div className="elective-actions"><Button variant="outline" aria-pressed={data.policy.guardianConfirmation === true} disabled={disabled || !!draft || timeFrame !== null || data.policy.guardianConfirmation === true} onClick={() => choosePolicy(true)}>På</Button>
           <Button variant="outline" aria-pressed={data.policy.guardianConfirmation === false} disabled={disabled || !!draft || timeFrame !== null || data.policy.guardianConfirmation === false} onClick={() => choosePolicy(false)}>Av</Button></div>
         {policyReview !== null && <div className="elective-card"><h3>Granska skolinställningen</h3><p>VH-bekräftelse blir {policyReview ? 'på' : 'av'} för skolans öppna valomgångar. Inlämnade val och svar behålls, men deras status kan ändras. Redan gjorda gruppplaceringar flyttas inte.</p><div className="elective-actions"><Button variant="outline" disabled={disabled} onClick={() => setPolicyReview(null)}>Avbryt</Button><Button disabled={disabled || !!draft} onClick={() => void send('set_policy', { guardianConfirmation: policyReview })}>Ändra skolinställningen</Button></div></div>}
-      </details>
+      </details>}
       {!draft && data.sources.some(source => source.schoolform === 'gymnasium') && <details className="elective-card"><summary>Timplanens valbara tidsutrymmen</summary><p>Grupper ärver tiden. Om en ram ska delas, exempelvis individuellt val i två kurser om 100 poäng, fördelar du först tiden i timplanen här. Skapa sedan ett block för varje tidsutrymme.</p>
         {!timeFrame ? <div className="elective-list">{[...new Map(data.sources.filter(source => source.schoolform === 'gymnasium').map(source => [`${source.timplanId}:${source.rowKey}:${source.column}`, source])).values()].map(source => <Button key={source.frameSourceKey} variant="outline" disabled={disabled} onClick={() => setTimeFrame(source.frameSourceKey)}>{KIND[source.blockKind]} · timplan version {source.timplanVersion} · {data.sources.filter(item => item.timplanId === source.timplanId && item.rowKey === source.rowKey && item.column === source.column).map(item => item.className).filter((name, index, values) => values.indexOf(name) === index).join(', ')}</Button>)}</div>
         : <><Button variant="outline" disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) setTimeFrame(null); }}>Tillbaka till tidsutrymmen</Button><ProtectedElectiveTimplanTime unitId={unitId} schoolYear={schoolYear} frameSourceKey={timeFrame} contextEpoch={contextEpoch} onSessionLost={onSessionLost} onApplied={() => void load().catch(caught => setError(message(caught)))}/></>}
       </details>}
       {!draft && data.canReadPupils && data.pupils && <details className="elective-card"><summary>Kontokopplingar för elevval och VH-bekräftelse</summary><ElectiveParticipantBindings unitId={unitId} schoolYear={schoolYear} scopeKey={scopeKey} pupils={data.pupils} disabled={disabled || timeFrame !== null} onSessionLost={onSessionLost}/></details>}
-      {draft ? <BlockEditor draft={draft} sources={data.sources} reserved={Object.fromEntries(data.sources.flatMap(source => { const owner = data.blocks.find(block => block.id !== draft.id && !data.releasedBlockIds?.includes(block.id) && block.sourceRefs.some(ref => ref.classId === source.classId && ref.frameSourceKey === source.frameSourceKey && (!ref.timeDetailRef || !source.timeDetailRef || ref.timeDetailRef.positionId === source.timeDetailRef.positionId))); return owner ? [[source.sourceKey, owner.name]] : []; }))} disabled={disabled} review={review} lockedOptions={data.blocks.find(block => block.id === draft.id)?.options.map(option => option.id) ?? []} onChange={next => { setDraft(next); setReview(false); }}
+      {draft ? <BlockEditor key={draft.id} conflict={editingRevision !== null && data.blocks.find(block => block.id === draft.id)?.revision !== editingRevision} existing={data.blocks.some(block => block.id === draft.id)} mfa={mfa} onRefresh={() => void refreshDraft()} saveError={mfa ? null : error} pending={pending !== null} busy={busy} onStatus={() => void checkStatus()} draft={draft} sources={data.sources} reserved={Object.fromEntries(data.sources.flatMap(source => { const owner = data.blocks.find(block => block.id !== draft.id && !data.releasedBlockIds?.includes(block.id) && block.sourceRefs.some(ref => ref.classId === source.classId && ref.frameSourceKey === source.frameSourceKey && (!ref.timeDetailRef || !source.timeDetailRef || ref.timeDetailRef.positionId === source.timeDetailRef.positionId))); return owner ? [[source.sourceKey, owner.name]] : []; }))} disabled={disabled} review={review} lockedOptions={data.blocks.find(block => block.id === draft.id)?.options.map(option => option.id) ?? []} onChange={next => { setDraft(next); setReview(false); }}
         onReview={() => { try { parseElectiveBlockDraft(draft); for (const group of draft.groups) inheritElectiveTime(draft.sourceRefs.filter(source => group.sourceKeys.includes(source.sourceKey))); setError(null); setReview(true); }
-          catch { setError('Kontrollera alternativens namn, ämne, språk och grupper. Gruppernas timplansunderlag måste ha känd och förenlig tid.'); } }} onCancel={() => { setDraft(null); setReview(false); }} onSave={() => void send('save_block', { expectedBlockRevision: data.blocks.find(block => block.id === draft.id)?.revision ?? null, block: draft })}/>
+          catch { setError('Kontrollera alternativens namn, ämne, språk och grupper. Gruppernas timplansunderlag måste ha känd och förenlig tid.'); } }} onCancel={() => { setDraft(null); setReview(false); }} onSave={() => void send('save_block', { expectedBlockRevision: editingRevision, block: draft })}/>
         : <div className="elective-columns"><nav className="elective-list" aria-label="Valbara block">{data.blocks.map(block => <button key={block.id} aria-pressed={current?.id === block.id} disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) { setSelected(block.id); setFeedback(null); } }}>
           {block.name}<small>{KIND[block.kind]} · {block.groups.length} grupper</small></button>)}{data.blocks.length === 0 && <p>Inga valbara block finns ännu.</p>}</nav>
           {current ? <BlockDetail key={current.id} data={data} block={current} disabled={disabled || timeFrame !== null} onEdit={() => start(current)} onSend={send}/>
@@ -173,40 +175,98 @@ function Workspace({ unitId, schoolYear, scopeKey, contextEpoch = null, onSessio
   </section>;
 }
 
-type EditorProps = { draft: ElectiveBlockDraft; sources: ElectiveSource[]; reserved: Record<string, string>; disabled: boolean; review: boolean; lockedOptions: string[]; onChange: (draft: ElectiveBlockDraft) => void; onReview: () => void; onCancel: () => void; onSave: () => void };
-function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions, onChange, onReview, onCancel, onSave }: EditorProps) {
-  const id = useId();
+type EditorProps = { draft: ElectiveBlockDraft; sources: ElectiveSource[]; reserved: Record<string, string>; disabled: boolean; review: boolean; lockedOptions: string[]; existing: boolean; conflict: boolean; mfa: boolean; saveError: string | null; pending: boolean; busy: boolean; onStatus: () => void; onRefresh: () => void; onChange: (draft: ElectiveBlockDraft) => void; onReview: () => void; onCancel: () => void; onSave: () => void };
+type EditorIssue = { field: string; section: number; message: string };
+const EDITOR_STEPS = ['Block', 'Klasser och tid', 'Alternativ', 'Grupper'];
+function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions, existing, conflict, mfa, saveError, pending, busy, onStatus, onRefresh, onChange: emit, onReview, onCancel, onSave }: EditorProps) {
+  const id = useId(), feedback = useRef<HTMLDivElement>(null), heading = useRef<HTMLHeadingElement>(null);
+  const [guided, setGuided] = useState(!existing), [step, setStep] = useState(0), [issues, setIssues] = useState<EditorIssue[]>([]);
   const candidates = sources.filter(source => source.blockKind === draft.kind);
-  const allowed = draft.sourceRefs.length ? draft.sourceRefs[0].allowedOptionCodes.filter(code => draft.sourceRefs.every(source => source.allowedOptionCodes.includes(code))) : [];
+  const allowed = useMemo(() => draft.sourceRefs.length ? draft.sourceRefs[0].allowedOptionCodes.filter(code => draft.sourceRefs.every(source => source.allowedOptionCodes.includes(code))) : [], [draft.sourceRefs]);
+  const fieldId = (field: string) => `${id}-${field}`;
+  const error = (field: string) => issues.find(issue => issue.field === field)?.message;
+  const onChange = (next: ElectiveBlockDraft) => { setIssues([]); emit(next); };
+  useEffect(() => { if (saveError || pending || mfa || conflict) { feedback.current?.focus(); feedback.current?.scrollIntoView({ block: 'nearest' }); } }, [saveError, pending, mfa, conflict]);
+  function focusField(issue: EditorIssue) {
+    if (guided) setStep(issue.section);
+    requestAnimationFrame(() => requestAnimationFrame(() => { const element = document.getElementById(fieldId(issue.field)); const details = element?.closest('details'); if (details) details.open = true; element?.focus(); element?.scrollIntoView({ block: 'center' }); }));
+  }
+  function validate(section?: number, before = false) {
+    const found: EditorIssue[] = [], add = (field: string, section: number, message: string) => found.push({ field, section, message });
+    if (!draft.name.trim()) add('name', 0, 'Skriv ett namn för blocket.');
+    if (!draft.sourceRefs.length) add('sources', 1, 'Välj minst en klass och dess timplansram.');
+    for (const source of draft.sourceRefs) if (!sources.some(value => value.sourceKey === source.sourceKey)) add('sources', 1, `Timplansramen för ${source.className} finns inte längre. Välj klassens aktuella ram.`);
+    if (!draft.options.length) add('options', 2, 'Lägg till minst ett alternativ som eleverna kan välja.');
+    for (const option of draft.options) {
+      if (!option.levelCode) add(`level-${option.id}`, 2, 'Sök och välj ett ämne, en kurs eller en nivå i katalogen. Ett eget namn räcker inte.');
+      else if (!allowed.includes(option.levelCode)) add('sources', 1, `${option.name || option.levelCode} ryms inte i den valda timplansramen. Välj rätt ram eller lägg till ett annat alternativ.`);
+      if (!option.name.trim()) add(`option-name-${option.id}`, 2, 'Ange namnet som eleverna ska se.');
+      if (languageRule(option.levelCode).required && !option.language) add(`language-${option.id}`, 2, 'Välj vilket språk alternativet gäller.');
+    }
+    if (!draft.groups.length) add('groups', 3, 'Lägg till minst en undervisningsgrupp.');
+    for (const group of draft.groups) {
+      if (!group.name.trim()) add(`group-name-${group.id}`, 3, 'Ange gruppens namn.');
+      if (group.estimatedPupils !== null && (!Number.isInteger(group.estimatedPupils) || group.estimatedPupils < 0 || group.estimatedPupils > 10000)) add(`count-${group.id}`, 3, 'Ange ett helt elevantal mellan 0 och 10 000, eller lämna tomt.');
+      if (!group.sourceKeys.length) add(`classes-${group.id}`, 3, 'Välj minst en klass för gruppen.');
+      else { try { inheritElectiveTime(draft.sourceRefs.filter(source => group.sourceKeys.includes(source.sourceKey))); }
+        catch { const missing = draft.sourceRefs.some(source => group.sourceKeys.includes(source.sourceKey) && (source.needHt === null || source.needVt === null)); add(`classes-${group.id}`, 3, missing ? 'Undervisningstid saknas i klassens timplan. Ange tiden i timplanens valbara tidsutrymmen och välj sedan den uppdaterade timplansramen.' : 'Klasserna har olika undervisningstid. Dela upp dem i separata grupper eller ändra gruppens klassurval.'); } }
+    }
+    const relevant = section === undefined ? found : found.filter(issue => before ? issue.section < section : issue.section === section);
+    setIssues(relevant); if (relevant.length) { focusField(relevant[0]); return false; } return true;
+  }
+  function go(next: number) { setIssues([]); setStep(next); heading.current?.focus(); heading.current?.scrollIntoView({ block: 'start' }); }
   const chooseSource = (source: ElectiveSource, checked: boolean) => { const previous = draft.sourceRefs.find(value => value.classId === source.classId); onChange({ ...draft, sourceRefs: checked ? [...draft.sourceRefs.filter(value => value.classId !== source.classId), source] : draft.sourceRefs.filter(value => value.sourceKey !== source.sourceKey), groups: draft.groups.map(group => ({ ...group, classIds: checked ? group.classIds : group.classIds.filter(id => id !== source.classId), sourceKeys: checked ? group.sourceKeys.map(key => key === previous?.sourceKey ? source.sourceKey : key) : group.sourceKeys.filter(key => key !== source.sourceKey) })) }); };
-  const changeOption = (option: ElectiveOption) => onChange({ ...draft, options: draft.options.map(value => value.id === option.id ? option : value) });
-  return <div className="elective-card"><h2>{review ? 'Granska valbart block' : 'Valbart block'}</h2><fieldset disabled={disabled || review}>
-    <div className="elective-fields"><label htmlFor={`${id}-name`}>Blockets namn<input id={`${id}-name`} value={draft.name} maxLength={200} onChange={event => onChange({ ...draft, name: event.target.value })}/></label>
-      <label>Typ av valbart block<select value={draft.kind} onChange={event => onChange({ ...draft, kind: event.target.value as ElectiveBlockKind, sourceRefs: [], options: [], groups: [] })}>{Object.entries(KIND).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
-      <div><span className="elective-muted">Period enligt timplansunderlaget</span><p>{draft.startsOn} – {draft.endsOn}</p></div></div>
-    <fieldset><legend>Timplansram och berörda klasser</legend>{candidates.map(source => <label className="elective-check" key={source.sourceKey}><input type="checkbox" disabled={!!reserved[source.sourceKey] && !draft.sourceRefs.some(value => value.sourceKey === source.sourceKey)} checked={draft.sourceRefs.some(value => value.sourceKey === source.sourceKey)} onChange={event => chooseSource(source, event.target.checked)}/>
-      <span>{source.className} · {source.label}{reserved[source.sourceKey] && <small> Används av {reserved[source.sourceKey]}</small>}<small className="elective-muted"> HT {time(source.needHt)} · VT {time(source.needVt)}</small></span></label>)}
-      {candidates.length === 0 && <p>Ingen sådan ram finns i aktuellt timplansunderlag.</p>}</fieldset>
-    <p className="elective-muted">Undervisningstiden ärvs från timplanen. Gemensamma grupper behöver förenliga tider för de valda klasserna.</p>
-    <h3>Alternativ och grupper</h3>
-    {draft.options.map((option, index) => <div className="elective-card" key={option.id}><div className="elective-fields">
-      <label>Alternativets namn<input value={option.name} maxLength={200} onChange={event => changeOption({ ...option, name: event.target.value })}/></label>
-      <label>Ämne och nivå<select disabled={lockedOptions.includes(option.id)} value={option.levelCode} onChange={event => { const found = levels.find(level => level.code === event.target.value); changeOption({ ...option, levelCode: event.target.value, subjectCode: found?.subjectCode ?? event.target.value, points: found?.points ?? null, language: languageRule(event.target.value).fixed ?? (languageRule(event.target.value).required ? option.language : null) }); }}><option value="">Välj ämne och nivå</option>{option.levelCode && !allowed.includes(option.levelCode) && <option value={option.levelCode}>{levels.find(level => level.code === option.levelCode)?.name ?? GR_NAMES[option.levelCode] ?? option.levelCode} · tidigare underlag</option>}{allowed.map(code => <option key={code} value={code}>{levels.find(level => level.code === code)?.name ?? GR_NAMES[code] ?? code}</option>)}</select></label>
-      {languageRule(option.levelCode).required && <label>Språk<select disabled={lockedOptions.includes(option.id)} value={option.language ?? ''} onChange={event => changeOption({ ...option, language: event.target.value || null })}><option value="">Välj språk</option>{PROGRAMPLAN_LANGUAGES.filter(language => !languageRule(option.levelCode).fixed || language.code === languageRule(option.levelCode).fixed).map(language => <option value={language.code} key={language.code}>{language.name}</option>)}</select></label>}
+  const newGroup = (option: ElectiveOption, count: number) => ({ id: newId(), optionId: option.id, name: `${option.name || 'Grupp'} ${count + 1}`, startsOn: draft.startsOn, endsOn: draft.endsOn, classIds: [...new Set(draft.sourceRefs.map(source => source.classId))], sourceKeys: draft.sourceRefs.map(source => source.sourceKey), estimatedPupils: null });
+  function changeOption(option: ElectiveOption, createGroup = false) {
+    const old = draft.options.find(value => value.id === option.id), groups = draft.groups.filter(group => group.optionId === option.id);
+    onChange({ ...draft, options: draft.options.map(value => value.id === option.id ? option : value), groups: createGroup && !groups.length ? [...draft.groups, newGroup(option, 0)] : draft.groups.map(group => { const index = groups.findIndex(value => value.id === group.id); return old && index >= 0 && group.name === `${old.name} ${index + 1}` ? { ...group, name: `${option.name} ${index + 1}` } : group; }) });
+  }
+  const fieldError = (field: string) => error(field) ? <p id={`${fieldId(field)}-error`} className="elective-field-error">{error(field)}</p> : null;
+  const invalid = (field: string) => ({ 'aria-invalid': !!error(field), 'aria-describedby': error(field) ? `${fieldId(field)}-error` : undefined });
+  const show = (section: number) => !guided || step === section;
+  return <section className="elective-editor" aria-label="Redigera valbart block">
+    <header className="elective-heading"><h2 ref={heading} tabIndex={-1}>{review ? 'Granska valbart block' : existing ? 'Ändra valbart block' : 'Skapa valbart block'}</h2>
+      {!review && <Button variant="ghost" disabled={disabled} onClick={() => { setGuided(!guided); setIssues([]); }}> {guided ? 'Visa allt på en sida' : 'Visa steg för steg'}</Button>}</header>
+    {!review && guided && <nav aria-label="Steg i valbart block" className="elective-steps">{EDITOR_STEPS.map((name, index) => <button type="button" key={name} disabled={disabled} aria-current={step === index ? 'step' : undefined} onClick={() => { if (index <= step || validate(index, true)) go(index); }}><span>{index + 1}</span>{name}</button>)}</nav>}
+    {review ? <div className="elective-review"><h3>{draft.name}</h3><p>{KIND[draft.kind]} · {draft.startsOn} – {draft.endsOn}</p><p>Klasser: {draft.sourceRefs.map(source => source.className).join(', ')}</p>
+      {draft.options.map(option => <section key={option.id}><h4>{option.name}</h4><p className="elective-muted">{electiveOptionLabel(option)}</p><ul>{draft.groups.filter(group => group.optionId === option.id).map(group => <li key={group.id}>{group.name} · {draft.sourceRefs.filter(source => group.sourceKeys.includes(source.sourceKey)).map(source => source.className).join(', ')} · HT {time(draft.sourceRefs.find(source => group.sourceKeys.includes(source.sourceKey))?.needHt ?? null)} · VT {time(draft.sourceRefs.find(source => group.sourceKeys.includes(source.sourceKey))?.needVt ?? null)} · {group.estimatedPupils === null ? 'Elevantal ej uppskattat' : `${group.estimatedPupils} elever`}</li>)}</ul></section>)}
+      <p>{draft.options.length} alternativ och {draft.groups.length} grupper sparas med timplanens undervisningstid. Elevval och befintlig bemanning ändras inte av att spara blocket.</p></div>
+      : <fieldset className="elective-editor-fields" disabled={disabled}>
+      {show(0) && <section className="elective-editor-section"><h3>Vad ska eleverna välja?</h3><p className="elective-muted">Välj typ av block och ge det ett namn, exempelvis Moderna språk år 1.</p>
+        <div className="elective-fields"><label>Typ av valbart block<select value={draft.kind} onChange={event => { if (draft.options.length && !confirm('Byte av typ tar bort utkastets klassurval, alternativ och grupper. Fortsätta?')) return; onChange({ ...draft, kind: event.target.value as ElectiveBlockKind, sourceRefs: [], options: [], groups: [] }); }}>{Object.entries(KIND).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <label htmlFor={fieldId('name')}>Blockets namn<input id={fieldId('name')} {...invalid('name')} value={draft.name} maxLength={200} onChange={event => onChange({ ...draft, name: event.target.value })}/>{fieldError('name')}</label></div>
+      </section>}
+      {show(1) && <section className="elective-editor-section"><h3>Vilka klasser ska delta?</h3><p className="elective-muted">Tiden ärvs från klassernas timplaner. Period: {draft.startsOn} – {draft.endsOn}.</p>
+        <fieldset id={fieldId('sources')} tabIndex={-1} {...invalid('sources')}><legend>Timplansram och berörda klasser</legend>{candidates.map(source => <label className="elective-check" key={source.sourceKey}><input type="checkbox" disabled={!!reserved[source.sourceKey] && !draft.sourceRefs.some(value => value.sourceKey === source.sourceKey)} checked={draft.sourceRefs.some(value => value.sourceKey === source.sourceKey)} onChange={event => chooseSource(source, event.target.checked)}/><span>{source.className} · {source.label}<small className="elective-muted"> HT {time(source.needHt)} · VT {time(source.needVt)}{reserved[source.sourceKey] && ` · Används av ${reserved[source.sourceKey]}`}</small></span></label>)}{!candidates.length && <p>Ingen sådan ram finns i aktuellt timplansunderlag. Kontrollera klassernas timplanskoppling.</p>}{fieldError('sources')}</fieldset>
+      </section>}
+      {show(2) && <section className="elective-editor-section" id={fieldId('options')} tabIndex={-1}><h3>Vilka alternativ ska finnas?</h3><p className="elective-muted">Sök först fram ämne, kurs eller nivå. Namnet fylls i och kan anpassas för eleverna. En första grupp skapas när du väljer.</p>{fieldError('options')}
+        {draft.options.map((option, index) => <section className="elective-option-editor" key={option.id} aria-label={`Alternativ ${index + 1}`}><div className="elective-fields">
+          <ElectiveCatalogPicker id={fieldId(`level-${option.id}`)} option={option} allowed={allowed} disabled={disabled || lockedOptions.includes(option.id)} error={error(`level-${option.id}`)} onSelect={next => changeOption(next, true)}/>
+          <label htmlFor={fieldId(`option-name-${option.id}`)}>Alternativets namn<input id={fieldId(`option-name-${option.id}`)} {...invalid(`option-name-${option.id}`)} value={option.name} maxLength={200} onChange={event => changeOption({ ...option, name: event.target.value })}/>{fieldError(`option-name-${option.id}`)}</label>
+          {languageRule(option.levelCode).required && <label>Språk<select id={fieldId(`language-${option.id}`)} {...invalid(`language-${option.id}`)} disabled={lockedOptions.includes(option.id)} value={option.language ?? ''} onChange={event => { const next = { ...option, language: event.target.value || null }; if (option.name === electiveOptionLabel(option)) next.name = electiveOptionLabel(next); changeOption(next); }}><option value="">Välj språk</option>{PROGRAMPLAN_LANGUAGES.filter(language => !languageRule(option.levelCode).fixed || language.code === languageRule(option.levelCode).fixed).map(language => <option value={language.code} key={language.code}>{language.name}</option>)}</select>{fieldError(`language-${option.id}`)}</label>}
+        </div>{lockedOptions.includes(option.id) && <small className="elective-muted">Sparat ämne och språk behålls. Lägg till ett nytt alternativ för annat innehåll.</small>}<Button type="button" variant="ghost" onClick={() => onChange({ ...draft, options: draft.options.filter(value => value.id !== option.id), groups: draft.groups.filter(value => value.optionId !== option.id) })}>Ta bort alternativet</Button></section>)}
+        <Button type="button" variant="outline" disabled={!draft.sourceRefs.length} onClick={() => onChange({ ...draft, options: [...draft.options, { id: newId(), name: '', subjectCode: '', levelCode: '', language: null, points: null }] })}>Lägg till alternativ</Button>
+      </section>}
+      {show(3) && <section className="elective-editor-section" id={fieldId('groups')} tabIndex={-1}><h3>Hur ska grupperna organiseras?</h3><p className="elective-muted">Varje grupp får en rad i tjänstefördelningen. En grupp kan samla flera klasser med samma undervisningstid. Elevantalet är en uppskattning.</p>{fieldError('groups')}
+        {draft.options.map(option => <section className="elective-group-set" key={option.id} aria-label={`Grupper för ${option.name || 'alternativet'}`}><h4>{option.name || 'Välj ämne för alternativet'}</h4>
+          {draft.groups.filter(group => group.optionId === option.id).map(group => <div key={group.id} className="elective-group-editor"><div className="elective-fields"><label htmlFor={fieldId(`group-name-${group.id}`)}>Gruppens namn<input id={fieldId(`group-name-${group.id}`)} {...invalid(`group-name-${group.id}`)} maxLength={200} value={group.name} onChange={event => onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, name: event.target.value } : value) })}/>{fieldError(`group-name-${group.id}`)}</label>
+            <label>Uppskattat elevantal<input id={fieldId(`count-${group.id}`)} {...invalid(`count-${group.id}`)} type="number" min={0} max={10000} value={group.estimatedPupils ?? ''} onChange={event => onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, estimatedPupils: event.target.value === '' ? null : Number(event.target.value) } : value) })}/>{fieldError(`count-${group.id}`)}</label></div>
+            <details><summary>Klasser: {draft.sourceRefs.filter(source => group.sourceKeys.includes(source.sourceKey)).map(source => source.className).join(', ') || 'Inga valda'}</summary><fieldset id={fieldId(`classes-${group.id}`)} tabIndex={-1} {...invalid(`classes-${group.id}`)}><legend>Gruppens klasser</legend>{draft.sourceRefs.map(source => <label className="elective-check" key={source.sourceKey}><input type="checkbox" checked={group.sourceKeys.includes(source.sourceKey)} onChange={event => { const chosen = event.target.checked ? [...group.sourceKeys, source.sourceKey] : group.sourceKeys.filter(key => key !== source.sourceKey); onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, sourceKeys: chosen, classIds: draft.sourceRefs.filter(ref => chosen.includes(ref.sourceKey)).map(ref => ref.classId) } : value) }); }}/>{source.className} · HT {time(source.needHt)} · VT {time(source.needVt)}</label>)}{fieldError(`classes-${group.id}`)}</fieldset></details>
+            <Button type="button" variant="ghost" onClick={() => onChange({ ...draft, groups: draft.groups.filter(value => value.id !== group.id) })}>Ta bort grupp</Button>
+          </div>)}
+          <Button type="button" variant="outline" disabled={!draft.sourceRefs.length || !option.levelCode} onClick={() => onChange({ ...draft, groups: [...draft.groups, newGroup(option, draft.groups.filter(group => group.optionId === option.id).length)] })}>Lägg till grupp för alternativet</Button>
+        </section>)}
+      </section>}
+    </fieldset>}
+    <div className="elective-editor-footer">
+      {mfa && <div ref={feedback} tabIndex={-1}><MfaStepUpNotice message="Verifiera inloggningen för att fortsätta." detail="Osparade uppgifter följer inte med. Du kommer tillbaka till valbara block efter verifieringen." returnTo="/?vy=valbara"/></div>}
+      {!mfa && (issues.length > 0 || saveError || pending || conflict) && <div className="elective-error" role="alert" tabIndex={-1} ref={feedback}>{conflict && !saveError && <p>Blocket har ändrats av någon annan. Avbryt och öppna blocket igen för att använda den sparade versionen.</p>}{saveError && <><p>{saveError}</p>{!pending && <Button variant="outline" disabled={busy} onClick={() => { setIssues([]); onRefresh(); }}>Hämta aktuellt underlag</Button>}</>}{issues.length > 0 && <><p>Rätta följande innan du fortsätter:</p><ul>{issues.map((issue, index) => <li key={`${issue.field}-${index}`}><button type="button" onClick={() => focusField(issue)}>{issue.message}</button></li>)}</ul></>}{issues.some(issue => issue.message.startsWith('Undervisningstid saknas')) && <div><p>Utkastet finns kvar här. Justera tiden i en annan flik och hämta sedan underlaget igen.</p><a href="?vy=valbara" target="_blank" rel="noopener">Öppna timplanens tidsutrymmen i en ny flik</a><Button variant="outline" disabled={busy} onClick={() => { setIssues([]); onRefresh(); }}>Hämta aktuellt underlag</Button></div>}{pending && <Button disabled={busy} onClick={onStatus}>Kontrollera sparstatus</Button>}</div>}
+      <div className="elective-actions"><Button variant="outline" disabled={disabled} onClick={onCancel}>Avbryt</Button><div className="elective-actions">{review ? <><Button variant="outline" disabled={disabled} onClick={() => onChange(draft)}>Fortsätt redigera</Button><Button disabled={disabled || conflict} onClick={onSave}>Bekräfta och spara block</Button></> : <>
+        {guided && step > 0 && <Button variant="outline" disabled={disabled} onClick={() => go(step - 1)}>Tillbaka</Button>}
+        {guided && step < 3 ? <Button disabled={disabled} onClick={() => { if (validate(step)) go(step + 1); }}>Nästa</Button> : <Button disabled={disabled} onClick={() => { if (validate()) onReview(); }}>Granska block</Button>}
+      </>}</div></div>
     </div>
-      {lockedOptions.includes(option.id) && <small>Ämne, nivå och språk hör till det sparade alternativet. Lägg till ett nytt alternativ för annat innehåll.</small>}
-      {draft.groups.filter(group => group.optionId === option.id).map(group => <div key={group.id} className="elective-card"><div className="elective-fields"><label>Gruppens namn<input value={group.name} onChange={event => onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, name: event.target.value } : value) })}/></label>
-        <label>Uppskattat elevantal<input type="number" min={0} max={1000} value={group.estimatedPupils ?? ''} onChange={event => onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, estimatedPupils: event.target.value === '' ? null : Number(event.target.value) } : value) })}/></label></div><fieldset><legend>Gruppens klasser</legend>{draft.sourceRefs.map(source => <label className="elective-check" key={source.sourceKey}><input type="checkbox" checked={group.sourceKeys.includes(source.sourceKey)} onChange={event => { const chosen = event.target.checked ? [...group.sourceKeys, source.sourceKey] : group.sourceKeys.filter(key => key !== source.sourceKey); onChange({ ...draft, groups: draft.groups.map(value => value.id === group.id ? { ...value, sourceKeys: chosen, classIds: draft.sourceRefs.filter(ref => chosen.includes(ref.sourceKey)).map(ref => ref.classId) } : value) }); }}/>{source.className} · {source.label}</label>)}</fieldset>{!group.classIds.length && <p>Välj minst en klass för gruppen.</p>}<Button type="button" variant="ghost" onClick={() => onChange({ ...draft, groups: draft.groups.filter(value => value.id !== group.id) })}>Ta bort grupp</Button></div>)}
-      <div className="elective-actions"><Button type="button" variant="outline" disabled={draft.sourceRefs.length === 0} onClick={() => onChange({ ...draft, groups: [...draft.groups, { id: newId(), optionId: option.id, name: `${option.name || `Alternativ ${index + 1}`} ${draft.groups.filter(group => group.optionId === option.id).length + 1}`,
-        startsOn: draft.startsOn, endsOn: draft.endsOn, classIds: [...new Set(draft.sourceRefs.map(source => source.classId))], sourceKeys: draft.sourceRefs.map(source => source.sourceKey), estimatedPupils: null }] })}>Lägg till grupp för alternativet</Button>
-        <Button type="button" variant="ghost" onClick={() => onChange({ ...draft, options: draft.options.filter(value => value.id !== option.id), groups: draft.groups.filter(value => value.optionId !== option.id) })}>Ta bort alternativet</Button></div>
-    </div>)}
-    <Button type="button" variant="outline" disabled={!draft.sourceRefs.length} onClick={() => onChange({ ...draft, options: [...draft.options, { id: newId(), name: '', subjectCode: '', levelCode: '', language: null, points: null }] })}>Lägg till alternativ</Button>
-  </fieldset>
-    {review && <p>{draft.options.length} alternativ och {draft.groups.length} grupper sparas med timplanens undervisningstid. Elevval och befintlig bemanning ändras inte av att spara blocket.</p>}
-    <div className="elective-actions"><Button variant="outline" disabled={disabled} onClick={onCancel}>Avbryt</Button>{review ? <><Button variant="outline" disabled={disabled} onClick={() => onChange(draft)}>Fortsätt redigera</Button><Button disabled={disabled} onClick={onSave}>Bekräfta och spara block</Button></>
-      : <Button disabled={disabled || !draft.name.trim() || !draft.options.length || !draft.groups.length || !draft.sourceRefs.length} onClick={onReview}>Granska block</Button>}</div>
-  </div>;
+  </section>;
 }
 
 type Send = (action: ElectiveCommand['action'], payload: ElectiveCommand['payload'], current?: ElectiveRead | null) => Promise<ElectiveRead | null>;

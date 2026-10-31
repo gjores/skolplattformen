@@ -43,3 +43,26 @@
 .elective-workspace input[type="radio"], .elective-workspace input[type="checkbox"] { appearance: auto; -webkit-appearance: auto; display: inline-block; width: 1.125rem; height: 1.125rem; min-width: 1.125rem; min-height: 1.125rem; accent-color: #475fe8; }
 
 .elective-card{overflow-wrap:anywhere}.elective-check{min-height:44px}.tjanst-group-workspace{margin-top:16px}
+
+/* En arbetsyta med avdelare; grupper ligger skilda från alternativens inmatning. */
+.elective-editor{display:grid;gap:1rem;min-width:0;background:var(--card,#fff);padding:1rem;border:1px solid var(--border,#dfe5ee);border-radius:.75rem}
+.elective-workspace .elective-editor-fields,.elective-editor-fields fieldset{border:0;padding:0;border-radius:0;gap:1rem}
+.elective-editor-section,.elective-option-editor,.elective-group-set,.elective-group-editor,.elective-review{display:grid;gap:.875rem;min-width:0}
+.elective-editor-section+.elective-editor-section,.elective-option-editor+.elective-option-editor,.elective-group-editor+.elective-group-editor{border-top:1px solid var(--border,#dfe5ee);padding-top:1rem;margin-top:.5rem}
+.elective-option-editor>.elective-fields{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.elective-group-editor{padding:.5rem 0}.elective-group-editor>button,.elective-option-editor>button,.elective-group-set>button{justify-self:start}
+.elective-field-error{color:#9d3026;font-size:.875rem}.elective-editor [aria-invalid="true"]{border-color:#b04435!important}
+.elective-steps{display:flex;gap:.5rem;flex-wrap:wrap;border-bottom:1px solid var(--border,#dfe5ee);padding-bottom:.75rem}
+.elective-steps button{display:flex;gap:.375rem;align-items:center;min-height:44px;padding:.375rem .5rem;border-radius:.375rem;color:var(--muted-foreground,#61718a)}
+.elective-steps button span{display:grid;place-items:center;width:1.5rem;height:1.5rem;background:#edf0f5;border-radius:50%}.elective-steps [aria-current="step"]{color:#314ecb;font-weight:600;background:#f0f3ff}.elective-steps [aria-current="step"] span{background:#3f56db;color:#fff}
+.elective-editor-footer{position:sticky;bottom:0;background:var(--card,#fff);border-top:1px solid var(--border,#dfe5ee);padding:.875rem 0 .25rem;z-index:5;display:grid;gap:.625rem;max-height:45vh;overflow-y:auto}
+.elective-editor-footer ul{padding-left:1.25rem;margin:.25rem 0}.elective-editor-footer li button{text-align:left;text-decoration:underline;min-height:36px}.elective-editor-footer .elective-error{max-height:25vh;overflow:auto}
+.elective-catalog-picker{display:grid;gap:.375rem;min-width:0}.elective-catalog-popup{max-width:min(42rem,calc(100vw - 2rem));overflow-wrap:anywhere}.elective-catalog-popup [role="option"]{min-height:44px}
+.elective-editor h2:focus,.elective-editor fieldset:focus{outline:2px solid #475fe8;outline-offset:4px}
+@media(max-width:760px){.elective-option-editor>.elective-fields{grid-template-columns:minmax(0,1fr)}.elective-steps{gap:.125rem}.elective-steps button{font-size:.8rem;padding:.25rem}.elective-editor{padding:.875rem}.elective-editor-footer>.elective-actions{justify-content:space-between}.elective-editor-footer .elective-actions>button{flex-grow:0}}
+
+.elective-fields{align-items:start}
+.elective-catalog-picker [data-slot="input-group"]{width:100%;height:auto;min-height:44px}
+.elective-workspace .elective-catalog-picker [data-slot="input-group"] input{border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0}
+.elective-workspace .elective-catalog-picker [data-slot="input-group"] input:focus-visible{outline:none}
+.elective-catalog-picker [data-slot="input-group"]:focus-within{outline:2px solid #475fe8;outline-offset:2px}

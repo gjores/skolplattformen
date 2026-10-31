@@ -40,12 +40,14 @@ Varje tidsutrymme har ett eget block och ett eget val. Ett gemensamt val av två
 
 ## Skapa alternativ och grupper
 
-1. Välj **Lägg till valbart block** och fyll i **Blockets namn** och **Typ av valbart block**. Gymnasiet har **Moderna språk**, **Individuellt val** och **Programfördjupning** när timplansramen stöder det. För grundskolan används de tillgängliga ramarna för **Språkval** och **Skolans val**.
+1. Välj **Lägg till valbart block** och följ de fyra stegen: **Block**, **Klasser och tid**, **Alternativ** och **Grupper**. Börja med **Typ av valbart block** och **Blockets namn**. Gymnasiet har **Moderna språk**, **Individuellt val** och **Programfördjupning** när timplansramen stöder det. För grundskolan används de tillgängliga ramarna för **Språkval** och **Skolans val**.
 2. Markera **Timplansram och berörda klasser**. Detta är blockets gemensamma klassurval. En upptagen ram märks med vilket block som använder den.
-3. Lägg till alternativ med tydliga namn och välj konkret **Ämne och nivå** samt **Språk** där det behövs. Listan utgår från timplansramen.
-4. Välj **Lägg till grupp för alternativet**. Ange **Gruppens namn** och vid behov **Uppskattat elevantal**. Kontrollera **Gruppens klasser** för varje grupp; den behöver inte omfatta alla klasser i blocket. Flera grupper kan höra till samma alternativ.
+3. Lägg till ett alternativ och sök i **Ämne, kurs eller nivå** med ämnesnamn, språk eller kod. Välj en träff ur den inlästa Skolverketskatalogen. Bara innehåll som ryms i de valda klassernas timplansram visas. Språk och ett namnförslag fylls i; justera därefter **Alternativets namn** om du vill. Ett eget namn ersätter inte valet av utbildningsinnehåll.
+4. En första grupp skapas när du väljer innehåll. I **Grupper** justerar du **Gruppens namn** och vid behov **Uppskattat elevantal**. Öppna **Klasser** för att ändra vilka klasser gruppen omfattar. Använd **Lägg till grupp för alternativet** för fler grupper. Gemensamma grupper behöver samma undervisningstid; klasser med olika tid kan läggas i separata grupper.
 5. Välj **Granska block**, kontrollera alternativen och grupperna och välj **Bekräfta och spara block**.
 6. Välj **Använd i tjänstefördelningen**. När grupperna är tillämpade visas *Grupprader finns i tjänsteunderlaget*.
+
+**Visa allt på en sida** ger samlad redigering. Befintliga block öppnas i den vyn. Du kan växla till **Visa steg för steg** utan att tappa utkastet. Fältfel markeras vid uppgiften som behöver rättas, och sammanfattningen nära knapparna leder dit. Vid serverfel kan **Hämta aktuellt underlag** användas utan att namnen försvinner. Saknas timplanstid kan du öppna timplanens tidsutrymmen i en ny flik och sedan hämta underlaget igen; utkastet behålls i den första fliken. Om någon annan har ändrat samma sparade block behöver det öppnas på nytt; den versionen skrivs inte över med det gamla utkastet.
 
 Använd ett nytt alternativ för annat utbildningsinnehåll. Ett redan sparat alternativs ämne, nivå, språk och poäng kan inte bytas ut genom att ändra namnet. Ett namnbyte ändrar inte kursens innehåll.
 
