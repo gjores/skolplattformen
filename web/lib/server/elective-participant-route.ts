@@ -1,3 +1,4 @@
+import {electiveShape} from '../elective-block-contract.ts';
 import { parseParticipantAuthority, parseParticipantScope, parseSelfIndex, type ParticipantAuthority, type ParticipantScope } from '../elective-self-contract.ts';
 import { AuditUnavailable, denyResponse, requireSameOrigin } from './authz.ts';
 import { Deny, withLoginPhase, type SessionContext, type Tx } from './db.ts';
@@ -57,7 +58,7 @@ export async function participantIndexRoute(request:Request):Promise<Response>{
  try{const live=await authenticate(request,corr),ctx=context(request,corr,live,null);hint=ctx;
   const result=await withLoginPhase(corr,async tx=>{
    const raw=one(await electiveAuthorityOperation(()=>tx<{result:unknown}[]>`select public.elective_participant_contexts(${live.session.id},${live.session.identityId},${live.hex},${live.epoch}) result`));
-   let body;try{body=parseSelfIndex(raw);if(body.epoch!==live.epoch)throw new Error('epoch');}catch{throw new AuditUnavailable();}
+   let body;try{body=parseSelfIndex({...electiveShape(raw,['contractVersion','epoch','participants']),identityReference:live.session.identityId});if(body.epoch!==live.epoch)throw new Error('epoch');}catch{throw new AuditUnavailable();}
    try{await logEvent(tx,ctx,{action:'elective_self_contexts_read',objectType:'elective_participant',outcome:'ok',details:{count:body.participants.length}});}catch{throw new AuditUnavailable();}await touch(tx,live);return body;
   });return json(result,{correlationId:corr,epoch:live.epoch});
  }catch(error){return denyResponse(error,request,corr,'elective_self_contexts_read',hint);}

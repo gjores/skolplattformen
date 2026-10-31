@@ -50,7 +50,7 @@ export type ElectiveCommand = ElectiveBaseCommand & (
   | { action: 'record_choice'; payload: { roundId: string; pupilId: string; offeringRevision: number; expectedChoiceRevision: number | null; selectedOptionIds: string[] } }
   | { action: 'confirm_choice'; payload: { choiceId: string; expectedChoiceRevision: number } }
   | { action: 'save_placement'; payload: { placementId: string; choiceId: string; expectedChoiceRevision: number; groupId: string;
-      startsOn: string; endsOn: string | null; previousPlacementId: string | null } }
+      startsOn: string; endsOn: string | null; previousPlacementId: string | null; expectedBasisHash: string } }
   | { action: 'end_placement'; payload: { placementId: string; expectedPlacementRevision: number; endsOn: string } }
 );
 export type ElectiveCommandRef = ElectiveScope & { commandId: string; action: ElectiveCommand['action']; payloadHash: string };
@@ -136,7 +136,7 @@ export function parseElectiveGroupDraft(value:unknown):ElectiveGroupDraft{
 function groupFromRead(value:unknown):ElectiveGroup{
   const r=electiveShape(value,['id','optionId','name','startsOn','endsOn','classIds','sourceKeys','estimatedPupils','memberCount','membershipRevision']);
   const {memberCount,membershipRevision,...draft}=r;
-  return {...parseElectiveGroupDraft(draft),memberCount:nullable(memberCount,v=>electiveInteger(v,0,10000)),membershipRevision:revision(membershipRevision)};
+  return {...parseElectiveGroupDraft(draft),memberCount:nullable(memberCount,v=>electiveInteger(v,0,10000)),membershipRevision:electiveInteger(membershipRevision,0)};
 }
 export function parseElectiveBlockDraft(value:unknown):ElectiveBlockDraft{
   const r=electiveShape(value,['id','kind','name','startsOn','endsOn','sourceRefs','options','groups']);
@@ -193,7 +193,7 @@ export function parseElectiveCommand(value:unknown):ElectiveCommand{
     case 'close_round':{const p=electiveShape(r.payload,['roundId','expectedRoundRevision']);return {...base,action,payload:{roundId:electiveUuid(p.roundId),expectedRoundRevision:revision(p.expectedRoundRevision)}};}
     case 'record_choice':{const p=electiveShape(r.payload,['roundId','pupilId','offeringRevision','expectedChoiceRevision','selectedOptionIds']);return {...base,action,payload:{roundId:electiveUuid(p.roundId),pupilId:electiveUuid(p.pupilId),offeringRevision:revision(p.offeringRevision),expectedChoiceRevision:nullable(p.expectedChoiceRevision,revision),selectedOptionIds:electiveIds(p.selectedOptionIds,100)}};}
     case 'confirm_choice':{const p=electiveShape(r.payload,['choiceId','expectedChoiceRevision']);return {...base,action,payload:{choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision)}};}
-    case 'save_placement':{const p=electiveShape(r.payload,['placementId','choiceId','expectedChoiceRevision','groupId','startsOn','endsOn','previousPlacementId']),startsOn=electiveDate(p.startsOn),endsOn=nullable(p.endsOn,electiveDate);period(startsOn,endsOn);return {...base,action,payload:{placementId:electiveUuid(p.placementId),choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision),groupId:electiveUuid(p.groupId),startsOn,endsOn,previousPlacementId:nullable(p.previousPlacementId,electiveUuid)}};}
+    case 'save_placement':{const p=electiveShape(r.payload,['placementId','choiceId','expectedChoiceRevision','groupId','startsOn','endsOn','previousPlacementId','expectedBasisHash']),startsOn=electiveDate(p.startsOn),endsOn=nullable(p.endsOn,electiveDate);period(startsOn,endsOn);return {...base,action,payload:{placementId:electiveUuid(p.placementId),choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision),groupId:electiveUuid(p.groupId),startsOn,endsOn,previousPlacementId:nullable(p.previousPlacementId,electiveUuid),expectedBasisHash:parseElectiveBasisHash(p.expectedBasisHash)}};}
     case 'end_placement':{const p=electiveShape(r.payload,['placementId','expectedPlacementRevision','endsOn']);return {...base,action,payload:{placementId:electiveUuid(p.placementId),expectedPlacementRevision:revision(p.expectedPlacementRevision),endsOn:electiveDate(p.endsOn)}};}
   }
 }
@@ -225,3 +225,5 @@ export function canonicalElectiveJson(value:unknown):string{
   return electiveFail();
 }
 export async function electiveHash(value:unknown):Promise<string>{return (await tjanstHashCanonical(value)).slice('sha256:'.length);}
+
+export function parseElectiveBasisHash(value:unknown):string{if(typeof value!=='string'||!/^[a-f0-9]{64}$/u.test(value))electiveFail('elective_payload_hash');return value;}

@@ -1,0 +1,117 @@
+// Real private PostgreSQL, synthetic pupils. Never accepts a deployment DB URL.
+import assert from'node:assert/strict';
+import{randomUUID,createHash}from'node:crypto';import{readFileSync,writeFileSync}from'node:fs';import{fileURLToPath}from'node:url';
+import{createEphemeralMigratedDb,migrationFiles}from'./ephemeral-migrated-db.mjs';import{createTjanstFixture,seedGrimNeeds}from'./tjanst-fixtures.mjs';
+import{parseElectiveRead,parseElectiveCommand,createElectiveCommandRef,parseElectiveReceipt}from'../../web/lib/elective-block-contract.ts';
+import{createBindingCommandRef,parseBindingStatusReply}from'../../web/lib/elective-self-contract.ts';
+import{parsePlacementPreviewRequest,parsePlacementPreview}from'../../web/lib/elective-placement-contract.ts';
+const root=fileURLToPath(new URL('../../',import.meta.url));
+const files=['20261030110000_elective_blocks.sql','20261030111000_elective_participant_authority.sql','20261030111500_elective_timplan_positions.sql','20261030112000_elective_tjanst_sources.sql','20261030113000_elective_rounds_choices.sql','20261030114000_elective_guardian_confirmation.sql','20261030115000_elective_placements.sql','20261030115100_elective_binding_recovery_reference.sql','20261030115200_elective_frame_exclusivity.sql'];
+const report={kind:'ephemeral-elective-placement-sql',checks:[],sources:Object.fromEntries(files.map(f=>[f,createHash('sha256').update(readFileSync(root+'supabase/migrations/'+f)).digest('hex')]))};
+const pass=name=>{report.checks.push({name,ok:true});console.log('PASS '+name);};
+const env=await createEphemeralMigratedDb({exclude:migrationFiles().filter(f=>f.startsWith('20261030'))});
+try{const db=env.db;for(const name of files)await db.unsafe(readFileSync(root+'supabase/migrations/'+name,'utf8'));pass('actual placement migration chain');
+ let f,source,sourceOther,schoolChoiceSource;await db.begin(async t=>{f=await createTjanstFixture(t);const gr=await seedGrimNeeds(t,f);await t`set local session_replication_role=replica`;await t`insert into public.timplan_cells(timplan_id,row_id,hours) values(${gr.grPlan},'sprakval',${[100,100,100]}::smallint[]),(${gr.grPlan},'skolansval',${[30,30,30]}::smallint[])`;await t`set local session_replication_role=origin`;await f.actor(t,'principalA');await t`select public.phase51_grim_class_command(${t.json({action:'link',commandId:randomUUID(),classId:f.classes.other,planId:gr.grPlan,expectedPlanRevision:0,columnId:'ak8',expectedLinkRevision:null,previousPlanId:null})})`;const all=(await t`select public.elective_sources(${f.schools.A},2026) value`)[0].value;source=all.find(x=>x.classId===f.classes.group&&x.blockKind==='languageChoice');sourceOther=all.find(x=>x.classId===f.classes.other&&x.blockKind==='languageChoice');schoolChoiceSource=all.find(x=>x.classId===f.classes.group&&x.blockKind==='schoolChoice');});
+ const scope={unitId:f.schools.A,schoolYear:2026},pupil=f.pupils.inGroup,pupil2=f.pupils.inGroup2;
+ const worker=(role,fn)=>db.begin(async t=>{await f.actor(t,role);await t`set local role skolplattform_worker`;return fn(t);});
+ const read=()=>worker('principalA',async t=>parseElectiveRead((await t`select public.elective_block_read(${t.json(scope)}) result`)[0].result.result,scope));
+ const send=q=>worker('principalA',async t=>parseElectiveReceipt((await t`select public.elective_block_command(${t.json(q)}) result`)[0].result.result,await createElectiveCommandRef(q)));
+ const make=async(action,payload)=>parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:(await read()).revision,action,payload});
+ const staff=async(action,payload)=>send(await make(action,payload));
+ const deny=async(name,fn,codes)=>{let e;try{await fn();}catch(error){e=error;}assert.ok(e,name+' must fail');assert.ok(codes.includes(e.code),name+': '+e.code+' '+e.message);pass(name);};
+ const blockId=randomUUID(),fr=randomUUID(),es=randomUUID(),fr1=randomUUID(),fr2=randomUUID(),es1=randomUUID();
+ const block={id:blockId,kind:'languageChoice',name:'Språkval',startsOn:'2026-07-01',endsOn:'2027-06-30',sourceRefs:[source,sourceOther],options:[{id:fr,name:'Franska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'fr',points:null},{id:es,name:'Spanska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'es',points:null}],groups:[fr1,fr2,es1].map((id,i)=>({id,optionId:i===2?es:fr,name:i===2?'Spanska':'Franska '+i,startsOn:'2026-07-01',endsOn:'2027-06-30',classIds:[source.classId,sourceOther.classId],sourceKeys:[source.sourceKey,sourceOther.sourceKey],estimatedPupils:null}))};
+ await staff('save_block',{expectedBlockRevision:null,block});await staff('set_policy',{guardianConfirmation:false});
+ const roundId=randomUUID();await staff('open_round',{roundId,blockId,expectedBlockRevision:1,opensAt:new Date(Date.now()-60000).toISOString(),closesAt:new Date(Date.now()+86400000).toISOString(),minChoices:1,maxChoices:1,pupilIds:[pupil,pupil2,f.pupils.outside]});
+ const record=async(p,option,revision=null)=>{await staff('record_choice',{roundId,pupilId:p,offeringRevision:1,expectedChoiceRevision:revision,selectedOptionIds:[option]});return(await read()).choices.find(c=>c.pupilId===p);};
+ let choice=await record(pupil,fr),choice2=await record(pupil2,es);
+ const request=async(c,g,extra={})=>parsePlacementPreviewRequest({...scope,expectedRevision:(await read()).revision,payload:{placementId:randomUUID(),choiceId:c.id,expectedChoiceRevision:c.revision,groupId:g,startsOn:'2026-11-01',endsOn:null,previousPlacementId:null,...extra}});
+ const preview=(q,role='principalA')=>worker(role,async t=>parsePlacementPreview((await t`select public.elective_placement_preview(${t.json(q)}) result`)[0].result.result,q));
+ const apply=async(q,review)=>send(parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:q.expectedRevision,action:'save_placement',payload:{...q.payload,expectedBasisHash:review.basisHash}}));
+ let q=await request(choice,fr1),review=await preview(q);assert.equal(review.allowed,false);assert.ok(review.issues.includes('choice_not_confirmed'));pass('preview distinguishes requested choice from school confirmation');
+ await staff('confirm_choice',{choiceId:choice.id,expectedChoiceRevision:1});await staff('confirm_choice',{choiceId:choice2.id,expectedChoiceRevision:1});
+ q=await request(choice,fr1);review=await preview(q);assert.equal(review.allowed,true);assert.equal(review.period.endsOn,'2027-06-30');assert.equal(review.pupil.id,pupil);pass('review shows exact known school/class/group periods');
+ await deny('different school principal cannot review pupil facts',()=>preview(q,'principalB'),['42501']);
+ await deny('teacher cannot review administrative pupil facts',()=>preview(q,'teacherGroup'),['42501']);
+ const invalid=await preview(await request(choice,fr1,{startsOn:'2026-06-30'}));assert.ok(invalid.issues.includes('outside_group_period'));pass('group period violation is visible before apply');
+ const originalPupil=(await db`select version from public.pupils where id=${pupil}`)[0].version;
+ await db`update public.pupils set version=version+1 where id=${pupil}`;
+ await deny('external pupil version change invalidates reviewed basis without school revision change',()=>apply(q,review),['40001']);
+ q=await request(choice,fr1);review=await preview(q);
+ await db.begin(async t=>{await t`set local session_replication_role=replica`;await t`update public.pupil_class_memberships set ends_on='2027-05-31' where pupil_id=${pupil}`;await t`set local session_replication_role=origin`;});
+ await deny('changed class period invalidates reviewed membership without elective revision change',()=>apply(q,review),['40001']);
+ const shortened=await preview(q);assert.ok(shortened.issues.includes('outside_pupil_class_period'));pass('review detects actual class period boundary');
+ await db.begin(async t=>{await t`set local session_replication_role=replica`;await t`update public.pupil_class_memberships set ends_on=null where pupil_id=${pupil}`;await t`set local session_replication_role=origin`;});
+ const classBefore=(await db`select to_jsonb(x) body from public.pupil_class_memberships x where pupil_id=${pupil}`).map(x=>x.body);
+ q=await request(choice,fr1);review=await preview(q);const command=parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:q.expectedRevision,action:'save_placement',payload:{...q.payload,expectedBasisHash:review.basisHash}});const receipt=await send(command),replay=await send(command);assert.equal(replay.replayed,true);assert.equal(replay.objectId,receipt.objectId);pass('reviewed membership writes once with durable idempotent receipt');
+ assert.deepEqual((await db`select to_jsonb(x) body from public.pupil_class_memberships x where pupil_id=${pupil}`).map(x=>x.body),classBefore);assert.ok(originalPupil>0);pass('group placement preserves authoritative administrative class');
+ assert.equal((await read()).placements.length,1);pass('staff projection contains authorized actual group membership');
+ const wrong=await preview(await request(choice,es1));assert.ok(wrong.issues.includes('option_not_selected'));pass('group must teach exact approved alternative');
+ const overlap=await preview(await request(choice,fr2));assert.ok(overlap.issues.includes('previous_placement_required'));pass('overlap requires explicit predecessor rather than implicit replacement');
+ const swap=await request(choice,fr2,{previousPlacementId:receipt.objectId});const swapReview=await preview(swap);assert.equal(swapReview.previous.operation,'cancel');await apply(swap,swapReview);
+ const old=(await db`select * from public.elective_placements where id=${receipt.objectId}`)[0];assert.ok(old.cancelled_at);assert.equal((await db`select count(*)::int n from public.elective_placement_history where placement_id=${old.id}`)[0].n,1);pass('future group change cancels planned old relation and preserves its immutable prior row');
+ const q2=await request(choice2,es1);await apply(q2,await preview(q2));const memberships=(await read()).placements;assert.equal(memberships.filter(x=>x.pupilId===pupil).length,1);assert.equal(memberships.find(x=>x.pupilId===pupil2).groupId,es1);pass('pupils in same administrative class join different chosen language groups');
+ const current=memberships.find(x=>x.pupilId===pupil),endQ=await make('end_placement',{placementId:current.id,expectedPlacementRevision:current.revision,endsOn:'2027-01-31'});await send(endQ);assert.equal((await read()).placements.find(x=>x.id===current.id).endsOn,'2027-01-31');pass('explicit end preserves dated membership history');
+ await deny('stale end revision cannot rewrite relation',()=>staff('end_placement',{placementId:current.id,expectedPlacementRevision:1,endsOn:'2026-12-31'}),['40001']);
+ const hash=async group=>(await db`select public.elective_group_membership(${group}) value`)[0].value;
+ const beforeHash=await hash(es1);assert.equal(beforeHash.memberCount,1);await staff('end_placement',{placementId:memberships.find(x=>x.pupilId===pupil2).id,expectedPlacementRevision:1,endsOn:'2026-12-31'});const afterHash=await hash(es1);assert.equal(afterHash.memberCount,1);assert.notEqual(afterHash.membershipHash,beforeHash.membershipHash);assert.ok(afterHash.membershipRevision>beforeHash.membershipRevision);pass('same pupil count with changed actual membership period changes content fingerprint');
+ await db`update public.pupils set protected_identity=true where id=${pupil}`;await deny('protected pupil cannot leak through placement preview without current permission',async()=>preview(await request(choice,fr1)),['42501']);assert.ok(!(await read()).placements.some(x=>x.pupilId===pupil));pass('protected membership projection follows same current pupil permission');
+ await db`update public.pupils set protected_identity=false where id=${pupil}`;
+ q=await request(choice,fr1,{startsOn:'2027-02-01'});review=await preview(q);assert.equal(review.allowed,true);
+ await db.unsafe(`create function public.elective_placement_audit_fault() returns trigger language plpgsql as $$begin if new.action='elective_command' then raise exception 'synthetic';end if;return new;end$$;create trigger elective_placement_audit_fault before insert on public.security_events for each row execute function public.elective_placement_audit_fault();`);
+ const n=(await db`select count(*)::int n from public.elective_placements`)[0].n;await deny('audit failure rolls back complete membership and counter change',()=>apply(q,review),['55000']);assert.equal((await db`select count(*)::int n from public.elective_placements`)[0].n,n);await db.unsafe('drop trigger elective_placement_audit_fault on public.security_events;drop function public.elective_placement_audit_fault()');
+
+ // Replace one planned pupil by another at a constant final count; a count-only hash would miss this.
+ const added=await apply(q,review);const beforeSwap=await hash(fr1);assert.equal(beforeSwap.memberCount,1);
+ const relocate=await request(choice,fr2,{startsOn:'2027-02-01',previousPlacementId:added.objectId});await apply(relocate,await preview(relocate));
+ choice2=await record(pupil2,fr,1);await staff('confirm_choice',{choiceId:choice2.id,expectedChoiceRevision:2});
+ const replacement=await request(choice2,fr1,{startsOn:'2027-02-01'});await apply(replacement,await preview(replacement));
+ const afterSwap=await hash(fr1);assert.equal(afterSwap.memberCount,beforeSwap.memberCount);assert.notEqual(afterSwap.membershipHash,beforeSwap.membershipHash);pass('different actual pupils with identical final pupil count change membership fingerprint');
+ // A student or guardian gets only this child's own dated group facts.
+ const identity=f.identity('teacherSelf'),bindingId=randomUUID(),sessionId=randomUUID(),token=createHash('sha256').update(randomUUID()).digest();
+ await db`insert into public.app_sessions(id,identity_id,token_hash,expires_at,absolute_expires_at) values(${sessionId},${identity},${token},clock_timestamp()+interval '1 hour',clock_timestamp()+interval '2 hours')`;
+ await worker('principalA',t=>t`select public.elective_binding_command(${t.json({unitId:scope.unitId,pupilId:pupil,commandId:randomUUID(),expectedRevision:0,action:'save_binding',payload:{id:bindingId,identityId:identity,participant:'pupil',confirmationRequired:false,startsOn:'2026-07-01',endsOn:null,sourceReference:'synthetic-school-attestation'}})})`);
+ const own=await db.begin(async t=>{await t`set local role skolplattform_worker`;await t`select set_config('app.correlation_id',${randomUUID()},true)`;await t`select public.elective_participant_scope(${sessionId},${identity},${token.toString('hex')},1,${scope.unitId},${pupil},'pupil')`;return(await t`select public.elective_self_read() value`)[0].value;});
+ assert.ok(own.placements.length>0);assert.ok(own.placements.every(x=>x.groupId===fr2));assert.ok(!JSON.stringify(own.placements).includes(pupil2));pass('own participant projection contains only their dated noncancelled group memberships');
+ const deniedTable=()=>worker('principalA',t=>t`select * from public.elective_placements`);await deny('Worker cannot bypass scoped functions with direct pupil-group table read',deniedTable,['42501']);
+
+
+ const crossChoice=await record(f.pupils.outside,fr);await staff('confirm_choice',{choiceId:crossChoice.id,expectedChoiceRevision:1});
+ const cross=await request(crossChoice,fr2);await apply(cross,await preview(cross));assert.equal((await read()).placements.find(x=>x.pupilId===f.pupils.outside).groupId,fr2);pass('verified pupils from different source classes share one teaching group without class move');
+ const otherBlock=randomUUID(),otherOption=randomUUID(),otherGroup=randomUUID(),otherRound=randomUUID(),code=schoolChoiceSource.allowedOptionCodes.find(x=>x.startsWith('GRGRMA'));
+ assert.ok(code,'real schoolChoice catalogue subject');
+ await staff('save_block',{expectedBlockRevision:null,block:{id:otherBlock,kind:'schoolChoice',name:'Skolans val',startsOn:block.startsOn,endsOn:block.endsOn,sourceRefs:[schoolChoiceSource],options:[{id:otherOption,name:'Matematikverkstad',subjectCode:code,levelCode:code,language:null,points:null}],groups:[{id:otherGroup,optionId:otherOption,name:'Matematikverkstad A',startsOn:block.startsOn,endsOn:block.endsOn,classIds:[source.classId],sourceKeys:[schoolChoiceSource.sourceKey],estimatedPupils:null}]}});
+ await staff('open_round',{roundId:otherRound,blockId:otherBlock,expectedBlockRevision:1,opensAt:new Date(Date.now()-60000).toISOString(),closesAt:new Date(Date.now()+86400000).toISOString(),minChoices:1,maxChoices:1,pupilIds:[pupil]});
+ await staff('record_choice',{roundId:otherRound,pupilId:pupil,offeringRevision:1,expectedChoiceRevision:null,selectedOptionIds:[otherOption]});const otherChoice=(await read()).choices.find(x=>x.roundId===otherRound);await staff('confirm_choice',{choiceId:otherChoice.id,expectedChoiceRevision:1});
+ const otherRequest=await request(otherChoice,otherGroup);await apply(otherRequest,await preview(otherRequest));assert.ok((await read()).placements.filter(x=>x.pupilId===pupil).some(x=>x.groupId===otherGroup));assert.ok((await read()).placements.filter(x=>x.pupilId===pupil).some(x=>x.groupId===fr2));pass('one pupil keeps concurrent memberships in different real timplan choice areas');
+
+ const crossExisting=(await read()).placements.find(x=>x.pupilId===f.pupils.outside);
+ const concurrentRequest=await request(crossChoice,fr1,{previousPlacementId:crossExisting.id}),concurrentReview=await preview(concurrentRequest);
+ const concurrentPayload={...concurrentRequest.payload,expectedBasisHash:concurrentReview.basisHash};
+ const races=await Promise.allSettled([0,1].map(async()=>{const connection=env.connect();const command=parseElectiveCommand({...scope,expectedRevision:concurrentRequest.expectedRevision,commandId:randomUUID(),action:'save_placement',payload:concurrentPayload});return connection.begin(async t=>{await f.actor(t,'principalA');await t`set local role skolplattform_worker`;return t`select public.elective_block_command(${t.json(command)})`;});}));
+ assert.equal(races.filter(x=>x.status==='fulfilled').length,1);assert.equal(races.filter(x=>x.status==='rejected'&&x.reason.code==='40001').length,1);pass('two actual concurrent connections preserve one reviewed expected-revision membership update');
+ // Minimal recovery reference and live relationship revision, independent of the elective school CAS.
+ const guardianId=f.identity('teacherSelf2'),guardianBinding=randomUUID(),guardianSession=randomUUID(),guardianToken=createHash('sha256').update(randomUUID()).digest();
+ const bindCommand={unitId:scope.unitId,pupilId:pupil2,commandId:randomUUID(),expectedRevision:0,action:'save_binding',payload:{id:guardianBinding,identityId:guardianId,participant:'guardian',confirmationRequired:true,startsOn:'2026-07-01',endsOn:null,sourceReference:'synthetic-verified-relation'}};
+ await worker('principalA',t=>t`select public.elective_binding_command(${t.json(bindCommand)})`);
+ const ref=await createBindingCommandRef(bindCommand);assert.equal(Object.hasOwn(ref,'payload'),false);
+ const recovered=await worker('principalA',async t=>(await t`select public.elective_binding_status(${t.json(ref)}) value`)[0].value);assert.equal((await parseBindingStatusReply(recovered,ref,{identityId:f.identity('principalA'),assignmentId:f.roles.principalA})).status,'done');pass('minimal binding reference recovers exact original account-attestation command');
+ await deny('binding recovery rejects changed hash as conflict',()=>worker('principalA',t=>t`select public.elective_binding_status(${t.json({...ref,payloadHash:'0'.repeat(64)})})`),['40001']);
+ await deny('binding recovery rejects another authorized school actor',()=>worker('admin',t=>t`select public.elective_binding_status(${t.json(ref)})`),['40001']);
+ await staff('set_policy',{guardianConfirmation:true});
+ await db`insert into public.app_sessions(id,identity_id,token_hash,expires_at,absolute_expires_at) values(${guardianSession},${guardianId},${guardianToken},clock_timestamp()+interval '1 hour',clock_timestamp()+interval '2 hours')`;
+ await db.begin(async t=>{await t`set local role skolplattform_worker`;await t`select set_config('app.correlation_id',${randomUUID()},true)`;await t`select public.elective_participant_scope(${guardianSession},${guardianId},${guardianToken.toString('hex')},1,${scope.unitId},${pupil2},'guardian')`;
+ await t`select public.elective_self_command(${t.json({unitId:scope.unitId,pupilId:pupil2,participant:'guardian',expectedBindingRevision:1,commandId:randomUUID(),action:'confirm_guardian',payload:{choiceId:choice2.id,expectedChoiceRevision:2,offeringRevision:1,decision:'approve'}})})`;});
+ const existing=(await read()).placements.find(x=>x.pupilId===pupil2&&x.groupId===fr1);
+ const guarded=await request(choice2,fr2,{startsOn:'2027-02-01',previousPlacementId:existing.id}),guardedReview=await preview(guarded);assert.equal(guardedReview.allowed,true);
+ await worker('principalA',t=>t`select public.elective_binding_command(${t.json({unitId:scope.unitId,pupilId:pupil2,commandId:randomUUID(),expectedRevision:1,action:'revoke_binding',payload:{id:guardianBinding}})})`);
+ assert.equal((await read()).revision,guarded.expectedRevision);
+ await deny('guardian relationship revoked after preview invalidates apply without elective revision bump',()=>apply(guarded,guardedReview),['40001']);
+ assert.ok((await preview(guarded)).issues.includes('choice_not_confirmed'));pass('revoked required guardian relationship is an explicit placement blocker');
+
+ const historyBeforeTransfer=(await db`select count(*)::int n from public.elective_placements where pupil_id=${pupil}`)[0].n;
+ await db.begin(async t=>{await t`set local session_replication_role=replica`;await t`update public.pupil_class_memberships set ends_on=public.app_today()-1 where pupil_id=${pupil}`;await t`update public.pupil_placements set ends_on=public.app_today()-1 where pupil_id=${pupil}`;await t`set local session_replication_role=origin`;});
+ await deny('ended actual school placement revokes participant access despite stored future group membership',()=>db.begin(async t=>{await t`set local role skolplattform_worker`;await t`select public.elective_participant_scope(${sessionId},${identity},${token.toString('hex')},1,${scope.unitId},${pupil},'pupil')`;return t`select public.elective_self_read()`;}),['42501']);
+ assert.equal((await db`select count(*)::int n from public.elective_placements where pupil_id=${pupil}`)[0].n,historyBeforeTransfer);pass('loss of school placement preserves old dated group history without silently rebinding class');
+ report.provenance=env.provenance;report.pass=true;report.total=report.checks.length;writeFileSync('/private/tmp/elective-placement-sql.json',JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log('PASS '+report.total+' actual placement SQL checks');
+}finally{await env.end();}

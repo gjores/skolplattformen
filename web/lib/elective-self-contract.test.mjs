@@ -23,9 +23,9 @@ test('binding read and authority must match requested child and school',()=>{
 });
 test('own context index cannot contain duplicate bindings or unbounded information',()=>{
  const p={bindingId:id(4),...scope,schoolName:'Provskola',pupilName:'Prov Elev',participant:'guardian',bindingRevision:1,confirmationRequired:true};
- assert.equal(parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,participants:[p]}).participants[0].pupilName,'Prov Elev');
- assert.throws(()=>parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,participants:[p,p]}));
- assert.throws(()=>parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,participants:[{...p,personalNumber:'private'}]}));
+ assert.equal(parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,identityReference:id(4),participants:[p]}).participants[0].pupilName,'Prov Elev');
+ assert.throws(()=>parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,identityReference:id(4),participants:[p,p]}));
+ assert.throws(()=>parseSelfIndex({contractVersion:'elective_self_v1',epoch:1,identityReference:id(4),participants:[{...p,personalNumber:'private'}]}));
 });
 
 const {parseSelfRead,parseSelfCommand,createSelfCommandRef,parseSelfReceipt,parseSelfStatus}=await import('./elective-self-contract.ts');
@@ -49,4 +49,25 @@ test('self command action cannot be forged between pupil and guardian',async()=>
  assert.throws(()=>parseSelfReceipt({...receipt,bindingId:id(99)},ref,{identityId:id(5),bindingId:id(4)}));
  assert.throws(()=>parseSelfReceipt({...receipt,payloadHash:'0'.repeat(64)},ref));
  assert.equal(parseSelfStatus({...scope,participant:'pupil',commandId:ref.commandId,status:'not_found',receipt:null},ref).status,'not_found');
+});
+
+test('binding recovery persists only reference and verifies original actor/hash on receipt',async()=>{
+ const {createBindingCommandRef,parseBindingCommandRef,parseBindingStatusReply}=await import('./elective-self-contract.ts');
+ const ref=await createBindingCommandRef(command);assert.deepEqual(Object.keys(ref).sort(),['action','commandId','payloadHash','pupilId','unitId']);assert.deepEqual(parseBindingCommandRef(ref),ref);
+ assert.throws(()=>parseBindingCommandRef({...ref,payload:command.payload}));
+ const actor={identityId:id(8),assignmentId:id(9)},binding={...scope,...command.payload,revision:1,revokedAt:null,attestedByAssignmentId:id(9)};
+ const reply={status:'done',receipt:{commandId:command.commandId,...actor,bindingId:binding.id,bindingRevision:1,request:command},binding};
+ assert.equal((await parseBindingStatusReply(reply,ref,actor)).status,'done');
+ await assert.rejects(()=>parseBindingStatusReply(reply,{...ref,payloadHash:'0'.repeat(64)},actor));
+ await assert.rejects(()=>parseBindingStatusReply(reply,ref,{...actor,identityId:id(7)}));
+});
+
+test('kvittot kräver faktiskt sparad kontorelation och ny revision, inte bara korrekt requestecho',async()=>{
+ const{parseBindingReply}=await import('./elective-self-contract.ts');
+ const actor={identityId:id(8),assignmentId:id(9)},binding={...scope,...command.payload,revision:1,revokedAt:null,attestedByAssignmentId:id(9)};
+ const receipt={commandId:command.commandId,...actor,bindingId:binding.id,bindingRevision:1,request:command};
+ for(const patch of [{identityId:id(7)},{participant:'pupil',confirmationRequired:false},{sourceReference:'annan-källa'},{startsOn:'2026-10-02'},{endsOn:'2026-12-31'}])assert.throws(()=>parseBindingReply({status:'done',receipt,binding:{...binding,...patch}},command,actor));
+ assert.throws(()=>parseBindingReply({status:'done',receipt:{...receipt,bindingRevision:3},binding:{...binding,revision:3}},command,actor));
+ const revoke={...scope,commandId:id(11),expectedRevision:1,action:'revoke_binding',payload:{id:binding.id}};
+ assert.throws(()=>parseBindingReply({status:'done',receipt:{...receipt,commandId:revoke.commandId,bindingRevision:2,request:revoke},binding:{...binding,revision:2}},revoke,actor));
 });
