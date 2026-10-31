@@ -74,7 +74,7 @@ export function parseSelfOffer(v:unknown):SelfOffer{
  const startsOn=selfDate(r.startsOn),endsOn=selfDate(r.endsOn),blockKind=r.blockKind;
  if(endsOn<startsOn||typeof blockKind!=='string'||!ELECTIVE_BLOCK_KINDS.includes(blockKind as ElectiveBlockKind)||!['terms','even_split','weekly_calendar'].includes(String(r.needBasis)))bad();
  const options=list(r.options,parseElectiveOption,100);if(new Set(options.map(o=>o.id)).size!==options.length||options.length!==round.optionIds.length||options.some(o=>!round.optionIds.includes(o.id)))bad();
- return{round,blockName:selfText(r.blockName,160),blockKind:blockKind as ElectiveBlockKind,startsOn,endsOn,needHt:r.needHt===null?null:selfInt(r.needHt,0,10000000),needVt:r.needVt===null?null:selfInt(r.needVt,0,10000000),needBasis:r.needBasis as SelfOffer['needBasis'],options};
+ return{round,blockName:selfText(r.blockName,200),blockKind:blockKind as ElectiveBlockKind,startsOn,endsOn,needHt:r.needHt===null?null:selfInt(r.needHt,0,10000000),needVt:r.needVt===null?null:selfInt(r.needVt,0,10000000),needBasis:r.needBasis as SelfOffer['needBasis'],options};
 }
 export function parseSelfRead(v:unknown,expected:ParticipantScope&{bindingId?:string}):SelfRead{
  const r=selfObject(v,['contractVersion','epoch','participant','policy','offers','choices','confirmations','placements']);if(r.contractVersion!==ELECTIVE_SELF_VERSION)bad();
@@ -84,7 +84,7 @@ export function parseSelfRead(v:unknown,expected:ParticipantScope&{bindingId?:st
  if(new Set(offers.map(o=>o.round.id)).size!==offers.length||new Set(choices.map(c=>c.id)).size!==choices.length)bad();
  if(choices.some(c=>c.pupilId!==participant.pupilId||!offers.some(o=>o.round.id===c.roundId)))bad();
  if(confirmations.some(c=>c.bindingId!==participant.bindingId||!choices.some(x=>x.id===c.choiceId)))bad();
- const placements=list(r.placements,x=>{const p=selfObject(x,['groupId','groupName','optionId','startsOn','endsOn']);const startsOn=selfDate(p.startsOn),endsOn=p.endsOn===null?null:selfDate(p.endsOn);if(endsOn!==null&&endsOn<startsOn)bad();return{groupId:selfUuid(p.groupId),groupName:selfText(p.groupName,160),optionId:selfUuid(p.optionId),startsOn,endsOn};});
+ const placements=list(r.placements,x=>{const p=selfObject(x,['groupId','groupName','optionId','startsOn','endsOn']);const startsOn=selfDate(p.startsOn),endsOn=p.endsOn===null?null:selfDate(p.endsOn);if(endsOn!==null&&endsOn<startsOn)bad();return{groupId:selfUuid(p.groupId),groupName:selfText(p.groupName,200),optionId:selfUuid(p.optionId),startsOn,endsOn};});
  return{contractVersion:ELECTIVE_SELF_VERSION,epoch:selfInt(r.epoch),participant,policy,offers,choices,confirmations,placements};
 }
 export function parseSelfCommand(v:unknown):SelfCommand{

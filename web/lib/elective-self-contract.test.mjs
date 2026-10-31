@@ -71,3 +71,10 @@ test('kvittot kräver faktiskt sparad kontorelation och ny revision, inte bara k
  const revoke={...scope,commandId:id(11),expectedRevision:1,action:'revoke_binding',payload:{id:binding.id}};
  assert.throws(()=>parseBindingReply({status:'done',receipt:{...receipt,commandId:revoke.commandId,bindingRevision:2,request:revoke},binding:{...binding,revision:2}},revoke,actor));
 });
+
+test('domännamn161–200 accepteras även i egenläsningen,201 nekas',async()=>{
+ const{parseSelfOffer}=await import('./elective-self-contract.ts');
+ const offer={round:{id:id(40),blockId:id(41),blockRevision:1,revision:1,offeringRevision:1,policyRevision:1,guardianConfirmation:false,opensAt:'2026-10-01T00:00:00.000Z',closesAt:'2026-12-01T00:00:00.000Z',status:'open',minChoices:1,maxChoices:1,optionIds:[id(42)]},blockName:'B',blockKind:'languageChoice',startsOn:'2026-07-01',endsOn:'2027-06-30',needHt:100,needVt:100,needBasis:'even_split',options:[{id:id(42),name:'Franska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'fr',points:null}]};
+ for(const n of [161,200]){assert.equal(parseSelfOffer({...offer,blockName:'B'.repeat(n)}).blockName.length,n);const read=parseSelfRead({...ownRead,placements:[{groupId:id(43),optionId:id(42),groupName:'G'.repeat(n),startsOn:'2026-11-01',endsOn:'2027-06-30'}]},{...scope,participant:'pupil'});assert.equal(read.placements[0].groupName.length,n);}
+ assert.throws(()=>parseSelfOffer({...offer,blockName:'B'.repeat(201)}));assert.throws(()=>parseSelfRead({...ownRead,placements:[{groupId:id(43),optionId:id(42),groupName:'G'.repeat(201),startsOn:'2026-11-01',endsOn:'2027-06-30'}]},{...scope,participant:'pupil'}));
+});
