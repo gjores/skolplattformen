@@ -4,22 +4,25 @@ import { eid } from './fixtures/elective-data';
 import { createBindingCommandRef, type BindingCommand, type BindingReply } from '../lib/elective-self-contract';
 const FIXTURE = '/e2e/fixtures/elective-staff-tools.html';
 test.beforeEach(async({page})=>{await page.clock.install({time:new Date('2026-10-31T12:00:00.000Z')});});
-async function mock(page: Page, mode: 'normal' | 'lost' | 'wrong' | 'denied' | 'conflict' | 'epoch' = 'normal') {
-  const writes: BindingCommand[] = [], calls: string[] = []; let result: BindingReply | null = null;
+async function mock(page: Page, mode: 'normal' | 'lost' | 'wrong' | 'denied' | 'conflict' | 'epoch' | 'lost-status-503' | 'lost-status-mfa' = 'normal') {
+  const writes: BindingCommand[] = [], calls: string[] = []; let result: BindingReply | null = null, statusReadFailure = false;
   await page.route('**/api/**', async route => {
     const path = new URL(route.request().url()).pathname; calls.push(path);
     const input = route.request().postDataJSON();
     if (mode === 'denied') return route.fulfill({ status: 403, json: { code: 'forbidden' } });
-    if (path.endsWith('/lasa')) return route.fulfill({ headers: { 'X-Context-Epoch': '7' }, json: { contractVersion: 'elective_binding_v1', unitId: input.unitId, pupilId: input.pupilId, bindings: result ? [result.binding] : [] } });
+    if (path.endsWith('/lasa')) {
+      if (statusReadFailure) { statusReadFailure = false; return route.fulfill({ status: mode === 'lost-status-mfa' ? 403 : 503, json: { code: mode === 'lost-status-mfa' ? 'mfa_required' : 'db_unreachable' } }); }
+      return route.fulfill({ headers: { 'X-Context-Epoch': '7' }, json: { contractVersion: 'elective_binding_v1', unitId: input.unitId, pupilId: input.pupilId, bindings: result ? [result.binding] : [] } });
+    }
     if (path.endsWith('/kommando')) {
       if (mode === 'conflict') return route.fulfill({ status: 409, json: { code: 'conflict' } });
       writes.push(input);
       const binding = input.action === 'save_binding' ? { unitId: input.unitId, pupilId: input.pupilId, ...input.payload, revision: input.expectedRevision + 1, revokedAt: null, attestedByAssignmentId: eid(91) } : { ...result!.binding, revision: input.expectedRevision + 1, revokedAt: '2026-10-31T12:00:00.000Z' };
       result = { status: 'done', receipt: { commandId: input.commandId, identityId: eid(90), assignmentId: eid(91), bindingId: input.payload.id, bindingRevision: input.expectedRevision + 1, request: input }, binding };
-      if (mode === 'lost') return route.abort();
+      if (mode === 'lost' || mode.startsWith('lost-status-')) return route.abort();
       return route.fulfill({ headers: { 'X-Context-Epoch': mode === 'epoch' ? '8' : '7' }, json: mode === 'wrong' ? { ...result, receipt: { ...result.receipt, commandId: eid(98) } } : result });
     }
-    if (path.endsWith('/status') && result) { expect(input).toEqual(await createBindingCommandRef(writes[0])); return route.fulfill({ json: result }); }
+    if (path.endsWith('/status') && result) { expect(input).toEqual(await createBindingCommandRef(writes[0])); statusReadFailure = mode.startsWith('lost-status-'); return route.fulfill({ json: result }); }
     throw Error(`Unexpected synthetic path: ${path}`);
   });
   return { writes, calls };
@@ -58,6 +61,24 @@ test('tappat kopplingssvar återhämtas med minimal referens efter reload utan n
   page.once('dialog', dialog => dialog.accept()); await page.reload();
   await page.getByRole('button', { name: 'Kontrollera sparstatus', exact: true }).click();
   await expect(page.getByText('Kontokopplingen är sparad.', { exact: true })).toBeVisible(); expect(m.writes).toHaveLength(1);
+});
+for (const mode of ['lost-status-503', 'lost-status-mfa'] as const) test(`verifierat statuskvitto behålls när efterläsningen ger ${mode === 'lost-status-mfa' ? '403 MFA' : '503'} och listan kan hämtas igen`, async ({ page }) => {
+  const m = await mock(page, mode); await page.goto(FIXTURE); await bindingForm(page);
+  await page.getByRole('checkbox', { name: /^Skolan har kontrollerat/ }).check();
+  await page.getByRole('button', { name: 'Spara kontokoppling', exact: true }).click();
+  await page.getByRole('button', { name: 'Kontrollera sparstatus', exact: true }).click();
+  await expect(page.getByText('Kontokopplingen är sparad.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Kontrollera sparstatus', exact: true })).toHaveCount(0);
+  await expect(page.getByText('Sessionen är låst', { exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Lägg till kontokoppling', exact: true })).toHaveCount(0);
+  if (mode === 'lost-status-mfa') await expect(page.getByRole('button', { name: 'Verifiera med engångskod', exact: true })).toBeVisible();
+  else await expect(page.getByRole('alert')).toHaveText('Kontokopplingen är sparad, men listan kunde inte läsas. Hämta kontokopplingarna igen.');
+  await page.getByRole('button', { name: 'Hämta kontokopplingar', exact: true }).click();
+  await expect(page.getByText('Vårdnadshavarkonto', { exact: true })).toBeVisible();
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Verifiera med engångskod', exact: true })).toHaveCount(0);
+  expect(m.writes).toHaveLength(1);
+  expect(m.calls.filter(path => path.endsWith('/status'))).toHaveLength(1);
 });
 test('felaktigt kvitto ger inget sparbesked och nekat mandat rensar vyn', async ({ page }) => {
   const m = await mock(page, 'wrong'); await page.goto(FIXTURE); await bindingForm(page);
