@@ -753,7 +753,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 05.1. Tjänstefördelning (INSERTED) | 41/41 skrivna PLAN-filer genomförda | In progress — årsetapp 14–25 och senare26–41 genomförda; 3012 kör 785b4ff. Plan 41: faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS, geometriavgränsning redovisad. Elva UX-punkter klara, fem kvar. Nytt användarprov av plan 41 möjligt; samlad fas-/kravacceptans fortsatt öppen | - |
 | 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/17 | Planned — 17 planer 2026-10-30; våg 1–4 utan migration, grind D-17 före plan 06 | - |
-| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | VB 14/14; motor TBD | VB installerat; motor ej startad | - |
+| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | VB 15/15; motor TBD | VB installerat; motor ej startad | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Nuläge granskat; planutkast | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
 | 05.5. Interkommunal ersättning (INSERTED) | 0/TBD | Not started | - |
@@ -803,3 +803,5 @@ Användaren har beställt planering, genomförande, ordentlig verifiering och lo
 **Slutstatus valbara block2026-10-31:** VB01–11 inkl02B/03B lokalt genomförda och installerade på3012, mänskligt användarprov återstår. Faktisk B2 54/54,66 UI,946Node,14SQL och bevarande av120 gamla tabeller. R7/defaultprivilegier åtgärdat i157; B1 ersatt som slutbevis. Se [VB11](phases/05.2-schemamodul/05.2-VB-11-SUMMARY.md) och [VB-UAT](phases/05.2-schemamodul/05.2-VB-UAT.md). Schemaläggningens motor och övriga klasslivscykeln kvarstår.
 
 **UX-tillägg31 oktober:** VB12 genomfört och lokalt installerat: vägledda delsteg/samlad vy, sökning i inläst Skolverketskatalog, ämne före namn, plattare struktur och lokala fel med fokus/återhämtning.60 UI-prov,22 riktade omprov samt kod-/handboksbyggen PASS. Ingen ny datamigration. Mänskligt prov återstår.
+
+**Rättning31 oktober — VB13:** Användaren har valt två separata kursval. En200-poängsram får nu rättningsväg till befintlig uttrycklig tidsfördelning före den annars tomma språksökningen, med blockutkastet kvar. Installerad kod17f0106 på3012;78 UI/946Node/typ/lint/byggen och efterkontroll PASS. Ingen automatisk ändring av målets timplan eller SQL. [Resultat](phases/05.2-schemamodul/05.2-VB-13-SUMMARY.md). Mänskligt prov återstår.

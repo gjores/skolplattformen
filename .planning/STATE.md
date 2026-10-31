@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB12 levererat: användaren provar guidat flöde, katalogsökning och lokala fel på3012"
+current_plan: "VB13 levererat: två separata kursval med delningsväg före tom katalogsökning på3012"
 status: ready_for_verification
-stopped_at: "VB12 koduppdatering installerad på3012,60 UI/22 omprov/946Node/byggen gröna. Inga nya SQL eller testdata. Mänskligt användarprov återstår."
+stopped_at: "VB13 koduppdatering installerad på3012,78 UI/946Node/byggen gröna. Inga nya SQL eller testdata. Mänskligt användarprov återstår."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "Användarens browseranteckningar åtgärdade iVB12. Nytt guidat flöde/sökbart ämnesval/lokala rättningsbara fel testade och installerade på3012. B2 kvar som backendbevis."
-state_head: 531a2b2
+last_activity_desc: "VB13 rättar den tomma sökningen vid200-poängsram med uttrycklig tidsdelning. Användaren har valt två separata kursval. Installerat på3012; B2 kvar som backendbevis."
+state_head: 17f0106
 progress:
   total_phases: 8
   completed_phases: 3
@@ -17,14 +17,16 @@ progress:
   completed_plans: 94
 verification_worker_build_revision: 8ae6c6b2b6f7a29d97b3179538eef4c523eb9a7b
 verification_worker_status: pass_vb_b2_actual54_install_afterproof
-worker_status: elective_blocks_vb12_code_only_afterproof_pass
-worker_build_revision: 531a2b2957182bc04750ef62e260cc34278b9689
-verification_ui_build_revision: 531a2b2957182bc04750ef62e260cc34278b9689
-verification_ui_status: vb12_component60_targeted22_code_only_afterproof_pass
+worker_status: elective_blocks_vb13_code_only_afterproof_pass
+worker_build_revision: 17f0106338a82d9d7384620bb013a6be1732e216
+verification_ui_build_revision: 17f0106338a82d9d7384620bb013a6be1732e216
+verification_ui_status: vb13_component78_code_only_afterproof_pass
 milestone_name: milestone
 ---
 
-**Senare UX-uppdatering2026-10-31:** [VB12](phases/05.2-schemamodul/05.2-VB-12-SUMMARY.md) installerad på3012 enligt browseranteckningarna. Kodrevision531a2b2; inga nya SQL.60 UI-prov och22 riktade omprov gröna. Användaren provar nästa; schemamotor är inte genomförd.
+**Senaste rättning2026-10-31:** [VB13](phases/05.2-schemamodul/05.2-VB-13-SUMMARY.md) installerad på3012, kod17f0106. En200-poängsram får en tydlig delningsväg före katalogsökningen. Två separata kursval enligt användarens svar; inga timplansdata ändras automatiskt.78 UI/946Node/typ/lint/byggen och lokal efterkontroll PASS. Mänskligt prov återstår.
+
+**Historik — UX-uppdatering2026-10-31:** [VB12](phases/05.2-schemamodul/05.2-VB-12-SUMMARY.md) installerad på3012 enligt browseranteckningarna. Kodrevision531a2b2; inga nya SQL.60 UI-prov och22 riktade omprov gröna. Användaren provar nästa; schemamotor är inte genomförd.
 
 **Aktuellt2026-10-31:** Valbara block01–11 inklusive02B/03B genomförda och maskinverifierade,14SQL och samma frysta B2-artefakt installerade på3012. [Leverans/återställningsgränser](phases/05.2-schemamodul/05.2-VB-11-SUMMARY.md), [användarprov](phases/05.2-schemamodul/05.2-VB-UAT.md). Mänskligt godkännande återstår. Schemat och återstående klassorganisation är inte därmed levererade. Formella ursprungliga milstolperäknare är historiska.
 
