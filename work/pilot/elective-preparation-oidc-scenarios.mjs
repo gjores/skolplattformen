@@ -40,7 +40,7 @@ export async function runElectivePreparationOidcScenarios({ snapshot, runtime, s
   const scope = { unitId: seed.gy.unitId, planId: linkRow.timplan_id, schoolYear: year, columnId: linkRow.column_id };
   assert.equal(scope.columnId, 'ar1');
   const parent = async () => (await db`select jsonb_build_object('plan',(select to_jsonb(x) from public.timplans x where id=${scope.planId}), 'time',(select jsonb_agg(to_jsonb(x) order by row_key) from public.timplan_time_cells_v2 x where plan_id=${scope.planId})) value`)[0].value;
-  const originalParent = await parent(), originalLinks = (await db`select coalesce(jsonb_agg(to_jsonb(x) order by class_id,start_year),'[]') value from public.class_timplans x`)[0].value;
+  const originalParent = await parent(); let originalLinks = (await db`select coalesce(jsonb_agg(to_jsonb(x) order by class_id,start_year),'[]') value from public.class_timplans x`)[0].value;
   assert.equal(originalParent.plan.status, 'faststalld');
   let removedLink = false;
   const restoreLink = async () => {
@@ -48,7 +48,11 @@ export async function runElectivePreparationOidcScenarios({ snapshot, runtime, s
     assert.equal((await db`select count(*)::integer n from public.class_timplans where class_id=${classId} and start_year=${year}`)[0].n, 0, 'Only our removed link may be restored');
     await db.begin(async tx => { await seed.f.actor(tx, 'principalA'); await tx`insert into public.class_timplans select (jsonb_populate_record(null::public.class_timplans,${tx.json(linkRow)})).*`; });
     removedLink = false;
-    assert.deepEqual((await db`select to_jsonb(x) value from public.class_timplans x where class_id=${classId} and start_year=${year}`)[0].value, linkRow);
+    const restored = (await db`select to_jsonb(x) value from public.class_timplans x where class_id=${classId} and start_year=${year}`)[0].value;
+    // The real insert trigger stamps updated_at. Assert every semantic field and then
+    // freeze the exact post-fixture baseline for all subsequent product commands.
+    assert.deepEqual({ ...restored, updated_at: linkRow.updated_at }, linkRow);
+    originalLinks = (await db`select coalesce(jsonb_agg(to_jsonb(x) order by class_id,start_year),'[]') value from public.class_timplans x`)[0].value;
   };
   try {
     for (const role of ['principalA','principalB','principalAB','admin','teacherGroup','pupil']) {
@@ -254,7 +258,7 @@ export async function runElectivePreparationOidcScenarios({ snapshot, runtime, s
 
     assert.deepEqual(await parent(), originalParent);
     assert.deepEqual((await db`select coalesce(jsonb_agg(to_jsonb(x) order by class_id,start_year),'[]') value from public.class_timplans x`)[0].value, originalLinks);
-    pass('actual preparation, apply and staffing preserve approved timetable, time cells and all annual class links');
+    pass('actual apply and staffing preserve approved timetable, time cells and exact established annual class links');
     return { scope, preparationId: draft.id, blockIds: applied.reply.receipt.blockIds, groupIds: draft.frames[0].slots.flatMap(slot => slot.groups.map(group => group.id)), rootUi: { entry: 'complete-approved-timetable', initialAllSchools: true, actor: 'principalAB', staffingUnitId: scope.unitId, staffingSchoolYear: year, screenshots: ['preparation-root-applied-desktop.png', 'preparation-root-staffing-desktop.png'] }, checks: checks.length };
   } finally {
     try { await restoreLink(); } finally { for (const context of contexts) await context.close(); }
