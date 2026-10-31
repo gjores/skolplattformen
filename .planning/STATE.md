@@ -3,9 +3,9 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB14 research klar: föreslagen förberedelse från godkänd timplan; ej implementerad"
-status: gaps_found
-stopped_at: "Användaren bedömer VB13-flödet som för krångligt. VB14 jämför alternativ och rekommenderar samlad förberedelse från godkänd timplan. Ingen ny produktversion."
+current_plan: "VB15–19 genomförs: gemensam förberedelse från godkänd timplan och installation3012"
+status: executing
+stopped_at: "Genomförande beställt. Planpaket VB15–19 skrivet; kontrakt, skyddad beständig förberedelse och gemensam UI påbörjas.3012 kör tidigare17f0106 tills ny kandidat verifierats."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
 last_activity_desc: "Research efter negativ UX-återkoppling: föreslagen markering/populering av valbara block från godkänd timplan. Teknisk leverans och nytt produktförslag hålls isär."
@@ -24,6 +24,8 @@ verification_ui_status: vb13_component78_code_only_afterproof_pass
 user_trial_status: needs_work_timplan_preparation
 milestone_name: milestone
 ---
+
+**Beställt genomförande2026-10-31:** Användaren har godkänt planering/genomförande enligt researchen, ordentliga prov och installation på3012. [Genomförandepaket VB15–19](phases/05.2-schemamodul/05.2-VB-PREPARATION-IMPLEMENTATION.md) är planerat och påbörjat. Inget nytt detaljgodkännande krävs. Förberedelse utan klass, samlat skapande och återanvändning ingår. Ingen ny lokal leverans ännu.
 
 **Senaste bedömning2026-10-31:** Användaren tycker processen fortfarande är för krånglig även med browserguide. [VB14-research](phases/05.2-schemamodul/05.2-VB-14-RESEARCH.md) jämför fyra vägar och rekommenderar samlad förberedelse av valbara block från godkänd timplan. Det är ett förslag, inte genomförd implementation. Två separata kursval och ärvd tid består.3012 kör fortsatt17f0106; maskinproven innebär inte godkänd UX.
 
