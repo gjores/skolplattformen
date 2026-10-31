@@ -6,39 +6,39 @@ Med **Valbara block** samlar skolan alternativ som elever kan välja mellan, exe
 
 Rektor och skoladministratör arbetar med skolans block. Elevurval, kontokopplingar och placeringar kräver också åtkomst till berörda elevuppgifter. Elever och vårdnadshavare använder [Mina val](./elevval.md).
 
-## Börja före eller i tjänstefördelningen
+## Börja i den godkända timplanen
 
-Öppna **Valbara block** under **PLANERING** och välj skola och läsår. Du kan också börja i **Tjänstefördelning → Lägg till → Lägg till valbart block**. Du behöver inte ha bemannat grupperna eller samlat in elevvalen först.
+Välj skola och läsår och öppna den godkända timplanen. Välj **Förbered valbara block**. Samma förberedelse går att öppna från **Valbara block** och från en ännu inte gruppindelad valram i **Tjänstefördelning**.
 
-Arbetsordningen är:
+1. Markera de valramar som ska få alternativ, exempelvis **Moderna språk**, **Individuellt val** eller valbar **Programfördjupning**. Fasta obligatoriska kurser görs inte valbara här.
+2. Välj kursupplägg. För en ram på 200 poäng kan du välja två separata 100-poängsval, ett per termin eller fördelade över läsåret, när underlaget medger det. Poäng och undervisningstid hämtas från timplanen.
+3. Sök fram ämne, kurs eller nivå för varje kursval. Namnet fylls i och kan anpassas för eleverna. Lägg till de alternativ skolan erbjuder.
+4. Välj berörda klasser. Ett gruppförslag skapas per alternativ och kan justeras om exempelvis två parallella grupper behövs. Gemensamma grupper behöver förenlig undervisningstid.
+5. Granska vad som skapas och välj **Skapa block och gruppunderlag**. Alla valda block, tidsutrymmen och grupper skapas tillsammans. Gå vidare till tjänstefördelningen när grupperna ska bemannas.
 
-1. Kontrollera klassernas timplanskopplingar och undervisningstid för läsåret.
-2. Skapa blockets alternativ och grupper och välj **Använd i tjänstefördelningen**.
-3. Bemanna gruppraderna när du är redo.
-4. Koppla elev- och vårdnadshavarkonton och öppna elevvalet.
-5. Granska inlämnade val och eventuella VH-bekräftelser, bekräfta elevens val på skolans vägnar och placera eleverna med datum.
+Det går att **Spara förberedelse** innan klasser finns. Öppna samma timplan, läsår och årskolumn igen när de verkliga klasserna är kopplade. Att spara förberedelsen skapar inga klasser, tjänsterader eller elevplaceringar.
+
+Återöppning visar den sparade förberedelsen. Ett redan skapat underlag ska inte skapas igen. Befintliga block visas så att du kan fortsätta med det arbete som redan finns. Ändringar skriver inte automatiskt över bemanning, elevval, gruppmedlemskap eller publicerad information.
+
+Därefter kan du:
+
+1. Bemanna gruppraderna i tjänstefördelningen.
+2. Koppla elev- och vårdnadshavarkonton och öppna elevvalen.
+3. Granska inlämnade val och eventuella VH-bekräftelser, bekräfta elevens val på skolans vägnar och placera eleverna med datum.
 
 Bemanning och insamling av elevval kan förberedas parallellt. Grupporganisationen behöver vara tillämpad innan gruppen används för placering.
 
 ## Undervisningstiden kommer från timplanen
 
-En grupp ärver tiden från de valda klassernas verkliga timplansunderlag. Du anger inte fri undervisningstid i gruppen. Gemensamma grupper behöver förenlig HT- och VT-tid för alla deltagande klasser. Okänd tid behöver kompletteras i underlaget.
+En grupp ärver tiden från de valda klassernas verkliga timplansunderlag. Du anger inte fri undervisningstid i gruppen. Okänd tid eller ett ändrat underlag behöver kontrolleras innan gruppunderlaget kan skapas.
 
-### Dela en årsram i flera valområden
+Poäng räknas inte om till undervisningstimmar. En årsram med 90 timmar HT och 90 timmar VT kan exempelvis bli två separata kursval: ett med 90 timmar HT och ett med 90 timmar VT. Med två läsårslånga kursval delas tiden i stället mellan dem. Granskningen visar både elevens tid och gruppernas samlade undervisningsbehov; flera parallella grupper ökar gruppbehovet utan att elevens ram fördubblas.
 
-Om exempelvis moderna språk eller individuellt val omfattar 200 poäng under samma läsår men ska erbjudas som två separata 100-poängsval:
+Varje tidsutrymme har ett eget block och ett eget elevval. Ett gemensamt val av två kurser ur en enda pool stöds ännu inte. Grundtimplanen skrivs inte om av detaljfördelningen.
 
-1. När du skapar blocket markerar du klasserna i **Klasser och tid**. Om hela ramen saknar passande kurser väljer du **Dela timplansramen för …** direkt där. Blockets utkast finns kvar medan du fördelar ramen. Du kan också börja med **Timplanens valbara tidsutrymmen** i Valbara block.
-2. Ge varje utrymme ett tydligt **Namn**, exempelvis *Individuellt val 1* och *Individuellt val 2*.
-3. Ange **Poäng HT**, **Poäng VT**, **Tid HT (timmar)** och **Tid VT (timmar)** för varje utrymme. Summorna måste bevara grundramens poäng och tid per termin. **Fyll återstående ram** hjälper dig att lägga den kvarvarande ramen i ett utrymme.
-4. Välj **Granska fördelningen** och därefter **Spara och tillämpa**. **Spara utkast** gör inte utrymmena tillgängliga för nya block ännu.
-5. Efter **Spara och tillämpa** kommer du tillbaka till blockets klassurval. Välj rätt nytt utrymme för varje klass och fortsätt till alternativen. Skapa ett separat valbart block för nästa tidsutrymme. Eleverna gör ett separat kursval i varje block.
+Förberedelsen använder timplanens frysta ämneskatalog. Om den katalogen inte kan visas, eller för grundskolan där en verifierad historisk årskurskarta ännu saknas, visas ett hinder. Grundskolans tid får ingen påhittad gymnasiepoäng. Den befintliga vägen för enstaka block finns kvar för användbara klassunderlag.
 
-Poäng räknas inte automatiskt om till undervisningstimmar. Två 100-poängsutrymmen kan därför ha olika tid. Fördelningen gäller alla klasser som använder samma timplan och årskolumn. Grundtimplanen skrivs inte om av denna detaljfördelning.
-
-Varje tidsutrymme har ett eget block och ett eget val. Ett gemensamt val av två kurser ur en enda pool stöds ännu inte.
-
-## Skapa alternativ och grupper
+## Vid behov: skapa ett enstaka block
 
 1. Välj **Lägg till valbart block** och följ de fyra stegen: **Block**, **Klasser och tid**, **Alternativ** och **Grupper**. Börja med **Typ av valbart block** och **Blockets namn**. Gymnasiet har **Moderna språk**, **Individuellt val** och **Programfördjupning** när timplansramen stöder det. För grundskolan används de tillgängliga ramarna för **Språkval** och **Skolans val**.
 2. Markera **Timplansram och berörda klasser**. Detta är blockets gemensamma klassurval. En upptagen ram märks med vilket block som använder den. Om en större ram först behöver delas får du hjälp med det här, före sökningen. En ram på 200 poäng ger inte automatiskt en ensam 100-poängsnivå hela ramens undervisningstid.

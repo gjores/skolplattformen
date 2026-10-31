@@ -4,6 +4,8 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner och tillämpade valbara undervisningsgrupper. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
+Förbered skolans valbara utbud i den godkända timplanen före bemanningen. **Förbered valbara block** kan också öppnas från en ännu inte gruppindelad valram här. Då följer rätt timplan, läsår och ram med. Skapa block och gruppunderlag tillsammans och bemanna sedan de konkreta gruppraderna. Se [Valbara block](./valbara-block.md).
+
 ## Vem gör vad?
 
 | Funktion | Kan |

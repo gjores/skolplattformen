@@ -19,6 +19,7 @@ export const ELECTIVE_MIGRATIONS=[
  '20261030115000_elective_placements.sql','20261030115100_elective_binding_recovery_reference.sql','20261030115200_elective_frame_exclusivity.sql',
  '20261030115300_elective_participant_account_attestation.sql','20261030115400_elective_placement_applied_organization.sql','20261030115500_elective_group_retirement.sql',
  '20261030115600_elective_applied_pool_intent.sql','20261030115700_elective_explicit_privileges.sql',
+ '20261031100000_elective_preparations.sql',
 ].map(p=>prefix+p);
 export const KNOWN_UNJOURNALLED=['20261002120000_phase5_programplan_education.sql','20261002121000_phase5_worker_programplan_education.sql'].map(p=>prefix+p);
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
@@ -119,16 +120,17 @@ export async function installElectivePackage(tx,context,phase){
    assert.ok(['rehearsal','apply'].includes(phase),'invalid_transaction_phase');
    await tx`set local lock_timeout='8s'`;await tx`set local statement_timeout='180s'`;assert.equal((await tx`select pg_try_advisory_xact_lock(5551) locked`)[0].locked,true,'migration_lock_unavailable');
    for(const key of Object.keys(context.columns).sort())await tx.unsafe(electiveTableLock(key));await tx`lock table supabase_migrations.schema_migrations in share row exclusive mode`;
-   assert.equal(await schemaFingerprint(tx),context.baselineFingerprint);assert.deepEqual(assertPriorJournal(await readMigrationJournal(tx),context.sources,context.legacyJournal),context.priorJournal);assert.deepEqual(await preservedRows(tx,context.columns),context.rows);await assertEducationBaseline(tx);await context.revalidate(tx);
-   const executionSources=migrationExecutionSnapshot(context.sources);
-   for(const p of ELECTIVE_MIGRATIONS)await tx.unsafe(prepareMigrationSql(context.sources[p].sql).sql);
+   const packagePaths=context.migrations??ELECTIVE_MIGRATIONS,validateJournal=context.validateJournal??(rows=>assertPriorJournal(rows,context.sources,context.legacyJournal));
+   assert.equal(await schemaFingerprint(tx),context.baselineFingerprint);assert.deepEqual(validateJournal(await readMigrationJournal(tx)),context.priorJournal);assert.deepEqual(await preservedRows(tx,context.columns),context.rows);await assertEducationBaseline(tx);await context.revalidate(tx);
+   const executionSources=Object.fromEntries(packagePaths.map(p=>{const{sql:_sql,...meta}=prepareMigrationSql(context.sources[p].sql);return[p,meta];}));
+   for(const p of packagePaths)await tx.unsafe(prepareMigrationSql(context.sources[p].sql).sql);
    await tx`set constraints all immediate`;assert.deepEqual(await preservedRows(tx,context.columns),context.rows);
    const fingerprint=await schemaFingerprint(tx);if(context.installedFingerprint)assert.equal(fingerprint,context.installedFingerprint);
    const columns=await preservedColumns(tx),newTables=Object.keys(columns).filter(key=>!Object.hasOwn(context.columns,key));
    for(const key of newTables){assert.ok(key.startsWith('public.'),'new_auth_table_refused');const[privacy]=await tx`select relrowsecurity rls,relforcerowsecurity forced from pg_class where oid=${key}::regclass`;assert.ok(privacy.rls&&privacy.forced,'new_table_rls_required');assert.equal((await preservedRows(tx,{[key]:columns[key]}))[key].count,0,'new_tables_must_be_empty');for(const role of ['anon','authenticated','service_role','skolplattform_worker'])assert.equal((await tx`select has_table_privilege(${role},${key},'SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') allowed`)[0].allowed,false,'new_table_privilege_refused');}
-   for(const p of ELECTIVE_MIGRATIONS)await tx`insert into supabase_migrations.schema_migrations(version,name,statements) values(${version(p)},${name(p)},${[context.sources[p].sql]})`;
-   const journal=await readMigrationJournal(tx);assert.equal(journal.length,context.priorJournal.count+ELECTIVE_MIGRATIONS.length);assert.deepEqual(journal.slice(0,context.priorJournal.count),context.originalJournal);
-   for(const[i,p]of ELECTIVE_MIGRATIONS.entries())assert.deepEqual(journal[context.priorJournal.count+i],{version:version(p),name:name(p),statements:[context.sources[p].sql]});
+   for(const p of packagePaths)await tx`insert into supabase_migrations.schema_migrations(version,name,statements) values(${version(p)},${name(p)},${[context.sources[p].sql]})`;
+   const journal=await readMigrationJournal(tx);assert.equal(journal.length,context.priorJournal.count+packagePaths.length);assert.deepEqual(journal.slice(0,context.priorJournal.count),context.originalJournal);
+   for(const[i,p]of packagePaths.entries())assert.deepEqual(journal[context.priorJournal.count+i],{version:version(p),name:name(p),statements:[context.sources[p].sql]});
    await context.revalidate(tx);
    let auditId=null;
    if(phase==='apply'){assert.ok(context.audit);const[audit]=await tx`insert into public.security_events(correlation_id,source,action,object_type,outcome,details) values(${context.audit.runId},'cli','elective_migration_install','migration_package','ok',${tx.json(context.audit.details)}) returning id`;auditId=audit.id;}

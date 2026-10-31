@@ -31,7 +31,7 @@ report.installerSourceHashes=installerSourceHashes();report.provenance=own.prove
  await db`alter default privileges in schema public grant execute on functions to service_role`;
  const aclRollback=Symbol('provider_default_acl_probe');let exposed;
  try{await db.begin(async tx=>{
-  for(const p of ELECTIVE_MIGRATIONS.slice(0,-1))await tx.unsafe(prepareMigrationSql(sources[p].sql).sql);
+  for(const p of ELECTIVE_MIGRATIONS.filter(p=>p.split('/').at(-1)<'20261030115700_elective_explicit_privileges.sql'))await tx.unsafe(prepareMigrationSql(sources[p].sql).sql);
   exposed=(await tx`select has_table_privilege('service_role','public.elective_participant_bindings','SELECT') table_read,(select count(*)::integer from pg_proc where pronamespace='public'::regnamespace and left(proname,9)='elective_' and has_function_privilege('service_role',oid,'EXECUTE')) helper_execute`)[0];
   assert.equal(exposed.table_read,true);assert.ok(exposed.helper_execute>0);throw aclRollback;
  });}catch(error){if(error!==aclRollback)throw error;}

@@ -202,6 +202,14 @@ För introduktionsprogram visas **Timmar per vecka**. Årsvalet gör ingen årsk
 
 För grundskolan kan du på telefon välja årskurs i den aktuella matrisen eller visa och rulla hela timplanen. Se [Planering](./planering.md) om planeringsår, registerår, versioner och överblick.
 
+## Förbered valbara block efter godkänd timplan
+
+Öppna den godkända gymnasietimplanen för rätt skola och läsår och välj **Förbered valbara block**. Förberedelsen använder planens verkliga årskolumn, valramar, frysta ämneskatalog och undervisningstid. Markera exempelvis moderna språk eller individuellt val, välj kursupplägg och sök skolans alternativ. Två separata kursval kan förberedas och skapas tillsammans.
+
+Du kan spara förberedelsen innan klasser finns. Koppla sedan de riktiga klasserna till timplanen och återöppna förberedelsen. Granska klassurval och tid innan block och gruppunderlag skapas. Grundtimplanens beslut ändras inte av denna förberedelse. Se [Valbara block](./valbara-block.md).
+
+Grundskolans nya förberedelse saknar ännu verifierad historisk årskurskarta. Där visas ett hinder; systemet gissar inte från lagrade kolumnpositioner.
+
 ## Koppla GR- och IM-klasser
 
 En klass i grundskolan eller på introduktionsprogram behöver en koppling till en fastställd timplan för läsåret för att dess behov ska synas i [Tjänstefördelning](./tjanstefordelning.md). Rektor och skoladministratör kopplar klasserna. Huvudmannen ser kopplingarna utan redigeringskontroller.
