@@ -211,9 +211,9 @@ async function batchCases(db,report) {
   batch.items.push({itemKey:'s',kind:'special',id:d.specials[0].id,fromPersonId:p,choice:target});
   const move=await captureCommand(t,s,'move',batch);
   await savepoint(t,async u=>{
-   await u.unsafe("create function public.synthetic_18_fail() returns trigger language plpgsql as $$begin if new.timplan_row_key like '__move_%' then raise exception 'Synthetic reserved row failure' using errcode='55000';end if;return new;end$$");
+   await u.unsafe("create function public.synthetic_18_fail() returns trigger language plpgsql as $$begin raise exception 'Synthetic first row update failure' using errcode='55000';return new;end$$");
    await u.unsafe('create trigger synthetic_18_fail after update on public.tjanst_rows for each row execute function public.synthetic_18_fail()');
-   await unchangedDeny(u,report,'failure after batch reservation restores exact original source keys',v=>planSend(v,move),'55000');
+   await unchangedDeny(u,report,'failure on first batch row update restores exact original source keys',v=>planSend(v,move),'55000');
   });
   await savepoint(t,async u=>{
    await u.unsafe("create function public.synthetic_18_fail() returns trigger language plpgsql as $$begin if old.staff_person_id is distinct from new.staff_person_id then raise exception 'Synthetic applied move failure' using errcode='55000';end if;return new;end$$");
@@ -502,3 +502,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   assert.ok(rest.length === 2 && rest[0] === '--out', 'Use --out /private/tmp/<name>.json [--ephemeral] [--stage current|historical]');
   await verifyTjanstYearCommands(rest[1], { ephemeral,stage });
 }
+
+// Reuse the actual behavioural cases against later source migrations, without rerunning old installation assertions.
+export {cases as runTjanstYearCases,batchCases as runTjanstYearBatchCases,groupBoundaryCases as runTjanstYearGroupCases,limitsAndRemoval as runTjanstYearLimitCases};

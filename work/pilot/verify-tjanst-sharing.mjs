@@ -252,3 +252,6 @@ if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.ur
   void randomUUID;
   await verifyTjanstSharing(rest[1], { ephemeral });
 }
+
+// Reuse the actual behavioural cases against later source migrations, without rerunning old installation assertions.
+export {cases as runTjanstSharingCases};

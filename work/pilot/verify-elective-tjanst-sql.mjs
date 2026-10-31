@@ -1,0 +1,210 @@
+#!/usr/bin/env node
+// Real PostgreSQL built from migrations in an owned temporary directory. Synthetic data only.
+import assert from 'node:assert/strict';
+import {randomUUID,createHash} from 'node:crypto';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {runTjanstYearCases,runTjanstYearBatchCases,runTjanstYearGroupCases,runTjanstYearLimitCases} from './verify-tjanst-year-commands.mjs';
+import {runTjanstSharingCases} from './verify-tjanst-sharing.mjs';
+import {seedElectiveTimeFrame} from './elective-time-fixtures.mjs';
+import {parseElectiveTimeRead,parseElectiveTimeCommand} from '../../web/lib/elective-timplan-time.ts';
+import {createEphemeralMigratedDb,migrationFiles} from './ephemeral-migrated-db.mjs';
+import {createTjanstYearFixture,yearPreview,yearManual,yearRowPayload,yearSend} from './tjanst-year-fixtures.mjs';
+import {planRead,planSend,planCommand,planStatus,planRef,selfRead,grantSelf} from './tjanst-fixtures.mjs';
+import {parseYearPlanReadReply,parseSelfReadReply} from '../../web/lib/tjanst-contract.ts';
+import {parseElectiveRead,parseElectiveCommand} from '../../web/lib/elective-block-contract.ts';
+const migration='20261030112000_elective_tjanst_sources.sql';
+const own=await createEphemeralMigratedDb({exclude:migrationFiles().filter(f=>f.slice(0,14)>='20261030112000')});
+const report={kind:'ephemeral-elective-tjanst-sql',provenance:own.provenance,checks:[],sources:{},ok:false};
+const output='/private/tmp/elective-tjanst-sql.json';
+const check=name=>{report.checks.push({name,ok:true});console.log('PASS '+name);};
+async function deny(tx,name,run,codes,hint){let error;try{await tx.savepoint(sp=>run(sp));}catch(e){error=e;}assert.ok(error,name);assert.ok(codes.includes(error.code),`${name}: ${error.code} ${error.message}`);if(hint)assert.equal(error.hint,hint);check(name);}
+let fixture;
+try{
+ await own.db.begin(async tx=>{
+  const s=await createTjanstYearFixture(tx),{f,unitId,schoolYear,g,people}=s,scope={unitId,schoolYear};fixture=f;
+  await tx`set local session_replication_role=replica`;
+  await tx`insert into public.timplan_cells(timplan_id,row_id,hours) values(${g.grPlan},'sprakval',${[100,100,100]}::smallint[])`;
+  await tx`set local session_replication_role=origin`;await f.actor(tx,'principalA');
+  const read=async()=>parseYearPlanReadReply(await planRead(tx,scope),scope);
+  const catalog=()=>yearPreview(tx,{...scope,mode:'catalog'});
+  const mutate=async(action,payload={})=>{const c=await catalog();return yearSend(tx,unitId,schoolYear,action,{...payload,mutationContext:{baseVersionId:c.baseVersionId,expectedBasisHash:c.basisHash}});};
+  const assign=async(sourceKey,personId,{rowId=null,ht=3000,vt=3000}={})=>{
+   const p=await yearPreview(tx,{...scope,mode:'row',sourceKey,rowId});const choice=yearManual(p.candidates.find(c=>c.personId===personId));
+   return yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(p,choice,{sourceKind:p.need.sourceKind,teacherHt:ht,teacherVt:vt}));
+  };
+  await assign(s.key(),people[0].personId,{ht:600,vt:600});
+  await assign(s.key('sprakval'),people[0].personId);
+  await mutate('publish');const old=await read();const oldVersion=old.version.id;
+  await grantSelf(tx,f,{staffPersonId:people[0].personId,unitIds:[unitId]});await f.actor(tx,'teacherSelf');
+  const oldSelf=await selfRead(tx);await f.actor(tx,'principalA');
+  const oldHistory=await planRead(tx,{...scope,versionId:oldVersion});
+  const oldHash=(await tx`select public.tjanst_version_hash(${oldVersion}) value`)[0].value;
+  await tx.unsafe(readFileSync(new URL('../../supabase/migrations/'+migration,import.meta.url),'utf8'));
+  assert.deepEqual(await planRead(tx,{...scope,versionId:oldVersion}),oldHistory);
+  assert.equal((await tx`select public.tjanst_version_hash(${oldVersion}) value`)[0].value,oldHash);
+  await f.actor(tx,'teacherSelf');assert.deepEqual(await selfRead(tx),oldSelf);await f.actor(tx,'principalA');
+  check('migration preserves existing published class payload, hash and teacher self publication');
+  const electiveRead=async()=>parseElectiveRead((await tx`select public.elective_block_read(${tx.json(scope)}) value`)[0].value.result,scope);
+  const elective=async(action,payload)=>{const before=await electiveRead();const q=parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:before.revision,action,payload});return (await tx`select public.elective_block_command(${tx.json(q)}) value`)[0].value.result;};
+  const sources=(await electiveRead()).sources.filter(r=>r.blockKind==='languageChoice');assert.equal(sources.length,2);
+  assert.ok(sources.every(r=>r.needHt===3000&&r.needVt===3000));
+  const blockId=randomUUID(),fr=randomUUID(),es=randomUUID(),fr1=randomUUID(),fr2=randomUUID(),es1=randomUUID();
+  let block={id:blockId,kind:'languageChoice',name:'Syntetiskt språkval',startsOn:'2026-07-01',endsOn:'2027-06-30',sourceRefs:sources,
+   options:[{id:fr,name:'Franska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'fr',points:null},{id:es,name:'Spanska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'es',points:null}],
+   groups:[{id:fr1,optionId:fr,name:'Franska gemensam',startsOn:'2026-07-01',endsOn:'2027-06-30',classIds:sources.map(s=>s.classId),sourceKeys:sources.map(s=>s.sourceKey),estimatedPupils:20},
+    {id:fr2,optionId:fr,name:'Franska grupp2',startsOn:'2026-07-01',endsOn:'2027-06-30',classIds:[sources[0].classId],sourceKeys:[sources[0].sourceKey],estimatedPupils:12},
+    {id:es1,optionId:es,name:'Spanska gemensam',startsOn:'2026-07-01',endsOn:'2027-06-30',classIds:sources.map(s=>s.classId),sourceKeys:sources.map(s=>s.sourceKey),estimatedPupils:20}]};
+  await elective('save_block',{expectedBlockRevision:null,block});
+  assert.equal((await read()).groups?.length??0,0);check('saved but unapplied group draft does not silently change staffing sources');
+  const beforeApplySums=(await tx`select public.tjanst_school_sums(${oldVersion},${unitId},${schoolYear}) value`)[0].value;
+  await elective('apply_groups',{blockId,expectedBlockRevision:1});let current=await read();
+  const afterApplySums=(await tx`select public.tjanst_school_sums(${oldVersion},${unitId},${schoolYear}) value`)[0].value;assert.deepEqual(afterApplySums.teaching,beforeApplySums.teaching);assert.equal(afterApplySums.unallocated.ht,beforeApplySums.unallocated.ht+6000);assert.equal(afterApplySums.unallocated.vt,beforeApplySums.unallocated.vt+6000);check('school planning shortage follows newly applied groups before a staffing draft while published teacher time stays fixed');
+  assert.equal(current.groups.length,3);assert.equal(current.groups.reduce((n,g)=>n+g.needHt+g.needVt,0),18000);
+  assert.ok(current.classes.every(c=>c.needs.every(n=>n.rowKey!=='sprakval')));
+  assert.equal((await tx`select public.tjanst_needs(${unitId},${schoolYear}) value`)[0].value.flatMap(c=>c.needs).filter(n=>n.rowKey==='sprakval').length,2);
+  assert.equal(current.rows.find(r=>r.rowKey==='sprakval').stale,true);
+  check('three real group needs count once each, shared classes do not multiply time, raw class reader remains unchanged');
+  assert.deepEqual(await planRead(tx,{...scope,versionId:oldVersion}),oldHistory);check('applying new groups preserves the earlier public class snapshot');
+  await assign(s.key(),people[0].personId,{rowId:current.rows.find(r=>r.rowKey==='matematik').id,ht:600,vt:600});current=await read();
+  await deny(tx,'old assigned frame requires visible reconciliation before publish',async sp=>{const c=await catalog();return planSend(sp,await planCommand(unitId,schoolYear,'publish',current.revision,{mutationContext:{baseVersionId:c.baseVersionId,expectedBasisHash:c.basisHash}},{expectedContentHash:current.version.contentHash}));},['40001']);
+  // This old publication still has its original class rows even after group application.
+  await mutate('delete_row',{rowId:current.rows.find(r=>r.rowKey==='sprakval').id});
+  await assign(`teaching_group:${fr1}:${schoolYear}`,people[0].personId,{ht:1500,vt:1500});
+  current=await read();const groupRow=current.rows.find(r=>r.groupId===fr1);assert.equal(groupRow.classId,null);assert.equal(groupRow.classIds.length,2);assert.equal(groupRow.sourceRefs.length,2);
+  check('group assignment has real group identity, all class references and no invented first class');
+  await assign(`teaching_group:${fr1}:${schoolYear}`,people[1].personId,{ht:1500,vt:1500});
+  await mutate('save_sharing',{sourceKey:`teaching_group:${fr1}:${schoolYear}`,mode:'sequential',graderPersonIds:[people[0].personId]});
+  await assign(`teaching_group:${es1}:${schoolYear}`,people[0].personId);
+  current=await read();assert.equal(current.blockers.length,0);check('group sharing uses explicit mode and real grader without changing source time');
+  const candidates=(await catalog()).candidates;
+  const moving=current.rows.filter(r=>r.groupId===fr1);
+  const batch={action:'move',baseVersionId:current.version.id,items:moving.map(r=>({itemKey:r.id,kind:'row',id:r.id,fromPersonId:r.personId,choice:yearManual(candidates.find(c=>c.personId===people.find(p=>p.personId!==r.personId).personId))}))};
+  const preview=await yearPreview(tx,{...scope,mode:'batch',batch});assert.equal(preview.blockers.length,0);assert.ok(preview.items.every(i=>i.classId===null));
+  await yearSend(tx,unitId,schoolYear,'move',{...batch,expectedPreviewHash:preview.previewHash});current=await read();
+  assert.ok(current.rows.filter(r=>r.groupId===fr1).every(r=>r.classId===null&&r.teacherHt===1500));
+  assert.deepEqual(current.sharing.find(r=>r.sourceKey===`teaching_group:${fr1}:${schoolYear}`).graderPersonIds,[people[1].personId]);
+  const reverse={...batch,items:current.rows.filter(r=>r.groupId===fr1).map(r=>({itemKey:r.id,kind:'row',id:r.id,fromPersonId:r.personId,choice:yearManual(candidates.find(c=>c.personId===people.find(p=>p.personId!==r.personId).personId))}))};
+  const reversePreview=await yearPreview(tx,{...scope,mode:'batch',batch:reverse});await yearSend(tx,unitId,schoolYear,'move',{...reverse,expectedPreviewHash:reversePreview.previewHash});current=await read();
+  assert.deepEqual(current.sharing.find(r=>r.sourceKey===`teaching_group:${fr1}:${schoolYear}`).graderPersonIds,[people[0].personId]);
+  check('atomic group teacher permutation preserves source identity/minutes and moves grader simultaneously');
+  const sums=(await tx`select public.tjanst_school_sums(${current.version.id},${unitId},${schoolYear}) value`)[0].value;
+  assert.equal(sums.teaching.ht,6600);assert.equal(sums.teaching.vt,6600);
+  const allNeeds=[...current.classes.flatMap(c=>c.needs),...current.groups];
+  const unallocated=term=>allNeeds.reduce((sum,n)=>sum+Math.max(0,(n[term==='ht'?'needHt':'needVt']??0)-current.rows.filter(r=>r.sourceKey===n.sourceKey&&r.personId!==null).reduce((v,r)=>v+r[term==='ht'?'teacherHt':'teacherVt'],0)),0);
+  assert.equal(sums.unallocated.ht,unallocated('ht'));assert.equal(sums.unallocated.vt,unallocated('vt'));
+  check('native school totals include group teaching and unassigned group needs exactly once');
+  const versionsBefore=(await tx`select count(*)::integer n from public.elective_group_snapshots`)[0].n;
+  await elective('apply_groups',{blockId,expectedBlockRevision:1});assert.equal((await tx`select count(*)::integer n from public.elective_group_snapshots`)[0].n,versionsBefore);
+  check('reapplying identical group metadata does not invent a new source revision');
+  await mutate('publish');current=await read();const groupVersion=current.version.id;
+  const frozenHistory=await planRead(tx,{...scope,versionId:groupVersion});
+  const frozenHash=(await tx`select public.tjanst_version_hash(${groupVersion}) value`)[0].value;
+  assert.equal(frozenHistory.groups.length,3);assert.equal(frozenHistory.rows.filter(r=>r.sourceKind==='teaching_group').length,3);
+  await f.actor(tx,'teacherSelf');const groupSelf=parseSelfReadReply(await selfRead(tx));const published=groupSelf.publications.find(p=>p.versionId===groupVersion);
+  const ownGroups=published.rows.filter(r=>r.sourceKind==='teaching_group');assert.equal(ownGroups.length,2);assert.equal(ownGroups.find(r=>r.groupId===fr1).classRefs.length,2);assert.equal(ownGroups.find(r=>r.groupId===fr1).className,null);
+  await f.actor(tx,'principalA');check('publish freezes assigned and unassigned group sources; teacher self includes group time and real class references');
+  const initialGroupRevisions=current.groups.map(g=>g.groupRevision);
+  const currentBlock=(await electiveRead()).blocks[0];block={...block,options:block.options.map(o=>o.id===fr?{...o,name:'Franska fördjupning'}:o),groups:block.groups.map(g=>g.id===fr1?{...g,name:'Franska nytt visningsnamn'}:g)};
+  await elective('save_block',{expectedBlockRevision:currentBlock.revision,block});
+  assert.deepEqual((await read()).groups.map(g=>g.groupRevision),initialGroupRevisions);check('later group draft names do not leak into applied staffing snapshots');
+  await deny(tx,'option identity cannot silently change its concrete language',sp=>electiveRead().then(r=>sp`select public.elective_block_command(${sp.json(parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:r.revision,action:'save_block',payload:{expectedBlockRevision:r.blocks[0].revision,block:{...block,options:block.options.map(o=>o.id===fr?{...o,language:'de'}:o)}}}))})`),['40001'],'elective_block_in_use');
+  check('legitimate option display-name changes remain possible with stable curricular identity');
+  await elective('apply_groups',{blockId,expectedBlockRevision:currentBlock.revision+1});
+  assert.deepEqual(await planRead(tx,{...scope,versionId:groupVersion}),frozenHistory);
+  assert.equal((await tx`select public.tjanst_version_hash(${groupVersion}) value`)[0].value,frozenHash);
+  await f.actor(tx,'teacherSelf');assert.deepEqual(parseSelfReadReply(await selfRead(tx)),groupSelf);await f.actor(tx,'principalA');
+  check('new applied names/revisions preserve historical group payload, content hash and teacher publication');
+  // Editing a published group starts a same-year draft and carries the actual frozen source snapshot/lineage.
+  current=await read();const beforeRow=current.rows.find(r=>r.groupId===fr1&&r.personId===people[0].personId);
+  await assign(beforeRow.sourceKey,people[0].personId,{rowId:beforeRow.id,ht:1500,vt:1500});current=await read();
+  const copied=current.rows.find(r=>r.lineageId===beforeRow.lineageId);assert.notEqual(copied.id,beforeRow.id);assert.equal(copied.groupId,beforeRow.groupId);assert.equal(copied.classId,null);assert.equal(copied.groupRevision,current.groups.find(g=>g.groupId===fr1).groupRevision);
+  assert.equal(current.rows.find(r=>r.groupId===es1).sourceRefs.length,2);check('same-year published-to-draft copy preserves group identity, source snapshots and lineage');
+  const bulkSupport=await yearPreview(tx,{...scope,mode:'row',sourceKey:`teaching_group:${fr2}:${schoolYear}`,rowId:null});
+  assert.equal(bulkSupport.need.classId,null);assert.equal(bulkSupport.recommendationStatus,'empty');assert.deepEqual(bulkSupport.suggestions,[]);
+  const bulk={action:'bulk',baseVersionId:current.version.id,items:[{itemKey:'planned-fr2',kind:'row',payload:yearRowPayload(bulkSupport,yearManual(bulkSupport.candidates.find(c=>c.personId===people[0].personId)),{sourceKind:'teaching_group',teacherHt:3000,teacherVt:3000})}]};
+  const bulkPreview=await yearPreview(tx,{...scope,mode:'batch',batch:bulk});assert.equal(bulkPreview.blockers.length,0);assert.equal(bulkPreview.items[0].classId,null);
+  await yearSend(tx,unitId,schoolYear,'bulk',{...bulk,expectedPreviewHash:bulkPreview.previewHash});current=await read();assert.equal(current.rows.find(r=>r.groupId===fr2).classId,null);
+  assert.deepEqual((await planRead(tx,{...scope,versionId:groupVersion})).groups,frozenHistory.groups);
+  check('actual group bulk preview/application uses null class identity, explicit teacher choice and no class-based recommendation');
+  assert.equal((await tx`select public.tjanst_need(${unitId},${schoolYear+1},${`teaching_group:${fr1}:${schoolYear+1}`}) value`)[0].value,null);check('prior-year group identity has no invented target-year source');
+  for(const table of ['elective_group_snapshots','elective_applied_groups','tjanst_version_group_sources','tjanst_version_class_basis']){const acl=(await tx`select relrowsecurity,relforcerowsecurity,has_table_privilege('skolplattform_worker',${'public.'+table},'select,insert,update,delete') direct from pg_class where oid=${'public.'+table}::regclass`)[0];assert.equal(acl.direct,false);assert.equal(acl.relrowsecurity,true);assert.equal(acl.relforcerowsecurity,true);}
+  check('new snapshot relations force RLS and provide no direct Worker table access');
+  await deny(tx,'published group row cannot be rewritten',sp=>sp`update public.tjanst_rows set teacher_ht_minutes=1 where version_id=${groupVersion}`,['42501']);
+  await deny(tx,'group source snapshot is append-only',sp=>sp`update public.elective_group_snapshots set snapshot='{}'`,['42501']);
+  // Lost-reply recovery is tested with the actual immutable plan journal and the same command ID.
+  current=await read();const span=current.rows.find(r=>r.groupId===es1);
+  await deny(tx,'incomplete group row snapshot cannot bypass typed source constraints',sp=>sp`update public.tjanst_rows set group_snapshot='{}'::jsonb where id=${span.id}`,['23514']);
+  const support=await yearPreview(tx,{...scope,mode:'row',sourceKey:span.sourceKey,rowId:span.id});
+  const payload=yearRowPayload(support,yearManual(support.candidates.find(c=>c.personId===span.personId)),{sourceKind:'teaching_group',teacherHt:3001,teacherVt:3000});
+  const q=await planCommand(unitId,schoolYear,'save_row',current.revision,payload);
+  const sent=await planSend(tx,q);assert.equal(sent.result.receipt.replayed,false);
+  assert.equal((await planSend(tx,q)).result.receipt.replayed,true);
+  assert.equal((await planStatus(tx,{command:planRef(q)})).result.state,'completed');
+  assert.equal((await tx`select count(*)::integer n from public.tjanst_commands where command_id=${q.commandId}`)[0].n,1);
+  check('group command replay and minimal status reference recover one immutable receipt');
+  current=await read();const failedSupport=await yearPreview(tx,{...scope,mode:'row',sourceKey:span.sourceKey,rowId:span.id});
+  const failedQ=await planCommand(unitId,schoolYear,'save_row',current.revision,yearRowPayload(failedSupport,yearManual(failedSupport.candidates.find(c=>c.personId===span.personId)),{sourceKind:'teaching_group',teacherHt:3002,teacherVt:3000}));
+  await tx`create function public.vb03_test_audit_fail() returns trigger language plpgsql as $$begin if new.action='tjanst_plan_command' then raise exception 'synthetic audit failure';end if;return new;end$$`;
+  await tx`create trigger vb03_test_audit_fail before insert on public.security_events for each row execute function public.vb03_test_audit_fail()`;
+  await deny(tx,'audit failure rolls back group assignment, version content and journal',sp=>planSend(sp,failedQ),['55000']);
+  assert.deepEqual(await read(),current);assert.equal((await tx`select count(*)::integer n from public.tjanst_commands where command_id=${failedQ.commandId}`)[0].n,0);
+  await tx`drop trigger vb03_test_audit_fail on public.security_events`;await tx`drop function public.vb03_test_audit_fail()`;
+  const beforeChangedSums=(await tx`select public.tjanst_school_sums(${current.version.id},${unitId},${schoolYear}) value`)[0].value;
+  try{await tx.savepoint(async sp=>{
+   await sp`set local session_replication_role=replica`;await sp`update public.timplan_cells set hours=${[120,120,120]}::smallint[] where timplan_id=${g.grPlan} and row_id='sprakval'`;await sp`set local session_replication_role=origin`;
+   const changed=parseYearPlanReadReply(await planRead(sp,scope),scope);const residual=changed.classes.flatMap(c=>c.needs).filter(n=>n.rowKey==='sprakval');
+   assert.equal(residual.length,2);assert.ok(residual.every(n=>n.needHt===600&&n.needVt===600&&n.organizationPending));
+   assert.ok(changed.groups.every(g=>g.needHt===3000&&g.needVt===3000&&g.stale));
+   assert.ok(changed.blockers.some(b=>b.code==='organization_pending'));assert.ok(changed.blockers.some(b=>b.code==='group_sources_changed'));
+   assert.deepEqual(changed.rows.map(r=>[r.id,r.teacherHt,r.teacherVt]),current.rows.map(r=>[r.id,r.teacherHt,r.teacherVt]));
+   const changedHistory=await planRead(sp,{...scope,versionId:groupVersion});assert.deepEqual(changedHistory.classes,frozenHistory.classes);assert.deepEqual(changedHistory.groups,frozenHistory.groups);assert.deepEqual(changedHistory.rows,frozenHistory.rows);assert.equal((await sp`select public.tjanst_version_hash(${groupVersion}) value`)[0].value,frozenHash);
+   const changedSums=(await sp`select public.tjanst_school_sums(${current.version.id},${unitId},${schoolYear}) value`)[0].value;assert.deepEqual(changedSums.teaching,beforeChangedSums.teaching);assert.equal(changedSums.unallocated.ht,beforeChangedSums.unallocated.ht+1200);assert.equal(changedSums.unallocated.vt,beforeChangedSums.unallocated.vt+1200);
+   await f.actor(sp,'teacherSelf');assert.deepEqual(parseSelfReadReply(await selfRead(sp)),groupSelf);await f.actor(sp,'principalA');
+   check('parent time change leaves published class/group mask, APL, source hash and self frozen while school shortage stays current');
+   check('changed parent time preserves frozen groups/assignments and adds only distinct frame remainder, never a duplicate whole frame');
+   throw Error('rollback-time-change-fixture');
+  });}catch(e){assert.equal(e.message,'rollback-time-change-fixture');}
+  await f.actor(tx,'principalB');await deny(tx,'other school mandate cannot read group staffing',sp=>sp`select public.tjanst_plan_read(${sp.json(scope)})`,['42501']);await f.actor(tx,'principalA');
+ });
+ await own.db.begin(async tx=>{
+  const f=fixture,timeScope=await seedElectiveTimeFrame(tx,f);await f.actor(tx,'principalA');
+  const scope={unitId:timeScope.unitId,schoolYear:timeScope.schoolYear};
+  const frame=parseElectiveTimeRead((await tx`select public.elective_timplan_time_read(${tx.json(timeScope)}) value`)[0].value.result,timeScope);
+  const positions=[{id:randomUUID(),name:'Individuellt val1',pointsHt:50,pointsVt:50,needHt:2400,needVt:2400},{id:randomUUID(),name:'Individuellt val2',pointsHt:50,pointsVt:50,needHt:3000,needVt:3000}];
+  const detail=parseElectiveTimeCommand({...timeScope,contractVersion:'elective_timplan_time_v1',action:'apply',commandId:randomUUID(),detailId:randomUUID(),expectedRevision:0,expectedParentHash:frame.frame.parentHash,expectedLinkRevision:frame.linkRevision,positions});
+  await tx`select public.elective_timplan_time_command(${tx.json(detail)})`;
+  const read=async()=>parseYearPlanReadReply(await planRead(tx,scope),scope);
+  const electiveRead=async()=>parseElectiveRead((await tx`select public.elective_block_read(${tx.json(scope)}) value`)[0].value.result,scope);
+  const sources=(await electiveRead()).sources.filter(s=>s.frameSourceKey===timeScope.frameSourceKey);assert.equal(sources.length,2);
+  const source=sources.find(s=>s.timeDetailRef.positionId===positions[0].id),second=sources.find(s=>s.timeDetailRef.positionId===positions[1].id);
+  const catalog=JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8'));
+  const levelCode=source.allowedOptionCodes.find(c=>!/^(MOD|FIN|JID|MEA|ROM|SAM)/.test(c));const subject=catalog.subjects.find(s=>s.items.some(i=>i.code===levelCode));
+  const optionId=randomUUID(),groupId=randomUUID(),blockId=randomUUID();
+  const block={id:blockId,kind:'individualChoice',name:'Syntetiskt IV1',startsOn:`${scope.schoolYear}-07-01`,endsOn:`${scope.schoolYear+1}-06-30`,sourceRefs:[source],options:[{id:optionId,name:'Syntetiskt100p-alternativ',subjectCode:subject.code,levelCode,language:null,points:100}],groups:[{id:groupId,optionId,name:'IV1grupp',startsOn:`${scope.schoolYear}-07-01`,endsOn:`${scope.schoolYear+1}-06-30`,classIds:[source.classId],sourceKeys:[source.sourceKey],estimatedPupils:12}]};
+  const command=async(action,payload)=>{const r=await electiveRead();return tx`select public.elective_block_command(${tx.json(parseElectiveCommand({...scope,commandId:randomUUID(),expectedRevision:r.revision,action,payload}))})`;};
+  await command('save_block',{expectedBlockRevision:null,block});await command('apply_groups',{blockId,expectedBlockRevision:1});
+  let current=await read();const rest=current.classes.find(c=>c.classId===source.classId).needs.find(n=>n.rowKey===source.rowKey);
+  assert.equal(rest.needHt,3000);assert.equal(rest.needVt,3000);assert.equal(rest.organizationPending,true);assert.equal(current.groups.length,1);assert.equal(current.groups[0].needHt,2400);
+  assert.equal(rest.needHt+current.groups[0].needHt,5400);assert.equal(rest.needVt+current.groups[0].needVt,5400);
+  check('actual approved IV200 split into100+100 offers100p course and retains the unorganized second position without double counting');
+  const support=await yearPreview(tx,{...scope,mode:'row',sourceKey:current.groups[0].sourceKey,rowId:null}),person=support.candidates[0];assert.ok(person);
+  await yearSend(tx,scope.unitId,scope.schoolYear,'save_row',yearRowPayload(support,yearManual(person),{sourceKind:'teaching_group',teacherHt:2400,teacherVt:2400}));current=await read();
+  assert.ok(current.blockers.some(b=>b.code==='organization_pending'));assert.equal(current.capabilities.canPublish,false);
+  const restSupport=await yearPreview(tx,{...scope,mode:'row',sourceKey:rest.sourceKey,rowId:null});assert.equal(restSupport.need.organizationPending,true);
+  const unsafe=await planCommand(scope.unitId,scope.schoolYear,'save_row',current.revision,yearRowPayload(restSupport,yearManual(person),{teacherHt:3000,teacherVt:3000}));
+  await deny(tx,'unorganized remaining position cannot be assigned as a free class-frame time',sp=>planSend(sp,unsafe),['40001'],'tjanst_stale_basis');
+  const before=current.rows.map(r=>[r.id,r.teacherHt,r.teacherVt,r.sourceRefs]);
+  const sameAgain=parseElectiveTimeCommand({...detail,commandId:randomUUID(),expectedRevision:1});await tx`select public.elective_timplan_time_command(${tx.json(sameAgain)})`;
+  current=await read();assert.equal(current.groups[0].stale,true);assert.equal(current.rows.find(r=>r.groupId===groupId).stale,true);assert.deepEqual(current.rows.map(r=>[r.id,r.teacherHt,r.teacherVt,r.sourceRefs]),before);
+  check('same-value new time-detail revision invalidates old group source without rewriting assignment or losing the second position');
+  try{await tx.savepoint(async sp=>{
+   await sp`set local session_replication_role=replica`;await sp`update public.timplan_time_cells_v2 set school_minutes=jsonb_set(school_minutes,'{1}','null'::jsonb) where plan_id=${source.timplanId} and row_key=${source.rowKey}`;await sp`set local session_replication_role=origin`;
+   const unknown=parseYearPlanReadReply(await planRead(sp,scope),scope),unknownRest=unknown.classes.find(c=>c.classId===source.classId).needs.find(n=>n.rowKey===source.rowKey);
+   assert.equal(unknownRest.needHt,3000);assert.equal(unknownRest.needVt,null);assert.equal(unknownRest.organizationPending,true);assert.equal(unknown.groups[0].needVt,2400);
+   check('unknown active parent term remains unknown in the residual, never silently zero');throw Error('rollback-unknown-parent-fixture');
+  });}catch(e){assert.equal(e.message,'rollback-unknown-parent-fixture');}
+  assert.equal(second.needHt,3000);
+ });
+ const legacy={checks:[]};for(const run of [runTjanstYearCases,runTjanstYearBatchCases,runTjanstYearGroupCases,runTjanstYearLimitCases,runTjanstSharingCases])await run(own.db,legacy);report.legacyChecks=legacy.checks;check(`${legacy.checks.length} actual preexisting class/year/bulk/move/sharing cases pass against the new group-source migration`);
+ report.ok=true;for(const path of ['supabase/migrations/'+migration,'work/pilot/verify-elective-tjanst-sql.mjs'])report.sources[path]=createHash('sha256').update(readFileSync(new URL('../../'+path,import.meta.url))).digest('hex');writeFileSync(output,JSON.stringify(report,null,2)+'\n',{mode:0o600});console.log(`${report.checks.length} SQL checks PASS`);
+}catch(error){console.error('SQL verification failed:',error.code??'',error.message,error.hint??'',error.where??'',error.stack??'');process.exitCode=1;}finally{await own.end();}
