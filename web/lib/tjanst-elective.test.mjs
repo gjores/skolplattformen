@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { parseTjanstSourceKey, parseTjanstAnySourceKey, tjanstGroupSourceKey, parseTjanstRow, parseTjanstTeachingGroup, parsePlanReadReply, parseSelfReadReply } from './tjanst-contract.ts';
 import { schoolSums } from './tjanst-model.ts';
+import { parseYearReply } from './tjanst-year-contract.ts';
 import { projectYearRows, createYearRowEditor, selectYearTeacher, yearRowSavePayload } from './tjanst-year-model.ts';
 const id=n=>`75300300-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const key=`teaching_group:${id(1)}:2027`;
@@ -35,4 +36,12 @@ test('publicerad egen tjänst bevarar gruppidentitet och klassreferenser utan p�
  const read={contractVersion:'tjanst_v1',person:{id:id(10),displayName:'Syntetisk Lärare'},capabilities:{canAck:true,canComment:true},publications:[{versionId:id(21),versionNo:1,unitId:id(2),schoolName:'Provskola',schoolYear:2027,publishedAt:'2027-07-01T00:00:00.000Z',contentHash:'sha256:'+('a'.repeat(64)),rows:[publishedRow],specials:[],acknowledgedAt:null,comments:[]}]};
  const parsed=parseSelfReadReply(read).publications[0].rows[0];assert.equal(parsed.className,null);assert.deepEqual(parsed.classRefs,publishedRow.classRefs);assert.equal(parsed.groupId,id(1));
  assert.throws(()=>parseSelfReadReply({...read,publications:[{...read.publications[0],rows:[{...publishedRow,className:'SA27'}]}]}));
+});
+
+test('årsunderlaget bevarar ett uttryckligt organisationshinder på kvarvarande klassram',()=>{
+ const request={unitId:id(2),schoolYear:2027,mode:'row',sourceKey:source.sourceKey,rowId:null};
+ const need={sourceKind:'class_timplan',sourceKey:source.sourceKey,rowKey:source.rowKey,label:source.label,needHt:1200,needVt:1200,needBasis:'terms',classId:id(3),className:'SA27',organizationPending:true};
+ const reply={contractVersion:'tjanst_year_v1',unitId:id(2),schoolYear:2027,mode:'row',currentRevision:0,baseVersionId:null,basisHash:'sha256:'+('a'.repeat(64)),sourceKey:source.sourceKey,rowId:null,need,currentRow:null,candidates:[],totalCandidates:0,recommendationStatus:'empty',suggestions:[]};
+ assert.equal(parseYearReply(reply,request).need.organizationPending,true);
+ assert.throws(()=>parseYearReply({...reply,need:{...need,organizationPending:'true'}},request));
 });

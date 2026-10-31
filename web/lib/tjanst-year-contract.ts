@@ -208,9 +208,9 @@ function candidate(value: unknown, schoolYear: number): TjanstYearCandidate {
 }
 function need(value: unknown, schoolYear: number): TjanstYearNeed {
   const raw=gymObject(value),group=raw.sourceKind==='teaching_group';
-  const n=shape(raw,['classId','className','sourceKind','sourceKey','rowKey','label','needHt','needVt','needBasis',...(group?['groupId','classIds']:[])]);
+  const n=shape(raw,['classId','className','sourceKind','sourceKey','rowKey','label','needHt','needVt','needBasis',...(group?['groupId','classIds']:[]),...(Object.hasOwn(raw,'organizationPending')?['organizationPending']:[])]);
   const s=source(n.sourceKey,schoolYear);if(n.sourceKind!==s.sourceKind||n.rowKey!==s.rowKey||n.classId!==s.classId)bad();
-  const common={sourceKey:n.sourceKey as string,rowKey:s.rowKey,label:text(n.label,300),needHt:n.needHt===null?null:minutes(n.needHt),needVt:n.needVt===null?null:minutes(n.needVt),needBasis:choice(n.needBasis,TJANST_NEED_BASES)};
+  const common={sourceKey:n.sourceKey as string,rowKey:s.rowKey,label:text(n.label,300),needHt:n.needHt===null?null:minutes(n.needHt),needVt:n.needVt===null?null:minutes(n.needVt),needBasis:choice(n.needBasis,TJANST_NEED_BASES),...(Object.hasOwn(n,'organizationPending')?{organizationPending:gymBoolean(n.organizationPending)}:{})};
   if(s.sourceKind==='class_timplan')return {...common,sourceKind:'class_timplan',classId:s.classId,className:text(n.className,60)};
   const classIds=unique(list(n.classIds,TJANST_LIMITS.classes,uuid),x=>x);if(!classIds.length||uuid(n.groupId)!==s.groupId)bad();
   return {...common,sourceKind:'teaching_group',classId:null,className:text(n.className),groupId:s.groupId,classIds};
