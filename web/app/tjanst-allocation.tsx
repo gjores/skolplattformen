@@ -3,7 +3,7 @@
 import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { CheckCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import type { TjanstPlanRead } from '@/lib/tjanst-contract.ts';
+import type { TjanstNeed, TjanstPlanRead } from '@/lib/tjanst-contract.ts';
 import type { TjanstYearCandidate, TjanstYearReply, TjanstYearRowReply } from '@/lib/tjanst-year-contract.ts';
 import { createYearRowEditor, selectYearTeacher, sortYearSuggestions, yearCandidatePeriod, yearEvidenceLabel, yearRecommendationMessage, yearRowSavePayload,
   YEAR_QUALIFICATION_LABEL } from '@/lib/tjanst-year-model.ts';
@@ -20,7 +20,7 @@ import { formatTime, yearLabel, type TjanstTermView } from './tjanst-service-sum
  */
 type Props = { data: TjanstPlanRead; groups: TjanstClassGroup[]; term: TjanstTermView; editable: boolean; phone: boolean;
   drafts: Record<string, TjanstAllocationDraft>; onDraft: (sourceKey: string, draft: TjanstAllocationDraft | null) => void;
-  initialSourceKey?: string | null; onOpenElectiveBlocks?: () => void;
+  initialSourceKey?: string | null; onOpenElectiveBlocks?: () => void; onPrepareNeed?: (need:TjanstNeed)=>void;
   /** 05.1-34: kön följer linsen. Ofördelat ger bara ofördelade behov; Alla behov ger också fördelade (till exempel för en andra lärare). */
   lens?: TjanstLensId;
   loadSupport: (sourceKey: string, rowId: string | null) => Promise<TjanstYearReply | TjanstFailure>;
@@ -32,7 +32,7 @@ export type TjanstAllocationDraft = { ht: string; vt: string };
 const termText = (v: { ht: number; vt: number; year: number }) => `HT ${formatTime(v.ht)} · VT ${formatTime(v.vt)} · Läsår ${formatTime(v.year)}`;
 const typing = (el: EventTarget | null) => el instanceof HTMLElement && (el.closest('input,textarea,select,[contenteditable="true"]') !== null);
 
-export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, initialSourceKey = null, loadSupport, onSave, onOpenCourse, onOpenElectiveBlocks }: Props) {
+export default function TjanstAllocation({ data, groups, term, editable, phone, lens = 'ofordelat', drafts, onDraft, initialSourceKey = null, loadSupport, onSave, onOpenCourse, onOpenElectiveBlocks, onPrepareNeed }: Props) {
   const id = useId();
   const [groupBy, setGroupBy] = useState<TjanstQueueGroupBy>('klass'), [search, setSearch] = useState('');
   const queue = useMemo(() => allocationQueue(groups, term, { groupBy, search, lens }), [groups, term, groupBy, search, lens]);
@@ -182,7 +182,7 @@ export default function TjanstAllocation({ data, groups, term, editable, phone, 
           {sameCourse.length > 0 && <p className="tjanst-same-course">Samma kurs finns i {sameCourse.length === 1 ? 'en annan klass' : `${sameCourse.length} andra klasser`}: {sameCourse.map(s => s.cls).join(', ')}.{' '}
             <Button type="button" variant="outline" onClick={() => onOpenCourse(courseCode({ rowKey: data.classes.flatMap(x => x.needs).find(n => n.sourceKey === selected.sourceKey)?.rowKey ?? '' }))}>Visa alla klasser med kursen</Button></p>}
           {failure && <p role="alert" className="validation-warning">{failure}</p>}
-          {entry?.need.organizationPending ? <p>Återstår att organisera i valbara undervisningsgrupper. {onOpenElectiveBlocks && <Button variant="outline" onClick={onOpenElectiveBlocks}>Lägg till valbart block</Button>}</p> : !editable ? <p>Fördelningen kan inte ändras just nu.</p> : supportError ? <div role="alert"><p>{supportError}</p><Button type="button" variant="outline" onClick={() => setReload(n => n + 1)}>Hämta planeringsstöd igen</Button></div>
+          {entry?.need.organizationPending ? <p>Återstår att organisera i valbara undervisningsgrupper. {onOpenElectiveBlocks && <Button variant="outline" onClick={()=>onPrepareNeed ? onPrepareNeed(entry.need) : onOpenElectiveBlocks?.()}>Förbered valbara block</Button>}</p> : !editable ? <p>Fördelningen kan inte ändras just nu.</p> : supportError ? <div role="alert"><p>{supportError}</p><Button type="button" variant="outline" onClick={() => setReload(n => n + 1)}>Hämta planeringsstöd igen</Button></div>
           : !reply || !base ? <output aria-busy="true">Hämtar planeringsstöd…</output> : <>
             <div className="tjanst-allocation-times">
               <div className="tjanst-field"><label htmlFor={`${id}-ht`}>Lärartid HT (timmar)</label><input id={`${id}-ht`} inputMode="decimal" value={ht} onChange={e => setTime('ht', e.target.value)}/></div>

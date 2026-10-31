@@ -22,17 +22,18 @@ import { VOCATIONAL_GY25_CODES } from '@/lib/programplan-profile.ts';
 import ProtectedClassTimplans from './protected-class-timplans';
 import './protected-gym-timplan.css';
 import PlanSteps from './plan-steps';
+import ElectivePreparationLauncher from './elective-preparation-launcher';
 import ProtectedPlanList from './protected-plan-list';
 import { usePlanningContext, type PlanningMatrixYear } from './planning-context';
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
-type Props = { process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
+type Props = { onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onTjanst?:(target:{unitId:string;schoolYear:number})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
 
-export default function ProtectedGymTimplanWorkspace({ process = 'timetable', onApl, onTimplan, identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
+export default function ProtectedGymTimplanWorkspace({ process = 'timetable', onTjanst, onPreparedBlocks, onPreparedTimplan, onApl, onTimplan, identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
   const [missing, setMissing] = useState<{ workspace: ProgramplanWorkspace; unitId: string } | null>(null);
@@ -61,7 +62,9 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
   const isAplBlocked = useCallback(() => hoursActivity.current || aplOtherBlocked.current, []);
   const decisionPending = useHasUnsaved('navigation-block:plan-decision:');
   const classDirty = useHasUnsaved('class-plan-form:');
-  const dirty = hoursDirty || aplDirty || classDirty || commandBlocked;
+  const preparationDirty = useHasUnsaved('elective-preparation:');
+  const preparationPending = useHasUnsaved('navigation-block:elective-preparation:');
+  const dirty = hoursDirty || aplDirty || classDirty || preparationDirty || commandBlocked;
   useLayoutEffect(() => { aplOtherBlocked.current = decisionPending || commandBlocked || classDirty; }, [decisionPending, commandBlocked, classDirty]);
   const navigationBlocked = useHasUnsaved('navigation-block:');
   const navigationBlockedRef = useRef(navigationBlocked), hoursBlockedRef = useRef(false);
@@ -266,10 +269,13 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
       <PlanSteps current={aplProcess ? 'apl' : 'timplan'} apl={!!(vocational || aplProcess)}/>
       {!aplProcess && <>
         {plan.sourceChanged && <p className="gt-changed">Programplanen har ändrats. Skapa en ny version för att använda ändringarna i timplanen.</p>}
-        <ProtectedGymTimplanHours timeJournalScope={timeJournalScope} aplInclusive={vocational} disabled={decisionPending || commandBlocked || aplDirty || aplPending} key={JSON.stringify([plan.id, timeJournalScope, epoch])} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
+        <ProtectedGymTimplanHours timeJournalScope={timeJournalScope} aplInclusive={vocational} disabled={decisionPending || commandBlocked || aplDirty || aplPending || preparationPending} key={JSON.stringify([plan.id, timeJournalScope, epoch])} plan={plan} yearProjection={yearProjection ?? undefined} year={String(shownYear)} onYear={changeMatrixYear} unsavedId={`${unsavedId}-hours`}
           onSaved={setPlan} onSaving={setBusy} onNavigationBlocked={onHoursBlocked} onActivity={onHoursActivity} onSecurityFailure={securityFailure}/>
-        <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||aplDirty||aplPending||classDirty||commandBlocked} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
-        <div ref={classSection} tabIndex={-1} aria-label="Klasskopplingar" style={{scrollMarginTop:'11rem'}}><ProtectedClassTimplans openRequest={classOpenRequest.planId===plan.id?classOpenRequest.count:0} scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked || aplDirty || aplPending} onSecurityFailure={securityFailure}/></div>
+        <PlanDecisionPanel key={`decision-${plan.id}`} kind="timplan" planId={plan.id} revision={plan.revision} disabled={busy||hoursDirty||aplDirty||aplPending||classDirty||commandBlocked||preparationPending} onSecurityFailure={securityFailure} onChanged={()=>openPlan(plan.id, undefined, undefined, true)}/>
+        {plan.status === 'faststalld' && !plan.archived && ['rektor','administrator'].includes(context.function) && planningSelection && yearProjection?.relativeYear && <ElectivePreparationLauncher
+          choices={[{unitId:plan.unitId,planId:plan.id,columnId:`ar${yearProjection.relativeYear}`,label:`${plan.series?.name ?? plan.source.education.name} · version ${plan.version}`}]} schoolYear={planningSelection.schoolYear}
+          identityKey={commandScope} contextEpoch={epoch} disabled={busy||decisionPending||commandBlocked||hoursDirty||classDirty} onSessionLost={onSessionLost} onTjanst={onTjanst} onOpenBlocks={onPreparedBlocks} onOpenSourceTimplan={onPreparedTimplan}/>}
+        <div ref={classSection} tabIndex={-1} aria-label="Klasskopplingar" style={{scrollMarginTop:'11rem'}}><ProtectedClassTimplans openRequest={classOpenRequest.planId===plan.id?classOpenRequest.count:0} scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])} returnTo={'/?' + new URLSearchParams({vy:'timplaner',timplan:plan.id,timplansskola:plan.unitId,timplansutbildning:plan.offeringId,timplansversion:String(plan.version),planeringslasar:String(planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()),planeringsskola:plan.unitId,planeringsform:'gymnasium'}).toString()} key={`classes-${plan.id}-${planningSelection?.schoolYear}`} plan={plan} schoolYear={planningSelection?.schoolYear ?? planningSetup?.currentYear ?? new Date().getFullYear()} canPrepare={['rektor','administrator'].includes(context.function)} disabled={busy || decisionPending || commandBlocked || aplDirty || aplPending || preparationPending} onSecurityFailure={securityFailure}/></div>
       </>}
       {aplProcess && (vocational ? <>
         {plan.status !== 'faststalld' && <p className="gt-notice">Godkänn timplanen innan du ändrar APL-planeringen. Du kan läsa tidigare sparade uppgifter här.</p>}

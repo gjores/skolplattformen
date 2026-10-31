@@ -7,6 +7,7 @@ import { PROGRAMPLAN_LANGUAGES, PROGRAMPLAN_LANGUAGE_LADDERS, programplanLanguag
 import { nationalTimplan } from '@/lib/timplan-model.ts';
 import type { ElectiveOption } from '@/lib/elective-block-contract.ts';
 const catalog = parseProgramplanCatalog(artifact);
+export const electiveCatalogId = catalog.catalogId;
 const levels = catalog.subjects.flatMap(subject => subject.items.map(item => ({ ...item, subjectCode: subject.code, subjectName: subject.name })));
 const levelByCode = new Map(levels.map(level => [level.code, level]));
 const grNames: Record<string, string> = { ...Object.fromEntries(nationalTimplan.flatMap(subject => subject.code ? [[subject.code, subject.name]] : [])), GRGRSVE01: 'Svenska', GRGRSVA01: 'Svenska som andraspråk', GRGRENG01: 'Engelska', GRGRMSP01: 'Moderna språk', GRGRMOD01: 'Moderna språk' };
@@ -38,7 +39,7 @@ export default function ElectiveCatalogPicker({ id, option, allowed, disabled, e
       isItemEqualToValue={(a, b) => a.key === b.key} filter={(item, query) => normalize(query).split(/\s+/).every(word => normalize(item.label).includes(word))}
       onValueChange={item => { if (item) onSelect({ ...option, subjectCode: item.subjectCode, levelCode: item.code, points: item.points, language: item.language, name: !option.name.trim() || option.name === electiveOptionLabel(option) ? item.name : option.name }); }}>
       <ComboboxInput id={id} placeholder="Sök exempelvis spanska 1, engelska eller ämneskod" aria-invalid={!!error} aria-describedby={`${id}-help${error ? ` ${id}-error` : ''}`} disabled={disabled}/>
-      <ComboboxContent className="elective-catalog-popup"><ComboboxEmpty>Inga träffar i de valda klassernas timplansram. Prova ämnesnamn, språk eller kod.</ComboboxEmpty>
+      <ComboboxContent className="elective-catalog-popup"><ComboboxEmpty>Inga träffar i timplansramens tillåtna utbud. Prova ämnesnamn, språk eller kod.</ComboboxEmpty>
         <ComboboxList>{(item: Item) => <ComboboxItem key={item.key} value={item}><span>{item.label}</span></ComboboxItem>}</ComboboxList>
       </ComboboxContent>
     </Combobox>

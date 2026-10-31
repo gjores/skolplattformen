@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import ProtectedElectiveBlocks from './protected-elective-blocks';
+import type {ElectivePreparationIntent} from '@/lib/elective-preparation-target.ts';
 import Link from 'next/link';
 import {
   BriefcaseBusiness,
@@ -321,6 +322,7 @@ function SessionLock({ reason, expired }: { reason: LockReason; expired?: boolea
 function ProtectedShell() {
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
   const identitySource = session && session !== 'loading' ? JSON.stringify([session.identity.issuer, session.identity.subject]) : null;
+  const [electiveIntent,setElectiveIntent]=useState<{key:string;target:ElectivePreparationIntent}|null>(null);
   const [journalIdentity, setJournalIdentity] = useState<{ source: string; key: string; tjanst: string } | null>(null);
   useEffect(() => {
     let current = true;
@@ -734,6 +736,24 @@ function ProtectedShell() {
       ...((viewRef.current === 'tjanst' || viewRef.current === 'valbara') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
+  function goToPreparedStaffing(target:{unitId:string;schoolYear:number}) {
+    if (!canNavigate()) return;
+    const prior=planningLocationRef.current??planningFor('timplaner');
+    const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
+    planningLocationRef.current=next;setPlanningLocation(next);navigate('tjanst');
+  }
+  function goToPreparedBlocks(target:{unitId:string;schoolYear:number}) {
+    if (!canNavigate()) return;
+    const prior=planningLocationRef.current??planningFor('timplaner');
+    const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
+    planningLocationRef.current=next;setPlanningLocation(next);setElectiveIntent(null);setPlanNavigation(value=>value+1);navigate('valbara');
+  }
+  function goToPreparedTimplan(target:{unitId:string;schoolYear:number;columnId:string}) {
+    if (!canNavigate()) return;
+    const prior=planningLocationRef.current??planningFor('timplaner');
+    const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,schoolform:target.columnId.startsWith('ar')?'gymnasium':'grundskola',page:1,selectionRevision:null}};
+    planningLocationRef.current=next;setPlanningLocation(next);navigate('timplaner');
+  }
   function goToClassLinks(selection: TjanstPlanningSelection, schoolform: 'gymnasium' | 'grundskola') {
     if (!canNavigate()) return;
     const prior = planningFor('timplaner');
@@ -832,9 +852,9 @@ function ProtectedShell() {
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>}
-                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace process={aplProcess ? 'apl' : 'timetable'} onApl={goToApl} onTimplan={goToTimplan} identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
+                {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace process={aplProcess ? 'apl' : 'timetable'} onTjanst={goToPreparedStaffing} onPreparedBlocks={goToPreparedBlocks} onPreparedTimplan={goToPreparedTimplan} onApl={goToApl} onTimplan={goToTimplan} identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
                   onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
-                  : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
+                  : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onTjanst={goToPreparedStaffing} onPreparedBlocks={goToPreparedBlocks} onPreparedTimplan={goToPreparedTimplan} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}
               {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
                 initialClassStep={classStepIntent?.scope===contextKey?classStepIntent.target:null} onClassStepMounted={classStepMounted} onOpened={programplanOpened}/>}
@@ -843,10 +863,10 @@ function ProtectedShell() {
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
-                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={() => navigate('valbara')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={target => {setElectiveIntent(target?{key:contextKey,target}:null);navigate('valbara');}} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'valbara' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
-              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedElectiveBlocks unitId={selection.unitId} schoolYear={selection.schoolYear}
-                scopeKey={contextKey} contextEpoch={session.epoch} onSessionLost={clearSession} onTjanst={() => navigate('tjanst')}/>}</TjanstPlanningArea>}
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedElectiveBlocks key={`${contextKey}:${planNavigation}`} unitId={selection.unitId} schoolYear={selection.schoolYear}
+                initialPreparation={electiveIntent?.key===contextKey&&electiveIntent.target.unitId===selection.unitId&&electiveIntent.target.schoolYear===selection.schoolYear?electiveIntent.target:null} onPreparedTjanst={goToPreparedStaffing} onPreparedBlocks={goToPreparedBlocks} onPreparedTimplan={goToPreparedTimplan} onPreparationClosed={()=>setElectiveIntent(null)} preparationIdentityKey={JSON.stringify([session.context!.customerId,session.context!.membershipId,session.context!.assignmentId])} scopeKey={contextKey} contextEpoch={session.epoch} onSessionLost={clearSession} onTjanst={() => navigate('tjanst')} onOpenTimplans={() => navigate('timplaner')}/>}</TjanstPlanningArea>}
             {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               today={session.today} onSessionLost={clearSession}/>}
             {view === 'bemanning' && session.context!.function === 'huvudman' && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice={false}

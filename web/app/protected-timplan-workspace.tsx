@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Clock3, Pencil, RefreshCw } from 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { canChangeTimplanCell, cellHours, parseProtectedTimplan, parseTimplanCellReply, parseTimplanHours, parseTimplanList, sameTimplanColumn,
   statusLabel, timplanColumns, timplanRows, unknownTimplanRows,
   type ProtectedTimplan, type TimplanList } from '@/lib/protected-timplan.ts';
@@ -19,6 +19,7 @@ import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGrimClassTimplans from './protected-grim-class-timplans';
 import { TimplanGuidance, TimplanEditGuidance } from './timplan-guidance';
 import './protected-timplan.css';
+import ElectivePreparationLauncher from './elective-preparation-launcher';
 
 type CellDraft = {
   weekly: boolean;
@@ -26,13 +27,13 @@ type CellDraft = {
   value: string; original: number; mode: 'draft' | 'refreshing' | 'refresh-failed' | 'compare' | 'applied';
   error: string | null; mfa: boolean; uncertain: boolean;
 };
-type Props = { context: ActiveContext; epoch: number; initialTarget: OtherTimplanLocation | null;
+type Props = { onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onTjanst?:(target:{unitId:string;schoolYear:number})=>void; context: ActiveContext; epoch: number; initialTarget: OtherTimplanLocation | null;
   onOpened: (target: OtherTimplanLocation | null) => void; onSessionLost: () => void };
 type VerifiedMatrix = { target: OtherTimplanLocation; currentMatrix: boolean };
 class MissingAnnualTarget extends Error {}
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 
-export default function ProtectedTimplanWorkspace({ context, epoch, initialTarget, onOpened, onSessionLost }: Props) {
+export default function ProtectedTimplanWorkspace({ context, epoch, initialTarget, onOpened, onSessionLost, onTjanst, onPreparedBlocks, onPreparedTimplan }: Props) {
   const { setup, selection } = usePlanningContext();
   const [annualRow, setAnnualRow] = useState<PlanningRow | null>(null);
   const [currentMatrix, setCurrentMatrix] = useState(false);
@@ -53,16 +54,19 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
   const active = useRef(true);
   const controller = useRef<AbortController | null>(null);
   const saving = useRef(false);
-  const dirty = draft !== null && draft.mode !== 'applied'
+  const preparationDirty = useHasUnsaved('elective-preparation:'), preparationBlocked = useHasUnsaved('navigation-block:elective-preparation:');
+  const preparationRef = useRef({dirty:preparationDirty,blocked:preparationBlocked});
+  useLayoutEffect(()=>{preparationRef.current={dirty:preparationDirty,blocked:preparationBlocked};},[preparationDirty,preparationBlocked]);
+  const dirty = preparationDirty || draft !== null && draft.mode !== 'applied'
     && (draft.value !== String(draft.original) || draft.uncertain || draft.mode !== 'draft');
-  const navigationBlocked = busy && draft !== null || draft?.mode === 'refreshing' || draft?.mode === 'refresh-failed';
+  const navigationBlocked = preparationBlocked || busy && draft !== null || draft?.mode === 'refreshing' || draft?.mode === 'refresh-failed';
   const draftRef = useRef(draft), busyRef = useRef(busy);
   useLayoutEffect(() => { draftRef.current = draft; busyRef.current = busy; }, [draft, busy]);
   const updateDraft = useCallback((next: CellDraft | null) => { draftRef.current = next; setDraft(next); }, []);
   const updateBusy = useCallback((next: boolean) => { busyRef.current = next; setBusy(next); }, []);
   const allowNavigation = useCallback(() => {
     const own = draftRef.current;
-    if (saving.current || busyRef.current || own?.mode === 'refreshing' || own?.mode === 'refresh-failed') {
+    if (preparationRef.current.blocked || saving.current || busyRef.current || own?.mode === 'refreshing' || own?.mode === 'refresh-failed') {
       setNotice('Invänta sparandet eller läs aktuell sparstatus innan du lämnar timplanen.'); return false;
     }
     return true;
@@ -153,6 +157,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
   const openPlan = useCallback(async (expected: OtherTimplanLocation, explicitCurrent = false) => {
     if (!allowNavigation()) return;
     const own = draftRef.current;
+    if (preparationRef.current.dirty && !confirmDiscard()) return;
     if (own && own.mode !== 'applied' && (own.value !== String(own.original) || own.mode !== 'draft' || own.uncertain) && !confirmDiscard()) return;
     initialOpened.current = true;
     const request = begin(); verified.current = null;
@@ -328,6 +333,9 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
             {weekly && <p>Veckoram. Kalender och individuell fördelning saknas; inga årstimmar beräknas.</p>}
           </div>}
         {positional && <output className="pt-alert" data-testid="other-column-map-unknown">Den historiska kolumnkartan är okänd. Hela timplanen visar lagrade positioner; dagens årskursordning används inte som historiskt bevis. Årets timmar och riktad årscellsändring är därför okända/spärrade.</output>}
+        {plan.status==='faststalld' && plan.education.kind==='grundskola' && !positional && selection && ['rektor','administrator'].includes(context.function) && <ElectivePreparationLauncher
+          choices={timplanColumns(plan).filter(column=>/^ak[1-9]$/u.test(column.id)).map(column=>({unitId:plan.unitId,planId:plan.id,columnId:column.id,label:`${plan.education.name} · ${column.label} · version ${plan.version}`}))}
+          schoolYear={selection.schoolYear} identityKey={JSON.stringify([context.customerId,context.membershipId,context.assignmentId])} contextEpoch={epoch} disabled={busy||Boolean(draft)} onSessionLost={onSessionLost} onTjanst={onTjanst} onOpenBlocks={onPreparedBlocks} onOpenSourceTimplan={onPreparedTimplan}/>}
         {['faststalld','ersatt'].includes(plan.status) && <ProtectedGrimClassTimplans key={`grim-classes-${plan.id}`} plan={plan}
           scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])}
           returnTo={'/?' + new URLSearchParams({ vy: 'timplaner', ovrigtimplan: plan.id, timplansform: plan.education.kind, timplansutbildning: plan.offeringId,
