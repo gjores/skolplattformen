@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
 current_plan: "VB15–19 genomförs: gemensam förberedelse från godkänd timplan och installation3012"
 status: executing
-stopped_at: "Genomförande beställt. Planpaket VB15–19 skrivet; kontrakt, skyddad beständig förberedelse och gemensam UI påbörjas.3012 kör tidigare17f0106 tills ny kandidat verifierats."
+stopped_at: "Genomförande beställt. VB15-modell och VB16 SQL/API genomförda; samlad UI och integration provas.45 isolerade SQL-prov och7 serverprov PASS.3012 kör tidigare17f0106 tills ny kandidat verifierats."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "Research efter negativ UX-återkoppling: föreslagen markering/populering av valbara block från godkänd timplan. Teknisk leverans och nytt produktförslag hålls isär."
+last_activity_desc: "Godkänd förberedelse från timplan genomförs. Modell40/SQL45/server7 PASS; nya browser-/actual-/installationsbevis återstår före ersättning av3012."
 state_head: 17f0106
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: vb13_component78_code_only_afterproof_pass
 user_trial_status: needs_work_timplan_preparation
 milestone_name: milestone
 ---
+
+**Pågående verifiering2026-10-31:** VB15 och VB16 har kontrollerade kodresultat:40 modell-/time-/blockprov,45 isolerade PostgreSQL-prov och7 serverprov. Den samlade UI:n och källbundna ingångarna provas nu; ny actual Worker/OIDC-kandidat och inkrementell installation återstår. Befintliga manuella block/tidsdetaljer skyddas och öppnas via den gamla arbetsytan, utan automatisk adoption. Grundskolans nya förberedelse är spärrad tills verifierad historisk årskurskarta finns; ren domän/mockad GR är inte faktisk GR-leverans.3012 är fortfarande17f0106.
 
 **Beställt genomförande2026-10-31:** Användaren har godkänt planering/genomförande enligt researchen, ordentliga prov och installation på3012. [Genomförandepaket VB15–19](phases/05.2-schemamodul/05.2-VB-PREPARATION-IMPLEMENTATION.md) är planerat och påbörjat. Inget nytt detaljgodkännande krävs. Förberedelse utan klass, samlat skapande och återanvändning ingår. Ingen ny lokal leverans ännu.
 
