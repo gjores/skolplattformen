@@ -84,3 +84,14 @@ test('wrapper lexer distinguishes ordinary quotes, escaped E quotes and nested c
  for(const sql of [String.raw`begin; select E'it\'s COMMIT;'; commit;`, "begin;select 'it''s COMMIT;';/* outer /* inner */ comment */commit;"]){const p=prepareMigrationSql(sql);assert.equal(p.wrapper,'outer-begin-commit');assertTransactionalSql(p.sql);}
  for(const sql of [String.raw`select '\'; COMMIT;`,String.raw`select E'\\'; COMMIT;`,"begin;select 'unterminated;commit;","begin;do $tag$unterminated;commit;","begin;/* unterminated commit;"])assert.throws(()=>prepareMigrationSql(sql));
 });
+
+test('empty historical statements require exact reviewed exceptions and remain unchanged',()=>{
+ const {sources,rows}=journals();const versions=['20260930110000','20260930120000','20260930121000','20260930130000','20260930140000','20260930150000'];
+ const exceptions=[];
+ for(const r of rows){if(!versions.includes(r.version))continue;r.statements=[];const p=Object.keys(sources).find(p=>p.split('/').at(-1).startsWith(r.version));exceptions.push({version:r.version,name:r.name,statementsSha256:sha([]),repositorySourceSha256:sources[p].sha256,reason:'verified-baseline-history'});}
+ assert.equal(exceptions.length,6);const frozen=structuredClone(rows);
+ assert.throws(()=>assertPriorJournal(rows,sources,[]));assert.throws(()=>assertPriorJournal(rows,sources,exceptions.slice(1)));
+ assert.equal(assertPriorJournal(rows,sources,exceptions).legacyJournal.length,6);assert.deepEqual(rows,frozen);
+ assert.throws(()=>assertPriorJournal(rows,sources,exceptions.map((e,i)=>i?e:{...e,repositorySourceSha256:'0'.repeat(64)})));
+ assert.throws(()=>assertPriorJournal(rows.map((r,i)=>i?r:{...r,statements:null}),sources,exceptions));
+});

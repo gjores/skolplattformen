@@ -18,6 +18,7 @@ export const ELECTIVE_MIGRATIONS=[
  '20261030112000_elective_tjanst_sources.sql','20261030113000_elective_rounds_choices.sql','20261030114000_elective_guardian_confirmation.sql',
  '20261030115000_elective_placements.sql','20261030115100_elective_binding_recovery_reference.sql','20261030115200_elective_frame_exclusivity.sql',
  '20261030115300_elective_participant_account_attestation.sql','20261030115400_elective_placement_applied_organization.sql','20261030115500_elective_group_retirement.sql',
+ '20261030115600_elective_applied_pool_intent.sql',
 ].map(p=>prefix+p);
 export const KNOWN_UNJOURNALLED=['20261002120000_phase5_programplan_education.sql','20261002121000_phase5_worker_programplan_education.sql'].map(p=>prefix+p);
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
@@ -41,7 +42,7 @@ export function assertPriorJournal(rows,sources,accepted=[]){
  const paths=Object.keys(sources).filter(p=>!ELECTIVE_MIGRATIONS.includes(p)&&!KNOWN_UNJOURNALLED.includes(p));
  assert.deepEqual(rows.map(r=>r.version),paths.map(version),'prior_version_set_mismatch');const used=[];
  for(const[i,p]of paths.entries()){
-  const r=rows[i];assert.equal(r.name,name(p),'prior_name_mismatch');assert.ok(Array.isArray(r.statements)&&r.statements.length&&r.statements.every(s=>typeof s==='string'),'prior_statements_missing');
+  const r=rows[i];assert.equal(r.name,name(p),'prior_name_mismatch');assert.ok(Array.isArray(r.statements)&&r.statements.every(s=>typeof s==='string'),'prior_statements_missing');
   if(r.statements.length===1&&r.statements[0]===sources[p].sql)continue;
   const exception={version:r.version,name:r.name,statementsSha256:sha(r.statements),repositorySourceSha256:sources[p].sha256,reason:'verified-baseline-history'};
   assert.ok(accepted.some(e=>isDeepStrictEqual(e,exception)),'unclassified_prior_source_mismatch');used.push(exception);
@@ -94,7 +95,7 @@ export async function preservedRows(db,columns,auditId=null){
   result[key]=(await db.unsafe(q,filter?[auditId]:[]))[0];
  }return result;
 }
-export async function readMigrationJournal(db){return Array.from(await db`select version,name,statements from supabase_migrations.schema_migrations order by version`,r=>({version:r.version,name:r.name,statements:Array.from(r.statements??[])}));}
+export async function readMigrationJournal(db){return Array.from(await db`select version,name,statements from supabase_migrations.schema_migrations order by version`,r=>({version:r.version,name:r.name,statements:Array.isArray(r.statements)?Array.from(r.statements):r.statements}));}
 export async function assertEducationBaseline(db){
  const[table]=await db`select c.relrowsecurity rls,c.relforcerowsecurity forced from pg_class c where c.oid=to_regclass('public.programplan_education_receipts')`;assert.equal(table?.rls,true,'education_receipt_rls_missing');
  for(const role of ['anon','authenticated','skolplattform_worker'])assert.equal((await db`select has_table_privilege(${role},'public.programplan_education_receipts','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') allowed`)[0].allowed,false,'education_receipt_privilege');
