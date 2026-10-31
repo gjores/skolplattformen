@@ -42,8 +42,8 @@ export function assertPriorJournal(rows,sources,accepted=[]){
  const paths=Object.keys(sources).filter(p=>!ELECTIVE_MIGRATIONS.includes(p)&&!KNOWN_UNJOURNALLED.includes(p));
  assert.deepEqual(rows.map(r=>r.version),paths.map(version),'prior_version_set_mismatch');const used=[];
  for(const[i,p]of paths.entries()){
-  const r=rows[i];assert.equal(r.name,name(p),'prior_name_mismatch');assert.ok(Array.isArray(r.statements)&&r.statements.every(s=>typeof s==='string'),'prior_statements_missing');
-  if(r.statements.length===1&&r.statements[0]===sources[p].sql)continue;
+  const r=rows[i];assert.ok(Array.isArray(r.statements)&&r.statements.every(s=>typeof s==='string'),'prior_statements_missing');
+  if(r.name===name(p)&&r.statements.length===1&&r.statements[0]===sources[p].sql)continue;
   const exception={version:r.version,name:r.name,statementsSha256:sha(r.statements),repositorySourceSha256:sources[p].sha256,reason:'verified-baseline-history'};
   assert.ok(accepted.some(e=>isDeepStrictEqual(e,exception)),'unclassified_prior_source_mismatch');used.push(exception);
  }

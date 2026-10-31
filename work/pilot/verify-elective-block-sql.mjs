@@ -51,9 +51,9 @@ try{
   const extra={...block.groups[0],id:randomUUID(),name:'Franska grupp 2'};
   const amendment=cmd(scope,3,'save_block',{expectedBlockRevision:1,block:{...block,groups:[block.groups[0],extra]}});
   await tx`select public.elective_block_command(${tx.json(amendment)})`;
-  const edited=(await read()).blocks[0];assert.equal(edited.groups.length,2);assert.equal(edited.offeringRevision,1);assert.equal(edited.appliedRevision,1);assert.equal(edited.applied,true);
+  const edited=(await read()).blocks[0];assert.equal(edited.groups.length,2);assert.equal(edited.offeringRevision,1);assert.equal(edited.appliedRevision,1);assert.equal(edited.applied,false);
   assert.deepEqual((await tx`select applied_snapshot from public.elective_blocks where id=${blockId}`)[0].applied_snapshot,appliedSnapshot);
-  check('adding a group preserves stable existing group, offering revision and applied snapshot');
+  check('adding a group requires reapply while preserving stable group, offering revision and previous applied snapshot');
   await f.actor(tx,'principalB');await deny(tx,'another school principal cannot read school A blocks',sp=>sp`select public.elective_block_read(${tx.json(scope)})`,['42501']);
   await f.actor(tx,'teacherGroup');await deny(tx,'teacher group mandate grants no block administration',sp=>sp`select public.elective_block_read(${tx.json(scope)})`,['42501']);
   await f.actor(tx,'hm');await deny(tx,'organizer does not receive new pupil/block school authority',sp=>sp`select public.elective_block_read(${tx.json(scope)})`,['42501']);

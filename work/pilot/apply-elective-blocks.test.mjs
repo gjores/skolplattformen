@@ -95,3 +95,13 @@ test('empty historical statements require exact reviewed exceptions and remain u
  assert.throws(()=>assertPriorJournal(rows,sources,exceptions.map((e,i)=>i?e:{...e,repositorySourceSha256:'0'.repeat(64)})));
  assert.throws(()=>assertPriorJournal(rows.map((r,i)=>i?r:{...r,statements:null}),sources,exceptions));
 });
+
+test('historic migration name requires exact reviewed identity even with identical original SQL',()=>{
+ const{sources,rows}=journals(),p=Object.keys(sources).find(p=>p.split('/').at(-1).startsWith(rows[0].version));
+ rows[0]={...rows[0],name:'reviewed_historic_name'};const before=structuredClone(rows);
+ assert.throws(()=>assertPriorJournal(rows,sources,[]));
+ const exception={version:rows[0].version,name:rows[0].name,statementsSha256:sha(rows[0].statements),repositorySourceSha256:sources[p].sha256,reason:'verified-baseline-history'};
+ assert.equal(assertPriorJournal(rows,sources,[exception]).legacyJournal.length,1);assert.deepEqual(rows,before);
+ for(const field of ['name','version','statementsSha256','repositorySourceSha256'])assert.throws(()=>assertPriorJournal(rows,sources,[{...exception,[field]:'wrong'}]));
+ assert.throws(()=>assertPriorJournal(rows,sources,[exception,exception]));
+});
