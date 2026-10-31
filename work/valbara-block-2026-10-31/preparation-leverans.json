@@ -1,0 +1,87 @@
+{
+  "kind": "elective-preparation-local-delivery",
+  "status": "PASS",
+  "installedAt": "2026-10-31T10:34:16.117Z",
+  "revision": "b6c3bb0cd3355feda4524054c88ec835d102f9a4",
+  "url": "http://127.0.0.1:3012/?vy=valbara",
+  "runtimeDirectory": "work/pilot/targets/protected/runtime/elective-preparation-b6c3bb0cd3/web/dist-protected",
+  "rollbackRuntimeDirectory": "work/pilot/targets/protected/runtime/elective-ux-17f0106338/web/dist-protected",
+  "artifactSha256": "6c41e62d94e4821e9583c7126e9ebfe46cd7730445e1123e4af340537392a211",
+  "artifactFiles": 1406,
+  "artifactEqual": true,
+  "health": "PASS",
+  "routes": [
+    {
+      "path": "/",
+      "status": 200
+    },
+    {
+      "path": "/?vy=valbara",
+      "status": 200
+    },
+    {
+      "path": "/val",
+      "status": 200
+    },
+    {
+      "path": "/api/session",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/lasa",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/kommando",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/forberedelse/status",
+      "status": 401
+    },
+    {
+      "path": "/api/valbara-block/egen/urval",
+      "status": 401
+    }
+  ],
+  "httpAssets": {
+    "count": 14,
+    "byteEqual": true
+  },
+  "browser": {
+    "desktop": "PASS",
+    "phone": "PASS",
+    "authenticated": false
+  },
+  "schemaBefore": "4d48c1ad07d4c3416ddec752724a68312369d2746bda4dfcd7cccc76743bc6f0",
+  "schemaAfter": "9520ada4e2c1d7f4d7032bb5dba87de8a17a3452c4550799662155916e622e06",
+  "migrationsApplied": 1,
+  "originalTablesPreserved": 144,
+  "originalRowsPreserved": true,
+  "newTablesEmpty": true,
+  "auditRowsAdded": 1,
+  "testDataCreated": false,
+  "humanAcceptance": "pending",
+  "checks": {
+    "componentUi": 146,
+    "domainNode": 979,
+    "sql": 45,
+    "ownedIncrementalInstall": 5,
+    "ownedFullInstall": 11,
+    "installerNode": 25,
+    "workerOidc": 80,
+    "typescript": "PASS",
+    "oxlint": "PASS",
+    "handbookBuild": "PASS",
+    "protectedBuild": "PASS"
+  },
+  "limits": [
+    "GY preparation supported; new GR preparation awaits verified historical grade mapping",
+    "Existing manual blocks and time details retained through their original workflow",
+    "No real municipality or SS12000 information exchange claimed"
+  ]
+}

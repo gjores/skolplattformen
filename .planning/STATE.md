@@ -3,35 +3,35 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB15–19 genomförs: gemensam förberedelse från godkänd timplan och installation3012"
-status: executing
-stopped_at: "Genomförande beställt. VB15-modell och VB16 SQL/API genomförda; samlad UI och integration provas.45 isolerade SQL-prov och7 serverprov PASS.3012 kör tidigare17f0106 tills ny kandidat verifierats."
+current_plan: "VB15–19 installerat/verifierat: nytt användarprov U1–U7 återstår"
+status: awaiting_user_trial
+stopped_at: "VB15–19 levererat på3012, kod b6c3bb0.146 UI/80 actual/45 SQL gröna;144 ursprungliga tabeller bevarade. GR-förberedelse och adoption av manuell tidsfördelning har dokumenterade gränser."
 last_updated: "2026-10-31"
 last_activity: 2026-10-31
-last_activity_desc: "Godkänd förberedelse från timplan genomförs. Modell40/SQL45/server7 PASS; nya browser-/actual-/installationsbevis återstår före ersättning av3012."
-state_head: 17f0106
+last_activity_desc: "Förbered valbara block från godkänd gymnasietimplan installerat. Handbok/GSD uppdaterade; nytt förståelseprov väntar på användaren."
+state_head: b6c3bb0
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 8ae6c6b2b6f7a29d97b3179538eef4c523eb9a7b
-verification_worker_status: pass_vb_b2_actual54_install_afterproof
-worker_status: elective_blocks_vb13_code_only_afterproof_pass
-worker_build_revision: 17f0106338a82d9d7384620bb013a6be1732e216
-verification_ui_build_revision: 17f0106338a82d9d7384620bb013a6be1732e216
-verification_ui_status: vb13_component78_code_only_afterproof_pass
-user_trial_status: needs_work_timplan_preparation
+verification_worker_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
+verification_worker_status: pass_vb19_actual26_legacy54_install_afterproof
+worker_status: elective_preparation_vb19_installed_afterproof_pass
+worker_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
+verification_ui_build_revision: b6c3bb0cd3355feda4524054c88ec835d102f9a4
+verification_ui_status: vb19_component146_and_actual_root_ui_pass
+user_trial_status: pending_preparation_u1_u7
 milestone_name: milestone
 ---
 
-**Pågående verifiering2026-10-31:** VB15 och VB16 har kontrollerade kodresultat:40 modell-/time-/blockprov,45 isolerade PostgreSQL-prov och7 serverprov. Den samlade UI:n och källbundna ingångarna provas nu; ny actual Worker/OIDC-kandidat och inkrementell installation återstår. Befintliga manuella block/tidsdetaljer skyddas och öppnas via den gamla arbetsytan, utan automatisk adoption. Grundskolans nya förberedelse är spärrad tills verifierad historisk årskurskarta finns; ren domän/mockad GR är inte faktisk GR-leverans.3012 är fortfarande17f0106.
+**Aktuell leverans2026-10-31:** [VB19](phases/05.2-schemamodul/05.2-VB-19-SUMMARY.md) installerat på3012, kod b6c3bb0. Samlad förberedelse från godkänd GY-timplan, klasslöst utkast, två separata100p-val och källbunden bemanning är verifierade.146 dator-/telefonprov,80 riktiga lokala auth/Worker/SQL-kontroller,45 isolerade SQL-prov,979 app-Node och25 installerar-/snapshot-Node PASS.144 ursprungliga tabellers data bevarade;1 migration/3 tomma nya tabeller/1 egen audit, inga provdata. [Kort användarprov](phases/05.2-schemamodul/05.2-VB-PREPARATION-UAT.md) är ännu inte godkänt. GR:s nya förberedelse väntar på verifierad historisk årskurskarta; gamla manuella tidsupplägg/block skyddas och öppnas i sin befintliga väg. Ingen verklig kommunanslutning eller hela schemamodulen påstås levererad.
 
-**Beställt genomförande2026-10-31:** Användaren har godkänt planering/genomförande enligt researchen, ordentliga prov och installation på3012. [Genomförandepaket VB15–19](phases/05.2-schemamodul/05.2-VB-PREPARATION-IMPLEMENTATION.md) är planerat och påbörjat. Inget nytt detaljgodkännande krävs. Förberedelse utan klass, samlat skapande och återanvändning ingår. Ingen ny lokal leverans ännu.
+**Historik — beställning2026-10-31:** Användaren har godkänt planering/genomförande enligt researchen, ordentliga prov och installation på3012. [Genomförandepaket VB15–19](phases/05.2-schemamodul/05.2-VB-PREPARATION-IMPLEMENTATION.md) är genomfört enligt VB19 ovan. Inget nytt detaljgodkännande behövdes. Förberedelse utan klass och samlat skapande ingår; befintliga manuella upplägg skyddas utan automatisk adoption.
 
-**Senaste bedömning2026-10-31:** Användaren tycker processen fortfarande är för krånglig även med browserguide. [VB14-research](phases/05.2-schemamodul/05.2-VB-14-RESEARCH.md) jämför fyra vägar och rekommenderar samlad förberedelse av valbara block från godkänd timplan. Det är ett förslag, inte genomförd implementation. Två separata kursval och ärvd tid består.3012 kör fortsatt17f0106; maskinproven innebär inte godkänd UX.
+**Historik — bedömning före ombyggnaden2026-10-31:** Användaren tycker processen fortfarande är för krånglig även med browserguide. [VB14-research](phases/05.2-schemamodul/05.2-VB-14-RESEARCH.md) jämför fyra vägar och rekommenderar samlad förberedelse av valbara block från godkänd timplan. Det är ett förslag, inte genomförd implementation. Två separata kursval och ärvd tid består.3012 kör fortsatt17f0106; maskinproven innebär inte godkänd UX.
 
-**Senaste rättning2026-10-31:** [VB13](phases/05.2-schemamodul/05.2-VB-13-SUMMARY.md) installerad på3012, kod17f0106. En200-poängsram får en tydlig delningsväg före katalogsökningen. Två separata kursval enligt användarens svar; inga timplansdata ändras automatiskt.78 UI/946Node/typ/lint/byggen och lokal efterkontroll PASS. Mänskligt prov återstår.
+**Historik — VB13-rättning2026-10-31:** [VB13](phases/05.2-schemamodul/05.2-VB-13-SUMMARY.md) installerad på3012, kod17f0106. En200-poängsram får en tydlig delningsväg före katalogsökningen. Två separata kursval enligt användarens svar; inga timplansdata ändras automatiskt.78 UI/946Node/typ/lint/byggen och lokal efterkontroll PASS. Mänskligt prov återstår.
 
 **Historik — UX-uppdatering2026-10-31:** [VB12](phases/05.2-schemamodul/05.2-VB-12-SUMMARY.md) installerad på3012 enligt browseranteckningarna. Kodrevision531a2b2; inga nya SQL.60 UI-prov och22 riktade omprov gröna. Användaren provar nästa; schemamotor är inte genomförd.
 

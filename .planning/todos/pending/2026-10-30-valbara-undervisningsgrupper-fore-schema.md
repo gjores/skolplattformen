@@ -2,14 +2,21 @@
 created: 2026-10-30
 title: Valbara block, elevval, VH-godkännande och gruppbehov före schema
 area: planning
-status: pending
+status: implemented_awaiting_user_trial
+updated: 2026-10-31
 phase: "05.2"
 requirements: [GROUP-01, STUDY-01, SCHEMA-01, SCHEMA-03, SCHEMA-07]
 ---
 
+**Aktuell status31 oktober:** Den beställda valblocks-/elev-/VH-/gruppdelen är lokalt genomförd och installerad. [VB19](../../phases/05.2-schemamodul/05.2-VB-19-SUMMARY.md) tillför normalflödet från godkänd gymnasietimplan, klasslöst utkast och samlat skapande med ärvd tid.146 UI och80 riktiga lokala auth/Worker/SQL-kontroller PASS,144 ursprungliga tabeller bevarade. [Nytt användarprov U1–U7](../../phases/05.2-schemamodul/05.2-VB-PREPARATION-UAT.md) väntar på mänsklig återkoppling. Noteringen ligger kvar här för det provet; den är inte en obörjad implementation.
+
+Kvarstående avgränsningar: ny GR-förberedelse behöver verifierad historisk årskurskarta; gamla manuella tidsdetaljer/block adopteras inte automatiskt, och UI behöver samma frysta katalog som timplanen. Befintlig manuell väg finns kvar. Schemaläggningens motor/rum och övrigt klasslivscykelarbete ingår inte i den genomförda valblocksleveransen.
+
+## Ursprungligt behov och beslut
+
 Användaren prioriterar valbara grupper före schemaläggning: elever i samma administrativa klass ska exempelvis kunna tillhöra franska respektive spanska. Klassrelationen ska bestå. Datumsatta undervisningsgruppmedlemskap behöver egen identitet, skolmandat, källa, historik och versionsbundet underlag.
 
-[Avstämd kontext och verifieringsfall](../../phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md). Första kontraktet och genomförandeplanerna återstår. Ingen produktfunktion är levererad genom denna notering. Återanvänd befintliga klasser/elevregister; tjänstefördelningens samläsning och gamla probe-grupper ersätter inte individuella gruppmedlemskap. Valbart block innebär inte automatiskt parallell undervisning.
+[Avstämd kontext och verifieringsfall](../../phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md). Kontrakt, genomförande och verifiering finns nu i VB01–19; denna ursprungliga notering var planeringsingången. Återanvänd befintliga klasser/elevregister; tjänstefördelningens samläsning och gamla probe-grupper ersätter inte individuella gruppmedlemskap. Valbart block innebär inte automatiskt parallell undervisning.
 
 ## Förtydligande — före eller i tjänstefördelningen
 
