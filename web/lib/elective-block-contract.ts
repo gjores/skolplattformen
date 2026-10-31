@@ -3,7 +3,7 @@ import { tjanstHashCanonical } from './tjanst-contract.ts';
 /** Internal elective offering contract. These objects do not claim an SS 12000 export. */
 export const ELECTIVE_CONTRACT_VERSION = 'elective_block_v1' as const;
 export const ELECTIVE_BLOCK_KINDS = ['modernLanguage', 'individualChoice', 'specialization', 'languageChoice', 'schoolChoice'] as const;
-export const ELECTIVE_ACTIONS = ['save_block', 'apply_groups', 'set_policy', 'open_round', 'close_round', 'record_choice', 'confirm_choice', 'save_placement', 'end_placement'] as const;
+export const ELECTIVE_ACTIONS = ['save_block', 'apply_groups', 'set_policy', 'open_round', 'close_round', 'record_choice', 'confirm_choice', 'save_placement', 'end_placement', 'retire_group'] as const;
 export type ElectiveBlockKind = typeof ELECTIVE_BLOCK_KINDS[number];
 export type ElectiveScope = { unitId: string; schoolYear: number };
 export type ElectiveNeedBasis = 'terms' | 'even_split' | 'weekly_calendar';
@@ -36,9 +36,10 @@ export type ElectiveGuardianConfirmation = { id: string; bindingId: string; bind
   choiceRevision: number; offeringRevision: number; decision: 'approve' | 'decline'; decidedAt: string };
 export type ElectivePlacement = { id: string; groupId: string; pupilId: string; choiceId: string; choiceRevision: number;
   startsOn: string; endsOn: string | null; revision: number };
+export type ElectiveRetiredGroup = {id:string;blockId:string;optionId:string;name:string;startsOn:string;endsOn:string;retiredAt:string};
 export type ElectiveRead = ElectiveScope & { contractVersion: typeof ELECTIVE_CONTRACT_VERSION; schoolName: string; revision: number;
   canManage: boolean; canReadPupils: boolean; policy: ElectivePolicy; sources: ElectiveSource[]; blocks: ElectiveBlock[];
-  pupils: ElectivePupil[] | null; rounds: ElectiveRound[]; choices: ElectiveChoice[] | null; placements: ElectivePlacement[] | null };
+  pupils: ElectivePupil[] | null; rounds: ElectiveRound[]; choices: ElectiveChoice[] | null; placements: ElectivePlacement[] | null;retiredGroups?:ElectiveRetiredGroup[];releasedBlockIds?:string[] };
 type ElectiveBaseCommand = ElectiveScope & { commandId: string; expectedRevision: number };
 export type ElectiveCommand = ElectiveBaseCommand & (
   { action: 'save_block'; payload: { expectedBlockRevision: number | null; block: ElectiveBlockDraft } }
@@ -51,6 +52,7 @@ export type ElectiveCommand = ElectiveBaseCommand & (
   | { action: 'confirm_choice'; payload: { choiceId: string; expectedChoiceRevision: number } }
   | { action: 'save_placement'; payload: { placementId: string; choiceId: string; expectedChoiceRevision: number; groupId: string;
       startsOn: string; endsOn: string | null; previousPlacementId: string | null; expectedBasisHash: string } }
+  | { action: 'retire_group'; payload: {groupId:string;expectedBlockRevision:number} }
   | { action: 'end_placement'; payload: { placementId: string; expectedPlacementRevision: number; endsOn: string } }
 );
 export type ElectiveCommandRef = ElectiveScope & { commandId: string; action: ElectiveCommand['action']; payloadHash: string };
@@ -174,14 +176,15 @@ export function parseElectiveChoice(value:unknown):ElectiveChoice{const r=electi
 export function parseElectiveGuardianConfirmation(value:unknown):ElectiveGuardianConfirmation{const r=electiveShape(value,['id','bindingId','bindingRevision','choiceId','choiceRevision','offeringRevision','decision','decidedAt']);return {id:electiveUuid(r.id),bindingId:electiveUuid(r.bindingId),bindingRevision:revision(r.bindingRevision),choiceId:electiveUuid(r.choiceId),choiceRevision:revision(r.choiceRevision),offeringRevision:revision(r.offeringRevision),decision:electiveEnum(r.decision,['approve','decline']),decidedAt:electiveInstant(r.decidedAt)};}
 export function parseElectivePlacement(value:unknown):ElectivePlacement{const r=electiveShape(value,['id','groupId','pupilId','choiceId','choiceRevision','startsOn','endsOn','revision']);const startsOn=electiveDate(r.startsOn),endsOn=nullable(r.endsOn,electiveDate);period(startsOn,endsOn);return {id:electiveUuid(r.id),groupId:electiveUuid(r.groupId),pupilId:electiveUuid(r.pupilId),choiceId:electiveUuid(r.choiceId),choiceRevision:revision(r.choiceRevision),startsOn,endsOn,revision:revision(r.revision)};}
 export function parseElectiveRead(value:unknown,expected:ElectiveScope):ElectiveRead{
-  const r=electiveShape(value,['contractVersion','unitId','schoolYear','schoolName','revision','canManage','canReadPupils','policy','sources','blocks','pupils','rounds','choices','placements']),scope=scopeFields(r);sameScope(scope,expected);
+  const extra=value&&typeof value==='object'?[...('retiredGroups'in value?['retiredGroups']:[]),...('releasedBlockIds'in value?['releasedBlockIds']:[])]:[],r=electiveShape(value,['contractVersion','unitId','schoolYear','schoolName','revision','canManage','canReadPupils','policy','sources','blocks','pupils','rounds','choices','placements',...extra]),scope=scopeFields(r);sameScope(scope,expected);
   if(r.contractVersion!==ELECTIVE_CONTRACT_VERSION)electiveFail('elective_contract_version');
   const canReadPupils=electiveBoolean(r.canReadPupils),policy=parseElectivePolicy(r.policy),sources=unique(electiveArray(r.sources,parseElectiveSource),s=>s.sourceKey),blocks=unique(electiveArray(r.blocks,parseElectiveBlock,250),b=>b.id),rounds=unique(electiveArray(r.rounds,parseElectiveRound,500),r=>r.id);
   if(policy.unitId!==scope.unitId)electiveFail('elective_scope');for(const source of [...sources,...blocks.flatMap(b=>b.sourceRefs)])sameScope(source,scope);
   const pupils=nullable(r.pupils,v=>unique(electiveArray(v,x=>{const p=electiveShape(x,['id','name','classIds']);return {id:electiveUuid(p.id),name:electiveText(p.name),classIds:electiveIds(p.classIds)};},10000),p=>p.id)),choices=nullable(r.choices,v=>unique(electiveArray(v,parseElectiveChoice,10000),c=>c.id)),placements=nullable(r.placements,v=>unique(electiveArray(v,parseElectivePlacement,20000),p=>p.id));
   if(!canReadPupils&&(pupils!==null||choices!==null||placements!==null||rounds.some(x=>x.pupilIds!==null)||blocks.some(b=>b.groups.some(g=>g.memberCount!==null))))electiveFail('elective_pupil_scope');
   if(canReadPupils&&(pupils===null||choices===null||placements===null))electiveFail('elective_pupil_scope');
-  return {contractVersion:ELECTIVE_CONTRACT_VERSION,...scope,schoolName:electiveText(r.schoolName),revision:revision(r.revision),canManage:electiveBoolean(r.canManage),canReadPupils,policy,sources,blocks,pupils,rounds,choices,placements};
+  const result:ElectiveRead={contractVersion:ELECTIVE_CONTRACT_VERSION,...scope,schoolName:electiveText(r.schoolName),revision:revision(r.revision),canManage:electiveBoolean(r.canManage),canReadPupils,policy,sources,blocks,pupils,rounds,choices,placements,...('retiredGroups'in r?{retiredGroups:electiveArray(r.retiredGroups,x=>{const a=electiveShape(x,['id','blockId','optionId','name','startsOn','endsOn','retiredAt']),startsOn=electiveDate(a.startsOn),endsOn=electiveDate(a.endsOn);period(startsOn,endsOn);return{id:electiveUuid(a.id),blockId:electiveUuid(a.blockId),optionId:electiveUuid(a.optionId),name:electiveText(a.name),startsOn,endsOn,retiredAt:electiveInstant(a.retiredAt)};})}:{}),...('releasedBlockIds'in r?{releasedBlockIds:electiveIds(r.releasedBlockIds)}:{})};
+  for(const g of result.retiredGroups??[])if(!blocks.some(b=>b.id===g.blockId))electiveFail('elective_scope');for(const id of result.releasedBlockIds??[])if(!blocks.some(b=>b.id===id))electiveFail('elective_scope');return result;
 }
 export function parseElectiveCommand(value:unknown):ElectiveCommand{
   const r=electiveShape(value,['commandId','unitId','schoolYear','expectedRevision','action','payload']),scope=scopeFields(r),base={...scope,commandId:electiveUuid(r.commandId),expectedRevision:revision(r.expectedRevision)},action=electiveEnum(r.action,ELECTIVE_ACTIONS);
@@ -194,6 +197,7 @@ export function parseElectiveCommand(value:unknown):ElectiveCommand{
     case 'record_choice':{const p=electiveShape(r.payload,['roundId','pupilId','offeringRevision','expectedChoiceRevision','selectedOptionIds']);return {...base,action,payload:{roundId:electiveUuid(p.roundId),pupilId:electiveUuid(p.pupilId),offeringRevision:revision(p.offeringRevision),expectedChoiceRevision:nullable(p.expectedChoiceRevision,revision),selectedOptionIds:electiveIds(p.selectedOptionIds,100)}};}
     case 'confirm_choice':{const p=electiveShape(r.payload,['choiceId','expectedChoiceRevision']);return {...base,action,payload:{choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision)}};}
     case 'save_placement':{const p=electiveShape(r.payload,['placementId','choiceId','expectedChoiceRevision','groupId','startsOn','endsOn','previousPlacementId','expectedBasisHash']),startsOn=electiveDate(p.startsOn),endsOn=nullable(p.endsOn,electiveDate);period(startsOn,endsOn);return {...base,action,payload:{placementId:electiveUuid(p.placementId),choiceId:electiveUuid(p.choiceId),expectedChoiceRevision:revision(p.expectedChoiceRevision),groupId:electiveUuid(p.groupId),startsOn,endsOn,previousPlacementId:nullable(p.previousPlacementId,electiveUuid),expectedBasisHash:parseElectiveBasisHash(p.expectedBasisHash)}};}
+    case 'retire_group':{const p=electiveShape(r.payload,['groupId','expectedBlockRevision']);return{...base,action,payload:{groupId:electiveUuid(p.groupId),expectedBlockRevision:revision(p.expectedBlockRevision)}};}
     case 'end_placement':{const p=electiveShape(r.payload,['placementId','expectedPlacementRevision','endsOn']);return {...base,action,payload:{placementId:electiveUuid(p.placementId),expectedPlacementRevision:revision(p.expectedPlacementRevision),endsOn:electiveDate(p.endsOn)}};}
   }
 }

@@ -92,3 +92,15 @@ test('en position har egen nyckel och exakt fryst detaljreferens, inte en falsk 
  invalid(()=>parseElectiveSource({...withPosition,timeDetailRef:{...withPosition.timeDetailRef,revision:0}}));
  const d=draft();invalid(()=>parseElectiveBlockDraft({...d,sourceRefs:[s,withPosition]}));
 });
+
+test('explicit gruppavveckling använder block-CAS och minimal återhämtningsreferens',async()=>{
+ const q={...scope,commandId:id(70),expectedRevision:2,action:'retire_group',payload:{groupId:id(12),expectedBlockRevision:1}};
+ assert.deepEqual(parseElectiveCommand(q),q);invalid(()=>parseElectiveCommand({...q,payload:{groupId:id(12),expectedGroupRevision:1}}));
+ const ref=await createElectiveCommandRef(q);assert.equal(ref.action,'retire_group');assert.equal(Object.hasOwn(ref,'payload'),false);assert.notEqual(ref.payloadHash,(await createElectiveCommandRef({...q,payload:{...q.payload,groupId:id(13)}})).payloadHash);
+});
+test('valfri avvecklingsmetadata behåller historiskt namn men kräver känd skolblockreferens',()=>{
+ const b={...draft(),revision:2,offeringRevision:1,applied:true,appliedRevision:1,groups:[]},r={contractVersion:'elective_block_v1',...scope,schoolName:'Provskola',revision:1,canManage:true,canReadPupils:true,policy:{unitId:scope.unitId,revision:1,guardianConfirmation:false},sources:[source()],blocks:[b],pupils:[],rounds:[],choices:[],placements:[]};
+ assert.deepEqual(parseElectiveRead(r,scope),r);
+ const retired={id:id(12),blockId:b.id,optionId:id(11),name:'Franska historisk',startsOn:'2027-07-01',endsOn:'2028-06-30',retiredAt:'2026-10-31T00:00:00.000Z'},withHistory={...r,retiredGroups:[retired],releasedBlockIds:[b.id]};assert.deepEqual(parseElectiveRead(withHistory,scope),withHistory);
+ invalid(()=>parseElectiveRead({...r,retiredGroups:[{...retired,blockId:id(99)}]},scope));invalid(()=>parseElectiveRead({...r,releasedBlockIds:[id(99)]},scope));
+});
