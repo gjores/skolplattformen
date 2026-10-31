@@ -233,3 +233,13 @@ fieldset.pps-group,fieldset.pps-suggestions,fieldset.pps-chips{margin:0;min-widt
 .pps-check-primary .pps-badge,.pps-check-primary .pps-badge[data-fel=true]{background:#fff;color:#a12f2f}
 /* Sections below the plan share one rhythm: the page's flex gap, same card heading size. */
 .pps-page>.plan-decision-panel,.pps-page>.class-cohorts,.pps-page>.pp-underlying{margin-block:0}.pps-page .plan-decision-panel h2{font-size:1.15rem}
+
+/* Keep review feedback beside its action, also for a long term table. */
+.pp-flow-feedback-actions{background:#fff;padding-top:12px;border-top:1px solid #e3e7ee}
+.pp-flow .pp-flow-feedback-actions .pp-dialog-actions{border-top:0;padding-top:10px;flex-wrap:wrap}
+.pp-flow-feedback-actions .pp-alert{max-height:36dvh;overflow:auto;scroll-margin-block:16px}
+.pp-flow-feedback-actions .pp-alert:focus-visible{outline:3px solid #3c50e0;outline-offset:2px}
+.pp-flow .pp-field .pp-field-error{color:#9b3020}
+.pp-flow .pp-field input[aria-invalid=true]{border-color:#b33b28}
+.pp-flow .pp-error-link{display:inline;text-align:left;text-decoration:underline;min-height:44px;padding:4px 0;color:#8a2b1d}
+.pp-flow-feedback-actions ul{margin:4px 0;padding-left:22px}

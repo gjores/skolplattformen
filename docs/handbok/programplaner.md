@@ -7,6 +7,8 @@ Programplanen gäller en utbildning och elevkull. Hela planen är en tabell: fas
 
 Rektor och huvudman kan lägga till en ny utbildning med dess första programplansutkast inom sina aktuella skoluppdrag. Huvudmannen godkänner och fastställer planen. Rektor och huvudman kan arbeta med befintliga utbildningars utkast inom sina aktuella skoluppdrag. Skoladministratören kan läsa planen inom sitt skoluppdrag. Ett sparat utkast är inte en fastställd plan.
 
+Skolverkets programversion gäller det nationella underlaget och finns under **Programunderlag**. Skolans programplan har en separat versionshistorik som börjar på version 1. När du granskar en ny utbildning visas fel vid knappen **Granska utkast**, med länkar till uppgifterna som behöver rättas. Dina ifyllda uppgifter finns kvar.
+
 ## Startsidan
 
 **Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. Använd år-, skol-, status-, elevkulls- och arkivfiltren och sidknapparna för att hitta rätt rad. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.

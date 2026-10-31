@@ -19,13 +19,13 @@ Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timpl
 
 Om en valbar årsram ska erbjudas i mindre delar behöver varje del ha uttrycklig poäng- och tidsfördelning. I **Valbara block → Timplanens valbara tidsutrymmen** kan du exempelvis dela en 200-poängsram i två 100-poängsutrymmen. Summorna ska bevara grundramens poäng och undervisningstid för HT och VT; poäng räknas inte om till timmar.
 
-Granska och välj **Spara och tillämpa** för att använda utrymmena som källor till separata valbara block. Fördelningen gäller alla klasser som använder samma timplan och årskolumn. Grundtimplanen ändras inte tyst, och gamla grupprader eller lärartilldelningar behöver stämmas av om underlaget påverkas. Se [Dela en årsram i flera valområden](./valbara-block.md#dela-en-årsram-i-flera-valområden).
+Granska och välj **Spara och tillämpa** för att använda utrymmena som källor till separata valbara block. Fördelningen gäller alla klasser som använder samma timplan och årskolumn. Grundtimplanen ändras inte tyst, och gamla grupprader eller lärartilldelningar behöver stämmas av om underlaget påverkas. Se [Undervisningstiden kommer från timplanen](./valbara-block.md#undervisningstiden-kommer-från-timplanen).
 
 ### Flera timplaner för samma programplan
 
 Två klasser kan följa samma programplan men behöva olika undervisningstid. Namnge exempelvis planerna **SA26A – mer matematik** och **SA26B – grundfördelning**. Båda kan vara version 1. Att ändra timmar i den ena ändrar inte den andra eller programplanens poäng.
 
-- **Skapa ny timplan** skapar en separat plan. Ange ett tydligt namn, högst 80 tecken. Namnet måste skilja sig från andra timplaner för samma utbildning och skola.
+- **Skapa ny timplan** skapar en separat plan. Ange ett tydligt namn, högst 80 tecken. Namnfältets exempeltext visar utbildningens namn. Namnet måste skilja sig från andra timplaner för samma utbildning och skola.
 - Under **Utgå från** kan du börja med ofördelade timmar eller kopiera en namngiven plan och version. Granskningen visar vilka rader som behåller tid. Rader med ändrad poäng- eller terminsram behöver fördelas på nytt. Originalet och dess klasskopplingar bevaras.
 - **Skapa ny version** fortsätter den valda timplanens egen versionshistorik. Om den redan har en pågående version öppnas den. Andra namngivna timplaner påverkas inte.
 - **Byt namn** ändrar benämningen för planens alla versioner. Timmar och klasskopplingar påverkas inte. Beslutshistoriken visar namnet vid beslutet när det finns registrerat.
