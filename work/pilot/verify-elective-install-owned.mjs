@@ -26,6 +26,16 @@ try{
  check('provider-owned auth migration journal admits read lock without write privilege; probe roles/table changes rollback');
 report.installerSourceHashes=installerSourceHashes();report.provenance=own.provenance;report.sourceHashes=Object.fromEntries(Object.entries(sources).map(([p,v])=>[p,v.sha256]));
  await db`create schema if not exists supabase_migrations`;await db`create table if not exists supabase_migrations.schema_migrations(version text primary key,name text,statements text[])`;
+ // Reproduce provider defaults before new objects: table/function grants must be explicitly revoked.
+ await db`alter default privileges in schema public grant all on tables to service_role`;
+ await db`alter default privileges in schema public grant execute on functions to service_role`;
+ const aclRollback=Symbol('provider_default_acl_probe');let exposed;
+ try{await db.begin(async tx=>{
+  for(const p of ELECTIVE_MIGRATIONS.slice(0,-1))await tx.unsafe(prepareMigrationSql(sources[p].sql).sql);
+  exposed=(await tx`select has_table_privilege('service_role','public.elective_participant_bindings','SELECT') table_read,(select count(*)::integer from pg_proc where pronamespace='public'::regnamespace and left(proname,9)='elective_' and has_function_privilege('service_role',oid,'EXECUTE')) helper_execute`)[0];
+  assert.equal(exposed.table_read,true);assert.ok(exposed.helper_execute>0);throw aclRollback;
+ });}catch(error){if(error!==aclRollback)throw error;}
+ report.providerDefaults={reproduced:true,pre157TableRead:exposed.table_read,pre157ExecutableHelpers:exposed.helper_execute};check('broad provider defaults reproduce pre157 service table/function access in rollback only');
  const originals=Object.keys(sources).filter(p=>!ELECTIVE_MIGRATIONS.includes(p)&&!KNOWN_UNJOURNALLED.includes(p));
  await db.begin(async tx=>{for(const p of originals){const f=p.split('/').at(-1);await tx`insert into supabase_migrations.schema_migrations values(${f.slice(0,14)},${f.slice(15,-4)},${[sources[p].sql]})`;}});
  // Synthetic journal-shape fixture: current DDL is independently checked; empty history is never reconstructed.
@@ -56,6 +66,7 @@ report.installerSourceHashes=installerSourceHashes();report.provenance=own.prove
  assert.equal(await count(db),ELECTIVE_MIGRATIONS.length);assert.equal(await schemaFingerprint(db),installedFingerprint);assert.deepEqual(await preservedRows(db,columns,auditId),rows);assert.deepEqual(await published(),frozen);
  const audit=(await db`select details from public.security_events where id=${auditId}`)[0];assert.deepEqual(audit.details.sqlSourceHashes,report.sourceHashes);assert.deepEqual(audit.details.executionSources,migrationExecutionSnapshot(sources));check('owned apply repeats rollback first, commits the complete exact-source suffix plus one audit and preserves old data');
  const journal=await readMigrationJournal(db);assert.equal(journal.length,priorJournal.count+ELECTIVE_MIGRATIONS.length);assert.deepEqual(journal.slice(0,priorJournal.count),originalJournal);assert.equal(journal.filter(r=>emptyVersions.includes(r.version)&&r.statements.length===0).length,6);check('all six empty historical statements remain empty: no journal backfill, old DDL replay or altered prior statements');
+ const forbidden=(await db`select count(*)::integer n from pg_proc where pronamespace='public'::regnamespace and left(proname,9)='elective_' and has_function_privilege('service_role',oid,'EXECUTE')`)[0].n;assert.equal(forbidden,0);check('final package denies service role raw helpers under reproduced provider defaults; table deny gate passed');
  report.beforeRows=rows;report.afterRows=await preservedRows(db,columns,auditId);report.publishedHashBefore=sha(frozen);report.publishedHashAfter=sha(await published());report.baselineFingerprint=baselineFingerprint;report.installedFingerprint=installedFingerprint;assert.deepEqual(installerSourceHashes(),report.installerSourceHashes);report.status='PASS';
 }catch(error){report.failure={code:typeof error.code==='string'?error.code:null,messageSha256:sha(String(error.message??'')),position:error.position??null,routine:error.routine??null,operator:error.operator??null,frames:[...String(error.stack??'').matchAll(/([a-z0-9-]+\.mjs):(\d+):(\d+)/g)].slice(0,8).map(m=>m[0])};throw Error('owned_elective_install_failed');}
 finally{await own.end();report.databaseClosed=true;writeFileSync(out,JSON.stringify(report,null,2)+'\n',{mode:0o600,flag:'wx'});}

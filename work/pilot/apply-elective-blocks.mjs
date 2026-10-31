@@ -18,7 +18,7 @@ export const ELECTIVE_MIGRATIONS=[
  '20261030112000_elective_tjanst_sources.sql','20261030113000_elective_rounds_choices.sql','20261030114000_elective_guardian_confirmation.sql',
  '20261030115000_elective_placements.sql','20261030115100_elective_binding_recovery_reference.sql','20261030115200_elective_frame_exclusivity.sql',
  '20261030115300_elective_participant_account_attestation.sql','20261030115400_elective_placement_applied_organization.sql','20261030115500_elective_group_retirement.sql',
- '20261030115600_elective_applied_pool_intent.sql',
+ '20261030115600_elective_applied_pool_intent.sql','20261030115700_elective_explicit_privileges.sql',
 ].map(p=>prefix+p);
 export const KNOWN_UNJOURNALLED=['20261002120000_phase5_programplan_education.sql','20261002121000_phase5_worker_programplan_education.sql'].map(p=>prefix+p);
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
