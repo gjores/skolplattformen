@@ -2,7 +2,7 @@
 title: Fördela tjänster på skolan
 ---
 
-I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
+I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner och tillämpade valbara undervisningsgrupper. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
 ## Vem gör vad?
 
@@ -29,11 +29,11 @@ Behovet hämtas bara för klasser som är kopplade till en timplan för läsåre
 
 ## Matris och vyer
 
-**Matris** visar en rad per kurs eller ämne och klass och en kolumn per lärare. Varje klass har en rubrikrad med timplan, version och täckning, till exempel *100 av 100 h · 2 lärare*. Kolumnerna **Behov**, **Fördelat** och **Avvikelse** gäller vald tid: **Hela läsåret**, **HT** eller **VT**. Fotraden visar **Undervisning**, **Specialuppdrag** och **Totalt** per lärare. Under lärarens namn står **Andel här**, lärarens andel på skolan enligt huvudmannens personaluppgifter. Andelen är en upplysning. Appen jämför inte tiden med andelen.
+**Matris** visar behov per kurs eller ämne och klass, samt egna rader för valbara undervisningsgrupper. Varje lärare har en kolumn. Varje klass har en rubrikrad med timplan, version och täckning, till exempel *100 av 100 h · 2 lärare*. Kolumnerna **Behov**, **Fördelat** och **Avvikelse** gäller vald tid: **Hela läsåret**, **HT** eller **VT**. Fotraden visar **Undervisning**, **Specialuppdrag** och **Totalt** per lärare. Under lärarens namn står **Andel här**, lärarens andel på skolan enligt huvudmannens personaluppgifter. Andelen är en upplysning. Appen jämför inte tiden med andelen.
 
 På dator är tillägg och övriga verktyg samlade i två menyer:
 
-- **Lägg till:** **Lägg till lärare i fördelningen**, **Lägg upp ny lärare** och **Lägg till specialuppdrag**. Vilka val du ser beror på ditt aktuella uppdrag.
+- **Lägg till:** **Lägg till valbart block**, **Lägg till lärare i fördelningen**, **Lägg upp ny lärare** och **Lägg till specialuppdrag**. Vilka val du ser beror på ditt aktuella uppdrag.
 - **Verktyg:** **Flytta uppdrag**, **Massregistrera**, **Tomma lärarkolumner** och **Hämta aktuellt läge**. I matrisen finns här också **Avancerade val före tilldelning** och hjälpen **Så fungerar tilldelning**.
 
 Välj menyn och sedan åtgärden. Menyn stängs när du väljer en åtgärdsknapp. Du kan också stänga med **Escape** eller genom att klicka utanför. När du stänger en dialog återgår fokus till menyn som öppnade den.
@@ -106,6 +106,14 @@ Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov 
 - Vill du ändra en sparad rad gör du det i matrisen. Fördela har ingen egen ångra-funktion.
 
 På telefon visar Fördela en lista över ofördelade behov, utan val.
+
+## Valbara undervisningsgrupper
+
+Öppna **Lägg till → Lägg till valbart block** för att förbereda alternativ och grupper, eller arbeta i **Valbara block** före bemanningen. Där väljer du **Använd i tjänstefördelningen** när organisationen är granskad. Se [Valbara block och undervisningsgrupper](./valbara-block.md).
+
+Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. Organiserad tid ersätter klassramens bemanningsbehov; återstående ram behöver organiseras i konkreta grupper och får ingen fri tilldelning. Gruppens undervisningsbehov är ärvt från timplanen, medan sparad lärartid fortfarande är ett eget värde.
+
+Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Tillämpning av grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassram ersätts av grupper finns den gamla tilldelningen kvar för uttrycklig granskning och borttagning.
 
 ## Tilldela direkt i matrisen
 
@@ -237,6 +245,8 @@ Begränsningar:
 ## Fastställ och publicera
 
 Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
+
+För valbara grupper kan du behöva organisera återstående tidsutrymmen eller granska ändrat timplansunderlag i **Valbara block**. En gammal tilldelning på en ersatt klassram behöver också stämmas av.
 
 Antalet gäller **olika typer av publiceringshinder**, inte antalet felande rader. En punkt kan beröra flera tilldelningar eller samläsningar. Vanliga planeringsavvikelser, till exempel skillnad mellan behov och fördelad tid, visas i fördelningen och är inte i sig samma sak som ett publiceringshinder.
 

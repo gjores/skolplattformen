@@ -4,8 +4,6 @@ title: Min tjänst
 
 **Min tjänst** visar din publicerade tjänst: undervisning, specialuppdrag och summor per termin. Du kan kvittera att du har läst tjänsten och skriva en kommentar till rektor.
 
-**Provstatus:** Vyn är provad i oktober 2026 mot ett eget skyddat bygge med riktig inloggning och syntetiska lärare, på dator och telefon. Egen tjänst på två skolor är provad på samma sätt. Vyn är inte prövad med verkliga användare eller verkliga uppgifter.
-
 ## Så kommer du åt Min tjänst
 
 Du behöver ett uppdrag med omfattningen **Egen tjänst**. Rektor ger det i [Mandat](./mandat.md#egen-tjänst) och kopplar då ditt konto till dig i skolans personal. När du loggar in med det uppdraget öppnas Min tjänst direkt, och menyn har bara **Min tjänst**.
@@ -26,9 +24,12 @@ Rubriken visar skola, läsår, version och publiceringsdatum.
 
 - **Sammanfattning:** **Undervisning**, **Specialuppdrag** och **Totalt** som HT, VT och läsår, och **Schemalagd tid: Underlag saknas**.
 - **Undervisning:** kurs eller ämne, klass och tid per termin. Ingår en rad i en samläsning står *Samläsning med …*, och tiden räknas en gång.
+- **Valbar undervisningsgrupp:** gruppens namn, kurs eller ämne, berörda klasser och tid per termin. En gemensam grupp räknas en gång.
 - **Specialuppdrag:** uppdrag, grupp och tid per termin.
 
 Du ser bara den version som rektor har publicerat, aldrig ett utkast. Har rektor inte publicerat visas *Ingen publicerad tjänst ännu*. Min tjänst visar inga elever och inga kollegors tjänster.
+
+Ändrade elevval och gruppplaceringar skriver inte om din publicerade lärartid. Nya gruppnamn eller nytt timplansunderlag blir del av din tjänst när rektor granskar och publicerar en ny tjänstefördelning. Tidigare publiceringsuppgifter bevaras även om en grupp senare avvecklas. Se [Valbara block](./valbara-block.md).
 
 ## Kvittera
 
@@ -51,5 +52,5 @@ Min tjänst fungerar fullt ut på telefon. Tabellerna visas som kort.
 - **Ingen schemalagd tid.** Schemalagd tid visar *Underlag saknas* tills schemat finns i Skolplattformen.
 - **Ingen kapacitetskontroll mot timmar.** Appen jämför inte din tid med din tjänstgöringsgrad.
 - **Ingen arbetstidsram eller tjänstebedömning.** Min tjänst är inte en bedömning av din arbetstid enligt regler eller avtal.
-- **Inga årsrutiner ännu.** Förlängning och flytt av tjänster kommer i etapp 2.
+- **Ingen automatisk årsöverföring.** Skolan planerar och publicerar tjänsten för varje läsår.
 - **Ingen överföring till eller från andra system.** Tjänsten skickas inte till och hämtas inte från andra system, till exempel tjänstebedömningsappen.
