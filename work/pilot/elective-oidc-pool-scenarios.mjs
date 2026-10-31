@@ -1,0 +1,16 @@
+// Actual A+B class-pool regression; no pupils/placements are invented for these planning-only groups.
+import assert from'node:assert/strict';import{randomUUID}from'node:crypto';import{captureTjanstPlanHttp}from'./tjanst-oidc-fixtures.mjs';import{createYearPlanCommand}from'../../web/lib/tjanst-year-contract.ts';
+export async function runElectivePoolPendingHttp({staff,page,scope,seed,checks}){
+ const request=(route,q)=>staff.request(page,'principalA',route,q),ok=r=>{assert.equal(r.status,200,JSON.stringify(r.body));return r.body;},pass=name=>{checks.push({name,ok:true});console.log('PASS '+name);};
+ const read=async()=>ok(await request('/api/valbara-block/lasa',scope));
+ const change=async(action,payload)=>ok(await request('/api/valbara-block/kommando',{...scope,commandId:randomUUID(),expectedRevision:(await read()).revision,action,payload}));
+ const sources=(await read()).sources.filter(s=>seed.poolClasses.includes(s.classId)&&s.blockKind==='languageChoice');assert.equal(sources.length,2);const[a,b]=sources;
+ const id=randomUUID(),optionId=randomUUID(),groupId=randomUUID(),draft={id,kind:'languageChoice',name:'Tillämpad pool A+B',startsOn:'2026-07-01',endsOn:'2027-06-30',sourceRefs:sources,options:[{id:optionId,name:'Franska',subjectCode:'GRGRMSP01',levelCode:'GRGRMSP01',language:'fr',points:null}],groups:[{id:groupId,optionId,name:'Grupp endast A',startsOn:'2026-07-01',endsOn:'2027-06-30',classIds:[a.classId],sourceKeys:[a.sourceKey],estimatedPupils:10}]};
+ await change('save_block',{expectedBlockRevision:null,block:draft});await change('apply_groups',{blockId:id,expectedBlockRevision:1});
+ const captured=await captureTjanstPlanHttp(staff,page,'principalA',{...scope,action:'save_row',choice:'manual',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:b.sourceKey,personId:seed.teacher.personId,teacherHt:100,teacherVt:100,comment:''}});
+ const denied=await request('/api/tjanst/plan/kommando',await createYearPlanCommand({commandId:randomUUID(),...captured}));assert.ok([400,409].includes(denied.status),'Valid context for uncovered applied poolB must deny400/409, got '+denied.status+' '+JSON.stringify(denied.body));pass('actual HTTP applied poolA+B with group onlyA cannot staff uncoveredB as ordinary class frame');
+ await change('retire_group',{groupId,expectedBlockRevision:1});
+ const ordinary=await request('/api/tjanst/plan/forhandsvisa',{...scope,mode:'row',sourceKey:b.sourceKey,rowId:null});assert.equal(ordinary.status,200);assert.equal(ordinary.body.need.organizationPending??false,false);pass('actual HTTP released pool no longer invents organization intent for never-groupedB');
+ // A was really organized before retirement and deliberately requires explicit new organization.
+ const replacementId=randomUUID(),replacementOption=randomUUID(),replacementGroup=randomUUID();await change('save_block',{expectedBlockRevision:null,block:{...draft,id:replacementId,name:'Återorganiserad verklig A-ram',sourceRefs:[a],options:[{...draft.options[0],id:replacementOption}],groups:[{...draft.groups[0],id:replacementGroup,optionId:replacementOption}]}});await change('apply_groups',{blockId:replacementId,expectedBlockRevision:1});pass('actual HTTP reorganization resolves real retiredA frame without silently changing classB');
+}
