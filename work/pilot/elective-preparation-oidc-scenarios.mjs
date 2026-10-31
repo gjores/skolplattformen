@@ -46,7 +46,7 @@ export async function runElectivePreparationOidcScenarios({ snapshot, runtime, s
   const restoreLink = async () => {
     if (!removedLink) return;
     assert.equal((await db`select count(*)::integer n from public.class_timplans where class_id=${classId} and start_year=${year}`)[0].n, 0, 'Only our removed link may be restored');
-    await db`insert into public.class_timplans select (jsonb_populate_record(null::public.class_timplans,${db.json(linkRow)})).*`;
+    await db.begin(async tx => { await seed.f.actor(tx, 'principalA'); await tx`insert into public.class_timplans select (jsonb_populate_record(null::public.class_timplans,${tx.json(linkRow)})).*`; });
     removedLink = false;
     assert.deepEqual((await db`select to_jsonb(x) value from public.class_timplans x where class_id=${classId} and start_year=${year}`)[0].value, linkRow);
   };
