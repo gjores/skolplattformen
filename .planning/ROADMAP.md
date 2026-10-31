@@ -531,7 +531,7 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 6. Ändrad timplan, tjänsterad eller kalender ger spårbar avvikelse i berörda utkast. Dubbelleverans, fel ordning och gamla körningar skriver inte över nyare ändringar. (SCHEMA-07)
 7. Personal kan jämföra, låsa, granska och publicera rätt schemaversion på dator och telefon, och se undervisningsbehov, schemalagd, inställd och genomförd tid som skilda uppgifter. (SCHEMA-08)
 
-**Plans**: 0 plans — kör `/gsd-plan-phase 05.2`. Underlag: [schemadelprojektet](research/SCHEMAMODUL-PROJEKT.md), [schemaresearchen](research/SCHEMALAGGNING-2026-10-01.md) och [todon](todos/pending/2026-10-01-utvardera-automatisk-schemalaggning.md).
+**Plans**: 0 plans — kör `/gsd-plan-phase 05.2`. Underlag: [schemadelprojektet](research/SCHEMAMODUL-PROJEKT.md), [schemaresearchen](research/SCHEMALAGGNING-2026-10-01.md) och [todon](todos/pending/2026-10-01-utvardera-automatisk-schemalaggning.md). Schemamotorns research och förslag till delplaner SM-01–10 2026-10-31: [05.2-SM-RESEARCH](phases/05.2-schemamodul/05.2-SM-RESEARCH.md), [05.2-SM-OVERVIEW](phases/05.2-schemamodul/05.2-SM-OVERVIEW.md); förslag, inte godkänd plan.
 **UI hint**: yes
 
 Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till exempel CP-SAT eller egen sökning) avgörs i fasens research. Komponentbyte och extern adapter (SCHEMA-06) ligger i 05.6. Tjänstebedömningens schemaandel (TID-11) ingår inte; schemat kan senare lämna schemalagd tid via ett kontrakt.
