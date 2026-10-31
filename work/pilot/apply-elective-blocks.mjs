@@ -109,10 +109,16 @@ export async function runElectiveTransactions({db,mode,report,fingerprint,record
  await runInstallation({db,mode,report,fingerprint,recorded,check,rehearse:async tx=>{const result=await migrate(tx,'rehearsal');assert.deepEqual(await preserve(tx),before,'legacy_rows_changed');return result;},install:async tx=>{assert.deepEqual(await preserve(tx),before,'baseline_changed_after_rehearsal');const result=await migrate(tx,'apply');assert.deepEqual(await preserve(tx),before,'legacy_rows_changed');return result;}});
  assert.deepEqual(await preserve(db),before,'legacy_rows_changed_after_transaction');return report;
 }
+/** Auth provider owns its migration journal; only this metadata table needs a read lock.
+ * All original rows are still hashed before/after. Every business/auth table keeps the write-excluding lock. */
+export function electiveTableLock(key){
+ const parts=key.split('.');assert.equal(parts.length,2);assert.ok(['public','auth'].includes(parts[0]));
+ return `lock table ${parts.map(ident).join('.')} in ${key==='auth.schema_migrations'?'access share':'share row exclusive'} mode`;
+}
 export async function installElectivePackage(tx,context,phase){
    assert.ok(['rehearsal','apply'].includes(phase),'invalid_transaction_phase');
    await tx`set local lock_timeout='8s'`;await tx`set local statement_timeout='180s'`;assert.equal((await tx`select pg_try_advisory_xact_lock(5551) locked`)[0].locked,true,'migration_lock_unavailable');
-   for(const key of Object.keys(context.columns).sort()){const[s,t]=key.split('.');await tx.unsafe(`lock table ${ident(s)}.${ident(t)} in share row exclusive mode`);}await tx`lock table supabase_migrations.schema_migrations in share row exclusive mode`;
+   for(const key of Object.keys(context.columns).sort())await tx.unsafe(electiveTableLock(key));await tx`lock table supabase_migrations.schema_migrations in share row exclusive mode`;
    assert.equal(await schemaFingerprint(tx),context.baselineFingerprint);assert.deepEqual(assertPriorJournal(await readMigrationJournal(tx),context.sources,context.legacyJournal),context.priorJournal);assert.deepEqual(await preservedRows(tx,context.columns),context.rows);await assertEducationBaseline(tx);await context.revalidate(tx);
    const executionSources=migrationExecutionSnapshot(context.sources);
    for(const p of ELECTIVE_MIGRATIONS)await tx.unsafe(prepareMigrationSql(context.sources[p].sql).sql);

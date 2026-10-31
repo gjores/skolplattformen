@@ -7,13 +7,24 @@ import {createEphemeralMigratedDb} from './ephemeral-migrated-db.mjs';
 import {createTjanstYearFixture,seedYearHistory} from './tjanst-year-fixtures.mjs';
 import {planRead} from './tjanst-fixtures.mjs';
 import {schemaFingerprint} from './named-timplan-snapshot.mjs';
-import {ELECTIVE_MIGRATIONS,KNOWN_UNJOURNALLED,migrationSourceSnapshot,assertPriorJournal,preservedColumns,preservedRows,installElectivePackage,runElectiveTransactions,sha,assertEducationBaseline,prepareMigrationSql,migrationExecutionSnapshot,readMigrationJournal,installerSourceHashes} from './apply-elective-blocks.mjs';
+import {ELECTIVE_MIGRATIONS,KNOWN_UNJOURNALLED,electiveTableLock,migrationSourceSnapshot,assertPriorJournal,preservedColumns,preservedRows,installElectivePackage,runElectiveTransactions,sha,assertEducationBaseline,prepareMigrationSql,migrationExecutionSnapshot,readMigrationJournal,installerSourceHashes} from './apply-elective-blocks.mjs';
 const out=process.argv[2];assert.ok(out?.startsWith('/private/tmp/')&&out.endsWith('.json'),'private_output_required');
 const report={kind:'ephemeral-elective-install-proof',status:'FAIL',checks:[],targetContact:false,committedProtected:false};
 const check=name=>report.checks.push({name,ok:true});
 const own=await createEphemeralMigratedDb({exclude:ELECTIVE_MIGRATIONS.map(p=>p.split('/').at(-1))});
 try{
- const db=own.db,sources=migrationSourceSnapshot();report.installerSourceHashes=installerSourceHashes();report.provenance=own.provenance;report.sourceHashes=Object.fromEntries(Object.entries(sources).map(([p,v])=>[p,v.sha256]));
+ const db=own.db,sources=migrationSourceSnapshot();
+ const rollback=Symbol('owned_provider_permission_probe'),provider='vb_provider_'+randomUUID().replaceAll('-','').slice(0,12),operator='vb_operator_'+randomUUID().replaceAll('-','').slice(0,12),quote=s=>'"'+s.replaceAll('"','""')+'"';
+ try{await db.begin(async tx=>{
+  await tx.unsafe('create role '+quote(provider));await tx.unsafe('create role '+quote(operator));
+  await tx`create table if not exists auth.schema_migrations(version text primary key)`;
+  await tx.unsafe('alter table auth.schema_migrations owner to '+quote(provider));await tx.unsafe('grant usage on schema auth to '+quote(operator));await tx.unsafe('grant select on auth.schema_migrations to '+quote(operator));
+  let denied=false;try{await tx.savepoint(async sp=>{await sp.unsafe('set local role '+quote(operator));await sp`lock table auth.schema_migrations in share row exclusive mode`;});}catch(error){assert.equal(error.code,'42501');denied=true;}assert.equal(denied,true);
+  await tx.savepoint(async sp=>{await sp.unsafe('set local role '+quote(operator));await sp.unsafe(electiveTableLock('auth.schema_migrations'));await sp`select count(*) from auth.schema_migrations`;});
+  throw rollback;
+ });}catch(error){if(error!==rollback)throw error;}
+ check('provider-owned auth migration journal admits read lock without write privilege; probe roles/table changes rollback');
+report.installerSourceHashes=installerSourceHashes();report.provenance=own.provenance;report.sourceHashes=Object.fromEntries(Object.entries(sources).map(([p,v])=>[p,v.sha256]));
  await db`create schema if not exists supabase_migrations`;await db`create table if not exists supabase_migrations.schema_migrations(version text primary key,name text,statements text[])`;
  const originals=Object.keys(sources).filter(p=>!ELECTIVE_MIGRATIONS.includes(p)&&!KNOWN_UNJOURNALLED.includes(p));
  await db.begin(async tx=>{for(const p of originals){const f=p.split('/').at(-1);await tx`insert into supabase_migrations.schema_migrations values(${f.slice(0,14)},${f.slice(15,-4)},${[sources[p].sql]})`;}});

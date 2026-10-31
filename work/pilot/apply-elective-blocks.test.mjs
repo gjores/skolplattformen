@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import{mkdtempSync,writeFileSync,readFileSync,statSync,mkdirSync,symlinkSync,rmSync}from'node:fs';
-import { parseElectiveInstallArgs, assertPriorJournal, ELECTIVE_MIGRATIONS, KNOWN_UNJOURNALLED, migrationSourceSnapshot, runElectiveTransactions, validateReleaseEvidence, assertTransactionalSql, assertRehearsalEvidence, prepareMigrationSql, readMigrationJournal, applyElectiveBlocks, sha } from './apply-elective-blocks.mjs';
+import { parseElectiveInstallArgs, electiveTableLock, assertPriorJournal, ELECTIVE_MIGRATIONS, KNOWN_UNJOURNALLED, migrationSourceSnapshot, runElectiveTransactions, validateReleaseEvidence, assertTransactionalSql, assertRehearsalEvidence, prepareMigrationSql, readMigrationJournal, applyElectiveBlocks, sha } from './apply-elective-blocks.mjs';
 const options=['--candidate','/private/tmp/c.json','--verification','/private/tmp/v.json','--out','/private/tmp/r.json'];
 test('explicit local mode, private paths and mandatory external rehearsal gate apply',()=>{
  assert.equal(parseElectiveInstallArgs(['--rehearse',...options]).mode,'rehearsal');
@@ -104,4 +104,10 @@ test('historic migration name requires exact reviewed identity even with identic
  assert.equal(assertPriorJournal(rows,sources,[exception]).legacyJournal.length,1);assert.deepEqual(rows,before);
  for(const field of ['name','version','statementsSha256','repositorySourceSha256'])assert.throws(()=>assertPriorJournal(rows,sources,[{...exception,[field]:'wrong'}]));
  assert.throws(()=>assertPriorJournal(rows,sources,[exception,exception]));
+});
+
+test('only provider migration metadata uses a read lock; business and auth records retain write-excluding locks',()=>{
+ assert.equal(electiveTableLock('auth.schema_migrations'),'lock table "auth"."schema_migrations" in access share mode');
+ for(const key of ['auth.users','auth.sessions','public.pupils','public.schema_migrations'])assert.match(electiveTableLock(key),/in share row exclusive mode$/u);
+ assert.throws(()=>electiveTableLock('unknown.table'));assert.throws(()=>electiveTableLock('auth.schema.migrations'));
 });
