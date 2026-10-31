@@ -24,7 +24,7 @@ create trigger elective_retired_identity_guard before update on public.teaching_
 create function public.elective_reclaim_organization() returns trigger
 language plpgsql volatile security definer set search_path=pg_catalog,public as $$
 begin
- if new.active then
+ if new.active and (tg_op='INSERT' or old.active is distinct from true) then
   update public.elective_blocks set organization_retired_at=null where id=new.block_id and organization_retired_at is not null;
   perform public.elective_assert_frame_exclusive(new.block_id);
  end if;return new;
