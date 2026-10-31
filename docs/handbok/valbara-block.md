@@ -26,13 +26,13 @@ En grupp ärver tiden från de valda klassernas verkliga timplansunderlag. Du an
 
 ### Dela en årsram i flera valområden
 
-Om exempelvis individuellt val omfattar 200 poäng under samma läsår men ska erbjudas som två 100-poängsval:
+Om exempelvis moderna språk eller individuellt val omfattar 200 poäng under samma läsår men ska erbjudas som två separata 100-poängsval:
 
-1. Öppna **Timplanens valbara tidsutrymmen** i Valbara block och välj rätt ram och klasser.
+1. När du skapar blocket markerar du klasserna i **Klasser och tid**. Om hela ramen saknar passande kurser väljer du **Dela timplansramen för …** direkt där. Blockets utkast finns kvar medan du fördelar ramen. Du kan också börja med **Timplanens valbara tidsutrymmen** i Valbara block.
 2. Ge varje utrymme ett tydligt **Namn**, exempelvis *Individuellt val 1* och *Individuellt val 2*.
 3. Ange **Poäng HT**, **Poäng VT**, **Tid HT (timmar)** och **Tid VT (timmar)** för varje utrymme. Summorna måste bevara grundramens poäng och tid per termin. **Fyll återstående ram** hjälper dig att lägga den kvarvarande ramen i ett utrymme.
 4. Välj **Granska fördelningen** och därefter **Spara och tillämpa**. **Spara utkast** gör inte utrymmena tillgängliga för nya block ännu.
-5. Skapa ett separat valbart block för varje tidsutrymme.
+5. Efter **Spara och tillämpa** kommer du tillbaka till blockets klassurval. Välj rätt nytt utrymme för varje klass och fortsätt till alternativen. Skapa ett separat valbart block för nästa tidsutrymme. Eleverna gör ett separat kursval i varje block.
 
 Poäng räknas inte automatiskt om till undervisningstimmar. Två 100-poängsutrymmen kan därför ha olika tid. Fördelningen gäller alla klasser som använder samma timplan och årskolumn. Grundtimplanen skrivs inte om av denna detaljfördelning.
 
@@ -41,7 +41,7 @@ Varje tidsutrymme har ett eget block och ett eget val. Ett gemensamt val av två
 ## Skapa alternativ och grupper
 
 1. Välj **Lägg till valbart block** och följ de fyra stegen: **Block**, **Klasser och tid**, **Alternativ** och **Grupper**. Börja med **Typ av valbart block** och **Blockets namn**. Gymnasiet har **Moderna språk**, **Individuellt val** och **Programfördjupning** när timplansramen stöder det. För grundskolan används de tillgängliga ramarna för **Språkval** och **Skolans val**.
-2. Markera **Timplansram och berörda klasser**. Detta är blockets gemensamma klassurval. En upptagen ram märks med vilket block som använder den.
+2. Markera **Timplansram och berörda klasser**. Detta är blockets gemensamma klassurval. En upptagen ram märks med vilket block som använder den. Om en större ram först behöver delas får du hjälp med det här, före sökningen. En ram på 200 poäng ger inte automatiskt en ensam 100-poängsnivå hela ramens undervisningstid.
 3. Lägg till ett alternativ och sök i **Ämne, kurs eller nivå** med ämnesnamn, språk eller kod. Välj en träff ur den inlästa Skolverketskatalogen. Bara innehåll som ryms i de valda klassernas timplansram visas. Språk och ett namnförslag fylls i; justera därefter **Alternativets namn** om du vill. Ett eget namn ersätter inte valet av utbildningsinnehåll.
 4. En första grupp skapas när du väljer innehåll. I **Grupper** justerar du **Gruppens namn** och vid behov **Uppskattat elevantal**. Öppna **Klasser** för att ändra vilka klasser gruppen omfattar. Använd **Lägg till grupp för alternativet** för fler grupper. Gemensamma grupper behöver samma undervisningstid; klasser med olika tid kan läggas i separata grupper.
 5. Välj **Granska block**, kontrollera alternativen och grupperna och välj **Bekräfta och spara block**.

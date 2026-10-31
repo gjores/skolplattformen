@@ -1,7 +1,8 @@
 // Syntetiska API-svar prövar riktiga React-komponenter; verklig SQL/Worker/OIDC verifieras separat.
 import { test, expect, type Page } from '@playwright/test';
+import { createElectiveTimeRef } from '../lib/elective-timplan-time';
 import { createElectiveCommandRef, parseElectiveCommand, type ElectiveReceipt } from '../lib/elective-block-contract';
-import { block, schoolRead } from './fixtures/elective-data';
+import { block, schoolRead, eid } from './fixtures/elective-data';
 const URL = '/e2e/fixtures/elective-block-preview.html';
 async function mock(page: Page, lost = false) {
   const state = schoolRead(), writes: unknown[] = [], receipts = new Map<string, ElectiveReceipt>(); let lose = lost;
@@ -174,4 +175,48 @@ test('saknad timplanstid kan hämtas på nytt utan att gruppens namn eller ident
   await page.getByRole('button', { name: 'Hämta aktuellt underlag', exact: true }).click();
   await expect(page.getByLabel('Gruppens namn', { exact: true })).toHaveValue('Mitt gruppnamn');
   await page.getByRole('button', { name: 'Granska block', exact: true }).click(); await expect(page.getByRole('heading', { name: 'Granska valbart block' })).toBeVisible(); expect(m.writes).toHaveLength(0);
+});
+
+
+test('en 200-poängsram för två klasser delas en gång med blockets utkast kvar', async ({ page }, testInfo) => {
+  const m = await mock(page), original = { ...m.state.sources[0], allowedOptionCodes: [] as string[], needHt: 5400, needVt: 5400 };
+  const second = { ...original, classId: eid(5), className: 'SA26B', sourceKey: `class_timplan:${eid(5)}:2026:block:mosp`, frameSourceKey: `class_timplan:${eid(5)}:2026:block:mosp` };
+  m.state.sources = [original, second];
+  const frame = { timplanId: original.timplanId, timplanVersion: 1, timplanRevision: 4, rowKey: original.rowKey, column: original.column, schoolYear: original.schoolYear, pointsHt: 100, pointsVt: 100, needHt: 5400, needVt: 5400, needBasis: 'terms', parentHash: 'a'.repeat(64) };
+  let detail: any = null; const timeWrites: any[] = [];
+  await page.route('**/api/valbara-block/timplanstid/*', async route => {
+    const body = route.request().postDataJSON(), chosen = [original, second].find(source => source.frameSourceKey === body.frameSourceKey)!;
+    const read = () => ({ unitId: chosen.unitId, schoolYear: chosen.schoolYear, frameSourceKey: chosen.frameSourceKey, contractVersion: 'elective_timplan_time_v1', classId: chosen.classId, linkRevision: chosen.linkRevision, label: 'Moderna språk', frame, detail });
+    if (route.request().url().endsWith('/lasa')) return route.fulfill({ json: read(), headers: { 'X-Context-Epoch': '1' } });
+    timeWrites.push(body); const ref = await createElectiveTimeRef(body);
+    detail = { id: body.detailId, revision: 1, appliedRevision: 1, frame, positions: body.positions };
+    m.state.sources = [original, second].flatMap(source => body.positions.map((position: any) => ({ ...source, sourceKey: `${source.frameSourceKey}:position:${position.id}`, label: `Moderna språk · ${position.name}`, needHt: position.needHt, needVt: position.needVt, allowedOptionCodes: ['MODO1000X'], timeDetailRef: { id: body.detailId, revision: 1, positionId: position.id } })));
+    return route.fulfill({ json: { receipt: { ...ref, detailId: body.detailId, revision: 1, appliedRevision: 1, replayed: false }, read: read() }, headers: { 'X-Context-Epoch': '1' } });
+  });
+  await page.goto(URL); await page.getByRole('button', { name: 'Lägg till valbart block', exact: true }).click();
+  await page.getByLabel('Blockets namn', { exact: true }).fill('Mitt språkblock'); await page.getByRole('button', { name: 'Nästa', exact: true }).click(); await page.getByRole('checkbox', { name: /SA26 ·/ }).check(); await page.getByRole('checkbox', { name: /SA26B ·/ }).check();
+  await page.getByRole('button', { name: 'Nästa', exact: true }).click(); await expect(page.getByRole('alert')).toContainText('Dela först ramen');
+  await expect(page.getByRole('combobox', { name: 'Ämne, kurs eller nivå' })).toHaveCount(0);
+  await page.screenshot({ path: `/private/tmp/vb13-${testInfo.project.name}-frame.png`, fullPage: true });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  await page.getByRole('button', { name: 'Dela timplansramen för SA26, SA26B', exact: true }).click();
+  await expect(page.getByLabel('Namn på utrymme 1')).toBeVisible(); expect(timeWrites).toHaveLength(0); expect(m.writes).toHaveLength(0);
+  await page.getByLabel('Namn på utrymme 1').fill('Tillfällig ändring'); page.once('dialog', dialog => dialog.accept());
+  await page.getByRole('button', { name: 'Tillbaka till blockets utkast', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Skapa valbart block', exact: true })).toBeVisible(); expect(timeWrites).toHaveLength(0);
+  await page.getByRole('button', { name: 'Dela timplansramen för SA26, SA26B', exact: true }).click();
+  await page.getByLabel('Namn på utrymme 1').fill('Språk100 A');
+  await page.getByLabel('Poäng HT, utrymme 1', { exact: true }).fill('50'); await page.getByLabel('Poäng VT, utrymme 1', { exact: true }).fill('50');
+  await page.getByLabel('Tid HT, utrymme 1', { exact: true }).fill('45'); await page.getByLabel('Tid VT, utrymme 1', { exact: true }).fill('45');
+  await page.getByRole('button', { name: 'Lägg till utrymme', exact: true }).click(); await page.getByRole('button', { name: 'Fyll återstående ram', exact: true }).nth(1).click();
+  await page.getByRole('button', { name: 'Granska fördelningen', exact: true }).click(); expect(timeWrites).toHaveLength(0);
+  await page.getByRole('button', { name: 'Spara och tillämpa', exact: true }).click();
+  await expect(page.getByText('Tidsutrymmena är tillämpade. Välj nu vilket utrymme varje klass ska använda i det här blocket. Dina övriga uppgifter finns kvar.', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Dela timplansramen för/ })).toHaveCount(0);
+  await page.screenshot({ path: `/private/tmp/vb13-${testInfo.project.name}-positions.png`, fullPage: true });
+  await page.getByRole('checkbox', { name: /SA26 ·.*Språk100 A/ }).check(); await page.getByRole('checkbox', { name: /SA26B ·.*Språk100 A/ }).check(); await page.getByRole('button', { name: 'Nästa', exact: true }).click();
+  await page.getByRole('button', { name: 'Lägg till alternativ', exact: true }).click(); await page.getByRole('combobox', { name: 'Ämne, kurs eller nivå', exact: true }).fill('spanska');
+  await page.getByRole('option', { name: /Spanska.*MODO1000X/ }).click();
+  await page.getByRole('button', { name: 'Visa allt på en sida', exact: true }).click(); await expect(page.getByLabel('Blockets namn', { exact: true })).toHaveValue('Mitt språkblock');
+  expect(timeWrites).toHaveLength(1); expect(timeWrites[0].action).toBe('apply'); expect(timeWrites[0].positions.map((p: any) => p.pointsHt + p.pointsVt)).toEqual([100, 100]); expect(m.writes).toHaveLength(0);
 });
