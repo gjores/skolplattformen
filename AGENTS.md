@@ -41,6 +41,13 @@ Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noE
 - Dokumentera i berörd GSD-plan hur förändringen förhåller sig till SS 12000: tillämplig specifikationsversion, objektmappning, begränsningar och nödvändiga verifieringsfall. Om ett område ligger utanför standardens omfattning ska det framgå. Synliggör och hantera modellkonflikter före implementation; bygg inte in tysta avvikelser.
 - Skilj avsedd kompatibilitet från verifierat stöd. En källbeteckning, intern modell eller simulator bevisar inte standardefterlevnad. Verifiera kontrakt, stödda objekt och informationsutbyte mot den aktuella specifikationen och motpartens faktiska stöd innan en anslutning anges som fungerande. Standarden ersätter inte behörighetskontroll, informationsansvar eller avtal.
 
+## Designsystemet Skolplattan som grundregel
+
+- Enligt användarbeslut 2026-10-31 ska designsystemet **Skolplattan** (https://claude.ai/artifact/RChajoCJX8bqdchWfnQBCo) användas för alla nya och ändrade vyer. Läs dess `project/README.md` före UI-arbete och följ färger, typografi, mått, komponenter, ton och tillgänglighetsregler därifrån.
+- I koden är `web/app/globals.css` och `web/components/ui/` den körbara källan. Använd befintliga variabler, Tailwind-klasser (`bg-primary`, `text-muted-foreground` m.fl.), shadcn-komponenter och klasser som `.page-heading`, `.section-heading`, `.status-badge` och `.empty-state`. Bygg inte egna motsvarigheter och inför inte nya färger, typsnitt eller radier utanför systemet.
+- Vissa namn i designsystemet (t.ex. `info-surface`, `success-surface`, `space-*`, `radius-card`) finns ännu inte som CSS-variabler i appen. Använd då motsvarande befintliga klass eller lägg till variabeln i `globals.css` med samma namn och värde; skriv inte nya hårdkodade hexvärden.
+- Behövs en avvikelse eller ett nytt mönster: synliggör det i berörd GSD-plan och uppdatera designsystemet i samma förändring, så att kod och system inte glider isär. Ändras tokens eller komponenter i appen ska designsystemet synkas mot repot.
+
 ## Identitet, data och integration
 
 - `signInDemo` och `bootstrap_demo_profile` ger demobesökare huvudmannarättigheter. De får inte användas med verkliga elevuppgifter eller i pilotens skyddade driftvägar.
@@ -54,4 +61,4 @@ Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noE
 
 Skriv på svenska med tydliga verksamhetsord. Beskriv vad användaren kan göra, vad som faktiskt är verifierat och vad som återstår. Förslag, implementation, test mot syntetiska data och godkänd verklig anslutning är olika status.
 
-*Skapad vid GSD-initiering 2026-09-10; senast uppdaterad med genomgående SS 12000-regel 2026-10-15.*
+*Skapad vid GSD-initiering 2026-09-10; senast uppdaterad med designsystemet Skolplattan som grundregel 2026-10-31.*
