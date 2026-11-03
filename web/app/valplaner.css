@@ -5,6 +5,7 @@
 .valplan-columns { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 3fr); gap: 1rem; align-items: start; }
 .valplan-card { border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
 .valplan-card .section-heading { margin-bottom: 0; }
+.valplan-editor { container-type: inline-size; }
 .valplan-muted, .valplan-workspace small { color: var(--muted-foreground); font-size: .875rem; }
 .valplan-workspace small { display: block; margin-top: .25rem; }
 .valplan-list { display: grid; gap: .5rem; list-style: none; padding: 0; margin: 0; }
@@ -44,7 +45,12 @@
 .valplan-notice { color: var(--foreground); }
 @media (max-width: 860px) {
   .valplan-columns, .valplan-fields { grid-template-columns: minmax(0, 1fr); }
-  /* Courses become stacked cards so names and time fields stay readable without sideways scrolling. */
+  .valplan-card { padding: 1rem; }
+  .valplan-actions > button { flex-grow: 1; }
+}
+/* Follows the editor's own width: the side menu and plan list narrow it long before the window is phone-sized.
+   Courses become stacked cards so names and time fields stay readable without sideways scrolling. */
+@container (max-width: 52rem) {
   .valplan-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .valplan-table, .valplan-table tbody, .valplan-table td { display: block; }
   .valplan-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; border: 1px solid var(--border); border-radius: var(--radius-md); padding: .75rem; margin-bottom: .75rem; }
@@ -53,6 +59,4 @@
   .valplan-table td[data-label="Kurs"], .valplan-table td[data-label="Får läsas av"], .valplan-table td[data-label="Poäng"] { grid-column: 1 / -1; }
   .valplan-time { max-width: none; }
   .valplan-remove button { width: 100%; min-height: var(--control-height); }
-  .valplan-card { padding: 1rem; }
-  .valplan-actions > button { flex-grow: 1; }
 }

@@ -182,7 +182,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
           {rows.length ? <ul className="valplan-rows">{rows.map(r => {
             const key = valplanRowKey(r), on = draft.rows.some(l => valplanRowKey(l) === key), taken = r.linkedValplanId !== null && r.linkedValplanId !== draft.id;
             return <li key={key}><label className="valplan-check"><input type="checkbox" aria-label={rowLabel(r)} checked={on} disabled={busy || taken && !on} onChange={e => toggleRow(r, e.target.checked)}/>
-              <span><strong>{rowLabel(r)}</strong><small>{r.points} p · HT {hours(r.minutesHt)} · VT {hours(r.minutesVt)} · {r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : 'Inga klasser kopplade ännu'}
+              <span><strong>{rowLabel(r)}</strong><small>{r.points} p · HT {hours(r.minutesHt)} · VT {hours(r.minutesVt)} · {r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : `Inga klasser kopplade ${planningYearLabel(schoolYear)}`}
                 {taken && ` · Fylls av ${otherName(r.linkedValplanId)}`}</small></span></label></li>;
           })}</ul> : <p className="valplan-muted">Inga godkända timplaner har en rad för {VALPLAN_KIND_LABEL[draft.kind].toLocaleLowerCase('sv')} läsåret {planningYearLabel(schoolYear)}.</p>}
           {diagnostics.filter(d => d.rowKey && !d.courseId).map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
@@ -202,9 +202,9 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
                 <td data-label="Poäng">{c.points}</td>
                 {(['ht', 'vt'] as const).map(term => <td key={term} data-label={`${term.toUpperCase()}, timmar`}><input className="valplan-time" inputMode="text" aria-label={`${c.name}, ${term.toUpperCase()} timmar`} aria-invalid={badTime} value={time[c.id]?.[term] ?? ''} disabled={busy}
                   onChange={e => setTime(t => ({ ...t, [c.id]: { ...(t[c.id] ?? { ht: '', vt: '' }), [term]: e.target.value } }))}/></td>)}
-                <td data-label="Får läsas av"><details className="valplan-classes"><summary>{c.classIds ? `${c.classIds.length} av ${linkedClasses.length} klasser` : 'Alla klasser'}</summary>
+                <td data-label="Får läsas av"><details className="valplan-classes"><summary>{c.classIds ? `${c.classIds.length} av ${linkedClasses.length} klasser` : linkedClasses.length ? 'Alla klasser' : 'Inga klasser ännu'}</summary>
                   {linkedClasses.length ? linkedClasses.map(k => <label key={k.id} className="valplan-check"><input type="checkbox" disabled={busy} checked={!c.classIds || c.classIds.includes(k.id)} onChange={e => toggleClass(c, k.id, e.target.checked)}/>{k.name}</label>)
-                    : <p className="valplan-muted">Koppla en timplan för att välja klasser.</p>}</details></td>
+                    : <p className="valplan-muted">{linkedRows.length ? `Inga klasser är kopplade till timplanerna ${planningYearLabel(schoolYear)}. Koppla klasser under Klasser och läsår i timplanen.` : 'Kryssa i en timplan ovan för att välja klasser.'}</p>}</details></td>
                 <td className="valplan-remove"><Button size="sm" variant="outline" disabled={busy} aria-label={`Ta bort ${c.name}`} onClick={() => update(p => ({ ...p, courses: p.courses.filter(x => x.id !== c.id) }))}>Ta bort</Button></td>
               </tr>;
             })}</tbody></table></div> : <p className="valplan-muted">Inga kurser ännu. Lägg till de kurser som eleverna kan välja.</p>}

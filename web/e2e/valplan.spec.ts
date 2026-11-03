@@ -139,6 +139,27 @@ test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async
   expect(dialogs).toHaveLength(0);
 });
 
+test('kurs utan kopplade klasser visar var klasserna kopplas', async ({ page }) => {
+  const m = await mock(page); m.state.rows = m.state.rows.map(r => ({ ...r, classes: [], classIds: [] }));
+  await page.goto(URL);
+  await createIv(page);
+  await expect(page.getByText('Inga klasser kopplade 2027/28').first()).toBeVisible();
+  const reto = page.getByRole('row', { name: /RETO1000X/ });
+  await reto.getByText('Inga klasser ännu').click();
+  await expect(reto.getByText('Inga klasser är kopplade till timplanerna 2027/28. Koppla klasser under Klasser och läsår i timplanen.')).toBeVisible();
+});
+
+test('kurser ryms när redigeringsytan är smal i ett brett fönster', async ({ page }) => {
+  await mock(page); await page.setViewportSize({ width: 1000, height: 800 }); await page.goto(URL);
+  await createIv(page);
+  const wrap = page.locator('.valplan-table-wrap');
+  expect(await wrap.evaluate(e => e.scrollWidth - e.clientWidth)).toBeLessThanOrEqual(0);
+  const time = await page.getByRole('textbox', { name: /Psykologi – nivå 1, HT timmar/ }).boundingBox();
+  expect(time!.width).toBeGreaterThanOrEqual(80);
+  const remove = page.getByRole('button', { name: /Ta bort Psykologi/ });
+  await remove.scrollIntoViewIfNeeded(); await expect(remove).toBeInViewport({ ratio: 1 });
+});
+
 test('öppna en befintlig valplan direkt från timplanen', async ({ page }) => {
   await mock(page); await page.goto(`${URL}?open=${id(99)}`);
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('IV för EK');
