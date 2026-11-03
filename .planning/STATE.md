@@ -15,17 +15,19 @@ progress:
   completed_phases: 3
   total_plans: 100
   completed_plans: 94
-verification_worker_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
-verification_worker_status: code_only_install_health_401_schema_pass_prior_oidc_b6c3bb0
-worker_status: programplan_feedback_code_only_installed_smoke_pass
-worker_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
-verification_ui_build_revision: 494f951ee88dc9389a7f71b432b9557f83ccea7d
-verification_ui_status: programplan_feedback_component36_and_anonymous_install_smoke_pass
+verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
+verification_worker_status: code_only_install_health_401_schema_pass
+worker_status: elective_navigation_code_only_installed
+worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
+verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
+verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: pending_preparation_u1_u7
 milestone_name: milestone
 ---
 
 **Schemamotorn, kontext 2026-10-31:** Research och förslag till delplaner SM-01–10 finns i [05.2-SM-RESEARCH](phases/05.2-schemamodul/05.2-SM-RESEARCH.md) och [05.2-SM-OVERVIEW](phases/05.2-schemamodul/05.2-SM-OVERVIEW.md). Användarens beslut D-01–25 finns i [05.2-CONTEXT](phases/05.2-schemamodul/05.2-CONTEXT.md): eleverna först, lunch som justerbar regel, stegvis arbete med låsning, 2–3 alternativ, minsta ändring efter publicering, flexibla starttider/perioder/A/B-veckor, gymnasiet först, salsläge per klass/grupp, rektor publicerar, egen container i SE/EU, CP-SAT och Pumpkin bakom samma gränssnitt, kod i `schemamotor/`. Ingen kod är skriven. Nästa steg: `gsd-plan-phase 05.2` för SM-01 och SM-02. Valbara blocks U1–U7 väntar fortfarande på användaren.
+
+**Elevval 2026-11-03:** [Genväg och läsårsgräns](phases/05.2-schemamodul/05.2-ELEVVAL-2026-11-03.md) installerade på port 3012, kod cc750d8. 26 komponentprov på dator och telefon samt anonym installationskontroll passerade. SAB27:s ram för individuellt val gäller årskurs 2 och 3. Klasskopplingarna behöver göras för respektive senare läsår.
 
 **Senaste visningsrättningar2026-10-31:** [Programplan/timplan](phases/05.2-schemamodul/05.2-PROGRAMPLAN-FEEDBACK-SUMMARY.md), kod 494f951, är installerade på3012. Nationell programversion förklarad separat, granskningsfel synliga vid knappen med fältlänkar och utbildningens namn som timplansexempel.36 komponentprov på dator/telefon och30 Node PASS. Skyddat bygge, TypeScript, lint, handbok samt installationens fil-/hälso-/schemakontroll PASS. Kodinstallation med0 migrationer och inga verksamhetsdataskrivningar. Ny inloggad auth-kedja är inte körd; tidigare VB19-auth gäller dess artefakt b6c3bb0. Valbara blocks U1–U7 väntar fortfarande på användaren.
 
