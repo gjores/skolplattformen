@@ -46,6 +46,8 @@ test('catalog, validity, language and duplicate rules block saving errors',()=>{
 });
 
 test('row links: block rows only, one valplan per row, stale version and class overlap are visible',()=>{
+  const kind=rows();kind[0].blockKind='modernLanguage';
+  assert.ok(codes(valplanDiagnostics(parseValplan(plan()),kind,catalog),'error').includes('row_kind_mismatch'));
   const r=rows();r[0].rowKind='fixed';
   assert.ok(codes(valplanDiagnostics(parseValplan(plan()),r,catalog),'error').includes('row_not_choice_block'));
   const other=rows();other[1].linkedValplanId='56000000-0000-4000-8000-000000000099';

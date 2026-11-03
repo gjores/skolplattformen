@@ -14,7 +14,7 @@ export type Valplan = { id: string; unitId: string; schoolYear: number; kind: Va
 /** Server-resolved facts about a linked timplan row for the plan's school year. */
 export type ValplanRowContext = ValplanRowLink & {
   rowKind: 'fixed' | 'alternative' | 'block' | 'diplomaWork'; points: number; minutesHt: number | null; minutesVt: number | null;
-  classIds: string[]; allowedLevelKeys: string[] | null; linkedValplanId: string | null;
+  classIds: string[]; allowedLevelKeys: string[] | null; linkedValplanId: string | null; blockKind?: ValplanKind;
 };
 export type ValplanDiagnostic = { code: string; severity: 'error' | 'notice'; courseId?: string; rowKey?: string; classId?: string };
 export type ValplanOffer = { row: ValplanRowContext; points: number; courseIds: string[] };
@@ -95,6 +95,7 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
     if (!row) { out.push({ code: 'row_missing', severity: 'error', rowKey: key }); continue; }
     if (row.timplanVersion !== link.timplanVersion) out.push({ code: 'row_version_changed', severity: 'error', rowKey: key });
     if (row.rowKind !== 'block') out.push({ code: 'row_not_choice_block', severity: 'error', rowKey: key });
+    if (row.blockKind !== undefined && row.blockKind !== plan.kind) out.push({ code: 'row_kind_mismatch', severity: 'error', rowKey: key });
     if (row.linkedValplanId !== null && row.linkedValplanId !== plan.id) out.push({ code: 'row_linked_elsewhere', severity: 'error', rowKey: key });
     if (row.points < 1) out.push({ code: 'row_without_points', severity: 'error', rowKey: key });
     for (const classId of row.classIds) {
