@@ -2,13 +2,13 @@
 gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
-current_phase_name: Valbara block inför schemaläggning
-current_plan: "VB15–19 samt programplanens visningsrättningar installerade; förståelseprov U1–U7 återstår"
-status: awaiting_user_trial
-stopped_at: "Tre programplans-/timplansrättningar installerade på3012, kod 494f951.36 UI/30 Node gröna; kodinstallation utan migration. Valbara blocks U1–U7 återstår."
-last_updated: "2026-10-31"
-last_activity: 2026-10-31
-last_activity_desc: "Tre browseranteckningar rättade: nationell programversion förklarad, synliga fältlänkade granskningsfel och utbildningens namn som exempel i timplan. Installerat utan verksamhetsdataskrivningar."
+current_phase_name: Valplaner, elevval och undervisningsgrupper
+current_plan: "VP-01–08 planerade; genomförande ej påbörjat"
+status: planned
+stopped_at: "Ny inriktning 2026-11-03: valplaner per läsår, elevval och gemensamma undervisningsgrupper ersätter valbara block. VP-01–08 planerade."
+last_updated: "2026-11-03"
+last_activity: 2026-11-03
+last_activity_desc: "Användaren underkände valbara block som för krångligt. Ny modell avstämd och planerad i VP-serien."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -21,9 +21,11 @@ worker_status: elective_navigation_code_only_installed
 worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
-user_trial_status: pending_preparation_u1_u7
+user_trial_status: superseded_vb_u1_u7
 milestone_name: milestone
 ---
+
+**Ny inriktning 2026-11-03 — valplaner ersätter valbara block:** Användaren: blockflödet är för krångligt. Individuella val delas mellan flera timplaner, så valbara kurser blir egna **valplaner per skola och läsår** (kurser med poäng och egen HT/VT-tid, kopplade timplanerader, vem som får läsa). **Elevval** är en egen administrativ sida per valplan. **Undervisningsgrupper** blir en gemensam funktion i appen (klasser, val eller manuellt; parallella grupper, flytt) och källa till tjänstefördelningen. Beslut D-01–08, antaganden A-1–3 och SS 12000-mappning i [VP-CONTEXT](phases/05.2-schemamodul/05.2-VP-CONTEXT.md); delplaner VP-01–08 i samma mapp. VB:s väntande användarprov U1–U7 är ersatt och ska inte genomföras. Gamla elective_*-data bevaras orörda. Ingen kod är ändrad; 3012 kör fortsatt cc750d8.
 
 **Schemamotorn, kontext 2026-10-31:** Research och förslag till delplaner SM-01–10 finns i [05.2-SM-RESEARCH](phases/05.2-schemamodul/05.2-SM-RESEARCH.md) och [05.2-SM-OVERVIEW](phases/05.2-schemamodul/05.2-SM-OVERVIEW.md). Användarens beslut D-01–25 finns i [05.2-CONTEXT](phases/05.2-schemamodul/05.2-CONTEXT.md): eleverna först, lunch som justerbar regel, stegvis arbete med låsning, 2–3 alternativ, minsta ändring efter publicering, flexibla starttider/perioder/A/B-veckor, gymnasiet först, salsläge per klass/grupp, rektor publicerar, egen container i SE/EU, CP-SAT och Pumpkin bakom samma gränssnitt, kod i `schemamotor/`. Ingen kod är skriven. Nästa steg: `gsd-plan-phase 05.2` för SM-01 och SM-02. Valbara blocks U1–U7 väntar fortfarande på användaren.
 
