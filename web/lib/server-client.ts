@@ -7,7 +7,7 @@ export class ApiError extends Error {
   public correlationId: string | null;
   public details: ConflictDetails | null;
   public hasExplicitCode: boolean;
-  /** Vitlistad felorsak från tjänstefördelningens SQL (details.reason, t.ex. tjanst_capacity_exceeded); aldrig fri text. */
+  /** Vitlistad felorsak från tjänstefördelningens, valplanernas eller gruppernas SQL (details.reason, t.ex. tjanst_capacity_exceeded); aldrig fri text. */
   public reason: string | null;
   constructor(
     code: string,
@@ -129,7 +129,7 @@ async function request<T>(
       const details = !unexpectedEpoch && code === 'conflict' && response.status === 409
         ? parseConflictDetails(error.details) : null;
       const reason = !unexpectedEpoch && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
-        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^tjanst_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
+        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
         ? (error.details as { reason: string }).reason : null;
       throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason);
     }

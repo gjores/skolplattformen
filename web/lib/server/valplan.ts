@@ -56,7 +56,7 @@ export async function commandValplan(tx: Tx, ctx: ValplanAuthority, command: Val
   if (command.catalogId !== (catalog as ProgramplanCatalog).catalogId) throw new Deny('bad_request', 400, { reason: 'valplan_catalog' });
   const current = await read(tx, ctx, command);
   const errors = valplanDiagnostics(command.valplan, current.rows, catalog as ProgramplanCatalog).filter(d => d.severity === 'error');
-  if (errors.length) throw new Deny('bad_request', 400, { reason: errors[0].code });
+  if (errors.length) throw new Deny('bad_request', 400, { reason: `valplan_${errors[0].code}` });
   const rows = await operation(() => tx<{ result: unknown }[]>`select public.valplan_command(${tx.json(command)}) as result`);
   let body;
   try { body = parseValplanReply(result(rows, ctx), command); } catch { throw new AuditUnavailable(); }

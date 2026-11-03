@@ -1,0 +1,58 @@
+/* Valplaner: Skolplattan tokens only (globals.css). */
+.valplan-workspace { display: grid; gap: 1rem; color: var(--foreground); min-width: 0; }
+.valplan-workspace h2, .valplan-workspace h3, .valplan-workspace p { margin: 0; }
+.valplan-workspace .page-heading { margin-bottom: 1rem; }
+.valplan-columns { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 3fr); gap: 1rem; align-items: start; }
+.valplan-card { border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
+.valplan-card .section-heading { margin-bottom: 0; }
+.valplan-muted, .valplan-workspace small { color: var(--muted-foreground); font-size: .875rem; }
+.valplan-workspace small { display: block; margin-top: .25rem; }
+.valplan-list { display: grid; gap: .5rem; list-style: none; padding: 0; margin: 0; }
+.valplan-list button { width: 100%; min-height: var(--control-height); text-align: left; border: 1px solid var(--border); border-radius: var(--radius-md); padding: .75rem; background: var(--card); color: inherit; }
+.valplan-list button[aria-pressed="true"] { border-color: var(--primary); box-shadow: inset 3px 0 0 var(--primary); }
+.valplan-new { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.valplan-new legend { font-weight: 600; margin-bottom: .5rem; }
+.valplan-new button, .valplan-actions button, .valplan-add > button { min-height: var(--control-height); }
+.valplan-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1rem; align-items: end; }
+.valplan-workspace label { display: grid; gap: .375rem; font-size: .875rem; }
+.valplan-workspace input:not([type="checkbox"]), .valplan-workspace select { width: 100%; min-height: var(--control-height); border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--card); padding: .5rem .75rem; color: inherit; font: inherit; }
+.valplan-workspace input[aria-invalid="true"] { border-color: var(--destructive); }
+.valplan-workspace :focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.valplan-section { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.valplan-section h3 { font-size: 1rem; font-weight: 600; }
+.valplan-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.valplan-check { display: flex !important; align-items: flex-start; gap: .625rem !important; min-height: var(--control-height); padding: .375rem 0; }
+.valplan-check input { width: 1.125rem; height: 1.125rem; margin-top: .125rem; flex-shrink: 0; }
+.valplan-table-wrap { overflow-x: auto; position: relative; }
+.valplan-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+.valplan-table th, .valplan-table td { text-align: left; padding: .625rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+.valplan-table th { color: var(--muted-foreground); font-weight: 500; }
+.valplan-table td:first-child { min-width: 16rem; }
+.valplan-time { max-width: 6.5rem; }
+.valplan-classes summary { cursor: pointer; min-height: var(--control-height); display: flex; align-items: center; gap: .375rem; white-space: nowrap; color: var(--primary); }
+.valplan-classes summary::before { content: '▸'; }
+.valplan-classes[open] summary::before { content: '▾'; }
+.valplan-add { display: grid; gap: .75rem; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; }
+.catalog-level-search { display: grid; gap: .5rem; }
+.catalog-level-search .ppk-level-choices { list-style: none; margin: 0; padding: 0; display: grid; gap: .375rem; max-height: 18rem; overflow-y: auto; }
+.catalog-level-search .ppk-level-choices button { width: 100%; text-align: left; min-height: var(--control-height); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .5rem .75rem; background: var(--card); color: inherit; }
+.catalog-level-search .ppk-level-choices button:disabled { color: var(--muted-foreground); }
+.valplan-footer { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.valplan-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.valplan-field-error { color: var(--destructive); font-size: .875rem; }
+.valplan-alert { color: var(--destructive); display: grid; gap: .5rem; justify-items: start; }
+.valplan-notice { color: var(--foreground); }
+@media (max-width: 860px) {
+  .valplan-columns, .valplan-fields { grid-template-columns: minmax(0, 1fr); }
+  /* Courses become stacked cards so names and time fields stay readable without sideways scrolling. */
+  .valplan-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .valplan-table, .valplan-table tbody, .valplan-table td { display: block; }
+  .valplan-table tr { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: .75rem; border: 1px solid var(--border); border-radius: var(--radius-md); padding: .75rem; margin-bottom: .75rem; }
+  .valplan-table td { border: 0; padding: 0; min-width: 0 !important; }
+  .valplan-table td[data-label]::before { content: attr(data-label); display: block; color: var(--muted-foreground); font-size: .8125rem; margin-bottom: .25rem; }
+  .valplan-table td[data-label="Kurs"], .valplan-table td[data-label="Får läsas av"], .valplan-table td[data-label="Poäng"] { grid-column: 1 / -1; }
+  .valplan-time { max-width: none; }
+  .valplan-remove button { width: 100%; min-height: var(--control-height); }
+  .valplan-card { padding: 1rem; }
+  .valplan-actions > button { flex-grow: 1; }
+}

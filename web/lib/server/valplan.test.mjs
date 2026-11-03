@@ -34,8 +34,8 @@ test('save re-checks model rules on rows read in the same transaction before the
   const f=fixture(wrap(read()),wrap(reply));const saved=await commandValplan(f.tx,ctx,command());
   assert.equal(saved.body.receipt.revision,1);assert.equal(saved.event.action,'valplan_command');assert.deepEqual(f.calls.map(c=>/valplan_(\w+)\(/.exec(c)[1]),['read','command']);
   const tooBig={...valplan,courses:[{...valplan.courses[0],classIds:[id(99)]}]};
-  const g=fixture(wrap(read()));await rejects(()=>commandValplan(g.tx,ctx,command(tooBig)),e=>e.code==='bad_request'&&e.details.reason==='course_class_not_linked');assert.equal(g.calls.length,1);
-  const taken=fixture(wrap(read({rows:[{...row,linkedValplanId:id(77)}]})));await rejects(()=>commandValplan(taken.tx,ctx,command()),e=>e.details?.reason==='row_linked_elsewhere');
+  const g=fixture(wrap(read()));await rejects(()=>commandValplan(g.tx,ctx,command(tooBig)),e=>e.code==='bad_request'&&e.details.reason==='valplan_course_class_not_linked');assert.equal(g.calls.length,1);
+  const taken=fixture(wrap(read({rows:[{...row,linkedValplanId:id(77)}]})));await rejects(()=>commandValplan(taken.tx,ctx,command()),e=>e.details?.reason==='valplan_row_linked_elsewhere');
   await rejects(()=>commandValplan(fixture().tx,ctx,{...command(),catalogId:'sha256:'+'0'.repeat(64)}),e=>e.details?.reason==='valplan_catalog');
 });
 

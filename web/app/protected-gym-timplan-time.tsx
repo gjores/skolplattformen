@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
@@ -10,6 +10,7 @@ import { parseTimplanTimeCommandReply, parseTimplanTimeStatusReply, type Timplan
 import { createTimplanTimeJournal, persistTimplanTimeJournal, loadTimplanTimeJournal, removeTimplanTimeJournal, type TimplanTimeJournal } from '@/lib/timplan-time-journal.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import type { GymTimplanHoursProps } from './protected-gym-timplan-hours';
+import { ChoiceRowDetail, ChoiceRowSummary } from './timplan-choice-rows';
 import ProtectedGymTimplanDistribution from './protected-gym-timplan-distribution';
 import ProtectedTimplanTimeCopyReview from './protected-timplan-time-copy-review';
 import MfaStepUpNotice from './mfa-step-up';
@@ -27,7 +28,9 @@ const hours = (n: number) => `${formatTimplanMinutes(n)} h`;
 const percent = (n: number | null) => n === null ? '—' : `${n.toLocaleString('sv-SE', { maximumFractionDigits: 1 })} %`;
 
 /** Each request binds all nine cells and retains its UUID until its outcome is known. */
-export default function ProtectedGymTimplanTime({ timeJournalScope: scope = null, plan, year, onYear, yearProjection, disabled = false, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure, onActivity }: Omit<GymTimplanHoursProps, 'plan'> & { plan: GymTimplanV2 }) {
+export default function ProtectedGymTimplanTime({ choiceRows = null, timeJournalScope: scope = null, plan, year, onYear, yearProjection, disabled = false, unsavedId, onSaved, onSaving, onNavigationBlocked, onSecurityFailure, onActivity }: Omit<GymTimplanHoursProps, 'plan'> & { plan: GymTimplanV2 }) {
+  const [expandedChoices, setExpandedChoices] = useState<Set<string>>(new Set());
+  const toggleChoice = (key: string) => setExpandedChoices(value => { const next = new Set(value); if (next.has(key)) next.delete(key); else next.add(key); return next; });
   const [drafts, setDrafts] = useState<Map<string, Draft>>(new Map()), [savingKey, setSavingKey] = useState<string | null>(null);
   const [journalReady, setJournalReady] = useState(false), [journalError, setJournalError] = useState<string | null>(null);
   const [general, setGeneral] = useState<TimplanTimeCommand | null>(null), [generalRetry, setGeneralRetry] = useState(false), [generalMfa, setGeneralMfa] = useState(false);
@@ -218,8 +221,9 @@ export default function ProtectedGymTimplanTime({ timeJournalScope: scope = null
         <thead><tr><th scope="col" rowSpan={2}>Ämne, nivå eller block</th>{years.map(y => <th key={y} scope="colgroup" colSpan={3}>Årskurs {y + 1}</th>)}<th scope="col" rowSpan={2}>Totalt, alla år</th><th scope="col" rowSpan={2}>Varav APL</th><th scope="col" rowSpan={2}>Sparstatus</th></tr><tr>{columns.map(c => <th key={c.index} scope="col">{c.label}</th>)}</tr></thead>
         <tbody>{plan.rows.filter(row => !onlyMissing || totals.missingRows.includes(row.key) || drafts.has(row.key)).map(row => {
           const draft = drafts.get(row.key), invalid = !!draft && !values(draft.values), rowTotals = timplanTimeTotals({ rows: [row], timeRows: { [row.key]: display[row.key] } });
-          return <tr key={row.key} data-row-key={row.key} className={draft ? 'gt-row-dirty' : undefined} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) commit(row.key); }}>
-            <th scope="row"><strong>{row.name}</strong><span>{row.levelName} · {row.points} p</span>{draft?.error && <div className="gt-row-error" role="alert"><p>{draft.error}</p>{draft.mfa && <MfaStepUpNotice message={draft.error}/>}
+          const choice = row.rowKind === 'block' ? choiceRows?.rows.get(row.key) : undefined, detailId = `gt-choice-${row.key.replace(':', '-')}`;
+          return <Fragment key={row.key}><tr data-row-key={row.key} className={draft ? 'gt-row-dirty' : undefined} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) commit(row.key); }}>
+            <th scope="row"><strong>{row.name}</strong><span>{row.levelName} · {row.points} p</span>{choice && <ChoiceRowSummary info={choice} expanded={expandedChoices.has(row.key)} controls={detailId} onToggle={() => toggleChoice(row.key)}/>}{draft?.error && <div className="gt-row-error" role="alert"><p>{draft.error}</p>{draft.mfa && <MfaStepUpNotice message={draft.error}/>}
               {draft.mode === 'compare' && <p>Sparat nu: {strings(plan.timeRows[row.key]).map((n, i) => `${i < 6 ? `Skola ${i % 2 === 0 ? 'HT' : 'VT'} åk ${Math.floor(i / 2) + 1}` : `APL åk ${i - 5}`}: ${n || 'ofördelat'}`).join(' · ')}</p>}
               <div className="gt-row-actions">{draft.pending ? <><Button size="sm" disabled={!!savingKey || draft.mfa} onClick={() => void recover(row.key)}>Kontrollera sparstatus</Button>{draft.mode === 'retry' && <Button size="sm" disabled={!!savingKey || draft.mfa || !editable} onClick={() => void recover(row.key, true)}>Försök spara samma ändring</Button>}</> : <><Button size="sm" variant="outline" disabled={!!savingKey} onClick={() => { if (running.current) return; queue.current.delete(row.key); replace(row.key, null); }}>Använd sparade värden</Button><Button size="sm" disabled={!!savingKey || invalid || !editable || draft.mfa} onClick={() => { if (draft.mode === 'compare') replace(row.key, { ...draft, original: saved.current.timeRows[row.key], mode: 'edit', error: null }); commit(row.key); }}>Spara min fördelning</Button></>}</div>
             </div>}</th>
@@ -228,7 +232,7 @@ export default function ProtectedGymTimplanTime({ timeJournalScope: scope = null
               return <td key={c.index} className={c.index >= 6 ? 'gt-apl-cell' : undefined}>{!enabled ? <span className="gt-inactive" aria-label="Ingår inte denna del av utbildningen">—</span> : editable ? <input type="text" className="gt-term-input" inputMode="text" aria-label={`${row.name} ${row.levelName}, ${c.label} årskurs ${c.year + 1}`} aria-invalid={invalid} data-row={row.key} data-time-cell={c.index} value={draft?.values[c.index] ?? strings(plan.timeRows[row.key])[c.index]} placeholder="·" disabled={draft?.mode === 'unread' || draft?.mode === 'retry' || draft?.mfa} onChange={event => setCell(row, c.index, event.target.value)} onKeyDown={event => { if (event.key === 'Enter') { event.preventDefault(); commit(row.key); } }}/>
                 : <span>{strings(plan.timeRows[row.key])[c.index] || 'Ofördelat'}</span>}</td>;
             })}<td>{hours(rowTotals.totalMinutes)}{!rowTotals.complete && <small>Preliminärt</small>}</td><td>{percent(rowTotals.aplPercent)}</td><td className="gt-row-state">{savingKey === row.key ? 'Sparar…' : draft ? invalid ? 'Kontrollera' : 'Osparat' : rowTotals.complete ? 'Klar' : 'Ofördelat'}</td>
-          </tr>;
+          </tr>{choice && expandedChoices.has(row.key) && <ChoiceRowDetail info={choice} id={detailId} colSpan={columns.length + 4} onOpen={choiceRows!.open}/>}</Fragment>;
         })}</tbody><tfoot><tr><th scope="row">Summa timmar</th>{columns.map(c => <td key={c.index}>{formatTimplanMinutes(c.index < 6 ? totals.termMinutes[c.index] : totals.annualAplMinutes[c.year])}</td>)}<td>{hours(totals.totalMinutes)}</td><td>{percent(totals.aplPercent)}</td><td>{totals.missingRows.length ? `${totals.missingRows.length} rader kvar` : 'Alla fält ifyllda'}</td></tr></tfoot>
       </table>
     </section>

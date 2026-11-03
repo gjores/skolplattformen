@@ -72,6 +72,8 @@
   --border: #e3e7ee;
   --input: #cbd2df;
   --ring: #4469ee;
+  /* Skolplattan: minsta pekyta för knappar och menyval. */
+  --control-height: 44px;
   --radius: 0.65rem;
   --sidebar: #152237;
   --sidebar-foreground: #c8d1df;
