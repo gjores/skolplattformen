@@ -220,3 +220,18 @@ test('en 200-poängsram för två klasser delas en gång med blockets utkast kva
   await page.getByRole('button', { name: 'Visa allt på en sida', exact: true }).click(); await expect(page.getByLabel('Blockets namn', { exact: true })).toHaveValue('Mitt språkblock');
   expect(timeWrites).toHaveLength(1); expect(timeWrites[0].action).toBe('apply'); expect(timeWrites[0].positions.map((p: any) => p.pointsHt + p.pointsVt)).toEqual([100, 100]); expect(m.writes).toHaveLength(0);
 });
+
+test('elevval öppnar valomgången direkt och visar rätt läsårsavgränsning i blockvyn', async ({ page }) => {
+  const m = await mock(page);
+  m.state.blocks = [block()];
+  await page.goto(URL + '?elevval');
+  await expect(page.getByRole('heading', { name: 'Elevval', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Öppna valomgång', exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Använd i tjänstefördelningen', exact: true })).toHaveCount(0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+
+  await page.goto(URL);
+  await page.getByText('Timplanens valbara tidsutrymmen', { exact: true }).click();
+  await expect(page.getByText(/Individuellt val visas när klassen är kopplad/)).toBeVisible();
+  expect(m.writes).toHaveLength(0);
+});

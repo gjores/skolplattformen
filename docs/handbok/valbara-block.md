@@ -23,10 +23,12 @@ Det går att **Spara förberedelse** innan klasser finns. Öppna samma timplan, 
 Därefter kan du:
 
 1. Bemanna gruppraderna i tjänstefördelningen.
-2. Koppla elev- och vårdnadshavarkonton och öppna elevvalen.
+2. Öppna **Valbara block → Elevval**. Välj block, koppla vid behov elev- och vårdnadshavarkonton och öppna valomgången.
 3. Granska inlämnade val och eventuella VH-bekräftelser, bekräfta elevens val på skolans vägnar och placera eleverna med datum.
 
 Bemanning och insamling av elevval kan förberedas parallellt. Grupporganisationen behöver vara tillämpad innan gruppen används för placering.
+
+Om **Individuellt val** saknas, kontrollera i vilken årskurs poängen ligger i timplanen. Välj det läsåret i **Planering** och kontrollera att klassen är kopplad till rätt timplan och årskolumn.
 
 ## Undervisningstiden kommer från timplanen
 

@@ -48,12 +48,13 @@ function message(error: unknown, action?: ElectiveCommand['action']): string {
   }
   return 'Svaret kunde inte verifieras. Kontrollera sparstatus innan du försöker igen.';
 }
-type Props = { unitId: string | null; schoolYear: number; scopeKey: string; preparationIdentityKey?:string; onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onPreparedTjanst?:(target:{unitId:string;schoolYear:number})=>void; contextEpoch?: number | null; onSessionLost: () => void; onTjanst?: () => void; onOpenTimplans?: () => void; initialPreparation?:ElectivePreparationIntent|null;onPreparationClosed?:()=>void };
+type Props = { pupilChoicesOnly?: boolean; unitId: string | null; schoolYear: number; scopeKey: string; preparationIdentityKey?:string; onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onPreparedTjanst?:(target:{unitId:string;schoolYear:number})=>void; contextEpoch?: number | null; onSessionLost: () => void; onTjanst?: () => void; onOpenTimplans?: () => void; initialPreparation?:ElectivePreparationIntent|null;onPreparationClosed?:()=>void };
 export default function ProtectedElectiveBlocks(props: Props) {
-  if (!props.unitId) return <section className="elective-card"><h1>Valbara block</h1><p>Välj en skola för att se utbud och grupper.</p></section>;
+  const title = props.pupilChoicesOnly ? 'Elevval' : 'Valbara block';
+  if (!props.unitId) return <section className="elective-card"><h1>{title}</h1><p>Välj en skola för att se utbud och grupper.</p></section>;
   return <Workspace key={`${props.scopeKey}-${props.unitId}-${props.schoolYear}`} {...props} unitId={props.unitId}/>;
 }
-function Workspace({ unitId, schoolYear, scopeKey, preparationIdentityKey=scopeKey, contextEpoch = null, onSessionLost, onTjanst, onPreparedTjanst, onPreparedBlocks, onPreparedTimplan, onOpenTimplans, initialPreparation, onPreparationClosed }: Props & { unitId: string }) {
+function Workspace({ pupilChoicesOnly = false, unitId, schoolYear, scopeKey, preparationIdentityKey=scopeKey, contextEpoch = null, onSessionLost, onTjanst, onPreparedTjanst, onPreparedBlocks, onPreparedTimplan, onOpenTimplans, initialPreparation, onPreparationClosed }: Props & { unitId: string }) {
   const heading = useId();
   const [data, setData] = useState<ElectiveRead | null>(null), [selected, setSelected] = useState('');
   const [draft, setDraft] = useState<ElectiveBlockDraft | null>(null), [busy, setBusy] = useState(false), [pending, setPending] = useState<ElectiveCommandRef | null>(() => {
@@ -146,15 +147,15 @@ function Workspace({ unitId, schoolYear, scopeKey, preparationIdentityKey=scopeK
       : { id: newId(), kind: data.sources[0]?.blockKind ?? 'modernLanguage', name: '', startsOn: `${schoolYear}-07-01`, endsOn: `${schoolYear + 1}-06-30`, sourceRefs: [], options: [], groups: [] });
   }
   return <section className="elective-workspace" aria-labelledby={heading}>
-    <header className="elective-heading"><div><h1 id={heading}>Valbara block</h1><output className="elective-muted">{feedback ?? 'Alternativ, elevval och undervisningsgrupper'}</output></div>
-      <div className="elective-actions">{onTjanst && <Button variant="outline" onClick={onTjanst}>Till tjänstefördelningen</Button>}
-        {!preparing && <Button variant="ghost" title="Avancerat: skapa ett enstaka block manuellt" disabled={disabled || draft !== null || timeFrame !== null} onClick={() => start()}>Lägg till valbart block</Button>}</div>
+    <header className="elective-heading"><div><h1 id={heading}>{pupilChoicesOnly ? 'Elevval' : 'Valbara block'}</h1><output className="elective-muted">{feedback ?? (pupilChoicesOnly ? 'Öppna valomgångar och följ elevernas val' : 'Alternativ, elevval och undervisningsgrupper')}</output></div>
+      <div className="elective-actions">{!pupilChoicesOnly && onTjanst && <Button variant="outline" onClick={onTjanst}>Till tjänstefördelningen</Button>}
+        {!pupilChoicesOnly && !preparing && <Button variant="ghost" title="Avancerat: skapa ett enstaka block manuellt" disabled={disabled || draft !== null || timeFrame !== null} onClick={() => start()}>Lägg till valbart block</Button>}</div>
     </header>
-    {mfa && !draft && <MfaStepUpNotice message="Verifiera inloggningen för att fortsätta." detail={pending ? 'Kontrollera sparstatus efter verifieringen innan du försöker spara igen.' : 'Osparade uppgifter följer inte med. Du kommer tillbaka till valbara block efter verifieringen.'} returnTo="/?vy=valbara"/>}
+    {mfa && !draft && <MfaStepUpNotice message="Verifiera inloggningen för att fortsätta." detail={pending ? 'Kontrollera sparstatus efter verifieringen innan du försöker spara igen.' : 'Osparade uppgifter följer inte med. Du kommer tillbaka till valbara block efter verifieringen.'} returnTo={pupilChoicesOnly ? "/?vy=elevval" : "/?vy=valbara"}/>}
     {error && !mfa && !draft && <div className="elective-error" role="alert">{error}{!pending && <Button variant="ghost" disabled={busy} onClick={() => { setError(null); setRetry(value => value + 1); }}>Hämta aktuellt läge</Button>}</div>}
     {pending && !draft && <div className="elective-card" aria-live="polite"><p>Kontrollera sparstatus innan du fortsätter.</p><Button disabled={busy} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></div>}
     {!data ? <p aria-busy="true">Hämtar skolans valbara block…</p> : <>
-      {!draft && <ElectivePreparationLauncher choices={[...new Map(data.sources.map(source=>[`${source.timplanId}:${source.column}`,{unitId,planId:source.timplanId,columnId:source.column,label:`${[...new Set(data.sources.filter(value=>value.timplanId===source.timplanId&&value.column===source.column).map(value=>value.className))].join(', ')} · timplan version ${source.timplanVersion}`}])).values()]}
+      {!pupilChoicesOnly && !draft && <ElectivePreparationLauncher choices={[...new Map(data.sources.map(source=>[`${source.timplanId}:${source.column}`,{unitId,planId:source.timplanId,columnId:source.column,label:`${[...new Set(data.sources.filter(value=>value.timplanId===source.timplanId&&value.column===source.column).map(value=>value.className))].join(', ')} · timplan version ${source.timplanVersion}`}])).values()]}
         unitId={unitId} schoolYear={schoolYear} identityKey={preparationIdentityKey} contextEpoch={contextEpoch} disabled={disabled||timeFrame!==null} onSessionLost={onSessionLost} onApplied={()=>{void load().catch(caught=>setError(message(caught)));}} onOpenBlocks={onPreparedBlocks} onOpenSourceTimplan={onPreparedTimplan} onTjanst={onPreparedTjanst??(onTjanst?()=>onTjanst():undefined)} onOpenTimplans={onOpenTimplans} onOpenChange={value=>{setPreparing(value);if(!value)onPreparationClosed?.();}} initialIntent={initialPreparation}/>}
       {!draft && !preparing && <details className="elective-card"><summary>Skolinställning för VH-bekräftelse <span className="elective-muted">{data.policy.guardianConfirmation === null ? 'Inte vald' : data.policy.guardianConfirmation ? 'På' : 'Av'}</span></summary>
         <p>Välj om elevval behöver bekräftas av vårdnadshavare innan skolan kan bekräfta och placera eleven.</p>
@@ -162,7 +163,9 @@ function Workspace({ unitId, schoolYear, scopeKey, preparationIdentityKey=scopeK
           <Button variant="outline" aria-pressed={data.policy.guardianConfirmation === false} disabled={disabled || !!draft || timeFrame !== null || data.policy.guardianConfirmation === false} onClick={() => choosePolicy(false)}>Av</Button></div>
         {policyReview !== null && <div className="elective-card"><h3>Granska skolinställningen</h3><p>VH-bekräftelse blir {policyReview ? 'på' : 'av'} för skolans öppna valomgångar. Inlämnade val och svar behålls, men deras status kan ändras. Redan gjorda gruppplaceringar flyttas inte.</p><div className="elective-actions"><Button variant="outline" disabled={disabled} onClick={() => setPolicyReview(null)}>Avbryt</Button><Button disabled={disabled || !!draft} onClick={() => void send('set_policy', { guardianConfirmation: policyReview })}>Ändra skolinställningen</Button></div></div>}
       </details>}
-      {!draft && !preparing && data.sources.some(source => source.schoolform === 'gymnasium') && <details className="elective-card"><summary>Timplanens valbara tidsutrymmen</summary><p>Grupper ärver tiden. Om en ram ska delas, exempelvis individuellt val i två kurser om 100 poäng, fördelar du först tiden i timplanen här. Skapa sedan ett block för varje tidsutrymme.</p>
+      {!pupilChoicesOnly && !draft && !preparing && data.sources.some(source => source.schoolform === 'gymnasium') && <details className="elective-card"><summary>Timplanens valbara tidsutrymmen</summary><p>Grupper ärver tiden. Om en ram ska delas, exempelvis individuellt val i två kurser om 100 poäng, fördelar du först tiden i timplanen här. Skapa sedan ett block för varje tidsutrymme.</p>
+        <p className="text-sm text-muted-foreground">Listan gäller läsåret {schoolYear}/{String(schoolYear + 1).slice(-2)}. Individuellt val visas när klassen är kopplad till en timplan med individuellt val för det läsåret. Om poängen ligger i en annan årskurs, byt läsår i Planering.</p>
+        {onOpenTimplans && <Button variant="outline" className="min-h-11" disabled={disabled} onClick={onOpenTimplans}>Kontrollera timplan och klasskoppling</Button>}
         {!timeFrame ? <div className="elective-list">{[...new Map(data.sources.filter(source => source.schoolform === 'gymnasium').map(source => [`${source.timplanId}:${source.rowKey}:${source.column}`, source])).values()].map(source => <Button key={source.frameSourceKey} variant="outline" disabled={disabled} onClick={() => setTimeFrame(source.frameSourceKey)}>{KIND[source.blockKind]} · timplan version {source.timplanVersion} · {data.sources.filter(item => item.timplanId === source.timplanId && item.rowKey === source.rowKey && item.column === source.column).map(item => item.className).filter((name, index, values) => values.indexOf(name) === index).join(', ')}</Button>)}</div>
         : <><Button variant="outline" disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) setTimeFrame(null); }}>Tillbaka till tidsutrymmen</Button><ProtectedElectiveTimplanTime unitId={unitId} schoolYear={schoolYear} frameSourceKey={timeFrame} contextEpoch={contextEpoch} onSessionLost={onSessionLost} onApplied={() => void load().catch(caught => setError(message(caught)))}/></>}
       </details>}
@@ -172,7 +175,7 @@ function Workspace({ unitId, schoolYear, scopeKey, preparationIdentityKey=scopeK
           catch { setError('Kontrollera alternativens namn, ämne, språk och grupper. Gruppernas timplansunderlag måste ha känd och förenlig tid.'); } }} onCancel={() => { setDraft(null); setReview(false); }} onSave={() => void send('save_block', { expectedBlockRevision: editingRevision, block: draft })}/>
         : !preparing && <div className="elective-columns"><nav className="elective-list" aria-label="Valbara block">{data.blocks.map(block => <button key={block.id} aria-pressed={current?.id === block.id} disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) { setSelected(block.id); setFeedback(null); } }}>
           {block.name}<small>{KIND[block.kind]} · {block.groups.length} grupper</small></button>)}{data.blocks.length === 0 && <p>Inga valbara block finns ännu.</p>}</nav>
-          {current ? <BlockDetail key={current.id} data={data} block={current} disabled={disabled || timeFrame !== null} onEdit={() => start(current)} onSend={send}/>
+          {current ? <BlockDetail pupilChoicesOnly={pupilChoicesOnly} key={current.id} data={data} block={current} disabled={disabled || timeFrame !== null} onEdit={() => start(current)} onSend={send}/>
             : <div className="elective-card"><h2>Planera utbudet före elevvalen</h2><p>Lägg upp ett valbart block och koppla det till timplanens ram. Grupperna kan sedan bemannas även innan alla elever har valt.</p>{data.sources.length === 0 && <p className="elective-muted">Inga valbara timplansramar finns i underlaget. Kontrollera klassernas timplanskopplingar och utbildningens valbara utrymme.</p>}</div>}
         </div>}
     </>}
@@ -290,22 +293,24 @@ function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions
 }
 
 type Send = (action: ElectiveCommand['action'], payload: ElectiveCommand['payload'], current?: ElectiveRead | null) => Promise<ElectiveRead | null>;
-function BlockDetail({ data, block, disabled, onEdit, onSend }: { data: ElectiveRead; block: ElectiveBlock; disabled: boolean; onEdit: () => void; onSend: Send }) {
+function BlockDetail({ data, block, disabled, onEdit, onSend, pupilChoicesOnly }: { pupilChoicesOnly: boolean; data: ElectiveRead; block: ElectiveBlock; disabled: boolean; onEdit: () => void; onSend: Send }) {
   const [closeDate, setCloseDate] = useState(`${data.schoolYear + 1}-06-01`), [pupilIds, setPupilIds] = useState<string[]>([]);
   const minChoices = 1, maxChoices = 1;
   const rounds = data.rounds.filter(round => round.blockId === block.id);
   const classIds = new Set(block.sourceRefs.map(source => source.classId));
   const pupils = data.pupils?.filter(pupil => pupil.classIds.some(classId => classIds.has(classId))) ?? [];
   const choices = data.choices?.filter(choice => rounds.some(round => round.id === choice.roundId)) ?? [];
-  return <article className="elective-card"><div className="elective-heading"><div><span className="elective-muted">{KIND[block.kind]}</span><h2>{block.name}</h2>{data.releasedBlockIds?.includes(block.id) && <p>Grupperna är avvecklade. Tidigare historik behålls; tidsutrymmet är ledigt för ny planering.</p>}</div><Button variant="outline" disabled={disabled} onClick={onEdit}>Ändra block</Button></div>
+  return <article className="elective-card"><div className="elective-heading"><div><span className="elective-muted">{KIND[block.kind]}</span><h2>{block.name}</h2>{data.releasedBlockIds?.includes(block.id) && <p>Grupperna är avvecklade. Tidigare historik behålls; tidsutrymmet är ledigt för ny planering.</p>}</div>{!pupilChoicesOnly && <Button variant="outline" disabled={disabled} onClick={onEdit}>Ändra block</Button>}</div>
     <p className="elective-muted">{block.startsOn} – {block.endsOn} · {block.sourceRefs.map(source => source.className).join(', ')}</p>
+    {!pupilChoicesOnly && <>
     {block.options.map(option => <section key={option.id} className="elective-card"><h3>{option.name}</h3><p className="elective-muted">{option.language && `${programplanLanguageName(option.language)} · `}{option.levelCode}</p>
       {block.groups.filter(group => group.optionId === option.id).map(group => { const source = block.sourceRefs.find(value => group.sourceKeys.includes(value.sourceKey)); return <div className="elective-toolbar" key={group.id}><div><strong>{group.name}</strong><p className="elective-muted">{group.memberCount === null ? 'Elevantal kan inte visas' : `${group.memberCount} placerade`}{group.estimatedPupils === null ? '' : ` · uppskattat ${group.estimatedPupils}`}</p></div>
         <span>HT {time(source?.needHt ?? null)} · VT {time(source?.needVt ?? null)}</span><ElectiveRetireGroup data={data} block={block} group={group} disabled={disabled} onSend={onSend}/></div>; })}
     </section>)}
     <div className="elective-toolbar"><span className="elective-status" data-pending={!block.applied}>{block.applied ? 'Grupprader finns i tjänsteunderlaget' : 'Grupprader behöver tillämpas'}</span>
       <Button disabled={disabled || block.applied} onClick={() => void onSend('apply_groups', { blockId: block.id, expectedBlockRevision: block.revision })}>Använd i tjänstefördelningen</Button></div>
-    <details><summary>Öppna elevval</summary><div className="elective-form">
+    </>}
+    <details open={pupilChoicesOnly || undefined}><summary className="min-h-11 py-2">Öppna elevval</summary><div className="elective-form">
       {data.policy.guardianConfirmation === null && <p>Välj skolans inställning för VH-bekräftelse innan elevvalet öppnas.</p>}
       {!data.canReadPupils ? <p>Ditt uppdrag saknar åtkomst till elevurvalet.</p> : <>
         <div className="elective-fields"><label>Sista valdag<input type="date" value={closeDate} onChange={event => setCloseDate(event.target.value)}/></label>

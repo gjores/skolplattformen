@@ -6,4 +6,4 @@ import { setKnownEpoch } from '../../lib/server-client';
 import { eid, YEAR } from './elective-data';
 import '../../app/globals.css';
 setKnownEpoch(1);
-createRoot(document.getElementById('root')!).render(<UnsavedChangesProvider><ProtectedElectiveBlocks unitId={eid(1)} schoolYear={YEAR} scopeKey="synthetic-elective" contextEpoch={1} onSessionLost={() => { document.body.textContent = 'Inloggningen har avslutats'; }}/></UnsavedChangesProvider>);
+createRoot(document.getElementById('root')!).render(<UnsavedChangesProvider><ProtectedElectiveBlocks pupilChoicesOnly={new URLSearchParams(location.search).has("elevval")} unitId={eid(1)} schoolYear={YEAR} scopeKey="synthetic-elective" contextEpoch={1} onSessionLost={() => { document.body.textContent = 'Inloggningen har avslutats'; }}/></UnsavedChangesProvider>);
