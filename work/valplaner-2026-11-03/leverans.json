@@ -1,0 +1,50 @@
+{
+  "kind": "valplan-delivery",
+  "date": "2026-11-03",
+  "revision": "afc6f4ec1e563e91c747414bf4679d2b9bbfd9e2",
+  "artifact": {
+    "sha256": "116b01fd1a1c29d969607455700c9156e2e52b4cc74c2699d5989e9bcbe1981e",
+    "fileCount": 1413
+  },
+  "runtime": "work/pilot/targets/protected/runtime/valplaner-afc6f4ec1e/web/dist-protected",
+  "migrations": [
+    {
+      "path": "supabase/migrations/20261104100000_valplans.sql",
+      "sha256": "2c527aedb2da58e17d06d482f8823da50de6a64a7e576412d6fb072694505e85"
+    },
+    {
+      "path": "supabase/migrations/20261104110000_study_groups.sql",
+      "sha256": "2867f1a797adf2b30a71a6de32a80f3129721b1f0e295ec66673c653176898e7"
+    }
+  ],
+  "rehearsal": {
+    "status": "PASS",
+    "rollbackRestored": true,
+    "newTables": 11
+  },
+  "apply": {
+    "status": "PASS",
+    "committed": true,
+    "newTables": 11,
+    "journalCount": 146,
+    "auditRowsAdded": 1,
+    "beforeFingerprint": "9520ada4e2c1d7f4d7032bb5dba87de8a17a3452c4550799662155916e622e06",
+    "afterFingerprint": "af8dd6b1f8843b5da674656d9be919dc32c464d81441b767acbbe02128e8a13d",
+    "preservedTables": 147,
+    "preservedRowsIdentical": true
+  },
+  "privileges": {
+    "entrypoints": 4,
+    "helpers": 11
+  },
+  "postChecks": {
+    "health": "200 skolplattform_worker",
+    "protectedApisAnonymous": 401,
+    "servedChunkIdentical": true,
+    "newTablesEmpty": true
+  },
+  "notVerified": [
+    "inloggad användning på 3012",
+    "faktisk Worker/OIDC-serie för valplaner och grupper"
+  ]
+}

@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-01, 02, 03 (grupper) och 05 klara; nästa VP-03B, VP-04 eller VP-07"
 status: executing
-stopped_at: "VP-05 vyn Valplaner och hopfällbar valrad i timplanen klara i kod (18 komponentprov). Inget installerat på 3012."
+stopped_at: "VP-02, VP-03 (grupper) och VP-05 installerade på 3012, kod afc6f4e, två migrationer. Inloggat prov av Valplaner återstår."
 last_updated: "2026-11-03"
 last_activity: 2026-11-03
 last_activity_desc: "Användaren underkände valbara block som för krångligt. Ny modell avstämd och planerad i VP-serien."
@@ -17,15 +17,15 @@ progress:
   completed_plans: 94
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
-worker_status: elective_navigation_code_only_installed
-worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
+worker_status: valplan_vp02_vp05_installed_sql_rehearsed_applied
+worker_build_revision: afc6f4ec1e563e91c747414bf4679d2b9bbfd9e2
 verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
-user_trial_status: superseded_vb_u1_u7
+user_trial_status: pending_valplan_vp05
 milestone_name: milestone
 ---
 
-**Ny inriktning 2026-11-03 — valplaner ersätter valbara block:** Användaren: blockflödet är för krångligt. Individuella val delas mellan flera timplaner, så valbara kurser blir egna **valplaner per skola och läsår** (kurser med poäng och egen HT/VT-tid, kopplade timplanerader, vem som får läsa). **Elevval** är en egen administrativ sida per valplan. **Undervisningsgrupper** blir en gemensam funktion i appen (klasser, val eller manuellt; parallella grupper, flytt) och källa till tjänstefördelningen. Beslut D-01–08, antaganden A-1–3 och SS 12000-mappning i [VP-CONTEXT](phases/05.2-schemamodul/05.2-VP-CONTEXT.md); delplaner VP-01–08 i samma mapp. VB:s väntande användarprov U1–U7 är ersatt och ska inte genomföras. Gamla elective_*-data bevaras orörda. [VP-01](phases/05.2-schemamodul/05.2-VP-01-SUMMARY.md), [VP-02](phases/05.2-schemamodul/05.2-VP-02-SUMMARY.md) och [VP-03](phases/05.2-schemamodul/05.2-VP-03-SUMMARY.md) klara: modeller, valplaner och gemensamma grupper i databas och API, provade mot egen tillfällig PostgreSQL. Tjänstefördelningens gruppkälla är utbruten till VP-03B. [VP-05](phases/05.2-schemamodul/05.2-VP-05-SUMMARY.md): vyn Valplaner och timplanens hopfällbara valrad finns i kod, provade mot syntetiska API-svar; handbok och designsystem återstår. 3012 kör fortsatt cc750d8.
+**Ny inriktning 2026-11-03 — valplaner ersätter valbara block:** Användaren: blockflödet är för krångligt. Individuella val delas mellan flera timplaner, så valbara kurser blir egna **valplaner per skola och läsår** (kurser med poäng och egen HT/VT-tid, kopplade timplanerader, vem som får läsa). **Elevval** är en egen administrativ sida per valplan. **Undervisningsgrupper** blir en gemensam funktion i appen (klasser, val eller manuellt; parallella grupper, flytt) och källa till tjänstefördelningen. Beslut D-01–08, antaganden A-1–3 och SS 12000-mappning i [VP-CONTEXT](phases/05.2-schemamodul/05.2-VP-CONTEXT.md); delplaner VP-01–08 i samma mapp. VB:s väntande användarprov U1–U7 är ersatt och ska inte genomföras. Gamla elective_*-data bevaras orörda. [VP-01](phases/05.2-schemamodul/05.2-VP-01-SUMMARY.md), [VP-02](phases/05.2-schemamodul/05.2-VP-02-SUMMARY.md) och [VP-03](phases/05.2-schemamodul/05.2-VP-03-SUMMARY.md) klara: modeller, valplaner och gemensamma grupper i databas och API, provade mot egen tillfällig PostgreSQL. Tjänstefördelningens gruppkälla är utbruten till VP-03B. [VP-05](phases/05.2-schemamodul/05.2-VP-05-SUMMARY.md): vyn Valplaner och timplanens hopfällbara valrad finns i kod, provade mot syntetiska API-svar; handbok och designsystem återstår. **Installerat på 3012 2026-11-03** ([installation](phases/05.2-schemamodul/05.2-VP-INSTALL-2026-11-03.md)): två migrationer efter provkörning, 147 tabellers data oförändrade, kod afc6f4e. Inget inloggat prov eller faktisk Worker/OIDC-serie ännu. 3012 kör fortsatt cc750d8.
 
 **Schemamotorn, kontext 2026-10-31:** Research och förslag till delplaner SM-01–10 finns i [05.2-SM-RESEARCH](phases/05.2-schemamodul/05.2-SM-RESEARCH.md) och [05.2-SM-OVERVIEW](phases/05.2-schemamodul/05.2-SM-OVERVIEW.md). Användarens beslut D-01–25 finns i [05.2-CONTEXT](phases/05.2-schemamodul/05.2-CONTEXT.md): eleverna först, lunch som justerbar regel, stegvis arbete med låsning, 2–3 alternativ, minsta ändring efter publicering, flexibla starttider/perioder/A/B-veckor, gymnasiet först, salsläge per klass/grupp, rektor publicerar, egen container i SE/EU, CP-SAT och Pumpkin bakom samma gränssnitt, kod i `schemamotor/`. Ingen kod är skriven. Nästa steg: `gsd-plan-phase 05.2` för SM-01 och SM-02. Valbara blocks U1–U7 väntar fortfarande på användaren.
 
