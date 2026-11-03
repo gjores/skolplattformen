@@ -3,7 +3,7 @@
 import { useEffect, useEffectEvent, useId, useMemo, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { useUnsavedChanges, confirmDiscard } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges, useRequestDiscard } from '@/lib/unsaved-changes.tsx';
 import artifact from '@/lib/programplan-catalog.generated.json';
 import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
@@ -63,6 +63,7 @@ export default function ProtectedValplaner(props: Props) {
 }
 
 function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost }: Props & { unitId: string }) {
+  const requestDiscard = useRequestDiscard();
   const heading = useId();
   const [data, setData] = useState<ValplanRead | null>(null), [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<string | null>(initialValplanId), [draft, setDraft] = useState<Valplan | null>(null), [time, setTime] = useState<TimeText>({});
@@ -89,9 +90,9 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
     api.post('/api/valplaner/lasa', scope, controller.signal).then(value => acceptInitial(parseValplanRead(value, scope))).catch(caught => { if (!controller.signal.aborted) initialFailure(caught); });
     return () => controller.abort();
   }, [unitId, schoolYear]);
-  function choose(plan: Valplan) { if (dirty && !confirmDiscard()) return; open(plan); }
-  function create(kind: ValplanKind) {
-    if (dirty && !confirmDiscard()) return;
+  async function choose(plan: Valplan) { if (dirty && !(await requestDiscard())) return; open(plan); }
+  async function create(kind: ValplanKind) {
+    if (dirty && !(await requestDiscard())) return;
     const plan: Valplan = { id: newId(), unitId, schoolYear, kind, name: `${VALPLAN_KIND_LABEL[kind]} ${planningYearLabel(schoolYear)}`, revision: 1, courses: [], rows: [] };
     setStart(plan); setSelected(plan.id); setDraft(structuredClone(plan)); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true); setUncertain(false); setPending(null);
   }
@@ -147,7 +148,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
       expectedRevision: saved ? saved.revision : 0, catalogId: catalog.catalogId, valplan: { ...plan, revision: saved ? saved.revision : 1 } });
     setPending(command); void send(command);
   }
-  async function refresh() { const value = await load(); const fresh = value?.valplans.find(v => v.valplan.id === draft?.id)?.valplan; if (fresh && (!dirty || confirmDiscard())) open(fresh); }
+  async function refresh() { const value = await load(); const fresh = value?.valplans.find(v => v.valplan.id === draft?.id)?.valplan; if (fresh && (!dirty || await requestDiscard())) open(fresh); }
 
   const courseErrors = (id: string) => diagnostics.filter(d => d.courseId === id);
   const rowLabel = (r: ValplanRowOption) => `${r.planName} · ${r.rowLabel} · åk ${r.year}`;

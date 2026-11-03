@@ -4,7 +4,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { Button } from '@/components/ui/button';
 import { api, ApiError, onEpochChange } from '@/lib/server-client.ts';
 import { onSessionMessage, shouldLock } from '@/lib/session-channel.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ElectivePupil } from '@/lib/elective-block-contract.ts';
 import { createBindingCommandRef, parseBindingCommand, parseBindingCommandRef, parseBindingRead, parseBindingReply, parseBindingStatusReply,
   type BindingCommand, type BindingCommandRef, type ElectiveBinding } from '@/lib/elective-self-contract.ts';
@@ -23,6 +23,7 @@ export default function ElectiveParticipantBindings(props: Props) {
   return <Bindings key={`${props.scopeKey}:${props.unitId}:${props.schoolYear}`} {...props}/>;
 }
 function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSessionLost }: Props) {
+  const requestDiscard = useRequestDiscard();
   const id = useId(), journalKey = `elective-binding-status:${scopeKey}:${unitId}:${schoolYear}`;
   const [pending, setPending] = useState<BindingCommandRef | null>(() => {
     try { const raw = window.sessionStorage.getItem(journalKey); if (!raw) return null; const ref = parseBindingCommandRef(JSON.parse(raw)); return ref.unitId === unitId ? ref : null; } catch { return null; }
@@ -105,8 +106,8 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
       else if (caught instanceof ApiError && [401, 403].includes(caught.status)) loseSession(); else setError(errorText(caught));
     } finally { submitting.current = false; if (alive.current) setBusy(false); }
   }
-  function start(binding?: ElectiveBinding) {
-    if (blocked || (draft || revoke) && !confirmDiscard()) return;
+  async function start(binding?: ElectiveBinding) {
+    if (blocked || (draft || revoke) && !(await requestDiscard())) return;
     setReview(false); setRevoke(null); setFeedback(null); setError(null);
     setDraft(binding ? { ...binding, endsOn: binding.endsOn ?? '', attested: false } : { id: crypto.randomUUID(), revision: 0, identityId: '', participant: '', confirmationRequired: false, startsOn: `${schoolYear}-07-01`, endsOn: `${schoolYear + 1}-06-30`, sourceReference: '', attested: false });
   }
@@ -124,11 +125,11 @@ function Bindings({ unitId, schoolYear, scopeKey, pupils, disabled = false, onSe
     {error && !mfa && <div role="alert" className="elective-error">{error}</div>}{feedback && <output>{feedback}</output>}
     {pending && <div><output>Sparstatus behöver kontrolleras innan du fortsätter.</output><Button variant="outline" disabled={disabled || busy || locked} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></div>}
     <div className="elective-fields"><label>Sök elev för kontokoppling<input type="search" value={search} disabled={blocked} onChange={event => setSearch(event.target.value)}/></label>
-      <label>Elev för kontokoppling<select value={selected} disabled={blocked} onChange={event => { if ((draft || revoke) && !confirmDiscard()) return; setDraft(null); setRevoke(null); setReview(false); setBindings([]); setLoaded(false); setError(null); setFeedback(null); setSelected(event.target.value); }}><option value="">Välj elev</option>{pupils.filter(pupil => pupil.id === selected || pupil.name.toLocaleLowerCase('sv').includes(search.trim().toLocaleLowerCase('sv'))).map(pupil => <option key={pupil.id} value={pupil.id}>{pupil.name}</option>)}</select></label></div>
+      <label>Elev för kontokoppling<select value={selected} disabled={blocked} onChange={async event => { const next = event.target.value; if ((draft || revoke) && !(await requestDiscard())) return; setDraft(null); setRevoke(null); setReview(false); setBindings([]); setLoaded(false); setError(null); setFeedback(null); setSelected(next); }}><option value="">Välj elev</option>{pupils.filter(pupil => pupil.id === selected || pupil.name.toLocaleLowerCase('sv').includes(search.trim().toLocaleLowerCase('sv'))).map(pupil => <option key={pupil.id} value={pupil.id}>{pupil.name}</option>)}</select></label></div>
     {selected && !loaded && !locked && <Button disabled={busy} variant="outline" onClick={() => { setError(null); setRetry(value => value + 1); }}>Hämta kontokopplingar</Button>}
     {eligible && loaded && !locked && <>
       <div className="elective-list">{bindings.length === 0 && <p>Inga kontokopplingar för eleven.</p>}{bindings.map(binding => <article key={binding.id} className="elective-binding-entry"><div><strong>{binding.participant === 'guardian' ? 'Vårdnadshavarkonto' : 'Elevkonto'}</strong><p>Kontoreferens: <code className="elective-account-reference">{binding.identityId}</code></p><p>{binding.startsOn} – {binding.endsOn ?? 'tills vidare'}{binding.revokedAt ? ' · Avslutad' : ''}</p>{binding.participant === 'guardian' && <p>{binding.confirmationRequired ? 'Ska lämna VH-bekräftelse när skolans inställning kräver det.' : 'Ingår inte bland dem som måste bekräfta.'}</p>}<small>Underlag: {binding.sourceReference}</small></div>
-        {!binding.revokedAt && <div className="elective-toolbar"><Button variant="outline" disabled={blocked} onClick={() => start(binding)}>Ändra koppling</Button><Button variant="ghost" disabled={blocked} onClick={() => { if ((draft || revoke) && !confirmDiscard()) return; setDraft(null); setRevoke(binding); }}>Avsluta koppling</Button></div>}</article>)}</div>
+        {!binding.revokedAt && <div className="elective-toolbar"><Button variant="outline" disabled={blocked} onClick={() => start(binding)}>Ändra koppling</Button><Button variant="ghost" disabled={blocked} onClick={async () => { if ((draft || revoke) && !(await requestDiscard())) return; setDraft(null); setRevoke(binding); }}>Avsluta koppling</Button></div>}</article>)}</div>
       <Button variant="outline" disabled={blocked} onClick={() => start()}>Lägg till kontokoppling</Button>
     </>}
     {revoke && <div className="elective-card"><p>Avsluta kopplingen för {revoke.participant === 'guardian' ? 'vårdnadshavarkontot' : 'elevkontot'}? Kontot får därefter inte använda den här kopplingen för elevens val.</p><Button disabled={blocked || review} onClick={() => void send({ unitId, pupilId: selected, commandId: crypto.randomUUID(), expectedRevision: revoke.revision, action: 'revoke_binding', payload: { id: revoke.id } })}>Bekräfta avslut</Button><Button variant="ghost" disabled={blocked} onClick={() => setRevoke(null)}>Avbryt avslut</Button></div>}

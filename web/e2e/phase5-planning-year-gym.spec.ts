@@ -18,6 +18,7 @@ import {parseGymTimplan as parseAnyGymTimplan, isGymTimplanV2,parseGymTimplanRow
 import {parseProgramplanTermReply,type ProgramplanTermWrite} from '../lib/programplan-terms-contract.ts';
 import {projectGymYear} from '../lib/planning-year-model.ts';
 import {waitForHydration} from './helpers/keycloak.ts';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 
 type Fixture=Awaited<ReturnType<typeof createPlanningGymFixture>>;
 type Metadata=Awaited<ReturnType<Fixture['setup']>>;
@@ -227,7 +228,7 @@ test.beforeEach(async({page})=>{
     }
   });
  page.on('response',r=>{pending.delete(r.request());if(!auditRequests.has(r.request())&&!controlledReplies.has(r.request())&&[SETUP,LIST,ROW,GYREAD,TERMS,TERMSREAD].includes(pathname(r))){const check=audit(r,pathname(r));void check.catch(()=>undefined);checks.push(check);}});
- page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});
+ page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});await autoAnswerDiscard(page,false,dialogs);
   await installActualPassthrough(page);
  fixture=await ownedNode('creation',()=>createPlanningGymFixture());
  if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');

@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from '@playwright/test';
+import { answerDiscard } from './helpers/confirm-dialog';
 import {
   fillKeycloakLogin,
   loginInNewContext,
@@ -274,15 +275,9 @@ test('osparat varnas före byte', async ({ page }, testInfo) => {
     .getByLabel('Namn')
     .fill('Osparat prov');
 
-  let dialogText = '';
-  page.once('dialog', async (dialog) => {
-    dialogText = dialog.message();
-    await dialog.dismiss();
-  });
   const customerA = await optionValue(page, 'Provkund A');
   await page.locator('#uppdrag').focus();
-  await page.locator('#uppdrag').selectOption(customerA);
-  await expect.poll(() => dialogText).toContain('Du har osparade ändringar');
+  await answerDiscard(page, false, () => page.locator('#uppdrag').selectOption(customerA));
   await expect(page.locator('#uppdrag option:checked')).toContainText(
     'Provkund B',
   );

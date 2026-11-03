@@ -3,6 +3,7 @@
 import { expect,test,type Page,type Request,type Response,type Locator,type TestInfo } from '@playwright/test';
 import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget,FUTURE_START} from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { answerDiscard } from './helpers/confirm-dialog';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
 const baseURL=process.env.PHASE5_BASE_URL??'http://127.0.0.1:3056';
@@ -79,7 +80,7 @@ async function review(page:Page){if(await editor(page).getByRole('region',{name:
 async function save(page:Page,route='fordjupning'){await review(page);const pending=page.waitForResponse(matches(`/api/programplaner/${route}`));await editor(page).getByRole('region',{name:'Kontrollera före sparning'}).getByRole('button',{name:/^Spara (utkast|ändå)$/u}).click();return pending;}
 async function paired(r:Response,action:string,objectId:string|null=fixture.planId,session=fixture.principal,type='programplan'){const corr=r.headers()['x-correlation-id'];expect(corr).toMatch(/^[a-f0-9-]{36}$/u);expect(await fixture.paired(corr,session,action,objectId,type)).toBe(true);if(type==='programplan'&&objectId&&action!=='programplan_read'){const history=await fixture.history(objectId) as {event:{action:string;actor_identity_id:string;session_id:string;assignment_id:string}}[];const matching=history.map(row=>row.event).filter(e=>e.action===action);expect(matching.length).toBeGreaterThan(0);const latest=matching.at(-1)!;expect(latest.actor_identity_id).toBe(session.identityId);expect(latest.session_id).toBe(session.id);expect(latest.assignment_id).toBe(session.assignmentId);}}
 async function capture(page:Page,info:TestInfo,name:string,fullPage?:boolean){const path=info.outputPath(name);await page.screenshot({path,fullPage:fullPage??await editor(page).count()===0});await info.attach(name,{path,contentType:'image/png'});}
-async function discard(page:Page,accept:boolean,action:()=>Promise<unknown>){const pending=page.waitForEvent('dialog'),operation=action();const d=await pending;expect(d.type()).toBe('confirm');if(accept)await d.accept();else await d.dismiss();await operation;}
+const discard=answerDiscard;
 
 test('01: tydligt utbildningsurval, uttrycklig katalog/start och bunden läsning',async({page},info)=>{
   const listed=await enter(page);expect(await fixture.pairedPlanning(listed.headers()['x-correlation-id'],fixture.principal)).toBe(true);

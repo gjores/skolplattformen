@@ -3,6 +3,7 @@
 import { expect, test, type Locator, type Page, type Response, type TestInfo } from '@playwright/test';
 import { createTimplanBrowserFixture, verifyBrowserTarget } from '../../work/pilot/phase5-browser-fixtures.mjs';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { answerDiscard } from './helpers/confirm-dialog';
 
 type Fixture = Awaited<ReturnType<typeof createTimplanBrowserFixture>>;
 type Session = Fixture['principal'];
@@ -148,22 +149,8 @@ async function save(page: Page) {
   await page.getByRole('button',{name:'Spara ändring',exact:true}).click();
   return response;
 }
-async function denyDiscard(page: Page,action:()=>Promise<unknown>) {
-  const dialog=page.waitForEvent('dialog');
-  const operation=action();
-  const prompt=await dialog;
-  expect(prompt.type()).toBe('confirm');
-  await prompt.dismiss();
-  await operation;
-}
-async function acceptDiscard(page: Page,action:()=>Promise<unknown>) {
-  const dialog=page.waitForEvent('dialog');
-  const operation=action();
-  const prompt=await dialog;
-  expect(prompt.type()).toBe('confirm');
-  await prompt.accept();
-  await operation;
-}
+const denyDiscard=(page: Page,action:()=>Promise<unknown>)=>answerDiscard(page,false,action);
+const acceptDiscard=(page: Page,action:()=>Promise<unknown>)=>answerDiscard(page,true,action);
 // Vald plan får stå i adressen (djuplänk som återvalideras), men aldrig i webbläsarlagring.
 async function noStoredPlanId(page: Page) {
   const storage=await page.evaluate(()=>{

@@ -5,6 +5,7 @@ import { createGymTimplanFixture,verifyGymTimplanBrowserTarget } from '../../wor
 import { PROGRAMPLAN_TERMS } from '../lib/programplan-terms.ts';
 import type { GymTimplanLegacy as GymTimplan,GymTimplanHours,GymTimplanRow } from '../lib/gym-timplan.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { answerDiscard } from './helpers/confirm-dialog';
 
 type Fixture=Awaited<ReturnType<typeof createGymTimplanFixture>>;
 type Session=Fixture['principal'];
@@ -257,8 +258,7 @@ test('T08: osparade timvärden skyddas och ny cellinmatning under sparandet finn
   await fixture.createReadyProgramplan(baseURL);await enterTransition(page);const created=(await createFromUI(page)).reply,plan=await readPlan(created.id),row=plan.rows[0];
   const input=cell(page,row,0);await input.fill('30.5');await input.press('Enter');
   await expect(rowInputs(page,row)).toContainText('Ange hela timmar');
-  const discard=page.waitForEvent('dialog'),cancel=gymWorkspace(page).getByRole('button',{name:'Visa programplan',exact:true}).click();
-  const prompt=await discard;expect(prompt.message()).toContain('osparade ändringar');await prompt.dismiss();await cancel;await expect(input).toHaveValue('30.5');
+  await answerDiscard(page,false,()=>gymWorkspace(page).getByRole('button',{name:'Visa programplan',exact:true}).click());await expect(input).toHaveValue('30.5');
   await input.fill('30');let release:()=>void=()=>{},entered:()=>void=()=>{};const writes:number[]=[];
   const held=new Promise<void>(resolve=>{release=resolve;}),workerAccepted=new Promise<void>(resolve=>{entered=resolve;});let intercepted=false;
   await page.route('**'+ROW,async route=>{

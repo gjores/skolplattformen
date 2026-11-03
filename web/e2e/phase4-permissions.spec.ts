@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { expect, test, request as requestFactory, type APIResponse, type Page } from '@playwright/test';
 import { loginViaKeycloak, readPilotManifest, waitForHydration, type PilotManifest } from './helpers/keycloak.ts';
 import { psql } from './helpers/pilot-db.ts';
+import { answerDiscard } from './helpers/confirm-dialog';
 
 const endpoint = '/api/kund/skyddsbehorighet';
 const customer = '33000000-0000-4000-8000-000000000001';
@@ -171,8 +172,7 @@ test('huvudmannens dialog fungerar med tangentbord, mobil, MFA-fel och loggfel u
     await dialog.getByRole('button', { name: 'Ge skyddsbehörighet', exact: true }).click();
     const confirm = dialog.getByRole('button', { name: 'Bekräfta tilldelning', exact: true });
     await expect(confirm).toBeFocused();
-    page.once('dialog', (nativeDialog) => nativeDialog.dismiss());
-    await dialog.getByRole('button', { name: 'Stäng', exact: true }).click();
+    await answerDiscard(page, false, () => dialog.getByRole('button', { name: 'Stäng', exact: true }).click());
     await expect(dialog).toBeVisible();
     // Bara detta presentationsfall simuleras; verkligt MFA-nekande provas ovan.
     await page.route(`**${endpoint}`, async (route) => {

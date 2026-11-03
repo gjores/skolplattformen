@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { useUnsavedChanges, useHasUnsaved, confirmDiscard } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges, useHasUnsaved, useRequestDiscard, useRequestConfirm } from '@/lib/unsaved-changes.tsx';
 import { parseElectiveRead, parseElectiveBlockDraft, parseElectiveCommand, parseElectiveReceipt, parseElectiveStatusReply, createElectiveCommandRef, parseElectiveCommandRef,
   type ElectiveRead, type ElectiveBlock, type ElectiveBlockDraft, type ElectiveBlockKind,
   type ElectiveCommand, type ElectiveCommandRef, type ElectiveSource, type ElectiveOption } from '@/lib/elective-block-contract.ts';
@@ -55,6 +55,7 @@ export default function ProtectedElectiveBlocks(props: Props) {
   return <Workspace key={`${props.scopeKey}-${props.unitId}-${props.schoolYear}`} {...props} unitId={props.unitId}/>;
 }
 function Workspace({ pupilChoicesOnly = false, unitId, schoolYear, scopeKey, preparationIdentityKey=scopeKey, contextEpoch = null, onSessionLost, onTjanst, onPreparedTjanst, onPreparedBlocks, onPreparedTimplan, onOpenTimplans, initialPreparation, onPreparationClosed }: Props & { unitId: string }) {
+  const requestDiscard = useRequestDiscard();
   const heading = useId();
   const [data, setData] = useState<ElectiveRead | null>(null), [selected, setSelected] = useState('');
   const [draft, setDraft] = useState<ElectiveBlockDraft | null>(null), [busy, setBusy] = useState(false), [pending, setPending] = useState<ElectiveCommandRef | null>(() => {
@@ -139,8 +140,8 @@ function Workspace({ pupilChoicesOnly = false, unitId, schoolYear, scopeKey, pre
     catch (caught) { if (caught instanceof ApiError && caught.code === 'mfa_required') setMfa(true); else if (caught instanceof ApiError && [401, 403].includes(caught.status)) { setDraft(null); setData(null); onSessionLost(); } setError(message(caught)); }
     finally { setBusy(false); }
   }
-  function start(block?: ElectiveBlock) {
-    if (!data || draft || navigationBlocked || hasUnsaved && !confirmDiscard()) return;
+  async function start(block?: ElectiveBlock) {
+    if (!data || draft || navigationBlocked || hasUnsaved && !(await requestDiscard())) return;
     setError(null); setFeedback(null); setReview(false); setEditingRevision(block?.revision ?? null);
     setDraft(block ? { id: block.id, kind: block.kind, name: block.name, startsOn: block.startsOn, endsOn: block.endsOn,
       sourceRefs: block.sourceRefs.map(source => data.sources.find(current => current.sourceKey === source.sourceKey) ?? source), options: block.options, groups: block.groups.map(({ memberCount: _count, membershipRevision: _revision, ...group }) => group) }
@@ -167,13 +168,13 @@ function Workspace({ pupilChoicesOnly = false, unitId, schoolYear, scopeKey, pre
         <p className="text-sm text-muted-foreground">Listan gäller läsåret {schoolYear}/{String(schoolYear + 1).slice(-2)}. Individuellt val visas när klassen är kopplad till en timplan med individuellt val för det läsåret. Om poängen ligger i en annan årskurs, byt läsår i Planering.</p>
         {onOpenTimplans && <Button variant="outline" className="min-h-11" disabled={disabled} onClick={onOpenTimplans}>Kontrollera timplan och klasskoppling</Button>}
         {!timeFrame ? <div className="elective-list">{[...new Map(data.sources.filter(source => source.schoolform === 'gymnasium').map(source => [`${source.timplanId}:${source.rowKey}:${source.column}`, source])).values()].map(source => <Button key={source.frameSourceKey} variant="outline" disabled={disabled} onClick={() => setTimeFrame(source.frameSourceKey)}>{KIND[source.blockKind]} · timplan version {source.timplanVersion} · {data.sources.filter(item => item.timplanId === source.timplanId && item.rowKey === source.rowKey && item.column === source.column).map(item => item.className).filter((name, index, values) => values.indexOf(name) === index).join(', ')}</Button>)}</div>
-        : <><Button variant="outline" disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) setTimeFrame(null); }}>Tillbaka till tidsutrymmen</Button><ProtectedElectiveTimplanTime unitId={unitId} schoolYear={schoolYear} frameSourceKey={timeFrame} contextEpoch={contextEpoch} onSessionLost={onSessionLost} onApplied={() => void load().catch(caught => setError(message(caught)))}/></>}
+        : <><Button variant="outline" disabled={navigationBlocked || busy || pending !== null} onClick={async () => { if (!hasUnsaved || await requestDiscard()) setTimeFrame(null); }}>Tillbaka till tidsutrymmen</Button><ProtectedElectiveTimplanTime unitId={unitId} schoolYear={schoolYear} frameSourceKey={timeFrame} contextEpoch={contextEpoch} onSessionLost={onSessionLost} onApplied={() => void load().catch(caught => setError(message(caught)))}/></>}
       </details>}
       {!draft && !preparing && data.canReadPupils && data.pupils && <details className="elective-card"><summary>Kontokopplingar för elevval och VH-bekräftelse</summary><ElectiveParticipantBindings unitId={unitId} schoolYear={schoolYear} scopeKey={scopeKey} pupils={data.pupils} disabled={disabled || timeFrame !== null} onSessionLost={onSessionLost}/></details>}
       {draft ? <BlockEditor key={draft.id} conflict={editingRevision !== null && data.blocks.find(block => block.id === draft.id)?.revision !== editingRevision} existing={data.blocks.some(block => block.id === draft.id)} mfa={mfa} onRefresh={refreshDraft} contextEpoch={contextEpoch} onSessionLost={onSessionLost} saveError={mfa ? null : error} pending={pending !== null} busy={busy} onStatus={() => void checkStatus()} draft={draft} sources={data.sources} reserved={Object.fromEntries(data.sources.flatMap(source => { const owner = data.blocks.find(block => block.id !== draft.id && !data.releasedBlockIds?.includes(block.id) && block.sourceRefs.some(ref => ref.classId === source.classId && ref.frameSourceKey === source.frameSourceKey && (!ref.timeDetailRef || !source.timeDetailRef || ref.timeDetailRef.positionId === source.timeDetailRef.positionId))); return owner ? [[source.sourceKey, owner.name]] : []; }))} disabled={disabled} review={review} lockedOptions={data.blocks.find(block => block.id === draft.id)?.options.map(option => option.id) ?? []} onChange={next => { setDraft(next); setReview(false); }}
         onReview={() => { try { parseElectiveBlockDraft(draft); for (const group of draft.groups) inheritElectiveTime(draft.sourceRefs.filter(source => group.sourceKeys.includes(source.sourceKey))); setError(null); setReview(true); }
           catch { setError('Kontrollera alternativens namn, ämne, språk och grupper. Gruppernas timplansunderlag måste ha känd och förenlig tid.'); } }} onCancel={() => { setDraft(null); setReview(false); }} onSave={() => void send('save_block', { expectedBlockRevision: editingRevision, block: draft })}/>
-        : !preparing && <div className="elective-columns"><nav className="elective-list" aria-label="Valbara block">{data.blocks.map(block => <button key={block.id} aria-pressed={current?.id === block.id} disabled={navigationBlocked || busy || pending !== null} onClick={() => { if (!hasUnsaved || confirmDiscard()) { setSelected(block.id); setFeedback(null); } }}>
+        : !preparing && <div className="elective-columns"><nav className="elective-list" aria-label="Valbara block">{data.blocks.map(block => <button key={block.id} aria-pressed={current?.id === block.id} disabled={navigationBlocked || busy || pending !== null} onClick={async () => { if (!hasUnsaved || await requestDiscard()) { setSelected(block.id); setFeedback(null); } }}>
           {block.name}<small>{KIND[block.kind]} · {block.groups.length} grupper</small></button>)}{data.blocks.length === 0 && <p>Inga valbara block finns ännu.</p>}</nav>
           {current ? <BlockDetail pupilChoicesOnly={pupilChoicesOnly} key={current.id} data={data} block={current} disabled={disabled || timeFrame !== null} onEdit={() => start(current)} onSend={send}/>
             : <div className="elective-card"><h2>Planera utbudet före elevvalen</h2><p>Lägg upp ett valbart block och koppla det till timplanens ram. Grupperna kan sedan bemannas även innan alla elever har valt.</p>{data.sources.length === 0 && <p className="elective-muted">Inga valbara timplansramar finns i underlaget. Kontrollera klassernas timplanskopplingar och utbildningens valbara utrymme.</p>}</div>}
@@ -186,6 +187,7 @@ type EditorProps = { draft: ElectiveBlockDraft; sources: ElectiveSource[]; reser
 type EditorIssue = { field: string; section: number; message: string };
 const EDITOR_STEPS = ['Block', 'Klasser och tid', 'Alternativ', 'Grupper'];
 function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions, existing, conflict, mfa, saveError, pending, busy, onStatus, onRefresh, contextEpoch, onSessionLost, onChange: emit, onReview, onCancel, onSave }: EditorProps) {
+  const requestDiscard = useRequestDiscard(), requestConfirm = useRequestConfirm();
   const id = useId(), feedback = useRef<HTMLDivElement>(null), heading = useRef<HTMLHeadingElement>(null);
   const [timeSource, setTimeSource] = useState<ElectiveSource | null>(null), [timeNotice, setTimeNotice] = useState(false);
   const timeNavigationBlocked = useHasUnsaved('navigation-block:'), timeDirty = useHasUnsaved('sp:elective-time:');
@@ -243,7 +245,7 @@ function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions
     <p>Blockets namn, alternativ och grupper finns kvar i utkastet. Efter uppdelningen väljer du ett tidsutrymme per klass för det här blocket. Nästa utrymme får ett eget block.</p>
     <ProtectedElectiveTimplanTime unitId={timeSource.unitId} schoolYear={timeSource.schoolYear} frameSourceKey={timeSource.frameSourceKey} contextEpoch={contextEpoch} onSessionLost={onSessionLost}
       onApplied={() => { void onRefresh().then(() => { setTimeSource(null); setStep(1); setTimeNotice(true); requestAnimationFrame(() => heading.current?.focus()); }); }}/>
-    <Button variant="outline" disabled={timeNavigationBlocked} onClick={() => { if (!timeDirty || confirmDiscard()) setTimeSource(null); }}>Tillbaka till blockets utkast</Button>
+    <Button variant="outline" disabled={timeNavigationBlocked} onClick={async () => { if (!timeDirty || await requestDiscard()) setTimeSource(null); }}>Tillbaka till blockets utkast</Button>
   </section>;
   return <section className="elective-editor" aria-label="Redigera valbart block">
     <header className="elective-heading"><h2 ref={heading} tabIndex={-1}>{review ? 'Granska valbart block' : existing ? 'Ändra valbart block' : 'Skapa valbart block'}</h2>
@@ -254,7 +256,7 @@ function BlockEditor({ draft, sources, reserved, disabled, review, lockedOptions
       <p>{draft.options.length} alternativ och {draft.groups.length} grupper sparas med timplanens undervisningstid. Elevval och befintlig bemanning ändras inte av att spara blocket.</p></div>
       : <fieldset className="elective-editor-fields" disabled={disabled}>
       {show(0) && <section className="elective-editor-section"><h3>Vad ska eleverna välja?</h3><p className="elective-muted">Välj typ av block och ge det ett namn, exempelvis Moderna språk år 1.</p>
-        <div className="elective-fields"><label>Typ av valbart block<select value={draft.kind} onChange={event => { if (draft.options.length && !confirm('Byte av typ tar bort utkastets klassurval, alternativ och grupper. Fortsätta?')) return; onChange({ ...draft, kind: event.target.value as ElectiveBlockKind, sourceRefs: [], options: [], groups: [] }); }}>{Object.entries(KIND).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
+        <div className="elective-fields"><label>Typ av valbart block<select value={draft.kind} onChange={async event => { const kind = event.target.value as ElectiveBlockKind; if (draft.options.length && !(await requestConfirm({ title: 'Byta typ av block', description: 'Byte av typ tar bort utkastets klassurval, alternativ och grupper.', confirmLabel: 'Byt typ', cancelLabel: 'Behåll typen' }))) return; onChange({ ...draft, kind, sourceRefs: [], options: [], groups: [] }); }}>{Object.entries(KIND).map(([value, label]) => <option value={value} key={value}>{label}</option>)}</select></label>
         <label htmlFor={fieldId('name')}>Blockets namn<input id={fieldId('name')} {...invalid('name')} value={draft.name} maxLength={200} onChange={event => onChange({ ...draft, name: event.target.value })}/>{fieldError('name')}</label></div>
       </section>}
       {show(1) && <section className="elective-editor-section"><h3>Vilka klasser ska delta?</h3><p className="elective-muted">Tiden ärvs från klassernas timplaner. Period: {draft.startsOn} – {draft.endsOn}.</p>

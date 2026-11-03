@@ -1,11 +1,12 @@
 import {test,expect,type Page} from '@playwright/test';
 import {createElectiveTimeRef} from '../lib/elective-timplan-time.ts';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 const id=(n:number)=>`55203300-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2026,frameSourceKey:`class_timplan:${id(2)}:2026:block:iv1`};
 const frame={timplanId:id(3),timplanVersion:1,timplanRevision:4,rowKey:'block:iv1',column:'ar2',schoolYear:2026,pointsHt:100,pointsVt:100,needHt:5400,needVt:5400,needBasis:'terms',parentHash:'a'.repeat(64)};
 async function fixture(page:Page,mode='ok'){
  const state={read:{...scope,contractVersion:'elective_timplan_time_v1',classId:id(2),linkRevision:2,label:'Individuellt val',frame,detail:null as any},commands:[] as any[],statuses:[] as any[],saved:null as any};let lost=mode==='lost';
- page.on('dialog',d=>void d.accept());await page.route('**/api/valbara-block/timplanstid/*',async route=>{const name=new URL(route.request().url()).pathname.split('/').at(-1),body=route.request().postDataJSON();
+ await autoAnswerDiscard(page,true);await page.route('**/api/valbara-block/timplanstid/*',async route=>{const name=new URL(route.request().url()).pathname.split('/').at(-1),body=route.request().postDataJSON();
  if(name==='lasa')return route.fulfill({json:state.read});if(name==='status'){state.statuses.push(body);return route.fulfill({json:state.saved?{state:'found',result:{...state.saved,receipt:{...state.saved.receipt,replayed:true}}}:{state:'not_found',result:null}});}
  if(name==='kommando'){state.commands.push(body);if(mode==='conflict')return route.fulfill({status:409,json:{code:'conflict',details:{reason:'elective_time_parent_conflict'}}});const ref=await createElectiveTimeRef(body),version=(state.read.detail?.revision??0)+1;state.read.detail={id:body.detailId,revision:version,appliedRevision:body.action==='apply'?version:state.read.detail?.appliedRevision??null,frame,positions:body.positions};state.saved={receipt:{...ref,detailId:body.detailId,revision:version,appliedRevision:state.read.detail.appliedRevision,replayed:false},read:structuredClone(state.read)};if(lost){lost=false;return route.abort('failed');}return route.fulfill({json:state.saved});}
  return route.fulfill({status:404,json:{code:'not_found'}});

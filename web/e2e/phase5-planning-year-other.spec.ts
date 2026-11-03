@@ -16,6 +16,7 @@ import {parsePlanningSetup,parsePlanningSelection,parsePlanningList,parsePlannin
 import {parseProtectedTimplan,parseTimplanCellReply,parseTimplanList} from '../lib/protected-timplan.ts';
 import {planningYearLabel} from '../lib/planning-year-model.ts';
 import {waitForHydration} from './helpers/keycloak.ts';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 type Fixture=Awaited<ReturnType<typeof createPlanningOtherFixture>>;
 type Metadata=Awaited<ReturnType<Fixture['setup']>>;
 type Record=Metadata['grRecords'][number];
@@ -302,7 +303,7 @@ test.beforeEach(async({page})=>{
   });
  page.on('requestfailed',r=>{if(actualDone.has(r))pending.delete(r);});
  page.on('response',r=>{pending.delete(r.request());if(!auditRequests.has(r.request())&&!controlled.has(r.request())&&[SETUP,LIST,OVERVIEW,READ,CELL,LEGACYLIST].includes(pathname(r))){const promise=audit(r,pathname(r));void promise.catch(()=>undefined);audits.push(promise);}});
- page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});
+ page.on('dialog',async d=>{dialogs.push(d.type());await d.dismiss();});await autoAnswerDiscard(page,false,dialogs);
   await installActualPassthrough(page);
  fixture=await ownedNode('creation',()=>createPlanningOtherFixture());if(recoveryRequired)throw Error('OWNED_RECOVERY_REQUIRED');
  actor=fixture.principal;setupPending=true;try{metadata=await ownedNode('setup',()=>fixture.setup(baseURL));}finally{setupPending=false;}

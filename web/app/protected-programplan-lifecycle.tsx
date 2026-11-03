@@ -8,7 +8,7 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { parseProgramplanLifecycleReply, programplanPhaseLabel, programplanSchoolActions, startsAfter, stockholmToday, type ProgramplanLifecycle, type ProgramplanLifecycleCommand,
   type ProgramplanLifecycleReply } from '@/lib/programplan-lifecycle.ts';
 import { parseProgramplanSelection, type ProgramplanSelection } from '@/lib/programplan-education-contract.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import MfaStepUpNotice from './mfa-step-up';
 
 /** Statusmärke. Visar bara serverns lifecycle, räknar aldrig själv. */
@@ -38,6 +38,7 @@ const BUSY: Record<LifecycleDialogKind, string> = { delete: 'Tar bort…', archi
 
 /** Skolvalet hämtas från huvudmannens mandatavgränsade val-API. */
 function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure }: Omit<Props, 'kind'>) {
+  const requestDiscard = useRequestDiscard();
   const [schools, setSchools] = useState<ProgramplanSelection['units'] | null>(null);
   const initial = useMemo(() => target.lifecycle.units.map(u => u.id), [target.lifecycle.units]);
   const [selected, setSelected] = useState(initial), [busy, setBusy] = useState(false), [mfa, setMfa] = useState(false), [error, setError] = useState<string | null>(null);
@@ -73,7 +74,7 @@ function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure 
     try { await stale('Kontrollera skolorna i det återlästa underlaget innan du försöker igen.'); }
     finally { setBusy(false); }
   }
-  const close = () => { if (writing.current || busy || unresolved) return; if (mfa) void stale('Inget har ändrats. Verifiera med engångskod och försök sedan igen.'); else if (!dirty || confirmDiscard()) onClose(); };
+  const close = async () => { if (writing.current || busy || unresolved) return; if (mfa) void stale('Inget har ändrats. Verifiera med engångskod och försök sedan igen.'); else if (!dirty || await requestDiscard()) onClose(); };
   async function submit() {
     if (writing.current || busy || unresolved || !schools || loadError || mfa || !dirty || !actions.add) return;
     const own: ProgramplanLifecycleCommand = { offeringId: target.offeringId, expectedRevision: target.lifecycle.revision, command: 'units', details: { unitIds: selected } };
@@ -92,7 +93,7 @@ function SchoolsDialog({ target, onClose, onChanged, onStale, onSecurityFailure 
       else await stale(e instanceof ApiError && e.hasExplicitCode && e.status === 409 ? e.message : 'Skolvalet kunde inte bekräftas. Läs om planen och kontrollera skolorna innan du försöker igen.');
     } finally { writing.current = false; setBusy(false); }
   }
-  return <Dialog open onOpenChange={open => { if (!open) close(); }}><DialogContent className="pp-dialog ppl-lifecycle-dialog" showCloseButton={!busy && !unresolved}>
+  return <Dialog open onOpenChange={open => { if (!open) void close(); }}><DialogContent className="pp-dialog ppl-lifecycle-dialog" showCloseButton={!busy && !unresolved}>
     <DialogTitle>Skolor</DialogTitle><DialogDescription>Välj vilka skolor som använder {target.name}. De ser samma versioner och innehåll.</DialogDescription>
     <section aria-label="Skolor">
       {!schools && !loadError && <output>Hämtar skolor…</output>}
@@ -117,6 +118,7 @@ export function LifecycleDialog(props: Props) {
   return props.kind === 'units' ? <SchoolsDialog {...props}/> : <EducationLifecycleDialog {...props} kind={props.kind}/>;
 }
 function EducationLifecycleDialog({ kind, target, onClose, onChanged, onStale, onSecurityFailure }: Props & { kind: Exclude<LifecycleDialogKind, 'units'> }) {
+  const requestDiscard = useRequestDiscard();
   const [confirmed, setConfirmed] = useState(kind === 'update'), [busy, setBusy] = useState(false), [mfa, setMfa] = useState(false), [error, setError] = useState<string | null>(null);
   const [name, setName] = useState(target.name), [cohort, setCohort] = useState(target.cohort), [localCode, setLocalCode] = useState(target.localCode ?? '');
   const [startedOn, setStartedOn] = useState(target.lifecycle.startsOn ?? '');
@@ -141,10 +143,10 @@ function EducationLifecycleDialog({ kind, target, onClose, onChanged, onStale, o
     try { await stale('Kontrollera ändringens resultat i det återlästa underlaget innan du försöker igen.'); }
     finally { setBusy(false); }
   }
-  const close = () => {
+  const close = async () => {
     if (writing.current || busy || unresolved) return;
     if (mfa) void stale('Inget har ändrats. Verifiera med engångskod och försök sedan igen.');
-    else if (!dirty || confirmDiscard()) onClose();
+    else if (!dirty || await requestDiscard()) onClose();
   };
   function command(): ProgramplanLifecycleCommand {
     const base = { offeringId: target.offeringId, expectedRevision: target.lifecycle.revision };
@@ -172,7 +174,7 @@ function EducationLifecycleDialog({ kind, target, onClose, onChanged, onStale, o
       else await stale('Ändringen kunde inte bekräftas. Läs om planen och kontrollera resultatet innan du försöker igen.');
     } finally { writing.current = false; setBusy(false); }
   }
-  return <Dialog open onOpenChange={open => { if (!open) close(); }}>
+  return <Dialog open onOpenChange={open => { if (!open) void close(); }}>
     <DialogContent className="pp-dialog ppl-lifecycle-dialog" showCloseButton={!busy && !unresolved}>
       <DialogTitle>{TITLES[kind]}</DialogTitle>
       <DialogDescription>{kind === 'delete' ? 'Utbildningen och alla dess versioner tas bort permanent. Det går bara för en plan vars elevkull inte har börjat. Händelsen sparas i loggen.'

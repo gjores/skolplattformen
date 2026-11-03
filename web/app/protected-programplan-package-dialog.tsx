@@ -4,7 +4,7 @@ import {useEffect,useRef,useState} from 'react';
 import {Dialog,DialogContent,DialogDescription,DialogTitle} from '@/components/ui/dialog';
 import {Button} from '@/components/ui/button';
 import {api,ApiError} from '@/lib/server-client.ts';
-import {confirmDiscard,useUnsavedChanges} from '@/lib/unsaved-changes.tsx';
+import {useRequestDiscard,useUnsavedChanges} from '@/lib/unsaved-changes.tsx';
 import artifact from '@/lib/programplan-catalog.generated.json';
 import type {ProgramplanCatalog,ProgramplanLevelRef} from '@/lib/programplan-catalog.ts';
 import {parseProgramplanValpaket,parseProgramplanValpaketList,programplanPackageLevelKey,programplanPackageLevelName,programplanValpaketSubjectAllowed,
@@ -20,6 +20,7 @@ type Props={scope:string;unitId:string;units:{id:string;name:string;inMandate:bo
   source:ProgramplanValpaket|null;available:ProgramplanValpaket[];onClose:()=>void;onSaved:(list:ProgramplanValpaketList,value:ProgramplanValpaket)=>void;onSecurityFailure:(e:unknown)=>boolean};
 const same=(a:unknown,b:unknown)=>JSON.stringify(a)===JSON.stringify(b);
 export default function ProgramplanPackageDialog(props:Props){
+  const requestDiscard = useRequestDiscard();
   const [name,setName]=useState(props.source?.name??''),[unitId,setUnitId]=useState(props.source?props.source.unitId??'':props.unitId),[kind,setKind]=useState(props.source?.kind??props.kind),[levels,setLevels]=useState<ProgramplanLevelRef[]>(props.source?.levels??[]);
   const [busy,setBusy]=useState(false),[message,setMessage]=useState<string|null>(null),[uncertain,setUncertain]=useState(false),[mfa,setMfa]=useState(false);
   const pending=useRef<{request:ProgramplanValpaketWriteRequest;previous:ProgramplanValpaket[]}|null>(null),inFlight=useRef(false);
@@ -31,7 +32,7 @@ export default function ProgramplanPackageDialog(props:Props){
   const total=levels.reduce((n,l)=>n+l.points,0),locked=busy||uncertain||mfa;
   const candidates=gyGradeLevels(catalog,props.startedOn,code=>programplanValpaketSubjectAllowed(kind,code)).filter(l=>!props.fixedLevelKeys.includes(programplanPackageLevelKey(l))&&(kind!=='specialization'||props.options.some(o=>o.subjectCode===l.subjectCode&&o.subjectVersion===l.subjectVersion&&o.itemCode===l.itemCode&&o.points===l.points)));
   const levelRef=({subjectCode,subjectVersion,itemCode,points}:ProgramplanLevelRef)=>({subjectCode,subjectVersion,itemCode,points});
-  function close(){if(!busy&&(!dirty||confirmDiscard()))props.onClose();}
+  async function close(){if(!busy&&(!dirty||await requestDiscard()))props.onClose();}
   function matches(value:ProgramplanValpaket,request:ProgramplanValpaketWriteRequest){return value.version===request.expectedVersion+1&&(request.packageId===null||value.packageId===request.packageId)&&same({unitId:value.unitId,kind:value.kind,name:value.name,levels:value.levels},request.details);}
   async function reread(){return parseProgramplanValpaketList(await api.post('/api/programplaner/valpaket/lista',{unitId:unitId||props.unitId},controller.current.signal));}
   async function reconcile(){if(!mounted.current)return false;const own=pending.current;if(!own)return false;const list=await reread();if(!mounted.current)return false;if(list.unitId!==(unitId||props.unitId))throw Error('Fel skola i svaret.');const found=list.packages.filter(p=>matches(p,own.request)&&!own.previous.some(before=>before.packageId===p.packageId&&before.version===p.version));if(found.length===1){props.onSaved(list,found[0]);return true;}return false;}
@@ -44,7 +45,7 @@ export default function ProgramplanPackageDialog(props:Props){
       else{try{if(!await reconcile()){setUncertain(true);setMessage('Sparandet kunde inte bekräftas. Läs sparstatus innan du försöker igen.');}}catch(inner){if(!inactive(inner)&&!props.onSecurityFailure(inner)){setUncertain(true);setMessage('Sparstatus kunde inte läsas. Dina uppgifter finns kvar.');}}}}
     finally{inFlight.current=false;if(mounted.current)setBusy(false);}
   }
-  return <Dialog open onOpenChange={open=>{if(!open)close();}}><DialogContent className="pp-dialog ppk-dialog" showCloseButton={!busy}>
+  return <Dialog open onOpenChange={open=>{if(!open)void close();}}><DialogContent className="pp-dialog ppk-dialog" showCloseButton={!busy}>
     <DialogTitle>{props.source?'Ny version av valpaket':'Nytt valpaket'}</DialogTitle><DialogDescription>{props.source?`Version ${props.source.version} bevaras i planer som redan använder den.`:'Skapa skolans utbud och lägg sedan till paketet i blocket.'}</DialogDescription>
     <label>Namn<input aria-label="Paketnamn" value={name} maxLength={160} disabled={locked} onChange={e=>setName(e.target.value)}/></label>
     <label>Skola<select aria-label="Paketets skola" value={unitId} disabled={locked} onChange={e=>setUnitId(e.target.value)}>{props.role==='huvudman'&&<option value="">Alla huvudmannens skolor</option>}{props.units.filter(u=>u.inMandate).map(u=><option key={u.id} value={u.id}>{u.name}</option>)}</select></label>

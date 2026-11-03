@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { contextLabel, type AssignmentView } from '@/lib/access-rules.ts';
 import { api, ApiError, setKnownEpoch } from '@/lib/server-client.ts';
 import { announce, messageText } from '@/lib/session-channel.ts';
-import { confirmDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 
 export type SessionAssignment = AssignmentView & {
   organizerId: string | null;
@@ -50,6 +50,7 @@ function endedText(assignment: SessionAssignment): string {
 }
 
 export default function ContextSwitch({ context, assignments, onChanged }: Props) {
+  const requestDiscard = useRequestDiscard();
   const navigationBlocked = useHasUnsaved('navigation-block:');
   const hasUnsaved = useHasUnsaved();
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export default function ContextSwitch({ context, assignments, onChanged }: Props
       setError('Invänta sparandet eller läs sparstatus innan du byter uppdrag.');
       return;
     }
-    if (hasUnsaved && !confirmDiscard()) {
+    if (hasUnsaved && !(await requestDiscard())) {
       setShownValue(activeValue);
       return;
     }

@@ -23,6 +23,7 @@ import { parseProgramplanWorkspace } from '../lib/programplan-workspace-contract
 import { parseProgramplanSelection, parseProgramplanEducationCreate, parseProgramplanEducationCreated, parseProgramplanEducationStatus } from '../lib/programplan-education-contract.ts';
 import { parseGymTimplan } from '../lib/gym-timplan.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 
 type Fixture = Awaited<ReturnType<typeof createPlanningListFixture>>;
 type Session = Fixture['hm'];
@@ -294,7 +295,7 @@ test.beforeEach(async ({ page }) => {
   if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');
   setupPending = false; nodePending = 0; nodeUnknownStage = null; browserUnknown = false; completedActualRoutes = new WeakSet<Request>();
   fixture = undefined!; metadata = undefined!; setupComplete = false; nodeUnknown = false; releases.length = 0; pending.clear(); auditChecks = []; dialogs = [];
-  page.on('dialog', async dialog => { dialogs.push(dialog.type()); await dialog.dismiss(); });
+  page.on('dialog', async dialog => { dialogs.push(dialog.type()); await dialog.dismiss(); }); await autoAnswerDiscard(page, false, dialogs);
 
   session = undefined!;
   browserCompletionFailure = null; actualRouteJobs.clear(); browserRouteStates.clear();

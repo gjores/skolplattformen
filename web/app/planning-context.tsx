@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { parsePlanningSetup, type PlanningSelection, type PlanningSetup } from '@/lib/planning-year-contract.ts';
 import { normalizePlanLocation, planningReadScopeLost, planningLocationChange, planLocationQuery, readPlanLocationResult, type PlanLocation, type VerifiedPlanningScope } from '@/lib/protected-plan-location.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
@@ -22,6 +22,7 @@ type State = { key: string; active: boolean; inputQuery: string | null; ready: b
   location: PlanLocation | null; loading: boolean; error: string | null; notice: string | null };
 
 export function PlanningContextProvider(props: PlanningContextProps) {
+  const requestDiscard = useRequestDiscard();
   const navigationBlocked = useHasUnsaved('navigation-block:'), hasUnsaved = useHasUnsaved();
   const inputQuery = props.location ? planLocationQuery(props.location) : null;
   const [state, setState] = useState<State>({ key: props.contextKey, active: props.active, inputQuery, ready: false, setup: null,
@@ -92,10 +93,10 @@ export function PlanningContextProvider(props: PlanningContextProps) {
     }
   }, [props.active, props.location, normalized, scoped?.loading, navigationBlocked]);
 
-  const requestChange = (patch: Partial<PlanningSelection>) => {
+  const requestChange = async (patch: Partial<PlanningSelection>) => {
     if (!props.active || !normalized || !scoped?.setup || scoped.loading) return;
     if (navigationBlocked) { setState(current => ({ ...current, notice: WAIT })); return; }
-    if (hasUnsaved && !confirmDiscard()) return;
+    if (hasUnsaved && !(await requestDiscard())) return;
     const location = normalized.location;
     let next: ReturnType<typeof planningLocationChange>;
     try { next = planningLocationChange(location, patch, scoped.setup); }

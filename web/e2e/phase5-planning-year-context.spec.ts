@@ -12,6 +12,7 @@ import type { GymTimplanLegacy as GymTimplan } from '../lib/gym-timplan.ts';
 import { parsePlanningList, parsePlanningSelection, parsePlanningSetup } from '../lib/planning-year-contract.ts';
 import { parseProgramplanSelection } from '../lib/programplan-education-contract.ts';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 
 type Fixture = Awaited<ReturnType<typeof createPlanningYearFixture>>;
 type Session = Fixture['principal'];
@@ -211,7 +212,7 @@ test.beforeEach(async ({ page }) => {
   // No response means no completion proof. In particular, requestfailed does not
   // clear a pending API request unless an actual route.fetch already completed it.
   page.on('response', response => { pendingRequests.delete(response.request()); });
-  page.on('dialog', async dialog => { unexpectedDialogs.push(dialog.type()); await dialog.dismiss(); });
+  page.on('dialog', async dialog => { unexpectedDialogs.push(dialog.type()); await dialog.dismiss(); }); await autoAnswerDiscard(page, false, unexpectedDialogs);
   await installActualPassthrough(page);
   fixture = await ownedNode('creation', () => createPlanningYearFixture());
   if (recoveryRequired) throw Error('OWNED_RECOVERY_REQUIRED');

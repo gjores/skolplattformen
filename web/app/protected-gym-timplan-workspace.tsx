@@ -6,7 +6,7 @@ import PlanDecisionPanel from './plan-decision-panel';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplanWorkspace, type ProgramplanWorkspace } from '@/lib/programplan-workspace-contract.ts';
 import { PROGRAMPLAN_TERMS } from '@/lib/programplan-terms.ts';
 import { statusLabel } from '@/lib/protected-timplan.ts';
@@ -34,6 +34,7 @@ const aborted = (error: unknown) => error instanceof DOMException && error.name 
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
 
 export default function ProtectedGymTimplanWorkspace({ process = 'timetable', onValplaner, onApl, onTimplan, identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
+  const requestDiscard = useRequestDiscard();
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
   const [missing, setMissing] = useState<{ workspace: ProgramplanWorkspace; unitId: string } | null>(null);
@@ -146,8 +147,8 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
     } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Programplanens versioner kunde inte läsas. Läs om årslistan.')); }
     finally { if (current(r.token)) setBusy(false); }
   }
-  function chooseAnnualRow(row: PlanningRow) {
-    if (!allowNavigation() || busy || dirty && !confirmDiscard()) return;
+  async function chooseAnnualRow(row: PlanningRow) {
+    if (!allowNavigation() || busy || dirty && !(await requestDiscard())) return;
     if (!planningSetup || row.customerId !== context.customerId || row.schoolform !== 'gymnasium'
       || !planningSetup.units.some(u => u.unitId === row.unitId && u.canRead.gymnasium)
       || planningUnit !== null && planningUnit !== row.unitId) { setError('Årsraden hör inte till det aktuella planeringsurvalet. Läs om listan.'); return; }
@@ -162,7 +163,7 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
     setAction({kind:'new',basis:underlag,unit});
   }
   async function prepareNewVersion() {
-    if (!plan || busy || !allowNavigation() || dirty && !confirmDiscard() || plan.archived || !(['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status))) return;
+    if (!plan || busy || !allowNavigation() || dirty && !(await requestDiscard()) || plan.archived || !(['faststalld', 'ersatt'].includes(plan.status) || plan.sourceChanged && ['utkast','atersand'].includes(plan.status))) return;
     const own = plan, r = begin(); setBusy(true); setError(null);
     try {
       const sourcePlanId = own.currentSource?.planId ?? own.source.planId;
@@ -182,7 +183,7 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
     } catch (caught) { if (current(r.token) && !aborted(caught) && !securityFailure(caught)) setError(message(caught, 'Aktuellt underlag kunde inte hämtas. Försök igen innan du skapar en version.')); }
     finally { if (current(r.token)) { setBusy(false); verifiedPlan.current = {token:r.token,planId:own.id}; } }
   }
-  function leave(action: () => void) { if (allowNavigation() && !busy && (!dirty || confirmDiscard())) { setAction(null); action(); } }
+  async function leave(action: () => void) { if (allowNavigation() && !busy && (!dirty || await requestDiscard())) { setAction(null); action(); } }
   const timePlanId = plan?.id, timeUnitId = plan?.unitId, timeVersion = plan?.version;
   const timeJournalScope = useMemo<AplJournalScope | null>(() => timePlanId && timeUnitId && timeVersion && identityKey && context.organizerId && (context.function === 'rektor' || context.function === 'administrator') ? {
     identityKey, customerId: context.customerId, membershipId: context.membershipId, assignmentId: context.assignmentId,

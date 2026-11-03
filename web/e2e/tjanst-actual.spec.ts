@@ -14,6 +14,7 @@ import {createRequire} from 'node:module';
 import {test,expect,type Browser,type BrowserContext,type Page,type Route,type TestInfo} from '@playwright/test';
 import {assertTarget} from '../../work/pilot/verify-target.mjs';
 import {createTjanstOidcFixture,seedTjanstActual,captureTjanstPlanHttp,seedTjanstYearCases,tjanstForeignFingerprint,withTjanstHistoryFailure,TJANST_ACTUAL_CASES,TJANST_ACTUAL_ROLES,TJANST_YEAR_CASES,TJANST_PHONE_YEAR_CASES} from '../../work/pilot/tjanst-oidc-fixtures.mjs';
+import { autoAnswerDiscard } from './helpers/confirm-dialog';
 const postgres=createRequire(import.meta.url)('postgres');
 type Db=ReturnType<typeof postgres>;
 type Fixture=Awaited<ReturnType<typeof createTjanstOidcFixture>>;
@@ -57,7 +58,7 @@ async function context(browser:Browser,info:TestInfo,role:string){
     isMobile:use.isMobile as boolean|undefined,hasTouch:use.hasTouch as boolean|undefined,baseURL,locale:'sv-SE',timezoneId:'Europe/Stockholm',reducedMotion:'reduce'});
   contexts[role]=ctx;const page=await ctx.newPage();pages[role]=page;network[role]=[];
   page.on('pageerror',e=>{result.errors.push({role,message:e.message});save();});
-  page.on('dialog',d=>void(d.type()==='beforeunload'?d.accept():d.dismiss()));
+  page.on('dialog',d=>void(d.type()==='beforeunload'?d.accept():d.dismiss()));await autoAnswerDiscard(page,false);
   ctx.on('request',req=>{const u=new URL(req.url());if(u.origin!==baseURL)return;const entry:{method:string;path:string;status:number|null;versionId?:string|null}={method:req.method(),path:u.pathname,status:null};
     // Planläsningens versionId loggas (bara syntetiska ID:n), så att nätverksloggen visar vilken version som lästes (WR-07).
     if(u.pathname==='/api/tjanst/plan/lasa')try{entry.versionId=(req.postDataJSON() as {versionId?:string}|null)?.versionId??null;}catch{entry.versionId=null;}

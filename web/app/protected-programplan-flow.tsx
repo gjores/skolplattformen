@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { useUnsavedChanges, confirmDiscard } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges, useRequestDiscard } from '@/lib/unsaved-changes.tsx';
 import { parseProgramplanOfferingList, type ProgramplanOfferingRow } from '@/lib/programplan-workspace-contract.ts';
 import { parseProgramplanSelection, parseProgramplanEducationCreated, type ProgramplanSelection, type ProgramplanSelectionRequest, type ProgramplanEducationCreateRequest } from '@/lib/programplan-education-contract.ts';
 import { educationStatusForCommand, newEducationCommand } from '@/lib/protected-programplan-education.ts';
@@ -21,6 +21,7 @@ import { startsAfter, stockholmToday } from '@/lib/programplan-lifecycle.ts';
 type Props = { onOpen: (id: string, catalogId: string | null, planId?: string, unitId?: string, created?: boolean) => Promise<void>; onSecurityFailure: (error: unknown) => boolean; disabled: boolean; scope: string; initialMode?: 'existing' | 'new'; initialUnitId?: string | null };
 const empty: ProgramplanSelectionRequest = { unitId: null, catalogId: null, programRef: null };
 export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, disabled, scope, initialMode = 'existing', initialUnitId = null }: Props) {
+  const requestDiscard = useRequestDiscard();
   const [data,setData]=useState<ProgramplanSelection|null>(null), [offerings,setOfferings]=useState<ProgramplanOfferingRow[]>([]);
   const [chosenMode,setMode]=useState<'existing'|'new'>(initialMode),[orientation,setOrientation]=useState<string|null>(null),[orientationChosen,setOrientationChosen]=useState(false);
   const [programCode,setProgramCode]=useState(''),[busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[mfa,setMfa]=useState(false);
@@ -79,17 +80,17 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
   const olderOrientations=[...new Set(schoolOfferings.filter(o=>o.programCode===programCode).map(o=>o.orientationCode))].filter(code=>!orientationRows.some(o=>o.code===code));
   const matches=schoolOfferings.filter(o=>o.programCode===programCode&&o.orientationCode===orientation);
   const options=program&&orientationChosen?programplanOptions({education:{orientationCode:orientation},catalog:{status:'selected',program,subjects:data!.projection!.subjects}} as Parameters<typeof programplanOptions>[0]):[];
-  function allowChange(){return !navigationBlocked&&!saving.current&&!locked&&(!dirty||confirmDiscard());}
-  function changeMode(next:'existing'|'new'){if(next===mode||!allowChange())return;resetDraft();setMode(next);}
-  function changeProgram(value:string){
-    if(!allowChange()||!data)return;resetDraft();setOrientation(null);setOrientationChosen(false);
+  async function allowChange(){return !navigationBlocked&&!saving.current&&!locked&&(!dirty||await requestDiscard());}
+  async function changeMode(next:'existing'|'new'){if(next===mode||!(await allowChange()))return;resetDraft();setMode(next);}
+  async function changeProgram(value:string){
+    if(!(await allowChange())||!data)return;resetDraft();setOrientation(null);setOrientationChosen(false);
     const chosen=data.programs.find(p=>`${p.programRef.code}:${p.programRef.version}`===value);
     const ref=chosen?.programRef??null;setProgramCode(ref?.code??value);
     if(ref){const p=chosen!;if(p.orientations.length===0)setOrientationChosen(true);}
     void load({...data.selection,programRef:ref});
   }
-  function changeOrientation(value:string){if(!allowChange())return;resetDraft();setOrientation(value||null);setOrientationChosen(true);}
-  const sourcePanel=data&&unitId?<details className={data.selection.catalogId?"pp-flow-source pps-fineprint":"pp-flow-source"} open={!data.selection.catalogId}><summary>Programunderlag{data.projection?` · Skolverket ${data.projection.source.fetched}`:''}</summary><div className="pp-field"><label htmlFor="pp-flow-catalog">Välj underlag</label><select id="pp-flow-catalog" value={data.selection.catalogId??''} disabled={locked} onChange={e=>{if(allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({unitId,catalogId:e.target.value||null,programRef:null});}}}><option value="">Välj underlag från Skolverket</option>{data.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>Skolverket · hämtat {c.source.fetched}</option>)}</select></div>{selectedProgram&&<p>Skolverkets programversion {selectedProgram.programRef.version} ({selectedProgram.programRef.code}) gäller det nationella underlaget. Skolans programplaner har en egen versionshistorik som börjar med version 1.</p>}<p>Program och ämnesnivåer hämtas från Skolverket. Befintliga planer behåller det underlag de skapades med.</p></details>:null;
+  async function changeOrientation(value:string){if(!(await allowChange()))return;resetDraft();setOrientation(value||null);setOrientationChosen(true);}
+  const sourcePanel=data&&unitId?<details className={data.selection.catalogId?"pp-flow-source pps-fineprint":"pp-flow-source"} open={!data.selection.catalogId}><summary>Programunderlag{data.projection?` · Skolverket ${data.projection.source.fetched}`:''}</summary><div className="pp-field"><label htmlFor="pp-flow-catalog">Välj underlag</label><select id="pp-flow-catalog" value={data.selection.catalogId??''} disabled={locked} onChange={async e=>{const next=e.target.value;if(await allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({unitId,catalogId:next||null,programRef:null});}}}><option value="">Välj underlag från Skolverket</option>{data.catalogs.map(c=><option key={c.catalogId} value={c.catalogId}>Skolverket · hämtat {c.source.fetched}</option>)}</select></div>{selectedProgram&&<p>Skolverkets programversion {selectedProgram.programRef.version} ({selectedProgram.programRef.code}) gäller det nationella underlaget. Skolans programplaner har en egen versionshistorik som börjar med version 1.</p>}<p>Program och ämnesnivåer hämtas från Skolverket. Befintliga planer behåller det underlag de skapades med.</p></details>:null;
   async function openCreated(commandValue:ProgramplanEducationCreateRequest, value:unknown){
     const created=parseProgramplanEducationCreated(value,commandValue);
     setUnresolved(true);
@@ -151,7 +152,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
     {error&&!(data&&mode==='new'&&program&&orientationChosen)&&<div ref={feedbackRef} tabIndex={-1} className="pp-alert" role="alert"><p>{error}</p>{!data&&!busy&&<Button onClick={()=>void load({...empty,unitId:initialUnitId},true)}>Läs valen igen</Button>}</div>}
     {busy&&<output>Hämtar aktuella val…</output>}
     {data&&<>
-      <div className="pp-flow-support"><div className="pp-field"><label htmlFor="pp-flow-school">Skola</label><select id="pp-flow-school" value={unitId??''} disabled={locked} onChange={e=>{if(allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({...empty,unitId:e.target.value||null});}}}><option value="">Välj skola</option>{schools.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
+      <div className="pp-flow-support"><div className="pp-field"><label htmlFor="pp-flow-school">Skola</label><select id="pp-flow-school" value={unitId??''} disabled={locked} onChange={async e=>{const next=e.target.value||null;if(await allowChange()){resetDraft();setProgramCode('');setOrientationChosen(false);void load({...empty,unitId:next});}}}><option value="">Välj skola</option>{schools.map(s=><option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
       <fieldset className="pp-flow-mode" aria-label="Befintlig eller ny utbildning"><Button data-active={mode==='existing'} variant={mode==='existing'?'default':'outline'} disabled={locked} onClick={()=>changeMode('existing')}>Befintlig utbildning</Button>{data.canCreateEducation?<Button data-active={mode==='new'} variant={mode==='new'?'default':'outline'} disabled={locked||!unitId} onClick={()=>changeMode('new')}>Ny utbildning</Button>:<p>Ditt aktuella uppdrag ger inte rätt att skapa en ny utbildning. Välj en befintlig programplan.</p>}</fieldset></div>
       {!data.selection.catalogId&&sourcePanel}
       <div className="pp-flow-selection"><div className="pp-field"><label htmlFor="pp-flow-program">1. Program</label><select id="pp-flow-program" value={programValue} disabled={locked||!unitId||mode==='new'&&!data.selection.catalogId} onChange={e=>changeProgram(e.target.value)}><option value="">Välj program</option>{data.programs.map(p=><option key={`${p.programRef.code}:${p.programRef.version}`} value={`${p.programRef.code}:${p.programRef.version}`}>{p.name}{data.programs.filter(other=>other.name===p.name).length>1?` · Skolverkets version ${p.programRef.version} (${p.programRef.code})`:''}</option>)}{mode==='existing'&&legacyCodes.map(code=><option key={code} value={code}>{code} · befintlig utbildning</option>)}</select></div>
@@ -165,7 +166,7 @@ export default function ProtectedProgramplanFlow({ onOpen, onSecurityFailure, di
         <div className="pp-flow-feedback-actions">
         {error&&<div ref={feedbackRef} tabIndex={-1} className="pp-alert" role="alert"><p>{error}</p>{issues.length>0&&<ul>{issues.map(issue=><li key={issue.id}><button type="button" className="pp-error-link" onClick={()=>focusField(issue.id)}>{issue.message}</button></li>)}</ul>}</div>}
         {mfa&&<MfaStepUpNotice message="Verifiering med engångskod krävs." detail="Dina uppgifter finns kvar tills du lämnar sidan."/>}
-        <div className="pp-dialog-actions"><Button variant="outline" disabled={locked} onClick={()=>{if(allowChange())resetDraft();}}>Avbryt</Button>{unresolved?<Button disabled={busy||disabled} onClick={()=>void readStatus()}>Läs sparstatus</Button>:reviewing?<><Button variant="outline" disabled={busy} onClick={editAgain}>Tillbaka till uppgifterna</Button><Button disabled={busy||!!command&&!retryAllowed} onClick={()=>void save()}>{busy?'Sparar…':retryAllowed?'Försök spara samma utbildning igen':'Spara utbildning och utkast'}</Button></>:<Button disabled={locked} onClick={reviewDraft}>Granska utkast</Button>}</div></div>
+        <div className="pp-dialog-actions"><Button variant="outline" disabled={locked} onClick={async()=>{if(await allowChange())resetDraft();}}>Avbryt</Button>{unresolved?<Button disabled={busy||disabled} onClick={()=>void readStatus()}>Läs sparstatus</Button>:reviewing?<><Button variant="outline" disabled={busy} onClick={editAgain}>Tillbaka till uppgifterna</Button><Button disabled={busy||!!command&&!retryAllowed} onClick={()=>void save()}>{busy?'Sparar…':retryAllowed?'Försök spara samma utbildning igen':'Spara utbildning och utkast'}</Button></>:<Button disabled={locked} onClick={reviewDraft}>Granska utkast</Button>}</div></div>
       </section>}
       {data.selection.catalogId&&sourcePanel}
     </>}

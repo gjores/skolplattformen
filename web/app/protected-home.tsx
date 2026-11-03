@@ -48,7 +48,7 @@ import { selectionFromQuery, selectionToQuery, type Selection } from '@/lib/pupi
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
 import { announce, onSessionMessage, shouldLock, type LockReason } from '@/lib/session-channel.ts';
 import {
-  confirmDiscard,
+  useRequestDiscard,
   UnsavedChangesProvider,
   useHasUnsaved,
 } from '@/lib/unsaved-changes.tsx';
@@ -336,6 +336,7 @@ function SessionLock({ reason, expired }: { reason: LockReason; expired?: boolea
 }
 
 function ProtectedShell() {
+  const requestDiscard = useRequestDiscard(), discardedPop = useRef(false);
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
   const identitySource = session && session !== 'loading' ? JSON.stringify([session.identity.issuer, session.identity.subject]) : null;
   const [electiveIntent,setElectiveIntent]=useState<{key:string;target:ElectivePreparationIntent}|null>(null);
@@ -502,9 +503,9 @@ function ProtectedShell() {
     };
   }, [loadSession, clearSession, lockChangedContext]);
 
-  function canNavigate() {
+  async function canNavigate() {
     if (navigationBlocked) { setNavigationNotice('Invänta sparandet eller läs sparstatus innan du lämnar vyn.'); return false; }
-    if (hasUnsaved && !confirmDiscard()) return false;
+    if (hasUnsaved && !(await requestDiscard())) return false;
     setNavigationNotice(null); return true;
   }
   const currentRegisterSelection = useCallback((search = window.location.search): Selection | null => {
@@ -606,8 +607,8 @@ function ProtectedShell() {
     applyPlanningLocation(location); if (mode === 'push') setPlanNavigation(value => value + 1);
     writePlanLocation(location, mode === 'replace');
   }
-  function openDecision(item: PlanDecisionItem) {
-    if (!canNavigate()) return;
+  async function openDecision(item: PlanDecisionItem) {
+    if (!(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     const planning = { schoolform: 'gymnasium' as const, unitId: item.unitId, query: '', status: 'all' as const,
       cohortRelation: 'all' as const, archive: 'all' as const, grade: null, page: 1, selectionRevision: null };
@@ -616,15 +617,15 @@ function ProtectedShell() {
       : { view: 'timplaner', gym: { kind: 'plan', id: item.planId, offeringId: item.offeringId, unitId: item.unitId!, version: item.version }, planning, allYears: true };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function goToProgramplan(target: ProgramplanLocation) {
-    if (!canNavigate()) return;
+  async function goToProgramplan(target: ProgramplanLocation) {
+    if (!(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     const prior = planningFor('programplaner');
     const location: PlanLocation = { ...prior, ...gymMatrixYear(), view: 'programplaner', programplan: target, planning: { ...prior.planning, ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function goToTimplan(source: string | GymTimplanLocation) {
-    if (!canNavigate()) return;
+  async function goToTimplan(source: string | GymTimplanLocation) {
+    if (!(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     const prior = planningFor('timplaner'), cached = lastGymPlan.current;
     const target = selectGymTimplanTarget(source, cached, prior.planning?.unitId);
@@ -632,8 +633,8 @@ function ProtectedShell() {
       ...(target.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function goToApl(target: GymTimplanLocation | null = null) {
-    if (!canNavigate()) return;
+  async function goToApl(target: GymTimplanLocation | null = null) {
+    if (!(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     const prior = planningFor('timplaner');
     const location: PlanLocation = { view: 'timplaner', process: 'apl', gym: target,
@@ -641,20 +642,20 @@ function ProtectedShell() {
         ...(target?.unitId ? { unitId: target.unitId } : {}) } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function navigateOverview() {
-    if (!canNavigate()) return;
+  async function navigateOverview() {
+    if (!(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     const prior = planningLocationRef.current, next = prior?.view ?? 'timplaner';
     const location: PlanLocation = { ...planningFor(next), overview: true, planning: { ...prior?.planning, page: 1, selectionRevision: null } };
     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
   }
-  function chooseOverviewCollection(next: PlanningSelection['view'], schoolform: PlanningSelection['schoolform'], setup: PlanningSetup) {
-    if (!canNavigate()) return;
+  async function chooseOverviewCollection(next: PlanningSelection['view'], schoolform: PlanningSelection['schoolform'], setup: PlanningSetup) {
+    if (!(await canNavigate())) return;
     const result = planningCollectionLocation(planningLocationRef.current ?? planningFor('timplaner'), next, schoolform, setup);
     applyPlanningLocation(result.location); setNavigationNotice(result.normalizationNotice); setPlanNavigation(value => value + 1); writePlanLocation(result.location);
   }
-  function navigate(next: ProtectedView) {
-    if (next === view && !isPlanningView(next) || !canNavigate()) return;
+  async function navigate(next: ProtectedView) {
+    if (next === view && !isPlanningView(next) || !(await canNavigate())) return;
     if (view === 'elever') rememberRegister();
     setClassStepIntent(null);
     setProgramplanTarget(null); setTimplanTarget(null); setOtherTimplanTarget(null); setPlanNavigation(value => value + 1);
@@ -673,6 +674,7 @@ function ProtectedShell() {
   }
   useEffect(() => {
     const pop = (event: PopStateEvent) => {
+      const discarded = discardedPop.current; discardedPop.current = false;
       const activeSession = sessionRef.current;
       if (!sessionScope(activeSession) || !activeSession || !locationRef.current) return;
       const location = PLANNING_FUNCTIONS.includes(activeSession.context?.function ?? '') && !isSelf(activeSession) ? readPlanLocation(window.location.search) : null;
@@ -689,9 +691,13 @@ function ProtectedShell() {
         return;
       }
       event.stopImmediatePropagation();
-      if (navigationBlocked || hasUnsaved && !confirmDiscard()) {
+      if (navigationBlocked || hasUnsaved && !discarded) {
+        // Historiken har redan flyttats. Adressen återställs direkt så att den stämmer med vyn
+        // medan frågan är öppen; målet ligger då alltid precis före den återställda posten.
+        window.history.pushState(locationStateRef.current, '', locationRef.current);
         if (navigationBlocked) setNavigationNotice('Invänta sparandet eller läs sparstatus innan du lämnar vyn.');
-        window.history.pushState(locationStateRef.current, '', locationRef.current); return;
+        else void requestDiscard().then(leave => { if (leave) { discardedPop.current = true; window.history.back(); } });
+        return;
       }
       if (priorView === 'elever') rememberRegister(new URL(locationRef.current, window.location.origin).search);
       setNavigationNotice(null); setPlanNavigation(value => value + 1);
@@ -709,7 +715,7 @@ function ProtectedShell() {
       locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
     };
     window.addEventListener('popstate', pop, true); return () => window.removeEventListener('popstate', pop, true);
-  }, [navigationBlocked, hasUnsaved, contextKey, currentRegisterSelection, rememberRegister]);
+  }, [navigationBlocked, hasUnsaved, contextKey, currentRegisterSelection, rememberRegister, requestDiscard]);
 
   const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.customerId}-${session.context.assignmentId}` : null;
   useEffect(() => {
@@ -753,32 +759,32 @@ function ProtectedShell() {
       ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'valbara' || viewRef.current === 'elevval') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
-  function goToPreparedStaffing(target:{unitId:string;schoolYear:number}) {
-    if (!canNavigate()) return;
+  async function goToPreparedStaffing(target:{unitId:string;schoolYear:number}) {
+    if (!(await canNavigate())) return;
     const prior=planningLocationRef.current??planningFor('timplaner');
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
-    planningLocationRef.current=next;setPlanningLocation(next);navigate('tjanst');
+    planningLocationRef.current=next;setPlanningLocation(next);void navigate('tjanst');
   }
-  function goToPreparedBlocks(target:{unitId:string;schoolYear:number}) {
-    if (!canNavigate()) return;
+  async function goToPreparedBlocks(target:{unitId:string;schoolYear:number}) {
+    if (!(await canNavigate())) return;
     const prior=planningLocationRef.current??planningFor('timplaner');
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
-    planningLocationRef.current=next;setPlanningLocation(next);setElectiveIntent(null);setPlanNavigation(value=>value+1);navigate('valbara');
+    planningLocationRef.current=next;setPlanningLocation(next);setElectiveIntent(null);setPlanNavigation(value=>value+1);void navigate('valbara');
   }
-  function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null}) {
-    if (!canNavigate()) return;
+  async function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null}) {
+    if (!(await canNavigate())) return;
     const prior=planningLocationRef.current??planningFor('timplaner');
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
-    planningLocationRef.current=next;setPlanningLocation(next);setValplanIntent({key:contextKey,...target});setPlanNavigation(value=>value+1);navigate('valplaner');
+    planningLocationRef.current=next;setPlanningLocation(next);setValplanIntent({key:contextKey,...target});setPlanNavigation(value=>value+1);void navigate('valplaner');
   }
-  function goToPreparedTimplan(target:{unitId:string;schoolYear:number;columnId:string}) {
-    if (!canNavigate()) return;
+  async function goToPreparedTimplan(target:{unitId:string;schoolYear:number;columnId:string}) {
+    if (!(await canNavigate())) return;
     const prior=planningLocationRef.current??planningFor('timplaner');
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,schoolform:target.columnId.startsWith('ar')?'gymnasium':'grundskola',page:1,selectionRevision:null}};
-    planningLocationRef.current=next;setPlanningLocation(next);navigate('timplaner');
+    planningLocationRef.current=next;setPlanningLocation(next);void navigate('timplaner');
   }
-  function goToClassLinks(selection: TjanstPlanningSelection, schoolform: 'gymnasium' | 'grundskola') {
-    if (!canNavigate()) return;
+  async function goToClassLinks(selection: TjanstPlanningSelection, schoolform: 'gymnasium' | 'grundskola') {
+    if (!(await canNavigate())) return;
     const prior = planningFor('timplaner');
     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...prior.planning, schoolform, unitId: selection.unitId, schoolYear: selection.schoolYear,
       page: 1, selectionRevision: null } };
@@ -786,7 +792,7 @@ function ProtectedShell() {
   }
 
   async function logout() {
-    if (!canNavigate()) return;
+    if (!(await canNavigate())) return;
     clearSession();
     try {
       const result = await api.post<{ redirect: string }>('/api/auth/logout', undefined);
@@ -833,8 +839,8 @@ function ProtectedShell() {
           <div className="top-actions">
             {validContext && PLANNING_FUNCTIONS.includes(session.context!.function) && <DecisionIndicator onOpen={() => navigate('start')}/>}
             <span className="demo-pill">Skyddad provmiljö</span>
-            {view === 'elever' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={year => {
-              if (!canNavigate()) return;
+            {view === 'elever' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={async year => {
+              if (!(await canNavigate())) return;
               const selected = currentRegisterSelection();
               if (selected) registerSelectionRef.current = { key: contextKey, selection: { ...selected, schoolYear: year, page: 1 } };
               setSchoolYear(year);
@@ -863,15 +869,15 @@ function ProtectedShell() {
               {overview && <ProtectedPlanningOverview onSecurityFailure={error => {
                 if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
                 return false;
-              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => navigate(view)} onOpen={row=>{if(!canNavigate())return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>}
+              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => void navigate(view)} onOpen={async row=>{if(!(await canNavigate()))return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>}
               {!overview && view === 'timplaner' && <>
-                {!aplProcess && <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={() => {
-                  if (!canNavigate()) return;
+                {!aplProcess && <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={async () => {
+                  if (!(await canNavigate())) return;
                   const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null } };
                   applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                 }}>Gymnasium</Button>
-                  {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={() => {
-                    if (!canNavigate()) return;
+                  {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={async () => {
+                    if (!(await canNavigate())) return;
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>}
@@ -886,7 +892,7 @@ function ProtectedShell() {
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
-                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={target => {setElectiveIntent(target?{key:contextKey,target}:null);navigate('valbara');}} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={target => {setElectiveIntent(target?{key:contextKey,target}:null);void navigate('valbara');}} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'valplaner' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedValplaner key={`${contextKey}:${planNavigation}`} unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey}
                 initialValplanId={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.valplanId:null} onSessionLost={clearSession}/>}</TjanstPlanningArea>}

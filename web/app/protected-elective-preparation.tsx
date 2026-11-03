@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useRequestConfirm, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import {
   ELECTIVE_PREPARATION_VERSION, availableElectivePreparationProfiles, proposePreparationSlots,
   electivePreparationIssues, electivePreparationTotals, parseElectivePreparationRead, parseElectivePreparationCommand,
@@ -59,6 +59,7 @@ export default function ProtectedElectivePreparation(props: ElectivePreparationP
   return <Workspace key={JSON.stringify([props.identityKey, props.scope, props.contextEpoch])} {...props}/>;
 }
 function Workspace({ scope, identityKey, contextEpoch, onSessionLost, onClose, onApplied, initialRows, onOpenBlocks, onOpenTimplan }: ElectivePreparationProps) {
+  const requestDiscard = useRequestDiscard(), requestConfirm = useRequestConfirm();
   const id = useId(), feedback = useRef<HTMLDivElement>(null), generation = useRef(0), preparing = useRef(false);
   const journalKey = preparationJournalKey(identityKey, scope);
   const [data, setData] = useState<ElectivePreparationRead | null>(null), [draft, setDraft] = useState<ElectivePreparationDraft | null>(null);
@@ -156,7 +157,7 @@ function Workspace({ scope, identityKey, contextEpoch, onSessionLost, onClose, o
     catch (caught) { if (token === generation.current && !lost(caught)) { setMfa(caught instanceof ApiError && caught.code === 'mfa_required'); setError('Sparstatus kunde inte verifieras. Gör ingen ny registrering innan utfallet är känt.'); } }
     finally { if (token === generation.current) setBusy(false); }
   }
-  async function forget() { if (busy || !confirm('Den lokala sparreferensen tas bort och aktuellt underlag hämtas. Osparade ändringar återställs. Fortsätta?')) return; clearPending(); setBroken(false); setNotice(null); await refresh(false); }
+  async function forget() { if (busy || !(await requestConfirm({ title: 'Glöm sparreferensen', description: 'Den lokala sparreferensen tas bort och aktuellt underlag hämtas. Osparade ändringar återställs.', confirmLabel: 'Glöm och hämta underlag', cancelLabel: 'Behåll' }))) return; clearPending(); setBroken(false); setNotice(null); await refresh(false); }
   const totals = useMemo(() => draft ? electivePreparationTotals(draft) : null, [draft]);
   if (!data || !draft) return <section className="elective-workspace preparation-workspace" aria-label="Förbered valbara block"><h2>Förbered valbara block</h2>{busy ? <p>Hämtar timplanens underlag…</p> : <><p role="alert">{error ?? 'Förberedelsen kan inte visas.'}</p><Button onClick={() => void refresh(false)}>Hämta underlag igen</Button><Button variant="outline" onClick={onClose}>Tillbaka</Button></>}</section>;
   const applied = data.preparation?.appliedRevision != null;
@@ -164,7 +165,7 @@ function Workspace({ scope, identityKey, contextEpoch, onSessionLost, onClose, o
   const completed = applied && data.preparation?.appliedRevision === data.preparation?.revision && !dirty && !showAppliedDetails && !locked && !error && !mfa;
   if (completed) return <section className="elective-workspace preparation-workspace" aria-label="Förbered valbara block"><h2>Block och gruppunderlag finns</h2><p>{data.planName} · {scope.schoolYear}/{String(scope.schoolYear + 1).slice(-2)}</p>{notice && <output className="elective-feedback">{notice}</output>}<p>{data.preparation!.materializedBlockIds.length} block med undervisningsgrupper finns redan. Öppna befintligt arbete för att bemanna eller fortsätta med elevvalen.</p><div className="elective-actions">{onApplied && <Button onClick={() => onApplied(data.preparation!.materializedBlockIds)}>Bemanna grupper</Button>}{onOpenBlocks && <Button variant="outline" onClick={() => onOpenBlocks({unitId: scope.unitId, schoolYear: scope.schoolYear})}>Öppna befintliga block</Button>}<Button variant="outline" onClick={onClose}>Tillbaka</Button><Button variant="ghost" onClick={() => setShowAppliedDetails(true)}>Visa sparad förberedelse</Button></div><p className="elective-muted">Elevval öppnas och lärartjänster publiceras separat. Ett återbesök skapar inga nya kopior.</p></section>;
   return <section className="elective-workspace preparation-workspace" aria-label="Förbered valbara block" aria-busy={busy}>
-    <header className="elective-heading"><div><h2>{applied ? 'Sparad förberedelse' : review ? 'Granska block och gruppunderlag' : 'Förbered valbara block'}</h2><p className="elective-muted">{data.planName} · version {data.planVersion} · {scope.schoolYear}/{String(scope.schoolYear + 1).slice(-2)}</p></div><Button variant="outline" disabled={locked} onClick={() => { if (!dirty || confirmDiscard()) onClose(); }}>Tillbaka</Button></header>
+    <header className="elective-heading"><div><h2>{applied ? 'Sparad förberedelse' : review ? 'Granska block och gruppunderlag' : 'Förbered valbara block'}</h2><p className="elective-muted">{data.planName} · version {data.planVersion} · {scope.schoolYear}/{String(scope.schoolYear + 1).slice(-2)}</p></div><Button variant="outline" disabled={locked} onClick={async () => { if (!dirty || await requestDiscard()) onClose(); }}>Tillbaka</Button></header>
     {notice && <output className="elective-feedback">{notice}</output>}
     {catalogMismatch && <div className="elective-error" role="alert"><p>Timplanens frysta katalog skiljer sig från den inlästa Skolverketskatalogen. Utbud kan inte väljas från en annan katalogversion. Öppna aktuell timplan och kontrollera utbildningsunderlaget.</p>{onOpenTimplan && <Button variant="outline" disabled={locked} onClick={() => onOpenTimplan(scope)}>Öppna timplaner för skolan</Button>}</div>}
     {!!data.blockers.length && <div className="elective-error"><p>Underlaget behöver kompletteras före skapandet.</p><ul>{data.blockers.map(value => <li key={value}>{value}</li>)}</ul>{onOpenTimplan && <Button variant="outline" disabled={locked} onClick={() => onOpenTimplan(scope)}>Öppna timplaner för skolan</Button>}</div>}
@@ -207,7 +208,7 @@ function Workspace({ scope, identityKey, contextEpoch, onSessionLost, onClose, o
         {pending && <><p>En sparbegäran behöver kontrolleras innan du gör fler ändringar.</p><Button disabled={busy} onClick={() => void checkStatus()}>Kontrollera sparstatus</Button></>}
         {(broken || notFound) && <><p>{broken ? 'Den lokala sparreferensen kunde inte verifieras.' : 'Ingen sparad begäran hittades.'}</p><Button variant="outline" disabled={busy} onClick={() => void forget()}>Glöm lokal sparreferens och hämta underlag</Button></>}
         {!pending && !broken && !mfa && <Button variant="outline" disabled={busy} onClick={() => void refresh()}>Hämta aktuellt underlag</Button>}
-        {conflict && !locked && <Button variant="outline" onClick={() => { if (!dirty || confirmDiscard()) void refresh(false); }}>Öppna sparad förberedelse</Button>}
+        {conflict && !locked && <Button variant="outline" onClick={async () => { if (!dirty || await requestDiscard()) void refresh(false); }}>Öppna sparad förberedelse</Button>}
       </div>}
       {applied ? <div className="elective-actions"><Button variant="outline" disabled={locked} onClick={() => setShowAppliedDetails(false)}>Till översikten</Button></div> : <div className="elective-actions"><Button variant="outline" disabled={locked || conflict} onClick={() => void send('save')}>Spara förberedelse</Button><div className="elective-actions">{review ? <><Button variant="outline" disabled={locked} onClick={() => setReview(false)}>Ändra förberedelsen</Button><Button disabled={locked || conflict} onClick={() => void send('apply')}>Skapa block och gruppunderlag</Button></> : <Button disabled={locked || conflict} onClick={() => { if (validate(true)) { setReview(true); setError(null); } }}>Granska förberedelsen</Button>}</div></div>}
     </footer>

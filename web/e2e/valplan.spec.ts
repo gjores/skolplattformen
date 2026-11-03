@@ -2,6 +2,7 @@
 import { test, expect, type Page } from '@playwright/test';
 import { parseValplanCommand, type ValplanCommand } from '../lib/valplan-contract';
 import { read, otherValplan, id } from './fixtures/valplan-data';
+import { answerDiscard, autoAnswerDiscard, discardPrompt } from './helpers/confirm-dialog';
 const URL = '/e2e/fixtures/valplan-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
 async function mock(page: Page) {
@@ -99,14 +100,32 @@ test('konflikt och obekräftat svar ger tydliga vägar utan att dubbelspara', as
 test('osparade ändringar skyddas vid byte av vy', async ({ page }) => {
   await mock(page); await page.goto(URL);
   await createIv(page);
-  page.once('dialog', dialog => void dialog.dismiss());
-  await page.getByRole('button', { name: 'Till annan vy' }).click();
+  await answerDiscard(page, false, () => page.getByRole('button', { name: 'Till annan vy' }).click());
   await expect(page.getByLabel('Namn', { exact: true })).toBeVisible();
+  await answerDiscard(page, true, () => page.getByRole('button', { name: 'Till annan vy' }).click());
+  await expect(page.getByText('Annan arbetsyta öppnad')).toBeVisible();
+});
+
+test('frågan om osparat besvaras med tangentbord och fungerar på telefon', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  await createIv(page);
+  const leave = page.getByRole('button', { name: 'Till annan vy' });
+  await leave.focus(); await page.keyboard.press('Enter');
+  const prompt = discardPrompt(page), stay = prompt.getByRole('button', { name: 'Stanna kvar', exact: true }), go = prompt.getByRole('button', { name: 'Lämna ändringarna', exact: true });
+  await expect(prompt).toContainText('Du har osparade ändringar. Vill du lämna dem?');
+  await expect(stay).toBeFocused();
+  for (const button of [stay, go]) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.keyboard.press('Escape');
+  await expect(prompt).toHaveCount(0); await expect(leave).toBeFocused();
+  await expect(page.getByLabel('Namn', { exact: true })).toBeVisible();
+  await page.keyboard.press('Enter'); await go.click();
+  await expect(page.getByText('Annan arbetsyta öppnad')).toBeVisible();
 });
 
 test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
   await mock(page); await page.goto(URL);
-  const dialogs: string[] = []; page.on('dialog', dialog => { dialogs.push(dialog.message()); void dialog.dismiss(); });
+  const dialogs: string[] = []; await autoAnswerDiscard(page, false, dialogs);
   const group = page.getByRole('group', { name: 'Ny valplan' });
   await group.getByRole('button', { name: 'Individuellt val' }).click();
   await group.getByRole('button', { name: 'Moderna språk' }).click();
@@ -157,6 +176,21 @@ test('programplanens valpaket använder samma kurssökning', async ({ page }) =>
   await dialog.getByLabel('Sök paketnivå').fill('PSYL1000X');
   await expect(dialog.getByRole('list', { name: 'Tillåtna paketnivåer' }).getByRole('button').first()).toBeDisabled();
   await expect(dialog.getByRole('button', { name: 'Skapa valpaket' })).toBeEnabled();
+});
+
+test('frågan fungerar ovanpå en öppen dialog och Esc stänger bara frågan', async ({ page }) => {
+  await page.goto(`${URL}?package`);
+  const dialog = page.getByRole('dialog'), cancel = dialog.getByRole('button', { name: 'Avbryt', exact: true }), prompt = discardPrompt(page);
+  await dialog.getByLabel('Paketnamn').fill('Samhällsfördjupning');
+  await cancel.click(); await expect(prompt).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(prompt).toHaveCount(0); await expect(dialog).toBeVisible(); await expect(cancel).toBeFocused();
+  await expect(dialog.getByLabel('Paketnamn')).toHaveValue('Samhällsfördjupning');
+  await answerDiscard(page, false, () => cancel.click());
+  await expect(dialog).toBeVisible(); await expect(dialog.getByLabel('Paketnamn')).toHaveValue('Samhällsfördjupning');
+  await page.keyboard.press('Escape'); await expect(prompt).toBeVisible();
+  await prompt.getByRole('button', { name: 'Lämna ändringarna', exact: true }).click();
+  await expect(prompt).toHaveCount(0); await expect(page.getByText('Skickat stängd')).toBeVisible();
 });
 
 test('sidan ryms utan sidledsrullning', async ({ page }) => {

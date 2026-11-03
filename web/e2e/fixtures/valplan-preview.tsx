@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import ProtectedValplaner from '../../app/protected-valplaner';
 import ProtectedProgramplanPackageDialog from '../../app/protected-programplan-package-dialog';
 import { ChoiceRowDetail, ChoiceRowSummary, type ChoiceRowInfo } from '../../app/timplan-choice-rows';
-import { UnsavedChangesProvider, useHasUnsaved, confirmDiscard } from '../../lib/unsaved-changes';
+import { UnsavedChangesProvider, useHasUnsaved, useRequestDiscard } from '../../lib/unsaved-changes';
 import { setKnownEpoch } from '../../lib/server-client';
 import { unitId, schoolYear, id } from './valplan-data';
 import '../../app/globals.css';
@@ -19,12 +19,12 @@ function ChoiceTable() {
     {open && <ChoiceRowDetail info={info} id="detail" colSpan={2} onOpen={value => setOpened(value.valplan?.id ?? 'lista')}/>}</tbody></table>{opened && <output>Öppnade {opened}</output>}</>;
 }
 function Preview() {
-  const dirty = useHasUnsaved(), [left, setLeft] = useState(false), [saved, setSaved] = useState('');
+  const requestDiscard = useRequestDiscard(), dirty = useHasUnsaved(), [left, setLeft] = useState(false), [saved, setSaved] = useState('');
   if (left) return <p>Annan arbetsyta öppnad</p>;
   if (query.has('rows')) return <ChoiceTable/>;
   if (query.has('package')) return <>{saved && <output>Skickat {saved}</output>}<ProtectedProgramplanPackageDialog scope="prov" unitId={unitId} units={[{ id: unitId, name: 'Provskolan', inMandate: true }]} role="rektor" kind="individualChoice" points={200}
     startedOn="2027-07-01" fixedLevelKeys={[]} options={[]} source={null} available={[]} onClose={() => setSaved('stängd')} onSaved={() => setSaved('sparat')} onSecurityFailure={() => false}/></>;
-  return <main style={{ padding: 16 }}><button style={{ minHeight: 44 }} onClick={() => { if (!dirty || confirmDiscard()) setLeft(true); }}>Till annan vy</button>
+  return <main style={{ padding: 16 }}><button style={{ minHeight: 44 }} onClick={async () => { if (!dirty || await requestDiscard()) setLeft(true); }}>Till annan vy</button>
     <ProtectedValplaner unitId={unitId} schoolYear={schoolYear} scopeKey="prov" initialValplanId={query.get('open')} onSessionLost={() => setLeft(true)}/></main>;
 }
 createRoot(document.getElementById('root')!).render(<UnsavedChangesProvider><Preview/></UnsavedChangesProvider>);

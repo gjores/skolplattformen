@@ -8,7 +8,7 @@ import type { TjanstYearReply, TjanstYearRequest, TjanstYearRowReply } from '@/l
 import { coverage } from '@/lib/tjanst-model.ts';
 import { lensMatches } from '@/lib/tjanst-lens.ts';
 import { createYearRowEditor, selectYearTeacher, yearRowSavePayload } from '@/lib/tjanst-year-model.ts';
-import { useUnsavedChanges, confirmDiscard } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges, useRequestDiscard, useRequestConfirm } from '@/lib/unsaved-changes.tsx';
 import { coverageText, rowTime, subjectOf, type TjanstFilter } from './tjanst-matrix';
 import { TjanstRowDialog, type TjanstFailure, type TjanstOutcome, type TjanstPreparedChange, type TjanstFormCache } from './tjanst-dialogs';
 import TjanstMatrixActions from './tjanst-matrix-actions';
@@ -35,6 +35,7 @@ type Props = { data: TjanstPlanRead; teachers: TjanstTeacher[]; filter: TjanstFi
   onFeedback?: (sourceKey: string, text: string) => void; onOpenCourse?: (code: string) => void; onBusy: (value: boolean) => void; onOpenBlocks?: () => void };
 
 export default function TjanstGroupMatrix({ data, teachers, filter, term, editable, phone, advanced = false, matrixBody = null, inMatrix = false, visible = true, loadPreview, onSave, onBusy, onFeedback, onOpenCourse, onOpenBlocks }: Props) {
+  const requestDiscard = useRequestDiscard(), requestConfirm = useRequestConfirm();
   const [supportRetry, setSupportRetry] = useState(0), [supportError, setSupportError] = useState<TjanstFailure | null>(null);
   const [busy, setBusy] = useState(false), [editor, setEditor] = useState<Editor | null>(null), [actions, setActions] = useState<Target | null>(null);
   const [sharing, setSharing] = useState<string | null>(null), [form, setForm] = useState<TjanstFormCache>({}), [dirty, setDirty] = useState(false);
@@ -54,8 +55,8 @@ export default function TjanstGroupMatrix({ data, teachers, filter, term, editab
     const target = focusTarget.current;
     if (target) document.querySelector<HTMLButtonElement>(`[data-group-source="${CSS.escape(target.sourceKey)}"][data-group-person="${CSS.escape(target.personId ?? 'vacant')}"]`)?.focus();
   }
-  function close(discard = false) {
-    if (running.current || !discard && dirtyFlag.current && !confirmDiscard()) return;
+  async function close(discard = false) {
+    if (running.current || !discard && dirtyFlag.current && !(await requestDiscard())) return;
     dirtyFlag.current = false; setEditor(null); setActions(null); setSharing(null); setForm({}); setDirty(false);
     requestAnimationFrame(restoreFocus);
   }
@@ -108,7 +109,7 @@ export default function TjanstGroupMatrix({ data, teachers, filter, term, editab
     });
   }
   async function remove(row: TjanstRow) {
-    if (!editable || !window.confirm('Ta bort tilldelningen från den här gruppen?')) return;
+    if (!editable || !(await requestConfirm({ title: 'Ta bort tilldelningen', description: 'Tilldelningen tas bort från den här gruppen.', confirmLabel: 'Ta bort', cancelLabel: 'Behåll' }))) return;
     await run(row.sourceKey, async () => {
       const reply = await loadPreview({ unitId: data.unitId, schoolYear: data.schoolYear, mode: 'catalog' });
       if ('ok' in reply) { notice(row.sourceKey, reply.error); return; }

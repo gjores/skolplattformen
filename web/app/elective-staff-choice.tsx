@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ElectiveBlock, ElectiveCommand, ElectiveRead } from '@/lib/elective-block-contract.ts';
 import ElectiveChoiceForm from './elective-choice-form';
 import './elective-staff-tools.css';
@@ -16,6 +16,7 @@ export default function ElectiveStaffChoice(props: Props) {
   return <StaffChoice key={`${props.data.unitId}:${props.data.schoolYear}:${props.block.id}`} {...props}/>;
 }
 function StaffChoice({ data, block, disabled, onSend }: Props) {
+  const requestDiscard = useRequestDiscard();
   const id = useId(), [opened, setOpened] = useState(false), [roundId, setRoundId] = useState(''), [pupilId, setPupilId] = useState(''), [search, setSearch] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null), [busy, setBusy] = useState(false), [now, setNow] = useState(() => Date.now());
   const [feedback, setFeedback] = useState<string | null>(null), submitting = useRef(false);
@@ -29,8 +30,8 @@ function StaffChoice({ data, block, disabled, onSend }: Props) {
   useUnsavedChanges(`elective-staff-choice:${id}`, dirty);
   useUnsavedChanges(`navigation-block:elective-staff-choice:${id}`, busy);
   useEffect(() => { const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
-  function select(nextRound: string, nextPupil: string) {
-    if (dirty && !confirmDiscard()) return;
+  async function select(nextRound: string, nextPupil: string) {
+    if (dirty && !(await requestDiscard())) return;
     setRoundId(nextRound); setPupilId(nextPupil); setFeedback(null);
     const r = rounds.find(value => value.id === nextRound), c = data.choices?.find(value => value.roundId === nextRound && value.pupilId === nextPupil);
     const valid = r?.pupilIds?.includes(nextPupil);
@@ -56,7 +57,7 @@ function StaffChoice({ data, block, disabled, onSend }: Props) {
       {stale && <div className="elective-error" role="alert">Underlaget eller elevens val har ändrats. Granska aktuellt val innan du fortsätter. <Button variant="outline" disabled={locked} onClick={() => select(roundId, pupilId)}>Hämta aktuellt val</Button></div>}
       {draft && round && <><ElectiveChoiceForm title={`Val för ${pupils.find(value => value.id === pupilId)?.name ?? 'vald elev'}`} options={block.options.filter(value => round.optionIds.includes(value.id)).map(value => ({ id: value.id, name: value.name, description: value.levelCode }))} minChoices={round.minChoices} maxChoices={round.maxChoices} selected={draft.selected} disabled={locked || stale || !open} onChange={selected => setDraft({ ...draft, selected })}/>
         <Button disabled={locked || stale || !open || !dirty || draft.selected.length < round.minChoices || draft.selected.length > round.maxChoices} onClick={() => void submit()}>Registrera elevens val</Button></>}
-      <Button variant="ghost" disabled={locked} onClick={() => { if (!dirty || confirmDiscard()) { setOpened(false); setDraft(null); setPupilId(''); setRoundId(''); } }}>Stäng registrering</Button>
+      <Button variant="ghost" disabled={locked} onClick={async () => { if (!dirty || await requestDiscard()) { setOpened(false); setDraft(null); setPupilId(''); setRoundId(''); } }}>Stäng registrering</Button>
     </>}
     {feedback && <output>{feedback}</output>}
   </section>;

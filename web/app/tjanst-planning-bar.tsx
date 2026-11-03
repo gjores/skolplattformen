@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 're
 import { api, ApiError } from '@/lib/server-client.ts';
 import { parsePlanningSetup, type PlanningSetup } from '@/lib/planning-year-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
-import { confirmDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { PLANNING_SCOPE_TEXT } from './planning-context';
 import './planning-context.css';
 import './tjanst-planning-bar.css';
@@ -36,6 +36,7 @@ export default function TjanstPlanningArea(props: Props) {
 }
 
 function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, children }: Props) {
+  const requestDiscard = useRequestDiscard();
   const [setup, setSetup] = useState<PlanningSetup | null>(null), [selection, setSelection] = useState<TjanstPlanningSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [retry, setRetry] = useState(0);
   const navigationBlocked = useHasUnsaved('navigation-block:'), hasUnsaved = useHasUnsaved();
@@ -58,10 +59,10 @@ function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, chil
     return () => c.abort();
   }, [schoolChoice, retry, contextKey]);
   useEffect(() => { if (selection && contextKey) remember(contextKey, selection); }, [selection, contextKey]);
-  function change(patch: Partial<TjanstPlanningSelection>) {
+  async function change(patch: Partial<TjanstPlanningSelection>) {
     if (!selection) return;
     if (navigationBlocked) { setNotice(WAIT); return; }
-    if (hasUnsaved && !confirmDiscard()) return;
+    if (hasUnsaved && !(await requestDiscard())) return;
     const next = { ...selection, ...patch };
     setNotice(null); setSelection(next); latest.current.onChange(next);
   }

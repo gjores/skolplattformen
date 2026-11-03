@@ -3,6 +3,7 @@ import { test, expect, type Page } from '@playwright/test';
 import { createElectiveTimeRef } from '../lib/elective-timplan-time';
 import { createElectiveCommandRef, parseElectiveCommand, type ElectiveReceipt } from '../lib/elective-block-contract';
 import { block, schoolRead, eid } from './fixtures/elective-data';
+import { answerDiscard } from './helpers/confirm-dialog';
 const URL = '/e2e/fixtures/elective-block-preview.html';
 async function mock(page: Page, lost = false) {
   const state = schoolRead(), writes: unknown[] = [], receipts = new Map<string, ElectiveReceipt>(); let lose = lost;
@@ -201,8 +202,8 @@ test('en 200-poängsram för två klasser delas en gång med blockets utkast kva
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   await page.getByRole('button', { name: 'Dela timplansramen för SA26, SA26B', exact: true }).click();
   await expect(page.getByLabel('Namn på utrymme 1')).toBeVisible(); expect(timeWrites).toHaveLength(0); expect(m.writes).toHaveLength(0);
-  await page.getByLabel('Namn på utrymme 1').fill('Tillfällig ändring'); page.once('dialog', dialog => dialog.accept());
-  await page.getByRole('button', { name: 'Tillbaka till blockets utkast', exact: true }).click();
+  await page.getByLabel('Namn på utrymme 1').fill('Tillfällig ändring'); 
+  await answerDiscard(page, true, () => page.getByRole('button', { name: 'Tillbaka till blockets utkast', exact: true }).click());
   await expect(page.getByRole('heading', { name: 'Skapa valbart block', exact: true })).toBeVisible(); expect(timeWrites).toHaveLength(0);
   await page.getByRole('button', { name: 'Dela timplansramen för SA26, SA26B', exact: true }).click();
   await page.getByLabel('Namn på utrymme 1').fill('Språk100 A');

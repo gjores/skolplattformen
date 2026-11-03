@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client.ts';
 import { announce, onSessionMessage, shouldLock } from '@/lib/session-channel.ts';
-import { UnsavedChangesProvider, useUnsavedChanges, useHasUnsaved, confirmDiscard } from '@/lib/unsaved-changes.tsx';
+import { UnsavedChangesProvider, useUnsavedChanges, useHasUnsaved, useRequestDiscard } from '@/lib/unsaved-changes.tsx';
 import { createSelfCommandRef, parseSelfCommand, parseSelfCommandRef, parseSelfIndex, parseSelfRead, parseSelfReceipt, parseSelfStatus,
   type SelfIndex, type SelfRead, type SelfOffer, type SelfParticipant, type SelfCommand, type SelfCommandRef } from '@/lib/elective-self-contract.ts';
 import { programplanLanguageName } from '@/lib/programplan-languages.ts';
@@ -20,6 +20,7 @@ const LOGIN_URL = '/api/auth/login?till=%2Fval';
 const scopeOf = (person: SelfParticipant) => ({ unitId: person.unitId, pupilId: person.pupilId, participant: person.participant });
 export default function ElectiveSelfWorkspace() { return <UnsavedChangesProvider><Workspace/></UnsavedChangesProvider>; }
 function Workspace() {
+  const requestDiscard = useRequestDiscard();
   const [index, setIndex] = useState<SelfIndex | null>(null), [selected, setSelected] = useState('');
   const [error, setError] = useState<string | null>(null), [login, setLogin] = useState(false), [busy, setBusy] = useState(false), [retry, setRetry] = useState(0);
   const epoch = useRef<number | null>(null), indexRequest = useRef<AbortController | null>(null), generation = useRef(0);
@@ -45,18 +46,18 @@ function Workspace() {
   const person = index?.participants.find(value => value.bindingId === selected) ?? null;
   const lost = useCallback(() => { setIndex(null); setSelected(''); setError('Din inloggning eller kontokoppling gäller inte längre. Logga in igen eller kontakta skolan.'); setLogin(true); }, []);
   async function logout() {
-    if (navigationBlocked || dirty && !confirmDiscard()) return;
+    if (navigationBlocked || dirty && !(await requestDiscard())) return;
     setBusy(true); lock('Loggar ut…');
     try { const result = await api.post<{ redirect: string }>('/api/auth/logout', undefined); announce({ type: 'logged-out' }); window.location.assign(result.redirect); }
     catch { setError('Utloggningen kunde inte bekräftas. Stäng sidan eller försök igen.'); } finally { setBusy(false); }
   }
   return <main id="workspace" className="elective-self-page elective-workspace"><header className="elective-heading"><div><p className="elective-muted">Skolplattformen</p><h1>Mina val</h1></div>
-    {index && <div className="elective-actions"><Button variant="outline" disabled={busy || navigationBlocked} onClick={() => { if (!dirty || confirmDiscard()) { lock('Hämtar dina val…'); setRetry(value => value + 1); } }}>Hämta aktuellt läge</Button><Button variant="outline" disabled={busy || navigationBlocked} onClick={() => void logout()}>Logga ut</Button></div>}</header>
+    {index && <div className="elective-actions"><Button variant="outline" disabled={busy || navigationBlocked} onClick={async () => { if (!dirty || await requestDiscard()) { lock('Hämtar dina val…'); setRetry(value => value + 1); } }}>Hämta aktuellt läge</Button><Button variant="outline" disabled={busy || navigationBlocked} onClick={() => void logout()}>Logga ut</Button></div>}</header>
     {error && <div className="elective-error" role="alert">{error}</div>}
     {login ? <a href={LOGIN_URL}>Logga in för att fortsätta</a> : !index ? <Button variant="outline" onClick={() => setRetry(value => value + 1)}>Hämta mina val igen</Button> : <>
       {index.participants.length === 0 && <section className="elective-card"><h2>Inga val att visa</h2><p>Skolan behöver koppla ditt konto till rätt elev innan du kan göra eller bekräfta ett val. Kontakta skolan om du väntar på en valomgång.</p></section>}
       <details className="elective-card"><summary>Koppla konto till skolan</summary><p>Om skolan ber om din kontoreferens kan du visa den här. Skolan kontrollerar vem kontot tillhör innan det kopplas till en elev.</p><label>Din kontoreferens<input value={index.identityReference} readOnly onFocus={event => event.currentTarget.select()}/></label></details>
-      {index.participants.length > 1 && <label>Välj elev och skola<select value={selected} disabled={navigationBlocked} onChange={event => { if (!dirty || confirmDiscard()) setSelected(event.target.value); }}><option value="">Välj vem valet gäller</option>{index.participants.map(value => <option value={value.bindingId} key={value.bindingId}>{value.pupilName} · {value.schoolName}{value.participant === 'guardian' ? ' · VH-bekräftelse' : ''}</option>)}</select></label>}
+      {index.participants.length > 1 && <label>Välj elev och skola<select value={selected} disabled={navigationBlocked} onChange={async event => { const next = event.target.value; if (!dirty || await requestDiscard()) setSelected(next); }}><option value="">Välj vem valet gäller</option>{index.participants.map(value => <option value={value.bindingId} key={value.bindingId}>{value.pupilName} · {value.schoolName}{value.participant === 'guardian' ? ' · VH-bekräftelse' : ''}</option>)}</select></label>}
       {person && <Participant key={`${person.bindingId}-${person.bindingRevision}`} person={person} identityReference={index.identityReference} onLost={lost}/>}
     </>}
   </main>;

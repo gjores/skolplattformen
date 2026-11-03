@@ -1,7 +1,7 @@
 'use client';
 import {useState,useEffect,useEffectEvent} from 'react';
 import {Button} from '@/components/ui/button';
-import {useHasUnsaved,confirmDiscard} from '@/lib/unsaved-changes.tsx';
+import {useHasUnsaved,useRequestDiscard} from '@/lib/unsaved-changes.tsx';
 import {pendingPreparationScopes} from '@/lib/elective-preparation-journal.ts';
 import type {ElectivePreparationScope} from '@/lib/elective-preparation.ts';
 import type {ElectivePreparationIntent} from '@/lib/elective-preparation-target.ts';
@@ -12,6 +12,7 @@ type Props={choices:Choice[];unitId?:string;schoolYear:number;identityKey:string
 const sourceKey=(choice:Pick<Choice,'planId'|'columnId'>)=>`${choice.planId}:${choice.columnId}`;
 /** Both the approved timetable and allocation open the same preparation, including pending recovery after reload. */
 export default function ElectivePreparationLauncher({choices,unitId,schoolYear,identityKey,contextEpoch,disabled=false,onSessionLost,onApplied,onTjanst,onOpenTimplans,onOpenBlocks,onOpenSourceTimplan,onOpenChange,initialIntent}:Props){
+  const requestDiscard = useRequestDiscard();
  function recovery():ElectivePreparationScope|null{try{return typeof window==='undefined'?null:pendingPreparationScopes(identityKey,sessionStorage,schoolYear,unitId?[unitId]:choices.map(value=>value.unitId))[0]??null;}catch{return null;}}
  const [recovering,setRecovering]=useState(recovery),[open,setOpen]=useState(()=>!!initialIntent||!!recovery());
  const reportOpen=useEffectEvent((value:boolean)=>onOpenChange?.(value));
@@ -29,7 +30,7 @@ export default function ElectivePreparationLauncher({choices,unitId,schoolYear,i
    {!choice&&<p className="elective-muted">Öppna en godkänd timplan för att förbereda utbudet, även om klasser inte är kopplade ännu.</p>}
   </>:<>
    {recovering&&<output>En tidigare sparning behöver kontrolleras innan du fortsätter.</output>}
-   {available.length>1&&<label>Utgå från timplan<select value={choice?sourceKey(choice):''} disabled={blocked} onChange={event=>{if(!dirty||confirmDiscard())setSelected(event.target.value);}}>{available.map(value=><option key={sourceKey(value)} value={sourceKey(value)}>{value.label}</option>)}</select></label>}
+   {available.length>1&&<label>Utgå från timplan<select value={choice?sourceKey(choice):''} disabled={blocked} onChange={async event=>{const next=event.target.value;if(!dirty||await requestDiscard())setSelected(next);}}>{available.map(value=><option key={sourceKey(value)} value={sourceKey(value)}>{value.label}</option>)}</select></label>}
    {choice?<ProtectedElectivePreparation key={`${identityKey}:${choice.planId}:${choice.columnId}:${schoolYear}`} scope={{unitId:choice.unitId,planId:choice.planId,schoolYear,columnId:choice.columnId}} initialRows={initialIntent?.rowKey?[initialIntent.rowKey]:undefined} identityKey={identityKey} contextEpoch={contextEpoch} onSessionLost={onSessionLost} onClose={close}
     onOpenBlocks={onOpenBlocks} onOpenTimplan={onOpenSourceTimplan}
     onApplied={onTjanst?()=>{onApplied?.();onTjanst({unitId:choice.unitId,schoolYear});}:undefined}/>:<p role="alert">Den valda timplanen finns inte längre i urvalet. Öppna rätt timplan för att fortsätta.</p>}

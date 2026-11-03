@@ -4,13 +4,14 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ProtectedPermissionOption } from '@/lib/server/protected-permission.ts';
 import MfaStepUpNotice from './mfa-step-up';
 
 type Props = { open: boolean; epoch: number; onOpenChange: (open: boolean) => void; onMfaRequired: () => void; onSessionLost: () => void };
 const path = '/api/kund/skyddsbehorighet';
 export default function ProtectedPermissionDialog(props: Props) {
+  const requestDiscard = useRequestDiscard();
   const titleId = useId();
   const descriptionId = useId();
   const [options, setOptions] = useState<ProtectedPermissionOption[] | null>(null);
@@ -73,9 +74,9 @@ export default function ProtectedPermissionDialog(props: Props) {
   const schools = [...new Map((options ?? []).map(row => [row.unitId, { id: row.unitId, name: row.schoolName }])).values()];
   const recipients = (options ?? []).filter(row => row.unitId === unitId);
   const selected = recipients.find(row => row.assignmentId === assignmentId);
-  function discard() { return pending === null || confirmDiscard(); }
-  function close(open: boolean) {
-    if (!saving && (open || discard())) { setPending(null); props.onOpenChange(open); }
+  async function discard() { return pending === null || await requestDiscard(); }
+  async function close(open: boolean) {
+    if (!saving && (open || await discard())) { setPending(null); props.onOpenChange(open); }
   }
   async function save() {
     if (!selected || !pending || busy) return;
@@ -105,10 +106,10 @@ export default function ProtectedPermissionDialog(props: Props) {
       {busy && <output>Hämtar eller sparar behörigheter…</output>}
       {options && options.length === 0 && <p>Det finns inga giltiga administratörsuppdrag på skolorna i ditt uppdrag.</p>}
       {options && options.length > 0 && <div className="protected-form mandate-grant-form">
-        <label>Skola<select value={unitId} disabled={busy} onChange={event => { if (!discard()) return; setUnitId(event.target.value); setAssignmentId(''); setPending(null); setStatus(null); setError(null); }}>
+        <label>Skola<select value={unitId} disabled={busy} onChange={async event => { const next = event.target.value; if (!(await discard())) return; setUnitId(next); setAssignmentId(''); setPending(null); setStatus(null); setError(null); }}>
           {schools.map(school => <option key={school.id} value={school.id}>{school.name}</option>)}
         </select></label>
-        <label>Administratörsuppdrag<select value={selected ? assignmentId : ''} disabled={busy} onChange={event => { if (!discard()) return; setAssignmentId(event.target.value); setPending(null); setStatus(null); setError(null); }}>
+        <label>Administratörsuppdrag<select value={selected ? assignmentId : ''} disabled={busy} onChange={async event => { const next = event.target.value; if (!(await discard())) return; setAssignmentId(next); setPending(null); setStatus(null); setError(null); }}>
           <option value="">Välj administratörsuppdrag</option>
           {recipients.map((row, index) => <option key={row.assignmentId} value={row.assignmentId}>{row.displayName}{recipients.filter(other => other.displayName === row.displayName).length > 1 ? ` · uppdrag ${index + 1}` : ''}</option>)}
         </select></label>

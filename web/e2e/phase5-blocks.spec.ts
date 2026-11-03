@@ -2,6 +2,7 @@
 import { expect,test,type Page } from '@playwright/test';
 import { createProgramplanBrowserFixture,verifyProgramplanBrowserTarget } from '../../work/pilot/phase5-programplan-browser-fixtures.mjs';
 import { waitForHydration } from './helpers/keycloak.ts';
+import { answerDiscard } from './helpers/confirm-dialog';
 type Fixture=Awaited<ReturnType<typeof createProgramplanBrowserFixture>>;
 let fixture:Fixture;
 const baseURL=process.env.PHASE5_BASE_URL??'http://127.0.0.1:3059';
@@ -164,5 +165,5 @@ test.skip('B11: tappat valpaketsvar återläses utan dubbel skrivning och en äl
   await region.getByRole('button',{name:'Ny version av valt paket',exact:true}).click();await dialog.getByLabel('Paketnamn').fill('Min senare ändring');
   const other=await fixture.request(baseURL,fixture.principal,'/api/programplaner/valpaket',{packageId:saved!.packageId,expectedVersion:1,details:{unitId:saved!.unitId,kind:saved!.kind,name:'Samtidigt sparad version',levels:saved!.levels}});expect(other.status).toBe(200);expect(other.body.version).toBe(2);
   const conflict=page.waitForResponse(r=>new URL(r.url()).pathname==='/api/programplaner/valpaket');await dialog.getByRole('button',{name:'Spara ny version',exact:true}).click();expect((await conflict).status()).toBe(409);await expect(dialog).toContainText('Paketet har fått en ny version');await expect(dialog.getByLabel('Paketnamn')).toHaveValue('Min senare ändring');await expect(dialog.getByRole('button',{name:'Spara ny version',exact:true})).toBeDisabled();
-  const final=await fixture.request(baseURL,fixture.principal,'/api/programplaner/valpaket/lista',{unitId:fixture.unitId});expect(final.body.packages.filter((p:{packageId:string})=>p.packageId===saved!.packageId)).toHaveLength(2);expect(final.body.packages.find((p:{packageId:string;version:number})=>p.packageId===saved!.packageId&&p.version===2).name).toBe('Samtidigt sparad version');page.on('dialog',d=>d.accept());await dialog.getByRole('button',{name:'Avbryt',exact:true}).click();await expect(dialog).toHaveCount(0);
+  const final=await fixture.request(baseURL,fixture.principal,'/api/programplaner/valpaket/lista',{unitId:fixture.unitId});expect(final.body.packages.filter((p:{packageId:string})=>p.packageId===saved!.packageId)).toHaveLength(2);expect(final.body.packages.find((p:{packageId:string;version:number})=>p.packageId===saved!.packageId&&p.version===2).name).toBe('Samtidigt sparad version');await answerDiscard(page,true,()=>dialog.getByRole('button',{name:'Avbryt',exact:true}).click());await expect(dialog).toHaveCount(0);
 });

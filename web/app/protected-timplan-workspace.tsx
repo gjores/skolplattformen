@@ -5,7 +5,7 @@ import { ArrowLeft, ChevronLeft, ChevronRight, Clock3, Pencil, RefreshCw } from 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { confirmDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
+import { useRequestDiscard, useHasUnsaved, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { canChangeTimplanCell, cellHours, parseProtectedTimplan, parseTimplanCellReply, parseTimplanHours, parseTimplanList, sameTimplanColumn,
   statusLabel, timplanColumns, timplanRows, unknownTimplanRows,
   type ProtectedTimplan, type TimplanList } from '@/lib/protected-timplan.ts';
@@ -34,6 +34,7 @@ class MissingAnnualTarget extends Error {}
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 
 export default function ProtectedTimplanWorkspace({ context, epoch, initialTarget, onOpened, onSessionLost, onTjanst, onPreparedBlocks, onPreparedTimplan }: Props) {
+  const requestDiscard = useRequestDiscard();
   const { setup, selection } = usePlanningContext();
   const [annualRow, setAnnualRow] = useState<PlanningRow | null>(null);
   const [currentMatrix, setCurrentMatrix] = useState(false);
@@ -157,8 +158,8 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
   const openPlan = useCallback(async (expected: OtherTimplanLocation, explicitCurrent = false) => {
     if (!allowNavigation()) return;
     const own = draftRef.current;
-    if (preparationRef.current.dirty && !confirmDiscard()) return;
-    if (own && own.mode !== 'applied' && (own.value !== String(own.original) || own.mode !== 'draft' || own.uncertain) && !confirmDiscard()) return;
+    const ownDirty = own && own.mode !== 'applied' && (own.value !== String(own.original) || own.mode !== 'draft' || own.uncertain);
+    if ((preparationRef.current.dirty || ownDirty) && !(await requestDiscard())) return;
     initialOpened.current = true;
     const request = begin(); verified.current = null;
     setPlan(null); updateDraft(null); setAnnualRow(null); setCurrentMatrix(false); setChooseCurrent(false);
@@ -176,7 +177,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
         if (caught instanceof MissingAnnualTarget) opened.current(null);
       }
     } finally { if (current(request.token)) updateBusy(false); }
-  }, [allowNavigation, begin, current, readVerified, securityFailure, updateBusy, updateDraft]);
+  }, [allowNavigation, begin, current, readVerified, requestDiscard, securityFailure, updateBusy, updateDraft]);
 
   useEffect(() => { active.current = true; return () => { active.current = false; invalidate(); }; }, [invalidate]);
   useEffect(() => {
@@ -197,8 +198,8 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
       version: row.plan.version, columnId: (row.application?.columnId ?? null) as OtherTimplanLocation['columnId'] });
   }
 
-  function closeDraft() {
-    if (!allowNavigation() || dirty && !confirmDiscard()) return;
+  async function closeDraft() {
+    if (!allowNavigation() || dirty && !(await requestDiscard())) return;
     updateDraft(null);
   }
   function edit(rowId: string, columnIndex: number) {
@@ -320,7 +321,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
         </section>}
       </>}
       {plan && <>
-        <div className="pt-toolbar"><Button variant="ghost" disabled={busy||navigationBlocked} onClick={()=>{if(allowNavigation()&&(!dirty||confirmDiscard()))loadList();}}><ArrowLeft size={18}/>Alla timplaner</Button>
+        <div className="pt-toolbar"><Button variant="ghost" disabled={busy||navigationBlocked} onClick={async()=>{if(allowNavigation()&&(!dirty||await requestDiscard()))loadList();}}><ArrowLeft size={18}/>Alla timplaner</Button>
           <Button variant="outline" disabled={busy||Boolean(draft)} onClick={()=>void openPlan({kind:plan.education.kind as OtherTimplanLocation['kind'],id:plan.id,unitId:plan.unitId,offeringId:plan.offeringId,version:plan.version,columnId:(annualRow?.application?.columnId??null) as OtherTimplanLocation['columnId']},currentMatrix)}><RefreshCw size={16}/>Läs om</Button></div>
         <div className="pt-plan-header"><div><p>{plan.schoolName} · {plan.education.cohort}</p><h2>{plan.education.name}</h2><p>Version {plan.version} <span className={`pt-status pt-status-${plan.status}`}>{statusLabel[plan.status]}</span></p></div>
           <span className="pt-read-state">{context.function==='huvudman'?'Läsvy för huvudman':!currentMatrix?'Årsunderlag i läsvy':!['utkast','atersand'].includes(plan.status)?'Versionen är låst för ändring':'Välj en timcell för att ändra'}</span></div>
@@ -362,7 +363,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
           </table>
         </section>:<p>Matrisen saknar lagrade kolumner. Inga timmar antas eller fylls i.</p>}
       </>}
-      <Dialog open={draft!==null} onOpenChange={open=>{if(!open)closeDraft();}}>
+      <Dialog open={draft!==null} onOpenChange={open=>{if(!open)void closeDraft();}}>
         <DialogContent className="pt-dialog" aria-modal="true" showCloseButton={false}>
           <DialogTitle>Ändra undervisningstid</DialogTitle>
           <DialogDescription>{draft?.rowLabel} · {draft?.columnLabel}. Ändringen sparas först när du väljer att spara.</DialogDescription>

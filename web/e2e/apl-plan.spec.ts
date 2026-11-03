@@ -2,6 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { aplContentHash, parseAplCommand, projectAplPlan, type AplPlan, type AplReadReply, type AplCommandReply } from '../lib/apl-plan';
 import { parseGymTimplan as parseAnyGymTimplan, isGymTimplanV2, type GymTimplanLegacy as GymTimplan } from '../lib/gym-timplan';
 import { parsePlanDecisionDetail } from '../lib/plan-decision';
+import { answerDiscard, discardPrompt } from './helpers/confirm-dialog';
 
 // Simulated HTTP only: actual shell, parsers, journal, editor and navigation. No actual Worker/DB/IdP evidence.
 const id = (n: number) => `5a170000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -195,16 +196,37 @@ test('term planeras först och datum preciseras senare; tangentbord och mobilfä
   await editor(page).getByRole('button', { name: 'Granska ändringar' }).scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath('apl-allocation-viewport.png') }); await save(page); await expect(editor(page)).toContainText('APL-planen är sparad.'); expect(m.apl!.periods[0]).toMatchObject({ startsOn: '2027-08-16', endsOn: '2027-09-05', schoolYear: 2027 }); m.verify();
 });
 
+test('Lämna i frågan efter bakåt och framåt går till målet i historiken', async ({ page }) => {
+  await mock(page, { plan: planned() }); await page.goto(`${base}?vy=timplaner&planeringslasar=2027`);
+  const list = page.getByRole('region', { name: 'Alla timplaner', exact: true }), target = url();
+  await expect(list).toBeVisible();
+  await page.evaluate(next => { history.pushState(null, '', next); window.dispatchEvent(new PopStateEvent('popstate')); }, target);
+  await expect(editor(page).getByRole('button', { name: 'Planera APL' })).toBeEnabled(); await editName(page, 'Lämnas med bakåt');
+  await page.goBack(); await expect(discardPrompt(page)).toBeVisible();
+  // Adressen stämmer med vyn medan frågan är öppen.
+  expect(new URL(page.url()).searchParams.get('timplan')).toBe(id(1));
+  await discardPrompt(page).getByRole('button', { name: 'Lämna ändringarna', exact: true }).click();
+  await expect(list).toBeVisible(); await expect(discardPrompt(page)).toHaveCount(0); expect(new URL(page.url()).searchParams.get('timplan')).toBeNull();
+  await page.goForward(); await expect(editor(page).getByRole('button', { name: 'Planera APL' })).toBeEnabled(); await editName(page, 'Lämnas med framåt');
+  await page.goBack(); await discardPrompt(page).getByRole('button', { name: 'Stanna kvar', exact: true }).click();
+  await expect(editor(page).getByLabel('Periodens namn')).toHaveValue('Lämnas med framåt');
+  await page.evaluate(() => { history.back(); }); await expect(discardPrompt(page)).toBeVisible();
+  // Bakåt under en öppen fråga ändrar varken frågan eller adressen.
+  await page.evaluate(() => { history.back(); }); await expect(discardPrompt(page)).toBeVisible();
+  await expect.poll(() => new URL(page.url()).searchParams.get('timplan')).toBe(id(1));
+  await discardPrompt(page).getByRole('button', { name: 'Lämna ändringarna', exact: true }).click(); await expect(list).toBeVisible();
+});
+
 test('osparad APL skyddas vid skolbyte, läsårsbyte och Tillbaka', async ({ page }) => {
   const m = await mock(page, { plan: planned() }); await page.goto(`${base}?vy=timplaner&planeringslasar=2027`);
-  await expect(page.getByRole('heading', { name: 'Timplaner för gymnasiet' })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Alla timplaner', exact: true })).toBeVisible();
   await page.evaluate(target => { history.pushState(null, '', target); window.dispatchEvent(new PopStateEvent('popstate')); }, url());
   await expect(editor(page).getByRole('button', { name: 'Planera APL' })).toBeEnabled(); await editName(page, 'Behåll mitt utkast');
-  page.on('dialog', dialog => dialog.dismiss()); await page.getByRole('combobox', { name: 'Planeringsskola' }).selectOption(id(13)); await expect(page.getByRole('combobox', { name: 'Planeringsskola' })).toHaveValue(id(3));
-  await page.getByRole('combobox', { name: 'Planeringsläsår' }).selectOption('2028'); await expect(page.getByRole('combobox', { name: 'Planeringsläsår' })).toHaveValue('2027');
-  await page.goBack(); await expect(editor(page).getByLabel('Periodens namn')).toHaveValue('Behåll mitt utkast'); expect(new URL(page.url()).searchParams.get('timplan')).toBe(id(1));
-  page.removeAllListeners('dialog'); await editor(page).getByRole('button', { name: 'Avbryt ändringar' }).click(); await page.getByRole('combobox', { name: 'Planeringsskola' }).selectOption(id(13));
-  await expect(page.getByRole('heading', { name: 'Timplaner för gymnasiet' })).toBeVisible(); expect(new URL(page.url()).searchParams.get('planeringsskola')).toBe(id(13)); expect(m.commands).toEqual([]); m.verify();
+  await answerDiscard(page, false, () => page.getByRole('combobox', { name: 'Planeringsskola' }).selectOption(id(13))); await expect(page.getByRole('combobox', { name: 'Planeringsskola' })).toHaveValue(id(3));
+  await answerDiscard(page, false, () => page.getByRole('combobox', { name: 'Planeringsläsår' }).selectOption('2028')); await expect(page.getByRole('combobox', { name: 'Planeringsläsår' })).toHaveValue('2027');
+  await answerDiscard(page, false, () => page.goBack()); await expect(editor(page).getByLabel('Periodens namn')).toHaveValue('Behåll mitt utkast'); expect(new URL(page.url()).searchParams.get('timplan')).toBe(id(1));
+  await editor(page).getByRole('button', { name: 'Avbryt ändringar' }).click(); await page.getByRole('combobox', { name: 'Planeringsskola' }).selectOption(id(13));
+  await expect(discardPrompt(page)).toHaveCount(0); await expect.poll(() => new URL(page.url()).searchParams.get('planeringsskola')).toBe(id(13)); expect(m.commands).toEqual([]); m.verify();
 });
 
 test('pågående sparning spärrar skolbyte och läsår tills både APL och timplan har återlästs', async ({ page }) => {

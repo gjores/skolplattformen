@@ -2,6 +2,7 @@
 import { test, expect, type Page, type Locator } from '@playwright/test';
 import { createElectivePreparationRef, parseElectivePreparationCommand, type ElectivePreparationCommand, type ElectivePreparationReply } from '../lib/elective-preparation';
 import { read, grRead, journal, pid } from './fixtures/elective-preparation-data';
+import { answerConfirm, answerDiscard } from './helpers/confirm-dialog';
 const URL = '/e2e/fixtures/elective-preparation-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
 async function mock(page: Page, initial = read()) {
@@ -113,7 +114,7 @@ test('nyare sparad förberedelse får inte skrivas över av gammalt utkast', asy
   const m = await mock(page); await page.goto(URL); await prepare(page); await save(page); await page.getByRole('textbox', { name: 'Namn på kursval 1', exact: true }).fill('Lokalt osparat');
   m.state.preparation!.revision = 2; m.state.preparation!.draft.frames[0].slots[0].name = 'Annan användares namn'; m.reject = { status: 409, code: 'conflict' };
   await page.getByRole('button', { name: 'Spara förberedelse', exact: true }).click(); await page.getByRole('button', { name: 'Hämta aktuellt underlag', exact: true }).click(); await expect(page.getByRole('textbox', { name: 'Namn på kursval 1', exact: true })).toHaveValue('Lokalt osparat'); await expect(page.getByRole('button', { name: 'Spara förberedelse', exact: true })).toBeDisabled();
-  page.once('dialog', d => d.accept()); await page.getByRole('button', { name: 'Öppna sparad förberedelse', exact: true }).click(); await expect(page.getByRole('textbox', { name: 'Namn på kursval 1', exact: true })).toHaveValue('Annan användares namn');
+  await answerDiscard(page, true, () => page.getByRole('button', { name: 'Öppna sparad förberedelse', exact: true }).click()); await expect(page.getByRole('textbox', { name: 'Namn på kursval 1', exact: true })).toHaveValue('Annan användares namn');
 });
 
 test('grundskolans verifierade källa ger ett språkval utan gymnasiepoäng', async ({ page }) => {
@@ -151,7 +152,7 @@ test('utbudsåteranvändning bevarar redan valda alternativ och dubbletter undvi
 
 test('status utan träff kräver uttryckligt återställningsval före ny begäran', async ({ page }) => {
   const m = await mock(page); m.lose = true; m.statusNotFound = true; await page.goto(URL); await prepare(page); await page.getByRole('button', { name: 'Spara förberedelse', exact: true }).click(); await page.getByRole('button', { name: 'Kontrollera sparstatus', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Spara förberedelse', exact: true })).toBeDisabled(); page.once('dialog', d => d.accept()); await page.getByRole('button', { name: 'Glöm lokal sparreferens och hämta underlag', exact: true }).click(); await expect(page.getByRole('button', { name: 'Spara förberedelse', exact: true })).toBeEnabled(); expect(m.writes).toHaveLength(1);
+  await expect(page.getByRole('button', { name: 'Spara förberedelse', exact: true })).toBeDisabled(); await answerConfirm(page, 'Glöm sparreferensen', 'Glöm och hämta underlag', () => page.getByRole('button', { name: 'Glöm lokal sparreferens och hämta underlag', exact: true }).click()); await expect(page.getByRole('button', { name: 'Spara förberedelse', exact: true })).toBeEnabled(); expect(m.writes).toHaveLength(1);
 });
 
 test('felaktig lokal referens spärrar innan nytt skrivande', async ({ page }) => {
@@ -199,7 +200,7 @@ test('launcher går till bemanning med ett enda klick efter bekräftat skapande'
 });
 
 test('Tillbaka genom launcher kräver exakt en bekräftelse för osparat utkast', async ({page}) => {
-  await mock(page); await page.goto(URL+'?launcher=1'); await page.getByRole('button',{name:'Förbered valbara block',exact:true}).click(); await page.getByRole('checkbox',{name:/Förbered Moderna språk/}).check(); let confirmations=0; page.on('dialog',d=>{confirmations++;void d.accept();}); await page.getByRole('button',{name:'Tillbaka',exact:true}).click(); await expect(page.getByRole('button',{name:'Förbered valbara block',exact:true})).toBeVisible(); expect(confirmations).toBe(1);
+  await mock(page); await page.goto(URL+'?launcher=1'); await page.getByRole('button',{name:'Förbered valbara block',exact:true}).click(); await page.getByRole('checkbox',{name:/Förbered Moderna språk/}).check(); await answerDiscard(page,true,()=>page.getByRole('button',{name:'Tillbaka',exact:true}).click()); await expect(page.getByRole('button',{name:'Förbered valbara block',exact:true})).toBeVisible();
 });
 
 test('direkt timplansavsikt fungerar före klasser och förväljer sin ram', async ({page}) => {
