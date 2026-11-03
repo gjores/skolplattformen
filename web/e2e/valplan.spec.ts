@@ -104,6 +104,22 @@ test('osparade ändringar skyddas vid byte av vy', async ({ page }) => {
   await expect(page.getByLabel('Namn', { exact: true })).toBeVisible();
 });
 
+test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  const dialogs: string[] = []; page.on('dialog', dialog => { dialogs.push(dialog.message()); void dialog.dismiss(); });
+  const group = page.getByRole('group', { name: 'Ny valplan' });
+  await group.getByRole('button', { name: 'Individuellt val' }).click();
+  await group.getByRole('button', { name: 'Moderna språk' }).click();
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Moderna språk 2027/28');
+  expect(dialogs).toHaveLength(0);
+  await createIv(page);
+  await page.getByRole('button', { name: 'Släng utkastet' }).click();
+  await expect(page.getByText('Välj en valplan eller skapa en ny.')).toBeVisible();
+  await page.getByRole('button', { name: 'Till annan vy' }).click();
+  await expect(page.getByText('Annan arbetsyta öppnad')).toBeVisible();
+  expect(dialogs).toHaveLength(0);
+});
+
 test('öppna en befintlig valplan direkt från timplanen', async ({ page }) => {
   await mock(page); await page.goto(`${URL}?open=${id(99)}`);
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('IV för EK');

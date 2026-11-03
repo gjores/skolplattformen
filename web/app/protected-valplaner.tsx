@@ -69,8 +69,10 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false);
   const [adding, setAdding] = useState(false), [language, setLanguage] = useState(''), [tried, setTried] = useState(false);
   const [pending, setPending] = useState<ValplanCommand | null>(null), [uncertain, setUncertain] = useState(false);
+  // A new plan is compared with its untouched start, so merely opening one does not block navigation.
+  const [start, setStart] = useState<Valplan | null>(null);
   const saved = data?.valplans.find(v => v.valplan.id === draft?.id)?.valplan ?? null;
-  const dirty = !!draft && (!saved || JSON.stringify(withTime(draft, time)) !== JSON.stringify(saved));
+  const dirty = !!draft && JSON.stringify(withTime(draft, time)) !== JSON.stringify(saved ?? start);
   useUnsavedChanges(`valplan-${unitId}-${schoolYear}`, dirty || busy);
 
   async function load(): Promise<ValplanRead | null> {
@@ -79,7 +81,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
     catch (caught) { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); return null; }
   }
 
-  function open(plan: Valplan) { setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
+  function open(plan: Valplan) { setStart(null); setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
   const acceptInitial = useEffectEvent((value: ValplanRead) => { setData(value); const first = value.valplans.find(v => v.valplan.id === initialValplanId); if (first) open(first.valplan); });
   const initialFailure = useEffectEvent((caught: unknown) => { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); });
   useEffect(() => {
@@ -91,8 +93,9 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
   function create(kind: ValplanKind) {
     if (dirty && !confirmDiscard()) return;
     const plan: Valplan = { id: newId(), unitId, schoolYear, kind, name: `${VALPLAN_KIND_LABEL[kind]} ${planningYearLabel(schoolYear)}`, revision: 1, courses: [], rows: [] };
-    setSelected(plan.id); setDraft(plan); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true);
+    setStart(plan); setSelected(plan.id); setDraft(structuredClone(plan)); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true); setUncertain(false); setPending(null);
   }
+  function discardNew() { setStart(null); setSelected(null); setDraft(null); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(false); setPending(null); }
   const update = (change: (plan: Valplan) => Valplan) => { setDraft(value => value && change(structuredClone(value))); setNotice(null); };
 
   const rows = useMemo(() => data?.rows.filter(r => r.blockKind === draft?.kind) ?? [], [data, draft?.kind]);
@@ -222,6 +225,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
             {uncertain && pending ? <Button disabled={busy} onClick={() => void send(pending)}>Kontrollera sparstatus</Button>
               : <Button disabled={busy || !dirty} onClick={save}>{busy ? 'Sparar…' : 'Spara valplan'}</Button>}
             {saved && dirty && <Button variant="outline" disabled={busy} onClick={() => open(saved)}>Ångra ändringar</Button>}
+            {!saved && !uncertain && <Button variant="outline" disabled={busy} onClick={discardNew}>Släng utkastet</Button>}
             {error && !uncertain && <Button variant="outline" disabled={busy} onClick={() => void refresh()}>Hämta aktuellt läge</Button>}
           </div>
         </div>
