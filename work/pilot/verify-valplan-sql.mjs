@@ -24,6 +24,14 @@ try{
   const ivRows=r0.result.rows.filter(r=>r.rowKey==='block:iv1');assert.equal(ivRows.length,2);
   for(const r of ivRows){assert.equal(r.year,1);assert.equal(r.points,200);assert.equal(r.minutesHt,5400);assert.equal(r.minutesVt,5400);assert.equal(r.blockKind,'individualChoice');assert.equal(r.linkedValplanId,null);assert.equal(r.classIds.length,1);}
   assert.deepEqual(ivRows.flatMap(r=>r.classIds).sort(),[classA,classB].sort());check('read lists IV rows of both approved timplaner with year points, school minutes and real classes');
+  // Plans without time model v2 keep hours per term in timplan_cells: 88 year hours become 44 + 44, as in tjänstefördelningen.
+  const legacyPlan=ivRows[0].timplanId,noTime=Symbol();
+  await tx.savepoint(async t=>{await t`set local session_replication_role=replica`;await t`delete from public.timplan_time_cells_v2 where plan_id=${legacyPlan}`;await t`delete from public.timplan_time_models where plan_id=${legacyPlan}`;
+   await t`insert into public.timplan_cells(timplan_id,row_id,hours,allocated) values(${legacyPlan},'block:iv1','{50,38,0,0,0,0}','{true,true,false,false,false,false}') on conflict(timplan_id,row_id) do update set hours=excluded.hours,allocated=excluded.allocated`;
+   let row=(await read(t)).result.rows.find(r=>r.timplanId===legacyPlan&&r.rowKey==='block:iv1');assert.deepEqual([row.minutesHt,row.minutesVt],[2640,2640]);
+   await t`update public.timplan_cells set allocated='{false,false,false,false,false,false}' where timplan_id=${legacyPlan} and row_id='block:iv1'`;
+   row=(await read(t)).result.rows.find(r=>r.timplanId===legacyPlan&&r.rowKey==='block:iv1');assert.deepEqual([row.minutesHt,row.minutesVt],[null,null]);throw noTime;}).catch(e=>{if(e!==noTime)throw e;});
+  check('rows of plans without time model v2 read hours split evenly, and stay unknown when no time is allocated');
   const link=r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year});
   const psyl=course('PSYL','PSYL1000X',50),fils=course('FILS','FILS1000X',50),reto=course('RETO','RETO1000X',100,{classIds:[classA]});
   const valplan={id:randomUUID(),unitId,schoolYear,kind:'individualChoice',name:'Individuellt val',revision:1,courses:[psyl,fils,reto],rows:ivRows.map(link)};

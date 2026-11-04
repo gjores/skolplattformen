@@ -131,6 +131,12 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
   return out;
 }
 
+/** Suggested course time, pro rata from a linked row. Zero when the row has no time; the school adjusts it. */
+export function valplanTimeShare(points: number, row: Pick<ValplanRowContext, 'points' | 'minutesHt' | 'minutesVt'> | undefined) {
+  const share = (minutes: number | null | undefined) => row?.points && minutes != null ? Math.round(minutes * points / row.points) : 0;
+  return { minutesHt: share(row?.minutesHt), minutesVt: share(row?.minutesVt) };
+}
+
 /** What a pupil in the class may choose: the linked row decides the points for this year. */
 export function valplanOffer(plan: Valplan, rows: readonly ValplanRowContext[], classId: string): ValplanOffer | null {
   const keys = new Set(plan.rows.map(valplanRowKey));

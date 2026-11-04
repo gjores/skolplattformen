@@ -9,7 +9,7 @@ import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanDiagnostics, valplanRowKey, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
+import { valplanDiagnostics, valplanRowKey, valplanTimeShare, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -43,6 +43,7 @@ const newId = () => crypto.randomUUID();
 const hours = (minutes: number | null) => minutes === null ? 'Tid okänd' : formatTime(minutes);
 const levelLabel = (level: CatalogLevel) => `${level.subjectName} – ${level.itemName.toLocaleLowerCase('sv')}`;
 type TimeText = Record<string, { ht: string; vt: string }>;
+const noTime = (text = '') => { const value = parseTimplanMinuteInput(text); return value === 0 || value === null; };
 function texts(plan: Valplan): TimeText { return Object.fromEntries(plan.courses.map(c => [c.id, { ht: formatTimplanMinutes(c.minutesHt), vt: formatTimplanMinutes(c.minutesVt) }])); }
 function message(error: unknown): string {
   if (error instanceof ApiError) {
@@ -111,15 +112,16 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
     if (!draft) return;
     const lang = MODERN.has(level.subjectCode) ? language || null : null;
     if (MODERN.has(level.subjectCode) && !lang) { setError('Välj språk innan du lägger till en kurs i moderna språk.'); return; }
-    // Suggest time pro rata from the first linked row; the school adjusts it.
-    const row = linkedRows[0], share = (m: number | null) => row && m !== null && row.points ? Math.round(m * level.points / row.points) : 0;
+    // Suggest time from the first linked row; the school adjusts it.
     const course: ValplanCourse = { id: newId(), subjectCode: level.subjectCode, subjectVersion: level.subjectVersion, itemCode: level.itemCode, points: level.points, languageCode: lang,
-      name: `${levelLabel(level)}${lang ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, minutesHt: share(row?.minutesHt ?? null), minutesVt: share(row?.minutesVt ?? null), classIds: null };
+      name: `${levelLabel(level)}${lang ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, ...valplanTimeShare(level.points, linkedRows[0]), classIds: null };
     update(p => ({ ...p, courses: [...p.courses, course] }));
     setTime(t => ({ ...t, [course.id]: { ht: formatTimplanMinutes(course.minutesHt), vt: formatTimplanMinutes(course.minutesVt) } })); setError(null);
   }
   function toggleRow(row: ValplanRowOption, on: boolean) {
     update(p => ({ ...p, rows: on ? [...p.rows, { timplanId: row.timplanId, timplanVersion: row.timplanVersion, rowKey: row.rowKey, year: row.year }] : p.rows.filter(l => valplanRowKey(l) !== valplanRowKey(row)) }));
+    // Courses added before the row get its time now; entered time is never replaced.
+    if (on) setTime(t => { const next = { ...t }; for (const c of draft?.courses ?? []) { const { minutesHt, minutesVt } = valplanTimeShare(c.points, row); if (minutesHt + minutesVt > 0 && noTime(t[c.id]?.ht) && noTime(t[c.id]?.vt)) next[c.id] = { ht: formatTimplanMinutes(minutesHt), vt: formatTimplanMinutes(minutesVt) }; } return next; });
   }
   function toggleClass(course: ValplanCourse, classId: string, on: boolean) {
     const all = linkedClasses.map(c => c.id), current = course.classIds ?? all, next = on ? [...current, classId] : current.filter(id => id !== classId);

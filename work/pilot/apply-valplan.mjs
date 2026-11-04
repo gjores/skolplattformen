@@ -14,14 +14,14 @@ const root=fileURLToPath(new URL('../../',import.meta.url)),prefix='supabase/mig
 export const VALPLAN_MIGRATIONS=['20261104100000_valplans.sql','20261104110000_study_groups.sql'].map(p=>prefix+p);
 const NEW_TABLES=11,ENTRYPOINTS=['valplan_read(jsonb)','valplan_command(jsonb)','study_group_read(jsonb)','study_group_command(jsonb)'];
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
-const privatePath=value=>{const p=resolve(value);assert.ok(p.startsWith('/private/tmp/')&&p.endsWith('.json'),'private_json_required');return p;};
-function evidence(value){const p=privatePath(value);assert.equal(realpathSync(p),p);const stat=lstatSync(p);assert.ok(stat.isFile()&&(stat.mode&0o077)===0&&stat.size<64*1024*1024);const bytes=readFileSync(p);return{path:p,sha256:sha(bytes),value:JSON.parse(bytes)};}
+export const privatePath=value=>{const p=resolve(value);assert.ok(p.startsWith('/private/tmp/')&&p.endsWith('.json'),'private_json_required');return p;};
+export function evidence(value){const p=privatePath(value);assert.equal(realpathSync(p),p);const stat=lstatSync(p);assert.ok(stat.isFile()&&(stat.mode&0o077)===0&&stat.size<64*1024*1024);const bytes=readFileSync(p);return{path:p,sha256:sha(bytes),value:JSON.parse(bytes)};}
 export function valplanSourceSnapshot(){
  const files=readdirSync(resolve(root,prefix)).filter(p=>/^\d{14}_[a-z0-9_]+\.sql$/u.test(p)).sort().map(p=>prefix+p);
  assert.deepEqual(files.filter(p=>version(p)>='20261030110000'),[...ELECTIVE_MIGRATIONS,...VALPLAN_MIGRATIONS],'unexpected_migration_suffix');
  return Object.fromEntries(files.map(p=>{const sql=readFileSync(resolve(root,p),'utf8');return[p,{sha256:sha(sql),sql}];}));
 }
-const hashes=sources=>Object.fromEntries(Object.entries(sources).map(([p,v])=>[p,v.sha256]));
+export const hashes=sources=>Object.fromEntries(Object.entries(sources).map(([p,v])=>[p,v.sha256]));
 export function installerSources(){return Object.fromEntries(['work/pilot/apply-valplan.mjs','work/pilot/apply-elective-blocks.mjs','work/pilot/apply-tjanst.mjs','work/pilot/verify-class-cohort.mjs','work/pilot/verify-target.mjs','work/pilot/named-timplan-snapshot.mjs'].map(p=>[p,sha(readFileSync(resolve(root,p)))]));}
 /** The installed journal must end with the elective package, byte-identical to the sources, and lack both new versions. */
 export function validateValplanJournal(rows,sources){
@@ -35,7 +35,7 @@ export function parseValplanArgs(args){
  for(let i=1;i<args.length;i+=2){const key=args[i];assert.ok(['--rehearsal','--out'].includes(key)&&args[i+1]&&!Object.hasOwn(out,key.slice(2)),'unknown_or_duplicate_argument');out[key.slice(2)]=privatePath(args[i+1]);}
  assert.ok(out.out,'output_required');assert.equal(!!out.rehearsal,out.mode==='apply','rehearsal_evidence_only_for_apply');assert.notEqual(out.rehearsal,out.out);return out;
 }
-async function entrypointPrivileges(tx){
+export async function entrypointPrivileges(tx){
  for(const fn of ENTRYPOINTS){const sig='public.'+fn;
   assert.equal((await tx`select has_function_privilege('skolplattform_worker',${sig},'EXECUTE') ok`)[0].ok,true,'worker_entrypoint_missing');
   for(const role of ['anon','authenticated'])assert.equal((await tx`select has_function_privilege(${role},${sig},'EXECUTE') ok`)[0].ok,false,'entrypoint_too_open');}

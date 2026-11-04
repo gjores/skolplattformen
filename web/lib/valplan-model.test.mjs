@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey} from './valplan-model.ts';
+import {parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanTimeShare} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -107,4 +107,10 @@ test('choice must fill the row points exactly; time deviation is a notice',()=>{
   const restricted=plan();restricted.courses[2].classIds=[cC];const rp=parseValplan(restricted);
   assert.deepEqual(validateValplanChoice(rp,valplanOffer(rp,rows(),cA),[ret]).errors,['course_not_offered']);
   assert.deepEqual(validateValplanChoice(p,offer,[]).errors,['choice_points_mismatch']);
+});
+
+test('tidsförslag följer radens poäng och blir noll när raden saknar tid', () => {
+  assert.deepEqual(valplanTimeShare(50, { points: 100, minutesHt: 2640, minutesVt: 2640 }), { minutesHt: 1320, minutesVt: 1320 });
+  assert.deepEqual(valplanTimeShare(100, { points: 100, minutesHt: null, minutesVt: null }), { minutesHt: 0, minutesVt: 0 });
+  assert.deepEqual(valplanTimeShare(100, undefined), { minutesHt: 0, minutesVt: 0 });
 });

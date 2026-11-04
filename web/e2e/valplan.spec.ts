@@ -123,6 +123,21 @@ test('frågan om osparat besvaras med tangentbord och fungerar på telefon', asy
   await expect(page.getByText('Annan arbetsyta öppnad')).toBeVisible();
 });
 
+test('kurs som läggs till före timplansraden får radens tid, och inskriven tid står kvar', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  await page.getByRole('group', { name: 'Ny valplan' }).getByRole('button', { name: 'Individuellt val' }).click();
+  for (const code of ['PSYL1000X', 'FILS1000X']) {
+    await page.getByLabel('Sök kurs att lägga till').fill(code);
+    await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
+  }
+  const psyHt = page.getByRole('textbox', { name: /Psykologi – nivå 1, HT timmar/ }), filHt = page.getByRole('textbox', { name: /Filosofi – nivå 1, HT timmar/ });
+  await expect(psyHt).toHaveValue('0');
+  await filHt.fill('10');
+  await page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ }).check();
+  await expect(psyHt).toHaveValue('22:30');
+  await expect(filHt).toHaveValue('10');
+});
+
 test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
   await mock(page); await page.goto(URL);
   const dialogs: string[] = []; await autoAnswerDiscard(page, false, dialogs);
