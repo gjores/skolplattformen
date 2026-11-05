@@ -13,9 +13,11 @@ import '../../app/tjanst.css';
 import '../../app/elective-blocks.css';
 
 const HASH = `sha256:${'4a'.repeat(32)}`, year = 2026;
-const group: TjanstTeachingGroup = { sourceKind: 'teaching_group', sourceKey: `teaching_group:${eid(13)}:${year}`, rowKey: `group:${eid(13)}`, label: 'Moderna språk – Nivå 1',
+const electiveGroup: TjanstTeachingGroup = { sourceKind: 'teaching_group', sourceKey: `teaching_group:${eid(13)}:${year}`, rowKey: `group:${eid(13)}`, label: 'Moderna språk – Nivå 1',
   name: 'Spanska gemensam', groupId: eid(13), blockId: eid(10), optionId: eid(11), subjectCode: 'MODO', levelCode: 'MODO1000X', language: 'es', groupRevision: 1,
   classIds: [eid(2), eid(5)], sourceRefs: [source(), { ...source(), classId: eid(5), className: 'NA26', sourceKey: `class_timplan:${eid(5)}:${year}:block:mosp`, frameSourceKey: `class_timplan:${eid(5)}:${year}:block:mosp` }], needHt: 2700, needVt: 2700, needBasis: 'terms', stale: false };
+// A common group has no block, sources or fixed course, and carries its classes by id.
+const group: TjanstTeachingGroup = new URLSearchParams(location.search).has('study') ? { ...electiveGroup, sourceKind: 'study_group', sourceKey: `study_group:${eid(13)}:${year}`, blockId: null, optionId: null, subjectCode: null, levelCode: null, language: null, sourceRefs: [] } : electiveGroup;
 const version: TjanstVersion = { id: eid(70), versionNo: 1, status: 'draft', contentHash: HASH, basedOnVersionId: null, publishedAt: null, publishedByName: null };
 const teachers = [{ personId: eid(80), displayName: 'Anna Prov', draft: false, shareHere: null }, { personId: eid(81), displayName: 'Bertil Prov', draft: false, shareHere: null }];
 const initial: TjanstPlanRead = { contractVersion: 'tjanst_v1', unitId: eid(1), schoolName: 'Provskolan', schoolYear: year, revision: 1, version, versions: [version], teachers,
@@ -32,7 +34,7 @@ function Preview() {
     const candidates = teachers.map((teacher, index) => ({ ...teacher, duties: [{ dutyId: eid(90 + index), startsOn: '2026-07-01', endsOn: '2027-06-30', percent: 100 }], qualificationStatus: 'unknown' as const, personBasisHash: HASH }));
     if (request.mode !== 'row') return { ...base, mode: 'catalog', candidates, totalCandidates: candidates.length };
     return { ...base, mode: 'row', sourceKey: request.sourceKey, rowId: request.rowId,
-      need: { sourceKind: 'teaching_group', sourceKey: group.sourceKey, rowKey: group.rowKey, label: group.label, classId: null, className: group.name, groupId: group.groupId, classIds: group.classIds, needHt: group.needHt, needVt: group.needVt, needBasis: group.needBasis },
+      need: { sourceKind: group.sourceKind, sourceKey: group.sourceKey, rowKey: group.rowKey, label: group.label, classId: null, className: group.name, groupId: group.groupId, classIds: group.classIds, needHt: group.needHt, needVt: group.needVt, needBasis: group.needBasis },
       currentRow: d.rows.find(row => row.id === request.rowId) ?? null, candidates, totalCandidates: candidates.length, recommendationStatus: 'empty', suggestions: [] };
   }
   async function save(change: TjanstPreparedChange, accepted?: (next: TjanstPlanRead) => void) {
@@ -42,7 +44,7 @@ function Preview() {
     if (change.action === 'save_row') {
       const p = change.payload, request: TjanstYearRequest = { unitId: d.unitId, schoolYear: d.schoolYear, mode: 'row', sourceKey: p.sourceKey, rowId: p.rowId };
       assertYearRowContext(p, support(request) as TjanstYearRowReply);
-      const row: TjanstRow = { id: p.rowId ?? crypto.randomUUID(), lineageId: eid(95), sourceKind: 'teaching_group', sourceKey: p.sourceKey, rowKey: group.rowKey, classId: null,
+      const row: TjanstRow = { id: p.rowId ?? crypto.randomUUID(), lineageId: eid(95), sourceKind: group.sourceKind, sourceKey: p.sourceKey, rowKey: group.rowKey, classId: null,
         groupId: group.groupId, classIds: group.classIds, sourceRefs: group.sourceRefs, groupRevision: group.groupRevision, personId: p.personId, teacherHt: p.teacherHt, teacherVt: p.teacherVt,
         needHt: group.needHt, needVt: group.needVt, needBasis: group.needBasis, stale: false, jointGroupId: null, comment: p.comment };
       next.rows = [...next.rows.filter(item => item.id !== row.id), row];

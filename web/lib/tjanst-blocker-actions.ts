@@ -8,7 +8,8 @@ export type BlockerTarget =
   | { kind: 'allocation'; label: string }
   | { kind: 'teachers'; label: string }
   | { kind: 'review'; label: string }
-  | { kind: 'elective_blocks'; label: string };
+  | { kind: 'elective_blocks'; label: string }
+  | { kind: 'study_groups'; label: string };
 export type BlockerActions = { targets: BlockerTarget[]; guidance: string };
 
 const review = (): BlockerTarget => ({ kind: 'review', label: 'Samlad granskning' });
@@ -22,7 +23,7 @@ const targetKey = (target: BlockerTarget): string => target.kind === 'row' ? `ro
  */
 export function blockerActions(data: TjanstPlanRead, code: string): BlockerActions {
   if (!data.blockers.some(blocker => blocker.code === code)) return { targets: [], guidance: '' };
-  if (code === 'organization_pending' || code === 'group_sources_changed') return { targets: [{ kind: 'elective_blocks', label: 'Valbara block' }], guidance: code === 'organization_pending' ? 'Organisera återstående timplansutrymmen i undervisningsgrupper och tillämpa dem.' : 'Granska timplansunderlaget för blockets grupper och tillämpa den aktuella organisationen.' };
+  if (code === 'organization_pending' || code === 'group_sources_changed') return code === 'organization_pending' ? { targets: [{ kind: 'elective_blocks', label: 'Valplaner' }], guidance: 'Skapa undervisningsgrupper för valplanen, från elevvalet eller under Undervisningsgrupper.' } : { targets: [{ kind: 'study_groups', label: 'Undervisningsgrupper' }], guidance: 'Granska grupperna och spara dem på nytt.' };
   const needs = new Map(data.classes.flatMap(cls => cls.needs.map(need => [need.sourceKey, { cls, need }] as const)));
   const rowsBySource = new Map<string, TjanstRow[]>(), rowsByJoint = new Map<string, TjanstRow[]>();
   for (const row of data.rows) {
@@ -55,7 +56,7 @@ export function blockerActions(data: TjanstPlanRead, code: string): BlockerActio
       break;
     case 'stale_rows':
       for (const row of data.rows.filter(value => value.stale)) {
-        if (row.sourceKind !== 'class_timplan' && data.groups?.some(group => group.sourceKey === row.sourceKey)) { targets.push({ kind: 'elective_blocks', label: 'Valbara block' }); continue; }
+        if (row.sourceKind !== 'class_timplan' && data.groups?.some(group => group.sourceKey === row.sourceKey)) { targets.push({ kind: 'study_groups', label: 'Undervisningsgrupper' }); continue; }
         const source = needs.get(row.sourceKey);
         if (!source || source.cls.classId !== row.classId || row.jointGroupId !== null) { unresolved = true; continue; }
         const person = row.personId === null ? 'Vakant' : data.teachers.find(teacher => teacher.personId === row.personId)?.displayName ?? 'Tilldelning';

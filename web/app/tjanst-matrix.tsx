@@ -175,7 +175,7 @@ export default function TjanstMatrix({ data, groups, teachers, term, editable, o
                 {content}{!row && <Plus size={16} aria-hidden="true" className="tjanst-plus"/>}</button> : row ? <span className="tjanst-cell-text" aria-label={label}>{content}</span> : null}</td>;
             };
             return <tr key={e.need.sourceKey} data-need-row={e.need.sourceKey}>
-              <th scope="row" className="tjanst-first">{e.need.organizationPending && <Button variant="ghost" onClick={()=>onPrepareNeed ? onPrepareNeed(e.need) : onOpenElectiveBlocks?.()}>Förbered valbara block</Button>}<div className="tjanst-need-heading">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
+              <th scope="row" className="tjanst-first">{e.need.organizationPending && <Button variant="ghost" onClick={()=>onPrepareNeed ? onPrepareNeed(e.need) : onOpenElectiveBlocks?.()}>Öppna Valplaner</Button>}<div className="tjanst-need-heading">{onOpenCourse ? <button type="button" className="tjanst-course tjanst-linklike" aria-describedby={`${hintId}-course`} onClick={() => onOpenCourse(courseCode(e.need))}>{e.need.label}</button>
                 : <span className="tjanst-course">{e.need.label}</span>}
                 {joined && (() => { const j = e.rows.map(x => jointOf(x, data.joints)).find(Boolean) ?? null, mixed = e.rows.some(x => { const jj = jointOf(x, data.joints); return !!jj && jointHasMixedTeachers(jj, data.rows); });
                   const content = mixed ? <><TriangleAlert size={16} aria-hidden="true"/>Samläsning · olika lärare</> : <><Link2 size={16} aria-hidden="true"/>Samläsning</>;

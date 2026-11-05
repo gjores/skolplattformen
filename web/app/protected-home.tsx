@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import ProtectedElectiveBlocks from './protected-elective-blocks';
 import ProtectedValplaner from './protected-valplaner';
+import ProtectedStudyGroups from './protected-study-groups';
 import type {ElectivePreparationIntent} from '@/lib/elective-preparation-target.ts';
 import Link from 'next/link';
 import {
@@ -82,7 +83,7 @@ import TjanstPlanningArea, { type TjanstPlanningSelection } from './tjanst-plann
 import TjanstWorkspace from './tjanst-workspace';
 
 export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
-  | 'tjanst' | 'valplaner' | 'valbara' | 'elevval' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
+  | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'valbara' | 'elevval' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -133,7 +134,7 @@ function sessionScope(value: SessionResponse | null | 'loading'): string {
 function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
   if (isSelf(value)) return 'min-tjanst';
-  if ((requested === 'tjanst' || requested === 'valplaner' || requested === 'valbara' || requested === 'elevval') && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
+  if ((requested === 'tjanst' || requested === 'valplaner' || requested === 'undervisningsgrupper' || requested === 'valbara' || requested === 'elevval') && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
   if (requested === 'start' && PLANNING_FUNCTIONS.includes(role)) return 'start';
   if (requested === 'skolor' && role === 'huvudman' || requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
@@ -279,12 +280,12 @@ function ProtectedNavigation({
                 <ListChecks size={19}/><span>Valplaner</span>
               </SidebarMenuButton>
               <SidebarMenuSub><SidebarMenuSubItem>
-                <SidebarMenuSubButton href="?vy=elevval" className="min-h-11" isActive={view === 'elevval'} aria-current={view === 'elevval' ? 'page' : undefined}
+                <SidebarMenuSubButton href="?vy=undervisningsgrupper" className="min-h-11" isActive={view === 'undervisningsgrupper'} aria-current={view === 'undervisningsgrupper' ? 'page' : undefined}
                   onClick={event => {
                     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
                     event.preventDefault();
-                    go('elevval');
-                  }}>Elevval</SidebarMenuSubButton>
+                    go('undervisningsgrupper');
+                  }}>Undervisningsgrupper</SidebarMenuSubButton>
               </SidebarMenuSubItem></SidebarMenuSub>
             </SidebarMenuItem>}
             {TJANST_FUNCTIONS.includes(fn) && item('tjanst', 'Tjänstefördelning', <BriefcaseBusiness size={19}/>)}
@@ -756,7 +757,7 @@ function ProtectedShell() {
     if (sessionScope(sessionRef.current) !== contextKey) return;
     const prior = planningLocationRef.current ?? planningFor('timplaner');
     const next: PlanLocation = { ...prior, planning: { ...prior.planning, schoolYear: selection.schoolYear,
-      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'valbara' || viewRef.current === 'elevval') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
+      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper' || viewRef.current === 'valbara' || viewRef.current === 'elevval') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
   async function goToPreparedStaffing(target:{unitId:string;schoolYear:number}) {
@@ -822,7 +823,7 @@ function ProtectedShell() {
   const overview = isPlanningView(view) && planningLocation?.overview === true;
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
   const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
-    : view === 'elevval' ? 'Elevval' : view === 'valplaner' ? 'Valplaner' : view === 'valbara' ? 'Valbara block' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
+    : view === 'elevval' ? 'Elevval' : view === 'valplaner' ? 'Valplaner' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'valbara' ? 'Valbara block' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -892,10 +893,12 @@ function ProtectedShell() {
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
-                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={target => {setElectiveIntent(target?{key:contextKey,target}:null);void navigate('valbara');}} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={()=>void goToValplaner({unitId:selection.unitId!,schoolYear:selection.schoolYear,valplanId:null})} onOpenGroups={()=>void navigate('undervisningsgrupper')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'valplaner' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedValplaner key={`${contextKey}:${planNavigation}`} unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey}
-                initialValplanId={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.valplanId:null} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                initialValplanId={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.valplanId:null} onOpenGroups={()=>void navigate('undervisningsgrupper')} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+            {view === 'undervisningsgrupper' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedStudyGroups unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {(view === 'valbara' || view === 'elevval') && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedElectiveBlocks pupilChoicesOnly={view === 'elevval'} key={`${contextKey}:${planNavigation}`} unitId={selection.unitId} schoolYear={selection.schoolYear}
                 initialPreparation={view === 'valbara' && electiveIntent?.key===contextKey&&electiveIntent.target.unitId===selection.unitId&&electiveIntent.target.schoolYear===selection.schoolYear?electiveIntent.target:null} onPreparedTjanst={goToPreparedStaffing} onPreparedBlocks={goToPreparedBlocks} onPreparedTimplan={goToPreparedTimplan} onPreparationClosed={()=>setElectiveIntent(null)} preparationIdentityKey={JSON.stringify([session.context!.customerId,session.context!.membershipId,session.context!.assignmentId])} scopeKey={contextKey} contextEpoch={session.epoch} onSessionLost={clearSession} onTjanst={() => navigate('tjanst')} onOpenTimplans={() => navigate('timplaner')}/>}</TjanstPlanningArea>}

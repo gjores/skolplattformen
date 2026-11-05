@@ -7,7 +7,7 @@ export const STUDY_GROUP_ACTIONS = ['save_group', 'retire_group', 'add_members',
 export type StudyGroupAction = typeof STUDY_GROUP_ACTIONS[number];
 export type StudyGroupScope = { unitId: string; schoolYear: number };
 export type StudyGroupPupil = { id: string; name: string; classIds: string[] };
-export type StudyGroupRead = StudyGroupScope & { contractVersion: typeof STUDY_GROUP_CONTRACT_VERSION; groups: StudyGroup[]; memberships: StudyGroupMembership[]; pupils: StudyGroupPupil[] };
+export type StudyGroupRead = StudyGroupScope & { contractVersion: typeof STUDY_GROUP_CONTRACT_VERSION; groups: StudyGroup[]; memberships: StudyGroupMembership[]; pupils: StudyGroupPupil[]; classes: { id: string; name: string }[] };
 export type StudyGroupSave = Omit<StudyGroup, 'unitId' | 'schoolYear' | 'revision' | 'active'> & { expectedRevision: number };
 export type StudyGroupMemberInput = { pupilId: string; startsOn: string; endsOn: string; source: StudyGroupMemberSource; sourceRef: string | null };
 export type StudyGroupPayload =
@@ -49,7 +49,7 @@ export function parseStudyGroupScope(value: unknown): StudyGroupScope {
   return { unitId: uuid(r.unitId), schoolYear: integer(r.schoolYear, 2000, 2100) };
 }
 export function parseStudyGroupRead(value: unknown, scope: StudyGroupScope): StudyGroupRead {
-  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'groups', 'memberships', 'pupils']);
+  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'groups', 'memberships', 'pupils', 'classes']);
   if (r.contractVersion !== STUDY_GROUP_CONTRACT_VERSION || uuid(r.unitId) !== scope.unitId || r.schoolYear !== scope.schoolYear) bad();
   const groups = list(r.groups, 5000).map(parseStudyGroup), memberships = list(r.memberships, 100000).map(parseStudyGroupMembership);
   const ids = new Set(groups.map(g => g.id));
@@ -59,7 +59,12 @@ export function parseStudyGroupRead(value: unknown, scope: StudyGroupScope): Stu
     if (typeof x.name !== 'string' || !x.name.trim() || x.name.length > 240) bad();
     return { id: uuid(x.id), name: x.name, classIds: list(x.classIds, 100).map(uuid) };
   });
-  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, ...scope, groups, memberships, pupils };
+  const classes = list(r.classes, 5000).map(c => {
+    const x = shape(c, ['id', 'name']);
+    if (typeof x.name !== 'string' || !x.name.trim() || x.name.length > 240) bad();
+    return { id: uuid(x.id), name: x.name };
+  });
+  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, ...scope, groups, memberships, pupils, classes };
 }
 function parseSave(value: unknown): StudyGroupSave {
   const r = shape(value, ['id', 'expectedRevision', 'name', 'startsOn', 'endsOn', 'course', 'minutesHt', 'minutesVt', 'parallelSetId', 'classIds', 'origin']);

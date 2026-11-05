@@ -10,7 +10,7 @@ const scope={unitId:id(1),schoolYear:2026},ctx={identityId:id(3),assignmentId:id
 const group={id:id(10),unitId:scope.unitId,schoolYear:2026,name:'Psykologi A',startsOn:'2026-08-17',endsOn:'2027-06-11',course:{subjectCode:'PSYL',subjectVersion:3,itemCode:'PSYL1000X',points:50,languageCode:null},
   minutesHt:1350,minutesVt:1350,parallelSetId:id(11),classIds:[id(20)],origin:{kind:'manual'},revision:1,active:true};
 const membership={id:id(30),groupId:id(10),pupilId:id(40),startsOn:'2026-08-17',endsOn:'2027-06-11',source:'manual',sourceRef:null};
-const read=(extra={})=>({contractVersion:'study_group_v1',...scope,groups:[group],memberships:[membership],pupils:[{id:id(40),name:'Elev',classIds:[id(20)]}],...extra});
+const read=(extra={})=>({contractVersion:'study_group_v1',...scope,groups:[group],memberships:[membership],pupils:[{id:id(40),name:'Elev',classIds:[id(20)]}],classes:[{id:id(20),name:'SA26A'}],...extra});
 const wrap=result=>({contractVersion:'study_group_sql_v1',actor:{identityId:ctx.identityId,assignmentId:ctx.assignmentId},result});
 const command=(action,payload)=>parseStudyGroupCommand({contractVersion:'study_group_v1',commandId:id(6),action,...scope,payload});
 const {unitId:_u,schoolYear:_y,revision:_r,active:_a,...saveFields}=group;

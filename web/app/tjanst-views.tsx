@@ -50,7 +50,7 @@ export function TjanstClassView({ data, groups, classId, term, onClass, onOpenCl
         <div><dt>{hasTeachingGroups ? 'Fördelat på klassrader' : 'Fördelat'}</dt><dd>{formatTime(group.entries.reduce((sum, e) => sum + termValue(e.cov.covered, term), 0))}</dd></div>
         <div><dt>{hasTeachingGroups ? 'Täckning på klassrader' : 'Täckning'}</dt><dd>{hasTeachingGroups && !group.entries.length ? 'Se undervisningsgrupperna nedan' : classCoverage(group.entries, term, data.joints)}</dd></div>
       </dl>
-      {hasTeachingGroups && <p>Valbara undervisningsgrupper och deras bemanning visas nedan. De räknas på gruppnivå när elever kommer från flera klasser.</p>}
+      {hasTeachingGroups && <p>Undervisningsgrupper och deras bemanning visas nedan. De räknas på gruppnivå när elever kommer från flera klasser.</p>}
       {group.entries.length === 0 ? <p className="tjanst-empty-text">{hasTeachingGroups ? 'Klassens undervisning planeras i grupperna.' : 'Inga rader matchar filtret.'}</p> : <>
         <Table className="tjanst-table tjanst-wide"><TableHeader><TableRow>{['Kurs/ämne', 'Behov HT', 'Behov VT', 'Fördelat HT', 'Fördelat VT', 'Lärare', 'Avvikelse'].map((h, i) =>
           <TableHead scope="col" key={h} className={i > 0 && i < 5 || i === 6 ? 'tjanst-num' : undefined}>{h}</TableHead>)}</TableRow></TableHeader>

@@ -85,7 +85,7 @@ export function TjanstRowDialog(props: RowProps & { replaceTeacher?: boolean; ad
   const { open, checking, disabled, onClose, data, entry, support, onSave, onDelete } = props;
   const id = useId(), row = support.currentRow;
   const ownerName = 'cls' in entry ? entry.cls.name : entry.group.name;
-  const sourceHint = 'cls' in entry ? `${entry.cls.link?.seriesName ?? 'Timplan'} version ${entry.cls.link?.timplanVersion ?? ''}, ämnesrad ${support.need.label}` : entry.group.sourceRefs.map(source => `${source.className}: ${source.label}, version ${source.timplanVersion}`).join('; ');
+  const sourceHint = 'cls' in entry ? `${entry.cls.link?.seriesName ?? 'Timplan'} version ${entry.cls.link?.timplanVersion ?? ''}, ämnesrad ${support.need.label}` : entry.group.sourceRefs.map(source => `${source.className}: ${source.label}, version ${source.timplanVersion}`).join('; ') || `Undervisningsgrupp, ${entry.group.label}`;
   const editingTeacher = !!row && row.personId !== null;
   const [changingTeacher, setChangingTeacher] = useState(!!props.replaceTeacher && (props.target.personId === row?.personId || !support.candidates.some(p => p.personId === props.target.personId)));
   const own = row ? rowTime(row, data.joints) : { ht: 0, vt: 0 };

@@ -16,6 +16,13 @@ test('en gemensam grupp tilldelas en gång med ett klick och kan ångras på rad
   await expect(page.getByText('Tilldelningen är ångrad.', { exact: true })).toBeVisible();
   await expect(page.getByTestId('data')).toHaveText('[]');
 });
+test('en undervisningsgrupp från appen bemannas på samma sätt med egen källa', async ({ page }) => {
+  await page.goto(`${URL}?study`);
+  await page.getByRole('button', { name: /^Anna Prov, Spanska gemensam:/ }).click();
+  await expect(page.getByText('Sparat · Anna Prov', { exact: true })).toBeVisible();
+  const writes = JSON.parse((await page.getByTestId('writes').textContent())!);
+  expect(writes[0].payload.sourceKind).toBe('study_group'); expect(writes[0].payload.sourceKey).toMatch(/^study_group:/); expect(writes[0].payload.teacherHt).toBe(2700);
+});
 test('befintlig grupp visar vägval och lärarbyte sparas med bibehållen tid', async ({ page }) => {
   await page.goto(URL);
   await page.getByRole('button', { name: /^Anna Prov, Spanska gemensam:/ }).click();

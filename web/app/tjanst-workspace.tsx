@@ -59,7 +59,7 @@ type Dialog =
 type ReadFailure = { text: string; clear: boolean; retry: boolean; correlationId: string | null };
 export type TjanstWorkspaceProps = { context: ActiveContext; epoch: number; unitId: string | null; schoolYear: number;
   /** Krävs för skrivningar: journalen binds till inloggad identitet och uppdrag (tjanst-journal). */
-  identityKey?: string | null; feedback?: TjanstFeedback; onOpenElectiveBlocks?: (target?:ElectivePreparationIntent) => void; onOpenClassLinks?: TjanstOpenClassLinks; onSessionLost?: () => void;
+  identityKey?: string | null; feedback?: TjanstFeedback; onOpenElectiveBlocks?: (target?:ElectivePreparationIntent) => void; onOpenGroups?: () => void; onOpenClassLinks?: TjanstOpenClassLinks; onSessionLost?: () => void;
   /** Huvudmannens Visa fördelningen (Bemanning): skrivskyddad, utan åtgärdsrad, panel och beslutsknapp (D-01). */
   readOnly?: boolean;
   /** Versionen som läses först. Bemanning skickar skolans publicerade version, så att huvudmannen aldrig ser rektors utkast (WR-07). */
@@ -123,7 +123,7 @@ export default function TjanstWorkspace(props: TjanstWorkspaceProps) {
   return <Workspace key={`${props.epoch}-${props.context.assignmentId}-${props.unitId ?? 'alla'}-${props.schoolYear}-${props.versionId ?? 'aktuell'}`} {...props}/>;
 }
 
-function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onOpenElectiveBlocks, onSessionLost, readOnly = false, versionId: startVersion = null }: TjanstWorkspaceProps) {
+function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: feedbackProp, onOpenClassLinks, onOpenElectiveBlocks, onOpenGroups, onSessionLost, readOnly = false, versionId: startVersion = null }: TjanstWorkspaceProps) {
   const [initial] = useState(readLocation);
   const [autoLens, setAutoLens] = useState(initial.saved.autoLens);
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
@@ -578,6 +578,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   function openBlockerTarget(target: BlockerTarget, from: HTMLElement) {
     if (!data || loading || busy || quickBusy || checking || pendingCheck) return;
     if (target.kind === 'elective_blocks') { onOpenElectiveBlocks?.(); return; }
+    if (target.kind === 'study_groups') { onOpenGroups?.(); return; }
     const need = 'sourceKey' in target ? groups.flatMap(g => g.entries).find(e => e.need.sourceKey === target.sourceKey) : null;
     if (target.kind === 'row' && need) {
       const row = data.rows.find(r => r.id === target.rowId && r.sourceKey === target.sourceKey);
@@ -666,7 +667,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
     </div>}
     {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
       <TjanstActionMenu label="Lägg till">
-      {onOpenElectiveBlocks && <Button variant="outline" onClick={()=>onOpenElectiveBlocks?.()}><Plus size={16} aria-hidden="true"/>Lägg till valbart block</Button>}
+      {onOpenGroups && <Button variant="outline" onClick={()=>onOpenGroups?.()}><Plus size={16} aria-hidden="true"/>Undervisningsgrupper</Button>}
       {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
       {data.actions.includes('add_teacher') && context.function === 'rektor' && <Button variant="outline" onClick={e => open({ kind: 'newTeacher' }, actionOrigin(e.currentTarget))}><UserRoundPlus size={16} aria-hidden="true"/>Lägg upp ny lärare</Button>}
       {data.actions.includes('save_special') && <Button variant="outline" onClick={e => open({ kind: 'special', special: null }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till specialuppdrag</Button>}
@@ -723,7 +724,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       : !filtered.length && teachingGroupEntries(data, filter, term).length > 0 ? null : <TjanstCourseView data={data} groups={filtered} onAllocate={can('save_row') ? openAllocation : undefined} editable={can('save_joint')} marked={marked} visible={visibleKeys} markError={markError} focusJointId={focusJoint} onFocusedJoint={clearFocusJoint} onMark={ids => { setMarked(ids); setMarkError(null); }} onLink={linkMarked}
           onEditJoint={(joint, from) => open({ kind: 'joint', rowIds: joint.rowIds, jointId: joint.id }, from)} onDissolve={(joint, from) => open({ kind: 'confirm', confirm: 'dissolve', id: joint.id }, from)}/>}
     </div>}
-    {data && <TjanstGroupMatrix key={`${data.unitId}:${data.schoolYear}:${versionId ?? 'draft'}`} data={data} teachers={columns} filter={shownView === 'klass' ? { ...EMPTY_FILTER, classId: effectiveClass } : filter} term={term} editable={editable && can('save_row')} phone={phone} advanced={matrixAdvanced} inMatrix={shownView === 'matris'} matrixBody={matrixGroupBody} visible={['matris','fordela','klass','kurs'].includes(shownView)} onFeedback={(sourceKey, text) => setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey, text })} onOpenCourse={openCourse} onBusy={setQuickBusy} onOpenBlocks={()=>onOpenElectiveBlocks?.()} loadPreview={loadPreview}
+    {data && <TjanstGroupMatrix key={`${data.unitId}:${data.schoolYear}:${versionId ?? 'draft'}`} data={data} teachers={columns} filter={shownView === 'klass' ? { ...EMPTY_FILTER, classId: effectiveClass } : filter} term={term} editable={editable && can('save_row')} phone={phone} advanced={matrixAdvanced} inMatrix={shownView === 'matris'} matrixBody={matrixGroupBody} visible={['matris','fordela','klass','kurs'].includes(shownView)} onFeedback={(sourceKey, text) => setMatrixFeedback({ filterKey: matrixFilterKey, sourceKey, text })} onOpenCourse={openCourse} onBusy={setQuickBusy} onOpenBlocks={onOpenGroups} loadPreview={loadPreview}
       onSave={(change, accepted) => sendPrepared(change, detail => { accepted?.(detail); return ''; }, () => active.current && !phoneRef.current, true)}/>}
     {data && data.rows.some(r => r.sourceKind !== 'class_timplan' ? !data.groups?.some(group => group.sourceKey === r.sourceKey) : !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey && !e.need.organizationPending))) && <section className="protected-card"><h2>Sparade rader som behöver stämmas av</h2><p>Granska dessa fördelningar mot aktuellt underlag. En tidigare klassram kan ha ersatts av undervisningsgrupper.</p>
       {data.rows.filter(r => r.sourceKind !== 'class_timplan' ? !data.groups?.some(group => group.sourceKey === r.sourceKey) : !groups.some(g => g.entries.some(e => e.need.sourceKey === r.sourceKey && !e.need.organizationPending))).map(r => <div key={r.id}><span>{rowName(r).teacher} · {rowName(r).course} · {rowName(r).cls} · HT {formatTime(r.teacherHt)} · VT {formatTime(r.teacherVt)}</span>
