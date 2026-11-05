@@ -38,7 +38,7 @@ export type TjanstYearSaveRow = TjanstYearBasePayload['save_row'] & { planningCo
 export type TjanstYearDuty = { dutyId: string; startsOn: string; endsOn: string | null; percent: number };
 export type TjanstYearCandidate = { personId: string; displayName: string; draft: boolean; shareHere: number | null;
   duties: TjanstYearDuty[]; personBasisHash: string; qualificationStatus: 'unknown' };
-export type TjanstYearNeed = TjanstNeed & ({sourceKind:'class_timplan';classId:string;className:string} | {sourceKind:'teaching_group';classId:null;className:string;groupId:string;classIds:string[]});
+export type TjanstYearNeed = TjanstNeed & ({sourceKind:'class_timplan';classId:string;className:string} | {sourceKind:'teaching_group'|'study_group';classId:null;className:string;groupId:string;classIds:string[]});
 export type TjanstYearEvidence = { reason: TjanstYearReason; unitId: string; schoolYear: number; versionId: string;
   rowId: string; personId: string; classId: string; rowKey: string; sourceKey: string };
 export type TjanstYearSuggestion = { suggestionId: string; personId: string; evidenceHash: string;
@@ -207,13 +207,13 @@ function candidate(value: unknown, schoolYear: number): TjanstYearCandidate {
     duties, personBasisHash: hash(c.personBasisHash), qualificationStatus: choice(c.qualificationStatus, ['unknown'] as const) };
 }
 function need(value: unknown, schoolYear: number): TjanstYearNeed {
-  const raw=gymObject(value),group=raw.sourceKind==='teaching_group';
+  const raw=gymObject(value),group=raw.sourceKind==='teaching_group'||raw.sourceKind==='study_group';
   const n=shape(raw,['classId','className','sourceKind','sourceKey','rowKey','label','needHt','needVt','needBasis',...(group?['groupId','classIds']:[]),...(Object.hasOwn(raw,'organizationPending')?['organizationPending']:[])]);
   const s=source(n.sourceKey,schoolYear);if(n.sourceKind!==s.sourceKind||n.rowKey!==s.rowKey||n.classId!==s.classId)bad();
   const common={sourceKey:n.sourceKey as string,rowKey:s.rowKey,label:text(n.label,300),needHt:n.needHt===null?null:minutes(n.needHt),needVt:n.needVt===null?null:minutes(n.needVt),needBasis:choice(n.needBasis,TJANST_NEED_BASES),...(Object.hasOwn(n,'organizationPending')?{organizationPending:gymBoolean(n.organizationPending)}:{})};
   if(s.sourceKind==='class_timplan')return {...common,sourceKind:'class_timplan',classId:s.classId,className:text(n.className,60)};
-  const classIds=unique(list(n.classIds,TJANST_LIMITS.classes,uuid),x=>x);if(!classIds.length||uuid(n.groupId)!==s.groupId)bad();
-  return {...common,sourceKind:'teaching_group',classId:null,className:text(n.className),groupId:s.groupId,classIds};
+  const classIds=unique(list(n.classIds,TJANST_LIMITS.classes,uuid),x=>x);if(s.sourceKind==='teaching_group'&&!classIds.length||uuid(n.groupId)!==s.groupId)bad();
+  return {...common,sourceKind:s.sourceKind,classId:null,className:text(n.className),groupId:s.groupId,classIds};
 }
 function currentRow(value:unknown,schoolYear:number):TjanstRow{
   const r=parseTjanstRow(value);source(r.sourceKey,schoolYear);return r;

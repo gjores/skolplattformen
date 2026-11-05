@@ -25,7 +25,7 @@ export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joint
   }
   for(const group of groups){
     if(seen.has(group.sourceKey))bad('tjanst_duplicate_row');seen.add(group.sourceKey);
-    const need:TjanstYearNeed={sourceKind:'teaching_group',sourceKey:group.sourceKey,rowKey:group.rowKey,label:group.label,needHt:group.needHt,needVt:group.needVt,needBasis:group.needBasis,classId:null,className:group.name,groupId:group.groupId,classIds:group.classIds};
+    const need:TjanstYearNeed={sourceKind:group.sourceKind,sourceKey:group.sourceKey,rowKey:group.rowKey,label:group.label,needHt:group.needHt,needVt:group.needVt,needBasis:group.needBasis,classId:null,className:group.name,groupId:group.groupId,classIds:group.classIds};
     const saved=rows.filter(r=>r.sourceKey===group.sourceKey);
     if(saved.length)for(const row of saved)result.push({rowId:row.id,sourceKey:row.sourceKey,need,savedRow:structuredClone(row),personId:row.personId,teacherHt:row.teacherHt,teacherVt:row.teacherVt});
     else{const allocated=coverage(group.sourceKey,null,rows,joints).covered;result.push({rowId:null,sourceKey:group.sourceKey,need,savedRow:null,personId:null,teacherHt:prefill(group.needHt,allocated.ht),teacherVt:prefill(group.needVt,allocated.vt)});}
@@ -34,7 +34,7 @@ export function projectYearRows(classes: TjanstClass[], rows: TjanstRow[], joint
     savedRow: structuredClone(row), personId: row.personId, teacherHt: row.teacherHt, teacherVt: row.teacherVt });
   return result;
 }
-export type TjanstYearRowEditor = TjanstYearScope & { sourceKind?:'teaching_group'; sourceKey: string; rowId: string | null; baseVersionId: string | null;
+export type TjanstYearRowEditor = TjanstYearScope & { sourceKind?:'teaching_group'|'study_group'; sourceKey: string; rowId: string | null; baseVersionId: string | null;
   expectedRevision: number; expectedBasisHash: string; personId: string | null; choice: TjanstYearChoice | null; teacherHt: number | null; teacherVt: number | null; comment: string };
 function checkSupport(value: TjanstYearRowReply): TjanstYearRowReply {
   const parsed = parseYearReply(value, { unitId: value.unitId, schoolYear: value.schoolYear, mode: 'row', sourceKey: value.sourceKey, rowId: value.rowId });
@@ -46,7 +46,7 @@ export function createYearRowEditor(support: TjanstYearRowReply, allocated: Tjan
   const s = checkSupport(support), row = s.currentRow, person = s.candidates.find(p => p.personId === row?.personId);
   return { unitId: s.unitId, schoolYear: s.schoolYear, sourceKey: s.sourceKey, rowId: s.rowId, baseVersionId: s.baseVersionId, expectedRevision: s.currentRevision, expectedBasisHash: s.basisHash,
     personId: row?.personId ?? null, choice: row === null ? null : row.personId === null ? { kind: 'unassigned', personId: null } : person ? manual(person) : null,
-    teacherHt: row ? row.teacherHt : prefill(s.need.needHt, allocated.ht), teacherVt: row ? row.teacherVt : prefill(s.need.needVt, allocated.vt), comment: row?.comment ?? '',...(s.need.sourceKind==='teaching_group'?{sourceKind:'teaching_group' as const}:{}) };
+    teacherHt: row ? row.teacherHt : prefill(s.need.needHt, allocated.ht), teacherVt: row ? row.teacherVt : prefill(s.need.needVt, allocated.vt), comment: row?.comment ?? '',...(s.need.sourceKind!=='class_timplan'?{sourceKind:s.need.sourceKind}:{}) };
 }
 function sameTarget(editor: TjanstYearRowEditor, support: TjanstYearRowReply): boolean {
   return editor.unitId === support.unitId && editor.schoolYear === support.schoolYear && editor.sourceKey === support.sourceKey && editor.rowId === support.rowId;

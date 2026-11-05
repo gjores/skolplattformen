@@ -55,7 +55,7 @@ export function blockerActions(data: TjanstPlanRead, code: string): BlockerActio
       break;
     case 'stale_rows':
       for (const row of data.rows.filter(value => value.stale)) {
-        if (row.sourceKind === 'teaching_group' && data.groups?.some(group => group.sourceKey === row.sourceKey)) { targets.push({ kind: 'elective_blocks', label: 'Valbara block' }); continue; }
+        if (row.sourceKind !== 'class_timplan' && data.groups?.some(group => group.sourceKey === row.sourceKey)) { targets.push({ kind: 'elective_blocks', label: 'Valbara block' }); continue; }
         const source = needs.get(row.sourceKey);
         if (!source || source.cls.classId !== row.classId || row.jointGroupId !== null) { unresolved = true; continue; }
         const person = row.personId === null ? 'Vakant' : data.teachers.find(teacher => teacher.personId === row.personId)?.displayName ?? 'Tilldelning';

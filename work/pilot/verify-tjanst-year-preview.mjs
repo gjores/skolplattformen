@@ -4,7 +4,7 @@
 // node work/pilot/verify-tjanst-year-preview.mjs --out /private/tmp/tjanst-year-preview-schema.json
 import assert from 'node:assert/strict';
 import { assertTjanstYearAcl, TJANST_MIGRATION_REGISTRY } from './tjanst-migration-state.mjs';
-import { capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
+import { capturePlanContext, yearCommand, yearCommandSend, tjanstRowColumns, tjanstRowCopy } from './tjanst-year-fixtures.mjs';
 let modern=false;
 import { createHash, randomUUID } from 'node:crypto';
 import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync, closeSync } from 'node:fs';
@@ -176,8 +176,8 @@ async function cases(db, report) {
       const newer=randomUUID(),newRow=randomUUID();
       await u`insert into public.tjanst_versions(id,distribution_id,version_no,status,created_by_identity_id,created_by_assignment_id)
         values(${newer},${history.distributionId},2,'draft',${f.identity('principalA')},${f.roles.principalA})`;
-      await u`insert into public.tjanst_rows select (jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object('id',${newRow}::uuid,'version_id',${newer}::uuid))).*
-        from public.tjanst_rows r where r.id=${history.rowId}`;
+      await u`insert into public.tjanst_rows(${u.unsafe(tjanstRowColumns)}) select ${u.unsafe(tjanstRowCopy)}
+        from public.tjanst_rows r cross join lateral jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object('id',${newRow}::uuid,'version_id',${newer}::uuid)) x where r.id=${history.rowId}`;
       await u`set local session_replication_role=replica`;
       await u`update public.tjanst_versions set status='superseded' where id=${history.versionId}`;
       await u`update public.tjanst_versions set status='published',published_at=clock_timestamp(),published_by_identity_id=${f.identity('principalA')},
@@ -276,9 +276,9 @@ async function batchCases(db,report) {
       const baseRow=d.rows.find(r=>r.personId===people[1].personId),groupId=d.joints[0].id;
       for(let n=4;n<100;n++) {
         const rowId=randomUUID(),rowKey='synthetic-boundary-'+n;
-        await u`insert into public.tjanst_rows select (jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object(
-          'id',${rowId}::uuid,'lineage_id',${randomUUID()}::uuid,'source_key',${key(rowKey,baseRow.classId)}::text,'timplan_row_key',${rowKey}::text))).*
-          from public.tjanst_rows r where r.id=${baseRow.id}`;
+        await u`insert into public.tjanst_rows(${u.unsafe(tjanstRowColumns)}) select ${u.unsafe(tjanstRowCopy)}
+          from public.tjanst_rows r cross join lateral jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object(
+          'id',${rowId}::uuid,'lineage_id',${randomUUID()}::uuid,'source_key',${key(rowKey,baseRow.classId)}::text,'timplan_row_key',${rowKey}::text)) x where r.id=${baseRow.id}`;
         await u`insert into public.tjanst_joint_members(group_id,row_id) values(${groupId},${rowId})`;
       }
       const hundred=await yearPreview(u,req(move));assert.equal(hundred.writeObjectCount,100);assert.ok(!codes(hundred).includes('batch_too_large'));

@@ -1,0 +1,86 @@
+#!/usr/bin/env node
+// VP-03B. Own temporary PostgreSQL with synthetic fixtures only. Never reads an existing DB URL or 3012.
+import assert from 'node:assert/strict';
+import {randomUUID} from 'node:crypto';
+import {readFileSync,writeFileSync} from 'node:fs';
+import {createEphemeralMigratedDb} from './ephemeral-migrated-db.mjs';
+import {createTjanstFixture,planRead,planSend,planCommand,selfRead,grantSelf,staffWithDuties} from './tjanst-fixtures.mjs';
+import {seedElectiveTimeFrame} from './elective-time-fixtures.mjs';
+import {yearPreview,yearManual,yearRowPayload,yearSend} from './tjanst-year-fixtures.mjs';
+import {parseYearPlanReadReply,parseSelfReadReply} from '../../web/lib/tjanst-contract.ts';
+const catalog=JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8'));
+const own=await createEphemeralMigratedDb(),report={kind:'ephemeral-study-group-tjanst-sql',provenance:own.provenance,checks:[],ok:false};
+const out=process.argv.includes('--out')?process.argv[process.argv.indexOf('--out')+1]:'/private/tmp/study-group-tjanst-sql.json';assert.ok(out?.startsWith('/private/tmp/'));
+const check=name=>{report.checks.push({name,ok:true});console.log('PASS '+name);};
+async function deny(tx,name,run,codes,hint){let e;try{await tx.savepoint(nested=>run(nested));}catch(error){e=error;}assert.ok(e,name);assert.ok(codes.includes(e.code),`${name}: ${e.code} ${e.message}`);if(hint)assert.equal(e.hint,hint,name);check(name);}
+const version=code=>catalog.subjects.find(s=>s.code===code&&s.schoolTypes.includes('GY')).version;
+const ref=(subjectCode,itemCode,points)=>({subjectCode,subjectVersion:version(subjectCode),itemCode,points,languageCode:null});
+try{
+ await own.db.begin(async tx=>{
+  const f=await createTjanstFixture(tx),first=await seedElectiveTimeFrame(tx,f),second=await seedElectiveTimeFrame(tx,f);
+  const unitId=first.unitId,schoolYear=first.schoolYear,[classA,classB]=[first,second].map(s=>s.frameSourceKey.split(':')[1]),scope={unitId,schoolYear};
+  const teacher=await staffWithDuties(tx,f,{familyName:'Grupplärare',startsOn:'2025-07-01',duties:[{unitId,percent:100,startsOn:`${schoolYear}-07-01`}]});await f.actor(tx,'principalA');
+  const read=async()=>parseYearPlanReadReply(await planRead(tx,scope),scope);
+  const allNeeds=r=>r.classes.flatMap(c=>c.needs);
+  const groupRun=(action,payload)=>tx`select public.study_group_command(${tx.json({contractVersion:'study_group_v1',commandId:randomUUID(),action,unitId,schoolYear,payload})}) value`.then(r=>r[0].value.result);
+  const before=await read(),iv=allNeeds(before).filter(n=>n.rowKey==='block:iv1');assert.equal(iv.length,2);assert.ok(iv.every(n=>!n.organizationPending));
+  check('an unfilled IV row is an ordinary class need');
+  const other=allNeeds(before).find(n=>n.rowKey!=='block:iv1'&&n.needHt>0),base=await yearPreview(tx,{...scope,mode:'row',sourceKey:other.sourceKey,rowId:null}),cand=base.candidates.find(c=>c.personId===teacher.id)??base.candidates[0];
+  await yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(base,yearManual(cand)));
+  const rows=(await tx`select public.valplan_read(${tx.json(scope)}) value`)[0].value.result.rows.filter(r=>r.rowKey==='block:iv1');
+  const course={id:randomUUID(),subjectCode:'PSYL',subjectVersion:version('PSYL'),itemCode:'PSYL1000X',points:50,languageCode:null,name:'Psykologi 1',minutesHt:1350,minutesVt:1350,classIds:null};
+  const doc={id:randomUUID(),unitId,schoolYear,kind:'individualChoice',name:'Individuellt val',revision:1,courses:[course],rows:rows.map(r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year}))};
+  const saveValplan=(d,expectedRevision)=>tx`select public.valplan_command(${tx.json({contractVersion:'valplan_v1',commandId:randomUUID(),action:'save',unitId,schoolYear,expectedRevision,catalogId:catalog.catalogId,valplan:d})}) value`;
+  await saveValplan(doc,0);
+  let current=await read();const pending=allNeeds(current).filter(n=>n.rowKey==='block:iv1');
+  assert.equal(pending.length,2);assert.ok(pending.every(n=>n.organizationPending===true));assert.ok(current.blockers.some(b=>b.code==='organization_pending'));
+  check('a row filled by a valplan without groups waits for organization and blocks publication');
+  const setId=randomUUID(),group=(name,extra={})=>({id:randomUUID(),expectedRevision:0,name,startsOn:`${schoolYear}-08-17`,endsOn:`${schoolYear+1}-06-11`,course:ref('PSYL','PSYL1000X',50),minutesHt:1350,minutesVt:1350,parallelSetId:setId,classIds:[classA,classB],origin:{kind:'valplan',valplanId:doc.id,courseId:course.id},...extra});
+  const A=group('Psykologi 1 a'),B=group('Psykologi 1 b');await groupRun('save_group',A);
+  current=await read();assert.equal(allNeeds(current).filter(n=>n.rowKey==='block:iv1').length,0);assert.equal(current.groups.length,1);
+  assert.deepEqual([current.groups[0].sourceKind,current.groups[0].needHt,current.groups[0].needVt],['study_group',1350,1350]);assert.deepEqual([...current.groups[0].classIds].sort(),[classA,classB].sort());
+  check('one group with two classes is one need and the filled row is no class need');
+  await groupRun('save_group',B);current=await read();assert.equal(current.groups.length,2);assert.equal(allNeeds(current).filter(n=>n.rowKey==='block:iv1').length,0);
+  check('two parallel groups are two needs without doubling the row');
+  const support=await yearPreview(tx,{...scope,mode:'row',sourceKey:`study_group:${A.id}:${schoolYear}`,rowId:null});
+  assert.equal(support.need.sourceKind,'study_group');
+  await yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(support,yearManual(cand),{sourceKind:'study_group',teacherHt:1350,teacherVt:1350}));
+  current=await read();const row=current.rows.find(r=>r.sourceKind==='study_group');assert.equal(row.groupId,A.id);assert.equal(row.stale,false);
+  assert.equal((await tx`select count(*)::int n from public.study_group_snapshots where group_id=${A.id}`)[0].n,1);check('a group row is staffed through the ordinary row command and freezes its revision');
+  await groupRun('save_group',{...A,expectedRevision:1,name:'Psykologi 1 A'});current=await read();
+  assert.equal(current.rows.find(r=>r.groupId===A.id).stale,true);assert.ok(current.blockers.some(b=>b.code==='stale_rows'));check('a changed group makes its row stale and blocks publication');
+  const support2=await yearPreview(tx,{...scope,mode:'row',sourceKey:`study_group:${A.id}:${schoolYear}`,rowId:row.id});
+  await yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(support2,yearManual(cand),{sourceKind:'study_group',teacherHt:1350,teacherVt:1350}));
+  const support3=await yearPreview(tx,{...scope,mode:'row',sourceKey:`study_group:${B.id}:${schoolYear}`,rowId:null});
+  await yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(support3,yearManual(cand),{sourceKind:'study_group',teacherHt:1350,teacherVt:1350}));
+  current=await read();assert.ok(current.rows.every(r=>!r.stale));
+  // Everything else in the frame is left vacant-free: publication only needs the blockers cleared.
+  const blockers=current.blockers.map(b=>b.code);assert.ok(!blockers.includes('organization_pending')&&!blockers.includes('stale_rows'),blockers.join());
+  const published=await yearSend(tx,unitId,schoolYear,'publish',{mutationContext:await (async()=>{const c=await yearPreview(tx,{...scope,mode:'catalog'});return {baseVersionId:c.baseVersionId,expectedBasisHash:c.basisHash};})()});
+  assert.equal(published.version.status,'published');const versionId=published.version.id,hash=published.version.contentHash;
+  assert.equal((await tx`select count(*)::int n from public.tjanst_version_study_group_sources where version_id=${versionId}`)[0].n,2);
+  assert.equal((await tx`select public.tjanst_version_hash(${versionId}) value`)[0].value,hash);check('a staffed group publishes, freezes its sources and the hash recomputes equal');
+  const history=await planRead(tx,{...scope,versionId});await groupRun('save_group',{...B,expectedRevision:1,name:'Psykologi 1 B'});
+  assert.deepEqual(await planRead(tx,{...scope,versionId}),history);assert.equal((await tx`select public.tjanst_version_hash(${versionId}) value`)[0].value,hash);check('a later group change leaves the published version and its hash untouched');
+  await grantSelf(tx,f,{staffPersonId:cand.personId,unitIds:[unitId]});await f.actor(tx,'teacherSelf');
+  const self=parseSelfReadReply(await selfRead(tx)),selfRows=self.publications[0].rows.filter(r=>r.sourceKind==='study_group');assert.equal(selfRows.length,2);assert.ok(selfRows.every(r=>r.classRefs.length===2));
+  check('the teacher sees published group rows with classes');await f.actor(tx,'principalA');
+  const otherRow=(await read()).rows.find(r=>r.sourceKey===other.sourceKey),again=await yearPreview(tx,{...scope,mode:'row',sourceKey:other.sourceKey,rowId:otherRow.id});
+  await yearSend(tx,unitId,schoolYear,'save_row',yearRowPayload(again,yearManual(cand),{teacherHt:700,teacherVt:700}));
+  await saveValplan({...doc,revision:2,courses:[{...course,minutesHt:1400}]},1);current=await read();
+  assert.ok(current.groups.every(g=>g.stale));assert.ok(current.blockers.some(b=>b.code==='group_sources_changed'));check('a changed valplan course time makes its groups stale');
+  const staleRow=current.rows.find(r=>r.groupId===A.id),staleSupport=await yearPreview(tx,{...scope,mode:'row',sourceKey:staleRow.sourceKey,rowId:staleRow.id});
+  await deny(tx,'a stale group cannot be staffed',t=>yearSend(t,unitId,schoolYear,'save_row',yearRowPayload(staleSupport,yearManual(cand),{sourceKind:'study_group',teacherHt:1200,teacherVt:1200})),['40001'],'tjanst_stale_basis');
+  const noTime=group('Utan tid',{id:randomUUID(),origin:{kind:'manual'},parallelSetId:randomUUID(),minutesHt:0,minutesVt:0,classIds:[]});await groupRun('save_group',noTime);
+  assert.ok(!(await read()).groups.some(g=>g.groupId===noTime.id));check('a group without time is not a need');
+  const manual=group('Utan klasser',{id:randomUUID(),origin:{kind:'manual'},parallelSetId:randomUUID(),course:null,classIds:[]});await groupRun('save_group',manual);
+  const m=(await read()).groups.find(g=>g.groupId===manual.id);assert.deepEqual([m.subjectCode,m.classIds.length],[null,0]);check('a manual group without course or classes is a readable need');
+  await groupRun('retire_group',{groupId:manual.id,expectedRevision:1});assert.ok(!(await read()).groups.some(g=>g.groupId===manual.id));check('a retired group is no need');
+  await deny(tx,'a frozen group snapshot cannot change',t=>t`update public.study_group_snapshots set revision=revision`,['P0001','42501','22023','23514']);
+  const grants=await tx`select count(*)::int n from information_schema.role_table_grants where table_name in ('study_group_snapshots','tjanst_version_study_group_sources') and grantee in ('anon','authenticated','service_role','skolplattform_worker')`;assert.equal(grants[0].n,0);
+  const execs=await tx`select has_function_privilege('skolplattform_worker','public.study_group_freeze(jsonb)','execute') a,has_function_privilege('skolplattform_worker','public.study_group_need(public.study_groups)','execute') b`;assert.deepEqual(execs[0],{a:false,b:false});check('new tables and helpers stay closed to the Worker role');
+  throw new Error('rollback');
+ }).catch(e=>{if(e.message!=='rollback')throw e;});
+ report.ok=true;
+}finally{writeFileSync(out,JSON.stringify(report,null,1));await own.end();}
+console.log(`study-group-tjanst-sql ${report.checks.length} PASS`);

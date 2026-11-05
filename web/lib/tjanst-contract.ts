@@ -14,7 +14,7 @@ export const TJANST_CONTRACT_VERSION = 'tjanst_v1' as const;
 export const TJANST_LIMITS = { minutes: 200000, percent: 100, comment: 2000, name: 200, draftNote: 500, externalId: 200,
   externalIdSource: 100, rowKey: 160, teachers: 2000, classes: 2000, needs: 20000, rows: 20000, specials: 5000, joints: 2000,
   jointRows: 200, people: 5000, employments: 100, duties: 200, versions: 1000, feedback: 5000, blockers: 200, units: 1000 } as const;
-export const TJANST_SOURCE_KINDS = ['class_timplan', 'teaching_group'] as const;
+export const TJANST_SOURCE_KINDS = ['class_timplan', 'teaching_group', 'study_group'] as const;
 export const TJANST_NEED_BASES = ['terms', 'even_split', 'weekly_calendar'] as const;
 export const TJANST_SPECIAL_KINDS = ['mentor', 'programansvar', 'speciallarare', 'annat'] as const;
 export const TJANST_PLAN_ACTIONS = ['add_teacher', 'remove_teacher', 'save_row', 'delete_row', 'save_special', 'delete_special',
@@ -48,7 +48,10 @@ export type TjanstClassLink = { linkRevision: number; timplanId: string; seriesI
 /** link null = "koppling saknas"; needs are then always empty, never zero. */
 /** aplMinutes (05.1-27): APL under läsåret för en gymnasieklass enligt timplanens tidsmodell; null = okänt eller ej tillämpligt (aldrig 0 som gissning). */
 export type TjanstClassNeed = TjanstNeed & { sourceKind: 'class_timplan' };
-export type TjanstTeachingGroup = TjanstNeed & { sourceKind: 'teaching_group'; groupId: string; blockId: string; optionId: string; name: string; subjectCode: string; levelCode: string; language: string | null; groupRevision: number; classIds: string[]; sourceRefs: ElectiveSource[]; stale: boolean };
+/** study_group: gemensam undervisningsgrupp (VP-03B). Kurs är valfri, klasser kan saknas och sourceRefs är alltid tom. */
+export type TjanstTeachingGroup = TjanstNeed & { groupId: string; name: string; language: string | null; groupRevision: number; classIds: string[]; sourceRefs: ElectiveSource[]; stale: boolean } & (
+  { sourceKind: 'teaching_group'; blockId: string; optionId: string; subjectCode: string; levelCode: string }
+  | { sourceKind: 'study_group'; blockId: null; optionId: null; subjectCode: string | null; levelCode: string | null });
 export type TjanstClass = { classId: string; name: string; link: TjanstClassLink | null; aplMinutes: number | null; needs: TjanstClassNeed[] };
 export type TjanstTeacher = { personId: string; displayName: string; draft: boolean; shareHere: number | null };
 export type TjanstVersionStatus = 'draft' | 'published' | 'superseded' | 'discarded';
@@ -60,7 +63,7 @@ type TjanstRowCommon = { id: string; lineageId: string; sourceKey: string; rowKe
   stale: boolean; jointGroupId: string | null; comment: string };
 export type TjanstRow = TjanstRowCommon & (
   { sourceKind: 'class_timplan'; classId: string }
-  | { sourceKind: 'teaching_group'; classId: null; groupId: string; classIds: string[]; sourceRefs: ElectiveSource[]; groupRevision: number }
+  | { sourceKind: 'teaching_group' | 'study_group'; classId: null; groupId: string; classIds: string[]; sourceRefs: ElectiveSource[]; groupRevision: number }
 );
 /** classId only for mentor; other special assignments get no invented group. */
 export type TjanstSpecial = { id: string; lineageId: string; kind: TjanstSpecialKind; label: string; personId: string | null;
@@ -126,7 +129,7 @@ type TjanstSelfRowCommon = { id: string; rowKey: string; label: string; ht: numb
   joint: null | { jointId: string; name: string; colleagues: string[]; ht: number; vt: number };
   /** 05.1-33: delning med andra lärare på samma behov och om läraren sätter betyg. Saknas i äldre läsningar. */
   sharing: null | { mode: TjanstSharingMode; colleagues: string[]; grader: boolean } };
-export type TjanstSelfRow = TjanstSelfRowCommon & ({sourceKind?:'class_timplan';className:string}|{sourceKind:'teaching_group';className:null;groupId:string;groupName:string;classRefs:{classId:string;name:string}[];subjectCode:string;levelCode:string;language:string|null});
+export type TjanstSelfRow = TjanstSelfRowCommon & ({sourceKind?:'class_timplan';className:string}|{sourceKind:'teaching_group';className:null;groupId:string;groupName:string;classRefs:{classId:string;name:string}[];subjectCode:string;levelCode:string;language:string|null}|{sourceKind:'study_group';className:null;groupId:string;groupName:string;classRefs:{classId:string;name:string}[];subjectCode:string|null;levelCode:string|null;language:string|null});
 export type TjanstSelfSpecial = { id: string; kind: TjanstSpecialKind; label: string; className: string | null; ht: number; vt: number };
 export type TjanstSelfComment = { id: string; body: string; at: string };
 export type TjanstSelfPublication = { versionId: string; versionNo: number; unitId: string; schoolName: string; schoolYear: number;
@@ -222,15 +225,15 @@ export function tjanstSourceKey(ref: Pick<TjanstClassTimplanRef, 'classId' | 'sc
   return guarded(() => `class_timplan:${uuid(ref.classId)}:${schoolYear(ref.schoolYear)}:${rowKey(ref.timplanRowKey)}`);
 }
 export type TjanstSourceIdentity = {sourceKind:'class_timplan';classId:string;groupId?:never;schoolYear:number;rowKey:string}
-  | {sourceKind:'teaching_group';classId:null;groupId:string;schoolYear:number;rowKey:string};
-export function tjanstGroupSourceKey(groupId:string,year:number):string{return guarded(()=>`teaching_group:${uuid(groupId)}:${schoolYear(year)}`);}
+  | {sourceKind:'teaching_group'|'study_group';classId:null;groupId:string;schoolYear:number;rowKey:string};
+export function tjanstGroupSourceKey(groupId:string,year:number,kind:'teaching_group'|'study_group'='teaching_group'):string{return guarded(()=>`${kind}:${uuid(groupId)}:${schoolYear(year)}`);}
 export function parseTjanstSourceKey(kind: unknown, value: unknown):TjanstSourceIdentity {
   return guarded(() => {
     const sourceKind = choice(kind, TJANST_SOURCE_KINDS, 'tjanst_unknown_source');
     if(typeof value!=='string'||value.length>240)bad('tjanst_unknown_source');
-    if(sourceKind==='teaching_group'){
-      const m=/^teaching_group:([^:]+):(\d{4})$/u.exec(value);if(!m)bad('tjanst_unknown_source');
-      const groupId=uuid(m[1]),year=schoolYear(Number(m[2]));if(value!==tjanstGroupSourceKey(groupId,year))bad('tjanst_unknown_source');
+    if(sourceKind!=='class_timplan'){
+      const m=/^(?:teaching_group|study_group):([^:]+):(\d{4})$/u.exec(value);if(!m)bad('tjanst_unknown_source');
+      const groupId=uuid(m[1]),year=schoolYear(Number(m[2]));if(value!==tjanstGroupSourceKey(groupId,year,sourceKind))bad('tjanst_unknown_source');
       return {sourceKind,classId:null,groupId,schoolYear:year,rowKey:`group:${groupId}`};
     }
     const m=/^class_timplan:([^:]+):(\d{4}):(.+)$/u.exec(value);if(!m)bad('tjanst_unknown_source');
@@ -238,7 +241,7 @@ export function parseTjanstSourceKey(kind: unknown, value: unknown):TjanstSource
     if(tjanstSourceKey({classId:parsed.classId,schoolYear:parsed.schoolYear,timplanRowKey:parsed.rowKey})!==value)bad('tjanst_unknown_source');return parsed;
   });
 }
-export function parseTjanstAnySourceKey(value:unknown):TjanstSourceIdentity{return parseTjanstSourceKey(typeof value==='string'&&value.startsWith('teaching_group:')?'teaching_group':'class_timplan',value);}
+export function parseTjanstAnySourceKey(value:unknown):TjanstSourceIdentity{return parseTjanstSourceKey(typeof value==='string'&&value.startsWith('teaching_group:')?'teaching_group':typeof value==='string'&&value.startsWith('study_group:')?'study_group':'class_timplan',value);}
 
 
 // Canonical serialisation shared with SQL (tjanst_canonical/tjanst_hash): n=null, t/f=boolean, i<decimal>;,
@@ -328,26 +331,32 @@ function parseClass(value: unknown): TjanstClass {
   if (link === null && needs.length) bad();
   return { classId, name: text(c.name, 60, false), link, aplMinutes, needs };
 }
-function groupReferences(ids:unknown,refs:unknown,year:number,unitId?:string):{classIds:string[];sourceRefs:ElectiveSource[]}{
-  const classIds=unique(list(ids,TJANST_LIMITS.classes,uuid),x=>x),sourceRefs=unique(list(refs,TJANST_LIMITS.classes,v=>parseElectiveSource(v)),x=>x.classId);
+function groupReferences(ids:unknown,refs:unknown,year:number,unitId?:string,kind:'teaching_group'|'study_group'='teaching_group'):{classIds:string[];sourceRefs:ElectiveSource[]}{
+  const classIds=unique(list(ids,TJANST_LIMITS.classes,uuid),x=>x);
+  if(kind==='study_group'){if(list(refs,0,x=>x).length)bad('tjanst_unknown_source');return {classIds,sourceRefs:[]};}
+  const sourceRefs=unique(list(refs,TJANST_LIMITS.classes,v=>parseElectiveSource(v)),x=>x.classId);
   if(!classIds.length||classIds.length!==sourceRefs.length||sourceRefs.some(r=>r.schoolYear!==year||!classIds.includes(r.classId)||(unitId!==undefined&&r.unitId!==unitId)))bad('tjanst_unknown_source');
   return {classIds,sourceRefs};
 }
 export function parseTjanstTeachingGroup(value:unknown,expected:{unitId:string;schoolYear:number}):TjanstTeachingGroup{
   return guarded(()=>{const g=shape(value,['groupId','blockId','optionId','name','subjectCode','levelCode','language','label','groupRevision','classIds','sourceRefs','sourceKind','sourceKey','rowKey','needHt','needVt','needBasis','stale']);
-    const source=parseTjanstSourceKey(g.sourceKind,g.sourceKey),groupId=uuid(g.groupId),levelCode=text(g.levelCode,80,false);
-    if(source.sourceKind!=='teaching_group'||source.groupId!==groupId||source.schoolYear!==expected.schoolYear||source.rowKey!==g.rowKey)bad('tjanst_unknown_source');
-    return {groupId,blockId:uuid(g.blockId),optionId:uuid(g.optionId),name:name(g.name),subjectCode:text(g.subjectCode,80,false),levelCode,language:electiveOptionLanguage(levelCode,g.language),label:text(g.label,300,false),groupRevision:gymInteger(g.groupRevision,2147483647,1),
-      ...groupReferences(g.classIds,g.sourceRefs,source.schoolYear,expected.unitId),sourceKind:'teaching_group',sourceKey:g.sourceKey as string,rowKey:source.rowKey,needHt:nullableMinutes(g.needHt),needVt:nullableMinutes(g.needVt),needBasis:choice(g.needBasis,TJANST_NEED_BASES),stale:bool(g.stale)};
+    const source=parseTjanstSourceKey(g.sourceKind,g.sourceKey),groupId=uuid(g.groupId);
+    if(source.sourceKind==='class_timplan'||source.groupId!==groupId||source.schoolYear!==expected.schoolYear||source.rowKey!==g.rowKey)bad('tjanst_unknown_source');
+    const common={groupId,name:name(g.name),label:text(g.label,300,false),groupRevision:gymInteger(g.groupRevision,2147483647,1),
+      ...groupReferences(g.classIds,g.sourceRefs,source.schoolYear,expected.unitId,source.sourceKind),sourceKey:g.sourceKey as string,rowKey:source.rowKey,needHt:nullableMinutes(g.needHt),needVt:nullableMinutes(g.needVt),needBasis:choice(g.needBasis,TJANST_NEED_BASES),stale:bool(g.stale)};
+    if(source.sourceKind==='study_group'){if(g.blockId!==null||g.optionId!==null)bad('tjanst_unknown_source');
+      return {...common,sourceKind:'study_group',blockId:null,optionId:null,subjectCode:g.subjectCode===null?null:text(g.subjectCode,96,false),levelCode:g.levelCode===null?null:text(g.levelCode,96,false),language:g.language===null?null:text(g.language,16,false)};}
+    const levelCode=text(g.levelCode,80,false);
+    return {...common,sourceKind:'teaching_group',blockId:uuid(g.blockId),optionId:uuid(g.optionId),subjectCode:text(g.subjectCode,80,false),levelCode,language:electiveOptionLanguage(levelCode,g.language)};
   });
 }
 export function parseTjanstRow(value: unknown): TjanstRow {
-  return guarded(()=>{const raw=gymObject(value),group=raw.sourceKind==='teaching_group',r=shape(raw,['id','lineageId','sourceKind','sourceKey','classId','rowKey','personId','teacherHt','teacherVt','needHt','needVt','needBasis','stale','jointGroupId','comment',...(group?['groupId','classIds','sourceRefs','groupRevision']:[])]);
+  return guarded(()=>{const raw=gymObject(value),group=raw.sourceKind==='teaching_group'||raw.sourceKind==='study_group',r=shape(raw,['id','lineageId','sourceKind','sourceKey','classId','rowKey','personId','teacherHt','teacherVt','needHt','needVt','needBasis','stale','jointGroupId','comment',...(group?['groupId','classIds','sourceRefs','groupRevision']:[])]);
     const source=parseTjanstSourceKey(r.sourceKind,r.sourceKey);if(source.rowKey!==r.rowKey)bad('tjanst_unknown_source');
     const common={id:uuid(r.id),lineageId:uuid(r.lineageId),sourceKey:r.sourceKey as string,rowKey:source.rowKey,personId:nullableUuid(r.personId),teacherHt:minutes(r.teacherHt),teacherVt:minutes(r.teacherVt),needHt:nullableMinutes(r.needHt),needVt:nullableMinutes(r.needVt),needBasis:choice(r.needBasis,TJANST_NEED_BASES),stale:bool(r.stale),jointGroupId:nullableUuid(r.jointGroupId),comment:text(r.comment,TJANST_LIMITS.comment)};
     if(source.sourceKind==='class_timplan'){const classId=uuid(r.classId);if(source.classId!==classId)bad('tjanst_unknown_source');return {...common,sourceKind:'class_timplan',classId};}
     if(r.classId!==null||uuid(r.groupId)!==source.groupId)bad('tjanst_unknown_source');
-    return {...common,sourceKind:'teaching_group',classId:null,groupId:source.groupId,groupRevision:gymInteger(r.groupRevision,2147483647,1),...groupReferences(r.classIds,r.sourceRefs,source.schoolYear)};
+    return {...common,sourceKind:source.sourceKind,classId:null,groupId:source.groupId,groupRevision:gymInteger(r.groupRevision,2147483647,1),...groupReferences(r.classIds,r.sourceRefs,source.schoolYear,undefined,source.sourceKind)};
   });
 }
 const parseRow=parseTjanstRow;
@@ -592,7 +601,7 @@ export function parsePersonalCommandReply(value: unknown, command: TjanstPersona
 
 function parseSelfPublication(value: unknown): TjanstSelfPublication {
   const p = shape(value, ['versionId', 'versionNo', 'unitId', 'schoolName', 'schoolYear', 'publishedAt', 'contentHash', 'rows', 'specials', 'acknowledgedAt', 'comments']);
-  const rows = unique(list(p.rows, TJANST_LIMITS.rows, v => { const isGroup=gymObject(v).sourceKind==='teaching_group'; const r = optionalShape(v, ['id', 'className', 'rowKey', 'label', 'ht', 'vt', 'joint',...(isGroup?['sourceKind','groupId','groupName','classRefs','subjectCode','levelCode','language']:[])], ['sharing',...(!isGroup?['sourceKind']:[])]);
+  const rows = unique(list(p.rows, TJANST_LIMITS.rows, v => { const kind=gymObject(v).sourceKind,isGroup=kind==='teaching_group'||kind==='study_group'; const r = optionalShape(v, ['id', 'className', 'rowKey', 'label', 'ht', 'vt', 'joint',...(isGroup?['sourceKind','groupId','groupName','classRefs','subjectCode','levelCode','language']:[])], ['sharing',...(!isGroup?['sourceKind']:[])]);
     let joint: TjanstSelfRow['joint'] = null;
     if (r.joint !== null) { const j = shape(r.joint, ['jointId', 'name', 'colleagues', 'ht', 'vt']);
       joint = { jointId: uuid(j.jointId), name: name(j.name), colleagues: list(j.colleagues, 50, name), ht: minutes(j.ht), vt: minutes(j.vt) }; }
@@ -601,7 +610,9 @@ function parseSelfPublication(value: unknown): TjanstSelfPublication {
       sharing = { mode: choice(x.mode, ['sequential', 'concurrent'] as const), colleagues: list(x.colleagues, 50, name), grader: bool(x.grader) }; }
     const common={id:uuid(r.id),rowKey:rowKey(r.rowKey),label:text(r.label,300,false),ht:minutes(r.ht),vt:minutes(r.vt),joint,sharing};
     if(isGroup){const groupId=uuid(r.groupId),classRefs=unique(list(r.classRefs,TJANST_LIMITS.classes,v=>{const c=shape(v,['classId','name']);return {classId:uuid(c.classId),name:name(c.name)};}),c=>c.classId);
-      if(r.className!==null||common.rowKey!==`group:${groupId}`||!classRefs.length)bad();const subjectCode=text(r.subjectCode,80),levelCode=text(r.levelCode,80),language=electiveOptionLanguage(levelCode,r.language);
+      if(r.className!==null||common.rowKey!==`group:${groupId}`)bad();
+      if(kind==='study_group')return {...common,sourceKind:'study_group' as const,className:null,groupId,groupName:name(r.groupName),classRefs,subjectCode:r.subjectCode===null?null:text(r.subjectCode,96,false),levelCode:r.levelCode===null?null:text(r.levelCode,96,false),language:r.language===null?null:text(r.language,16,false)};
+      if(!classRefs.length)bad();const subjectCode=text(r.subjectCode,80),levelCode=text(r.levelCode,80),language=electiveOptionLanguage(levelCode,r.language);
       return {...common,sourceKind:'teaching_group' as const,className:null,groupId,groupName:name(r.groupName),classRefs,subjectCode,levelCode,language};}
     if(has(r,'sourceKind')&&r.sourceKind!=='class_timplan')bad();return {...common,className:text(r.className,60,false)}; }), r => r.id);
   const specials = unique(list(p.specials, TJANST_LIMITS.specials, v => { const s = shape(v, ['id', 'kind', 'label', 'className', 'ht', 'vt']);

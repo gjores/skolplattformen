@@ -5,6 +5,9 @@ import { createTjanstFixture, staffWithDuties, seedGrimNeeds, planCommand, planR
 import { parseYearPlanReadReply } from '../../web/lib/tjanst-contract.ts';
 import { parseYearRequest, parseYearReply, createYearPlanCommand, parseYearPlanReceipt } from '../../web/lib/tjanst-year-contract.ts';
 
+/** Writable tjanst_rows columns; teaching_group_id and study_group_id are generated. */
+export const tjanstRowColumns = 'id,version_id,lineage_id,staff_person_id,source_kind,source_key,class_id,school_year,link_revision,timplan_id,series_id,timplan_version,timplan_row_key,link_column,need_label,need_ht_minutes,need_vt_minutes,need_basis,teacher_ht_minutes,teacher_vt_minutes,comment,group_id,group_revision,group_snapshot';
+export const tjanstRowCopy = tjanstRowColumns.split(',').map(c => 'x.' + c).join(',');
 export const yearPreview = async (t, q) => {
   const request = parseYearRequest(q), result = (await t`select public.tjanst_year_preview(${t.json(request)}) value`)[0].value;
   return parseYearReply(result, request);

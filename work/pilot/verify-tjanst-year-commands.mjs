@@ -12,7 +12,7 @@ import { createRequire } from 'node:module';
 import { allPublicHashes } from './verify-atomic-cohort-copy.mjs';
 import { schemaFingerprint } from './named-timplan-snapshot.mjs';
 import { planRead, planSend, planCommand, planStatus, planRef, grantSelf, personalCommand, saveDuties, seedGy25Class } from './tjanst-fixtures.mjs';
-import { createTjanstYearFixture, seedLegacyMixedJoint, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend, capturePlanContext, yearCommand, yearCommandSend } from './tjanst-year-fixtures.mjs';
+import { createTjanstYearFixture, seedLegacyMixedJoint, seedYearHistory, yearPreview, yearRawPreview, yearManual, yearVacant, yearRowPayload, yearSend, capturePlanContext, yearCommand, yearCommandSend, tjanstRowColumns, tjanstRowCopy } from './tjanst-year-fixtures.mjs';
 import { parseYearReply, tjanstYearHash } from '../../web/lib/tjanst-year-contract.ts';
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const OWN = 'supabase/migrations/20261023120000_tjanst_year_commands.sql';
@@ -270,7 +270,7 @@ async function groupBoundaryCases(db,report) {
    check(report,'selected group teacher moves while all other teacher rows and group times remain identical');
   });
   const base=d.rows.find(x=>x.personId===p2),group=d.joints[0].id;
-  for(let n=4;n<100;n++) {const id=randomUUID(),key='synthetic:boundary:'+n;await t`insert into public.tjanst_rows select (jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object('id',${id}::uuid,'lineage_id',${randomUUID()}::uuid,'source_key',${s.key(key,base.classId)}::text,'timplan_row_key',${key}::text))).* from public.tjanst_rows r where r.id=${base.id}`;await t`insert into public.tjanst_joint_members(group_id,row_id) values(${group},${id})`;}
+  for(let n=4;n<100;n++) {const id=randomUUID(),key='synthetic:boundary:'+n;await t`insert into public.tjanst_rows(${t.unsafe(tjanstRowColumns)}) select ${t.unsafe(tjanstRowCopy)} from public.tjanst_rows r cross join lateral jsonb_populate_record(null::public.tjanst_rows,to_jsonb(r)||jsonb_build_object('id',${id}::uuid,'lineage_id',${randomUUID()}::uuid,'source_key',${s.key(key,base.classId)}::text,'timplan_row_key',${key}::text)) x where r.id=${base.id}`;await t`insert into public.tjanst_joint_members(group_id,row_id) values(${group},${id})`;}
   await savepoint(t,async u=>{const preview=await yearPreview(u,{unitId,schoolYear,mode:'batch',batch});assert.equal(preview.writeObjectCount,100);const result=await send(u,await captureCommand(u,s,'move',batch));assert.equal(result.rows.length,100);assert.equal(result.joints[0].teachers.length,2);check(report,'actual apply accepts100 affected group members while only explicit source-person rows move');});
   const specialId=randomUUID();await t`insert into public.tjanst_special_assignments(id,version_id,lineage_id,kind,label,staff_person_id,ht_minutes,vt_minutes,comment) values(${specialId},${d.version.id},${randomUUID()},'annat','Explicit extra',${p},60,0,'')`;
   await unchangedDeny(t,report,'100 affected group rows plus selected special101 is atomically blocked',async u=>planSend(u,await captureCommand(u,s,'move',{...batch,items:[...batch.items,{itemKey:'extra',kind:'special',id:specialId,fromPersonId:p,choice}]})),'40001','tjanst_stale_basis');

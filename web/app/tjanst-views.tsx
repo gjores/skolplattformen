@@ -16,10 +16,10 @@ import TjanstServiceSummary, { formatDeviation, formatTime, needValue, SPECIAL_K
 
 const personName = (data: TjanstPlanRead, personId: string | null) => personId === null ? 'Vakant' : data.teachers.find(t => t.personId === personId)?.displayName ?? 'Okänd lärare';
 const className = (data: TjanstPlanRead, classId: string) => data.classes.find(c => c.classId === classId)?.name ?? 'Okänd klass';
-const ownerId = (row: TjanstRow) => row.sourceKind === 'teaching_group' ? row.groupId : row.classId;
-const ownerName = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind === 'teaching_group'
+const ownerId = (row: TjanstRow) => row.sourceKind !== 'class_timplan' ? row.groupId : row.classId;
+const ownerName = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind !== 'class_timplan'
   ? data.groups?.find(group => group.groupId === row.groupId)?.name ?? 'Undervisningsgrupp' : className(data, row.classId);
-const rowLabel = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind === 'teaching_group'
+const rowLabel = (data: TjanstPlanRead, row: TjanstRow) => row.sourceKind !== 'class_timplan'
   ? data.groups?.find(group => group.groupId === row.groupId)?.label ?? 'Undervisning i grupp'
   : data.classes.find(c => c.classId === row.classId)?.needs.find(n => n.sourceKey === row.sourceKey)?.label ?? row.rowKey;
 const jointClasses = (data: TjanstPlanRead, joint: TjanstJoint, except: string) =>

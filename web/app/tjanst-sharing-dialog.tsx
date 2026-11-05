@@ -37,7 +37,7 @@ export default function TjanstSharingDialog({ open, checking, disabled = false, 
   const sum = teachers.reduce((s, p) => { const t = time(p); return { ht: s.ht + t.ht, vt: s.vt + t.vt }; }, { ht: 0, vt: 0 });
   const max = teachers.reduce((s, p) => { const t = time(p); return { ht: Math.max(s.ht, t.ht), vt: Math.max(s.vt, t.vt) }; }, { ht: 0, vt: 0 });
   const needText = need ? `HT ${need.needHt === null ? 'okänt' : formatTime(need.needHt)} · VT ${need.needVt === null ? 'okänt' : formatTime(need.needVt)}` : 'okänt';
-  return <Shell open={open} busy={busy} onClose={onClose} title="Hur delar lärarna kursen?" description={`${title}. Flera lärare har tid på ${need?.sourceKind === 'teaching_group' ? 'samma undervisning i gruppen' : 'samma kurs i klassen'}.`}>
+  return <Shell open={open} busy={busy} onClose={onClose} title="Hur delar lärarna kursen?" description={`${title}. Flera lärare har tid på ${need && need.sourceKind !== 'class_timplan' ? 'samma undervisning i gruppen' : 'samma kurs i klassen'}.`}>
     {supportNotice}
     <Problems failure={failure} checking={checking} summary={false}/>
     <dl className="mandate-facts tjanst-facts">

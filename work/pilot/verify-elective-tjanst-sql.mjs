@@ -165,6 +165,16 @@ try{
    throw Error('rollback-time-change-fixture');
   });}catch(e){assert.equal(e.message,'rollback-time-change-fixture');}
   await f.actor(tx,'principalB');await deny(tx,'other school mandate cannot read group staffing',sp=>sp`select public.tjanst_plan_read(${sp.json(scope)})`,['42501']);await f.actor(tx,'principalA');
+  // The rest of the chain, ending with study_group sources, leaves published teaching_group rows as they were.
+  const frozenRead=await planRead(tx,{...scope,versionId:groupVersion}),draftRows=(await read()).rows;
+  await tx.savepoint(async sp=>{
+   for(const file of migrationFiles().filter(x=>x>migration))await sp.unsafe(readFileSync(new URL('../../supabase/migrations/'+file,import.meta.url),'utf8').replace(/^(begin|commit);$/gmu,''));
+   assert.deepEqual(await planRead(sp,{...scope,versionId:groupVersion}),frozenRead);
+   assert.equal((await sp`select public.tjanst_version_hash(${groupVersion}) value`)[0].value,frozenHash);
+   await f.actor(sp,'teacherSelf');assert.deepEqual(parseSelfReadReply(await selfRead(sp)),groupSelf);await f.actor(sp,'principalA');
+   assert.deepEqual(parseYearPlanReadReply(await planRead(sp,scope),scope).rows,draftRows);
+   check('later migrations keep published teaching_group rows, their hash and the teacher publication unchanged');throw Error('rollback-later-chain');
+  }).catch(e=>{if(e.message!=='rollback-later-chain')throw e;});
  });
  await own.db.begin(async tx=>{
   const f=fixture,timeScope=await seedElectiveTimeFrame(tx,f);await f.actor(tx,'principalA');

@@ -92,8 +92,8 @@ export type TjanstJointWarnings = {
 export function jointWarnings(rows: TjanstRow[], classes: { classId: string; aplMinutes: number | null }[]): TjanstJointWarnings {
   const known = rows.filter(r => r.needHt !== null && r.needVt !== null);
   const distinct = new Set(known.map(r => `${r.needHt}:${r.needVt}`));
-  const time = distinct.size > 1 ? [...new Map(known.flatMap(r => (r.sourceKind==='teaching_group'?r.classIds:[r.classId]).map(classId=>[classId,{classId,ht:r.needHt!,vt:r.needVt!}] as const))).values()] : null;
-  const ids = [...new Set(rows.flatMap(r => r.sourceKind==='teaching_group'?r.classIds:[r.classId]))], apl = (id: string) => classes.find(c => c.classId === id)?.aplMinutes ?? null;
+  const time = distinct.size > 1 ? [...new Map(known.flatMap(r => (r.classId===null?r.classIds:[r.classId]).map(classId=>[classId,{classId,ht:r.needHt!,vt:r.needVt!}] as const))).values()] : null;
+  const ids = [...new Set(rows.flatMap(r => r.classId===null?r.classIds:[r.classId]))], apl = (id: string) => classes.find(c => c.classId === id)?.aplMinutes ?? null;
   const withApl = ids.filter(id => (apl(id) ?? 0) > 0), withoutApl = ids.filter(id => apl(id) === 0), unknown = ids.filter(id => apl(id) === null);
   return { time, apl: withApl.length > 0 && (withoutApl.length > 0 || unknown.length > 0) ? { withApl, withoutApl, unknown } : null };
 }
