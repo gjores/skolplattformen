@@ -28,7 +28,7 @@ import { usePlanningContext, type PlanningMatrixYear } from './planning-context'
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
-type Props = { onValplaner?:(target:{unitId:string;schoolYear:number;valplanId:string|null})=>void; onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onTjanst?:(target:{unitId:string;schoolYear:number})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
+type Props = { onValplaner?:(target:{unitId:string;schoolYear:number;valplanId:string|null})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;

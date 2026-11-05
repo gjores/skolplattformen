@@ -29,7 +29,7 @@ Rubriken visar skola, läsår, version och publiceringsdatum.
 
 Du ser bara den version som rektor har publicerat, aldrig ett utkast. Har rektor inte publicerat visas *Ingen publicerad tjänst ännu*. Min tjänst visar inga elever och inga kollegors tjänster.
 
-Ändrade elevval och gruppplaceringar skriver inte om din publicerade lärartid. Nya gruppnamn eller nytt timplansunderlag blir del av din tjänst när rektor granskar och publicerar en ny tjänstefördelning. Tidigare publiceringsuppgifter bevaras även om en grupp senare avvecklas. Se [Valbara block](./valbara-block.md).
+Ändrade elevval och gruppplaceringar skriver inte om din publicerade lärartid. Nya gruppnamn eller nytt timplansunderlag blir del av din tjänst när rektor granskar och publicerar en ny tjänstefördelning. Tidigare publiceringsuppgifter bevaras även om en grupp senare avvecklas. Se [valplan](./valplaner.md).
 
 ## Kvittera
 

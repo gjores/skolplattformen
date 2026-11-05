@@ -11,15 +11,13 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 Rektor och skoladministratör kan välja **Skapa ny timplan** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Övergången stöder högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med känd poängram.
 
-Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. För berörda yrkeskullar följer även programplanens sparade kontroll av yrkesprov eller gymnasiearbete med. Valbara block i timplanen är ramar. Konkreta alternativ, språk, elevval och grupper förbereds i [Valbara block](./valbara-block.md), och bemanningen görs i tjänstefördelningen. Alternativa ämnen och block räknas en gång.
+Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. För berörda yrkeskullar följer även programplanens sparade kontroll av yrkesprov eller gymnasiearbete med. Valbara block i timplanen är ramar. Konkreta alternativ, språk, elevval och grupper förbereds i en [valplan](./valplaner.md), och bemanningen görs i tjänstefördelningen. Alternativa ämnen och block räknas en gång.
 
 Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timplanen bygger på. **Fler alternativ** samlar namnbyte, ny version, uppdatering och **Visa planens underlag**, utifrån vad ditt uppdrag och planens status tillåter. Beslut och **Klasser och läsår** finns efter tabellen.
 
-### Valbara tidsutrymmen inom en ram
+### Valbara rader och valplaner
 
-Om en valbar årsram ska erbjudas i mindre delar behöver varje del ha uttrycklig poäng- och tidsfördelning. I **Valbara block → Timplanens valbara tidsutrymmen** kan du exempelvis dela en 200-poängsram i två 100-poängsutrymmen. Summorna ska bevara grundramens poäng och undervisningstid för HT och VT; poäng räknas inte om till timmar.
-
-Granska och välj **Spara och tillämpa** för att använda utrymmena som källor till separata valbara block. Fördelningen gäller alla klasser som använder samma timplan och årskolumn. Grundtimplanen ändras inte tyst, och gamla grupprader eller lärartilldelningar behöver stämmas av om underlaget påverkas. Se [Undervisningstiden kommer från timplanen](./valbara-block.md#undervisningstiden-kommer-från-timplanen).
+En valbar rad i en godkänd gymnasietimplan kan fyllas av en [valplan](./valplaner.md). Raden visas hopfällbar med poängen och en länk till valplanen. Fäll ut den för att se kurserna. Valplanen äger kursernas tid; timplanens radtid är en kontrollsiffra och skrivs inte om.
 
 ### Flera timplaner för samma programplan
 
@@ -201,14 +199,6 @@ För grundskolan kontrolleras den faktiska årsbindningen till version och kolum
 För introduktionsprogram visas **Timmar per vecka**. Årsvalet gör ingen årskursprogressering eller omräkning till årstimmar. **Saknas** betyder att en rad eller cell saknar användbart underlag; det är inte ett sparat nollvärde. En äldre plan med oläsbart fullständigt underlag visas som en lucka med möjlighet att läsa om.
 
 För grundskolan kan du på telefon välja årskurs i den aktuella matrisen eller visa och rulla hela timplanen. Se [Planering](./planering.md) om planeringsår, registerår, versioner och överblick.
-
-## Förbered valbara block efter godkänd timplan
-
-Öppna den godkända gymnasietimplanen för rätt skola och läsår och välj **Förbered valbara block**. Förberedelsen använder planens verkliga årskolumn, valramar, frysta ämneskatalog och undervisningstid. Markera exempelvis moderna språk eller individuellt val, välj kursupplägg och sök skolans alternativ. Två separata kursval kan förberedas och skapas tillsammans.
-
-Du kan spara förberedelsen innan klasser finns. Koppla sedan de riktiga klasserna till timplanen och återöppna förberedelsen. Granska klassurval och tid innan block och gruppunderlag skapas. Grundtimplanens beslut ändras inte av denna förberedelse. Se [Valbara block](./valbara-block.md).
-
-Grundskolans nya förberedelse saknar ännu verifierad historisk årskurskarta. Där visas ett hinder; systemet gissar inte från lagrade kolumnpositioner.
 
 ## Koppla GR- och IM-klasser
 

@@ -16,12 +16,14 @@ Om skolan ber om en kontoreferens öppnar du **Koppla konto till skolan** och l�
 
 ## För dig som är elev
 
-1. Öppna erbjudandet och läs alternativen och sista valdag. **Undervisningstid enligt timplanen** visar tiden för valområdet.
-2. Välj ett alternativ. När listan är lång kan du använda **Sök alternativ**.
-3. Kontrollera ditt val och välj **Lämna mitt val**.
-4. Läs beskedet och statusen. Ett inlämnat val är ännu ingen gruppplacering.
+1. Öppna valplanen och läs kurserna, poängen du ska välja och sista valdag.
+2. Kryssa i kurser tills sidan visar **Du har valt rätt antal poäng**. Du kan välja flera kurser, till exempel två på 50 poäng och en på 100.
+3. Välj **Lämna val**.
+4. Läs beskedet och statusen. Ett inlämnat val är ännu ingen plats i en grupp.
 
-Under en öppen valomgång kan du lämna **Lämna ändrat val** om något behöver ändras. Om vårdnadshavare har avböjt kan **Lämna valet på nytt** visas. Ett nytt eller ändrat val behöver granskas igen och flyttar ingen befintlig gruppplacering automatiskt.
+Fram till sista valdag kan du ändra kurserna och välja **Ändra val**. Ett ändrat val behöver granskas igen och flyttar dig inte automatiskt från en grupp.
+
+Äldre valomgångar från valbara block visas i samma vy om sådana finns. Där väljer du ett alternativ och **Lämna mitt val**.
 
 Om valomgången är stängd eller erbjudandet har ändrats kontaktar du skolan för rätt valomgång eller uppdaterat underlag.
 
@@ -43,7 +45,8 @@ Ditt svar gäller det aktuella valet. Om eleven lämnar ett nytt eller ändrat v
 | Väntar på vårdnadshavarens bekräftelse | Berörda vårdnadshavare behöver läsa och svara. |
 | Vårdnadshavare har avböjt valet | Eleven och skolan behöver ta ställning till ett nytt eller förnyat val. |
 | Valet är inlämnat och väntar på skolans bekräftelse | Skolan granskar det inlämnade valet. |
-| Skolan har bekräftat valet | Skolan kan gå vidare med gruppplaceringen. |
+| Skolan har bekräftat valet | Skolan kan skapa grupper från valet. |
+| En kurs i valet finns inte längre | Gör ett nytt val eller kontakta skolan. |
 | Erbjudandet har ändrats | Kontakta skolan och kontrollera vilket val som gäller. |
 
 När en placering finns visas **Gruppplacering** med grupp och datum. En elev kan höra till en undervisningsgrupp utan att skolklassen ändras. Skolan hanterar gruppbyte, avslut och återtagning av planerade placeringar.

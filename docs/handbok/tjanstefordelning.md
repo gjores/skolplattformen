@@ -2,9 +2,9 @@
 title: Fördela tjänster på skolan
 ---
 
-I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner och tillämpade valbara undervisningsgrupper. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
+I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner och skolans undervisningsgrupper. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-Förbered skolans valbara utbud i den godkända timplanen före bemanningen. **Förbered valbara block** kan också öppnas från en ännu inte gruppindelad valram här. Då följer rätt timplan, läsår och ram med. Skapa block och gruppunderlag tillsammans och bemanna sedan de konkreta gruppraderna. Se [Valbara block](./valbara-block.md).
+Lägg skolans valbara utbud i en [valplan](./valplaner.md) och skapa grupper före bemanningen. En valrad som ännu saknar grupper har knappen **Öppna Valplaner**. Bemanna sedan gruppraderna.
 
 ## Vem gör vad?
 
@@ -31,11 +31,11 @@ Behovet hämtas bara för klasser som är kopplade till en timplan för läsåre
 
 ## Matris och vyer
 
-**Matris** visar behov per kurs eller ämne och klass, samt egna rader för valbara undervisningsgrupper. Varje lärare har en kolumn. Varje klass har en rubrikrad med timplan, version och täckning, till exempel *100 av 100 h · 2 lärare*. Kolumnerna **Behov**, **Fördelat** och **Avvikelse** gäller vald tid: **Hela läsåret**, **HT** eller **VT**. Fotraden visar **Undervisning**, **Specialuppdrag** och **Totalt** per lärare. Under lärarens namn står **Andel här**, lärarens andel på skolan enligt huvudmannens personaluppgifter. Andelen är en upplysning. Appen jämför inte tiden med andelen.
+**Matris** visar behov per kurs eller ämne och klass, samt egna rader för undervisningsgrupper. Varje lärare har en kolumn. Varje klass har en rubrikrad med timplan, version och täckning, till exempel *100 av 100 h · 2 lärare*. Kolumnerna **Behov**, **Fördelat** och **Avvikelse** gäller vald tid: **Hela läsåret**, **HT** eller **VT**. Fotraden visar **Undervisning**, **Specialuppdrag** och **Totalt** per lärare. Under lärarens namn står **Andel här**, lärarens andel på skolan enligt huvudmannens personaluppgifter. Andelen är en upplysning. Appen jämför inte tiden med andelen.
 
 På dator är tillägg och övriga verktyg samlade i två menyer:
 
-- **Lägg till:** **Lägg till valbart block**, **Lägg till lärare i fördelningen**, **Lägg upp ny lärare** och **Lägg till specialuppdrag**. Vilka val du ser beror på ditt aktuella uppdrag.
+- **Lägg till:** **Undervisningsgrupper**, **Lägg till lärare i fördelningen**, **Lägg upp ny lärare** och **Lägg till specialuppdrag**. Vilka val du ser beror på ditt aktuella uppdrag.
 - **Verktyg:** **Flytta uppdrag**, **Massregistrera**, **Tomma lärarkolumner** och **Hämta aktuellt läge**. I matrisen finns här också **Avancerade val före tilldelning** och hjälpen **Så fungerar tilldelning**.
 
 Välj menyn och sedan åtgärden. Menyn stängs när du väljer en åtgärdsknapp. Du kan också stänga med **Escape** eller genom att klicka utanför. När du stänger en dialog återgår fokus till menyn som öppnade den.
@@ -109,13 +109,13 @@ Vyn **Fördela** (på dator) är till för att bemanna många ofördelade behov 
 
 På telefon visar Fördela en lista över ofördelade behov, utan val.
 
-## Valbara undervisningsgrupper
+## Undervisningsgrupper
 
-Öppna **Lägg till → Lägg till valbart block** för att förbereda alternativ och grupper, eller arbeta i **Valbara block** före bemanningen. Där väljer du **Använd i tjänstefördelningen** när organisationen är granskad. Se [Valbara block och undervisningsgrupper](./valbara-block.md).
+Grupper skapas från elevvalet i en [valplan](./valplaner.md) eller under [Undervisningsgrupper](./undervisningsgrupper.md). De syns här utan något extra steg.
 
-Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. Organiserad tid ersätter klassramens bemanningsbehov; återstående ram behöver organiseras i konkreta grupper och får ingen fri tilldelning. Gruppens undervisningsbehov är ärvt från timplanen, medan sparad lärartid fortfarande är ett eget värde.
+Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. En timplansrad som fylls av en valplan är inget klassbehov när valplanen har en aktiv grupp. Utan grupper väntar raden på organisation, får ingen tilldelning och stoppar publicering. Gruppens undervisningsbehov är gruppens tid, medan sparad lärartid fortfarande är ett eget värde. Gamla blockgrupper visas fortsatt med sin tid från timplanen.
 
-Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Tillämpning av grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassram ersätts av grupper finns den gamla tilldelningen kvar för uttrycklig granskning och borttagning.
+Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Nya eller ändrade grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassrad ersätts av grupper finns den gamla tilldelningen kvar som inaktuell för uttrycklig granskning och borttagning. En ändrad grupp gör sin rad inaktuell tills den sparats på nytt.
 
 ## Tilldela direkt i matrisen
 
@@ -248,7 +248,7 @@ Begränsningar:
 
 Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
 
-För valbara grupper kan du behöva organisera återstående tidsutrymmen eller granska ändrat timplansunderlag i **Valbara block**. En gammal tilldelning på en ersatt klassram behöver också stämmas av.
+För valrader kan du behöva skapa grupper från **Valplaner** eller spara grupper på nytt under **Undervisningsgrupper**. En gammal tilldelning på en ersatt klassrad behöver också stämmas av.
 
 Antalet gäller **olika typer av publiceringshinder**, inte antalet felande rader. En punkt kan beröra flera tilldelningar eller samläsningar. Vanliga planeringsavvikelser, till exempel skillnad mellan behov och fördelad tid, visas i fördelningen och är inte i sig samma sak som ett publiceringshinder.
 

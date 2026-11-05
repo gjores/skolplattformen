@@ -91,38 +91,6 @@ test('felaktigt kvitto ger inget sparbesked och nekat mandat rensar vyn', async 
   await expect(page.getByText('Sessionen är låst', { exact: true })).toBeVisible();
   await expect(page.getByRole('textbox', { name: 'Kontoreferens', exact: true })).toHaveCount(0);
 });
-test('registrering kräver elevurval och ersätter aktuellt val utan automatisk bekräftelse', async ({ page },testInfo) => {
-  await mock(page); await page.goto(`${FIXTURE}?existing`);
-  await page.getByRole('button', { name: 'Registrera val åt elev', exact: true }).click();
-  await expect(page.getByRole('radio')).toHaveCount(0);
-  await page.getByRole('combobox', { name: 'Valomgång', exact: true }).selectOption(eid(21));
-  await expect(page.getByRole('radio')).toHaveCount(0);
-  await page.getByRole('combobox', { name: 'Elev', exact: true }).selectOption(eid(20));
-  await page.getByRole('radio', { name: /^Franska/ }).check();
-  await page.getByRole('button', { name: 'Registrera elevens val', exact: true }).click();
-  await page.screenshot({path:testInfo.outputPath('staff-choice.png'),fullPage:true});
-  const writes = JSON.parse(await page.getByRole('status', { name: 'Syntetiska valkommandon' }).textContent() ?? '[]');
-  expect(writes).toHaveLength(1); expect(writes[0]).toEqual({ action: 'record_choice', payload: { roundId: eid(21), pupilId: eid(20), offeringRevision: 1, expectedChoiceRevision: 1, selectedOptionIds: [eid(12)] } });
-  await expect(page.getByText(/Valet är registrerat\./)).toBeVisible();
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-});
-test('ändrat elevval och passerad sista valdag stoppar gammal registrering', async ({ page }) => {
-  await mock(page); await page.goto(FIXTURE); await choosePupil(page); await page.getByRole('radio', { name: /^Franska/ }).check();
-  await page.getByRole('button', { name: 'Simulera ändrat elevval' }).click();
-  await expect(page.getByRole('button', { name: 'Registrera elevens val', exact: true })).toBeDisabled();
-  await expect(page.getByText(/Underlaget eller elevens val har ändrats/)).toBeVisible();
-  await answerDiscard(page, true, () => page.getByRole('button', { name: 'Hämta aktuellt val', exact: true }).click());
-  await page.getByRole('radio', { name: /^Franska/ }).check(); await page.getByRole('button', { name: 'Simulera sista valdag' }).click();
-  await page.clock.runFor(1100); await expect(page.getByRole('button', { name: 'Registrera elevens val', exact: true })).toBeDisabled();
-  await expect(page.getByRole('status', { name: 'Syntetiska valkommandon' })).toHaveText('[]');
-});
-test('osparat val skyddas vid navigering och stängd omgång går inte att registrera i', async ({ page }) => {
-  await mock(page); await page.goto(FIXTURE); await choosePupil(page); await page.getByRole('radio', { name: /^Franska/ }).check();
-  await answerDiscard(page, false, () => page.getByRole('button', { name: 'Gå vidare i provet' }).click());
-  await expect(page.getByRole('radio', { name: /^Franska/ })).toBeChecked();
-  page.once('dialog', dialog => dialog.accept()); await page.goto(`${FIXTURE}?closed`); await choosePupil(page);
-  await expect(page.getByRole('radio', { name: /^Franska/ })).toBeDisabled(); await expect(page.getByRole('button', { name: 'Registrera elevens val', exact: true })).toBeDisabled();
-});
 test('kontokoppling kräver ny granskning efter konflikt och osparad skolkontroll skyddas', async ({ page }) => {
   const m = await mock(page, 'conflict'); await page.goto(FIXTURE); await bindingForm(page);
   await answerDiscard(page, false, () => page.getByRole('button', { name: 'Gå vidare i provet' }).click());

@@ -19,7 +19,6 @@ import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGrimClassTimplans from './protected-grim-class-timplans';
 import { TimplanGuidance, TimplanEditGuidance } from './timplan-guidance';
 import './protected-timplan.css';
-import ElectivePreparationLauncher from './elective-preparation-launcher';
 
 type CellDraft = {
   weekly: boolean;
@@ -27,13 +26,13 @@ type CellDraft = {
   value: string; original: number; mode: 'draft' | 'refreshing' | 'refresh-failed' | 'compare' | 'applied';
   error: string | null; mfa: boolean; uncertain: boolean;
 };
-type Props = { onPreparedBlocks?:(target:{unitId:string;schoolYear:number})=>void; onPreparedTimplan?:(target:{unitId:string;schoolYear:number;columnId:string})=>void; onTjanst?:(target:{unitId:string;schoolYear:number})=>void; context: ActiveContext; epoch: number; initialTarget: OtherTimplanLocation | null;
+type Props = { context: ActiveContext; epoch: number; initialTarget: OtherTimplanLocation | null;
   onOpened: (target: OtherTimplanLocation | null) => void; onSessionLost: () => void };
 type VerifiedMatrix = { target: OtherTimplanLocation; currentMatrix: boolean };
 class MissingAnnualTarget extends Error {}
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 
-export default function ProtectedTimplanWorkspace({ context, epoch, initialTarget, onOpened, onSessionLost, onTjanst, onPreparedBlocks, onPreparedTimplan }: Props) {
+export default function ProtectedTimplanWorkspace({ context, epoch, initialTarget, onOpened, onSessionLost }: Props) {
   const requestDiscard = useRequestDiscard();
   const { setup, selection } = usePlanningContext();
   const [annualRow, setAnnualRow] = useState<PlanningRow | null>(null);
@@ -334,9 +333,6 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
             {weekly && <p>Veckoram. Kalender och individuell fördelning saknas; inga årstimmar beräknas.</p>}
           </div>}
         {positional && <output className="pt-alert" data-testid="other-column-map-unknown">Den historiska kolumnkartan är okänd. Hela timplanen visar lagrade positioner; dagens årskursordning används inte som historiskt bevis. Årets timmar och riktad årscellsändring är därför okända/spärrade.</output>}
-        {plan.status==='faststalld' && plan.education.kind==='grundskola' && !positional && selection && ['rektor','administrator'].includes(context.function) && <ElectivePreparationLauncher
-          choices={timplanColumns(plan).filter(column=>/^ak[1-9]$/u.test(column.id)).map(column=>({unitId:plan.unitId,planId:plan.id,columnId:column.id,label:`${plan.education.name} · ${column.label} · version ${plan.version}`}))}
-          schoolYear={selection.schoolYear} identityKey={JSON.stringify([context.customerId,context.membershipId,context.assignmentId])} contextEpoch={epoch} disabled={busy||Boolean(draft)} onSessionLost={onSessionLost} onTjanst={onTjanst} onOpenBlocks={onPreparedBlocks} onOpenSourceTimplan={onPreparedTimplan}/>}
         {['faststalld','ersatt'].includes(plan.status) && <ProtectedGrimClassTimplans key={`grim-classes-${plan.id}`} plan={plan}
           scopeKey={JSON.stringify([context.customerId, context.membershipId, context.assignmentId, epoch])}
           returnTo={'/?' + new URLSearchParams({ vy: 'timplaner', ovrigtimplan: plan.id, timplansform: plan.education.kind, timplansutbildning: plan.offeringId,
