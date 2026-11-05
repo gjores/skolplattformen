@@ -40,6 +40,9 @@
 .catalog-level-search .ppk-level-choices button:disabled { color: var(--muted-foreground); }
 .valplan-footer { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; }
 .valplan-actions { display: flex; flex-wrap: wrap; gap: .5rem; }
+.valplan-open { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+.valplan-workspace select { height: var(--control-height); appearance: none; -webkit-appearance: none; background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%); background-position:right 18px center,right 13px center; background-repeat:no-repeat; background-size:5px 5px; padding-right: 2rem; }
+.valplan-add legend { font-weight: 600; }
 .valplan-field-error { color: var(--destructive); font-size: .875rem; }
 .valplan-alert { color: var(--destructive); display: grid; gap: .5rem; justify-items: start; }
 .valplan-notice { color: var(--foreground); }

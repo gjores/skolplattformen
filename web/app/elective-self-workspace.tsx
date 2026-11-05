@@ -10,6 +10,7 @@ import { createSelfCommandRef, parseSelfCommand, parseSelfCommandRef, parseSelfI
 import { programplanLanguageName } from '@/lib/programplan-languages.ts';
 import type { ElectiveChoice } from '@/lib/elective-block-contract.ts';
 import ElectiveChoiceForm from './elective-choice-form';
+import ValplanSelfOffers from './valplan-self-offers';
 import { formatTime } from './tjanst-service-summary';
 import './elective-blocks.css';
 
@@ -58,11 +59,12 @@ function Workspace() {
       {index.participants.length === 0 && <section className="elective-card"><h2>Inga val att visa</h2><p>Skolan behöver koppla ditt konto till rätt elev innan du kan göra eller bekräfta ett val. Kontakta skolan om du väntar på en valomgång.</p></section>}
       <details className="elective-card"><summary>Koppla konto till skolan</summary><p>Om skolan ber om din kontoreferens kan du visa den här. Skolan kontrollerar vem kontot tillhör innan det kopplas till en elev.</p><label>Din kontoreferens<input value={index.identityReference} readOnly onFocus={event => event.currentTarget.select()}/></label></details>
       {index.participants.length > 1 && <label>Välj elev och skola<select value={selected} disabled={navigationBlocked} onChange={async event => { const next = event.target.value; if (!dirty || await requestDiscard()) setSelected(next); }}><option value="">Välj vem valet gäller</option>{index.participants.map(value => <option value={value.bindingId} key={value.bindingId}>{value.pupilName} · {value.schoolName}{value.participant === 'guardian' ? ' · VH-bekräftelse' : ''}</option>)}</select></label>}
-      {person && <Participant key={`${person.bindingId}-${person.bindingRevision}`} person={person} identityReference={index.identityReference} onLost={lost}/>}
+      {person && <Participant key={`${person.bindingId}-${person.bindingRevision}`} person={person} identityReference={index.identityReference} epoch={index.epoch} onLost={lost}/>}
     </>}
   </main>;
 }
-function Participant({ person, identityReference, onLost }: { person: SelfParticipant; identityReference: string; onLost: () => void }) {
+function Participant({ person, identityReference, epoch, onLost }: { person: SelfParticipant; identityReference: string; epoch: number; onLost: () => void }) {
+  const [valplanOffers, setValplanOffers] = useState(0);
   const [data, setData] = useState<SelfRead | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [feedback, setFeedback] = useState<string | null>(null), [retry, setRetry] = useState(0);
   const journalKey = `elective-self-status:${person.bindingId}`;
   const [pending, setPending] = useState<SelfCommandRef | null>(() => { try { const value = window.sessionStorage.getItem(journalKey); if (!value) return null;
@@ -120,7 +122,8 @@ function Participant({ person, identityReference, onLost }: { person: SelfPartic
     {error && <div className="elective-error" role="alert">{error}{!pending && <Button variant="ghost" disabled={busy} onClick={() => setRetry(value => value + 1)}>Hämta aktuellt läge</Button>}</div>}
     {pending && <div className="elective-card"><p>Kontrollera sparstatus innan du fortsätter.</p><Button disabled={busy} onClick={() => void check()}>Kontrollera sparstatus</Button></div>}
     {feedback && <output className="elective-feedback">{feedback}</output>}
-    {!data ? <p aria-busy="true">Hämtar valomgångar…</p> : data.offers.length === 0 ? <p>Det finns inga valomgångar att visa just nu.</p> : data.offers.map(offer => <Offer key={`${offer.round.id}-${data.choices.find(choice => choice.roundId === offer.round.id)?.revision ?? 0}`} offer={offer} data={data} disabled={busy || pending !== null} onSend={send}/>)}
+    <ValplanSelfOffers person={person} epoch={epoch} onLost={onLost} onCount={setValplanOffers}/>
+    {!data ? <p aria-busy="true">Hämtar valomgångar…</p> : data.offers.length === 0 ? (valplanOffers === 0 && <p>Det finns inga valomgångar att visa just nu.</p>) : data.offers.map(offer => <Offer key={`${offer.round.id}-${data.choices.find(choice => choice.roundId === offer.round.id)?.revision ?? 0}`} offer={offer} data={data} disabled={busy || pending !== null} onSend={send}/>)}
   </section>;
 }
 function Offer({ offer, data, disabled, onSend }: { offer: SelfOffer; data: SelfRead; disabled: boolean; onSend: (action: SelfCommand['action'], payload: SelfCommand['payload']) => Promise<void> }) {

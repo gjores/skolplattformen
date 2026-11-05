@@ -19,6 +19,9 @@
 .elective-check input { margin-top: .2rem; flex-shrink: 0; }
 .elective-choice { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .25rem .625rem; align-items: start; padding: .75rem; border: 1px solid var(--border, #dfe5ee); border-radius: .5rem; }
 .elective-choice input { margin-top: .25rem; }
+.valplan-self-courses { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
+.valplan-self-courses legend { font-weight: 600; margin-bottom: .5rem; }
+.valplan-self-courses .elective-choice { min-height: var(--control-height, 44px); }
 .elective-choice small { display: block; color: var(--muted-foreground, #61718a); }
 .elective-status { display: inline-flex; font-size: .75rem; font-weight: 500; color: #325d4c; background: #eaf5ef; border-radius: .25rem; padding: .125rem .375rem; width: fit-content; }
 .elective-status[data-pending="true"] { color: #795221; background: #fff6e7; }

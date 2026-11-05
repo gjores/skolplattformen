@@ -15,6 +15,7 @@ import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
 import CatalogLevelSearch from './catalog-level-search';
 import MfaStepUpNotice from './mfa-step-up';
+import ProtectedValplanChoices from './protected-valplan-choices';
 import './valplaner.css';
 
 const catalog = artifact as ProgramplanCatalog;
@@ -57,20 +58,20 @@ function message(error: unknown): string {
   return 'Sparandet kunde inte bekräftas. Kontrollera sparstatus innan du försöker igen.';
 }
 
-type Props = { unitId: string | null; schoolYear: number; scopeKey: string; initialValplanId?: string | null; onSessionLost: () => void };
+type Props = { unitId: string | null; schoolYear: number; scopeKey: string; initialValplanId?: string | null; onOpenGroups?: () => void; onSessionLost: () => void };
 export default function ProtectedValplaner(props: Props) {
   if (!props.unitId) return <section className="valplan-workspace"><div className="page-heading"><div><h1>Valplaner<span className="heading-dot">.</span></h1></div></div><p className="empty-state">Välj en skola för att se läsårets valplaner.</p></section>;
   return <Workspace key={`${props.scopeKey}-${props.unitId}-${props.schoolYear}`} {...props} unitId={props.unitId}/>;
 }
 
-function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost }: Props & { unitId: string }) {
+function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, onOpenGroups, onSessionLost }: Props & { unitId: string }) {
   const requestDiscard = useRequestDiscard();
   const heading = useId();
   const [data, setData] = useState<ValplanRead | null>(null), [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<string | null>(initialValplanId), [draft, setDraft] = useState<Valplan | null>(null), [time, setTime] = useState<TimeText>({});
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false);
   const [adding, setAdding] = useState(false), [language, setLanguage] = useState(''), [tried, setTried] = useState(false);
-  const [pending, setPending] = useState<ValplanCommand | null>(null), [uncertain, setUncertain] = useState(false);
+  const [pending, setPending] = useState<ValplanCommand | null>(null), [uncertain, setUncertain] = useState(false), [choices, setChoices] = useState(false);
   // A new plan is compared with its untouched start, so merely opening one does not block navigation.
   const [start, setStart] = useState<Valplan | null>(null);
   const saved = data?.valplans.find(v => v.valplan.id === draft?.id)?.valplan ?? null;
@@ -83,7 +84,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
     catch (caught) { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); return null; }
   }
 
-  function open(plan: Valplan) { setStart(null); setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
+  function open(plan: Valplan) { setChoices(false); setStart(null); setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
   const acceptInitial = useEffectEvent((value: ValplanRead) => { setData(value); const first = value.valplans.find(v => v.valplan.id === initialValplanId); if (first) open(first.valplan); });
   const initialFailure = useEffectEvent((caught: unknown) => { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); });
   useEffect(() => {
@@ -171,7 +172,8 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
         <fieldset className="valplan-new"><legend>Ny valplan</legend>{(Object.keys(VALPLAN_KIND_LABEL) as ValplanKind[]).map(kind =>
           <Button key={kind} variant="outline" disabled={busy} onClick={() => create(kind)}>{VALPLAN_KIND_LABEL[kind]}</Button>)}</fieldset>
       </aside>
-      {draft ? <div className="valplan-card valplan-editor">
+      {draft && choices ? <ProtectedValplanChoices unitId={unitId} schoolYear={schoolYear} valplanId={draft.id} scopeKey={scopeKey} onBack={() => setChoices(false)} onOpenGroups={onOpenGroups} onSessionLost={onSessionLost}/>
+      : draft ? <div className="valplan-card valplan-editor">
         <div className="section-heading"><h2>{saved ? draft.name : 'Ny valplan'}</h2><span className={saved && !dirty ? 'status-badge success' : 'status-badge'}>{saved ? dirty ? 'Osparade ändringar' : 'Sparad' : 'Inte sparad'}</span></div>
         <div className="valplan-fields">
           <label>Namn<input value={draft.name} maxLength={200} disabled={busy} aria-invalid={tried && !draft.name.trim()} onChange={e => update(p => ({ ...p, name: e.target.value }))}/></label>
@@ -228,6 +230,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
             {uncertain && pending ? <Button disabled={busy} onClick={() => void send(pending)}>Kontrollera sparstatus</Button>
               : <Button disabled={busy || !dirty} onClick={save}>{busy ? 'Sparar…' : 'Spara valplan'}</Button>}
             {saved && dirty && <Button variant="outline" disabled={busy} onClick={() => open(saved)}>Ångra ändringar</Button>}
+            {saved && !dirty && <Button variant="outline" disabled={busy} onClick={() => setChoices(true)}>Elevval</Button>}
             {!saved && !uncertain && <Button variant="outline" disabled={busy} onClick={discardNew}>Släng utkastet</Button>}
             {error && !uncertain && <Button variant="outline" disabled={busy} onClick={() => void refresh()}>Hämta aktuellt läge</Button>}
           </div>
