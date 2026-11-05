@@ -138,6 +138,12 @@ test('kurs som läggs till före timplansraden får radens tid, och inskriven ti
   await expect(filHt).toHaveValue('10');
 });
 
+test('saknas timplansrad för läsåret visas det som gul notis', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  await page.getByRole('group', { name: 'Ny valplan' }).getByRole('button', { name: 'Programfördjupning' }).click();
+  await expect(page.locator('.validation-warning')).toHaveText('Inga godkända timplaner har en rad för programfördjupning läsåret 2027/28.');
+});
+
 test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
   await mock(page); await page.goto(URL);
   const dialogs: string[] = []; await autoAnswerDiscard(page, false, dialogs);

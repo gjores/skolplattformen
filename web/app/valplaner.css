@@ -43,6 +43,7 @@
 .valplan-field-error { color: var(--destructive); font-size: .875rem; }
 .valplan-alert { color: var(--destructive); display: grid; gap: .5rem; justify-items: start; }
 .valplan-notice { color: var(--foreground); }
+.valplan-workspace .validation-warning { color: var(--foreground); overflow-wrap: anywhere; }
 @media (max-width: 860px) {
   .valplan-columns, .valplan-fields { grid-template-columns: minmax(0, 1fr); }
   .valplan-card { padding: 1rem; }

@@ -186,7 +186,7 @@ function Workspace({ unitId, schoolYear, initialValplanId = null, onSessionLost 
             return <li key={key}><label className="valplan-check"><input type="checkbox" aria-label={rowLabel(r)} checked={on} disabled={busy || taken && !on} onChange={e => toggleRow(r, e.target.checked)}/>
               <span><strong>{rowLabel(r)}</strong><small>{r.points} p · HT {hours(r.minutesHt)} · VT {hours(r.minutesVt)} · {r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : `Inga klasser kopplade ${planningYearLabel(schoolYear)}`}
                 {taken && ` · Fylls av ${otherName(r.linkedValplanId)}`}</small></span></label></li>;
-          })}</ul> : <p className="valplan-muted">Inga godkända timplaner har en rad för {VALPLAN_KIND_LABEL[draft.kind].toLocaleLowerCase('sv')} läsåret {planningYearLabel(schoolYear)}.</p>}
+          })}</ul> : <p className="validation-warning">Inga godkända timplaner har en rad för {VALPLAN_KIND_LABEL[draft.kind].toLocaleLowerCase('sv')} läsåret {planningYearLabel(schoolYear)}.</p>}
           {diagnostics.filter(d => d.rowKey && !d.courseId).map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
         </section>
 
