@@ -103,6 +103,12 @@ test('rutter utan protectedRoute ger ingen elev- eller klassdata (genomgång)', 
     'planering/urval/route.ts': 'planningProtectedRoute → protectedRoute; self nekas',
     'session/route.ts': 'den egna identitetens uppdrag och valt uppdrag',
     'skolenhet/route.ts': 'publikt uppslag i Skolverkets skolenhetsregister',
+    'valbara-block/egen/kommando/route.ts': 'participantRoute; bara den egna skolintygade elev- eller vårdnadshavarkopplingen',
+    'valbara-block/egen/lasa/route.ts': 'participantRoute; bara den egna kopplingens erbjudanden',
+    'valbara-block/egen/status/route.ts': 'participantRoute; bara egna kommandon',
+    'valbara-block/egen/urval/route.ts': 'participantIndexRoute; den egna identitetens kopplingar',
+    'valplaner/egen/kommando/route.ts': 'participantRoute; bara den egna skolintygade kopplingen',
+    'valplaner/egen/lasa/route.ts': 'participantRoute; bara den egna kopplingens valplaner',
   };
   const unprotected = routeFiles(api).filter(p => !readFileSync(join(api, p), 'utf8').includes('protectedRoute(')).sort();
   assert.deepEqual(unprotected, Object.keys(reviewed).sort());
