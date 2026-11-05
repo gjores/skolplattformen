@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
-current_plan: "VP-01, 02, 03 (grupper) och 05 klara; nästa VP-03B, VP-04 eller VP-07"
+current_plan: "VP-01–08 genomförda; användarprov U1–U8 återstår"
 status: executing
-stopped_at: "VP-02, VP-03 (grupper) och VP-05 installerade på 3012, kod afc6f4e, två migrationer. Inloggat prov av Valplaner återstår."
-last_updated: "2026-11-03"
-last_activity: 2026-11-03
-last_activity_desc: "Användaren underkände valbara block som för krångligt. Ny modell avstämd och planerad i VP-serien."
+stopped_at: "VP-serien installerad på 3012, kod effdaa75f5, tre nya migrationer. Inloggat användarprov U1–U8 återstår."
+last_updated: "2026-11-05"
+last_activity: 2026-11-05
+last_activity_desc: "VP-03B, 04, 06, 07 och 08 genomförda och installerade. Gamla vyer för valbara block borttagna."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -17,13 +17,15 @@ progress:
   completed_plans: 94
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
-worker_status: valplan_vp02_vp05_installed_sql_rehearsed_applied
-worker_build_revision: 7f221acb9dc0089ac40df1a9519f44190e5d71b1
+worker_status: valplan_series_installed_sql_rehearsed_applied
+worker_build_revision: effdaa75f576af0a4af33ae786d2d86558154ce6
 verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
-user_trial_status: pending_valplan_vp05
+user_trial_status: pending_valplan_uat_u1_u8
 milestone_name: milestone
 ---
+
+**VP-serien klar 2026-11-05:** VP-03B, [VP-04](phases/05.2-schemamodul/05.2-VP-04-SUMMARY.md), [VP-06](phases/05.2-schemamodul/05.2-VP-06-SUMMARY.md), [VP-07](phases/05.2-schemamodul/05.2-VP-07-SUMMARY.md) och [VP-08](phases/05.2-schemamodul/05.2-VP-08-SUMMARY.md) genomförda och [installerade på 3012](phases/05.2-schemamodul/05.2-VP-INSTALL-2026-11-05.md), kod effdaa75f5. Användarprov: [VP-UAT](phases/05.2-schemamodul/05.2-VP-UAT.md). Inloggad användning och Worker/OIDC-serie är inte körda. Öppet beslut: 3 gamla block med 7 tillämpade grupper finns kvar som behov på 3012 och saknar vy för avveckling. Grundskolans väg Förbered valbara block är borttagen enligt VP-08, och valplaner finns bara för gymnasiet.
 
 **Ny inriktning 2026-11-03 — valplaner ersätter valbara block:** Användaren: blockflödet är för krångligt. Individuella val delas mellan flera timplaner, så valbara kurser blir egna **valplaner per skola och läsår** (kurser med poäng och egen HT/VT-tid, kopplade timplanerader, vem som får läsa). **Elevval** är en egen administrativ sida per valplan. **Undervisningsgrupper** blir en gemensam funktion i appen (klasser, val eller manuellt; parallella grupper, flytt) och källa till tjänstefördelningen. Beslut D-01–08, antaganden A-1–3 och SS 12000-mappning i [VP-CONTEXT](phases/05.2-schemamodul/05.2-VP-CONTEXT.md); delplaner VP-01–08 i samma mapp. VB:s väntande användarprov U1–U7 är ersatt och ska inte genomföras. Gamla elective_*-data bevaras orörda. [VP-01](phases/05.2-schemamodul/05.2-VP-01-SUMMARY.md), [VP-02](phases/05.2-schemamodul/05.2-VP-02-SUMMARY.md) och [VP-03](phases/05.2-schemamodul/05.2-VP-03-SUMMARY.md) klara: modeller, valplaner och gemensamma grupper i databas och API, provade mot egen tillfällig PostgreSQL. Tjänstefördelningens gruppkälla är utbruten till VP-03B. [VP-05](phases/05.2-schemamodul/05.2-VP-05-SUMMARY.md): vyn Valplaner och timplanens hopfällbara valrad finns i kod, provade mot syntetiska API-svar; handbok och designsystem återstår. **Installerat på 3012 2026-11-03** ([installation](phases/05.2-schemamodul/05.2-VP-INSTALL-2026-11-03.md)): två migrationer efter provkörning, 147 tabellers data oförändrade, kod afc6f4e. Inget inloggat prov eller faktisk Worker/OIDC-serie ännu. 3012 kör fortsatt cc750d8.
 

@@ -755,7 +755,7 @@ Kundavgränsning, aktuella mandat, spärr, skyddade syntetiska elever och obliga
 | 5. Bevarade utbildnings- och klassflöden | 16/16 hittills skrivna automatiskt genomförda | In progress — samma nya/befintliga programflöde verifierat automatiskt och redo för nytt mänskligt prov; handledningsbedömning, utbildnings-/beslutsflöden och fasverifiering öppna | - |
 | 05.1. Tjänstefördelning (INSERTED) | 41/41 skrivna PLAN-filer genomförda | In progress — årsetapp 14–25 och senare26–41 genomförda; 3012 kör 785b4ff. Plan 41: faktiskt prov 88/88, UI 274/personal/år 134/domän 56 PASS, geometriavgränsning redovisad. Elva UX-punkter klara, fem kvar. Nytt användarprov av plan 41 möjligt; samlad fas-/kravacceptans fortsatt öppen | - |
 | 05.1.1. Läsårskalender i skyddad drift (INSERTED) | 0/17 | Planned — 17 planer 2026-10-30; våg 1–4 utan migration, grind D-17 före plan 06 | - |
-| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | VB 15/15; motor TBD | VB installerat; motor ej startad | - |
+| 05.2. Schemaläggning med Rust-schemamotor (INSERTED) | VP 9/9; motor TBD | VP installerat 2026-11-05, användarprov återstår; motor ej startad | - |
 | 05.3. Klassorganisation (INSERTED) | 0/TBD | Nuläge granskat; planutkast | - |
 | 05.4. Lärarbehörigheter (INSERTED) | 0/TBD | Not started | - |
 | 05.5. Interkommunal ersättning (INSERTED) | 0/TBD | Not started | - |

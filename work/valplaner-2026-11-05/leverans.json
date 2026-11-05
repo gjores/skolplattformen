@@ -1,0 +1,36 @@
+{
+  "kind": "valplan-delivery",
+  "date": "2026-11-05",
+  "revision": "effdaa75f576af0a4af33ae786d2d86558154ce6",
+  "artifact": {
+    "fileCount": 1418
+  },
+  "runtime": "work/pilot/targets/protected/runtime/valplaner-effdaa75f5/web/dist-protected",
+  "migrations": [
+    {
+      "path": "supabase/migrations/20261105100000_study_group_tjanst.sql",
+      "sha256": "8315190bb58657a8e02958672a815b9bc623fc7ab17bb67633794a365eb0199a"
+    },
+    {
+      "path": "supabase/migrations/20261105110000_valplan_choices.sql",
+      "sha256": "b21db5515e15bcf41fa62d9c7c5f6b51909d5b978b5829b557c3c8fa1e8a76e0"
+    },
+    {
+      "path": "supabase/migrations/20261105120000_study_group_read_classes.sql",
+      "sha256": "55e59777f89a817ff07c71a60ad7a2c1fb3b952502c81e0b74edcdfe476d5c21"
+    }
+  ],
+  "rehearsal": {
+    "status": "PASS",
+    "rollbackRestored": true,
+    "newTables": 8
+  },
+  "apply": {
+    "status": "PASS",
+    "committed": true,
+    "newTables": 8,
+    "journalCount": 150,
+    "auditRowsAdded": 1,
+    "preservedTables": 158
+  }
+}
