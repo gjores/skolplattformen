@@ -115,7 +115,7 @@ Kraven avser en avgränsad pilot, inte fullständig ersättning av alla skolans 
 
 Senarelagda delar av visionen. De är inte borttagna produktmål och behöver egen avgränsning.
 
-- **STUDY-01**: Beständiga individuella studieplansflöden, rättelser och relevant examens-/betygsvalidering.
+- **STUDY-01**: Beständiga individuella studieplansflöden, rättelser och relevant examens-/betygsvalidering. *Användarbeslut 2026-11-06:* en elev ska aldrig kunna välja en kurs eleven har gått. Studieplanerna ska kopplas till spärren i [VP-14](phases/05.2-schemamodul/05.2-VP-14-PLAN.md). Omläsning av underkänd kurs beslutas då.
 - **GROUP-01**: Fullständig tjänstefördelning, undervisningsgrupper och schemaflöden med datumsatta elev-/lärarrelationer. *Delat 2026-10-19:* tjänstefördelning till 05.1 (TJANST-01–07), undervisningsgrupper och schema till 05.2 (SCHEMA-01–08) och klassändringar till 05.3 (KLASS-01–04). Individuella elevgrupper bortom klass och samläsning ligger kvar här, tillsammans med STUDY-01.
 
 **Prioriterat av användaren 2026-10-30:** Valbara undervisningsgrupper ska lösas före schemaberäkningen: elever i samma klass kan exempelvis ha olika språkgrupper. Administrativ klasstillhörighet består; egna daterade gruppmedlemskap och verifierbart underlag behövs. [Kontext och verifieringsfall](phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md). Grupper och val ska kunna läggas in före eller från tjänstefördelningen och ge identifierade rader att bemanna utan dubbelräkning mot ramraden. Detta ingår i första gruppleveransen, även när elevvalen ännu inte är slutliga. Detta är en beställd del av GROUP-01/STUDY-01 och förberedande SCHEMA-01/03/07, ännu inte levererat stöd; senare beslut nedan inkluderar avgränsade elev-/VH-vyer.

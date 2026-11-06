@@ -540,6 +540,8 @@ Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till 
 
 **Senare beslut 2026-10-30 — valbara block och elevval:** Undervisningstid ärvs från timplanen. Ingången ska vara **Lägg till valbart block**, med skolans konkreta alternativ för exempelvis moderna språk, IV och helt/delvis valbar programfördjupning inom tillåten ram. Elever ska själva kunna välja; VH-bekräftelse är en inställning per skola (på/av), inte ett obligatoriskt krav för alla grundskolor. Gruppbehov ger fortsatt rader före eller i tjänstefördelningen. [Avstämd kontext](phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md) ersätter tidigare begränsning till en personalvy. Elev-/VH-identitet, gemensam vårdnad, valversion och behörighet behöver egna kontrakt. Grundskolans tidigare kategori elevens val ska inte återinföras som aktuell timplansram; källor finns i kontexten. Detta är beställd omfattning, ännu ingen produktleverans.
 
+**Enklare valbara block 2026-11-06:** Planerat i VP-10–15 enligt [kontexten](phases/05.2-schemamodul/05.2-VP-FORENKLING-CONTEXT.md). Inte genomfört.
+
 **Ny inriktning 2026-11-03 — valplaner, elevval och undervisningsgrupper:** Ersätter blockflödet. Valbara kurser blir valplaner per skola och läsår som fyller en eller flera timplaners valrader; elevval sköts på en egen sida; undervisningsgrupper blir gemensamma i appen. Se [VP-CONTEXT](phases/05.2-schemamodul/05.2-VP-CONTEXT.md). Delplaner: VP-01 modeller · VP-02 valplaner (DB) · VP-03 grupper och tjänstekälla (DB) · VP-04 elevval (DB) · VP-05 valplans-UI och timplanens rad · VP-06 elevval-UI · VP-07 grupp-UI · VP-08 avveckling, handbok, installation och UAT.
 
 ### Phase 05.3: Klassorganisation (INSERTED)
