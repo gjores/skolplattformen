@@ -17,6 +17,7 @@ import {parseClassPlanUnderlag} from '../../web/lib/class-timplan.ts';
 import {parsePlanningSetup,parsePlanningList,planningAnnualMetrics} from '../../web/lib/planning-year-contract.ts';
 import {planningSelection} from './verify-planning-year-api.mjs';
 import {parsePlanDecisionDetail} from '../../web/lib/plan-decision.ts';
+import {keyInventory} from './verify-class-cohort.mjs';
 
 const root=fileURLToPath(new URL('../../',import.meta.url));
 const entries=['public.phase5_plan_decision_basis(text,uuid)','public.phase5_plan_decision_command(jsonb)','public.phase5_plan_decision_inbox()'];
@@ -25,6 +26,27 @@ const sourcePaths=[...classSourcePaths,'web/app/protected-class-timplans.tsx','w
  'web/lib/server/audit-details.ts','web/lib/mandate-policy.ts','web/app/api/planbeslut/underlag/route.ts','web/app/api/planbeslut/andra/route.ts','web/app/api/planbeslut/inkorg/route.ts',
  'supabase/migrations/20261012180000_plan_decision_flow.sql','supabase/migrations/20261012180100_plan_decision_command_fix.sql'];
 const sha=s=>createHash('sha256').update(s).digest('hex');
+// Audit rows are append-only and identities stay as their anchors, as in the base fixture.
+const retained=new Set(['security_events','identities']);
+function keyChanges(before,after){const changes={added:{},removed:{}};for(const table of new Set([...Object.keys(before),...Object.keys(after)])){if(retained.has(table))continue;const was=new Set((before[table]??[]).map(k=>JSON.stringify(k))),is=new Set((after[table]??[]).map(k=>JSON.stringify(k)));const added=[...is].filter(k=>!was.has(k)).length,removed=[...was].filter(k=>!is.has(k)).length;if(added)changes.added[table]=added;if(removed)changes.removed[table]=removed;}return changes;}
+// Later tables hang off the plans. Replica mode switches their foreign keys off, so they
+// are found through the catalog instead of a table list that goes stale.
+async function deleteOwnedDependents(tx,organizerId){
+ const edges=await tx`select c.conrelid::regclass::text child,a.attname col,c.confrelid::regclass::text parent,p.attname parent_col from pg_constraint c join pg_attribute a on a.attrelid=c.conrelid and a.attnum=c.conkey[1] join pg_attribute p on p.attrelid=c.confrelid and p.attnum=c.confkey[1] where c.contype='f' and c.connamespace='public'::regnamespace and c.confrelid<>c.conrelid`;
+ const hasId=new Set((await tx`select table_name from information_schema.columns where table_schema='public' and column_name='id'`).map(r=>r.table_name));
+ const roots=['timplans','point_plans','offerings','school_classes','timplan_series'],owned=new Map();
+ for(const table of roots)owned.set(table+'.id',new Set((await tx.unsafe(`select id::text from public.${table} where organizer_id=$1`,[organizerId])).map(r=>r.id)));
+ owned.set('timplan_time_models.plan_id',owned.get('timplans.id'));
+ const doomed=[];let moved=true;
+ while(moved){moved=false;for(const {child,col,parent,parent_col}of edges){if(roots.includes(child))continue;const ids=owned.get(`${parent}.${parent_col}`);if(!ids?.size)continue;
+  const found=hasId.has(child)?(await tx.unsafe(`select id::text id from public.${child} where ${col}::text=any($1)`,[[...ids]])).map(r=>r.id):[];const known=owned.get(child+'.id')??new Set();
+  if(!doomed.some(d=>d.child===child&&d.col===col&&d.size===ids.size)){doomed.push({child,col,size:ids.size,ids});moved=true;}
+  if(found.some(id=>!known.has(id))){owned.set(child+'.id',new Set([...known,...found]));moved=true;}
+ }}
+ for(const {child,col,ids}of doomed)await tx.unsafe(`delete from public.${child} where ${col}::text=any($1)`,[[...ids]]);
+ await tx`delete from public.programplan_shape_upgrades where plan_id=any(${[...owned.get('point_plans.id')]}::uuid[])`;
+ await tx`delete from public.timplan_series where organizer_id=${organizerId}`;
+}
 async function main(){
  const args=process.argv.slice(2),o={};
  for(let i=0;i<args.length;i++){if(args[i]==='--dev-worker')o.devWorker=true;else if(['--base-url','--out','--program-code'].includes(args[i]))o[args[i]]=args[++i];else throw Error('REFUSED: unknown argument');}
@@ -42,7 +64,7 @@ async function main(){
  const target=await assertTarget('protected');
  const db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:2,prepare:false,onnotice:()=>{}});
  const tables=[...protectedTables,...decisions,'class_plan_commands'],checks=[];
- let fixture,before,after,acl,finalAcl,failure,cleanup,finalSourceHashes,baselineFingerprint,finalFingerprint,triggerCreated=false;
+ let fixture,before,after,acl,finalAcl,failure,cleanup,finalSourceHashes,baselineFingerprint,finalFingerprint,keysBefore,tableChanges,triggerCreated=false;
  const suffix=randomUUID().replaceAll('-',''),trigger=`decision_api_failure_${suffix}`,fn=`decision_api_failure_fn_${suffix}`;
  const check=(name,run)=>Promise.resolve().then(run).then(()=>checks.push({name,ok:true}));
  const exact=async(session,path,body,status=200,headers={})=>{
@@ -57,7 +79,7 @@ async function main(){
  const send=async(session,input,status=200,headers={})=>exact(session,'/api/planbeslut/andra',input,status,headers);
  try {
   baselineFingerprint=await databaseFingerprint(db);
-  before=await decisionBusinessHashes(db,tables);acl=await gymAcl(db);
+  before=await decisionBusinessHashes(db,tables);acl=await gymAcl(db);keysBefore=await keyInventory(db);
   for(const entry of entries){const row=acl.find(r=>r.f===entry);assert.ok(row&&row.granted===true,'REFUSED: unexpected original decision Worker ACL');}
   fixture=await createGymTimplanFixture();
   const f=fixture;
@@ -75,7 +97,10 @@ async function main(){
   const createGym={commandId:randomUUID(),sourcePlanId:programId,expectedSourceRevision:p.revision,expectedEducationRevision:educationRevision,unitId:f.unitId,predecessorPlanId:null,expectedPredecessorRevision:null};
   const gym=(await exact(f.principal,'/api/timplaner/gym/skapa',createGym)).body,gymId=gym.id;
   const plan=(await exact(f.principal,'/api/timplaner/gym/lasa',{planId:gymId})).body;
-  let revision=plan.revision;for(const row of plan.rows)revision=(await exact(f.principal,'/api/timplaner/gym/rad',{planId:gymId,expectedRevision:revision,rowKey:row.key,hours:row.pointTerms.map(p=>p>0?p:null)})).body.revision;
+  // Vocational Gy25 needs at least 345 h annual APL (20 700 min) on one row.
+  let revision=plan.revision;const aplKey=plan.rows.find(r=>!r.key.startsWith('block:')&&!r.key.startsWith('meta:')&&r.pointTerms[0]>0).key;
+  for(const r of plan.rows){const row={schoolMinutes:r.pointTerms.map(p=>p>0?p*60:null),annualAplMinutes:[0,1,2].map(i=>r.pointTerms[i*2]+r.pointTerms[i*2+1]>0?(r.key===aplKey&&i===0?20700:0):null)};
+   revision=(await exact(f.principal,'/api/timplaner/gym/tidsrad',{contractVersion:'timplan_time_v2',action:'save_row',commandId:randomUUID(),planId:gymId,expectedRevision:revision,rowKey:r.key,row})).body.plan.revision;}
   let t=await read(f.admin,'timplan',gymId);await send(f.admin,command(t,'submit'));t=await read(f.hm,'timplan',gymId);await send(f.hm,command(t,'approve'));
   const year=Number(profile.reference.startedOn.slice(0,4))-(profile.reference.startedOn.slice(5,7)<'07'?1:0);
   const classRead=async(session=f.principal,planId=gymId,schoolYear=year)=>parseClassPlanUnderlag((await exact(session,'/api/klasser/underlag',{planId,schoolYear})).body,{planId,schoolYear});
@@ -97,7 +122,7 @@ async function main(){
   await check('new approved version never moves old class',async()=>{const older=await classRead();assert.equal(older.plan.status,'ersatt');assert.equal(older.linkedClasses[0].classId,c.id);assert.equal((await classRead(f.principal,g2.id)).linkedClasses.length,0);});
   const setup=parsePlanningSetup((await exact(f.principal,'/api/planering/urval')).body);
   const selection=planningSelection(year,{view:'timplan',unitId:f.unitId,query:'Syntetiskt yrkesbeslut '+programCode,status:'all'});
-  const annual=async(expectedId)=>{const list=parsePlanningList((await exact(f.principal,'/api/planering/lista',selection)).body,selection,setup);const row=list.rows.find(r=>r.classes.some(x=>x.id===c.id));assert.ok(row,'Bound class must remain in annual list');assert.equal(row.plan.id,expectedId);assert.equal(row.application.planId,expectedId);assert.equal(row.application.columnId,null);assert.equal(row.relativeYear,1);assert.equal(row.underlag,'class-bound');assert.equal(planningAnnualMetrics(row,year).hours.known,plan.rows.reduce((total,r)=>total+r.pointTerms[0]+r.pointTerms[1],0));};
+  const annual=async(expectedId)=>{const list=parsePlanningList((await exact(f.principal,'/api/planering/lista',selection)).body,selection,setup);const row=list.rows.find(r=>r.classes.some(x=>x.id===c.id));assert.ok(row,'Bound class must remain in annual list');assert.equal(row.plan.id,expectedId);assert.equal(row.application.planId,expectedId);assert.equal(row.application.columnId,null);assert.equal(row.relativeYear,1);assert.equal(row.underlag,'class-bound');assert.equal(planningAnnualMetrics(row,year).hours.known,plan.rows.reduce((total,r)=>total+r.pointTerms[0]+r.pointTerms[1],345));};
   await check('annual list uses old explicit class version and year hours after new approval',()=>annual(gymId));
   basis=await classRead(f.principal,g2.id);
   await check('explicit switch persists exact new version',async()=>{await exact(f.principal,'/api/klasser/koppla',{...binding,commandId:randomUUID(),planId:g2.id,expectedPlanRevision:basis.plan.revision,previousPlanId:gymId,expectedLinkRevision:0});assert.equal((await classRead(f.principal,g2.id)).linkedClasses[0].revision,1);assert.equal((await classRead()).linkedClasses.length,0);});
@@ -132,9 +157,12 @@ async function main(){
      await tx`delete from public.class_timplans where class_id=any(${classIds}::uuid[])`;
      await tx`delete from public.school_classes where customer_id=${f.customerId} and id=any(${classIds}::uuid[])`;
      await tx`delete from public.class_plan_commands where assignment_id in(select id from public.access_assignments where customer_id=${f.customerId})`;
+     await tx`delete from public.apl_plan_decision_receipts where command_id in(select command_id from public.plan_decision_receipts where organizer_id=${f.organizerId})`;
      await tx`delete from public.plan_decision_receipts where organizer_id=${f.organizerId}`;
      await tx`delete from public.plan_decision_history where organizer_id=${f.organizerId}`;
      await tx`delete from public.plan_decision_reviews where (kind='programplan' and plan_id in(select id from public.point_plans where organizer_id=${f.organizerId})) or (kind='timplan' and plan_id in(select id from public.timplans where organizer_id=${f.organizerId}))`;
+     await tx`delete from public.plan_decision_write_permits where plan_id in(select id from public.point_plans where organizer_id=${f.organizerId}) or plan_id in(select id from public.timplans where organizer_id=${f.organizerId})`;
+     await deleteOwnedDependents(tx,f.organizerId);
     });
     cleanup=await f.cleanup();
    }
@@ -144,6 +172,7 @@ async function main(){
    finalFingerprint=await databaseFingerprint(db);
    if(baselineFingerprint)assert.equal(finalFingerprint,baselineFingerprint,'Database definitions, ACL or migration journal changed during API verification');
    after=await decisionBusinessHashes(db,tables);if(before)assert.deepEqual(after,before,'Original business rows not restored');
+   if(keysBefore){tableChanges=keyChanges(keysBefore,await keyInventory(db));assert.deepEqual(tableChanges,{added:{},removed:{}},'Rows outside the audit trail changed during API verification');}
    finalSourceHashes=Object.fromEntries(sourcePaths.map(p=>[p,sha(readFileSync(resolve(root,p)))]));
    assert.deepEqual(finalSourceHashes,sourceHashes,'Protected source changed during actual Worker verification');
   }catch(error){failure??=error;}
@@ -151,7 +180,7 @@ async function main(){
  }
  const report={kind:'class-timplan-api',programCode,status:failure?'FAIL':'PASS',target:'protected',scope:'local-synthetic-only',preflight:false,reset:false,
   apiVerified:!failure,realWorker:build,checks,cleanup,sourceHashes,finalSourceHashes,sourceUnchanged:JSON.stringify(sourceHashes)===JSON.stringify(finalSourceHashes),
-  baselineFingerprint,finalFingerprint,
+  baselineFingerprint,finalFingerprint,tableChanges,
   aclRestored:JSON.stringify(acl)===JSON.stringify(finalAcl),originalBusinessPreserved:JSON.stringify(before)===JSON.stringify(after),beforeHashes:before,afterHashes:after,
   failure:failure?{code:failure.code??'ASSERTION',message:failure.code&&failure.code!=='ERR_ASSERTION'?'API fixture operation failed':String(failure.message).split('\n')[0].slice(0,300),location:failure.stack?.split('\n').find(line=>line.includes('verify-class-timplan-api.mjs:'))?.trim()}:null};
  const evidence=JSON.stringify(report,null,2)+'\n';writeFileSync(out,evidence,{mode:0o600});if(failure)writeFileSync(out.replace(/\.json$/u,`-fail-${Date.now()}.json`),evidence,{mode:0o600});
