@@ -55,4 +55,4 @@ När en valplan fyller en timplansrad räknas raden inte som klassbehov. Valplan
 
 Om ett sparsvar uteblir väljer du **Kontrollera sparstatus** innan du försöker igen. **Hämta aktuellt läge** läser om underlaget efter en konflikt.
 
-Valplaner och elevval kan användas på dator och telefon. Valplanen är skolans planering och har inget formellt beslut. Individuell studieplan skrivs inte av elevvalet. Grundskolans språkval och elevens val ingår inte. Sidorna **Valbara block** och **Förbered valbara block** finns inte längre. Tidigare data finns kvar, och tjänsterader från gamla blockgrupper visas fortsatt i tjänstefördelningen.
+Valplaner och elevval kan användas på dator och telefon. Valplanen är skolans planering och har inget formellt beslut. Individuell studieplan skrivs inte av elevvalet. Grundskolans språkval och elevens val ingår inte. Sidorna **Valbara block** och **Förbered valbara block** finns inte längre. Tidigare data finns kvar, och tjänsterader från gamla blockgrupper visas fortsatt i tjänstefördelningen tills blocket avvecklas under [Undervisningsgrupper](./undervisningsgrupper.md).

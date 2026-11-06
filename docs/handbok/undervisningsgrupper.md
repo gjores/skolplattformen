@@ -38,6 +38,20 @@ Historiken finns kvar. Listan visar elever som går i gruppen på eller efter de
 
 En ändrad grupp blir inaktuell i tjänstefördelningen tills raden sparats på nytt. **Avveckla** tar gruppen ur utbudet. Flytta eller avsluta pågående och kommande medlemmar först.
 
+## Avveckla gamla valbara block
+
+Har skolan kvar grupper från det tidigare arbetssättet med valbara block visas de längst ned under **Gamla valbara block**. De räknas som behov i tjänstefördelningen, också när en valplan fyller samma timplanerad. Rektor och skoladministratör kan avveckla ett block i taget.
+
+1. Välj **Avveckla…** vid blocket och läs vad som händer.
+2. Välj **Bekräfta avveckling**.
+3. Har tjänsterader tagits bort: publicera en ny version i Tjänstefördelningen. Fram till dess gäller den publicerade versionen, och lärarna ser sin tjänst som tidigare.
+
+Avvecklingen tar bort blockets tjänsterader ur tjänstefördelningen, stänger öppna valomgångar, avslutar elevplaceringar och avvecklar grupperna. Placeringar som pågår slutar i går, och kommande placeringar tas bort. Historiken finns kvar, men avvecklingen går inte att ångra.
+
+Var blocket tillämpat väntar timplanens rader sedan på organisation. Tjänstefördelningen går inte att publicera förrän raderna ingår i en valplan som har en grupp. Skapa gärna valplanen och grupperna först.
+
+Avvecklingen stannar med en förklaring om en tjänsterad ingår i en samläsning, eller om en placering börjar samma dag. Lös upp samläsningen i Tjänstefördelningen eller vänta till nästa dag och bekräfta igen. Avvecklingen fortsätter då från det som återstår, och det gäller också om den skulle avbrytas.
+
 ## Avgränsningar
 
 Om ett sparsvar uteblir väljer du **Kontrollera sparstatus** innan du försöker igen.

@@ -13,6 +13,7 @@ import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { distributeStudyGroupMembers, type StudyGroup, type StudyGroupMembership } from '@/lib/study-group-model.ts';
 import { parseStudyGroupCommand, parseStudyGroupRead, parseStudyGroupReply, type StudyGroupCommand, type StudyGroupPayload, type StudyGroupRead } from '@/lib/study-group-contract.ts';
 import CatalogLevelSearch from './catalog-level-search';
+import LegacyBlockRetirement from './legacy-block-retirement';
 import MfaStepUpNotice from './mfa-step-up';
 import './valplaner.css';
 
@@ -173,6 +174,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <Button variant="outline" disabled={busy || draft !== null} onClick={() => parallel(set)}>Ny parallell grupp</Button>
           <Button variant="outline" disabled={busy || !set.some(g => g.classIds.length)} onClick={() => void distribute(set)}>Fördela jämnt</Button></div>
       </section>)}
+      <LegacyBlockRetirement unitId={unitId} schoolYear={schoolYear} onSessionLost={onSessionLost}/>
     </>}
   </section>;
 }

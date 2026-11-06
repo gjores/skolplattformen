@@ -113,7 +113,7 @@ På telefon visar Fördela en lista över ofördelade behov, utan val.
 
 Grupper skapas från elevvalet i en [valplan](./valplaner.md) eller under [Undervisningsgrupper](./undervisningsgrupper.md). De syns här utan något extra steg.
 
-Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. En timplansrad som fylls av en valplan är inget klassbehov när valplanen har en aktiv grupp. Utan grupper väntar raden på organisation, får ingen tilldelning och stoppar publicering. Gruppens undervisningsbehov är gruppens tid, medan sparad lärartid fortfarande är ett eget värde. Gamla blockgrupper visas fortsatt med sin tid från timplanen.
+Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. En timplansrad som fylls av en valplan är inget klassbehov när valplanen har en aktiv grupp. Utan grupper väntar raden på organisation, får ingen tilldelning och stoppar publicering. Gruppens undervisningsbehov är gruppens tid, medan sparad lärartid fortfarande är ett eget värde. Gamla blockgrupper visas fortsatt med sin tid från timplanen, tills blocket avvecklas under [Undervisningsgrupper](./undervisningsgrupper.md).
 
 Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Nya eller ändrade grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassrad ersätts av grupper finns den gamla tilldelningen kvar som inaktuell för uttrycklig granskning och borttagning. En ändrad grupp gör sin rad inaktuell tills den sparats på nytt.
 
