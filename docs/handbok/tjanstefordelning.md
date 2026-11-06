@@ -27,7 +27,7 @@ Skola och läsår är alltid direkt synliga och samlade i planeringsvalet. Välj
 
 När du öppnar nästa läsår visas det årets klass–timplanskopplingar och behov. Nya lärarfält är tomma. Sparade val, tider och kommentarer finns kvar när du fortsätter en påbörjad planering; inget ersätts automatiskt med föregående års fördelning.
 
-Behovet hämtas bara för klasser som är kopplade till en timplan för läsåret. En gymnasieklass behöver en koppling för **varje** läsår, även i årskurs 2 och 3. Gymnasiets klasser kopplas under timplanens **Klasser och läsår**, där du väljer **Läsår för klassens timplan**, se [Koppla en eller flera klasser till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Grundskolans och introduktionsprogrammets klasser kopplas i Timplaner, se [Koppla GR- och IM-klasser](./timplaner.md#koppla-gr--och-im-klasser). Saknar en klass koppling för läsåret visas knapparna **Klasskopplingar för gymnasiet** och **Klasskopplingar för GR och IM**. Välj den som gäller klassen. Läsåret följer med.
+Behovet hämtas bara för klasser som är kopplade till en timplan för läsåret. En gymnasieklass kopplas en gång, och kopplingen gäller valt läsår och resten av utbildningen. Gymnasiets klasser kopplas under timplanens **Klasser och läsår**, där du väljer **Läsår för klassens timplan**, se [Koppla en eller flera klasser](./timplaner.md#koppla-en-eller-flera-klasser). Grundskolans och introduktionsprogrammets klasser kopplas i Timplaner, se [Koppla GR- och IM-klasser](./timplaner.md#koppla-gr--och-im-klasser). Saknar en klass koppling för läsåret visas knapparna **Klasskopplingar för gymnasiet** och **Klasskopplingar för GR och IM**. Välj den som gäller klassen. Läsåret följer med.
 
 ## Matris och vyer
 

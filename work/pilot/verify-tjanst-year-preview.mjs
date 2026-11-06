@@ -301,8 +301,6 @@ async function gyCases(db,report) {
   let d=await planRead(t,{unitId,schoolYear:priorYear});const priorNeed=d.classes.find(c=>c.classId===gy.classId).needs[0];
   d=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:priorYear,action:'save_row',payload:{rowId:null,sourceKind:'class_timplan',sourceKey:priorNeed.sourceKey,personId:people[0].personId,teacherHt:120,teacherVt:180,comment:''},choice:'manual'})))).result.detail : await yearSend(t,unitId,priorYear,'save_row',{rowId:null,sourceKind:'class_timplan',sourceKey:priorNeed.sourceKey,personId:people[0].personId,teacherHt:120,teacherVt:180,comment:''}));
   const published=await (modern ? (await yearCommandSend(t,await yearCommand(await capturePlanContext(t,{unitId:unitId,schoolYear:priorYear,action:'publish',payload:{}})))).result.detail : await yearSend(t,unitId,priorYear,'publish',{}));
-  const [{revision}]=await t`select revision from public.timplans where id=${gy.planId}`;
-  await t`select public.phase5_class_command(${t.json({operation:'link',commandId:randomUUID(),classId:gy.classId,schoolYear:targetYear,planId:gy.planId,expectedPlanRevision:revision,columnId:'ar2',expectedLinkRevision:null,previousPlanId:null})})`;
   const target=await planRead(t,{unitId,schoolYear:targetYear}),need=target.classes.find(c=>c.classId===gy.classId).needs[0];
   assert.ok(need);
   const before=await businessHashes(t),result=await yearPreview(t,{unitId,schoolYear:targetYear,mode:'row',sourceKey:need.sourceKey,rowId:null});

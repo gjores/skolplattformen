@@ -1,12 +1,12 @@
 // Synthetic queue/component evidence only; no database or live authentication.
 import {test,expect,type Page} from '@playwright/test';
 import {oid} from './fixtures/operational-data';
-import type {ClassPlanLinkRequest,ClassPlanLinkReply,ClassPlanUnderlag} from '../lib/class-timplan';
+import type {ClassPlanFollowing,ClassPlanLinkRequest,ClassPlanLinkReply,ClassPlanUnderlag} from '../lib/class-timplan';
 declare global {interface Window {restoreStorage:()=>void}}
 const url='/e2e/fixtures/operational-preview.html?named';
 const region=(page:Page)=>page.getByRole('region',{name:'Klasser och läsår',exact:true});
 const series={id:oid(50),name:'Grundfördelning',revision:0};
-async function mock(page:Page,{mode='saved',already=false,foreign=false,readOnly=false}:{mode?:string;already?:boolean;foreign?:boolean;readOnly?:boolean}={}){
+async function mock(page:Page,{mode='saved',already=false,foreign=false,readOnly=false,following}:{mode?:string;already?:boolean;foreign?:boolean;readOnly?:boolean;following?:ClassPlanFollowing[]}={}){
  const commands:ClassPlanLinkRequest[]=[],errors:string[]=[],receipts=new Map<string,ClassPlanLinkReply>(),links=new Map<string,NonNullable<ClassPlanUnderlag['classes'][number]['link']>>();let reads=0,failed=false,failRead=false,currentSeries=series,release:(()=>void)|null=null;
  const classes=[{id:oid(10),name:'SA26A',startYear:2026},{id:oid(11),name:'SA26B',startYear:2026},{id:oid(12),name:'ANNAN27',startYear:2027}];
  if(already)links.set(`${oid(10)}:2026`,{planId:oid(1),version:1,status:'faststalld',columnId:'ar1',revision:0,legacy:false,series});
@@ -18,7 +18,7 @@ async function mock(page:Page,{mode='saved',already=false,foreign=false,readOnly
   const reply=(json:unknown,status=200)=>route.fulfill({status,json});
   if(path.endsWith('/underlag')){
    reads++;if(failRead){failRead=false;return reply({code:'unavailable'},503);}
-   return reply({plan:{id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',educationName:'SAM',cohort:'2026–2029',startYear:2026,version:1,status:'faststalld',revision:4,series:currentSeries},schoolYear:body.schoolYear,canManage:!readOnly&&body.schoolYear>=2026&&body.schoolYear<=2028,blockers:[],classes:classes.map(c=>({...c,link:links.get(`${c.id}:${body.schoolYear}`)??null})),linkedClasses:[...links].filter(([,link])=>link.planId===oid(1)).map(([key,l])=>{const [classId,year]=key.split(':');const c=classes.find(c=>c.id===classId)!;return{classId,className:c.name,classStartYear:c.startYear,schoolYear:Number(year),columnId:l.columnId,revision:l.revision,legacy:false};})});
+   return reply({plan:{id:oid(1),offeringId:oid(2),unitId:oid(3),schoolName:'Exempelskolan',educationName:'SAM',cohort:'2026–2029',startYear:2026,version:1,status:'faststalld',revision:4,series:currentSeries},schoolYear:body.schoolYear,canManage:!readOnly&&body.schoolYear>=2026&&body.schoolYear<=2028,blockers:[],classes:classes.map(c=>({...c,link:links.get(`${c.id}:${body.schoolYear}`)??null,...(following?{following:c.id===oid(10)&&!commands.length?following:[]}:{})})),linkedClasses:[...links].filter(([,link])=>link.planId===oid(1)).map(([key,l])=>{const [classId,year]=key.split(':');const c=classes.find(c=>c.id===classId)!;return{classId,className:c.name,classStartYear:c.startYear,schoolYear:Number(year),columnId:l.columnId,revision:l.revision,legacy:false};})});
   }
   if(!path.endsWith('/koppla'))throw Error(path);
   commands.push(body);
@@ -27,7 +27,7 @@ async function mock(page:Page,{mode='saved',already=false,foreign=false,readOnly
   if(mode==='conflict'&&body.classId===oid(11))return reply({code:'conflict'},409);
   if(mode==='mfa'&&!failed){failed=true;return reply({code:'mfa_required'},403);}
   if(receipts.has(body.commandId))return reply({...receipts.get(body.commandId),replayed:true});
-  const receipt={classId:body.classId,schoolYear:body.schoolYear,planId:body.planId,columnId:body.columnId,revision:(body.expectedLinkRevision??-1)+1,replayed:false};
+  const same=body.previousPlanId===body.planId,receipt={classId:body.classId,schoolYear:body.schoolYear,planId:body.planId,columnId:body.columnId,revision:same?body.expectedLinkRevision:(body.expectedLinkRevision??-1)+1,replayed:false};
   receipts.set(body.commandId,receipt);links.set(`${body.classId}:${body.schoolYear}`,{planId:body.planId,version:1,status:'faststalld',columnId:body.columnId,revision:receipt.revision,legacy:false,series});
   if(mode==='lost'&&body.classId===oid(11)&&!failed){failed=true;return route.abort();}
   if(mode==='read-failed'&&body.classId===oid(11)&&!failed){failed=true;failRead=true;}
@@ -41,6 +41,17 @@ async function confirm(page:Page){await page.getByRole('button',{name:'Bekräfta
 async function done(page:Page){await expect(page.getByRole('region',{name:'Resultat per klass'}).getByText('Sparad och återläst',{exact:true})).toHaveCount(2);await expect(page.getByText('Alla 2 klasskopplingar är sparade och återlästa',{exact:false})).toBeVisible();await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();}
 test('två markerade klasser granskas och sparas separat, annat läsår och kull bevaras',async({page},info)=>{
  const m=await mock(page,{foreign:true});await open(page);await expect(page.getByRole('checkbox',{name:'Välj ANNAN27'})).toHaveCount(0);await review(page);expect(m.commands).toEqual([]);await expect(page.getByRole('dialog')).toContainText('Mer matematik · version 2');await confirm(page);await done(page);expect(m.commands).toHaveLength(2);expect(m.commands[0].expectedLinkRevision).toBe(2);expect(m.links.get(`${oid(10)}:2027`)!.revision).toBe(7);expect(m.errors).toEqual([]);expect(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth)).toBe(true);await page.screenshot({path:info.outputPath('two-class-result.png'),fullPage:true});
+});
+test('granskningen visar kommande läsår, byte och upptaget klassnamn',async({page})=>{
+ const m=await mock(page,{following:[{schoolYear:2027,status:'change',current:{planId:oid(19),version:2,seriesName:'Mer matematik'}},{schoolYear:2028,status:'occupied',current:null}]});await open(page);await review(page);const dialog=page.getByRole('dialog');
+ await expect(dialog).toContainText('Gäller också 2027/28.');await expect(dialog).toContainText('2027/28 byter från Mer matematik · version 2.');await expect(dialog).toContainText('2028/29 kopplas inte, eftersom klassnamnet redan används det läsåret.');await expect(dialog).toContainText('tidigare läsår behåller');
+ expect(m.commands).toEqual([]);const overflow=await page.evaluate(()=>document.documentElement.scrollWidth-document.documentElement.clientWidth);expect(overflow).toBeLessThanOrEqual(0);
+});
+test('klass med saknade kommande läsår går att fylla på utan ny revision',async({page})=>{
+ const m=await mock(page,{already:true,following:[{schoolYear:2027,status:'new',current:null},{schoolYear:2028,status:'new',current:null}]});await open(page);
+ await expect(region(page).getByText('Kopplad för valt läsår · 2 kommande läsår saknas')).toBeVisible();await page.getByRole('checkbox',{name:'Välj SA26A'}).check();await page.getByRole('button',{name:'Koppla valda klasser (1)'}).click();
+ await page.getByRole('button',{name:'Bekräfta koppling',exact:true}).click();await expect(page.getByText('Alla 1 klasskopplingar är sparade och återlästa från',{exact:false})).toBeVisible();
+ expect(m.commands.map(c=>[c.previousPlanId,c.expectedLinkRevision])).toEqual([[oid(1),0]]);
 });
 test('redan identisk koppling är läsbar men kan inte ge en ny mutation',async({page})=>{const m=await mock(page,{already:true});await open(page);await expect(page.getByRole('checkbox',{name:'Välj SA26A'})).toBeDisabled();await page.getByRole('checkbox',{name:'Välj SA26B'}).check();await page.getByRole('button',{name:'Koppla valda klasser (1)'}).click();await confirm(page);await expect(page.getByText('Alla 1 klasskopplingar är sparade',{exact:false})).toBeVisible();expect(m.commands).toHaveLength(1);expect(m.commands[0].classId).toBe(oid(11));});
 test('första sparad och andra konflikt bevarar första och kräver ny granskning',async({page})=>{const m=await mock(page,{mode:'conflict'});await open(page);await review(page);await confirm(page);const result=page.getByRole('region',{name:'Resultat per klass'});await expect(result).toContainText('Konflikt');await expect(result.getByText('Sparad och återläst',{exact:true})).toHaveCount(1);expect(m.commands).toHaveLength(2);await page.getByRole('button',{name:'Avsluta och granska på nytt'}).click();expect(m.links.get(`${oid(10)}:2026`)!.planId).toBe(oid(1));await expect(page.getByRole('button',{name:'Lämna arbetsytan'})).toBeEnabled();});

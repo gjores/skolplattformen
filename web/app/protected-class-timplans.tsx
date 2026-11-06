@@ -5,13 +5,15 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/compone
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { parseClassPlanUnderlag, parseClassPlanCreateReply, parseClassPlanLinkReply,
-  type ClassPlanUnderlag, type ClassPlanCreateRequest, type ClassPlanLinkRequest, type ClassPlanColumn } from '@/lib/class-timplan.ts';
+  classPlanMissingYears, type ClassPlanUnderlag, type ClassPlanCreateRequest, type ClassPlanLinkRequest, type ClassPlanColumn } from '@/lib/class-timplan.ts';
 import { parseClassLinkQueue, reconcileClassLinkQueue, queueHasUnknown, queueComplete, updateQueueEntry, type ClassLinkQueue } from '@/lib/class-timplan-queue.ts';
 import type { GymTimplan } from '@/lib/gym-timplan.ts';
 import MfaStepUpNotice from './mfa-step-up';
 import './protected-class-timplans.css';
 
 type Pending = {kind:'create';request:ClassPlanCreateRequest} | {kind:'link';request:ClassPlanLinkRequest};
+/** Nothing to do for the class: the chosen year is on this plan and no coming year lacks it. */
+function linkedThrough(c:ClassPlanUnderlag['classes'][number],planId:string,column:ClassPlanColumn){return c.link?.planId===planId&&!c.link.legacy&&c.link.columnId===column&&classPlanMissingYears(c.following).length===0;}
 type Props = {openRequest?:number;scopeKey:string;returnTo:string;plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;onSecurityFailure:(error:unknown)=>boolean};
 const yearLabel = (year:number) => `${year}/${String(year+1).slice(-2)}`;
 function frozenStartYear(value:string|null):number|null {
@@ -82,7 +84,7 @@ function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,
         if(active.current){setSelected([reply.id]);setName('');setNotice(`Klassen ${reply.name} är skapad. Välj Koppla klass för att använda timplanen.`);}
       }else{
         parseClassPlanLinkReply(await api.post('/api/klasser/koppla',command.request),command.request);accepted=true;
-        if(active.current)setNotice(`Klassens koppling till timplan version ${plan.version} för ${yearLabel(command.request.schoolYear)} är sparad.`);
+        if(active.current)setNotice(`Klassens koppling till timplan version ${plan.version} från ${yearLabel(command.request.schoolYear)} är sparad.`);
       }
       const result=await fetchData(year);
       if(active.current){setData(result);setPending(null);setConfirmation(null);setUncertain(false);}
@@ -96,13 +98,13 @@ function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,
   }
   function prepareLink(){
     if(!data||!column||!canManage||busy||uncertain||queueLocked)return;
-    const entries=data.classes.filter(c=>selected.includes(c.id)&&c.startYear===firstYear&&!(c.link?.planId===plan.id&&!c.link.legacy&&c.link.columnId===column)).map(c=>({name:c.name,state:'pending' as const,receipt:null,request:{commandId:crypto.randomUUID(),classId:c.id,schoolYear:year,planId:plan.id,expectedPlanRevision:data.plan.revision,columnId:column,expectedLinkRevision:c.link?.revision??null,previousPlanId:c.link?.planId??null}}));
+    const entries=data.classes.filter(c=>selected.includes(c.id)&&c.startYear===firstYear&&!linkedThrough(c,plan.id,column)).map(c=>({name:c.name,state:'pending' as const,receipt:null,request:{commandId:crypto.randomUUID(),classId:c.id,schoolYear:year,planId:plan.id,expectedPlanRevision:data.plan.revision,columnId:column,expectedLinkRevision:c.link?.revision??null,previousPlanId:c.link?.planId??null}}));
     if(entries.length)setReview({version:1,scope:scopeKey,planId:plan.id,unitId:plan.unitId,offeringId:plan.offeringId,schoolYear:year,planVersion:data.plan.version,series:data.plan.series??null,entries});
   }
   async function readQueue(initial:ClassLinkQueue){
     const fresh=await fetchData(initial.schoolYear);if(!active.current)return null;
     const checked=reconcileClassLinkQueue(initial,fresh);storeQueue(checked);setData(fresh);
-    if(queueComplete(checked)){clearQueueJournal();setSelected([]);setNotice(`Alla ${checked.entries.length} klasskopplingar är sparade och återlästa för ${yearLabel(checked.schoolYear)}.`);}
+    if(queueComplete(checked)){clearQueueJournal();setSelected([]);const skipped=[...new Set(checked.entries.flatMap(e=>e.receipt?.skippedYears??[]))];setNotice(`Alla ${checked.entries.length} klasskopplingar är sparade och återlästa från ${yearLabel(checked.schoolYear)}.${skipped.length?` ${skipped.map(yearLabel).join(' och ')} kopplades inte, eftersom klassnamnet redan används det läsåret.`:''}`);}
     return checked;
   }
   async function runQueue(initial:ClassLinkQueue,send:boolean){
@@ -149,7 +151,7 @@ function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,
   const planLabel=plan.series?.name??'Timplan';
   if(!['faststalld','ersatt'].includes(plan.status))return null;
   return <section className="class-timplans" aria-label="Klasser och läsår">
-    <div className="class-plan-heading"><div><h2>Klasser och läsår</h2><p>Klassen använder den version du väljer. En ny timplansversion flyttar inte befintliga klasskopplingar.</p></div>
+    <div className="class-plan-heading"><div><h2>Klasser och läsår</h2><p>En klass kopplas en gång. Kopplingen gäller valt läsår och resten av utbildningen. En ny timplansversion flyttar inte befintliga klasskopplingar.</p></div>
       <Button variant="outline" disabled={disabled||busy||uncertain||queueLocked} aria-expanded={open} onClick={()=>{setOpen(!open);if(!open)void load();}}>{open?'Dölj klasskopplingar':canPrepare&&plan.status==='faststalld'?'Koppla klass':'Visa klasskopplingar'}</Button></div>
     {open&&<div aria-busy={busy}>
       <dl className="class-plan-dates">
@@ -173,9 +175,9 @@ function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,
         {data.linkedClasses.length===0?<p>Inga klasser är kopplade till den här versionen.</p>:<ul className="class-plan-links">{data.linkedClasses.map(link=><li key={`${link.className}:${link.schoolYear}`}><strong>{link.className}</strong><span>{yearLabel(link.schoolYear)} · Årskurs {link.columnId.slice(2)} · Version {plan.version}</span>{link.legacy&&<span>Äldre namnkoppling – välj klassen nedan för att bekräfta kopplingen.</span>}</li>)}</ul>}
         <h3>Klasskopplingar för valt läsår</h3>
         <p>{planLabel} · version {plan.version} · {yearLabel(year)}. Markeringar sparar inga kopplingar.</p>
-        <ul className="class-link-choices">{data.classes.filter(c=>c.startYear===data.plan.startYear).map(c=>{const already=!!column&&c.link?.planId===plan.id&&!c.link.legacy&&c.link.columnId===column;return <li key={c.id}>
+        <ul className="class-link-choices">{data.classes.filter(c=>c.startYear===data.plan.startYear).map(c=>{const already=!!column&&linkedThrough(c,plan.id,column),missing=classPlanMissingYears(c.following).length;return <li key={c.id}>
           <label><input type="checkbox" aria-label={`Välj ${c.name}`} checked={selected.includes(c.id)} disabled={!canManage||!column||busy||uncertain||queueLocked||already} onChange={e=>setSelected(previous=>e.target.checked?[...previous,c.id]:previous.filter(id=>id!==c.id))}/><strong>{c.name}</strong></label>
-          <span>{already?'Redan kopplad till denna timplan':c.link?`${c.link.series?.name??'Timplan'} · version ${c.link.version}${c.link.legacy?' · äldre namnkoppling':''}`:'Ingen timplan för valt läsår'}</span>
+          <span>{already?'Redan kopplad till denna timplan':c.link?.planId===plan.id&&!c.link.legacy&&missing?`Kopplad för valt läsår · ${missing===1?'1 kommande läsår saknas':`${missing} kommande läsår saknas`}`:c.link?`${c.link.series?.name??'Timplan'} · version ${c.link.version}${c.link.legacy?' · äldre namnkoppling':''}`:'Ingen timplan för valt läsår'}</span>
         </li>;})}</ul>
         {canManage&&column&&!queueLocked&&<><Button ref={reviewButton} disabled={busy||uncertain||selected.length===0} onClick={prepareLink}>Koppla valda klasser ({selected.length})</Button>
           <form className="class-plan-create" onSubmit={event=>{event.preventDefault();if(!busy&&!uncertain&&name.trim()&&data.plan.startYear!==null)void execute({kind:'create',request:{commandId:crypto.randomUUID(),planId:plan.id,expectedPlanRevision:data.plan.revision,name:name.trim().toUpperCase(),startYear:data.plan.startYear}});}}>
@@ -188,8 +190,11 @@ function ClassLinks({openRequest=0,scopeKey,returnTo,plan,schoolYear,canPrepare,
       {!queueComplete(queue)&&<div className="class-plan-controls"><Button disabled={busy||disabled||broken} onClick={()=>void runQueue(queue,true)}>Kontrollera och fortsätt</Button>{!queueHasUnknown(queue)&&<Button variant="outline" disabled={busy||broken} onClick={finishQueue}>Avsluta och granska på nytt</Button>}</div>}
     </section>}
     <Dialog open={!!review} onOpenChange={value=>{if(!value&&!busy){setReview(null);requestAnimationFrame(()=>reviewButton.current?.focus());}}}><DialogContent className="class-link-dialog"><DialogTitle>Koppla {review?.entries.length} klasser</DialogTitle><DialogDescription>{planLabel} · version {plan.version} · {plan.schoolName} · {yearLabel(year)}</DialogDescription>
-      {error&&<p role="alert">{error}</p>}<ul>{review?.entries.map(e=>{const old=data?.classes.find(c=>c.id===e.request.classId)?.link;return <li key={e.request.classId}><strong>{e.name}</strong><p>Nuvarande koppling: {old?`${old.series?.name??'Timplan'} · version ${old.version}`:'ingen timplan'} → {planLabel} · version {plan.version}, årskurs {e.request.columnId.slice(2)}.</p></li>;})}</ul>
-      <p>Övriga klasser och läsår behåller sina kopplingar. Varje klass sparas separat; vid avbrott visas vad som sparats och vad som återstår.</p>
+      {error&&<p role="alert">{error}</p>}<ul>{review?.entries.map(e=>{const klass=data?.classes.find(c=>c.id===e.request.classId),old=klass?.link,following=klass?.following??[],coming=following.filter(f=>f.status!=='occupied'),occupied=following.filter(f=>f.status==='occupied');return <li key={e.request.classId}><strong>{e.name}</strong><p>Nuvarande koppling: {old?`${old.series?.name??'Timplan'} · version ${old.version}`:'ingen timplan'} → {planLabel} · version {plan.version}, årskurs {e.request.columnId.slice(2)}.</p>
+        {coming.length>0&&<p>Gäller också {coming.map(f=>yearLabel(f.schoolYear)).join(' och ')}.</p>}
+        {following.filter(f=>f.status==='change').map(f=><p key={f.schoolYear}>{yearLabel(f.schoolYear)} byter från {f.current?.seriesName??'Timplan'} · version {f.current?.version}.</p>)}
+        {occupied.length>0&&<p>{occupied.map(f=>yearLabel(f.schoolYear)).join(' och ')} kopplas inte, eftersom klassnamnet redan används det läsåret.</p>}</li>;})}</ul>
+      <p>Övriga klasser och tidigare läsår behåller sina kopplingar. Varje klass sparas separat; vid avbrott visas vad som sparats och vad som återstår.</p>
       <div className="class-plan-controls"><Button variant="outline" disabled={busy} onClick={()=>{setReview(null);requestAnimationFrame(()=>reviewButton.current?.focus());}}>Avbryt</Button><Button disabled={busy||disabled} onClick={()=>review&&void runQueue(review,true)}>Bekräfta koppling</Button></div>
     </DialogContent></Dialog>
   </section>;

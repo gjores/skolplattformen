@@ -34,7 +34,8 @@ export function reconcileClassLinkQueue(queue: ClassLinkQueue,data: ClassPlanUnd
   if(e.state==='unknown'||e.state==='conflict')return e;
   const klass=data.classes.find(c=>c.id===e.request.classId),link=klass?.link;
   if(e.receipt){
-   const matches=link&&link.planId===e.receipt.planId&&link.columnId===e.receipt.columnId&&link.revision===e.receipt.revision&&!link.legacy;
+   const followed=(e.receipt.followingYears??[]).every(year=>klass?.following?.find(f=>f.schoolYear===year)?.status==='same'||!klass?.following);
+   const matches=link&&link.planId===e.receipt.planId&&link.columnId===e.receipt.columnId&&link.revision===e.receipt.revision&&!link.legacy&&followed;
    return {...e,state:matches?'saved':'conflict'};
   }
   const matches=klass&&klass.name===e.name&&data.plan.version===queue.planVersion&&JSON.stringify(data.plan.series??null)===JSON.stringify(queue.series)&&data.canManage&&data.plan.revision===e.request.expectedPlanRevision&&data.plan.status==='faststalld'

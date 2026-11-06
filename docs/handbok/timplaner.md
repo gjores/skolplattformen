@@ -101,15 +101,15 @@ Välj **Skapa ny version** i en fastställd eller ersatt gymnasietimplan. Finns 
 
 Enbart fastställande av programplanen ger ingen varning om ändrat innehåll. En varning visas när det sparade programinnehållet faktiskt skiljer sig från det aktuella underlaget.
 
-### Koppla en eller flera klasser till ett läsår
+### Koppla en eller flera klasser
 
-Rektor och skoladministratör kan koppla klasser till en fastställd gymnasietimplan inom sitt skoluppdrag. Öppna **Klasser och läsår** efter tabellen och välj **Koppla klass**. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
+Rektor och skoladministratör kan koppla klasser till en fastställd gymnasietimplan inom sitt skoluppdrag. En klass kopplas en gång: kopplingen gäller valt läsår och de återstående läsåren i utbildningen. Öppna **Klasser och läsår** efter tabellen och välj **Koppla klass**. Huvudmannen kan läsa kopplingarna med **Visa klasskopplingar**.
 
 1. Kontrollera timplanens namn, version och läsår. Timplanens frysta startdatum avgör vilka tre gymnasieår som går att använda. Det globala planeringsåret visas separat. Om det ligger inom utbildningens tre läsår används det som första förslag. Annars behöver du uttryckligen välja ett giltigt läsår.
 2. Markera en eller flera befintliga klasser för samma utbildning, kull och skola. Varje klass visar sin nuvarande timplan för det valda läsåret. En klass som redan använder den valda planen behöver inte kopplas igen. Saknas klassen kan du ange klassnamn och välja **Skapa klass**. Den skapas utan elever och behöver sedan markeras och kopplas. Klasser från [programplanens klasssteg](./programplaner.md#klasser-för-utbildningen) finns också här.
-3. Välj **Koppla valda klasser**. Granska varje klass, dess tidigare koppling och den nya timplanens namn, version, skola, läsår och årskurs. Välj **Bekräfta koppling** och invänta **Sparad och återläst** för varje klass.
+3. Välj **Koppla valda klasser**. Granska varje klass, dess tidigare koppling, den nya timplanens namn, version, skola, läsår och årskurs samt vilka kommande läsår som följer med. Välj **Bekräfta koppling** och invänta **Sparad och återläst** för varje klass.
 
-Markeringar sparar inga kopplingar. Ändringen gäller endast de valda klasserna och läsåret. En ny timplansversion flyttar inte klassens tidigare koppling; du byter den uttryckligen. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
+Markeringar sparar inga kopplingar. Ändringen gäller de valda klasserna från valt läsår och framåt; tidigare läsår ändras inte. Har ett kommande läsår en annan timplan visas det i granskningen, och det läsåret byter också. Saknar en redan kopplad klass kommande läsår står det vid klassen, och du fyller på genom att koppla den igen. Ett läsår utanför klassens giltighet kopplas inte. Används klassnamnet redan av en annan klass ett kommande läsår hoppas det läsåret över, och det står i granskningen och i beskedet. En ny timplansversion flyttar inte klassens tidigare koppling; du byter den uttryckligen. Äldre namnkopplingar märks ut och måste bekräftas för en bestämd klass; systemet gissar inte klassens identitet.
 
 #### Om bara en del blir sparad
 

@@ -38,6 +38,7 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261105100000_study_group_tjanst.sql', '8315190bb58657a8e02958672a815b9bc623fc7ab17bb67633794a365eb0199a'],
   ['supabase/migrations/20261105110000_valplan_choices.sql', 'b21db5515e15bcf41fa62d9c7c5f6b51909d5b978b5829b557c3c8fa1e8a76e0'],
   ['supabase/migrations/20261105120000_study_group_read_classes.sql', '55e59777f89a817ff07c71a60ad7a2c1fb3b952502c81e0b74edcdfe476d5c21'],
+  ['supabase/migrations/20261106100000_class_link_following.sql', 'b3c860ed2699abbfa5e0a4598a235f2da28645cf1f3a4c896c811a8215f107ac'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;

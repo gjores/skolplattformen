@@ -391,8 +391,6 @@ async function raceCases(source,report) {
    historical={...s,schoolYear:gy.year};let prior=await read(t,historical);const need=prior.classes.find(c=>c.classId===gy.classId).needs[0];
    prior=await send(t,await captureCommand(t,historical,'save_row',row(s,s.people[0].personId,{sourceKey:need.sourceKey}),'manual'));
    prior=await send(t,await captureCommand(t,historical,'publish',{}));
-   const [{revision}]=await t`select revision from public.timplans where id=${gy.planId}`;
-   await t`select public.phase5_class_command(${t.json({operation:'link',commandId:randomUUID(),classId:gy.classId,schoolYear:gy.year+1,planId:gy.planId,expectedPlanRevision:revision,columnId:'ar2',expectedLinkRevision:null,previousPlanId:null})})`;
    s={...s,schoolYear:gy.year+1};const target=await read(t,s),targetNeed=target.classes.find(c=>c.classId===gy.classId).needs[0];
    const support=await yearPreview(t,{unitId:s.unitId,schoolYear:s.schoolYear,mode:'row',sourceKey:targetNeed.sourceKey,rowId:null});
    const suggestion=support.suggestions.find(x=>x.personId===s.people[0].personId),candidate=support.candidates.find(x=>x.personId===s.people[0].personId);assert.ok(suggestion);

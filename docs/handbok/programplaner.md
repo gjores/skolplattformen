@@ -84,7 +84,7 @@ En skola kan inte tas bort från planen så länge skolans klasser, elevplacerin
 
 **Gå till timplan** i planens huvud öppnar övergången till skolans undervisningstid. Rektor och skoladministratör kan skapa egna timplansutkast från en komplett sparad programram för ett stött Gy25-program, även när programplanen är ett utkast. Programplanens poäng och terminer blir ett fryst underlag; skolans timmar fylls separat. Skolans timarbete kräver mandat för den skolan, även när programramen delas med andra skolor. Se [Timplaner](./timplaner.md).
 
-Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare för ett uttryckligt läsår. Se [Koppla en klass till ett läsår](./timplaner.md#koppla-en-eller-flera-klasser-till-ett-läsår). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
+Rektor och skoladministratör kan förbereda tomma klasser redan i programplanens utkast, enligt avsnittet nedan. Kopplingen till en fastställd gymnasietimplan görs senare och gäller från det valda läsåret och resten av utbildningen. Se [Koppla en eller flera klasser](./timplaner.md#koppla-en-eller-flera-klasser). Befintliga kopplingar bevaras vid ny version. Skapande av ett timplansutkast är inget fastställande av programplan eller timplan.
 
 ## Ny programplan
 
