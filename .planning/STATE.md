@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-01–09 genomförda; användarprov U1–U9 återstår"
 status: executing
-stopped_at: "VP-serien installerad på 3012, kod 8a45271652. Inloggat användarprov U1–U9 återstår."
+stopped_at: "Klasskoppling för hela timplanen installerad på 3012, kod 5157e2f74c. Inloggat användarprov U1–U9 återstår."
 last_updated: "2026-11-06"
 last_activity: 2026-11-06
-last_activity_desc: "VP-09: gamla valbara block kan avvecklas från Undervisningsgrupper. Installerat på 3012."
+last_activity_desc: "En gymnasieklass kopplas en gång för resten av timplanen. Installerat på 3012 med en migration och ifyllnad för 8 klasser."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -18,12 +18,14 @@ progress:
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
 worker_status: valplan_series_installed_sql_rehearsed_applied
-worker_build_revision: 8a452716525991fc5236d1ae6c769c7996851888
+worker_build_revision: 5157e2f74ca87aaf9f2135b75314fdb5bfcce33a
 verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: pending_valplan_uat_u1_u9
 milestone_name: milestone
 ---
+
+**Klasskoppling 2026-11-06:** [CLASS-LINK](phases/05.2-schemamodul/05.2-CLASS-LINK-SUMMARY.md). Användarbeslut: en gymnasieklass kopplas en gång, kopplingen gäller valt läsår och framåt, och byte gäller från valt läsår. Ersätter det tidigare godkända bytet för ett enda läsår. SA27A och SA27B på 3012 pekar på en ersatt version och är inte ifyllda. Grundskolan och IM är bundna till ett läsår och behöver ett eget beslut.
 
 **VP-serien klar 2026-11-05:** VP-03B, [VP-04](phases/05.2-schemamodul/05.2-VP-04-SUMMARY.md), [VP-06](phases/05.2-schemamodul/05.2-VP-06-SUMMARY.md), [VP-07](phases/05.2-schemamodul/05.2-VP-07-SUMMARY.md) och [VP-08](phases/05.2-schemamodul/05.2-VP-08-SUMMARY.md) genomförda och [installerade på 3012](phases/05.2-schemamodul/05.2-VP-INSTALL-2026-11-05.md), kod effdaa75f5. Användarprov: [VP-UAT](phases/05.2-schemamodul/05.2-VP-UAT.md). Inloggad användning och Worker/OIDC-serie är inte körda. [VP-09](phases/05.2-schemamodul/05.2-VP-09-SUMMARY.md) 2026-11-06: gamla block kan avvecklas från Undervisningsgrupper, kod 8a45271652 på 3012, inga migrationer. Blocken på 3012 är ännu inte avvecklade. Grundskolans väg Förbered valbara block är borttagen enligt VP-08, och valplaner finns bara för gymnasiet.
 
