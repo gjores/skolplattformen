@@ -15,7 +15,8 @@ import {nextCohortStart} from '../../web/lib/programplan-lifecycle.ts';
 import {parseClassPlanUnderlag,parseClassPlanCreateReply,parseClassPlanLinkReply} from '../../web/lib/class-timplan.ts';
 const root=fileURLToPath(new URL('../../',import.meta.url)),rollback=Error('class_rollback');
 export const migrationName='20261012210000_class_timplan_flow.sql';
-export const sourcePaths=['supabase/migrations/'+migrationName,'supabase/migrations/20261012240000_class_start_calendar.sql','supabase/migrations/20261015100000_class_cohort_dates.sql','supabase/migrations/20261015101000_class_cohort_link_identity.sql','supabase/migrations/20261015102000_class_cohort_commands.sql','supabase/tests/phase5_class_timplan_flow.test.sql','web/lib/class-timplan.ts','web/lib/server/class-timplan.ts','web/app/api/klasser/underlag/route.ts','web/app/api/klasser/skapa/route.ts','web/app/api/klasser/koppla/route.ts','work/pilot/verify-class-timplans.mjs','work/pilot/verify-target.mjs','work/pilot/verify-plan-decision-flow.mjs','work/pilot/verify-programplan-locks.mjs','work/pilot/apply-vocational-plan-decisions.mjs','work/pilot/vocational-plan-fixture.mjs','supabase/tests/phase5_programplan_drafts.test.sql'];
+const replacingMigrations=['20261015101000_class_cohort_link_identity.sql','20261015102000_class_cohort_commands.sql','20261015203000_named_timplan_reads.sql','20261020100000_grim_class_timplan_link.sql','20261106100000_class_link_following.sql'];
+export const sourcePaths=['supabase/migrations/'+migrationName,'supabase/migrations/20261012240000_class_start_calendar.sql','supabase/migrations/20261015100000_class_cohort_dates.sql','supabase/migrations/20261015101000_class_cohort_link_identity.sql','supabase/migrations/20261015102000_class_cohort_commands.sql','supabase/migrations/20261015203000_named_timplan_reads.sql','supabase/migrations/20261020100000_grim_class_timplan_link.sql','supabase/migrations/20261106100000_class_link_following.sql','supabase/tests/phase5_class_timplan_flow.test.sql','web/lib/class-timplan.ts','web/lib/server/class-timplan.ts','web/app/api/klasser/underlag/route.ts','web/app/api/klasser/skapa/route.ts','web/app/api/klasser/koppla/route.ts','work/pilot/verify-class-timplans.mjs','work/pilot/verify-target.mjs','work/pilot/verify-plan-decision-flow.mjs','work/pilot/verify-programplan-locks.mjs','work/pilot/apply-vocational-plan-decisions.mjs','work/pilot/vocational-plan-fixture.mjs','supabase/tests/phase5_programplan_drafts.test.sql'];
 export const sourceHashes=()=>Object.fromEntries(sourcePaths.map(p=>[p,createHash('sha256').update(readFileSync(resolve(root,p))).digest('hex')]));
 export async function classBusinessHashes(db,installed=false){const r=await decisionBusinessHashes(db,vocationalTables.filter(t=>t!=='class_timplans'));const [v]=await db.unsafe(`select count(*)::integer count,md5(coalesce(string_agg(r::text,'' order by r::text),'')) hash from (select to_jsonb(c)${installed?"-'class_id'-'revision'":''} r from public.class_timplans c) s`);r.class_timplans=v;return r;}
 export async function classFixture(tx){
@@ -37,12 +38,18 @@ export async function approvedClassFixture(tx,code='BF25'){
  const created=(await tx`select public.phase5_create_programplan_draft(${id(46)},0,${tx.json(reference)}) result`)[0].result;
  const programId=created.id;
  await actor('principal');await tx`select public.phase5_write_programplan_terms(${programId},0,${tx.json(terms)})`;
- const decision=async(kind,planId,action)=>{const b=(await tx`select public.phase5_plan_decision_basis(${kind},${planId}) result`)[0].result;const d=b.detail??b;
+ const decision=async(kind,planId,action)=>{const b=(await tx`select public.phase5_plan_decision_basis(${kind},${planId}) result`)[0].result;const d=b.result??b.detail??b;
  return(await tx`select public.phase5_plan_decision_command(${tx.json({kind,planId,commandId:randomUUID(),action,expectedRevision:d.revision,expectedDecisionRevision:d.decisionRevision,basisHash:d.basisHash,comment:'',confirmedChecks:d.checks.map(c=>c.id)})}) result`)[0].result;};
  await decision('programplan',programId,'submit');await actor('hm');await decision('programplan',programId,'approve');
  await actor('principal');const [{revision:programRevision}]=await tx`select revision from public.point_plans where id=${programId}`;
  const g=(await tx`select public.phase5_create_gym_timplan(${randomUUID()},${programId},${programRevision},0,${id(30)},null,null) result`)[0].result;
- let revision=0;for(const row of rows){const hours=terms.find(t=>t.rowKey===row.key).points.map(p=>p>0?p:null);revision=(await tx`select public.phase5_write_gym_timplan_row(${g.reply.id},${revision},${row.key},${tx.json(hours)}) result`)[0].result.revision;}
+ let gym=(await tx`select public.phase5_gym_timplan_result(${g.reply.id}) result`)[0].result;
+ if(gym.timeModel==='school_terms_annual_apl_v2'){
+  // Vocational Gy25 needs at least 345 h annual APL (20 700 min) on one row.
+  const key=rows.find(r=>!r.key.startsWith('block:')&&!r.key.startsWith('meta:')&&terms.find(t=>t.rowKey===r.key).points[0]>0).key;
+  for(const r of rows){const points=terms.find(t=>t.rowKey===r.key).points,row={schoolMinutes:points.map(p=>p>0?p*60:null),annualAplMinutes:[0,1,2].map(i=>points[i*2]+points[i*2+1]>0?(r.key===key&&i===0?20700:0):null)};
+   gym=(await tx`select public.phase5_timplan_time_command(${tx.json({contractVersion:'timplan_time_v2',action:'save_row',commandId:randomUUID(),planId:gym.id,expectedRevision:gym.revision,rowKey:r.key,row})}) result`)[0].result.plan;}
+ }else{let revision=0;for(const row of rows){const hours=terms.find(t=>t.rowKey===row.key).points.map(p=>p>0?p:null);revision=(await tx`select public.phase5_write_gym_timplan_row(${g.reply.id},${revision},${row.key},${tx.json(hours)}) result`)[0].result.revision;}}
  await decision('timplan',g.reply.id,'submit');await actor('hm');await decision('timplan',g.reply.id,'approve');await actor('principal');
  return{...f,programId,planId:g.reply.id,decision,year:Number(reference.startedOn.slice(0,4))-(reference.startedOn.slice(5,7)<'07'?1:0)};
 }
@@ -72,19 +79,19 @@ export async function classTimplanScenarios(tx,checks,code){
  await denied('stale link cannot overwrite',s=>s`select public.phase5_class_command(${s.json({operation:'link',...link,commandId:randomUUID()})})`);
  for(const change of [{schoolYear:year+1,columnId:'ar1'},{schoolYear:year+3,columnId:'ar3'},{expectedPlanRevision:0},{classId:id(30)}])await denied('wrong year column revision or class',s=>s`select public.phase5_class_command(${s.json({operation:'link',...link,commandId:randomUUID(),...change})})`);
  await actor('principal');
- const second={...link,commandId:randomUUID(),schoolYear:year+1,columnId:'ar2'};await command({operation:'link',...second});assert.equal((await read(planId,year+1)).classes.find(x=>x.id===c.id).link.columnId,'ar2');ok('year two persists separate explicit link');
+ const followed=(await read(planId,year+1)).classes.find(x=>x.id===c.id).link;assert.equal(followed.planId,planId);assert.equal(followed.columnId,'ar2');ok('one link follows into year two');
  await tx.savepoint(async s=>{const [p]=await s`select * from public.timplans where id=${planId}`;for(const [date,expected]of [[`${year}-06-30`,year-1],[`${year}-07-01`,year]]){const modified={...p,gym_basis:{...p.gym_basis,basisReference:{...p.gym_basis.basisReference,startedOn:date}}};assert.equal((await s`select public.phase5_class_start_year(jsonb_populate_record(null::public.timplans,${s.json(modified)})) y`)[0].y,expected);}ok('frozen June July boundary independent from offering date');});
  const allBefore=await decisionBusinessHashes(tx,['school_classes','class_timplans','class_plan_commands']);
  await tx.unsafe(`create function pg_temp.fail_class_audit() returns trigger language plpgsql as $$begin if new.customer_id='${id(1)}' and new.action='class_created' then raise exception 'synthetic';end if;return new;end$$;create trigger fail_class_audit before insert on public.security_events for each row execute function pg_temp.fail_class_audit();`);
  await denied('audit failure aborts class and receipt',s=>s`select public.phase5_class_command(${s.json({operation:'create',...create,commandId:randomUUID(),name:'AUDITFAIL'})})`,['55000']);await tx`drop trigger fail_class_audit on public.security_events`;assert.deepEqual(await decisionBusinessHashes(tx,['school_classes','class_timplans','class_plan_commands']),allBefore);ok('audit failure preserves class links receipts');
- const latest=await read();assert.equal(latest.linkedClasses.length,2);assert.equal(latest.linkedClasses.every(l=>l.classId===c.id&&!l.legacy),true);ok('all school years remain visible');
+ const latest=await read();assert.equal(latest.linkedClasses.length,3);assert.equal(latest.linkedClasses.every(l=>l.classId===c.id&&!l.legacy),true);ok('all school years remain visible');
  const [{revision:sourceRevision}]=await tx`select revision from public.point_plans where id=${f.programId}`;
  const g2=(await tx`select public.phase5_create_gym_timplan(${randomUUID()},${f.programId},${sourceRevision},0,${id(30)},${planId},${before.plan.revision}) result`)[0].result;
  await denied('draft version cannot be linked',s=>s`select public.phase5_class_command(${s.json({operation:'link',...link,commandId:randomUUID(),planId:g2.reply.id,expectedPlanRevision:0,expectedLinkRevision:0,previousPlanId:planId})})`);
  await f.decision('timplan',g2.reply.id,'submit');await actor('hm');await f.decision('timplan',g2.reply.id,'approve');await actor('principal');
- const older=await read();assert.equal(older.plan.status,'ersatt');assert.equal(older.canManage,false);assert.equal(older.linkedClasses.length,2);await actor('admin');assert.equal((await command({operation:'link',...link})).replayed,true);await actor('principal');ok('new approval preserves both old links and old command receipt');
+ const older=await read();assert.equal(older.plan.status,'ersatt');assert.equal(older.canManage,false);assert.equal(older.linkedClasses.length,3);await actor('admin');assert.equal((await command({operation:'link',...link})).replayed,true);await actor('principal');ok('new approval preserves old links and old command receipt');
  const newer=await read(g2.reply.id);const replacement={...link,commandId:randomUUID(),planId:g2.reply.id,expectedPlanRevision:newer.plan.revision,previousPlanId:planId,expectedLinkRevision:0};
- await command({operation:'link',...replacement});assert.equal((await read()).linkedClasses.length,1);assert.equal((await read(g2.reply.id)).linkedClasses.length,1);ok('explicit revision checked switch changes only chosen school year');
+ await command({operation:'link',...replacement});assert.equal((await read()).linkedClasses.length,0);assert.equal((await read(g2.reply.id)).linkedClasses.length,3);ok('explicit revision checked switch moves chosen year and the years after it');
  const legacyCreate={...create,commandId:randomUUID(),planId:g2.reply.id,expectedPlanRevision:newer.plan.revision,name:'LEGACY'};
  const legacyClass=await command({operation:'create',...legacyCreate});
  await tx`insert into public.class_timplans(unit_id,class_name,start_year,timplan_id,column_id) values(${id(30)},'LEGACY',${year},${g2.reply.id},'ar1')`;
@@ -100,13 +107,13 @@ export async function appliedDefinitions(db){
  // current migration sources, without executing any migration DDL.
  const expected=new Map();
  const hasCohort=(await db`select to_regprocedure('public.phase5_class_cohort_command(jsonb)') present`)[0].present;
- for(const migration of [migrationName,'20261012240000_class_start_calendar.sql',...(hasCohort?['20261015101000_class_cohort_link_identity.sql']:[])]){
+ for(const migration of [migrationName,'20261012240000_class_start_calendar.sql',...(hasCohort?replacingMigrations:[])]){
   const source=readFileSync(resolve(root,'supabase/migrations',migration),'utf8');
   assert.equal((await db`select version from supabase_migrations.schema_migrations where version=${migration.slice(0,14)}`).length,1,'REFUSED: required class migration missing');
   for(const match of source.matchAll(/create(?: or replace)? function public\.(\w+)\(([\s\S]*?)\) returns ([\s\S]*?) as \$\$([\s\S]*?)\$\$;/g)){
    const [,name,args,header,body]=match;
    const signature=`public.${name}(${args?args.split(',').map(arg=>arg.trim().split(/\s+/)[1]).join(','):''})`;
-   if(migration==='20261015101000_class_cohort_link_identity.sql'&&!expected.has(signature))continue;
+   if(replacingMigrations.includes(migration)&&!expected.has(signature))continue;
    expected.set(signature,{body,definer:header.includes('security definer'),volatility:header.includes(' stable ')?'s':'v'});
   }
  }

@@ -29,12 +29,18 @@ async function springFixture(tx,code='SA25'){
  const created=(await tx`select public.phase5_create_programplan_draft(${id(46)},0,${tx.json(reference)}) result`)[0].result;
  const programId=created.id;
  await actor('principal');await tx`select public.phase5_write_programplan_terms(${programId},0,${tx.json(terms)})`;
- const decision=async(kind,planId,action)=>{const b=(await tx`select public.phase5_plan_decision_basis(${kind},${planId}) result`)[0].result;const d=b.detail??b;
+ const decision=async(kind,planId,action)=>{const b=(await tx`select public.phase5_plan_decision_basis(${kind},${planId}) result`)[0].result;const d=b.result??b.detail??b;
  return(await tx`select public.phase5_plan_decision_command(${tx.json({kind,planId,commandId:randomUUID(),action,expectedRevision:d.revision,expectedDecisionRevision:d.decisionRevision,basisHash:d.basisHash,comment:'',confirmedChecks:d.checks.map(c=>c.id)})}) result`)[0].result;};
  await decision('programplan',programId,'submit');await actor('hm');await decision('programplan',programId,'approve');
  await actor('principal');const [{revision:programRevision}]=await tx`select revision from public.point_plans where id=${programId}`;
  const g=(await tx`select public.phase5_create_gym_timplan(${randomUUID()},${programId},${programRevision},0,${id(30)},null,null) result`)[0].result;
- let revision=0;for(const row of rows){const hours=terms.find(t=>t.rowKey===row.key).points.map(p=>p>0?p:null);revision=(await tx`select public.phase5_write_gym_timplan_row(${g.reply.id},${revision},${row.key},${tx.json(hours)}) result`)[0].result.revision;}
+ let gym=(await tx`select public.phase5_gym_timplan_result(${g.reply.id}) result`)[0].result;
+ if(gym.timeModel==='school_terms_annual_apl_v2'){
+  // Vocational Gy25 needs at least 345 h annual APL (20 700 min) on one row.
+  const key=rows.find(r=>!r.key.startsWith('block:')&&!r.key.startsWith('meta:')&&terms.find(t=>t.rowKey===r.key).points[1]>0).key;
+  for(const r of rows){const points=terms.find(t=>t.rowKey===r.key).points,row={schoolMinutes:points.map(p=>p>0?p*60:null),annualAplMinutes:[0,1,2].map(i=>points[i*2]+points[i*2+1]>0?(r.key===key&&i===0?20700:0):null)};
+   gym=(await tx`select public.phase5_timplan_time_command(${tx.json({contractVersion:'timplan_time_v2',action:'save_row',commandId:randomUUID(),planId:gym.id,expectedRevision:gym.revision,rowKey:r.key,row})}) result`)[0].result.plan;}
+ }else{let revision=0;for(const row of rows){const hours=terms.find(t=>t.rowKey===row.key).points.map(p=>p>0?p:null);revision=(await tx`select public.phase5_write_gym_timplan_row(${g.reply.id},${revision},${row.key},${tx.json(hours)}) result`)[0].result.revision;}}
  await decision('timplan',g.reply.id,'submit');await actor('hm');await decision('timplan',g.reply.id,'approve');await actor('principal');
  return{...f,programId,planId:g.reply.id,decision,year:Number(reference.startedOn.slice(0,4))-(reference.startedOn.slice(5,7)<'07'?1:0)};
 }async function scenarios(tx,checks){
@@ -54,12 +60,12 @@ async function springFixture(tx,code='SA25'){
  }
 }
 async function main(){
- const args=process.argv.slice(2),mode=args.shift(),opts={};assert.ok(['--verify','--apply'].includes(mode));for(let i=0;i<args.length;i+=2){assert.ok(['--evidence','--out'].includes(args[i])&&args[i+1]);opts[args[i]]=resolve(args[i+1]);}assert.ok(opts['--out']?.startsWith('/private/tmp/'));
+ const args=process.argv.slice(2),mode=args.shift(),opts={};assert.ok(['--verify','--apply','--applied'].includes(mode));for(let i=0;i<args.length;i+=2){assert.ok(['--evidence','--out'].includes(args[i])&&args[i+1]);opts[args[i]]=resolve(args[i+1]);}assert.ok(opts['--out']?.startsWith('/private/tmp/'));
  const sources=hashes(),source=readFileSync(resolve(root,'supabase/migrations',migrationName),'utf8');let prior;if(mode==='--apply'){assert.ok(opts['--evidence']?.startsWith('/private/tmp/'));prior=JSON.parse(readFileSync(opts['--evidence'],'utf8'));assert.equal(prior.status,'PASS');assert.equal(prior.mode,'--verify');assert.ok(prior.rollbackRestored&&prior.checks.length===6);assert.deepEqual(prior.sourceHashes,sources);}
  const target=await assertTarget('protected'),db=createRequire(new URL('../../web/package.json',import.meta.url))('postgres')(target.dbUrl,{max:1,prepare:false,onnotice:()=>{}}),tables=[...vocationalTables,'class_plan_commands'];
  const checks=[];let before,after,baselineFingerprint,afterMigrationFingerprint,finalFingerprint,failure,committed=false;
  try{before=await decisionBusinessHashes(db,tables);baselineFingerprint=await vocationalDatabaseFingerprint(db);if(prior)assert.equal(baselineFingerprint,prior.baselineFingerprint);
- try{await db.begin(async tx=>{await tx`set local statement_timeout='60s'`;assert.equal((await tx`select pg_try_advisory_xact_lock(5520) locked`)[0].locked,true);assert.equal(await vocationalDatabaseFingerprint(tx),baselineFingerprint);assert.equal((await tx`select version from supabase_migrations.schema_migrations where version>=${version}`).length,0);assert.equal((await tx`select version from supabase_migrations.schema_migrations where version='20261012210000'`).length,1);
+ try{await db.begin(async tx=>{await tx`set local statement_timeout='60s'`;assert.equal((await tx`select pg_try_advisory_xact_lock(5520) locked`)[0].locked,true);assert.equal(await vocationalDatabaseFingerprint(tx),baselineFingerprint);if(mode==='--applied'){assert.equal((await tx`select version from supabase_migrations.schema_migrations where version=${version}`).length,1);await scenarios(tx,checks);throw rollback;}assert.equal((await tx`select version from supabase_migrations.schema_migrations where version>=${version}`).length,0);assert.equal((await tx`select version from supabase_migrations.schema_migrations where version='20261012210000'`).length,1);
  if(mode==='--apply')assert.equal((await tx`select version from supabase_migrations.schema_migrations where version='20261012230000'`).length,1,'REFUSED: ordered root migration230000 required');
  await tx.unsafe(source);afterMigrationFingerprint=await vocationalDatabaseFingerprint(tx);assert.deepEqual(await decisionBusinessHashes(tx,tables),before);if(prior)assert.equal(afterMigrationFingerprint,prior.afterMigrationFingerprint);
  if(mode==='--verify'){await scenarios(tx,checks);throw rollback;}assert.deepEqual(hashes(),sources);await tx`insert into supabase_migrations.schema_migrations(version,name,statements) values(${version},'class_start_calendar',${[source]})`;
