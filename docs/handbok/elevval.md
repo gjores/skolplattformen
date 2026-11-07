@@ -16,7 +16,7 @@ Om skolan ber om en kontoreferens öppnar du **Koppla konto till skolan** och l�
 
 ## För dig som är elev
 
-1. Öppna valplanen och läs kurserna, poängen du ska välja och sista valdag.
+1. Öppna valet och läs kurserna, poängen du ska välja och sista valdag.
 2. Kryssa i kurser tills sidan visar **Du har valt rätt antal poäng**. Du kan välja flera kurser, till exempel två på 50 poäng och en på 100.
 3. Välj **Lämna val**.
 4. Läs beskedet och statusen. Ett inlämnat val är ännu ingen plats i en grupp.

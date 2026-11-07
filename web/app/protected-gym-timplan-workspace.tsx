@@ -28,7 +28,7 @@ import { usePlanningContext, type PlanningMatrixYear } from './planning-context'
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
-type Props = { onValplaner?:(target:{unitId:string;schoolYear:number;valplanId:string|null})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
+type Props = { onValplaner?:(target:{unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
   onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
@@ -193,7 +193,11 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
   const choiceTarget = plan && plan.status === 'faststalld' && !plan.archived && ['rektor','administrator'].includes(context.function) && planningSelection && yearProjection?.relativeYear
     ? { unitId: plan.unitId, timplanId: plan.id, schoolYear: planningSelection.schoolYear, year: yearProjection.relativeYear } : null;
   const choiceRowMap = useTimplanChoiceRows(choiceTarget, onSessionLost);
-  const choiceRows = choiceRowMap && choiceTarget && onValplaner ? { rows: choiceRowMap, open: (info: ChoiceRowInfo) => onValplaner({ unitId: choiceTarget.unitId, schoolYear: info.schoolYear, valplanId: info.valplan?.id ?? null }) } : null;
+  // The class section is a sibling further down; its first button opens the links.
+  const openClasses = () => { const section = document.querySelector<HTMLElement>('.class-timplans'); section?.scrollIntoView({ block: 'start' }); section?.querySelector('button')?.focus({ preventScroll: true }); };
+  const choiceStaff = plan && !plan.archived && ['rektor','administrator'].includes(context.function) && onValplaner;
+  const choiceRows = !choiceStaff ? null : plan.status !== 'faststalld' ? { approved: false, rows: new Map<string, ChoiceRowInfo>(), open: () => {}, openClasses }
+    : choiceRowMap && choiceTarget ? { approved: true, rows: choiceRowMap, openClasses, open: (info: ChoiceRowInfo) => onValplaner({ unitId: choiceTarget.unitId, schoolYear: info.schoolYear, valplanId: info.valplan?.id ?? null, row: { timplanId: info.timplanId, rowKey: info.rowKey, year: info.year } }) } : null;
   const shownYear: PlanningMatrixYear = yearProjection?.terms.length === 6
     ? matrixYear ?? (yearProjection.relativeYear === null ? 'all' : (yearProjection.relativeYear - 1) as 0 | 1 | 2) : 'all';
   function changeMatrixYear(year: string) {

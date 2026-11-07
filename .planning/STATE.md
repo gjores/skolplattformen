@@ -25,7 +25,9 @@ user_trial_status: pending_valplan_uat_u1_u9
 milestone_name: milestone
 ---
 
-**VP-10 klart 2026-11-07:** [Alla fem blocktyper](phases/05.2-schemamodul/05.2-VP-10-SUMMARY.md) går att fylla, med ämnen enligt 4 kap. 1 a §. Syntetiskt provat, inte installerat på 3012. Användaren har godkänt F-05: varje klass på en rad ska tillhöra ett block. Nästa steg: VP-11.
+**VP-11 klart 2026-11-07:** [Block skapas från timplanens rad](phases/05.2-schemamodul/05.2-VP-11-SUMMARY.md) och appen säger Valbart block. Syntetiskt provat, inte installerat på 3012. Nästa steg: VP-12.
+
+**VP-10 klart 2026-11-07:** [Alla fem blocktyper](phases/05.2-schemamodul/05.2-VP-10-SUMMARY.md) går att fylla, med ämnen enligt 4 kap. 1 a §. Syntetiskt provat, inte installerat på 3012. Användaren har godkänt F-05: varje klass på en rad ska tillhöra ett block.
 
 **Enklare valbara block planerat 2026-11-06:** [kontext](phases/05.2-schemamodul/05.2-VP-FORENKLING-CONTEXT.md) och planerna VP-10–15. Användaren: valblocken är för krångliga. Blocket skapas från timplanens rad, klasser väljs i blocket, alla fem blocktyper kan fyllas, och en kurs eleven redan har går inte att välja. Inget är genomfört.
 

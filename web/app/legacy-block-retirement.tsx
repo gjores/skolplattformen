@@ -99,7 +99,7 @@ export default function LegacyBlockRetirement({ unitId, schoolYear, onSessionLos
           {legacy.placements > 0 && <li>{count(legacy.placements, 'elevplacering avslutas', 'elevplaceringar avslutas')}.</li>}
           <li>{count(block.groups.length, 'grupp avvecklas', 'grupper avvecklas')}. Historiken finns kvar.</li>
         </ul>
-        {block.appliedRevision !== null && <p>Timplanens rader väntar sedan på en valplan med grupp. Tills dess går tjänstefördelningen inte att publicera.</p>}
+        {block.appliedRevision !== null && <p>Timplanens rader väntar sedan på ett valbart block med grupp. Tills dess går tjänstefördelningen inte att publicera.</p>}
         <p className="valplan-muted">Avvecklingen går inte att ångra.</p>
         <div className="valplan-actions"><Button disabled={busy} onClick={() => void retire(legacy)}>{busy ? 'Avvecklar…' : 'Bekräfta avveckling'}</Button><Button variant="outline" disabled={busy} onClick={() => { setReview(null); setError(null); }}>Behåll blocket</Button></div>
       </> : <div className="valplan-actions"><Button variant="outline" disabled={busy} onClick={() => { setReview(block.id); setError(null); setNotice(null); }}>Avveckla…</Button></div>}

@@ -23,10 +23,14 @@ async function mock(page: Page) {
   });
   return m;
 }
-async function createIv(page: Page) {
-  await page.getByRole('group', { name: 'Ny valplan' }).getByRole('button', { name: 'Individuellt val' }).click();
+async function startIv(page: Page) {
+  await page.getByRole('button', { name: /Skapa valbart block för SA26 – samhälle · Individuellt val · åk 2/ }).click();
+  await page.getByRole('button', { name: 'Skapa nytt block' }).click();
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Individuellt val 2027/28');
-  await page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ }).check();
+  await expect(page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ })).toBeChecked();
+}
+async function createIv(page: Page) {
+  await startIv(page);
   await page.getByRole('checkbox', { name: /NA26 · Individuellt val · åk 2/ }).check();
   for (const code of ['PSYL1000X', 'FILS1000X', 'RETO1000X']) {
     await page.getByLabel('Sök kurs att lägga till').fill(code);
@@ -34,9 +38,9 @@ async function createIv(page: Page) {
   }
 }
 
-test('skolan skapar en valplan som fyller två timplaner och sparar kurser med tid och klassurval', async ({ page }) => {
+test('skolan skapar ett block från en rad, lägger till en timplan och sparar kurser med tid och klassurval', async ({ page }) => {
   const m = await mock(page); await page.goto(URL);
-  await expect(page.getByRole('heading', { name: 'Valplaner.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Valbara block.' })).toBeVisible();
   await expect(page.getByRole('button', { name: /IV för EK/ })).toBeVisible();
   await createIv(page);
   await expect(page.getByRole('checkbox', { name: /EK26 · Individuellt val/ })).toBeDisabled();
@@ -49,8 +53,8 @@ test('skolan skapar en valplan som fyller två timplaner och sparar kurser med t
   await reto.getByText('Alla klasser').click();
   await reto.getByRole('checkbox', { name: 'SA26B' }).uncheck(); await reto.getByRole('checkbox', { name: 'NA26A' }).uncheck();
   await expect(reto.getByText('1 av 3 klasser')).toBeVisible();
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
-  await expect(page.getByText('Valplanen är sparad.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
   await expect(page.locator('.status-badge')).toHaveText('Sparad');
   expect(m.writes).toHaveLength(1);
   const w = m.writes[0];
@@ -59,8 +63,8 @@ test('skolan skapar en valplan som fyller två timplaner och sparar kurser med t
   expect([r.minutesHt, r.minutesVt, r.classIds]).toEqual([2700, 2400, [id(20)]]);
   await expect(page.getByRole('button', { name: /Individuellt val 2027\/28/ })).toBeVisible();
   await page.getByLabel('Namn', { exact: true }).fill('IV 27/28');
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
-  await expect(page.getByText('Valplanen är sparad.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
   expect(m.writes[1].expectedRevision).toBe(1);
 });
 
@@ -70,15 +74,15 @@ test('fel visas vid fältet och inget skickas förrän uppgifterna är rättade'
   await page.getByRole('textbox', { name: /Filosofi – nivå 1, HT timmar/ }).fill('');
   await page.getByRole('textbox', { name: /Filosofi – nivå 1, VT timmar/ }).fill('');
   await page.getByRole('textbox', { name: /Psykologi – nivå 1, HT timmar/ }).fill('12,5');
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Rätta markerade uppgifter' })).toBeVisible();
   await expect(page.getByText('Ange undervisningstid för HT eller VT.')).toBeVisible();
   await expect(page.getByText('Ange timmar, till exempel 40')).toBeVisible();
   expect(m.writes).toHaveLength(0);
   await page.getByRole('textbox', { name: /Psykologi – nivå 1, HT timmar/ }).fill('12:30');
   await page.getByRole('textbox', { name: /Filosofi – nivå 1, HT timmar/ }).fill('20');
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
-  await expect(page.getByText('Valplanen är sparad.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
   expect(m.writes).toHaveLength(1);
 });
 
@@ -86,14 +90,14 @@ test('konflikt och obekräftat svar ger tydliga vägar utan att dubbelspara', as
   const m = await mock(page); await page.goto(URL);
   await createIv(page);
   m.reject = { status: 409, reason: 'valplan_revision_conflict' };
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
-  await expect(page.getByText('Någon annan har ändrat valplanen.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Någon annan har ändrat blocket.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Hämta aktuellt läge' })).toBeVisible();
   m.reject = null; m.lose = true;
-  await page.getByRole('button', { name: 'Spara valplan' }).click();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
   await expect(page.getByText('Sparandet kunde inte bekräftas.')).toBeVisible();
   await page.getByRole('button', { name: 'Kontrollera sparstatus' }).click();
-  await expect(page.getByText('Valplanen är sparad.')).toBeVisible();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
   expect(m.writes.at(-1)!.commandId).toBe(m.writes.at(-2)!.commandId);
 });
 
@@ -125,7 +129,9 @@ test('frågan om osparat besvaras med tangentbord och fungerar på telefon', asy
 
 test('kurs som läggs till före timplansraden får radens tid, och inskriven tid står kvar', async ({ page }) => {
   await mock(page); await page.goto(URL);
-  await page.getByRole('group', { name: 'Ny valplan' }).getByRole('button', { name: 'Individuellt val' }).click();
+  await startIv(page);
+  const row = page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ });
+  await row.uncheck();
   for (const code of ['PSYL1000X', 'FILS1000X']) {
     await page.getByLabel('Sök kurs att lägga till').fill(code);
     await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
@@ -133,53 +139,110 @@ test('kurs som läggs till före timplansraden får radens tid, och inskriven ti
   const psyHt = page.getByRole('textbox', { name: /Psykologi – nivå 1, HT timmar/ }), filHt = page.getByRole('textbox', { name: /Filosofi – nivå 1, HT timmar/ });
   await expect(psyHt).toHaveValue('0');
   await filHt.fill('10');
-  await page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ }).check();
+  await row.check();
   await expect(psyHt).toHaveValue('22:30');
   await expect(filHt).toHaveValue('10');
 });
 
-test('saknas timplansrad för läsåret visas det som gul notis', async ({ page }) => {
+test('utan valbara rader förklarar sidan varför den är tom', async ({ page }) => {
+  const m = await mock(page); m.state.rows = []; m.state.valplans = []; await page.goto(URL);
+  await expect(page.locator('.empty-state')).toHaveText('Inga valbara rader 2027/28. Raderna visas här när en timplan med valbara block är fastställd och gäller läsåret.');
+  await expect(page.getByRole('button', { name: /Skapa valbart block/ })).toHaveCount(0);
+});
+
+test('sidan har inga typknappar och visar först raderna som saknar block', async ({ page }) => {
   await mock(page); await page.goto(URL);
-  await page.getByRole('group', { name: 'Ny valplan' }).getByRole('button', { name: 'Programfördjupning' }).click();
-  await expect(page.locator('.validation-warning')).toHaveText('Inga godkända timplaner har en rad för programfördjupning läsåret 2027/28.');
+  await expect(page.getByRole('heading', { name: 'Rader som saknar block' })).toBeVisible();
+  await expect(page.getByRole('button', { name: /Skapa valbart block för/ })).toHaveCount(3);
+  await expect(page.getByRole('button', { name: 'Moderna språk', exact: true })).toHaveCount(0);
+  const [missing, blocks] = await Promise.all(['Rader som saknar block', 'Läsårets block'].map(name => page.getByRole('heading', { name }).boundingBox()));
+  expect(missing!.y).toBeLessThan(blocks!.y);
+});
+
+test('från raden utan block av samma typ öppnas utkastet direkt med allt ifyllt', async ({ page }) => {
+  const m = await mock(page); await page.goto(`${URL}?row=${id(14)}|block:mosp|2`);
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Moderna språk 2027/28');
+  await expect(page.getByRole('checkbox', { name: /Moderna språk · åk 2/ })).toBeChecked();
+  await expect(page.getByText('Typ', { exact: true })).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Typ' })).toHaveCount(0);
+  await expect(page.getByText('Lägg till minst en kurs innan du sparar.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Spara valbart block' })).toBeDisabled();
+  await page.getByLabel('Språk för moderna språk').selectOption('es');
+  await page.getByLabel('Sök kurs att lägga till').fill('MODO1000X');
+  await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
+  await expect(page.getByText('Elevvalet öppnas från ett sparat block.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect(m.writes[0].valplan.kind).toBe('modernLanguage');
+  await expect(page.getByRole('button', { name: 'Elevval' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Spara valbart block' })).toHaveCount(0);
+});
+
+test('finns ett block av samma typ väljer användaren mellan det och ett nytt', async ({ page }) => {
+  const m = await mock(page); await page.goto(`${URL}?row=${id(12)}|block:iv1|2`);
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Avbryt' }).click();
+  await expect(page.getByText('Välj ett block eller skapa ett från en rad som saknar block.')).toBeVisible();
+  expect(m.writes).toHaveLength(0);
+  await page.getByRole('button', { name: /Skapa valbart block för NA26/ }).click();
+  await page.getByRole('button', { name: 'Lägg till i IV för EK' }).click();
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('IV för EK');
+  await expect(page.getByRole('checkbox', { name: /NA26 · Individuellt val · åk 2/ })).toBeChecked();
+  await expect(page.locator('.valplan-editor .status-badge')).toHaveText('Osparade ändringar');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect([m.writes[0].valplan.id, m.writes[0].valplan.rows.length]).toEqual([id(99), 2]);
+});
+
+test('fel i namnet visas vid fältet som får fokus', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  await createIv(page);
+  await page.getByLabel('Namn', { exact: true }).fill(' ');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Ange ett namn.')).toBeVisible();
+  await expect(page.getByLabel('Namn', { exact: true })).toBeFocused();
 });
 
 test('språkämne och naturvetenskapligt ämne visar bara tillåtna ämnen', async ({ page }) => {
-  await mock(page); await page.goto(URL);
-  const group = page.getByRole('group', { name: 'Ny valplan' }), search = page.getByLabel('Sök kurs att lägga till');
-  await group.getByRole('button', { name: 'Språkämne' }).click();
+  const m = await mock(page), base = m.state.rows[0];
+  m.state.rows.push({ ...base, timplanId: id(15), rowKey: 'block:sprk', blockKind: 'languageSubject' as never, rowLabel: 'Språkämne' }, { ...base, timplanId: id(16), rowKey: 'block:nave', blockKind: 'naturalScience' as never, rowLabel: 'Naturvetenskapligt ämne' });
+  await page.goto(URL);
+  const search = page.getByLabel('Sök kurs att lägga till');
+  await page.getByRole('button', { name: /Skapa valbart block för .* Språkämne/ }).click();
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Språkämne 2027/28');
   await expect(page.getByText('Här finns moderna språk, engelska, klassisk grekiska och latin')).toBeVisible();
   await expect(page.getByLabel('Språk för moderna språk')).toBeVisible();
   await search.fill('LATI2000X'); await expect(page.getByRole('button', { name: /LATI2000X/ })).toBeVisible();
   await search.fill('PSYL1000X'); await expect(page.getByRole('button', { name: /PSYL1000X/ })).toHaveCount(0);
-  await group.getByRole('button', { name: 'Naturvetenskapligt ämne' }).click();
+  await page.getByRole('button', { name: /Skapa valbart block för .* Naturvetenskapligt ämne/ }).click();
   await expect(page.getByLabel('Språk för moderna språk')).toHaveCount(0);
   await search.fill('KEMI2000X'); await expect(page.getByRole('button', { name: /KEMI2000X/ })).toBeVisible();
   await search.fill('ENGE3000X'); await expect(page.getByRole('button', { name: /ENGE3000X/ })).toHaveCount(0);
 });
 
-test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
+test('ett orört utkast låser inte sidan och kan slängas', async ({ page }) => {
   await mock(page); await page.goto(URL);
   const dialogs: string[] = []; await autoAnswerDiscard(page, false, dialogs);
-  const group = page.getByRole('group', { name: 'Ny valplan' });
-  await group.getByRole('button', { name: 'Individuellt val' }).click();
-  await group.getByRole('button', { name: 'Moderna språk' }).click();
+  await page.getByRole('button', { name: /Skapa valbart block för SA26 – samhälle · Moderna språk/ }).click();
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Moderna språk 2027/28');
+  await startIv(page);
   expect(dialogs).toHaveLength(0);
-  await createIv(page);
   await page.getByRole('button', { name: 'Släng utkastet' }).click();
-  await expect(page.getByText('Välj en valplan eller skapa en ny.')).toBeVisible();
+  await expect(page.getByText('Välj ett block eller skapa ett från en rad som saknar block.')).toBeVisible();
   await page.getByRole('button', { name: 'Till annan vy' }).click();
   await expect(page.getByText('Annan arbetsyta öppnad')).toBeVisible();
   expect(dialogs).toHaveLength(0);
 });
 
-test('kurs utan kopplade klasser visar var klasserna kopplas', async ({ page }) => {
+test('rad utan klasser säger varför den inte kan få block, och kursen visar var klasserna kopplas', async ({ page }) => {
   const m = await mock(page); m.state.rows = m.state.rows.map(r => ({ ...r, classes: [], classIds: [] }));
-  await page.goto(URL);
-  await createIv(page);
+  await page.goto(`${URL}?open=${id(99)}`);
+  await expect(page.getByRole('button', { name: /Skapa valbart block för/ })).toHaveCount(0);
+  await expect(page.getByText('Koppla klasser under Klasser och läsår i timplanen först.').first()).toBeVisible();
   await expect(page.getByText('Inga klasser kopplade 2027/28').first()).toBeVisible();
+  await page.getByRole('button', { name: 'Lägg till kurs' }).click();
+  await page.getByLabel('Sök kurs att lägga till').fill('RETO1000X');
+  await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
   const reto = page.getByRole('row', { name: /RETO1000X/ });
   await reto.getByText('Inga klasser ännu').click();
   await expect(reto.getByText('Inga klasser är kopplade till timplanerna 2027/28. Koppla klasser under Klasser och läsår i timplanen.')).toBeVisible();
@@ -196,32 +259,49 @@ test('kurser ryms när redigeringsytan är smal i ett brett fönster', async ({ 
   await remove.scrollIntoViewIfNeeded(); await expect(remove).toBeInViewport({ ratio: 1 });
 });
 
-test('öppna en befintlig valplan direkt från timplanen', async ({ page }) => {
+test('öppna ett befintligt block direkt från timplanen', async ({ page }) => {
   await mock(page); await page.goto(`${URL}?open=${id(99)}`);
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('IV för EK');
   await expect(page.getByRole('button', { name: /IV för EK/ })).toHaveAttribute('aria-pressed', 'true');
 });
 
-test('timplanens valrad fälls ut och visar valplanens kurser', async ({ page }) => {
+test('klar rad säger vilket block som fyller den, fälls ut och öppnar blocket', async ({ page }) => {
   await page.goto(`${URL}?rows`);
-  const toggle = page.getByRole('button', { name: 'Enligt valplanen Individuellt val 2027/28' });
+  await expect(page.getByText('Enligt Individuellt val 2027/28')).toBeVisible();
+  const toggle = page.getByRole('button', { name: 'Visa kurser' });
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
   await toggle.focus(); await page.keyboard.press('Enter');
   await expect(toggle).toHaveAttribute('aria-expanded', 'true');
   const courses = page.getByRole('list', { name: 'Kurser i Individuellt val 2027/28' });
   await expect(courses.getByRole('listitem')).toHaveCount(2);
   await expect(page.getByText('Läsår 2027/28 · årskurs 2 · SA26A, SA26B')).toBeVisible();
-  await page.getByRole('button', { name: 'Öppna valplanen' }).click();
-  await expect(page.getByText(`Öppnade ${id(5)}`)).toBeVisible();
   await toggle.click(); await expect(courses).toHaveCount(0);
+  const open = page.getByRole('button', { name: 'Öppna blocket' });
+  expect((await open.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await open.click();
+  await expect(page.getByText(`Öppnade ${id(5)}`)).toBeVisible();
 });
 
-test('valrad utan valplan leder till valplanerna', async ({ page }) => {
+test('rad som saknar block erbjuder att skapa det', async ({ page }) => {
   await page.goto(`${URL}?rows&none`);
-  await page.getByRole('button', { name: 'Ingen valplan 2027/28' }).click();
-  await expect(page.getByText('Ingen valplan fyller raden detta läsår.')).toBeVisible();
-  await page.getByRole('button', { name: 'Öppna valplaner' }).click();
-  await expect(page.getByText('Öppnade lista')).toBeVisible();
+  await expect(page.getByText('Saknar block 2027/28')).toBeVisible();
+  await page.getByRole('button', { name: 'Skapa valbart block' }).click();
+  await expect(page.getByText('Öppnade nytt block')).toBeVisible();
+});
+
+test('rad utan klasser leder till Klasser och läsår', async ({ page }) => {
+  await page.goto(`${URL}?rows&noclasses`);
+  await expect(page.getByText('Koppla klasser först.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Skapa valbart block' })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Till Klasser och läsår' }).click();
+  await expect(page.getByText('Öppnade klasser')).toBeVisible();
+});
+
+test('rad i ett utkast säger när blocket kan kopplas', async ({ page }) => {
+  await page.goto(`${URL}?rows&draft`);
+  await expect(page.getByText('Valbart block', { exact: true })).toBeVisible();
+  await expect(page.getByText('Kopplas när timplanen är fastställd.')).toBeVisible();
+  await expect(page.getByRole('button')).toHaveCount(0);
 });
 
 test('programplanens valpaket använder samma kurssökning', async ({ page }) => {
@@ -255,5 +335,5 @@ test('sidan ryms utan sidledsrullning', async ({ page }) => {
   await createIv(page);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(0);
-  for (const button of await page.getByRole('button', { name: 'Spara valplan' }).all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  for (const button of await page.getByRole('button', { name: 'Spara valbart block' }).all()) expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
 });

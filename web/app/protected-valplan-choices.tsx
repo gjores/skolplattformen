@@ -15,9 +15,9 @@ const stateOf = (pupil: ValplanChoicePupil) => pupil.choice?.state ?? 'not_chose
 function message(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.reason === 'valplan_choice_points') return 'Valet fyller inte elevens poäng. Välj kurser som tillsammans ger rätt poäng.';
-    if (error.reason === 'valplan_choice_course') return 'En vald kurs finns inte längre i valplanen.';
+    if (error.reason === 'valplan_choice_course') return 'En vald kurs finns inte längre i blocket.';
     if (error.reason === 'valplan_round_date') return 'Sista valdag kan inte ligga bakåt i tiden.';
-    if (error.reason === 'valplan_round_empty') return 'Valplanen behöver minst en kurs och en timplansrad innan valet kan öppnas.';
+    if (error.reason === 'valplan_round_empty') return 'Blocket behöver minst en kurs och en timplansrad innan valet kan öppnas.';
     if (error.reason === 'elective_policy_missing') return 'Ange först om vårdnadshavare ska bekräfta valen.';
     if (error.reason === 'elective_confirmation_required') return 'Valet kan inte bekräftas ännu. Kontrollera elevens status.';
     if (error.status === 409) return 'Underlaget har ändrats. Hämta aktuellt läge och granska ändringen igen.';
@@ -78,7 +78,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
   return <section className="valplan-card valplan-editor" aria-labelledby={heading}>
     <div className="section-heading"><h2 id={heading}>Elevval{data ? ` – ${data.valplanName}` : ''}</h2>
       <span className={round?.accepting ? 'status-badge success' : 'status-badge'}>{!round ? 'Inte öppnat' : round.accepting ? `Öppet till ${round.closesOn}` : 'Stängt'}</span></div>
-    <div className="valplan-actions"><Button variant="outline" disabled={busy} onClick={onBack}>Tillbaka till valplanen</Button></div>
+    <div className="valplan-actions"><Button variant="outline" disabled={busy} onClick={onBack}>Tillbaka till blocket</Button></div>
     {loadError && <div className="valplan-alert" role="alert"><p>Elevvalet kunde inte hämtas.</p><Button variant="outline" onClick={() => void refresh()}>Försök igen</Button></div>}
     {!data && !loadError && <p className="valplan-muted">Hämtar elevval…</p>}
     {data && <>
@@ -102,11 +102,11 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
           <label>Status<select value={stateFilter} onChange={e => setStateFilter(e.target.value)}><option value="">Alla</option>{Object.entries(VALPLAN_STATE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
           <label>Klass<select value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="">Alla</option>{data.classes.filter(c => data.pupils.some(p => p.classIds.includes(c.id))).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
         </div>
-        <label className="valplan-check"><input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)}/><span>Visa även elever utanför valplanens klasser<small>Skolan kan registrera val åt dem som undantag.</small></span></label>
+        <label className="valplan-check"><input type="checkbox" checked={showAll} onChange={e => setShowAll(e.target.checked)}/><span>Visa även elever utanför blockets klasser<small>Skolan kan registrera val åt dem som undantag.</small></span></label>
         {shown.length ? <div className="valplan-table-wrap"><table className="valplan-table">
           <thead><tr><th scope="col">Elev</th><th scope="col">Klass</th><th scope="col">Status</th><th scope="col">Val</th><th scope="col"><span className="sr-only">Åtgärd</span></th></tr></thead>
           <tbody>{shown.map(p => <tr key={p.id}>
-            <td data-label="Elev"><strong>{p.name}</strong>{p.targetPoints === null && <small>Utanför valplanens klasser</small>}</td>
+            <td data-label="Elev"><strong>{p.name}</strong>{p.targetPoints === null && <small>Utanför blockets klasser</small>}</td>
             <td data-label="Klass">{className(p)}</td>
             <td data-label="Status"><span className={stateOf(p) === 'confirmed' ? 'status-badge success' : 'status-badge'}>{VALPLAN_STATE_LABEL[stateOf(p)]}</span></td>
             <td data-label="Val">{p.choice ? p.choice.courseIds.map(courseName).join(', ') : '–'}{p.choice?.submittedBy === 'school' && <small>Registrerat av skolan</small>}</td>
@@ -118,7 +118,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
           <legend>Val för {pupil.name}</legend>
           {data.courses.map(c => <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy} checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/>
             <span>{c.name}<small>{c.points} p{target !== null && !pupil.offeredCourseIds.includes(c.id) ? ' · Utanför elevens klass' : ''}</small></span></label>)}
-          <p className={target !== null && pickedPoints !== target ? 'validation-warning' : 'valplan-muted'}>{target === null ? `${pickedPoints} p valda. Eleven ligger utanför valplanens klasser.` : `${pickedPoints} av ${target} p valda.`}</p>
+          <p className={target !== null && pickedPoints !== target ? 'validation-warning' : 'valplan-muted'}>{target === null ? `${pickedPoints} p valda. Eleven ligger utanför blockets klasser.` : `${pickedPoints} av ${target} p valda.`}</p>
           <div className="valplan-actions">
             <Button disabled={busy || !picked.length || target !== null && pickedPoints !== target} onClick={async () => { if (await send(command('record_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice?.revision ?? 0, courseIds: picked }), `Valet för ${pupil.name} är sparat.`)) setEditing(null); }}>Spara val</Button>
             <Button variant="outline" disabled={busy} onClick={() => setEditing(null)}>Avbryt</Button></div></fieldset>; })()}

@@ -23,7 +23,7 @@ const targetKey = (target: BlockerTarget): string => target.kind === 'row' ? `ro
  */
 export function blockerActions(data: TjanstPlanRead, code: string): BlockerActions {
   if (!data.blockers.some(blocker => blocker.code === code)) return { targets: [], guidance: '' };
-  if (code === 'organization_pending' || code === 'group_sources_changed') return code === 'organization_pending' ? { targets: [{ kind: 'elective_blocks', label: 'Valplaner' }], guidance: 'Skapa undervisningsgrupper för valplanen, från elevvalet eller under Undervisningsgrupper.' } : { targets: [{ kind: 'study_groups', label: 'Undervisningsgrupper' }], guidance: 'Granska grupperna och spara dem på nytt.' };
+  if (code === 'organization_pending' || code === 'group_sources_changed') return code === 'organization_pending' ? { targets: [{ kind: 'elective_blocks', label: 'Valbara block' }], guidance: 'Skapa undervisningsgrupper för blocket, från elevvalet eller under Undervisningsgrupper.' } : { targets: [{ kind: 'study_groups', label: 'Undervisningsgrupper' }], guidance: 'Granska grupperna och spara dem på nytt.' };
   const needs = new Map(data.classes.flatMap(cls => cls.needs.map(need => [need.sourceKey, { cls, need }] as const)));
   const rowsBySource = new Map<string, TjanstRow[]>(), rowsByJoint = new Map<string, TjanstRow[]>();
   for (const row of data.rows) {

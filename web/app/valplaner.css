@@ -1,4 +1,4 @@
-/* Valplaner: Skolplattan tokens only (globals.css). */
+/* Valbara block: Skolplattan tokens only (globals.css). */
 .valplan-workspace { display: grid; gap: 1rem; color: var(--foreground); min-width: 0; }
 .valplan-workspace h2, .valplan-workspace h3, .valplan-workspace p { margin: 0; }
 .valplan-workspace .page-heading { margin-bottom: 1rem; }
@@ -11,9 +11,9 @@
 .valplan-list { display: grid; gap: .5rem; list-style: none; padding: 0; margin: 0; }
 .valplan-list button { width: 100%; min-height: var(--control-height); text-align: left; border: 1px solid var(--border); border-radius: var(--radius-md); padding: .75rem; background: var(--card); color: inherit; }
 .valplan-list button[aria-pressed="true"] { border-color: var(--primary); box-shadow: inset 3px 0 0 var(--primary); }
-.valplan-new { display: grid; gap: .5rem; border: 0; padding: 0; margin: 0; min-width: 0; }
-.valplan-new legend { font-weight: 600; margin-bottom: .5rem; }
-.valplan-new button, .valplan-actions button, .valplan-add > button { min-height: var(--control-height); }
+.valplan-missing { display: grid; gap: .75rem; }
+.valplan-missing li { display: grid; gap: .25rem; justify-items: start; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+.valplan-missing button, .valplan-actions button, .valplan-add > button { min-height: var(--control-height); }
 .valplan-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1rem; align-items: end; }
 .valplan-workspace label { display: grid; gap: .375rem; font-size: .875rem; }
 .valplan-workspace input:not([type="checkbox"]), .valplan-workspace select { width: 100%; min-height: var(--control-height); border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--card); padding: .5rem .75rem; color: inherit; font: inherit; }

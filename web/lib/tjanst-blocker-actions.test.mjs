@@ -12,7 +12,7 @@ const plan = (code, extra = {}) => ({ contractVersion: 'fixture', unitId: id(999
   actions: [], blockers: code ? [{ code, message: 'Serverns meddelande' }] : [], capabilities: { canEdit: true, canPublish: false, canReadHistory: true }, ...extra });
 
 test('grupporganisationens verkliga publiceringshinder leder till valplaner och grupper', () => {
-  assert.deepEqual(blockerActions(plan('organization_pending'), 'organization_pending').targets, [{ kind: 'elective_blocks', label: 'Valplaner' }]);
+  assert.deepEqual(blockerActions(plan('organization_pending'), 'organization_pending').targets, [{ kind: 'elective_blocks', label: 'Valbara block' }]);
   assert.deepEqual(blockerActions(plan('group_sources_changed'), 'group_sources_changed').targets, [{ kind: 'study_groups', label: 'Undervisningsgrupper' }]);
   for (const code of ['organization_pending', 'group_sources_changed']) assert.match(blockerActions(plan(code), code).guidance, /grupper|grupp/u);
   assert.deepEqual(blockerActions(plan(null), 'organization_pending').targets, []);

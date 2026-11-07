@@ -275,7 +275,7 @@ function ProtectedNavigation({
             <SidebarMenuItem><SidebarMenuButton data-testid="apl-planning-nav" isActive={aplProcess} aria-current={aplProcess ? 'page' : undefined} onClick={() => { onApl(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>APL-planering</span></SidebarMenuButton></SidebarMenuItem>
             {TJANST_FUNCTIONS.includes(fn) && <SidebarMenuItem>
               <SidebarMenuButton isActive={view === 'valplaner'} aria-current={view === 'valplaner' ? 'page' : undefined} onClick={() => go('valplaner')} className="nav-button">
-                <ListChecks size={19}/><span>Valplaner</span>
+                <ListChecks size={19}/><span>Valbara block</span>
               </SidebarMenuButton>
               <SidebarMenuSub><SidebarMenuSubItem>
                 <SidebarMenuSubButton href="?vy=undervisningsgrupper" className="min-h-11" isActive={view === 'undervisningsgrupper'} aria-current={view === 'undervisningsgrupper' ? 'page' : undefined}
@@ -338,7 +338,7 @@ function ProtectedShell() {
   const requestDiscard = useRequestDiscard(), discardedPop = useRef(false);
   const [session, setSession] = useState<SessionResponse | null | 'loading'>(null);
   const identitySource = session && session !== 'loading' ? JSON.stringify([session.identity.issuer, session.identity.subject]) : null;
-  const [valplanIntent,setValplanIntent]=useState<{key:string;unitId:string;schoolYear:number;valplanId:string|null}|null>(null);
+  const [valplanIntent,setValplanIntent]=useState<{key:string;unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null}|null>(null);
   const [journalIdentity, setJournalIdentity] = useState<{ source: string; key: string; tjanst: string } | null>(null);
   useEffect(() => {
     let current = true;
@@ -757,7 +757,7 @@ function ProtectedShell() {
       ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
-  async function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null}) {
+  async function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null}) {
     if (!(await canNavigate())) return;
     const prior=planningLocationRef.current??planningFor('timplaner');
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
@@ -802,7 +802,7 @@ function ProtectedShell() {
   const overview = isPlanningView(view) && planningLocation?.overview === true;
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
   const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
-    : view === 'valplaner' ? 'Valplaner' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
+    : view === 'valplaner' ? 'Valbara block' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -872,10 +872,11 @@ function ProtectedShell() {
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
-                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={()=>void goToValplaner({unitId:selection.unitId!,schoolYear:selection.schoolYear,valplanId:null})} onOpenGroups={()=>void navigate('undervisningsgrupper')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={()=>void goToValplaner({unitId:selection.unitId!,schoolYear:selection.schoolYear,valplanId:null,row:null})} onOpenGroups={()=>void navigate('undervisningsgrupper')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'valplaner' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedValplaner key={`${contextKey}:${planNavigation}`} unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey}
-                initialValplanId={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.valplanId:null} onOpenGroups={()=>void navigate('undervisningsgrupper')} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+                initialValplanId={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.valplanId:null}
+                initialRow={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.row:null} onInitialUsed={()=>setValplanIntent(null)} onOpenGroups={()=>void navigate('undervisningsgrupper')} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'undervisningsgrupper' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedStudyGroups unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}

@@ -19,7 +19,7 @@ import './valplaner.css';
 
 const catalog = artifact as ProgramplanCatalog;
 const SOURCE: Record<StudyGroupMembership['source'], string> = { class: 'Från klass', choice: 'Från val', manual: 'Manuell' };
-const ORIGIN: Record<StudyGroup['origin']['kind'], string> = { valplan: 'Från valplan', classes: 'Från klasser', manual: 'Manuell' };
+const ORIGIN: Record<StudyGroup['origin']['kind'], string> = { valplan: 'Från valbart block', classes: 'Från klasser', manual: 'Manuell' };
 const REASON: Record<string, string> = {
   study_group_pupil_not_placed: 'Eleven har ingen placering på skolan under hela perioden. Justera datum eller placering.',
   study_group_member_period: 'Datumet ligger utanför gruppens eller medlemskapets period.',
@@ -27,7 +27,7 @@ const REASON: Record<string, string> = {
   study_group_in_use: 'Gruppen har pågående eller kommande medlemmar. Flytta eller avsluta dem först.',
   study_group_period: 'Perioden måste ligga inom läsåret.',
   study_group_class: 'Välj minst en klass.',
-  study_group_valplan_course: 'Tiden måste vara samma som valplanens kurs. Ändra tiden i valplanen.',
+  study_group_valplan_course: 'Tiden måste vara samma som kursens tid i blocket. Ändra tiden där.',
   study_group_revision_conflict: 'Någon annan har ändrat gruppen. Hämta aktuellt läge.',
 };
 function message(error: unknown): string {
@@ -148,14 +148,14 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <label>HT, timmar<input className="valplan-time" value={draft.ht} disabled={busy || draft.base?.origin.kind === 'valplan'} onChange={e => setDraft({ ...draft, ht: e.target.value })}/></label>
           <label>VT, timmar<input className="valplan-time" value={draft.vt} disabled={busy || draft.base?.origin.kind === 'valplan'} onChange={e => setDraft({ ...draft, vt: e.target.value })}/></label>
         </div>
-        {draft.base?.origin.kind === 'valplan' && <p className="valplan-muted">Tiden kommer från valplanen.</p>}
+        {draft.base?.origin.kind === 'valplan' && <p className="valplan-muted">Tiden kommer från blocket.</p>}
         <fieldset className="valplan-new"><legend>Klasser</legend>
           {data.classes.map(c => <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy} checked={draft.classIds.includes(c.id)} onChange={e => setDraft({ ...draft, classIds: e.target.checked ? [...draft.classIds, c.id] : draft.classIds.filter(id => id !== c.id) })}/><span>{c.name}</span></label>)}
           {!data.classes.length && <p className="valplan-muted">Skolan har inga klasser ännu.</p>}</fieldset>
         {!draft.base && <label className="valplan-check"><input type="checkbox" disabled={busy} checked={draft.fetchPupils} onChange={e => setDraft({ ...draft, fetchPupils: e.target.checked })}/><span>Hämta elever från valda klasser</span></label>}
         <div className="valplan-actions"><Button disabled={busy} onClick={() => void save()}>Spara grupp</Button><Button variant="outline" disabled={busy} onClick={() => setDraft(null)}>Avbryt</Button></div>
       </fieldset>}
-      {!shownSets.length && <p className="empty-state">{groups.length ? 'Inga grupper matchar filtret.' : 'Inga grupper ännu. Skapa en grupp här eller från elevvalet i en valplan.'}</p>}
+      {!shownSets.length && <p className="empty-state">{groups.length ? 'Inga grupper matchar filtret.' : 'Inga grupper ännu. Skapa en grupp här eller från elevvalet i ett valbart block.'}</p>}
       {shownSets.map(set => <section className="valplan-card" key={set[0].parallelSetId} aria-label={set[0].course?.itemCode ?? set[0].name}>
         <div className="section-heading"><h2>{set.length > 1 ? `${set[0].course?.itemCode ?? set[0].name} · ${set.length} parallella grupper` : set[0].name}</h2><span className="status-badge">{ORIGIN[set[0].origin.kind]}</span></div>
         <div className="valplan-group-board">{set.map(g => { const members = memberships(g).filter(current), others = set.filter(x => x.id !== g.id); return <article key={g.id} className="valplan-group">

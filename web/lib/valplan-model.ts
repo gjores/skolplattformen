@@ -91,6 +91,19 @@ export function parseValplan(value: unknown): Valplan {
     name: text(r.name, 200), revision: integer(r.revision, 1, 2147483646), courses, rows };
 }
 
+/** What a timplan row says about its valbart block, and so which single next step it offers. */
+export type ValplanRowStage = 'notApproved' | 'noClasses' | 'missing' | 'done';
+export function valplanRowStage(row: { approved: boolean; classCount: number; linked: boolean }): ValplanRowStage {
+  if (!row.approved) return 'notApproved';
+  if (row.linked) return 'done';
+  return row.classCount ? 'missing' : 'noClasses';
+}
+/** A block can take the row when none of the row's classes already choose in it. */
+export function valplanTakesRow(plan: Valplan, rows: readonly ValplanRowContext[], row: ValplanRowContext): boolean {
+  const keys = new Set(plan.rows.map(valplanRowKey));
+  return plan.kind === row.blockKind && !rows.some(r => keys.has(valplanRowKey(r)) && r.classIds.some(id => row.classIds.includes(id)));
+}
+
 /** Blocking errors stop saving or opening the choice; notices are shown at the field. */
 export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowContext[], catalog: ProgramplanCatalog): ValplanDiagnostic[] {
   const out: ValplanDiagnostic[] = [];

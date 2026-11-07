@@ -181,7 +181,7 @@ test.describe('Egen tjänst och navigering',()=>{
   const m=await mock(page,{role:'rektor'});
   await page.goto(url);
   const items=await navItems(page,info);
-  expect(items.indexOf('Valplaner')).toBe(items.indexOf('APL-planering')+1);expect(items.indexOf('Tjänstefördelning')).toBe(items.indexOf('Valplaner')+1);
+  expect(items.indexOf('Valbara block')).toBe(items.indexOf('APL-planering')+1);expect(items.indexOf('Tjänstefördelning')).toBe(items.indexOf('Valbara block')+1);
   await page.locator('.nav-button:visible',{hasText:'Tjänstefördelning'}).click();
   await expect(heading(page,'Tjänstefördelning')).toBeVisible();
   await page.locator('.planning-context-help > summary').click();await expect(page.getByText('Gäller årsöverblick, programplaner, timplaner och tjänstefördelning.')).toBeVisible();await page.locator('.planning-context-help > summary').click();

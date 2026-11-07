@@ -118,6 +118,9 @@
 .gt-distribution-apl-preview th, .gt-distribution-apl-preview td { padding: .4rem; text-align: left; border-bottom: 1px solid #cbd5e1; }
 .gt-distribution-apl-preview td, .gt-distribution-apl-preview thead th:not(:first-child) { white-space: nowrap; text-align: right; }
 /* VP-05: hopfällbar valrad som visar läsårets valplan. Skolplattan-variabler. */
+.gt-choice { display: grid; justify-items: start; gap: .375rem; margin-top: .375rem; }
+.gt-choice .status-badge { margin: 0; white-space: normal; }
+.gt-choice button { min-height: var(--control-height); }
 .gt-choice-toggle { display: inline-flex; align-items: center; min-height: var(--control-height); margin-top: .25rem; padding: 0; border: 0; background: none; color: var(--primary); font-size: .8125rem; text-align: left; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 .gt-choice-toggle::before { content: '▸'; margin-right: .375rem; text-decoration: none; display: inline-block; }
 .gt-choice-toggle[aria-expanded="true"]::before { content: '▾'; }

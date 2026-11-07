@@ -49,7 +49,7 @@ test('rektor granskar och avvecklar ett block i ett steg', async ({ page }) => {
   await expect(card(page).getByText('2 grupper · 2 tjänsterader')).toBeVisible();
   await card(page).getByRole('button', { name: 'Avveckla…' }).click();
   await expect(card(page).getByText('2 tjänsterader tas bort ur tjänstefördelningen.', { exact: false })).toBeVisible();
-  await expect(card(page).getByText('Timplanens rader väntar sedan på en valplan med grupp.', { exact: false })).toBeVisible();
+  await expect(card(page).getByText('Timplanens rader väntar sedan på ett valbart block med grupp.', { exact: false })).toBeVisible();
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); expect(overflow).toBeLessThanOrEqual(0);
   expect(m.writes).toEqual([]);
   await card(page).getByRole('button', { name: 'Bekräfta avveckling' }).click();

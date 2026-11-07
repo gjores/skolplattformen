@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanSubjectAllowed,valplanTimeShare} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -62,6 +62,20 @@ test('all five block kinds parse, and språkämne and naturvetenskapligt ämne k
   assert.deepEqual(codes(valplanDiagnostics(parseValplan(science),row('naturalScience'),catalog),'error'),[]);
   assert.ok(codes(valplanDiagnostics(parseValplan({...science,courses:[course(1,'ENGE','ENGE3000X',100)]}),row('naturalScience'),catalog),'error').includes('course_kind_mismatch'));
   assert.ok(codes(valplanDiagnostics(parseValplan(science),row('languageSubject'),catalog),'error').includes('row_kind_mismatch'));
+});
+
+test('a timplan row is in exactly one stage with one next step',()=>{
+  const stage=(approved,classCount,linked)=>valplanRowStage({approved,classCount,linked});
+  assert.equal(stage(false,2,false),'notApproved');assert.equal(stage(false,2,true),'notApproved');
+  assert.equal(stage(true,0,false),'noClasses');assert.equal(stage(true,2,false),'missing');
+  assert.equal(stage(true,2,true),'done');assert.equal(stage(true,0,true),'done');
+});
+
+test('a block takes a row of its kind unless the classes already choose in it',()=>{
+  const p=parseValplan({...plan(),rows:[plan().rows[0]]}),free={...rows()[1],blockKind:'individualChoice'},all=[{...rows()[0],blockKind:'individualChoice'},free];
+  assert.equal(valplanTakesRow(p,all,free),true);
+  assert.equal(valplanTakesRow(p,all,{...free,blockKind:'modernLanguage'}),false);
+  assert.equal(valplanTakesRow(p,all,{...free,classIds:[cC,cB]}),false);
 });
 
 test('row links: block rows only, one valplan per row, stale version and class overlap are visible',()=>{

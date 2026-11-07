@@ -11,13 +11,13 @@ Timplanen anger skolans undervisningstid. Programplanens gymnasiepoäng är unde
 
 Rektor och skoladministratör kan välja **Skapa ny timplan** inom sitt aktuella skoluppdrag. Huvudmannen kan läsa skolans underlag och timplaner. Programramen måste vara kopplad till ett versionsbundet underlag, ha komplett poängfördelning på terminer och sakna strukturfel. Om något saknas visas orsaken och **Öppna programplan** leder tillbaka. Övergången stöder högskoleförberedande Gy25-program och de tolv nationella Gy25-yrkesprogrammen med känd poängram.
 
-Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. För berörda yrkeskullar följer även programplanens sparade kontroll av yrkesprov eller gymnasiearbete med. Valbara block i timplanen är ramar. Konkreta alternativ, språk, elevval och grupper förbereds i en [valplan](./valplaner.md), och bemanningen görs i tjänstefördelningen. Alternativa ämnen och block räknas en gång.
+Ett programutkast får användas för att förbereda undervisningstiden. Det ändrar inte programplanens beslutsstatus. Timplansutkastet sparar en fryst kopia av exakt programplansversion och revision, fasta nivåer, alternativa ämnen, block och sex poängterminer. För berörda yrkeskullar följer även programplanens sparade kontroll av yrkesprov eller gymnasiearbete med. Valbara block i timplanen är ramar. Konkreta alternativ, språk, elevval och grupper förbereds i ett [valbart block](./valbara-block.md), och bemanningen görs i tjänstefördelningen. Alternativa ämnen och block räknas en gång.
 
 Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timplanen bygger på. **Fler alternativ** samlar namnbyte, ny version, uppdatering och **Visa planens underlag**, utifrån vad ditt uppdrag och planens status tillåter. Beslut och **Klasser och läsår** finns efter tabellen.
 
-### Valbara rader och valplaner
+### Valbara block
 
-En valbar rad i en godkänd gymnasietimplan kan fyllas av en [valplan](./valplaner.md). Raden visas hopfällbar med poängen och en länk till valplanen. Fäll ut den för att se kurserna. Valplanen äger kursernas tid; timplanens radtid är en kontrollsiffra och skrivs inte om.
+Valbara rader står som **Valbart block** i tabellen. Rektor och skoladministratör ser radens läge och nästa steg, till exempel **Skapa valbart block**. Se [Valbara block](./valbara-block.md). Blocket äger kursernas tid; timplanens radtid är en kontrollsiffra och skrivs inte om.
 
 ### Flera timplaner för samma programplan
 

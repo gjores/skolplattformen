@@ -20,7 +20,7 @@ export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Pr
   useEffect(() => {
     const controller = new AbortController();
     api.post(`${BASE}/lasa`, scope(), controller.signal).then(raw => { const next = parseValplanSelfRead(raw, epoch); setData(next); onCount(next.offers.length); })
-      .catch(caught => { if (controller.signal.aborted) return; if (caught instanceof ApiError && [401, 403].includes(caught.status)) onLost(); else setError('Valplanerna kunde inte hämtas. Försök igen.'); });
+      .catch(caught => { if (controller.signal.aborted) return; if (caught instanceof ApiError && [401, 403].includes(caught.status)) onLost(); else setError('Valen kunde inte hämtas. Försök igen.'); });
     return () => controller.abort();
   }, [scope, epoch, onCount, onLost]);
   /** A lost answer is retried with the same command id, so the school gets one choice. */
@@ -40,7 +40,7 @@ export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Pr
   }
   if (!data && !error) return null;
   return <>
-    {error && <div className="elective-error" role="alert">{error}{pending ? <Button disabled={busy} onClick={() => void run(pending)}>Kontrollera sparstatus</Button> : <Button variant="ghost" disabled={busy} onClick={() => void load().catch(() => setError('Valplanerna kunde inte hämtas. Försök igen.'))}>Hämta aktuellt läge</Button>}</div>}
+    {error && <div className="elective-error" role="alert">{error}{pending ? <Button disabled={busy} onClick={() => void run(pending)}>Kontrollera sparstatus</Button> : <Button variant="ghost" disabled={busy} onClick={() => void load().catch(() => setError('Valen kunde inte hämtas. Försök igen.'))}>Hämta aktuellt läge</Button>}</div>}
     {feedback && <output className="elective-feedback">{feedback}</output>}
     {data?.offers.map(offer => <Offer key={`${offer.round.id}-${offer.choice?.revision ?? 0}`} offer={offer} person={person} disabled={busy || pending !== null} onSend={send}/>)}
   </>;

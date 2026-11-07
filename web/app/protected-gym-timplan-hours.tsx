@@ -197,7 +197,7 @@ function LegacyGymTimplanHours({ choiceRows = null, timeJournalScope, aplInclusi
           const own = drafts.get(row.key), invalid = !!own && !hours(own.values), missing = row.pointTerms.filter((p, i) => p > 0 && displayHours[row.key][i] === null).length;
           const choice = row.rowKind === 'block' ? choiceRows?.rows.get(row.key) : undefined, detailId = `gt-choice-${row.key.replace(':', '-')}`;
           return <Fragment key={row.key}><tr data-row-key={row.key} className={own ? 'gt-row-dirty' : undefined} onBlur={event => { if (!event.currentTarget.contains(event.relatedTarget as Node | null)) commit(row.key); }}>
-            <th scope="row"><strong>{row.name}</strong><span>{row.levelName}</span>{choice && <ChoiceRowSummary info={choice} expanded={expandedChoices.has(row.key)} controls={detailId} onToggle={() => toggleChoice(row.key)}/>}{own?.error && <div className="gt-row-error" role="alert"><p>{own.error}</p>
+            <th scope="row"><strong>{row.name}</strong><span>{row.levelName}</span>{row.rowKind === 'block' && choiceRows && <ChoiceRowSummary choices={choiceRows} rowKey={row.key} expanded={expandedChoices.has(row.key)} controls={detailId} onToggle={() => toggleChoice(row.key)}/>}{own?.error && <div className="gt-row-error" role="alert"><p>{own.error}</p>
               {own.mfa ? <MfaStepUpNotice message={own.error}/> : <>
                 {own.mode === 'compare' && <p>Sparat nu: {PROGRAMPLAN_TERMS.filter((_, i) => row.pointTerms[i] > 0).map(term => { const i = PROGRAMPLAN_TERMS.indexOf(term); return `${term}: ${plan.hours[row.key][i] ?? 'ofördelat'}`; }).join(' · ')}</p>}
                 <div className="gt-row-actions"><Button size="sm" variant="outline" disabled={!!savingKey || own.mode === 'unread'} onClick={() => { if (running.current || latest.current.get(row.key)?.mode === 'unread') return; queue.current.delete(row.key); replace(row.key, null); }}>Använd sparade värden</Button>
@@ -210,7 +210,7 @@ function LegacyGymTimplanHours({ choiceRows = null, timeJournalScope, aplInclusi
                 disabled={own?.mode === 'unread' || own?.mfa} onChange={event => setCell(row, i, event.target.value)} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}/>
                 : <span className={plan.hours[row.key][i] === null ? 'gt-unallocated' : ''}>{plan.hours[row.key][i] ?? 'Ofördelat'}</span>}
               <small>{row.pointTerms[i]} p</small></>}</td>)}<td className="gt-row-state">{savingKey === row.key ? 'Sparar…' : own ? invalid ? 'Kontrollera' : 'Osparat' : missing ? `${missing} kvar` : 'Klar'}</td>
-          </tr>{choice && expandedChoices.has(row.key) && <ChoiceRowDetail info={choice} id={detailId} colSpan={columns.length + 3} onOpen={choiceRows!.open}/>}</Fragment>;
+          </tr>{choice?.valplan && expandedChoices.has(row.key) && <ChoiceRowDetail info={choice} id={detailId} colSpan={columns.length + 3}/>}</Fragment>;
         })}</tbody>
         <tfoot><tr><th scope="row">Summa per termin</th><td>{plan.rows.reduce((sum, row) => sum + row.points, 0)}</td>{columns.map(({ i }) => <td key={i}>{totals.terms[i]}</td>)}<td>{totals.total}</td></tr></tfoot>
       </table>{!rows.length && <p className="gt-empty">Alla rader har angiven tid i de aktiva terminerna.</p>}

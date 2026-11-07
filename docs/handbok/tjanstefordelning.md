@@ -4,7 +4,7 @@ title: Fördela tjänster på skolan
 
 I **Tjänstefördelning** fördelar rektor skolans undervisning och specialuppdrag på lärare för ett läsår. Behovet kommer från klassernas timplaner och skolans undervisningsgrupper. Lärartiden är ett eget värde som du anger. Lärarna ser fördelningen först när rektor har fastställt och publicerat den.
 
-Lägg skolans valbara utbud i en [valplan](./valplaner.md) och skapa grupper före bemanningen. En valrad som ännu saknar grupper har knappen **Öppna Valplaner**. Bemanna sedan gruppraderna.
+Lägg skolans valbara utbud i ett [valbart block](./valbara-block.md) och skapa grupper före bemanningen. En valrad som ännu saknar grupper har knappen **Öppna Valbara block**. Bemanna sedan gruppraderna.
 
 ## Vem gör vad?
 
@@ -111,9 +111,9 @@ På telefon visar Fördela en lista över ofördelade behov, utan val.
 
 ## Undervisningsgrupper
 
-Grupper skapas från elevvalet i en [valplan](./valplaner.md) eller under [Undervisningsgrupper](./undervisningsgrupper.md). De syns här utan något extra steg.
+Grupper skapas från elevvalet i ett [valbart block](./valbara-block.md) eller under [Undervisningsgrupper](./undervisningsgrupper.md). De syns här utan något extra steg.
 
-Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. En timplansrad som fylls av en valplan är inget klassbehov när valplanen har en aktiv grupp. Utan grupper väntar raden på organisation, får ingen tilldelning och stoppar publicering. Gruppens undervisningsbehov är gruppens tid, medan sparad lärartid fortfarande är ett eget värde. Gamla blockgrupper visas fortsatt med sin tid från timplanen, tills blocket avvecklas under [Undervisningsgrupper](./undervisningsgrupper.md).
+Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gång även när den omfattar flera klasser. En timplansrad som fylls av ett valbart block är inget klassbehov när blocket har en aktiv grupp. Utan grupper väntar raden på organisation, får ingen tilldelning och stoppar publicering. Gruppens undervisningsbehov är gruppens tid, medan sparad lärartid fortfarande är ett eget värde. Gamla blockgrupper visas fortsatt med sin tid från timplanen, tills blocket avvecklas under [Undervisningsgrupper](./undervisningsgrupper.md).
 
 Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Nya eller ändrade grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassrad ersätts av grupper finns den gamla tilldelningen kvar som inaktuell för uttrycklig granskning och borttagning. En ändrad grupp gör sin rad inaktuell tills den sparats på nytt.
 
@@ -248,7 +248,7 @@ Begränsningar:
 
 Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
 
-För valrader kan du behöva skapa grupper från **Valplaner** eller spara grupper på nytt under **Undervisningsgrupper**. En gammal tilldelning på en ersatt klassrad behöver också stämmas av.
+För valrader kan du behöva skapa grupper från **Valbara block** eller spara grupper på nytt under **Undervisningsgrupper**. En gammal tilldelning på en ersatt klassrad behöver också stämmas av.
 
 Antalet gäller **olika typer av publiceringshinder**, inte antalet felande rader. En punkt kan beröra flera tilldelningar eller samläsningar. Vanliga planeringsavvikelser, till exempel skillnad mellan behov och fördelad tid, visas i fördelningen och är inte i sig samma sak som ett publiceringshinder.
 
