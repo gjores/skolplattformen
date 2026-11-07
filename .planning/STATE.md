@@ -25,6 +25,8 @@ user_trial_status: pending_valplan_uat_u1_u9
 milestone_name: milestone
 ---
 
+**VP-13 klart 2026-11-07:** [Klasser syns per kurs och blocket öppnas inte med fel kvar](phases/05.2-schemamodul/05.2-VP-13-SUMMARY.md). Syntetiskt provat, inte installerat på 3012. Nästa steg: VP-14.
+
 **VP-12 klart 2026-11-07:** [Klasser väljs i blocket](phases/05.2-schemamodul/05.2-VP-12-SUMMARY.md), och varje klass på raden hamnar i ett block. Syntetiskt provat, inte installerat på 3012. Nästa steg: VP-13.
 
 **VP-11 klart 2026-11-07:** [Block skapas från timplanens rad](phases/05.2-schemamodul/05.2-VP-11-SUMMARY.md) och appen säger Valbart block. Syntetiskt provat, inte installerat på 3012. Nästa steg: VP-12.
