@@ -15,7 +15,9 @@ Alla som ser en timplan ser vilka rader som är valbara block. Rektor och skolad
 | **Kopplas när timplanen är fastställd.** | Fastställ timplanen först. |
 | **Koppla klasser först.** | Välj **Till Klasser och läsår**. |
 | **Saknar block 2027/28** | Välj **Skapa valbart block**. |
-| **Enligt Individuellt val 2027/28** | Välj **Öppna blocket**, eller **Visa kurser** för att se kurserna. |
+| **2 av 3 klasser har block** | Välj **Välj block för SA27B**. Klassen läggs i ett block av samma typ eller i ett nytt. |
+| **SA27C finns i två block** | Välj **Välj block för SA27C** och kryssa ur klassen i ett av blocken. |
+| **Enligt Individuellt val 2027/28** | Välj **Öppna blocket**, eller **Visa kurser** för att se kurserna. Fyller flera block raden visas alla, med en knapp för varje block. |
 
 ## Skapa ett valbart block
 
@@ -23,12 +25,24 @@ Blocket skapas alltid från en rad, så typ och rad behöver du inte leta fram.
 
 1. Välj **Skapa valbart block** på raden i timplanen, eller under **Rader som saknar block** på sidan **Valbara block**.
 2. Finns redan ett block av samma typ får du välja mellan att lägga till raden i det eller skapa ett nytt. Lägg till raden om klasserna ska välja bland samma kurser.
-3. Namn, typ, rad och klasser är ifyllda. Under **Timplaner och klasser** kan du lägga till fler rader. Eleverna i radernas klasser får välja.
+3. Namn, typ, rad och klasser är ifyllda. Under **Timplaner och klasser** kan du lägga till fler rader och kryssa ur klasser som inte ska ingå. Eleverna i de ikryssade klasserna får välja.
 4. Sök under **Kurser** i Skolverkets katalog. Varje kurs har poäng och egen undervisningstid för HT och VT. Tiden föreslås från raden och kan justeras. **Språkämne** visar bara moderna språk, engelska, klassisk grekiska och latin. **Naturvetenskapligt ämne** visar bara biologi, bioteknik, fysik, fysik fördjupning och kemi. Modersmål, svenskt teckenspråk och nationella minoritetsspråk går inte att lägga till i ett block ännu.
 5. Under **Får läsas av** kan du begränsa en kurs till vissa av klasserna.
 6. Välj **Spara valbart block**.
 
 Blocket äger kursernas tid. Timplanens radtid är en kontrollsiffra, och inget skrivs om i timplanen.
+
+## Välj klasserna i blocket
+
+Alla klasser på raden är ikryssade från början. Kryssa ur en klass under **Timplaner och klasser** om den ska välja bland andra kurser.
+
+- **Varje klass på raden ska tillhöra ett block.** Timplanen ger klassen poängen. En urkryssad klass står som **Saknar block** i blocket, under **Rader som saknar block** och på raden i timplanen tills den har fått ett block.
+- **En rad kan delas av flera block, men en klass på raden finns i högst ett.** Ett block går inte att spara med en klass som redan finns i ett annat block. En klass som hör till ett annat block visas som **Ingår i** blockets namn och går inte att kryssa i. Kryssa först ur den i det andra blocket.
+- **Minst en klass på raden ska vara ikryssad.** Ska ingen klass ingå tar du bort raden från blocket.
+- **En klass som kopplas senare ingår direkt.** Har raden ett block ingår klassen där tills någon kryssar ur den. Delas raden av flera block hamnar klassen i alla, och raden visar att den finns i två block. Blocken går inte att spara förrän klassen är urkryssad i alla block utom ett.
+- **Kurser följer klasserna.** En kurs som bara får läsas av vissa klasser kan bara ange klasser som ingår i blocket. Är en urkryssad klass den enda klassen på kursen visas ett fel vid kursen. Välj då en annan klass eller ta bort kursen.
+
+Har elever i klassen lämnat val frågar appen först och säger hur många elever det gäller. Samma fråga kommer när du tar bort en rad från blocket. Valen raderas inte. De finns kvar under **Elevval**, där eleverna visas som **Utanför blockets klasser**, och eleverna kan inte längre välja i blocket. Är ett sådant val bekräftat kommer eleven med när du skapar grupper. Registrera vid behov ett nytt val i det block där klassen ingår.
 
 ## Öppna elevvalet
 
@@ -58,10 +72,13 @@ Välj **Skapa grupper från valet**. Bekräftade elever läggs i en grupp per ku
 
 ## Från valbart block till tjänstefördelning
 
-När ett block fyller en timplansrad räknas raden inte som klassbehov. Blockets grupper bär behovet, en gång per grupp. Se [Tjänstefördelning](./tjanstefordelning.md).
+När ett block fyller en timplansrad räknas raden per klass. För klasser i ett block med grupper är raden inget klassbehov. Blockets grupper bär behovet, en gång per grupp. Se [Tjänstefördelning](./tjanstefordelning.md).
 
-- Utan grupper väntar raden på organisation och stoppar publicering av tjänstefördelningen.
-- Så snart blocket har en aktiv grupp räknas raden som organiserad. En kurs utan grupp ger inget behov och ingen varning, så kontrollera att alla kurser som ska ges har en grupp.
+- En klass i ett block utan grupper väntar på organisation och stoppar publicering av tjänstefördelningen.
+- En klass utan block på en rad som har ett block väntar på samma sätt, också när ett annat block på raden har grupper.
+- En klass som finns i två block väntar tills båda blocken har grupper.
+- Så snart klassens block har en aktiv grupp räknas klassen som organiserad. En kurs utan grupp ger inget behov och ingen varning, så kontrollera att alla kurser som ska ges har en grupp.
+- En rad utan något block är fortfarande ett vanligt klassbehov.
 - Ändras en kurs tid i blocket blir kursens grupper inaktuella. Spara grupperna på nytt under Undervisningsgrupper.
 
 ## Sparning och avgränsningar

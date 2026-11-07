@@ -5,7 +5,9 @@ import { VALPLAN_KINDS, parseValplan, type Valplan, type ValplanKind, type Valpl
 export const VALPLAN_CONTRACT_VERSION = 'valplan_v1' as const;
 export type ValplanScope = { unitId: string; schoolYear: number };
 export type ValplanRowOption = ValplanRowContext & { blockKind: ValplanKind; planName: string; rowLabel: string; classes: { id: string; name: string }[] };
-export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan }[]; rows: ValplanRowOption[] };
+/** Pupils with a choice in the block per class, so the view can ask before a class is unticked. */
+export type ValplanClassChoices = { classId: string; pupils: number };
+export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan; choiceCounts: ValplanClassChoices[] }[]; rows: ValplanRowOption[] };
 export type ValplanCommand = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; commandId: string; action: 'save'; expectedRevision: number; catalogId: string; valplan: Valplan };
 export type ValplanReceipt = { commandId: string; valplanId: string; revision: number; replayed: boolean };
 export type ValplanReply = { receipt: ValplanReceipt; read: ValplanRead };
@@ -41,21 +43,24 @@ export function parseValplanScope(value: unknown): ValplanScope {
   return { unitId: uuid(r.unitId), schoolYear: integer(r.schoolYear, 2000, 2100) };
 }
 function parseRow(value: unknown): ValplanRowOption {
-  const r = shape(value, ['timplanId', 'timplanVersion', 'rowKey', 'year', 'rowKind', 'blockKind', 'points', 'minutesHt', 'minutesVt', 'classIds', 'allowedLevelKeys', 'linkedValplanId', 'planName', 'rowLabel', 'classes']);
+  const r = shape(value, ['timplanId', 'timplanVersion', 'rowKey', 'year', 'rowKind', 'blockKind', 'points', 'minutesHt', 'minutesVt', 'classIds', 'allowedLevelKeys', 'blocks', 'planName', 'rowLabel', 'classes']);
   if (r.rowKind !== 'block' || typeof r.blockKind !== 'string' || !(VALPLAN_KINDS as readonly string[]).includes(r.blockKind)
     || typeof r.rowKey !== 'string' || !/^block:[a-z][a-z0-9]{0,15}$/u.test(r.rowKey) || r.allowedLevelKeys !== null) bad();
   const classes = list(r.classes, 500).map(c => { const x = shape(c, ['id', 'name']); return { id: uuid(x.id), name: text(x.name, 60) }; });
   const classIds = list(r.classIds, 500).map(uuid);
   if (classIds.length !== classes.length || classIds.some((id, i) => id !== classes[i].id)) bad();
+  const blocks = list(r.blocks, 500).map(b => { const x = shape(b, ['valplanId', 'classIds']); return { valplanId: uuid(x.valplanId), classIds: list(x.classIds, 500).map(uuid) }; });
+  if (new Set(blocks.map(b => b.valplanId)).size !== blocks.length || blocks.some(b => b.classIds.some(id => !classIds.includes(id)))) bad();
   return { timplanId: uuid(r.timplanId), timplanVersion: integer(r.timplanVersion, 1, 100000), rowKey: r.rowKey, year: integer(r.year, 1, 3) as 1 | 2 | 3,
     rowKind: 'block', blockKind: r.blockKind as ValplanKind, points: integer(r.points, 1, 10000), minutesHt: minutes(r.minutesHt), minutesVt: minutes(r.minutesVt),
-    classIds, allowedLevelKeys: null, linkedValplanId: r.linkedValplanId === null ? null : uuid(r.linkedValplanId),
+    classIds, allowedLevelKeys: null, blocks,
     planName: text(r.planName, 200), rowLabel: text(r.rowLabel, 1000), classes };
 }
 export function parseValplanRead(value: unknown, scope: ValplanScope): ValplanRead {
   const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'valplans', 'rows']);
   if (r.contractVersion !== VALPLAN_CONTRACT_VERSION || uuid(r.unitId) !== scope.unitId || r.schoolYear !== scope.schoolYear) bad();
-  const valplans = list(r.valplans, 500).map(v => { const x = shape(v, ['catalogId', 'valplan']); return { catalogId: catalogId(x.catalogId), valplan: parseValplan(x.valplan) }; });
+  const valplans = list(r.valplans, 500).map(v => { const x = shape(v, ['catalogId', 'valplan', 'choiceCounts']); return { catalogId: catalogId(x.catalogId), valplan: parseValplan(x.valplan),
+    choiceCounts: list(x.choiceCounts, 2000).map(c => { const y = shape(c, ['classId', 'pupils']); return { classId: uuid(y.classId), pupils: integer(y.pupils, 1, 1000000) }; }) }; });
   if (valplans.some(v => v.valplan.unitId !== scope.unitId || v.valplan.schoolYear !== scope.schoolYear) || new Set(valplans.map(v => v.valplan.id)).size !== valplans.length) bad();
   return { contractVersion: VALPLAN_CONTRACT_VERSION, ...scope, valplans, rows: list(r.rows, 2000).map(parseRow) };
 }

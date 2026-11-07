@@ -3,13 +3,13 @@
 import { useEffect, useEffectEvent, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import { useUnsavedChanges, useRequestDiscard } from '@/lib/unsaved-changes.tsx';
+import { useUnsavedChanges, useRequestConfirm, useRequestDiscard } from '@/lib/unsaved-changes.tsx';
 import artifact from '@/lib/programplan-catalog.generated.json';
 import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanDiagnostics, valplanRowKey, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
+import { valplanClassLabel, valplanDiagnostics, valplanLinkClasses, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -33,14 +33,16 @@ const DIAGNOSTIC: Record<string, string> = {
   language_not_applicable: 'Språk anges bara för moderna språk.',
   course_kind_mismatch: 'Ämnet är inte tillåtet i den här typen av block.',
   course_time_missing: 'Ange undervisningstid för HT eller VT.',
-  course_class_not_linked: 'En vald klass läser inte längre någon av de kopplade timplanerna.',
+  course_class_not_linked: 'En vald klass ingår inte längre i blocket. Välj andra klasser eller ta bort kursen.',
   course_fits_no_row: 'Kursen ryms inte i någon kopplad rad. Kontrollera poängen och klasserna.',
   course_not_allowed_in_row: 'Kursen är inte tillåten i en av de kopplade raderna.',
   row_missing: 'En kopplad timplansrad finns inte längre för läsåret.',
   row_version_changed: 'Timplanen har en ny version. Koppla raden på nytt.',
   row_not_choice_block: 'Raden är inte en valbar rad.',
   row_kind_mismatch: 'Raden gäller en annan typ av val.',
-  row_linked_elsewhere: 'Raden fylls redan av ett annat block.',
+  class_in_other_block: 'En klass finns redan i ett annat block. Kryssa ur klassen här eller i det andra blocket.',
+  row_without_classes: 'Kryssa i minst en klass, eller ta bort raden från blocket.',
+  row_class: 'En klass finns inte på skolan längre. Hämta aktuellt läge.',
   row_without_points: 'Raden har inga poäng läsåret.',
   class_in_several_rows: 'En klass finns i två kopplade rader. Koppla bara en rad per klass.',
 };
@@ -70,7 +72,7 @@ export default function ProtectedValplaner(props: Props) {
 }
 
 function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, initialRow = null, onInitialUsed, onOpenGroups, onSessionLost }: Props & { unitId: string }) {
-  const requestDiscard = useRequestDiscard();
+  const requestDiscard = useRequestDiscard(), requestConfirm = useRequestConfirm();
   const heading = useId(), work = useRef<HTMLDivElement>(null);
   const [data, setData] = useState<ValplanRead | null>(null), [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<string | null>(initialValplanId), [draft, setDraft] = useState<Valplan | null>(null), [time, setTime] = useState<TimeText>({});
@@ -95,14 +97,16 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   async function choose(plan: Valplan) { if (dirty && !(await requestDiscard())) return; open(plan); }
   // On a phone the work area lies below the list, so the next step has to come into view.
   const showWork = () => requestAnimationFrame(() => work.current?.focus());
-  const rowLink = (row: ValplanRowOption) => ({ timplanId: row.timplanId, timplanVersion: row.timplanVersion, rowKey: row.rowKey, year: row.year });
   function draftFrom(row: ValplanRowOption) {
-    const plan: Valplan = { id: newId(), unitId, schoolYear, kind: row.blockKind, name: `${row.rowLabel} ${planningYearLabel(schoolYear)}`, revision: 1, courses: [], rows: [rowLink(row)] };
+    const id = newId(), free = row.blocks.length ? `${classNames(row, valplanRowMissing(row)).join(', ')} ` : '';
+    const plan: Valplan = { id, unitId, schoolYear, kind: row.blockKind, name: `${row.rowLabel} ${free}${planningYearLabel(schoolYear)}`, revision: 1, courses: [], rows: [valplanRowLink(row, id)] };
     setPick(null); setChoices(false); setStart(plan); setSelected(plan.id); setDraft(structuredClone(plan)); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true); setUncertain(false); setPending(null); showWork();
   }
-  function joinBlock(plan: Valplan, row: ValplanRowOption) { open(plan); setDraft(value => value && { ...value, rows: [...value.rows, rowLink(row)] }); showWork(); }
+  function joinBlock(plan: Valplan, row: ValplanRowOption) { open(plan); setDraft(value => value && valplanWithRow(value, row)); showWork(); }
   function fromRow(row: ValplanRowOption, read: ValplanRead) {
-    const linked = read.valplans.find(v => v.valplan.id === row.linkedValplanId)?.valplan;
+    // A class in two blocks is resolved in one of them; a row with every class placed simply opens its block.
+    const doubled = valplanRowDoubled(row), holder = doubled.length ? row.blocks.find(b => b.classIds.includes(doubled[0])) : valplanRowMissing(row).length ? undefined : row.blocks[0];
+    const linked = read.valplans.find(v => v.valplan.id === holder?.valplanId)?.valplan;
     if (linked) { open(linked); showWork(); return; }
     if (!read.valplans.some(v => valplanTakesRow(v.valplan, read.rows, row))) { draftFrom(row); return; }
     setStart(null); setSelected(null); setDraft(null); setTime({}); setError(null); setNotice(null); setPick(row); showWork();
@@ -111,7 +115,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const acceptInitial = useEffectEvent((value: ValplanRead) => {
     setData(value);
     const row = initialRow && value.rows.find(r => r.timplanId === initialRow.timplanId && r.rowKey === initialRow.rowKey && r.year === initialRow.year), first = value.valplans.find(v => v.valplan.id === initialValplanId);
-    if (row) fromRow(row, value); else if (first) open(first.valplan);
+    if (first) open(first.valplan); else if (row) fromRow(row, value);
     onInitialUsed?.();
   });
   const initialFailure = useEffectEvent((caught: unknown) => { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); });
@@ -125,7 +129,10 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
 
   const rows = useMemo(() => data?.rows.filter(r => r.blockKind === draft?.kind) ?? [], [data, draft?.kind]);
   const linkedRows = useMemo(() => rows.filter(r => draft?.rows.some(l => valplanRowKey(l) === valplanRowKey(r))), [rows, draft?.rows]);
-  const linkedClasses = useMemo(() => linkedRows.flatMap(r => r.classes).filter((c, i, all) => all.findIndex(x => x.id === c.id) === i), [linkedRows]);
+  const linkedClasses = useMemo(() => linkedRows.flatMap(r => {
+    const link = draft?.rows.find(l => valplanRowKey(l) === valplanRowKey(r)), ids = link ? valplanLinkClasses(link, r) : [];
+    return r.classes.filter(c => ids.includes(c.id));
+  }).filter((c, i, all) => all.findIndex(x => x.id === c.id) === i), [linkedRows, draft?.rows]);
   const timeErrors = draft ? draft.courses.filter(c => parseTimplanMinuteInput(time[c.id]?.ht ?? '') === undefined || parseTimplanMinuteInput(time[c.id]?.vt ?? '') === undefined).map(c => c.id) : [];
   const diagnostics: ValplanDiagnostic[] = draft && data ? valplanDiagnostics(withTime(draft, time), data.rows, catalog) : [];
   const errors = diagnostics.filter(d => d.severity === 'error');
@@ -142,10 +149,29 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     update(p => ({ ...p, courses: [...p.courses, course] }));
     setTime(t => ({ ...t, [course.id]: { ht: formatTimplanMinutes(course.minutesHt), vt: formatTimplanMinutes(course.minutesVt) } })); setError(null);
   }
-  function toggleRow(row: ValplanRowOption, on: boolean) {
-    update(p => ({ ...p, rows: on ? [...p.rows, { timplanId: row.timplanId, timplanVersion: row.timplanVersion, rowKey: row.rowKey, year: row.year }] : p.rows.filter(l => valplanRowKey(l) !== valplanRowKey(row)) }));
+  /** G8: pupils in the classes who have made a choice in the saved block. */
+  function askAboutChoices(ids: readonly string[], row: ValplanRowOption, confirmLabel: string, cancelLabel: string): Promise<boolean> {
+    const counts = data?.valplans.find(v => v.valplan.id === draft?.id)?.choiceCounts.filter(c => ids.includes(c.classId)) ?? [];
+    const pupils = counts.reduce((n, c) => n + c.pupils, 0);
+    if (!pupils) return Promise.resolve(true);
+    const who = classNames(row, counts.map(c => c.classId)).join(', ');
+    return requestConfirm({ title: 'Elever har lämnat val', confirmLabel, cancelLabel,
+      description: `${pupils === 1 ? '1 elev' : `${pupils} elever`} i ${who} har lämnat val i blocket. Valen finns kvar under Elevval, men klassen ingår inte längre och eleverna kan inte välja i blocket.` });
+  }
+  async function toggleRow(row: ValplanRowOption, on: boolean) {
+    const link = draft?.rows.find(l => valplanRowKey(l) === valplanRowKey(row));
+    if (!on && link && !(await askAboutChoices(valplanLinkClasses(link, row), row, 'Ta bort raden', 'Behåll raden'))) return;
+    update(p => ({ ...p, rows: on ? [...p.rows, valplanRowLink(row, p.id)] : p.rows.filter(l => valplanRowKey(l) !== valplanRowKey(row)) }));
     // Courses added before the row get its time now; entered time is never replaced.
     if (on) setTime(t => { const next = { ...t }; for (const c of draft?.courses ?? []) { const { minutesHt, minutesVt } = valplanTimeShare(c.points, row); if (minutesHt + minutesVt > 0 && noTime(t[c.id]?.ht) && noTime(t[c.id]?.vt)) next[c.id] = { ht: formatTimplanMinutes(minutesHt), vt: formatTimplanMinutes(minutesVt) }; } return next; });
+  }
+  async function toggleRowClass(row: ValplanRowOption, classId: string, on: boolean) {
+    if (!on && !(await askAboutChoices([classId], row, 'Kryssa ur klassen', 'Behåll klassen'))) return;
+    const key = valplanRowKey(row);
+    update(p => ({ ...p,
+      rows: p.rows.map(l => valplanRowKey(l) !== key ? l : { ...l, excludedClassIds: on ? l.excludedClassIds.filter(id => id !== classId) : [...l.excludedClassIds, classId].sort() }),
+      // A course limited to this class alone keeps it, so the course shows the error instead of opening to every class.
+      courses: on ? p.courses : p.courses.map(c => c.classIds?.includes(classId) && c.classIds.length > 1 ? { ...c, classIds: c.classIds.filter(id => id !== classId) } : c) }));
   }
   function toggleClass(course: ValplanCourse, classId: string, on: boolean) {
     const all = linkedClasses.map(c => c.id), current = course.classIds ?? all, next = on ? [...current, classId] : current.filter(id => id !== classId);
@@ -179,8 +205,12 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
 
   const courseErrors = (id: string) => diagnostics.filter(d => d.courseId === id);
   const rowLabel = (r: ValplanRowOption) => `${r.planName} · ${r.rowLabel} · åk ${r.year}`;
-  const otherName = (id: string | null) => data?.valplans.find(v => v.valplan.id === id)?.valplan.name ?? 'ett annat block';
-  const missing = data?.rows.filter(r => r.linkedValplanId === null) ?? [];
+  const otherName = (id: string) => data?.valplans.find(v => v.valplan.id === id)?.valplan.name ?? 'ett annat block';
+  const otherBlocks = (r: ValplanRowOption) => r.blocks.filter(b => b.valplanId !== draft?.id);
+  const missing = data?.rows.filter(r => !r.blocks.length || valplanRowMissing(r).length > 0 || valplanRowDoubled(r).length > 0) ?? [];
+  const stageOf = (r: ValplanRowOption) => valplanRowStage({ approved: true, classCount: r.classes.length, blockCount: r.blocks.length, missingCount: valplanRowMissing(r).length, doubledCount: valplanRowDoubled(r).length });
+  const openClasses = (r: ValplanRowOption) => classNames(r, stageOf(r) === 'doubled' ? valplanRowDoubled(r) : valplanRowMissing(r));
+  const blockMissing = (plan: Valplan) => (data?.rows ?? []).filter(r => plan.rows.some(l => valplanRowKey(l) === valplanRowKey(r))).flatMap(r => classNames(r, valplanRowMissing(r)));
   const inBlock = (l: CatalogLevel) => !MODERN.has(l.subjectCode) && !!draft?.courses.some(c => c.subjectCode === l.subjectCode && c.subjectVersion === l.subjectVersion && c.itemCode === l.itemCode);
 
   return <section className="valplan-workspace" aria-labelledby={heading}>
@@ -193,18 +223,20 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
         {missing.length > 0 && <section className="valplan-missing" aria-labelledby={`${heading}-missing`}>
           <div className="section-heading"><h2 id={`${heading}-missing`}>Rader som saknar block</h2></div>
           <ul className="valplan-rows">{missing.map(r => <li key={valplanRowKey(r)}><strong>{rowLabel(r)}</strong>
-            <small>{r.points} p · {r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : 'Koppla klasser under Klasser och läsår i timplanen först.'}</small>
-            {valplanRowStage({ approved: true, classCount: r.classes.length, linked: false }) === 'missing' && <Button variant="outline" disabled={busy} aria-label={`Skapa valbart block för ${rowLabel(r)}`} onClick={() => void createFrom(r)}>Skapa valbart block</Button>}</li>)}</ul>
+            <small>{r.points} p · {stageOf(r) === 'doubled' ? `Finns i två block: ${openClasses(r).join(', ')}` : stageOf(r) === 'partial' ? `Klasser utan block: ${openClasses(r).join(', ')}` : r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : 'Koppla klasser under Klasser och läsår i timplanen först.'}</small>
+            {stageOf(r) === 'missing' && <Button variant="outline" disabled={busy} aria-label={`Skapa valbart block för ${rowLabel(r)}`} onClick={() => void createFrom(r)}>Skapa valbart block</Button>}
+            {['partial', 'doubled'].includes(stageOf(r)) && <Button variant="outline" disabled={busy} aria-label={`Välj block för ${valplanClassLabel(openClasses(r))}, ${rowLabel(r)}`} onClick={() => void createFrom(r)}>Välj block för {valplanClassLabel(openClasses(r))}</Button>}</li>)}</ul>
         </section>}
         <div className="section-heading"><h2>Läsårets block</h2></div>
         {data.valplans.length ? <ul className="valplan-list">{data.valplans.map(({ valplan }) => <li key={valplan.id}>
           <button type="button" aria-pressed={selected === valplan.id} onClick={() => choose(valplan)}><strong>{valplan.name}</strong>
-            <small>{VALPLAN_KIND_LABEL[valplan.kind]} · {valplan.courses.length} kurser · {valplan.rows.length} timplansrader</small></button></li>)}</ul>
+            <small>{VALPLAN_KIND_LABEL[valplan.kind]} · {valplan.courses.length} kurser · {valplan.rows.length} timplansrader</small>
+            {blockMissing(valplan).length > 0 && <small>Utan block: {blockMissing(valplan).join(', ')}</small>}</button></li>)}</ul>
           : <p className="empty-state">{data.rows.length ? 'Inga block ännu. Skapa ett från en rad ovan.' : `Inga valbara rader ${planningYearLabel(schoolYear)}. Raderna visas här när en timplan med valbara block är fastställd och gäller läsåret.`}</p>}
       </aside>
       {pick ? <div className="valplan-card" ref={work} tabIndex={-1}>
         <div className="section-heading"><h2>{rowLabel(pick)}</h2></div>
-        <p>Det finns redan ett block av samma typ {planningYearLabel(schoolYear)}. Lägg till raden i blocket om klasserna ska välja bland samma kurser.</p>
+        <p>{pick.blocks.length ? `${classNames(pick, valplanRowMissing(pick)).join(', ')} saknar block. Välj ett block om eleverna ska läsa bland samma kurser, annars skapar du ett nytt.` : `Det finns redan ett block av samma typ ${planningYearLabel(schoolYear)}. Lägg till raden i blocket om klasserna ska välja bland samma kurser.`}</p>
         <div className="valplan-actions">
           {data.valplans.filter(v => valplanTakesRow(v.valplan, data.rows, pick)).map(({ valplan }, i) => <Button key={valplan.id} variant={i ? 'outline' : 'default'} onClick={() => joinBlock(valplan, pick)}>Lägg till i {valplan.name}</Button>)}
           <Button variant="outline" onClick={() => draftFrom(pick)}>Skapa nytt block</Button>
@@ -222,14 +254,20 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
 
         <section aria-labelledby={`${heading}-rows`} className="valplan-section">
           <h3 id={`${heading}-rows`}>Timplaner och klasser</h3>
-          <p className="valplan-muted">Eleverna i de här radernas klasser väljer kurser ur blocket. Lägg till fler rader om klasser i andra timplaner ska välja bland samma kurser.</p>
+          <p className="valplan-muted">Eleverna i de ikryssade klasserna väljer kurser ur blocket. Kryssa ur en klass som ska välja i ett annat block, och lägg till fler rader om klasser i andra timplaner ska välja bland samma kurser.</p>
           {rows.length ? <ul className="valplan-rows">{rows.map(r => {
-            const key = valplanRowKey(r), on = draft.rows.some(l => valplanRowKey(l) === key), taken = r.linkedValplanId !== null && r.linkedValplanId !== draft.id;
-            return <li key={key}><label className="valplan-check"><input type="checkbox" aria-label={rowLabel(r)} checked={on} disabled={busy || taken && !on} onChange={e => toggleRow(r, e.target.checked)}/>
+            const key = valplanRowKey(r), link = draft.rows.find(l => valplanRowKey(l) === key), on = !!link, others = otherBlocks(r);
+            const holder = (classId: string) => others.find(b => b.classIds.includes(classId)), taken = others.length > 0 && r.classIds.every(id => holder(id));
+            return <li key={key}><label className="valplan-check"><input type="checkbox" aria-label={rowLabel(r)} checked={on} disabled={busy || taken && !on} onChange={e => void toggleRow(r, e.target.checked)}/>
               <span><strong>{rowLabel(r)}</strong><small>{r.points} p · HT {hours(r.minutesHt)} · VT {hours(r.minutesVt)} · {r.classes.length ? `Klasser: ${r.classes.map(c => c.name).join(', ')}` : `Inga klasser kopplade ${planningYearLabel(schoolYear)}`}
-                {taken && ` · Fylls av ${otherName(r.linkedValplanId)}`}</small></span></label></li>;
+                {taken && ` · Fylls av ${others.map(b => otherName(b.valplanId)).join(', ')}`}</small></span></label>
+              {link && r.classes.length > 0 && <fieldset className="valplan-class-picks"><legend className="sr-only">Klasser i blocket från {rowLabel(r)}</legend>{r.classes.map(k => {
+                const checked = !link.excludedClassIds.includes(k.id), other = holder(k.id);
+                return <label key={k.id} className="valplan-check"><input type="checkbox" aria-label={`Klass ${k.name}, ${r.planName}, ${r.rowLabel}, åk ${r.year}`} aria-invalid={checked && !!other} checked={checked} disabled={busy || !checked && !!other} onChange={e => void toggleRowClass(r, k.id, e.target.checked)}/>
+                  <span>{k.name}{checked && other ? <small className="valplan-field-error">Finns också i {otherName(other.valplanId)}. Kryssa ur klassen här eller i det blocket.</small> : !checked && <small>{other ? `Ingår i ${otherName(other.valplanId)}` : 'Saknar block'}</small>}</span></label>;
+              })}</fieldset>}</li>;
           })}</ul> : <p className="validation-warning">Inga godkända timplaner har en rad för {VALPLAN_KIND_LABEL[draft.kind].toLocaleLowerCase('sv')} läsåret {planningYearLabel(schoolYear)}.</p>}
-          {diagnostics.filter(d => d.rowKey && !d.courseId).map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
+          {diagnostics.filter(d => d.rowKey && !d.courseId && d.code !== 'class_in_other_block').map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
         </section>
 
         <section aria-labelledby={`${heading}-courses`} className="valplan-section">
@@ -241,7 +279,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
               return <tr key={c.id}>
                 <td data-label="Kurs"><input aria-label={`Namn på kursen ${c.itemCode}`} value={c.name} maxLength={200} disabled={busy} onChange={e => update(p => ({ ...p, courses: p.courses.map(x => x.id === c.id ? { ...x, name: e.target.value } : x) }))}/>
                   <small>{c.itemCode}{c.languageCode ? ` · ${programplanLanguageName(c.languageCode)}` : ''}</small>
-                  {(tried ? own : own.filter(d => d.severity === 'notice' || d.code === 'duplicate_course')).map((d, i) => <p key={i} className={d.severity === 'error' ? 'valplan-field-error' : 'valplan-muted'}>{DIAGNOSTIC[d.code] ?? d.code}</p>)}
+                  {(tried ? own : own.filter(d => d.severity === 'notice' || d.code === 'duplicate_course' || d.code === 'course_class_not_linked')).map((d, i) => <p key={i} className={d.severity === 'error' ? 'valplan-field-error' : 'valplan-muted'}>{DIAGNOSTIC[d.code] ?? d.code}</p>)}
                   {badTime && <p className="valplan-field-error">Ange timmar, till exempel 40, eller timmar:minuter, till exempel 39:30.</p>}</td>
                 <td data-label="Poäng">{c.points}</td>
                 {(['ht', 'vt'] as const).map(term => <td key={term} data-label={`${term.toUpperCase()}, timmar`}><input className="valplan-time" inputMode="text" aria-label={`${c.name}, ${term.toUpperCase()} timmar`} aria-invalid={badTime} value={time[c.id]?.[term] ?? ''} disabled={busy}
@@ -282,6 +320,8 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     </div>}
   </section>;
 }
+
+function classNames(row: ValplanRowOption, ids: readonly string[]): string[] { return row.classes.filter(c => ids.includes(c.id)).map(c => c.name); }
 
 function withTime(plan: Valplan, time: TimeText): Valplan {
   return { ...plan, courses: plan.courses.map(c => {

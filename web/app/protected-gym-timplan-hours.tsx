@@ -210,7 +210,7 @@ function LegacyGymTimplanHours({ choiceRows = null, timeJournalScope, aplInclusi
                 disabled={own?.mode === 'unread' || own?.mfa} onChange={event => setCell(row, i, event.target.value)} onKeyDown={event => { if (event.key === 'Enter') event.currentTarget.blur(); }}/>
                 : <span className={plan.hours[row.key][i] === null ? 'gt-unallocated' : ''}>{plan.hours[row.key][i] ?? 'Ofördelat'}</span>}
               <small>{row.pointTerms[i]} p</small></>}</td>)}<td className="gt-row-state">{savingKey === row.key ? 'Sparar…' : own ? invalid ? 'Kontrollera' : 'Osparat' : missing ? `${missing} kvar` : 'Klar'}</td>
-          </tr>{choice?.valplan && expandedChoices.has(row.key) && <ChoiceRowDetail info={choice} id={detailId} colSpan={columns.length + 3}/>}</Fragment>;
+          </tr>{!!choice?.valplans.length && expandedChoices.has(row.key) && <ChoiceRowDetail info={choice} id={detailId} colSpan={columns.length + 3}/>}</Fragment>;
         })}</tbody>
         <tfoot><tr><th scope="row">Summa per termin</th><td>{plan.rows.reduce((sum, row) => sum + row.points, 0)}</td>{columns.map(({ i }) => <td key={i}>{totals.terms[i]}</td>)}<td>{totals.total}</td></tr></tfoot>
       </table>{!rows.length && <p className="gt-empty">Alla rader har angiven tid i de aktiva terminerna.</p>}

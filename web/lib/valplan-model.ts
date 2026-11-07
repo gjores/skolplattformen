@@ -10,12 +10,15 @@ export type ValplanCourse = {
   id: string; subjectCode: string; subjectVersion: number; itemCode: string; points: number; languageCode: string | null;
   name: string; minutesHt: number; minutesVt: number; classIds: string[] | null;
 };
-export type ValplanRowLink = { timplanId: string; timplanVersion: number; rowKey: string; year: 1 | 2 | 3 };
+/** The block stores the classes unticked on the row, so a class linked later counts until someone unticks it. */
+export type ValplanRowLink = { timplanId: string; timplanVersion: number; rowKey: string; year: 1 | 2 | 3; excludedClassIds: string[] };
+/** A block on a row with the classes that belong to it right now. */
+export type ValplanRowBlock = { valplanId: string; classIds: string[] };
 export type Valplan = { id: string; unitId: string; schoolYear: number; kind: ValplanKind; name: string; revision: number; courses: ValplanCourse[]; rows: ValplanRowLink[] };
 /** Server-resolved facts about a linked timplan row for the plan's school year. */
-export type ValplanRowContext = ValplanRowLink & {
+export type ValplanRowContext = Omit<ValplanRowLink, 'excludedClassIds'> & {
   rowKind: 'fixed' | 'alternative' | 'block' | 'diplomaWork'; points: number; minutesHt: number | null; minutesVt: number | null;
-  classIds: string[]; allowedLevelKeys: string[] | null; linkedValplanId: string | null; blockKind?: ValplanKind;
+  classIds: string[]; allowedLevelKeys: string[] | null; blocks: ValplanRowBlock[]; blockKind?: ValplanKind;
 };
 export type ValplanDiagnostic = { code: string; severity: 'error' | 'notice'; courseId?: string; rowKey?: string; classId?: string };
 export type ValplanOffer = { row: ValplanRowContext; points: number; courseIds: string[] };
@@ -82,9 +85,11 @@ export function parseValplan(value: unknown): Valplan {
       minutesHt: integer(c.minutesHt, 0, 100000), minutesVt: integer(c.minutesVt, 0, 100000), classIds: c.classIds === null ? null : uuids(c.classIds) };
   });
   const rows = array(r.rows, 200).map(v => {
-    const l = shape(v, ['timplanId', 'timplanVersion', 'rowKey', 'year']);
+    const l = shape(v, ['timplanId', 'timplanVersion', 'rowKey', 'year', 'excludedClassIds']);
     if (typeof l.rowKey !== 'string' || !/^[a-z]+:[A-Za-z0-9_:-]{1,120}$/u.test(l.rowKey)) bad();
-    return { timplanId: uuid(l.timplanId), timplanVersion: integer(l.timplanVersion, 1, 100000), rowKey: l.rowKey, year: integer(l.year, 1, 3) as 1 | 2 | 3 };
+    const excludedClassIds = array(l.excludedClassIds, 500).map(uuid);
+    if (new Set(excludedClassIds).size !== excludedClassIds.length) bad();
+    return { timplanId: uuid(l.timplanId), timplanVersion: integer(l.timplanVersion, 1, 100000), rowKey: l.rowKey, year: integer(l.year, 1, 3) as 1 | 2 | 3, excludedClassIds };
   });
   if (new Set(courses.map(c => c.id)).size !== courses.length || new Set(rows.map(valplanRowKey)).size !== rows.length) bad();
   return { id: uuid(r.id), unitId: uuid(r.unitId), schoolYear: integer(r.schoolYear, 2000, 2100), kind: r.kind as ValplanKind,
@@ -92,16 +97,48 @@ export function parseValplan(value: unknown): Valplan {
 }
 
 /** What a timplan row says about its valbart block, and so which single next step it offers. */
-export type ValplanRowStage = 'notApproved' | 'noClasses' | 'missing' | 'done';
-export function valplanRowStage(row: { approved: boolean; classCount: number; linked: boolean }): ValplanRowStage {
+export type ValplanRowStage = 'notApproved' | 'noClasses' | 'missing' | 'partial' | 'doubled' | 'done';
+export function valplanRowStage(row: { approved: boolean; classCount: number; blockCount: number; missingCount: number; doubledCount: number }): ValplanRowStage {
   if (!row.approved) return 'notApproved';
-  if (row.linked) return 'done';
-  return row.classCount ? 'missing' : 'noClasses';
+  if (!row.blockCount) return row.classCount ? 'missing' : 'noClasses';
+  if (row.doubledCount) return 'doubled';
+  return row.missingCount ? 'partial' : 'done';
 }
-/** A block can take the row when none of the row's classes already choose in it. */
+/** The classes a link gives its block: the row's classes except the unticked ones. */
+export function valplanLinkClasses(link: Pick<ValplanRowLink, 'excludedClassIds'>, row: Pick<ValplanRowContext, 'classIds'>): string[] {
+  return row.classIds.filter(id => !link.excludedClassIds.includes(id));
+}
+/** Classes on the row without a block (F-05). They show on the row until they are placed. */
+export function valplanRowMissing(row: Pick<ValplanRowContext, 'classIds' | 'blocks'>): string[] {
+  return row.classIds.filter(id => !row.blocks.some(b => b.classIds.includes(id)));
+}
+/** A class linked later joins every block on a shared row that has not unticked it, until someone chooses. */
+export function valplanRowDoubled(row: Pick<ValplanRowContext, 'classIds' | 'blocks'>): string[] {
+  return row.classIds.filter(id => row.blocks.filter(b => b.classIds.includes(id)).length > 1);
+}
+/** A new link leaves out the classes other blocks already hold, so it only takes what is free. */
+export function valplanRowLink(row: ValplanRowContext, planId: string): ValplanRowLink {
+  const held = new Set(row.blocks.filter(b => b.valplanId !== planId).flatMap(b => b.classIds));
+  return { timplanId: row.timplanId, timplanVersion: row.timplanVersion, rowKey: row.rowKey, year: row.year, excludedClassIds: row.classIds.filter(id => held.has(id)).sort() };
+}
+/** A block can take the row's free classes when none of them already choose in it through another row. */
 export function valplanTakesRow(plan: Valplan, rows: readonly ValplanRowContext[], row: ValplanRowContext): boolean {
-  const keys = new Set(plan.rows.map(valplanRowKey));
-  return plan.kind === row.blockKind && !rows.some(r => keys.has(valplanRowKey(r)) && r.classIds.some(id => row.classIds.includes(id)));
+  const free = valplanRowMissing(row);
+  if (plan.kind !== row.blockKind || !free.length && row.blocks.length) return false;
+  return !plan.rows.some(link => {
+    const context = rows.find(r => valplanRowKey(r) === valplanRowKey(link));
+    return !!context && valplanLinkClasses(link, context).some(id => free.includes(id));
+  });
+}
+/** Gives the block the row's free classes, on a row it already has or as a new link. */
+export function valplanWithRow(plan: Valplan, row: ValplanRowContext): Valplan {
+  const key = valplanRowKey(row), free = valplanRowMissing(row);
+  if (!plan.rows.some(l => valplanRowKey(l) === key)) return { ...plan, rows: [...plan.rows, valplanRowLink(row, plan.id)] };
+  return { ...plan, rows: plan.rows.map(l => valplanRowKey(l) === key ? { ...l, excludedClassIds: l.excludedClassIds.filter(id => !free.includes(id)) } : l) };
+}
+/** The name in the button: two classes by name, more as a number. */
+export function valplanClassLabel(names: readonly string[]): string {
+  return names.length > 2 ? `${names.length} klasser` : names.join(' och ');
 }
 
 /** Blocking errors stop saving or opening the choice; notices are shown at the field. */
@@ -117,13 +154,16 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
     if (row.timplanVersion !== link.timplanVersion) out.push({ code: 'row_version_changed', severity: 'error', rowKey: key });
     if (row.rowKind !== 'block') out.push({ code: 'row_not_choice_block', severity: 'error', rowKey: key });
     if (row.blockKind !== undefined && row.blockKind !== plan.kind) out.push({ code: 'row_kind_mismatch', severity: 'error', rowKey: key });
-    if (row.linkedValplanId !== null && row.linkedValplanId !== plan.id) out.push({ code: 'row_linked_elsewhere', severity: 'error', rowKey: key });
     if (row.points < 1) out.push({ code: 'row_without_points', severity: 'error', rowKey: key });
-    for (const classId of row.classIds) {
+    const classIds = valplanLinkClasses(link, row);
+    if (row.classIds.length && !classIds.length) out.push({ code: 'row_without_classes', severity: 'error', rowKey: key });
+    const held = new Set(row.blocks.filter(b => b.valplanId !== plan.id).flatMap(b => b.classIds));
+    for (const classId of classIds) {
+      if (held.has(classId)) out.push({ code: 'class_in_other_block', severity: 'error', rowKey: key, classId });
       if (classRow.has(classId) && classRow.get(classId) !== key) out.push({ code: 'class_in_several_rows', severity: 'error', rowKey: key, classId });
       classRow.set(classId, key);
     }
-    linked.push(row);
+    linked.push({ ...row, classIds });
   }
   const seen = new Set<string>();
   for (const course of plan.courses) {
@@ -160,8 +200,7 @@ export function valplanTimeShare(points: number, row: Pick<ValplanRowContext, 'p
 
 /** What a pupil in the class may choose: the linked row decides the points for this year. */
 export function valplanOffer(plan: Valplan, rows: readonly ValplanRowContext[], classId: string): ValplanOffer | null {
-  const keys = new Set(plan.rows.map(valplanRowKey));
-  const row = rows.find(r => keys.has(valplanRowKey(r)) && r.classIds.includes(classId));
+  const row = rows.find(r => plan.rows.some(l => valplanRowKey(l) === valplanRowKey(r) && valplanLinkClasses(l, r).includes(classId)));
   if (!row) return null;
   const courseIds = plan.courses.filter(c => c.points <= row.points && (!c.classIds || c.classIds.includes(classId))
     && (!row.allowedLevelKeys || row.allowedLevelKeys.includes(valplanLevelKey(c)))).map(c => c.id);

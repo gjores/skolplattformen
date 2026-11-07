@@ -1,17 +1,17 @@
 'use client';
 
-import { useEffect, useEffectEvent, useState } from 'react';
+import { Fragment, useEffect, useEffectEvent, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { parseValplanRead } from '@/lib/valplan-contract.ts';
-import { valplanRowStage } from '@/lib/valplan-model.ts';
+import { valplanClassLabel, valplanRowDoubled, valplanRowMissing, valplanRowStage } from '@/lib/valplan-model.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
 
-/** A timplan choice row for the planning school year and the block that fills it, if any. */
-export type ChoiceRowInfo = { timplanId: string; rowKey: string; year: number; schoolYear: number; classNames: string[];
-  valplan: { id: string; name: string; courses: { id: string; name: string; points: number; minutesHt: number; minutesVt: number }[] } | null };
-export type ChoiceRows = { approved: boolean; rows: Map<string, ChoiceRowInfo>; open: (info: ChoiceRowInfo) => void; openClasses: () => void };
+/** A timplan choice row for the planning school year, the blocks on it and the classes still to be placed. */
+export type ChoiceRowBlock = { id: string; name: string; classNames: string[]; courses: { id: string; name: string; points: number; minutesHt: number; minutesVt: number }[] };
+export type ChoiceRowInfo = { timplanId: string; rowKey: string; year: number; schoolYear: number; classNames: string[]; missingClassNames: string[]; doubledClassNames: string[]; valplans: ChoiceRowBlock[] };
+export type ChoiceRows = { approved: boolean; rows: Map<string, ChoiceRowInfo>; open: (info: ChoiceRowInfo, valplanId?: string) => void; openClasses: () => void };
 
 /** Reads the school's blocks once per plan and year. Missing access or data simply shows no choice rows. */
 export function useTimplanChoiceRows(target: { unitId: string; timplanId: string; schoolYear: number; year: number } | null, onSessionLost: () => void): Map<string, ChoiceRowInfo> | null {
@@ -24,10 +24,14 @@ export function useTimplanChoiceRows(target: { unitId: string; timplanId: string
     api.post('/api/valplaner/lasa', scope, controller.signal).then(value => {
       const read = parseValplanRead(value, scope), map = new Map<string, ChoiceRowInfo>();
       for (const row of read.rows.filter(r => r.timplanId === timplanId && r.year === year)) {
-        const plan = read.valplans.find(v => v.valplan.id === row.linkedValplanId)?.valplan ?? null;
+        const names = (ids: readonly string[]) => row.classes.filter(c => ids.includes(c.id)).map(c => c.name);
         map.set(row.rowKey, { timplanId: row.timplanId, rowKey: row.rowKey, year: row.year, schoolYear, classNames: row.classes.map(c => c.name),
-          valplan: plan && { id: plan.id, name: plan.name, courses: plan.courses.filter(c => !c.classIds || c.classIds.some(id => row.classIds.includes(id)))
-            .map(c => ({ id: c.id, name: c.name, points: c.points, minutesHt: c.minutesHt, minutesVt: c.minutesVt })) } });
+          missingClassNames: names(valplanRowMissing(row)), doubledClassNames: names(valplanRowDoubled(row)),
+          valplans: row.blocks.flatMap(block => {
+            const plan = read.valplans.find(v => v.valplan.id === block.valplanId)?.valplan;
+            return plan ? [{ id: plan.id, name: plan.name, classNames: names(block.classIds), courses: plan.courses.filter(c => !c.classIds || c.classIds.some(id => block.classIds.includes(id)))
+              .map(c => ({ id: c.id, name: c.name, points: c.points, minutesHt: c.minutesHt, minutesVt: c.minutesVt })) }] : [];
+          }) });
       }
       setRows(map);
     }).catch(error => { if (error instanceof ApiError && error.status === 401) lost(); if (!controller.signal.aborted) setRows(null); });
@@ -41,21 +45,29 @@ export function ChoiceRowSummary({ choices, rowKey, expanded, controls, onToggle
   const info = choices.rows.get(rowKey);
   if (!choices.approved) return <div className="gt-choice"><p className="status-badge">Kopplas när timplanen är fastställd.</p></div>;
   if (!info) return null;
-  const stage = valplanRowStage({ approved: true, classCount: info.classNames.length, linked: info.valplan !== null });
+  const stage = valplanRowStage({ approved: true, classCount: info.classNames.length, blockCount: info.valplans.length, missingCount: info.missingClassNames.length, doubledCount: info.doubledClassNames.length });
+  const courses = <button type="button" className="gt-choice-toggle" aria-expanded={expanded} aria-controls={controls} onClick={onToggle}>Visa kurser</button>;
   if (stage === 'noClasses') return <div className="gt-choice"><p className="status-badge">Koppla klasser först.</p>
     <Button size="sm" variant="outline" onClick={choices.openClasses}>Till Klasser och läsår</Button></div>;
   if (stage === 'missing') return <div className="gt-choice"><p className="status-badge">Saknar block {planningYearLabel(info.schoolYear)}</p>
     <Button size="sm" variant="outline" onClick={() => choices.open(info)}>Skapa valbart block</Button></div>;
-  return <div className="gt-choice"><p className="status-badge success">Enligt {info.valplan!.name}</p>
-    <Button size="sm" variant="outline" onClick={() => choices.open(info)}>Öppna blocket</Button>
-    <button type="button" className="gt-choice-toggle" aria-expanded={expanded} aria-controls={controls} onClick={onToggle}>Visa kurser</button></div>;
+  if (stage === 'doubled') return <div className="gt-choice"><p className="status-badge">{valplanClassLabel(info.doubledClassNames)} finns i två block</p>
+    <Button size="sm" variant="outline" onClick={() => choices.open(info)}>Välj block för {valplanClassLabel(info.doubledClassNames)}</Button>{courses}</div>;
+  if (stage === 'partial') return <div className="gt-choice"><p className="status-badge">{info.classNames.length - info.missingClassNames.length} av {info.classNames.length} klasser har block</p>
+    <Button size="sm" variant="outline" onClick={() => choices.open(info)}>Välj block för {valplanClassLabel(info.missingClassNames)}</Button>{courses}</div>;
+  const several = info.valplans.length > 1;
+  return <div className="gt-choice"><p className="status-badge success">Enligt {info.valplans.map(v => v.name).join(' och ')}</p>
+    {info.valplans.map(v => <Button key={v.id} size="sm" variant="outline" onClick={() => choices.open(info, v.id)}>{several ? `Öppna ${v.name}` : 'Öppna blocket'}</Button>)}
+    {courses}</div>;
 }
 
 export function ChoiceRowDetail({ info, id, colSpan }: { info: ChoiceRowInfo; id: string; colSpan: number }) {
   return <tr className="gt-choice-detail" id={id}><td colSpan={colSpan}><div>
     <p>Läsår {planningYearLabel(info.schoolYear)} · årskurs {info.year}{info.classNames.length ? ` · ${info.classNames.join(', ')}` : ' · inga klasser kopplade'}</p>
-    {info.valplan?.courses.length ? <ul aria-label={`Kurser i ${info.valplan.name}`}>{info.valplan.courses.map(c =>
-      <li key={c.id}><strong>{c.name}</strong> · {c.points} p · HT {formatTime(c.minutesHt)} · VT {formatTime(c.minutesVt)}</li>)}</ul>
-      : <p>Blocket har inga kurser för klasserna ännu.</p>}
+    {info.missingClassNames.length > 0 && <p>Saknar block: {info.missingClassNames.join(', ')}</p>}
+    {info.valplans.map(v => <Fragment key={v.id}>{info.valplans.length > 1 && <p>{v.name}: {v.classNames.join(', ')}</p>}
+      {v.courses.length ? <ul aria-label={`Kurser i ${v.name}`}>{v.courses.map(c =>
+        <li key={c.id}><strong>{c.name}</strong> · {c.points} p · HT {formatTime(c.minutesHt)} · VT {formatTime(c.minutesVt)}</li>)}</ul>
+        : <p>Blocket har inga kurser för klasserna ännu.</p>}</Fragment>)}
   </div></td></tr>;
 }

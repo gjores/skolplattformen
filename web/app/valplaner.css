@@ -24,6 +24,7 @@
 .valplan-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .valplan-check { display: flex !important; align-items: flex-start; gap: .625rem !important; min-height: var(--control-height); padding: .375rem 0; }
 .valplan-check input { width: 1.125rem; height: 1.125rem; margin-top: .125rem; flex-shrink: 0; }
+.valplan-class-picks { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 12rem), 1fr)); gap: 0 .75rem; border: 0; margin: 0; padding: 0 0 0 1.75rem; min-width: 0; }
 .valplan-table-wrap { overflow-x: auto; position: relative; }
 .valplan-table { width: 100%; border-collapse: collapse; font-size: .875rem; }
 .valplan-table th, .valplan-table td { text-align: left; padding: .625rem .5rem; border-bottom: 1px solid var(--border); vertical-align: top; }

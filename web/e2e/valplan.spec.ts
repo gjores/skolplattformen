@@ -1,8 +1,9 @@
 // Riktiga React-flöden mot syntetiska API-svar; SQL, behörighet och installation verifieras separat.
 import { test, expect, type Page } from '@playwright/test';
 import { parseValplanCommand, type ValplanCommand } from '../lib/valplan-contract';
+import type { Valplan } from '../lib/valplan-model';
 import { read, otherValplan, id } from './fixtures/valplan-data';
-import { answerDiscard, autoAnswerDiscard, discardPrompt } from './helpers/confirm-dialog';
+import { answerConfirm, answerDiscard, autoAnswerDiscard, discardPrompt } from './helpers/confirm-dialog';
 const URL = '/e2e/fixtures/valplan-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
 async function mock(page: Page) {
@@ -16,8 +17,10 @@ async function mock(page: Page) {
     const prior = m.writes.slice(0, -1).find(w => w.commandId === command.commandId);
     const stored = { ...command.valplan, revision: command.expectedRevision + 1, rows: [...command.valplan.rows].sort((a, b) => a.timplanId < b.timplanId ? -1 : 1) };
     if (!prior) {
-      m.state.valplans = [...m.state.valplans.filter(v => (v.valplan as { id: string }).id !== stored.id), { catalogId: command.catalogId, valplan: stored }];
-      m.state.rows = m.state.rows.map(r => ({ ...r, linkedValplanId: stored.rows.some(l => l.timplanId === r.timplanId && l.rowKey === r.rowKey) ? stored.id : r.linkedValplanId === stored.id ? null : r.linkedValplanId }));
+      const kept = m.state.valplans.find(v => (v.valplan as { id: string }).id === stored.id)?.choiceCounts ?? [];
+      m.state.valplans = [...m.state.valplans.filter(v => (v.valplan as { id: string }).id !== stored.id), { catalogId: command.catalogId, valplan: stored, choiceCounts: kept }];
+      m.state.rows = m.state.rows.map(r => ({ ...r, blocks: m.state.valplans.flatMap(v => (v.valplan as Valplan).rows.filter(l => l.timplanId === r.timplanId && l.rowKey === r.rowKey && l.year === r.year)
+        .map(l => ({ valplanId: (v.valplan as Valplan).id, classIds: r.classIds.filter(c => !l.excludedClassIds.includes(c)) }))) }));
     }
     return route.fulfill({ json: { receipt: { commandId: command.commandId, valplanId: stored.id, revision: stored.revision, replayed: !!prior }, read: m.state }, headers });
   });
@@ -235,7 +238,7 @@ test('ett orört utkast låser inte sidan och kan slängas', async ({ page }) =>
 });
 
 test('rad utan klasser säger varför den inte kan få block, och kursen visar var klasserna kopplas', async ({ page }) => {
-  const m = await mock(page); m.state.rows = m.state.rows.map(r => ({ ...r, classes: [], classIds: [] }));
+  const m = await mock(page); m.state.rows = m.state.rows.map(r => ({ ...r, classes: [], classIds: [], blocks: r.blocks.map(b => ({ ...b, classIds: [] })) }));
   await page.goto(`${URL}?open=${id(99)}`);
   await expect(page.getByRole('button', { name: /Skapa valbart block för/ })).toHaveCount(0);
   await expect(page.getByText('Koppla klasser under Klasser och läsår i timplanen först.').first()).toBeVisible();
@@ -257,6 +260,114 @@ test('kurser ryms när redigeringsytan är smal i ett brett fönster', async ({ 
   expect(time!.width).toBeGreaterThanOrEqual(80);
   const remove = page.getByRole('button', { name: /Ta bort Psykologi/ });
   await remove.scrollIntoViewIfNeeded(); await expect(remove).toBeInViewport({ ratio: 1 });
+});
+
+const classBox = (page: Page, name: string, plan = 'SA26 – samhälle') => page.getByRole('checkbox', { name: `Klass ${name}, ${plan}, Individuellt val, åk 2` });
+const pickCourse = async (page: Page, code: string) => { await page.getByLabel('Sök kurs att lägga till').fill(code); await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click(); };
+
+test('kryssa ur en klass, se Delvis, lägg klassen i ett annat block och se Klart', async ({ page }, info) => {
+  const m = await mock(page); await page.goto(URL);
+  await startIv(page);
+  await expect(classBox(page, 'SA26A')).toBeChecked(); await expect(classBox(page, 'SA26B')).toBeChecked();
+  await classBox(page, 'SA26B').uncheck();
+  await expect(page.getByText('Saknar block', { exact: true })).toBeVisible();
+  await pickCourse(page, 'PSYL1000X');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect(m.writes[0].valplan.rows[0].excludedClassIds).toEqual([id(21)]);
+  await expect(page.getByText('Klasser utan block: SA26B')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Individuellt val 2027\/28/ }).getByText('Utan block: SA26B')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('sidan-delvis.png'), fullPage: true });
+
+  await page.goto(`${URL}?rows&live`);
+  await expect(page.getByText('1 av 2 klasser har block')).toBeVisible();
+  const next = page.getByRole('button', { name: 'Välj block för SA26B' });
+  await expect(next).toBeVisible(); expect((await next.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await page.screenshot({ path: info.outputPath('raden-delvis.png'), fullPage: true });
+
+  await page.goto(`${URL}?row=${id(11)}|block:iv1|2`);
+  await expect(page.getByText('SA26B saknar block.')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('valet-av-block.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Lägg till i IV för EK' }).click();
+  await expect(classBox(page, 'SA26B')).toBeChecked();
+  await expect(classBox(page, 'SA26A')).not.toBeChecked(); await expect(classBox(page, 'SA26A')).toBeDisabled();
+  await expect(page.getByText('Ingår i Individuellt val 2027/28')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('andra-blocket.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Lägg till kurs' }).click();
+  await pickCourse(page, 'FILS1000X');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  const saved = m.writes.at(-1)!.valplan;
+  expect(saved.rows.find(l => l.timplanId === id(11))!.excludedClassIds).toEqual([id(20)]);
+  await expect(page.getByText('Klasser utan block')).toHaveCount(0);
+
+  await page.goto(`${URL}?rows&live`);
+  await expect(page.getByText('Enligt Individuellt val 2027/28 och IV för EK')).toBeVisible();
+  await expect(page.getByRole('button', { name: /Välj block/ })).toHaveCount(0);
+  await page.getByRole('button', { name: 'Visa kurser' }).click();
+  await expect(page.getByText('IV för EK: SA26B')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('raden-klar.png'), fullPage: true });
+  await page.getByRole('button', { name: 'Öppna IV för EK' }).click();
+  await expect(page.getByText(`Öppnade ${id(99)}`)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
+
+const saved = (extra: Partial<Valplan> = {}, choiceCounts: { classId: string; pupils: number }[] = []) => ({ catalogId: otherValplan.catalogId, choiceCounts, valplan: { id: id(50), unitId: otherValplan.valplan.unitId, schoolYear: otherValplan.valplan.schoolYear, kind: 'individualChoice', name: 'Sparat block', revision: 1, courses: [],
+  rows: [{ timplanId: id(11), timplanVersion: 1, rowKey: 'block:iv1', year: 2, excludedClassIds: [] as string[] }], ...extra } });
+
+test('en klass med lämnade val kryssas ur först efter frågan med antal elever', async ({ page }) => {
+  const m = await mock(page); const block = saved({}, [{ classId: id(21), pupils: 3 }]);
+  m.state.valplans = [...m.state.valplans, block]; m.state.rows[0] = { ...m.state.rows[0], blocks: [{ valplanId: id(50), classIds: [id(20), id(21)] }] };
+  await page.goto(`${URL}?open=${id(50)}`);
+  await classBox(page, 'SA26A').uncheck();
+  await expect(page.getByRole('alertdialog')).toHaveCount(0);
+  await classBox(page, 'SA26A').check();
+  const prompt = page.getByRole('alertdialog', { name: 'Elever har lämnat val', exact: true });
+  await answerConfirm(page, 'Elever har lämnat val', 'Behåll klassen', async () => { await classBox(page, 'SA26B').click(); await expect(prompt).toContainText('3 elever i SA26B har lämnat val i blocket.'); await expect(prompt).toContainText('Valen finns kvar under Elevval'); });
+  await expect(classBox(page, 'SA26B')).toBeChecked();
+  await answerConfirm(page, 'Elever har lämnat val', 'Kryssa ur klassen', () => classBox(page, 'SA26B').click());
+  await expect(classBox(page, 'SA26B')).not.toBeChecked();
+  await classBox(page, 'SA26B').check();
+  await answerConfirm(page, 'Elever har lämnat val', 'Ta bort raden', () => page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ }).click());
+  await expect(page.getByRole('checkbox', { name: /SA26 – samhälle · Individuellt val · åk 2/ })).not.toBeChecked();
+});
+
+test('en senare kopplad klass i två block syns på raden och stoppar sparandet tills den är löst', async ({ page }) => {
+  const m = await mock(page), first = saved(), other = saved({ id: id(51), name: 'Andra blocket' });
+  first.valplan.rows[0].excludedClassIds = [id(21)]; other.valplan.rows[0].excludedClassIds = [id(20)];
+  m.state.rows[0] = { ...m.state.rows[0], classIds: [id(20), id(21), id(24)], classes: [...m.state.rows[0].classes, { id: id(24), name: 'SA26C' }], blocks: [{ valplanId: id(50), classIds: [id(20), id(24)] }, { valplanId: id(51), classIds: [id(21), id(24)] }] };
+  m.state.valplans = [...m.state.valplans, first, other];
+  await page.goto(`${URL}?rows&live`);
+  await expect(page.getByText('SA26C finns i två block')).toBeVisible();
+  await page.goto(URL);
+  await expect(page.getByText('Finns i två block: SA26C')).toBeVisible();
+  await page.getByRole('button', { name: /Välj block för SA26C/ }).click();
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Sparat block');
+  await expect(page.getByText('Finns också i Andra blocket.')).toBeVisible();
+  await page.getByLabel('Namn', { exact: true }).fill('Omdöpt');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(classBox(page, 'SA26C')).toBeFocused();
+  expect(m.writes).toHaveLength(0);
+  await classBox(page, 'SA26C').uncheck();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect(m.writes[0].valplan.rows[0].excludedClassIds).toEqual([id(21), id(24)].sort());
+});
+
+test('en kurs följer blockets klasser, och alla klasser på en rad går inte att kryssa ur', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  await startIv(page);
+  await pickCourse(page, 'RETO1000X');
+  const reto = page.getByRole('row', { name: /RETO1000X/ });
+  await reto.getByText('Alla klasser').click();
+  await reto.getByRole('checkbox', { name: 'SA26A' }).uncheck();
+  await expect(reto.getByText('1 av 2 klasser')).toBeVisible();
+  await classBox(page, 'SA26B').uncheck();
+  await expect(page.getByText('En vald klass ingår inte längre i blocket.')).toBeVisible();
+  await classBox(page, 'SA26A').uncheck();
+  await expect(page.getByText('Kryssa i minst en klass, eller ta bort raden från blocket.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByRole('alert').filter({ hasText: 'Rätta markerade uppgifter' })).toBeVisible();
 });
 
 test('öppna ett befintligt block direkt från timplanen', async ({ page }) => {

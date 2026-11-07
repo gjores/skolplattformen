@@ -7,8 +7,8 @@ import { AuditUnavailable } from './authz.ts';
 import { Deny, type SessionContext, type Tx } from './db.ts';
 
 export type ValplanAuthority = Pick<SessionContext, 'identityId' | 'assignmentId' | 'accessFunction'>;
-const conflicts = new Set(['valplan_command_conflict', 'valplan_revision_conflict', 'valplan_row_conflict']);
-const inputs = new Set(['valplan_invalid', 'valplan_row_kind', 'valplan_course_not_in_catalog', 'valplan_course_class', 'valplan_course_identity', 'valplan_duplicate_course', 'valplan_kind_fixed']);
+const conflicts = new Set(['valplan_command_conflict', 'valplan_revision_conflict', 'valplan_row_conflict', 'valplan_class_in_other_block']);
+const inputs = new Set(['valplan_invalid', 'valplan_row_kind', 'valplan_row_class', 'valplan_row_without_classes', 'valplan_course_not_in_catalog', 'valplan_course_class', 'valplan_course_identity', 'valplan_duplicate_course', 'valplan_kind_fixed']);
 const MAX_BYTES = 512000;
 
 async function operation<T>(run: () => Promise<T>): Promise<T> {

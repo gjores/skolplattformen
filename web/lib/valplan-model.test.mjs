@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -10,10 +10,10 @@ const version=code=>catalog.subjects.find(s=>s.code===code&&s.schoolTypes.includ
 const course=(n,subjectCode,itemCode,points,extra={})=>({id:`56000000-0000-4000-8000-0000000001${String(n).padStart(2,'0')}`,subjectCode,subjectVersion:version(subjectCode),itemCode,points,languageCode:null,name:`Kurs ${n}`,minutesHt:points*6,minutesVt:points*6,classIds:null,...extra});
 function plan(){return{id:vp,unitId:unit,schoolYear:2027,kind:'individualChoice',name:'Individuellt val 2027/28',revision:1,
   courses:[course(1,'PSYL','PSYL1000X',50),course(2,'FILS','FILS1000X',50),course(3,'RETO','RETO1000X',100),course(4,'MODY','MODY1000X',100,{languageCode:'es'})],
-  rows:[{timplanId:tA,timplanVersion:2,rowKey:'block:iv1',year:2},{timplanId:tB,timplanVersion:1,rowKey:'block:iv1',year:2}]};}
+  rows:[{timplanId:tA,timplanVersion:2,rowKey:'block:iv1',year:2,excludedClassIds:[]},{timplanId:tB,timplanVersion:1,rowKey:'block:iv1',year:2,excludedClassIds:[]}]};}
 function rows(){return[
-  {timplanId:tA,timplanVersion:2,rowKey:'block:iv1',year:2,rowKind:'block',points:100,minutesHt:300,minutesVt:300,classIds:[cA,cB],allowedLevelKeys:null,linkedValplanId:vp},
-  {timplanId:tB,timplanVersion:1,rowKey:'block:iv1',year:2,rowKind:'block',points:200,minutesHt:600,minutesVt:600,classIds:[cC],allowedLevelKeys:null,linkedValplanId:vp}];}
+  {timplanId:tA,timplanVersion:2,rowKey:'block:iv1',year:2,rowKind:'block',points:100,minutesHt:300,minutesVt:300,classIds:[cA,cB],allowedLevelKeys:null,blocks:[{valplanId:vp,classIds:[cA,cB]}]},
+  {timplanId:tB,timplanVersion:1,rowKey:'block:iv1',year:2,rowKind:'block',points:200,minutesHt:600,minutesVt:600,classIds:[cC],allowedLevelKeys:null,blocks:[{valplanId:vp,classIds:[cC]}]}];}
 const codes=(d,severity)=>d.filter(x=>!severity||x.severity===severity).map(x=>x.code).sort();
 
 test('valid plan shared by two timplaner has no blocking diagnostics',()=>{
@@ -65,14 +65,15 @@ test('all five block kinds parse, and språkämne and naturvetenskapligt ämne k
 });
 
 test('a timplan row is in exactly one stage with one next step',()=>{
-  const stage=(approved,classCount,linked)=>valplanRowStage({approved,classCount,linked});
-  assert.equal(stage(false,2,false),'notApproved');assert.equal(stage(false,2,true),'notApproved');
-  assert.equal(stage(true,0,false),'noClasses');assert.equal(stage(true,2,false),'missing');
-  assert.equal(stage(true,2,true),'done');assert.equal(stage(true,0,true),'done');
+  const stage=(approved,classCount,blockCount,missingCount=0,doubledCount=0)=>valplanRowStage({approved,classCount,blockCount,missingCount,doubledCount});
+  assert.equal(stage(false,2,0),'notApproved');assert.equal(stage(false,2,1),'notApproved');
+  assert.equal(stage(true,0,0),'noClasses');assert.equal(stage(true,2,0,2),'missing');
+  assert.equal(stage(true,3,1,1),'partial');assert.equal(stage(true,3,2,0,1),'doubled');assert.equal(stage(true,3,2,1,1),'doubled');
+  assert.equal(stage(true,2,1),'done');assert.equal(stage(true,3,2),'done');assert.equal(stage(true,0,1),'done');
 });
 
 test('a block takes a row of its kind unless the classes already choose in it',()=>{
-  const p=parseValplan({...plan(),rows:[plan().rows[0]]}),free={...rows()[1],blockKind:'individualChoice'},all=[{...rows()[0],blockKind:'individualChoice'},free];
+  const p=parseValplan({...plan(),rows:[plan().rows[0]]}),free={...rows()[1],blockKind:'individualChoice',blocks:[]},all=[{...rows()[0],blockKind:'individualChoice'},free];
   assert.equal(valplanTakesRow(p,all,free),true);
   assert.equal(valplanTakesRow(p,all,{...free,blockKind:'modernLanguage'}),false);
   assert.equal(valplanTakesRow(p,all,{...free,classIds:[cC,cB]}),false);
@@ -83,8 +84,8 @@ test('row links: block rows only, one valplan per row, stale version and class o
   assert.ok(codes(valplanDiagnostics(parseValplan(plan()),kind,catalog),'error').includes('row_kind_mismatch'));
   const r=rows();r[0].rowKind='fixed';
   assert.ok(codes(valplanDiagnostics(parseValplan(plan()),r,catalog),'error').includes('row_not_choice_block'));
-  const other=rows();other[1].linkedValplanId='56000000-0000-4000-8000-000000000099';
-  assert.ok(codes(valplanDiagnostics(parseValplan(plan()),other,catalog),'error').includes('row_linked_elsewhere'));
+  const other=rows();other[1].blocks=[{valplanId:'56000000-0000-4000-8000-000000000099',classIds:[cC]}];
+  assert.ok(codes(valplanDiagnostics(parseValplan(plan()),other,catalog),'error').includes('class_in_other_block'));
   const dup=plan();dup.rows.push({...dup.rows[0],timplanVersion:3});
   assert.throws(()=>parseValplan(dup),e=>e.code==='invalid_valplan');
   const stale=rows();stale[0].timplanVersion=3;
@@ -95,6 +96,43 @@ test('row links: block rows only, one valplan per row, stale version and class o
   assert.ok(codes(valplanDiagnostics(parseValplan(plan()),zero,catalog),'error').includes('row_without_points'));
   const overlap=rows();overlap[1].classIds=[cC,cA];
   assert.ok(codes(valplanDiagnostics(parseValplan(plan()),overlap,catalog),'error').includes('class_in_several_rows'));
+});
+
+test('a row is shared by class: a class is in at most one block and unticked classes stay out',()=>{
+  const other='56000000-0000-4000-8000-000000000099',shared=[{...rows()[0],blockKind:'individualChoice',blocks:[{valplanId:other,classIds:[cB]}]},rows()[1]];
+  const p=plan();p.rows[0].excludedClassIds=[cB];
+  assert.deepEqual(codes(valplanDiagnostics(parseValplan(p),shared,catalog),'error'),[]);
+  assert.deepEqual(valplanLinkClasses(p.rows[0],shared[0]),[cA]);
+  p.rows[0].excludedClassIds=[];const doubled=valplanDiagnostics(parseValplan(p),shared,catalog).filter(d=>d.code==='class_in_other_block');
+  assert.deepEqual(doubled.map(d=>d.classId),[cB]);
+  p.rows[0].excludedClassIds=[cA,cB];
+  assert.ok(codes(valplanDiagnostics(parseValplan(p),shared,catalog),'error').includes('row_without_classes'));
+  const late=plan();late.rows[0].excludedClassIds=['56000000-0000-4000-8000-000000000098'];
+  assert.deepEqual(valplanLinkClasses(late.rows[0],rows()[0]),[cA,cB]);
+  const dup=plan();dup.rows[0].excludedClassIds=[cA,cA];assert.throws(()=>parseValplan(dup),e=>e.code==='invalid_valplan');
+});
+
+test('the row tells which classes lack a block and which are in two',()=>{
+  const row={...rows()[0],classIds:[cA,cB,cC],blocks:[{valplanId:vp,classIds:[cA,cC]},{valplanId:'56000000-0000-4000-8000-000000000099',classIds:[cC]}]};
+  assert.deepEqual(valplanRowMissing(row),[cB]);assert.deepEqual(valplanRowDoubled(row),[cC]);
+  assert.equal(valplanClassLabel(['SA27B']),'SA27B');assert.equal(valplanClassLabel(['SA27B','SA27C']),'SA27B och SA27C');assert.equal(valplanClassLabel(['A','B','C']),'3 klasser');
+});
+
+test('a new link leaves out classes held by other blocks, and joining takes only the free ones',()=>{
+  const other='56000000-0000-4000-8000-000000000099',row={...rows()[0],classIds:[cA,cB,cC],blockKind:'individualChoice',blocks:[{valplanId:other,classIds:[cC,cA]}]};
+  assert.deepEqual(valplanRowLink(row,vp).excludedClassIds,[cA,cC]);assert.deepEqual(valplanRowLink(row,other).excludedClassIds,[]);
+  const fresh=parseValplan({...plan(),rows:[]});assert.deepEqual(valplanWithRow(fresh,row).rows[0].excludedClassIds,[cA,cC]);
+  const own=parseValplan({...plan(),rows:[{...plan().rows[0],excludedClassIds:[cA,cB]}]}),held={...row,classIds:[cA,cB],blocks:[{valplanId:vp,classIds:[]},{valplanId:other,classIds:[cA]}]};
+  assert.deepEqual(valplanWithRow(own,held).rows[0].excludedClassIds,[cA]);
+  assert.equal(valplanTakesRow(own,[held],held),true);
+  assert.equal(valplanTakesRow(own,[held],{...held,blocks:[{valplanId:other,classIds:[cA,cB]}]}),false);
+});
+
+test('an unticked class gets no offer and a course may not name it',()=>{
+  const p=plan();p.rows[0].excludedClassIds=[cB];const parsed=parseValplan(p);
+  assert.equal(valplanOffer(parsed,rows(),cB),null);assert.equal(valplanOffer(parsed,rows(),cA).points,100);
+  const limited=parseValplan({...p,courses:[course(1,'PSYL','PSYL1000X',50,{classIds:[cB]})]});
+  assert.ok(codes(valplanDiagnostics(limited,rows(),catalog),'error').includes('course_class_not_linked'));
 });
 
 test('per course class restriction must stay within linked classes',()=>{

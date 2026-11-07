@@ -51,7 +51,7 @@ async function blockMock(page:Page,{status='faststalld',classes=[] as {id:string
  if(path==='/api/planering/urval')json={customerId:oid(7),serverDate:'2026-10-12',currentYear:2026,minimumYear:2000,maximumYear:2100,units:[{unitId:oid(3),schoolName:'Exempelskolan',canRead:{programplan:true,gymnasium:true,grundskola:true,introduktionsprogram:true}}]};
  else if(path==='/api/planbeslut/inkorg')json={items:[],total:0,actionCount:0,decisionCount:0,truncated:false};
  else if(path==='/api/timplaner/gym/lasa')json=plan;
- else if(path==='/api/valplaner/lasa'){reads++;json={contractVersion:'valplan_v1',unitId:oid(3),schoolYear:2026,valplans:[],rows:[{timplanId:oid(1),timplanVersion:1,rowKey:key,year:1,rowKind:'block',blockKind:'individualChoice',points:200,minutesHt:5400,minutesVt:5400,classIds:classes.map(c=>c.id),allowedLevelKeys:null,linkedValplanId:null,planName:'Grundfördelning',rowLabel:'Individuellt val',classes}]};}
+ else if(path==='/api/valplaner/lasa'){reads++;json={contractVersion:'valplan_v1',unitId:oid(3),schoolYear:2026,valplans:[],rows:[{timplanId:oid(1),timplanVersion:1,rowKey:key,year:1,rowKind:'block',blockKind:'individualChoice',points:200,minutesHt:5400,minutesVt:5400,classIds:classes.map(c=>c.id),allowedLevelKeys:null,blocks:[],planName:'Grundfördelning',rowLabel:'Individuellt val',classes}]};}
  else if(path==='/api/planbeslut/underlag')return route.fulfill({status:409,json:{code:'conflict',message:'Syntetiskt separat beslutsprov'}});
  else return route.fulfill({status:500,json:{code:'unexpected',message:path}});
  await route.fulfill({json,headers:{'X-Context-Epoch':'1'}});

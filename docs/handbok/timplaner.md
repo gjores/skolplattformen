@@ -17,7 +17,7 @@ Tabellen är arbetsytans huvuddel. **Visa programplan** öppnar planen som timpl
 
 ### Valbara block
 
-Valbara rader står som **Valbart block** i tabellen. Rektor och skoladministratör ser radens läge och nästa steg, till exempel **Skapa valbart block**. Se [Valbara block](./valbara-block.md). Blocket äger kursernas tid; timplanens radtid är en kontrollsiffra och skrivs inte om.
+Valbara rader står som **Valbart block** i tabellen. Rektor och skoladministratör ser radens läge och nästa steg, till exempel **Skapa valbart block** eller, när bara några klasser har block, **Välj block för SA27B**. Se [Valbara block](./valbara-block.md). Blocket äger kursernas tid; timplanens radtid är en kontrollsiffra och skrivs inte om.
 
 ### Flera timplaner för samma programplan
 

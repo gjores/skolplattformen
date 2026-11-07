@@ -197,7 +197,7 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
   const openClasses = () => { const section = document.querySelector<HTMLElement>('.class-timplans'); section?.scrollIntoView({ block: 'start' }); section?.querySelector('button')?.focus({ preventScroll: true }); };
   const choiceStaff = plan && !plan.archived && ['rektor','administrator'].includes(context.function) && onValplaner;
   const choiceRows = !choiceStaff ? null : plan.status !== 'faststalld' ? { approved: false, rows: new Map<string, ChoiceRowInfo>(), open: () => {}, openClasses }
-    : choiceRowMap && choiceTarget ? { approved: true, rows: choiceRowMap, openClasses, open: (info: ChoiceRowInfo) => onValplaner({ unitId: choiceTarget.unitId, schoolYear: info.schoolYear, valplanId: info.valplan?.id ?? null, row: { timplanId: info.timplanId, rowKey: info.rowKey, year: info.year } }) } : null;
+    : choiceRowMap && choiceTarget ? { approved: true, rows: choiceRowMap, openClasses, open: (info: ChoiceRowInfo, valplanId?: string) => onValplaner({ unitId: choiceTarget.unitId, schoolYear: info.schoolYear, valplanId: valplanId ?? null, row: { timplanId: info.timplanId, rowKey: info.rowKey, year: info.year } }) } : null;
   const shownYear: PlanningMatrixYear = yearProjection?.terms.length === 6
     ? matrixYear ?? (yearProjection.relativeYear === null ? 'all' : (yearProjection.relativeYear - 1) as 0 | 1 | 2) : 'all';
   function changeMatrixYear(year: string) {
