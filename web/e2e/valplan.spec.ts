@@ -467,6 +467,41 @@ test('ett öppet val med fel stängs inte, men Elevval säger vad som behöver r
   await expect(page.getByRole('button', { name: 'Stäng val' })).toBeEnabled();
 });
 
+test('en kopplad rad som försvunnit tas bort i blocket, efter frågan om elever har lämnat val', async ({ page }, info) => {
+  const m = await mock(page), gone = { timplanId: id(11), timplanVersion: 1, rowKey: 'block:gone', year: 2 as const, excludedClassIds: [] as string[] };
+  const block = saved({ courses: [course(1, 'PSYL', 'PSYL1000X', 50), course(2, 'FILS', 'FILS1000X', 50)], rows: [{ ...gone, rowKey: 'block:iv1' }, gone] }, [{ classId: id(40), pupils: 2 }]);
+  m.state.valplans = [...m.state.valplans, block]; m.state.rows[0] = { ...m.state.rows[0], blocks: [{ valplanId: id(50), classIds: [id(20), id(21)] }] };
+  await page.goto(`${URL}?open=${id(50)}`);
+  const list = page.locator('.valplan-check-list'), item = page.locator('.valplan-stray-rows li');
+  await expect(list.getByText('En kopplad timplansrad finns inte längre för läsåret. Ta bort kopplingen och spara blocket.')).toBeVisible();
+  await expect(page.getByText('2 kurser · 2 timplansrader')).toBeVisible();
+  await list.getByRole('listitem').filter({ hasText: 'finns inte längre' }).getByRole('button', { name: 'Till klasserna' }).click();
+  await expect(page.getByRole('heading', { name: 'Timplaner och klasser' })).toBeFocused();
+  await expect(item.getByText('Timplansrad i åk 2')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('forsvunnen-rad.png'), fullPage: true });
+  const remove = page.getByRole('button', { name: 'Ta bort kopplingen till Timplansrad i åk 2' });
+  await answerConfirm(page, 'Elever har lämnat val', 'Behåll kopplingen', async () => { await remove.click(); await expect(page.getByRole('alertdialog').getByText('2 elever utanför blockets klasser har lämnat val.')).toBeVisible(); });
+  await expect(item).toHaveCount(1);
+  await answerConfirm(page, 'Elever har lämnat val', 'Ta bort kopplingen', () => remove.click());
+  await expect(item).toHaveCount(0);
+  await expect(page.getByText('Allt är klart för elevval.')).toBeVisible();
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect(m.writes.at(-1)!.valplan.rows.map(l => l.rowKey)).toEqual(['block:iv1']);
+  await expect(page.getByText('2 kurser · 1 timplansrad', { exact: false })).toBeVisible();
+});
+
+test('datumfältet för sista valdag visar hela datumet', async ({ page }, info) => {
+  const m = await mock(page), block = saved({ courses: [course(1, 'PSYL', 'PSYL1000X', 50), course(2, 'FILS', 'FILS1000X', 50)] });
+  m.state.valplans = [...m.state.valplans, block]; m.state.rows[0] = { ...m.state.rows[0], blocks: [{ valplanId: id(50), classIds: [id(20), id(21)] }] };
+  await choiceMock(page); await page.goto(`${URL}?open=${id(50)}`);
+  await page.getByRole('button', { name: 'Elevval', exact: true }).click();
+  const field = page.getByLabel('Sista valdag'); await field.fill('2027-12-01');
+  // Ett svenskt datum med kalenderikon behöver cirka 150 px.
+  expect((await field.boundingBox())!.width).toBeGreaterThan(150);
+  await field.scrollIntoViewIfNeeded(); await page.screenshot({ path: info.outputPath('sista-valdag.png') });
+});
+
 test('en kurs eller klass med lämnade val tas bort först efter frågan med antal elever', async ({ page }) => {
   const m = await mock(page), reto = course(1, 'RETO', 'RETO1000X', 100), fils = course(2, 'FILS', 'FILS1000X', 100);
   m.state.valplans = [...m.state.valplans, saved({ courses: [reto, fils] }, [], [{ courseId: reto.id, pupils: 4, classes: [{ classId: id(21), pupils: 3 }] }])];

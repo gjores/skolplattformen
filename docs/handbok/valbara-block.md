@@ -61,6 +61,7 @@ Poängen prövas per klass mot klassens egen rad. Har en rad 200 p räcker kurse
 
 - **En urkryssad klass räknas i det block där den ingår**, inte i det block där den är urkryssad.
 - **En klass som finns i två block stoppar båda blocken** tills den är urkryssad i alla block utom ett.
+- **En kopplad timplansrad som inte längre finns stoppar blocket.** Den står under **Timplaner och klasser** med knappen **Ta bort kopplingen**. Ta bort den och spara blocket. Har elever lämnat val får du först frågan, med antal elever, och valen finns kvar under Elevval.
 - **En klass som saknar block stoppar inte blocket.** Den står under **Att känna till**, och klassens elever kan inte välja förrän klassen ligger i ett block.
 - **Kurstid som skiljer sig från timplanens rad stoppar inte.** Den står också under **Att känna till**.
 

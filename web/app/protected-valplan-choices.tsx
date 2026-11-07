@@ -107,7 +107,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
 
       <section className="valplan-section" aria-label="Elever">
         <h3>Elever</h3>
-        <p className="valplan-muted">{pupils.length} elever · {count('not_chosen')} har inte valt · {count('awaiting_guardian')} väntar på vårdnadshavare · {count('ready_for_confirmation')} klara att bekräfta · {count('confirmed')} bekräftade</p>
+        <p className="valplan-muted">{pupils.length === 1 ? '1 elev' : `${pupils.length} elever`} · {count('not_chosen')} har inte valt · {count('awaiting_guardian')} väntar på vårdnadshavare · {count('ready_for_confirmation')} klara att bekräfta · {count('confirmed')} bekräftade</p>
         <div className="valplan-fields">
           <label>Status<select value={stateFilter} onChange={e => setStateFilter(e.target.value)}><option value="">Alla</option>{Object.entries(VALPLAN_STATE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
           <label>Klass<select value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="">Alla</option>{data.classes.filter(c => data.pupils.some(p => p.classIds.includes(c.id))).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>

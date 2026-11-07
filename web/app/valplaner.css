@@ -33,6 +33,8 @@
 .valplan-time { max-width: 6.5rem; }
 .valplan-readers { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .valplan-readers button, .valplan-check-list button { min-height: var(--control-height); }
+.valplan-stray-rows li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem .75rem; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
+.valplan-stray-rows button { min-height: var(--control-height); }
 .valplan-readers-row .valplan-class-picks { padding-left: 0; }
 .valplan-readers-row legend { font-weight: 600; }
 /* Kontroll: status in words, what is left, and a way to the field. */
@@ -53,6 +55,7 @@
 .valplan-group li select { width: auto; max-width: 100%; }
 .valplan-group-form legend { font-weight: 600; }
 .valplan-open { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+.valplan-open .protected-date-field { display: grid; gap: .375rem; flex: 1 1 15rem; max-width: 20rem; min-width: 0; }
 .valplan-workspace select { height: var(--control-height); appearance: none; -webkit-appearance: none; background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%); background-position:right 18px center,right 13px center; background-repeat:no-repeat; background-size:5px 5px; padding-right: 2rem; }
 .valplan-add legend { font-weight: 600; }
 .valplan-field-error { color: var(--destructive); font-size: .875rem; }

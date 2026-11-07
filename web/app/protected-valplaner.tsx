@@ -9,7 +9,7 @@ import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanCheck, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLinkClasses, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
+import { valplanCheck, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLinkClasses, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind, type ValplanRowLink } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -50,7 +50,8 @@ const CHECK_AREA: Record<ValplanCheckItem['area'], string> = { classes: 'Klasser
 const CHECK_STATE: Record<ValplanCheckItem['state'], string> = { done: 'Klart', open: 'Återstår', notice: 'Att känna till' };
 const newId = () => crypto.randomUUID();
 const hours = (minutes: number | null) => minutes === null ? 'Tid okänd' : formatTime(minutes);
-const pupilCount = (pupils: number) => pupils === 1 ? '1 elev' : `${pupils} elever`;
+const amount = (n: number, one: string, many: string) => n === 1 ? `1 ${one}` : `${n} ${many}`;
+const pupilCount = (pupils: number) => amount(pupils, 'elev', 'elever');
 const levelLabel = (level: CatalogLevel) => `${level.subjectName} – ${level.itemName.toLocaleLowerCase('sv')}`;
 type TimeText = Record<string, { ht: string; vt: string }>;
 const noTime = (text = '') => { const value = parseTimplanMinuteInput(text); return value === 0 || value === null; };
@@ -132,6 +133,8 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
 
   const rows = useMemo(() => data?.rows.filter(r => r.blockKind === draft?.kind) ?? [], [data, draft?.kind]);
   const linkedRows = useMemo(() => rows.filter(r => draft?.rows.some(l => valplanRowKey(l) === valplanRowKey(r))), [rows, draft?.rows]);
+  // A link the list cannot show: the row left the timplan or changed type. Removing it is the only way forward.
+  const strayLinks = useMemo(() => draft?.rows.filter(l => !rows.some(r => valplanRowKey(r) === valplanRowKey(l))) ?? [], [rows, draft?.rows]);
   const linkedClasses = useMemo(() => linkedRows.flatMap(r => {
     const link = draft?.rows.find(l => valplanRowKey(l) === valplanRowKey(r)), ids = link ? valplanLinkClasses(link, r) : [];
     return r.classes.filter(c => ids.includes(c.id));
@@ -170,6 +173,13 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     update(p => ({ ...p, rows: on ? [...p.rows, valplanRowLink(row, p.id)] : p.rows.filter(l => valplanRowKey(l) !== valplanRowKey(row)) }));
     // Courses added before the row get its time now; entered time is never replaced.
     if (on) setTime(t => { const next = { ...t }; for (const c of draft?.courses ?? []) { const { minutesHt, minutesVt } = valplanTimeShare(c.points, row); if (minutesHt + minutesVt > 0 && noTime(t[c.id]?.ht) && noTime(t[c.id]?.vt)) next[c.id] = { ht: formatTimplanMinutes(minutesHt), vt: formatTimplanMinutes(minutesVt) }; } return next; });
+  }
+  async function removeStrayLink(link: ValplanRowLink) {
+    // The row's classes may be unknown now, so count every pupil outside the classes that remain.
+    const pupils = savedEntry()?.choiceCounts.filter(c => !linkedClasses.some(k => k.id === c.classId)).reduce((n, c) => n + c.pupils, 0) ?? 0;
+    if (pupils && !(await requestConfirm({ title: 'Elever har lämnat val', confirmLabel: 'Ta bort kopplingen', cancelLabel: 'Behåll kopplingen',
+      description: `${pupilCount(pupils)} utanför blockets klasser har lämnat val. Valen finns kvar under Elevval, men eleverna kan inte välja i blocket.` }))) return;
+    update(p => ({ ...p, rows: p.rows.filter(l => valplanRowKey(l) !== valplanRowKey(link)) }));
   }
   async function toggleRowClass(row: ValplanRowOption, classId: string, on: boolean) {
     if (!on && !(await askAboutChoices([classId], row, 'Kryssa ur klassen', 'Behåll klassen'))) return;
@@ -235,11 +245,11 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     switch (item.code) {
       case 'classes_ok': return `${who} ingår.`;
       case 'no_classes': return 'Inga klasser ingår. Kryssa i en klass, eller koppla klasser under Klasser och läsår i timplanen.';
-      case 'row_missing': return DIAGNOSTIC.row_missing;
+      case 'row_missing': return `${DIAGNOSTIC.row_missing} Ta bort kopplingen och spara blocket.`;
       case 'class_doubled': return `${who} finns också i ${item.valplanIds.map(otherName).join(', ')}. Kryssa ur klassen här eller i det blocket.`;
       case 'class_in_several_rows': return `${who} finns i två rader i blocket. Koppla bara en rad per klass.`;
       case 'classes_waiting': return `${who} saknar block och kan inte välja förrän klassen ligger i ett block. Det stoppar inte det här blocket.`;
-      case 'courses_ok': return item.courseIds.length === 1 ? '1 kurs att välja.' : `${item.courseIds.length} kurser att välja.`;
+      case 'courses_ok': return `${amount(item.courseIds.length, 'kurs', 'kurser')} att välja.`;
       case 'no_courses': return 'Lägg till minst en kurs.';
       case 'time_ok': return 'Alla kurser har undervisningstid.';
       case 'time_missing': return `Ange timmar för HT eller VT: ${which}.`;
@@ -270,7 +280,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
         <div className="section-heading"><h2>Läsårets block</h2></div>
         {data.valplans.length ? <ul className="valplan-list">{data.valplans.map(({ valplan }) => <li key={valplan.id}>
           <button type="button" aria-pressed={selected === valplan.id} onClick={() => choose(valplan)}><strong>{valplan.name}</strong>
-            <small>{VALPLAN_KIND_LABEL[valplan.kind]} · {valplan.courses.length} kurser · {valplan.rows.length} timplansrader</small>
+            <small>{VALPLAN_KIND_LABEL[valplan.kind]} · {amount(valplan.courses.length, 'kurs', 'kurser')} · {amount(valplan.rows.length, 'timplansrad', 'timplansrader')}</small>
             {blockMissing(valplan).length > 0 && <small>Utan block: {blockMissing(valplan).join(', ')}</small>}</button></li>)}</ul>
           : <p className="empty-state">{data.rows.length ? 'Inga block ännu. Skapa ett från en rad ovan.' : `Inga valbara rader ${planningYearLabel(schoolYear)}. Raderna visas här när en timplan med valbara block är fastställd och gäller läsåret.`}</p>}
       </aside>
@@ -307,7 +317,12 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
                   <span>{k.name}{checked && other ? <small className="valplan-field-error">Finns också i {otherName(other.valplanId)}. Kryssa ur klassen här eller i det blocket.</small> : !checked && <small>{other ? `Ingår i ${otherName(other.valplanId)}` : 'Saknar block'}</small>}</span></label>;
               })}</fieldset>}</li>;
           })}</ul> : <p className="validation-warning">Inga godkända timplaner har en rad för {VALPLAN_KIND_LABEL[draft.kind].toLocaleLowerCase('sv')} läsåret {planningYearLabel(schoolYear)}.</p>}
-          {diagnostics.filter(d => d.rowKey && !d.courseId && d.code !== 'class_in_other_block').map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
+          {strayLinks.length > 0 && <ul className="valplan-rows valplan-stray-rows">{strayLinks.map(l => {
+            const row = data?.rows.find(r => valplanRowKey(r) === valplanRowKey(l)), label = row ? rowLabel(row) : `Timplansrad i åk ${l.year}`;
+            return <li key={valplanRowKey(l)}><div><strong>{label}</strong><p className="valplan-field-error">{DIAGNOSTIC[row ? 'row_kind_mismatch' : 'row_missing']}</p></div>
+              <Button size="sm" variant="outline" disabled={busy} aria-label={`Ta bort kopplingen till ${label}`} onClick={() => void removeStrayLink(l)}>Ta bort kopplingen</Button></li>;
+          })}</ul>}
+          {diagnostics.filter(d => d.rowKey && !d.courseId && d.code !== 'class_in_other_block' && d.code !== 'row_missing' && d.code !== 'row_kind_mismatch').map((d, i) => <p key={i} className="valplan-field-error">{DIAGNOSTIC[d.code] ?? d.code}</p>)}
         </section>
 
         <section aria-labelledby={`${heading}-courses`} className="valplan-section">
