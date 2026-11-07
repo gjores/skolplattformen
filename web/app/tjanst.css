@@ -177,6 +177,7 @@
   .tjanst-cards{display:grid}
   .tjanst-view-select,.tjanst-status-side .tjanst-inline-field{flex-direction:column;align-items:stretch;width:100%;min-width:0;white-space:normal}
   .tjanst-view-select select,.tjanst-status-side .tjanst-inline-field select{width:100%;min-width:0}
+  .tjanst-view-select select{min-height: var(--control-height); appearance: none; -webkit-appearance: none; background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%); background-position:right 18px center,right 13px center; background-repeat:no-repeat; background-size:5px 5px; padding-right: 2rem;}
   .tjanst .tjanst-picker{grid-template-columns:minmax(0,1fr)}
   .tjanst .tjanst-picker select{width:100%}
   .tjanst-dialog .tjanst-person-time{grid-template-columns:minmax(0,1fr)}

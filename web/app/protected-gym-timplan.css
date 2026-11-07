@@ -3,6 +3,7 @@
 .gym-timplan h2,.gym-timplan h3 { font-weight: 650; }
 .gt-title,.gt-head,.gt-toolbar,.gt-source-line { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
 .gt-title { justify-content: flex-start; margin-bottom: 1.5rem; }
+.gt-head > div:first-child { min-width: 0; overflow-wrap: anywhere; }
 .gt-head { margin: .8rem 0 1rem; }
 .gt-head p,.gt-title p,.gt-explanation,.gt-boundary,.gt-muted { color: #617087; }
 .gt-state { display: inline-block; border-radius: 1rem; padding: .3rem .7rem; background: #edf1f7; margin-top: .5rem; font-size: .9rem; }
@@ -69,6 +70,7 @@
 .gt-source-dialog { max-width: min(64rem,calc(100vw - 2rem)) !important; max-height: 90dvh; overflow: auto; }
 .gt-empty { padding: 1.3rem; }
 .gt-tabs { display: flex; gap: .5rem; margin: 0 0 1.2rem; flex-wrap: wrap; }
+.gt-tabs [data-slot="button"], .gt-choice [data-slot="button"] { flex-shrink: 1; max-width: 100%; height: auto; min-height: var(--control-height); white-space: normal; text-align: start; }
 .gym-timplan button,.gt-tabs button,.gt-dialog-actions button,.gt-hour-inputs input,.gt-year-picker select { min-height: 44px; }
 @media(max-width:767px) {
   .gt-head { align-items: flex-start; }

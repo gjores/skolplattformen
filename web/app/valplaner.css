@@ -1,10 +1,13 @@
 /* Valbara block: Skolplattan tokens only (globals.css). */
-.valplan-workspace { display: grid; gap: 1rem; color: var(--foreground); min-width: 0; }
+.valplan-workspace { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; color: var(--foreground); min-width: 0; overflow-wrap: break-word; }
 .valplan-workspace h2, .valplan-workspace h3, .valplan-workspace p { margin: 0; }
 .valplan-workspace .page-heading { margin-bottom: 1rem; }
+.valplan-workspace .page-heading > div { min-width: 0; }
+.valplan-workspace .page-heading h1 { overflow-wrap: anywhere; }
 .valplan-columns { display: grid; grid-template-columns: minmax(15rem, 1fr) minmax(0, 3fr); gap: 1rem; align-items: start; }
-.valplan-card { border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; display: grid; gap: 1rem; min-width: 0; }
-.valplan-card .section-heading { margin-bottom: 0; }
+.valplan-card { border: 1px solid var(--border); background: var(--card); border-radius: var(--radius-lg); padding: 1.25rem; display: grid; grid-template-columns: minmax(0, 1fr); gap: 1rem; min-width: 0; }
+.valplan-card .section-heading { margin-bottom: 0; flex-wrap: wrap; }
+.valplan-workspace .status-badge { max-width: 100%; white-space: normal; }
 .valplan-editor { container-type: inline-size; }
 .valplan-muted, .valplan-workspace small { color: var(--muted-foreground); font-size: .875rem; }
 .valplan-workspace small { display: block; margin-top: .25rem; }
@@ -14,12 +17,14 @@
 .valplan-missing { display: grid; gap: .75rem; }
 .valplan-missing li { display: grid; gap: .25rem; justify-items: start; padding-bottom: .5rem; border-bottom: 1px solid var(--border); }
 .valplan-missing button, .valplan-actions button, .valplan-add > button { min-height: var(--control-height); }
+/* A label wraps when the text is large, so the button never pushes the page sideways. */
+.valplan-workspace [data-slot="button"] { flex-shrink: 1; max-width: 100%; height: auto; min-height: var(--control-height); white-space: normal; text-align: start; }
 .valplan-fields { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1rem; align-items: end; }
 .valplan-workspace label { display: grid; gap: .375rem; font-size: .875rem; }
 .valplan-workspace input:not([type="checkbox"]), .valplan-workspace select { width: 100%; min-height: var(--control-height); border: 1px solid var(--input); border-radius: var(--radius-md); background: var(--card); padding: .5rem .75rem; color: inherit; font: inherit; }
 .valplan-workspace input[aria-invalid="true"] { border-color: var(--destructive); }
 .valplan-workspace :focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
-.valplan-section { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+.valplan-section { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; grid-template-columns: minmax(0, 1fr); }
 .valplan-section h3 { font-size: 1rem; font-weight: 600; }
 .valplan-rows { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
 .valplan-check { display: flex !important; align-items: flex-start; gap: .625rem !important; min-height: var(--control-height); padding: .375rem 0; }
@@ -42,7 +47,7 @@
 .valplan-check-list .status-badge { justify-self: start; align-self: start; }
 .valplan-add { display: grid; gap: .75rem; border: 1px solid var(--border); border-radius: var(--radius-md); padding: 1rem; }
 .catalog-level-search { display: grid; gap: .5rem; }
-.catalog-level-search .ppk-level-choices { list-style: none; margin: 0; padding: 0; display: grid; gap: .375rem; max-height: 18rem; overflow-y: auto; }
+.catalog-level-search .ppk-level-choices { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: .375rem; max-height: 18rem; overflow-y: auto; }
 .catalog-level-search .ppk-level-choices button { width: 100%; text-align: left; min-height: var(--control-height); border: 1px solid var(--border); border-radius: var(--radius-md); padding: .5rem .75rem; background: var(--card); color: inherit; }
 .catalog-level-search .ppk-level-choices button:disabled { color: var(--muted-foreground); }
 .valplan-footer { display: grid; gap: .75rem; border-top: 1px solid var(--border); padding-top: 1rem; }
@@ -56,7 +61,7 @@
 .valplan-group-form legend { font-weight: 600; }
 .valplan-open { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
 .valplan-open .protected-date-field { display: grid; gap: .375rem; flex: 1 1 15rem; max-width: 20rem; min-width: 0; }
-.valplan-workspace select { height: var(--control-height); appearance: none; -webkit-appearance: none; background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%); background-position:right 18px center,right 13px center; background-repeat:no-repeat; background-size:5px 5px; padding-right: 2rem; }
+.valplan-workspace select { appearance: none; -webkit-appearance: none; background-image:linear-gradient(45deg,transparent 50%,#53677f 50%),linear-gradient(135deg,#53677f 50%,transparent 50%); background-position:right 18px center,right 13px center; background-repeat:no-repeat; background-size:5px 5px; padding-right: 2rem; }
 .valplan-add legend { font-weight: 600; }
 .valplan-field-error { color: var(--destructive); font-size: .875rem; }
 .valplan-alert { color: var(--destructive); display: grid; gap: .5rem; justify-items: start; }
@@ -66,6 +71,9 @@
   .valplan-columns, .valplan-fields { grid-template-columns: minmax(0, 1fr); }
   .valplan-card { padding: 1rem; }
   .valplan-actions > button { flex-grow: 1; }
+}
+@container (max-width: 26rem) {
+  .valplan-fields { grid-template-columns: minmax(0, 1fr); }
 }
 /* Follows the editor's own width: the side menu and plan list narrow it long before the window is phone-sized.
    Courses become stacked cards so names and time fields stay readable without sideways scrolling. */
@@ -80,4 +88,9 @@
   .valplan-check-list li { grid-template-columns: minmax(0, 1fr); gap: .375rem; }
   .valplan-time { max-width: none; }
   .valplan-remove button { width: 100%; min-height: var(--control-height); }
+}
+/* With large text two columns no longer hold a word or a time. */
+@container (max-width: 16rem) {
+  .valplan-table tr { grid-template-columns: minmax(0, 1fr); }
+  .valplan-table td { grid-column: 1 / -1; }
 }
