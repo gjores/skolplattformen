@@ -9,9 +9,9 @@ Rektor och skoladministratör arbetar med valplaner och elevval. Elever och vår
 ## Skapa en valplan
 
 1. Välj skola och läsår och öppna **Valplaner**.
-2. Välj typ under **Ny valplan**: **Individuellt val**, **Moderna språk** eller **Programfördjupning**.
+2. Välj typ under **Ny valplan**: **Individuellt val**, **Moderna språk**, **Språkämne**, **Naturvetenskapligt ämne** eller **Programfördjupning**.
 3. Under **Timplaner som valplanen fyller** markerar du de valbara raderna i läsårets godkända timplaner. Eleverna i radernas klasser får välja. En rad kan fyllas av högst en valplan per läsår.
-4. Välj **Lägg till kurs** och sök i Skolverkets katalog. Varje kurs har poäng och egen undervisningstid för HT och VT. Tiden föreslås från raden och kan justeras.
+4. Välj **Lägg till kurs** och sök i Skolverkets katalog. Varje kurs har poäng och egen undervisningstid för HT och VT. Tiden föreslås från raden och kan justeras. **Språkämne** visar bara moderna språk, engelska, klassisk grekiska och latin. **Naturvetenskapligt ämne** visar bara biologi, bioteknik, fysik, fysik fördjupning och kemi. Modersmål, svenskt teckenspråk och nationella minoritetsspråk går inte att lägga till i en valplan ännu.
 5. Under **Får läsas av** kan du begränsa en kurs till vissa av klasserna.
 6. Välj **Spara valplan**.
 

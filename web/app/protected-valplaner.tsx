@@ -9,7 +9,7 @@ import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanDiagnostics, valplanRowKey, valplanTimeShare, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
+import { valplanDiagnostics, valplanRowKey, valplanSubjectAllowed, valplanTimeShare, type Valplan, type ValplanCourse, type ValplanDiagnostic, type ValplanKind } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -19,15 +19,19 @@ import ProtectedValplanChoices from './protected-valplan-choices';
 import './valplaner.css';
 
 const catalog = artifact as ProgramplanCatalog;
-export const VALPLAN_KIND_LABEL: Record<ValplanKind, string> = { individualChoice: 'Individuellt val', modernLanguage: 'Moderna språk', specialization: 'Programfördjupning' };
+export const VALPLAN_KIND_LABEL: Record<ValplanKind, string> = { individualChoice: 'Individuellt val', modernLanguage: 'Moderna språk', languageSubject: 'Språkämne', naturalScience: 'Naturvetenskapligt ämne', specialization: 'Programfördjupning' };
 const MODERN = new Set(['MODY', 'MODG', 'MODO', 'MODF']);
+const SUBJECT_LIMIT: Partial<Record<ValplanKind, string>> = {
+  languageSubject: 'Här finns moderna språk, engelska, klassisk grekiska och latin, enligt gymnasieförordningen.',
+  naturalScience: 'Här finns biologi, bioteknik, fysik, fysik fördjupning och kemi, enligt gymnasieförordningen.',
+};
 const DIAGNOSTIC: Record<string, string> = {
   duplicate_course: 'Kursen finns redan i valplanen.',
   course_not_in_catalog: 'Kursen finns inte i Skolverkets katalog med de här poängen.',
   course_not_valid: 'Kursen gäller inte när läsåret börjar.',
   language_required: 'Välj språk för kursen.',
   language_not_applicable: 'Språk anges bara för moderna språk.',
-  course_kind_mismatch: 'Valplanen för moderna språk kan bara innehålla kurser i moderna språk.',
+  course_kind_mismatch: 'Ämnet är inte tillåtet i den här typen av valplan.',
   course_time_missing: 'Ange undervisningstid för HT eller VT.',
   course_class_not_linked: 'En vald klass läser inte längre någon av de kopplade timplanerna.',
   course_fits_no_row: 'Kursen ryms inte i någon kopplad rad. Kontrollera poängen och klasserna.',
@@ -107,7 +111,8 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, onOp
   const timeErrors = draft ? draft.courses.filter(c => parseTimplanMinuteInput(time[c.id]?.ht ?? '') === undefined || parseTimplanMinuteInput(time[c.id]?.vt ?? '') === undefined).map(c => c.id) : [];
   const diagnostics: ValplanDiagnostic[] = draft && data ? valplanDiagnostics(withTime(draft, time), data.rows, catalog) : [];
   const errors = diagnostics.filter(d => d.severity === 'error');
-  const levels = useMemo(() => gyGradeLevels(catalog, `${schoolYear}-07-01`, code => draft?.kind === 'modernLanguage' ? MODERN.has(code) : code !== 'MODE'), [schoolYear, draft?.kind]);
+  const kind = draft?.kind;
+  const levels = useMemo(() => gyGradeLevels(catalog, `${schoolYear}-07-01`, code => !!kind && code !== 'MODE' && valplanSubjectAllowed(kind, code)), [schoolYear, kind]);
 
   function addCourse(level: CatalogLevel) {
     if (!draft) return;
@@ -213,7 +218,8 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, onOp
               </tr>;
             })}</tbody></table></div> : <p className="valplan-muted">Inga kurser ännu. Lägg till de kurser som eleverna kan välja.</p>}
           {adding ? <div className="valplan-add">
-            {draft.kind === 'modernLanguage' || levels.some(l => MODERN.has(l.subjectCode)) ? <label>Språk för moderna språk<select value={language} disabled={busy} onChange={e => setLanguage(e.target.value)}>
+            {SUBJECT_LIMIT[draft.kind] && <p className="valplan-muted">{SUBJECT_LIMIT[draft.kind]}</p>}
+            {levels.some(l => MODERN.has(l.subjectCode)) ? <label>Språk för moderna språk<select value={language} disabled={busy} onChange={e => setLanguage(e.target.value)}>
               <option value="">Välj språk</option>{PROGRAMPLAN_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</select></label> : null}
             <CatalogLevelSearch levels={levels} searchLabel="Sök kurs att lägga till" listLabel="Kurser i katalogen" disabled={busy}
               unavailable={l => !MODERN.has(l.subjectCode) && draft.courses.some(c => c.subjectCode === l.subjectCode && c.subjectVersion === l.subjectVersion && c.itemCode === l.itemCode)}

@@ -1,9 +1,10 @@
 import { ProgramplanContractError, type ProgramplanCatalog } from './programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES } from './programplan-languages.ts';
+import { programplanValpaketSubjectAllowed } from './programplan-packages.ts';
 
 /** A school's offering of elective courses for one school year, shared by the timplan rows it fills.
  * Local planning information; groups and memberships are mapped to SS 12000 in study-group-model.ts. */
-export const VALPLAN_KINDS = ['modernLanguage', 'individualChoice', 'specialization'] as const;
+export const VALPLAN_KINDS = ['modernLanguage', 'languageSubject', 'naturalScience', 'individualChoice', 'specialization'] as const;
 export type ValplanKind = typeof VALPLAN_KINDS[number];
 export type ValplanCourse = {
   id: string; subjectCode: string; subjectVersion: number; itemCode: string; points: number; languageCode: string | null;
@@ -22,6 +23,13 @@ export type ValplanChoiceResult = { errors: string[]; points: number; minutesHt:
 
 const MODERN_LANGUAGE_SUBJECTS = new Set(['MODY', 'MODG', 'MODO', 'MODF']);
 const LANGUAGE_CODES = new Set(PROGRAMPLAN_LANGUAGES.map(l => l.code));
+
+/** Språkämne and naturvetenskapligt ämne follow programplanens package rule (4 kap. 1 a §), with modern languages as courses. */
+export function valplanSubjectAllowed(kind: ValplanKind, subjectCode: string): boolean {
+  if (kind === 'modernLanguage') return MODERN_LANGUAGE_SUBJECTS.has(subjectCode);
+  if (kind === 'languageSubject') return MODERN_LANGUAGE_SUBJECTS.has(subjectCode) || programplanValpaketSubjectAllowed(kind, subjectCode);
+  return kind === 'naturalScience' ? programplanValpaketSubjectAllowed(kind, subjectCode) : true;
+}
 
 function bad(): never { throw new ProgramplanContractError('invalid_valplan'); }
 function shape(value: unknown, keys: string[]): Record<string, unknown> {
@@ -117,7 +125,7 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
     const language = MODERN_LANGUAGE_SUBJECTS.has(course.subjectCode);
     if (language && course.languageCode === null) out.push({ code: 'language_required', severity: 'error', ...at });
     if (!language && course.languageCode !== null) out.push({ code: 'language_not_applicable', severity: 'error', ...at });
-    if (plan.kind === 'modernLanguage' && !language) out.push({ code: 'course_kind_mismatch', severity: 'error', ...at });
+    if (!valplanSubjectAllowed(plan.kind, course.subjectCode)) out.push({ code: 'course_kind_mismatch', severity: 'error', ...at });
     if (course.minutesHt + course.minutesVt === 0) out.push({ code: 'course_time_missing', severity: 'error', ...at });
     if (course.classIds?.some(id => !classRow.has(id))) out.push({ code: 'course_class_not_linked', severity: 'error', ...at });
     let fits = false;

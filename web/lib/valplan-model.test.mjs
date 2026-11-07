@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanTimeShare} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanRowKey,valplanSubjectAllowed,valplanTimeShare} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -43,6 +43,25 @@ test('catalog, validity, language and duplicate rules block saving errors',()=>{
   assert.ok(codes(valplanDiagnostics(parseValplan(ended),rows(),catalog),'error').includes('course_not_valid'));
   const lang=plan();lang.kind='modernLanguage';
   assert.ok(codes(valplanDiagnostics(parseValplan(lang),rows(),catalog),'error').includes('course_kind_mismatch'));
+});
+
+test('all five block kinds parse, and språkämne and naturvetenskapligt ämne keep to 4 kap. 1 a §',()=>{
+  assert.deepEqual([...VALPLAN_KINDS].sort(),['individualChoice','languageSubject','modernLanguage','naturalScience','specialization']);
+  for(const kind of VALPLAN_KINDS)assert.equal(parseValplan({...plan(),kind}).kind,kind);
+  const allowed=(kind,codes)=>codes.filter(code=>valplanSubjectAllowed(kind,code));
+  const subjects=['MODY','MODF','ENGE','KLAS','LATI','BIOG','BIOE','FYSK','FYSF','KEMI','PSYL'];
+  assert.deepEqual(allowed('modernLanguage',subjects),['MODY','MODF']);
+  assert.deepEqual(allowed('languageSubject',subjects),['MODY','MODF','ENGE','KLAS','LATI']);
+  assert.deepEqual(allowed('naturalScience',subjects),['BIOG','BIOE','FYSK','FYSF','KEMI']);
+  assert.deepEqual(allowed('individualChoice',subjects),subjects);
+  const row=kind=>rows().map(r=>({...r,blockKind:kind}));
+  const language={...plan(),kind:'languageSubject',courses:[course(1,'MODO','MODO1000X',100,{languageCode:'es'}),course(2,'ENGE','ENGE3000X',100)]};
+  assert.deepEqual(codes(valplanDiagnostics(parseValplan(language),row('languageSubject'),catalog),'error'),[]);
+  assert.ok(codes(valplanDiagnostics(parseValplan({...language,courses:[course(1,'PSYL','PSYL1000X',50)]}),row('languageSubject'),catalog),'error').includes('course_kind_mismatch'));
+  const science={...plan(),kind:'naturalScience',courses:[course(1,'KEMI','KEMI2000X',100)]};
+  assert.deepEqual(codes(valplanDiagnostics(parseValplan(science),row('naturalScience'),catalog),'error'),[]);
+  assert.ok(codes(valplanDiagnostics(parseValplan({...science,courses:[course(1,'ENGE','ENGE3000X',100)]}),row('naturalScience'),catalog),'error').includes('course_kind_mismatch'));
+  assert.ok(codes(valplanDiagnostics(parseValplan(science),row('languageSubject'),catalog),'error').includes('row_kind_mismatch'));
 });
 
 test('row links: block rows only, one valplan per row, stale version and class overlap are visible',()=>{

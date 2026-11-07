@@ -144,6 +144,21 @@ test('saknas timplansrad för läsåret visas det som gul notis', async ({ page 
   await expect(page.locator('.validation-warning')).toHaveText('Inga godkända timplaner har en rad för programfördjupning läsåret 2027/28.');
 });
 
+test('språkämne och naturvetenskapligt ämne visar bara tillåtna ämnen', async ({ page }) => {
+  await mock(page); await page.goto(URL);
+  const group = page.getByRole('group', { name: 'Ny valplan' }), search = page.getByLabel('Sök kurs att lägga till');
+  await group.getByRole('button', { name: 'Språkämne' }).click();
+  await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Språkämne 2027/28');
+  await expect(page.getByText('Här finns moderna språk, engelska, klassisk grekiska och latin')).toBeVisible();
+  await expect(page.getByLabel('Språk för moderna språk')).toBeVisible();
+  await search.fill('LATI2000X'); await expect(page.getByRole('button', { name: /LATI2000X/ })).toBeVisible();
+  await search.fill('PSYL1000X'); await expect(page.getByRole('button', { name: /PSYL1000X/ })).toHaveCount(0);
+  await group.getByRole('button', { name: 'Naturvetenskapligt ämne' }).click();
+  await expect(page.getByLabel('Språk för moderna språk')).toHaveCount(0);
+  await search.fill('KEMI2000X'); await expect(page.getByRole('button', { name: /KEMI2000X/ })).toBeVisible();
+  await search.fill('ENGE3000X'); await expect(page.getByRole('button', { name: /ENGE3000X/ })).toHaveCount(0);
+});
+
 test('en orörd ny valplan låser inte sidan och ett utkast kan slängas', async ({ page }) => {
   await mock(page); await page.goto(URL);
   const dialogs: string[] = []; await autoAnswerDiscard(page, false, dialogs);

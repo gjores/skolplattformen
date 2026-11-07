@@ -25,6 +25,8 @@ user_trial_status: pending_valplan_uat_u1_u9
 milestone_name: milestone
 ---
 
+**VP-10 klart 2026-11-07:** [Alla fem blocktyper](phases/05.2-schemamodul/05.2-VP-10-SUMMARY.md) går att fylla, med ämnen enligt 4 kap. 1 a §. Syntetiskt provat, inte installerat på 3012. Användaren har godkänt F-05: varje klass på en rad ska tillhöra ett block. Nästa steg: VP-11.
+
 **Enklare valbara block planerat 2026-11-06:** [kontext](phases/05.2-schemamodul/05.2-VP-FORENKLING-CONTEXT.md) och planerna VP-10–15. Användaren: valblocken är för krångliga. Blocket skapas från timplanens rad, klasser väljs i blocket, alla fem blocktyper kan fyllas, och en kurs eleven redan har går inte att välja. Inget är genomfört.
 
 **Klasskoppling 2026-11-06:** [CLASS-LINK](phases/05.2-schemamodul/05.2-CLASS-LINK-SUMMARY.md). Användarbeslut: en gymnasieklass kopplas en gång, kopplingen gäller valt läsår och framåt, och byte gäller från valt läsår. Ersätter det tidigare godkända bytet för ett enda läsår. SA27A och SA27B på 3012 pekar på en ersatt version och är inte ifyllda. Grundskolan och IM är bundna till ett läsår och behöver ett eget beslut.
