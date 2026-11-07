@@ -22,6 +22,11 @@ export type ValplanRowContext = Omit<ValplanRowLink, 'excludedClassIds'> & {
 };
 export type ValplanDiagnostic = { code: string; severity: 'error' | 'notice'; courseId?: string; rowKey?: string; classId?: string };
 export type ValplanOffer = { row: ValplanRowContext; points: number; courseIds: string[] };
+/** One line in Kontroll: done, still open (stops the opening) or worth knowing. */
+export type ValplanCheckItem = { area: 'classes' | 'courses' | 'time' | 'points'; state: 'done' | 'open' | 'notice';
+  code: 'classes_ok' | 'no_classes' | 'row_missing' | 'class_doubled' | 'class_in_several_rows' | 'classes_waiting' | 'courses_ok' | 'no_courses' | 'time_ok' | 'time_missing' | 'time_deviates' | 'points_ok' | 'points_waiting' | 'class_without_courses' | 'points_unreachable';
+  classIds: string[]; courseIds: string[]; valplanIds: string[]; points?: number; closest?: number };
+export type ValplanCheck = { ready: boolean; items: ValplanCheckItem[] };
 export type ValplanChoiceResult = { errors: string[]; points: number; minutesHt: number; minutesVt: number; deviationHt: number | null; deviationVt: number | null };
 
 const MODERN_LANGUAGE_SUBJECTS = new Set(['MODY', 'MODG', 'MODO', 'MODF']);
@@ -198,13 +203,74 @@ export function valplanTimeShare(points: number, row: Pick<ValplanRowContext, 'p
   return { minutesHt: share(row?.minutesHt), minutesVt: share(row?.minutesVt) };
 }
 
+const rowCourses = (plan: Valplan, row: ValplanRowContext, classId: string) => plan.courses.filter(c => c.points <= row.points && (!c.classIds || c.classIds.includes(classId))
+  && (!row.allowedLevelKeys || row.allowedLevelKeys.includes(valplanLevelKey(c))));
 /** What a pupil in the class may choose: the linked row decides the points for this year. */
 export function valplanOffer(plan: Valplan, rows: readonly ValplanRowContext[], classId: string): ValplanOffer | null {
   const row = rows.find(r => plan.rows.some(l => valplanRowKey(l) === valplanRowKey(r) && valplanLinkClasses(l, r).includes(classId)));
-  if (!row) return null;
-  const courseIds = plan.courses.filter(c => c.points <= row.points && (!c.classIds || c.classIds.includes(classId))
-    && (!row.allowedLevelKeys || row.allowedLevelKeys.includes(valplanLevelKey(c)))).map(c => c.id);
-  return { row, points: row.points, courseIds };
+  return row ? { row, points: row.points, courseIds: rowCourses(plan, row, classId).map(c => c.id) } : null;
+}
+
+const nameList = (names: readonly string[]) => names.length > 1 ? `${names.slice(0, -1).join(', ')} och ${names.at(-1)}` : names[0];
+/** Who may read a course in plain words, by naming the shorter group. */
+export function valplanCourseReaders(classes: readonly { id: string; name: string }[], classIds: readonly string[] | null): string {
+  if (!classes.length) return 'Inga klasser ännu';
+  const may = classes.filter(c => !classIds || classIds.includes(c.id)).map(c => c.name), others = classes.filter(c => classIds && !classIds.includes(c.id)).map(c => c.name);
+  if (!may.length) return 'Ingen klass';
+  if (!others.length) return 'Alla klasser';
+  return others.length <= may.length ? `Alla klasser utom ${nameList(others)}` : `Bara ${nameList(may)}`;
+}
+/** The highest sum at or under the target. Each course counts once, as in a pupil's choice. */
+export function valplanClosestPoints(points: readonly number[], target: number): number {
+  const reach = new Set([0]);
+  // The new sums are collected first, so one course is not added on top of itself.
+  for (const p of points) { const next = [...reach].map(sum => sum + p).filter(sum => sum <= target); for (const sum of next) reach.add(sum); }
+  return Math.max(...reach);
+}
+/** Kontroll (G5). Open lines stop the opening, and valplan_round_problem refuses the same things in the database.
+ * A class counts against the row it reads through this block, so an unticked class counts in its own block. */
+export function valplanCheck(plan: Valplan, rows: readonly ValplanRowContext[]): ValplanCheck {
+  const items: ValplanCheckItem[] = [];
+  const add = (area: ValplanCheckItem['area'], code: ValplanCheckItem['code'], state: ValplanCheckItem['state'], extra: Partial<ValplanCheckItem> = {}) =>
+    items.push({ area, code, state, classIds: [], courseIds: [], valplanIds: [], ...extra });
+  const contexts = new Map(rows.map(r => [valplanRowKey(r), r]));
+  const linked = plan.rows.flatMap(link => { const row = contexts.get(valplanRowKey(link)); return row ? [{ row, classIds: valplanLinkClasses(link, row) }] : []; });
+  const all = [...new Set(linked.flatMap(l => l.classIds))];
+  if (linked.length < plan.rows.length) add('classes', 'row_missing', 'open');
+  if (!all.length) add('classes', 'no_classes', 'open');
+  for (const { row, classIds } of linked) {
+    const others = row.blocks.filter(b => b.valplanId !== plan.id && b.classIds.some(id => classIds.includes(id)));
+    if (others.length) add('classes', 'class_doubled', 'open', { classIds: classIds.filter(id => others.some(b => b.classIds.includes(id))), valplanIds: others.map(b => b.valplanId) });
+  }
+  const several = all.filter(id => linked.filter(l => l.classIds.includes(id)).length > 1);
+  if (several.length) add('classes', 'class_in_several_rows', 'open', { classIds: several });
+  if (!items.length) add('classes', 'classes_ok', 'done', { classIds: all });
+  const waiting = linked.flatMap(l => l.row.classIds.filter(id => !l.classIds.includes(id) && !l.row.blocks.some(b => b.valplanId !== plan.id && b.classIds.includes(id))));
+  if (waiting.length) add('classes', 'classes_waiting', 'notice', { classIds: [...new Set(waiting)] });
+
+  add('courses', plan.courses.length ? 'courses_ok' : 'no_courses', plan.courses.length ? 'done' : 'open', { courseIds: plan.courses.map(c => c.id) });
+
+  const noTime = plan.courses.filter(c => c.minutesHt + c.minutesVt === 0).map(c => c.id);
+  if (noTime.length) add('time', 'time_missing', 'open', { courseIds: noTime });
+  else if (plan.courses.length) add('time', 'time_ok', 'done');
+  const deviates = plan.courses.filter(c => linked.some(({ row, classIds }) => {
+    const { minutesHt, minutesVt } = valplanTimeShare(c.points, row);
+    return minutesHt + minutesVt > 0 && c.minutesHt + c.minutesVt > 0 && c.minutesHt + c.minutesVt !== minutesHt + minutesVt && classIds.some(id => rowCourses(plan, row, id).includes(c));
+  })).map(c => c.id);
+  if (deviates.length) add('time', 'time_deviates', 'notice', { courseIds: deviates });
+
+  const missed = new Map<string, ValplanCheckItem>();
+  for (const { row, classIds } of linked) for (const classId of classIds) {
+    const offered = rowCourses(plan, row, classId), closest = valplanClosestPoints(offered.map(c => c.points), row.points);
+    if (closest === row.points) continue;
+    const code = offered.length ? 'points_unreachable' : 'class_without_courses', key = `${code}:${row.points}:${closest}`, seen = missed.get(key);
+    if (seen) { if (!seen.classIds.includes(classId)) seen.classIds.push(classId); }
+    else missed.set(key, { area: 'points', code, state: 'open', classIds: [classId], courseIds: [], valplanIds: [], points: row.points, closest });
+  }
+  items.push(...missed.values());
+  if (!all.length) add('points', 'points_waiting', 'open');
+  else if (!missed.size) add('points', 'points_ok', 'done', { classIds: all });
+  return { ready: !items.some(i => i.state === 'open'), items };
 }
 
 export function validateValplanChoice(plan: Valplan, offer: ValplanOffer, courseIds: readonly string[]): ValplanChoiceResult {

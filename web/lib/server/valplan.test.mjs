@@ -30,7 +30,7 @@ test('only rektor and skoladministratör reach the database',async()=>{
 });
 
 test('save re-checks model rules on rows read in the same transaction before the command',async()=>{
-  const reply={receipt:{commandId:id(6),valplanId:id(5),revision:1,replayed:false},read:read({valplans:[{catalogId:catalog.catalogId,valplan,choiceCounts:[]}],rows:[{...row,blocks:[{valplanId:id(5),classIds:[id(20)]}]}]})};
+  const reply={receipt:{commandId:id(6),valplanId:id(5),revision:1,replayed:false},read:read({valplans:[{catalogId:catalog.catalogId,valplan,choiceCounts:[],courseChoices:[]}],rows:[{...row,blocks:[{valplanId:id(5),classIds:[id(20)]}]}]})};
   const f=fixture(wrap(read()),wrap(reply));const saved=await commandValplan(f.tx,ctx,command());
   assert.equal(saved.body.receipt.revision,1);assert.equal(saved.event.action,'valplan_command');assert.deepEqual(f.calls.map(c=>/valplan_(\w+)\(/.exec(c)[1]),['read','command']);
   const tooBig={...valplan,courses:[{...valplan.courses[0],classIds:[id(99)]}]};
@@ -45,7 +45,7 @@ test('database hints become safe conflict and input replies; wrong receipts are 
   await rejects(()=>commandValplan(fixture(wrap(read()),sqlError('22023','valplan_course_identity')).tx,ctx,command()),e=>e.code==='bad_request'&&e.details.reason==='valplan_course_identity');
   await rejects(()=>commandValplan(fixture(wrap(read()),sqlError('42501')).tx,ctx,command()),'forbidden');
   await rejects(()=>commandValplan(fixture(wrap(read()),sqlError('XX000')).tx,ctx,command()),'AuditUnavailable');
-  const wrongReceipt={receipt:{commandId:id(66),valplanId:id(5),revision:1,replayed:false},read:read({valplans:[{catalogId:catalog.catalogId,valplan,choiceCounts:[]}]})};
+  const wrongReceipt={receipt:{commandId:id(66),valplanId:id(5),revision:1,replayed:false},read:read({valplans:[{catalogId:catalog.catalogId,valplan,choiceCounts:[],courseChoices:[]}]})};
   await rejects(()=>commandValplan(fixture(wrap(read()),wrap(wrongReceipt)).tx,ctx,command()),'AuditUnavailable');
 });
 

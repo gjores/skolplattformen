@@ -7,7 +7,9 @@ export type ValplanScope = { unitId: string; schoolYear: number };
 export type ValplanRowOption = ValplanRowContext & { blockKind: ValplanKind; planName: string; rowLabel: string; classes: { id: string; name: string }[] };
 /** Pupils with a choice in the block per class, so the view can ask before a class is unticked. */
 export type ValplanClassChoices = { classId: string; pupils: number };
-export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan; choiceCounts: ValplanClassChoices[] }[]; rows: ValplanRowOption[] };
+/** Pupils who chose a course, in all and per class, so the view can ask before the course or a class is removed. */
+export type ValplanCourseChoices = { courseId: string; pupils: number; classes: ValplanClassChoices[] };
+export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan; choiceCounts: ValplanClassChoices[]; courseChoices: ValplanCourseChoices[] }[]; rows: ValplanRowOption[] };
 export type ValplanCommand = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; commandId: string; action: 'save'; expectedRevision: number; catalogId: string; valplan: Valplan };
 export type ValplanReceipt = { commandId: string; valplanId: string; revision: number; replayed: boolean };
 export type ValplanReply = { receipt: ValplanReceipt; read: ValplanRead };
@@ -59,8 +61,9 @@ function parseRow(value: unknown): ValplanRowOption {
 export function parseValplanRead(value: unknown, scope: ValplanScope): ValplanRead {
   const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'valplans', 'rows']);
   if (r.contractVersion !== VALPLAN_CONTRACT_VERSION || uuid(r.unitId) !== scope.unitId || r.schoolYear !== scope.schoolYear) bad();
-  const valplans = list(r.valplans, 500).map(v => { const x = shape(v, ['catalogId', 'valplan', 'choiceCounts']); return { catalogId: catalogId(x.catalogId), valplan: parseValplan(x.valplan),
-    choiceCounts: list(x.choiceCounts, 2000).map(c => { const y = shape(c, ['classId', 'pupils']); return { classId: uuid(y.classId), pupils: integer(y.pupils, 1, 1000000) }; }) }; });
+  const classChoices = (value: unknown) => list(value, 2000).map(c => { const y = shape(c, ['classId', 'pupils']); return { classId: uuid(y.classId), pupils: integer(y.pupils, 1, 1000000) }; });
+  const valplans = list(r.valplans, 500).map(v => { const x = shape(v, ['catalogId', 'valplan', 'choiceCounts', 'courseChoices']); return { catalogId: catalogId(x.catalogId), valplan: parseValplan(x.valplan), choiceCounts: classChoices(x.choiceCounts),
+    courseChoices: list(x.courseChoices, 200).map(c => { const y = shape(c, ['courseId', 'pupils', 'classes']); return { courseId: uuid(y.courseId), pupils: integer(y.pupils, 1, 1000000), classes: classChoices(y.classes) }; }) }; });
   if (valplans.some(v => v.valplan.unitId !== scope.unitId || v.valplan.schoolYear !== scope.schoolYear) || new Set(valplans.map(v => v.valplan.id)).size !== valplans.length) bad();
   return { contractVersion: VALPLAN_CONTRACT_VERSION, ...scope, valplans, rows: list(r.rows, 2000).map(parseRow) };
 }

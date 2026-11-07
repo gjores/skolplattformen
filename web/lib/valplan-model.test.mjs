@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {VALPLAN_KINDS,parseValplan,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanCheck,valplanClosestPoints,valplanCourseReaders,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
 
-const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002';
+const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002',other='56000000-0000-4000-8000-000000000003';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
 const cA='56000000-0000-4000-8000-000000000020',cB='56000000-0000-4000-8000-000000000021',cC='56000000-0000-4000-8000-000000000022';
 const version=code=>catalog.subjects.find(s=>s.code===code&&s.schoolTypes.includes('GY')).version;
@@ -184,4 +184,100 @@ test('tidsförslag följer radens poäng och blir noll när raden saknar tid', (
   assert.deepEqual(valplanTimeShare(50, { points: 100, minutesHt: 2640, minutesVt: 2640 }), { minutesHt: 1320, minutesVt: 1320 });
   assert.deepEqual(valplanTimeShare(100, { points: 100, minutesHt: null, minutesVt: null }), { minutesHt: 0, minutesVt: 0 });
   assert.deepEqual(valplanTimeShare(100, undefined), { minutesHt: 0, minutesVt: 0 });
+});
+
+// Kontroll (VP-13). Row A: 100 p for classes A and B. Row B: 200 p for class C.
+const block=(courses,linkRows=plan().rows)=>({...plan(),courses,rows:linkRows});
+const open=check=>check.items.filter(i=>i.state==='open');
+const item=(check,code)=>check.items.find(i=>i.code===code);
+
+test('exactly the points of each class row is ready, and the list covers classes, courses, time and points',()=>{
+  const time=points=>({minutesHt:points*3,minutesVt:points*3});
+  const check=valplanCheck(block([course(1,'PSYL','PSYL1000X',50,time(50)),course(2,'FILS','FILS1000X',50,time(50)),course(3,'RETO','RETO1000X',100,time(100))]),rows());
+  assert.equal(check.ready,true);
+  assert.deepEqual(check.items.map(i=>[i.area,i.code,i.state]),[['classes','classes_ok','done'],['courses','courses_ok','done'],['time','time_ok','done'],['points','points_ok','done']]);
+  assert.deepEqual(item(check,'classes_ok').classIds.sort(),[cA,cB,cC].sort());
+});
+
+test('200 p is reached with 50 + 150, each course once',()=>{
+  assert.equal(valplanCheck(block([course(1,'PSYL','PSYL1000X',50),course(2,'RETO','RETO1000X',150)],[plan().rows[1]]),rows()).ready,true);
+  assert.equal(valplanClosestPoints([50,150],200),200);
+  assert.equal(valplanClosestPoints([100],200),100,'a course is not counted twice');
+});
+
+test('no combination gives the exact points, and the line says how close the class gets',()=>{
+  const check=valplanCheck(block([course(1,'PSYL','PSYL1000X',150),course(2,'RETO','RETO1000X',100)],[plan().rows[1]]),rows());
+  assert.equal(check.ready,false);
+  assert.deepEqual(open(check).map(i=>[i.code,i.classIds,i.points,i.closest]),[['points_unreachable',[cC],200,150]]);
+  assert.equal(item(check,'points_ok'),undefined);
+});
+
+test('a class without courses stops the opening, and classes with the same problem share a line',()=>{
+  const limited=valplanCheck(block([course(1,'RETO','RETO1000X',100,{classIds:[cA]})],[plan().rows[0]]),rows());
+  assert.deepEqual(open(limited).map(i=>[i.code,i.classIds,i.points]),[['class_without_courses',[cB],100]]);
+  const tooBig=valplanCheck(block([course(1,'RETO','RETO1000X',150)],[plan().rows[0]]),rows());
+  assert.deepEqual(open(tooBig).map(i=>[i.code,i.classIds]),[['class_without_courses',[cA,cB]]],'a course above the row points is no course to choose');
+});
+
+test('a block without courses, time or classes says what is left',()=>{
+  const empty=valplanCheck(block([]),rows());
+  assert.deepEqual(open(empty).map(i=>i.code).sort(),['class_without_courses','class_without_courses','no_courses'].sort());
+  assert.equal(empty.items.some(i=>i.area==='time'),false);
+  const noTime=valplanCheck(block([course(1,'RETO','RETO1000X',100,{minutesHt:0,minutesVt:0}),course(2,'FILS','FILS1000X',100)],[plan().rows[0]]),rows());
+  assert.deepEqual(open(noTime).map(i=>[i.code,i.courseIds]),[['time_missing',[course(1,'RETO','RETO1000X',100).id]]]);
+  const noClasses=valplanCheck(block([course(1,'RETO','RETO1000X',100)]),rows().map(r=>({...r,classIds:[],blocks:[]})));
+  assert.deepEqual(open(noClasses).map(i=>i.code),['no_classes','points_waiting']);
+  const gone=valplanCheck(block([course(1,'RETO','RETO1000X',100)]),rows().slice(0,1));
+  assert.deepEqual(open(gone).map(i=>i.code),['row_missing'],'a row that is gone is one line, and the classes left are still checked');
+});
+
+test('a class counts against its own row and block on a shared row',()=>{
+  const r=rows();r[0].blocks=[{valplanId:vp,classIds:[cA]},{valplanId:other,classIds:[cB]}];
+  const mine=block([course(1,'RETO','RETO1000X',100,{classIds:[cA]})],[{...plan().rows[0],excludedClassIds:[cB]}]);
+  assert.equal(valplanCheck(mine,r).ready,true,'the unticked class does not count here');
+  const theirs={...mine,id:other,courses:[course(2,'PSYL','PSYL1000X',50)],rows:[{...plan().rows[0],excludedClassIds:[cA]}]};
+  assert.deepEqual(open(valplanCheck(theirs,r)).map(i=>[i.code,i.classIds,i.closest]),[['points_unreachable',[cB],50]],'it counts in the block it belongs to');
+  const shared={...mine,rows:[{...plan().rows[0],excludedClassIds:[]}],courses:[course(1,'RETO','RETO1000X',100)]};
+  assert.equal(valplanCheck(shared,r).ready,false);
+});
+
+test('a class in two blocks on a row stops the opening of both, and names the other block',()=>{
+  const r=rows();r[0].blocks=[{valplanId:vp,classIds:[cA,cB]},{valplanId:other,classIds:[cB]}];
+  const mine=block([course(1,'RETO','RETO1000X',100)],[plan().rows[0]]),check=valplanCheck(mine,r);
+  assert.deepEqual(open(check).map(i=>[i.code,i.classIds,i.valplanIds]),[['class_doubled',[cB],[other]]]);
+  assert.equal(item(check,'classes_ok'),undefined);
+  assert.deepEqual(open(valplanCheck({...mine,id:other,rows:[{...plan().rows[0],excludedClassIds:[cA]}]},r)).map(i=>[i.code,i.classIds,i.valplanIds]),[['class_doubled',[cB],[vp]]]);
+});
+
+test('a class on two rows of the block stops the opening, since it has no single target',()=>{
+  const r=rows();r[1]={...r[1],classIds:[cA,cC]};
+  assert.deepEqual(open(valplanCheck(block([course(1,'RETO','RETO1000X',100),course(2,'FILS','FILS1000X',100)]),r)).map(i=>[i.code,i.classIds]),[['class_in_several_rows',[cA]]]);
+});
+
+test('a class on the row without any block is shown but does not stop this block',()=>{
+  const r=rows();r[0].blocks=[{valplanId:vp,classIds:[cA]}];
+  const check=valplanCheck(block([course(1,'RETO','RETO1000X',100)],[{...plan().rows[0],excludedClassIds:[cB]}]),r);
+  assert.equal(check.ready,true);assert.deepEqual([item(check,'classes_waiting').state,item(check,'classes_waiting').classIds],['notice',[cB]]);
+  const held=rows();held[0].blocks=[{valplanId:other,classIds:[cB]},{valplanId:vp,classIds:[cA]}];
+  assert.equal(item(valplanCheck(block([course(1,'RETO','RETO1000X',100)],[{...plan().rows[0],excludedClassIds:[cB]}]),held),'classes_waiting'),undefined,'a class in another block is not waiting');
+});
+
+test('course time that differs from the row is a notice and stops nothing',()=>{
+  const fitted=course(1,'RETO','RETO1000X',100,{minutesHt:300,minutesVt:300}),check=valplanCheck(block([fitted],[plan().rows[0]]),rows());
+  assert.equal(item(check,'time_deviates'),undefined);
+  const off=valplanCheck(block([{...fitted,minutesHt:200}],[plan().rows[0]]),rows());
+  assert.equal(off.ready,true);assert.deepEqual([item(off,'time_deviates').state,item(off,'time_deviates').courseIds],['notice',[fitted.id]]);
+  assert.equal(item(valplanCheck(block([{...fitted,minutesHt:200}],[plan().rows[0]]),rows().map(r=>({...r,minutesHt:null,minutesVt:null}))),'time_deviates'),undefined,'a row without time gives nothing to compare with');
+});
+
+test('a course says who may read it by naming the shorter group',()=>{
+  const k=['A','B','C','D'].map((name,i)=>({id:String(i),name}));
+  assert.equal(valplanCourseReaders(k,null),'Alla klasser');
+  assert.equal(valplanCourseReaders(k,['0','1','2']),'Alla klasser utom D');
+  assert.equal(valplanCourseReaders(k,['0','1']),'Alla klasser utom C och D');
+  assert.equal(valplanCourseReaders(k,['0']),'Bara A');
+  assert.equal(valplanCourseReaders(k,[]),'Ingen klass');
+  assert.equal(valplanCourseReaders([],null),'Inga klasser ännu');
+  assert.equal(valplanCourseReaders(k,['0','1','2','3']),'Alla klasser');
+  assert.equal(valplanCourseReaders(k,['0','9']),'Bara A','a class that left the block is not named');
 });

@@ -7,7 +7,7 @@ import { tjanstRequest } from './tjanst.ts';
 
 export type ValplanChoiceAuthority = Pick<SessionContext, 'identityId' | 'assignmentId' | 'accessFunction'>;
 const conflicts = new Set(['valplan_choice_command_conflict', 'valplan_round_conflict', 'elective_choice_conflict', 'elective_confirmation_required', 'elective_policy_missing']);
-const inputs = new Set(['valplan_choice_invalid', 'valplan_choice_points', 'valplan_choice_course', 'valplan_round_date', 'valplan_round_empty', 'study_group_pupil_not_placed', 'study_group_member_period']);
+const inputs = new Set(['valplan_choice_invalid', 'valplan_choice_points', 'valplan_choice_course', 'valplan_round_date', 'valplan_round_empty', 'valplan_round_row', 'valplan_round_no_classes', 'valplan_round_doubled', 'valplan_round_rows', 'valplan_round_time', 'valplan_round_points', 'study_group_pupil_not_placed', 'study_group_member_period']);
 
 async function operation<T>(run: () => Promise<T>): Promise<T> {
   try { return await run(); } catch (error) {

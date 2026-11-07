@@ -10,7 +10,8 @@ import {seedElectiveTimeFrame} from './elective-time-fixtures.mjs';
 import {linkExtraClass} from './valplan-block-fixtures.mjs';
 const file='20261107110000_valplan_class_selection.sql';
 const catalog=JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8'));
-const own=await createEphemeralMigratedDb({exclude:[file]}),report={kind:'ephemeral-valplan-class-migration-sql',provenance:own.provenance,checks:[],ok:false};
+const later=['20261107120000_valplan_open_check.sql']; // Bygger på den här migrationen och installeras efter den.
+const own=await createEphemeralMigratedDb({exclude:[file,...later]}),report={kind:'ephemeral-valplan-class-migration-sql',provenance:own.provenance,checks:[],ok:false};
 const out=process.argv.includes('--out')?process.argv[process.argv.indexOf('--out')+1]:'/private/tmp/valplan-class-migration-sql.json';assert.ok(out?.startsWith('/private/tmp/'));
 const check=name=>{report.checks.push({name,ok:true});console.log('PASS '+name);};
 const version=code=>catalog.subjects.find(s=>s.code===code&&s.schoolTypes.includes('GY')).version;
@@ -28,7 +29,7 @@ try{
   const old=(await read()).rows.filter(r=>r.rowKey==='block:iv1');assert.ok(old.every(r=>r.linkedValplanId===doc.id));
   const tables=['valplans','valplan_courses','valplan_course_classes','valplan_rows','valplan_versions','valplan_commands'],snapshot=async()=>{const result={};for(const name of tables)result[name]=(await tx.unsafe(`select coalesce(jsonb_agg(to_jsonb(x) order by to_jsonb(x)::text collate "C"),'[]') value from public.${name} x`))[0].value;return result;};
   const stored=await snapshot();check('a block with a two-class row is saved on the old schema');
-  await tx.unsafe('reset role');await tx.unsafe(readFileSync(new URL(`../../supabase/migrations/${file}`,import.meta.url),'utf8'));await f.actor(tx,'principalA');
+  await tx.unsafe('reset role');for(const name of [file,...later])await tx.unsafe(readFileSync(new URL(`../../supabase/migrations/${name}`,import.meta.url),'utf8'));await f.actor(tx,'principalA');
   assert.deepEqual(await snapshot(),stored);assert.equal((await tx`select count(*)::int n from public.valplan_row_excluded_classes`)[0].n,0);check('the migration changes no stored block and unticks no class');
   const after=(await read()),now=after.rows.filter(r=>r.rowKey==='block:iv1');
   for(const r of old){const n=now.find(x=>x.timplanId===r.timplanId);assert.deepEqual(n.classIds,r.classIds);assert.deepEqual(n.blocks,[{valplanId:doc.id,classIds:r.classIds}]);}
