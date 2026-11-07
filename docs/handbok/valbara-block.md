@@ -32,6 +32,14 @@ Blocket skapas alltid från en rad, så typ och rad behöver du inte leta fram.
 
 Blocket äger kursernas tid. Timplanens radtid är en kontrollsiffra, och inget skrivs om i timplanen.
 
+### Kurser som klasserna redan läser
+
+En kurs som ligger fast i klassens timplan går inte att välja, oavsett vilket år i utbildningen klassen läser den.
+
+- **Läser alla klasser i blocket kursen** går den inte att lägga till. I sökningen står **alla klasser läser kursen redan**.
+- **Läser några klasser kursen** läggs den till utan dem, och en notis under sökningen namnger klasserna. Under **Får läsas av** står då till exempel *Bara SA27B*.
+- **Börjar en klass ingå senare, eller kryssar du i en klass på kursen,** står det under **Får läsas av** att klassen redan läser kursen. Eleverna i klassen kan ändå inte välja den.
+
 ## Välj klasserna i blocket
 
 Alla klasser på raden är ikryssade från början. Kryssa ur en klass under **Timplaner och klasser** om den ska välja bland andra kurser.
@@ -55,9 +63,11 @@ Under **Kontroll** står vad som är klart och vad som återstår. Listan följe
 | **Klasser** | Blocket har minst en klass, varje klass finns i ett enda block på raden och i en enda rad i blocket. |
 | **Kurser** | Blocket har minst en kurs. |
 | **Tid** | Varje kurs har undervisningstid för HT eller VT. |
-| **Poäng** | Varje klass kan nå exakt radens poäng med kurser den får läsa, och varje kurs räknas en gång. |
+| **Poäng** | Varje klass kan nå exakt radens poäng med kurser den får läsa och inte redan läser, och varje kurs räknas en gång. |
 
 Poängen prövas per klass mot klassens egen rad. Har en rad 200 p räcker kurser på 50 och 150 p, men inte en kurs på 150 och en på 100 p. Listan säger då hur nära klassen kommer. Lägg till en kurs, eller ändra klasserna på kurserna.
+
+Kontrollen prövar klassen, inte varje elev. En elev kan alltså ha valt en kurs i ett annat block, så att kurserna inte räcker för just den eleven. Då står det under **Registrera val** och i **Mina val**.
 
 - **En urkryssad klass räknas i det block där den ingår**, inte i det block där den är urkryssad.
 - **En klass som finns i två block stoppar båda blocken** tills den är urkryssad i alla block utom ett.
@@ -73,13 +83,27 @@ Poängen prövas per klass mot klassens egen rad. Har en rad 200 p räcker kurse
 2. Ange **Sista valdag** och välj **Öppna val**. Knappen går inte att välja så länge något återstår under **Kontroll**. Sidan säger då vad som återstår. Välj **Tillbaka till blocket** och rätta det.
 3. Koppla vid behov konton under **Kontokopplingar för elever och vårdnadshavare**. Ange personens kontoreferens, roll, giltighetsdatum och skolans underlag. Personen hittar sin referens i Mina val. Kontrollera identiteten och rollen innan du sparar.
 
-Tabellen visar varje elev med klass, status och val. Filtrera på status eller klass. Status är **Ej valt**, **Väntar på vårdnadshavare**, **Avböjt av vårdnadshavare**, **Vårdnadshavare saknar koppling**, **Klart att bekräfta**, **Bekräftat** eller **Kurs borttagen**.
+Tabellen visar varje elev med klass, status och val. Filtrera på status eller klass. Status är **Ej valt**, **Väntar på vårdnadshavare**, **Avböjt av vårdnadshavare**, **Vårdnadshavare saknar koppling**, **Klart att bekräfta**, **Bekräftat**, **Kurs borttagen** eller **Eleven har redan kursen**.
 
 ## Registrera och bekräfta
 
 Eleven väljer kurser som tillsammans fyller radens poäng exakt. Med **Registrera val** kan skolan lämna valet åt eleven. Det ersätter varken vårdnadshavarens svar eller skolans bekräftelse.
 
 Skolan kan registrera val även efter att valet stängts, och åt elever utanför blockets klasser. Markera då **Visa även elever utanför blockets klasser**. För dessa elever finns inget poängkrav.
+
+### Kurser som eleven redan har
+
+En kurs eleven redan har går inte att välja, varken av eleven eller av skolan. Det finns inget undantag, inte heller för elever utanför blockets klasser. Under **Registrera val** går kursen inte att kryssa i, och skälet står vid kursen: **Ingår redan i elevens timplan** eller **Eleven har redan valt kursen**. Där står också hur många poäng som är kvar, och om kurserna eleven kan välja inte räcker till poängen.
+
+Så här avgörs det:
+
+- **Samma kurs** är samma ämne, nivå och språk. Annan ämnesversion är samma kurs. Annat språk är en annan kurs, så spanska hindrar inte tyska på samma nivå.
+- **Timplanen** räknas med kurser på fasta rader under hela utbildningen, också år som inte har börjat. Rader med alternativa ämnen räknas inte, eftersom timplanen inte visar vilket ämne eleven läser. En fast rad anger inget språk och hindrar därför inga moderna språk.
+- **Val** räknas från alla andra block och läsår på skolan, också om valet inte är bekräftat. Ändras valet, eller avböjer vårdnadshavare det, går kursen att välja igen.
+
+Spärren ser bara timplaner och val. Den ser inte betyg eller kurser från en tidigare skola, så den visar inte att eleven har läst kursen i verkligheten. Den känner heller inte till val i **Gamla valbara block**.
+
+Ett val som redan finns ändras aldrig automatiskt. Innehåller det en kurs eleven också har i timplanen eller i ett annat val får valet status **Eleven har redan kursen**. Valet ligger kvar med sina kurser, och sidan säger vilken kurs det gäller. Det går inte att bekräfta, och det kommer inte med när du skapar grupper, också om det var bekräftat. Grupper eleven redan finns i ändras inte. Har två val samma kurs får båda statusen, och skolan avgör vilket som ska ändras. Ändra valet med **Registrera val**, eller be eleven välja om. Då gäller det andra valet igen.
 
 Välj **Bekräfta** på ett val som är klart, eller **Bekräfta alla klara**. Ett ändrat val behöver bekräftas på nytt och kräver nya svar från vårdnadshavare.
 

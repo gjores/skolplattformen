@@ -223,14 +223,14 @@ export function valplanOffer(plan: Valplan, rows: readonly ValplanRowContext[], 
   return row ? { row, points: row.points, courseIds: rowCourses(plan, row, classId).map(c => c.id) } : null;
 }
 
-const nameList = (names: readonly string[]) => names.length > 1 ? `${names.slice(0, -1).join(', ')} och ${names.at(-1)}` : names[0];
+export const valplanNames = (names: readonly string[]) => names.length > 1 ? `${names.slice(0, -1).join(', ')} och ${names.at(-1)}` : names[0];
 /** Who may read a course in plain words, by naming the shorter group. */
 export function valplanCourseReaders(classes: readonly { id: string; name: string }[], classIds: readonly string[] | null): string {
   if (!classes.length) return 'Inga klasser ännu';
   const may = classes.filter(c => !classIds || classIds.includes(c.id)).map(c => c.name), others = classes.filter(c => classIds && !classIds.includes(c.id)).map(c => c.name);
   if (!may.length) return 'Ingen klass';
   if (!others.length) return 'Alla klasser';
-  return others.length <= may.length ? `Alla klasser utom ${nameList(others)}` : `Bara ${nameList(may)}`;
+  return others.length <= may.length ? `Alla klasser utom ${valplanNames(others)}` : `Bara ${valplanNames(may)}`;
 }
 /** Kontroll (G5). Open lines stop the opening, and valplan_round_problem refuses the same things in the database.
  * A class counts against the row it reads through this block, so an unticked class counts in its own block.

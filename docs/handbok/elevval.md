@@ -23,7 +23,16 @@ Om skolan ber om en kontoreferens öppnar du **Koppla konto till skolan** och l�
 
 Fram till sista valdag kan du ändra kurserna och välja **Ändra val**. Ett ändrat val behöver granskas igen och flyttar dig inte automatiskt från en grupp.
 
-Skolan kan bara öppna valet när din klass kan nå exakt sina poäng med kurser den får läsa. Går poängen ändå inte att fylla kontaktar du skolan.
+### Kurser du inte kan välja
+
+En kurs du redan har går inte att välja. Kursen står kvar i listan utan att gå att kryssa i, och skälet står vid kursen:
+
+- **Ingår redan i din timplan.** Kursen ligger fast i din timplan, också om du läser den ett senare år.
+- **Du har redan valt kursen.** Du har valt den i ett annat block, samma läsår eller ett tidigare. Ändrar du det valet, eller avböjer din vårdnadshavare det, går kursen att välja igen.
+
+Samma kurs på ett annat språk går att välja. Spärren ser bara timplanen och dina val, inte betyg eller kurser från en tidigare skola. Tror du att något är fel kontaktar du skolan.
+
+Skolan kan bara öppna valet när din klass kan nå exakt sina poäng med kurser den får läsa. Räcker kurserna ändå inte för dig står det på sidan. Kontakta då skolan.
 
 Äldre valomgångar från valbara block visas i samma vy om sådana finns. Där väljer du ett alternativ och **Lämna mitt val**.
 
@@ -49,6 +58,7 @@ Ditt svar gäller det aktuella valet. Om eleven lämnar ett nytt eller ändrat v
 | Valet är inlämnat och väntar på skolans bekräftelse | Skolan granskar det inlämnade valet. |
 | Skolan har bekräftat valet | Skolan kan skapa grupper från valet. |
 | En kurs i valet finns inte längre | Gör ett nytt val eller kontakta skolan. |
+| En kurs i valet finns redan i timplanen eller i ett annat val | Valet ligger kvar men går inte vidare. Gör ett nytt val eller kontakta skolan. |
 | Erbjudandet har ändrats | Kontakta skolan och kontrollera vilket val som gäller. |
 
 När en placering finns visas **Gruppplacering** med grupp och datum. En elev kan höra till en undervisningsgrupp utan att skolklassen ändras. Skolan hanterar gruppbyte, avslut och återtagning av planerade placeringar.

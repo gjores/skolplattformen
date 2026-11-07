@@ -422,7 +422,7 @@ test('kontrollen säger vad som återstår, elevvalet öppnas inte, och ett rät
   await expect(list.getByText('SA26A och SA26B har ingen kurs att välja, och 100 p ska fyllas.')).toBeVisible();
   await expect(page.getByText('2 saker återstår innan elevvalet kan öppnas.')).toBeVisible();
   await pickCourse(page, 'PSYL1000X');
-  await expect(list.getByText('SA26A och SA26B når inte exakt 100 p. Närmast går 50 p med kurser klassen får läsa.')).toBeVisible();
+  await expect(list.getByText('SA26A och SA26B når inte exakt 100 p. Närmast går 50 p med kurser klassen får läsa och inte redan läser.')).toBeVisible();
   await expect(list.getByText('1 kurs att välja.')).toBeVisible();
   const box = list.getByRole('listitem').filter({ hasText: 'Poäng' });
   await expect(box.locator('.status-badge')).toHaveText('Återstår');
@@ -455,6 +455,38 @@ test('kontrollen säger vad som återstår, elevvalet öppnas inte, och ett rät
   await expect(page.getByText('Valet är öppet för eleverna.')).toBeVisible();
   expect(opened).toEqual(['open_round']);
   expect(m.writes).toHaveLength(2);
+});
+
+test('en kurs alla klasser läser går inte att lägga till, och läser några tas de bort från kursen med en notis', async ({ page }, info) => {
+  const m = await mock(page);
+  m.state.classCourses = [id(20), id(21), id(22)].map(classId => ({ classId, courses: [{ subjectCode: 'ENGE', itemCode: 'ENGE1000X' }] }));
+  m.state.classCourses[0].courses.push({ subjectCode: 'PSYL', itemCode: 'PSYL1000X' }); m.state.classCourses[1].courses.push({ subjectCode: 'PSYL', itemCode: 'PSYL1000X' });
+  await page.goto(URL); await startIv(page); await page.getByRole('checkbox', { name: /NA26 · Individuellt val · åk 2/ }).check();
+  const search = page.getByLabel('Sök kurs att lägga till'), hits = page.getByRole('list', { name: 'Kurser i katalogen' });
+  await search.fill('ENGE1000X'); const all = hits.getByRole('button').first();
+  await expect(all).toBeDisabled(); await expect(all).toContainText('alla klasser läser kursen redan');
+  await page.screenshot({ path: info.outputPath('sokning-alla-laser.png'), fullPage: true });
+  await search.fill('PSYL1000X'); await hits.getByRole('button').first().click();
+  await expect(page.getByRole('status').filter({ hasText: 'SA26A och SA26B läser redan' })).toContainText('och har tagits bort från kursen.');
+  const row = page.getByRole('row', { name: /PSYL1000X/ }); await expect(row.getByText('Bara NA26A')).toBeVisible();
+  await page.screenshot({ path: info.outputPath('notis-klasser-borttagna.png'), fullPage: true });
+  await search.fill('FILS1000X'); await hits.getByRole('button').first().click(); await expect(page.getByRole('status').filter({ hasText: 'läser redan' })).toHaveCount(0);
+  await expect(page.getByRole('row', { name: /FILS1000X/ }).getByText('Alla klasser')).toBeVisible();
+  await page.getByRole('button', { name: 'Ändra klasser för Psykologi – nivå 1' }).click();
+  await page.getByRole('group', { name: /Klasser som får läsa Psykologi/ }).getByRole('checkbox', { name: 'SA26A' }).check();
+  await expect(row.getByText('SA26A läser redan kursen, så eleverna kan inte välja den.')).toBeVisible();
+});
+
+test('kontrollen räknar bort en kurs klassen redan läser', async ({ page }) => {
+  const m = await mock(page); m.state.classCourses = [{ classId: id(20), courses: [{ subjectCode: 'RETO', itemCode: 'RETO1000X' }] }];
+  await page.goto(URL); await startIv(page); await page.getByLabel('Sök kurs att lägga till').fill('RETO1000X');
+  await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
+  const list = page.locator('.valplan-check-list');
+  await page.getByRole('button', { name: 'Ändra klasser för Retorik – nivå 1' }).click();
+  await page.getByRole('group', { name: /Klasser som får läsa Retorik/ }).getByRole('checkbox', { name: 'SA26A' }).check();
+  await expect(list.locator('li').filter({ hasText: 'SA26A har ingen kurs att välja' })).toBeVisible();
+  await page.getByLabel('Sök kurs att lägga till').fill('FILS1000X'); await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
+  await expect(list.locator('li').filter({ hasText: 'SA26A når inte exakt 100 p. Närmast går 50 p med kurser klassen får läsa och inte redan läser.' })).toBeVisible();
 });
 
 test('ett öppet val med fel stängs inte, men Elevval säger vad som behöver rättas', async ({ page }) => {

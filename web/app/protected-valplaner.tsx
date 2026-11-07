@@ -9,7 +9,7 @@ import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanCheck, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLinkClasses, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind, type ValplanRowLink } from '@/lib/valplan-model.ts';
+import { valplanCheck, valplanClassesReading, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLinkClasses, valplanNames, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind, type ValplanRowLink } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -82,7 +82,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const [selected, setSelected] = useState<string | null>(initialValplanId), [draft, setDraft] = useState<Valplan | null>(null), [time, setTime] = useState<TimeText>({});
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false);
   const [adding, setAdding] = useState(false), [language, setLanguage] = useState(''), [tried, setTried] = useState(false);
-  const [pending, setPending] = useState<ValplanCommand | null>(null), [uncertain, setUncertain] = useState(false), [choices, setChoices] = useState(false), [classesOf, setClassesOf] = useState<string | null>(null);
+  const [pending, setPending] = useState<ValplanCommand | null>(null), [uncertain, setUncertain] = useState(false), [choices, setChoices] = useState(false), [classesOf, setClassesOf] = useState<string | null>(null), [addedNote, setAddedNote] = useState<string | null>(null);
   // A new plan is compared with its untouched start, so merely opening one does not block navigation.
   const [start, setStart] = useState<Valplan | null>(null);
   // A row with blocks of the same kind asks which one it joins before any draft exists.
@@ -97,14 +97,14 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     catch (caught) { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); return null; }
   }
 
-  function open(plan: Valplan) { setPick(null); setChoices(false); setClassesOf(null); setStart(null); setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
+  function open(plan: Valplan) { setAddedNote(null); setPick(null); setChoices(false); setClassesOf(null); setStart(null); setSelected(plan.id); setDraft(structuredClone(plan)); setTime(texts(plan)); setError(null); setNotice(null); setTried(false); setAdding(false); setUncertain(false); setPending(null); }
   async function choose(plan: Valplan) { if (dirty && !(await requestDiscard())) return; open(plan); }
   // On a phone the work area lies below the list, so the next step has to come into view.
   const showWork = () => requestAnimationFrame(() => work.current?.focus());
   function draftFrom(row: ValplanRowOption) {
     const id = newId(), free = row.blocks.length ? `${classNames(row, valplanRowMissing(row)).join(', ')} ` : '';
     const plan: Valplan = { id, unitId, schoolYear, kind: row.blockKind, name: `${row.rowLabel} ${free}${planningYearLabel(schoolYear)}`, revision: 1, courses: [], rows: [valplanRowLink(row, id)] };
-    setPick(null); setChoices(false); setClassesOf(null); setStart(plan); setSelected(plan.id); setDraft(structuredClone(plan)); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true); setUncertain(false); setPending(null); showWork();
+    setAddedNote(null); setPick(null); setChoices(false); setClassesOf(null); setStart(plan); setSelected(plan.id); setDraft(structuredClone(plan)); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(true); setUncertain(false); setPending(null); showWork();
   }
   function joinBlock(plan: Valplan, row: ValplanRowOption) { open(plan); setDraft(value => value && valplanWithRow(value, row)); showWork(); }
   function fromRow(row: ValplanRowOption, read: ValplanRead) {
@@ -128,7 +128,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
     api.post('/api/valplaner/lasa', scope, controller.signal).then(value => acceptInitial(parseValplanRead(value, scope))).catch(caught => { if (!controller.signal.aborted) initialFailure(caught); });
     return () => controller.abort();
   }, [unitId, schoolYear]);
-  function discardNew() { setPick(null); setStart(null); setSelected(null); setDraft(null); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(false); setPending(null); }
+  function discardNew() { setAddedNote(null); setPick(null); setStart(null); setSelected(null); setDraft(null); setTime({}); setError(null); setNotice(null); setTried(false); setAdding(false); setPending(null); }
   const update = (change: (plan: Valplan) => Valplan) => { setDraft(value => value && change(structuredClone(value))); setNotice(null); };
 
   const rows = useMemo(() => data?.rows.filter(r => r.blockKind === draft?.kind) ?? [], [data, draft?.kind]);
@@ -142,19 +142,26 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const timeErrors = draft ? draft.courses.filter(c => parseTimplanMinuteInput(time[c.id]?.ht ?? '') === undefined || parseTimplanMinuteInput(time[c.id]?.vt ?? '') === undefined).map(c => c.id) : [];
   const diagnostics: ValplanDiagnostic[] = draft && data ? valplanDiagnostics(withTime(draft, time), data.rows, catalog) : [];
   const errors = diagnostics.filter(d => d.severity === 'error');
-  const check = draft && data ? valplanCheck(withTime(draft, time), data.rows) : null;
+  const check = draft && data ? valplanCheck(withTime(draft, time), data.rows, data.classCourses) : null;
   const remaining = check?.items.filter(i => i.state === 'open') ?? [];
   const kind = draft?.kind;
   const levels = useMemo(() => gyGradeLevels(catalog, `${schoolYear}-07-01`, code => !!kind && code !== 'MODE' && valplanSubjectAllowed(kind, code)), [schoolYear, kind]);
 
+  const readers = linkedClasses.map(c => c.id);
+  const reading = (course: Pick<ValplanCourse, 'subjectCode' | 'itemCode' | 'languageCode'>, classIds: readonly string[] = readers) => valplanClassesReading(course, data?.classCourses ?? [], classIds);
+  const readingNames = (ids: readonly string[]) => valplanNames(linkedClasses.filter(c => ids.includes(c.id)).map(c => c.name));
+  /** G6: a fixed row has no language, so a modern language is never stopped here. */
+  const readByAll = (l: CatalogLevel) => readers.length > 0 && !MODERN.has(l.subjectCode) && reading({ ...l, languageCode: null }).length === readers.length;
   function addCourse(level: CatalogLevel) {
     if (!draft) return;
     const lang = MODERN.has(level.subjectCode) ? language || null : null;
     if (MODERN.has(level.subjectCode) && !lang) { setError('Välj språk innan du lägger till en kurs i moderna språk.'); return; }
-    // Suggest time from the first linked row; the school adjusts it.
+    // Suggest time from the first linked row; the school adjusts it. Classes that already read the course leave it, and the user is told.
+    const held = reading({ ...level, languageCode: lang }), left = readers.filter(id => !held.includes(id));
     const course: ValplanCourse = { id: newId(), subjectCode: level.subjectCode, subjectVersion: level.subjectVersion, itemCode: level.itemCode, points: level.points, languageCode: lang,
-      name: `${levelLabel(level)}${lang ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, ...valplanTimeShare(level.points, linkedRows[0]), classIds: null };
+      name: `${levelLabel(level)}${lang ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, ...valplanTimeShare(level.points, linkedRows[0]), classIds: held.length ? left : null };
     update(p => ({ ...p, courses: [...p.courses, course] }));
+    setAddedNote(held.length ? `${readingNames(held)} läser redan ${course.name} och har tagits bort från kursen.` : null);
     setTime(t => ({ ...t, [course.id]: { ht: formatTimplanMinutes(course.minutesHt), vt: formatTimplanMinutes(course.minutesVt) } })); setError(null);
   }
   const savedEntry = () => data?.valplans.find(v => v.valplan.id === draft?.id);
@@ -236,7 +243,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const stageOf = (r: ValplanRowOption) => valplanRowStage({ approved: true, classCount: r.classes.length, blockCount: r.blocks.length, missingCount: valplanRowMissing(r).length, doubledCount: valplanRowDoubled(r).length });
   const openClasses = (r: ValplanRowOption) => classNames(r, stageOf(r) === 'doubled' ? valplanRowDoubled(r) : valplanRowMissing(r));
   const blockMissing = (plan: Valplan) => (data?.rows ?? []).filter(r => plan.rows.some(l => valplanRowKey(l) === valplanRowKey(r))).flatMap(r => classNames(r, valplanRowMissing(r)));
-  const inBlock = (l: CatalogLevel) => !MODERN.has(l.subjectCode) && !!draft?.courses.some(c => c.subjectCode === l.subjectCode && c.subjectVersion === l.subjectVersion && c.itemCode === l.itemCode);
+  const inBlock = (l: CatalogLevel) => !MODERN.has(l.subjectCode) && !!draft?.courses.some(c => c.subjectCode === l.subjectCode && c.itemCode === l.itemCode);
 
   const classNamesOf = (ids: readonly string[]) => [...new Set((data?.rows ?? []).flatMap(r => classNames(r, ids)))];
   const courseNames = (ids: readonly string[]) => draft?.courses.filter(c => ids.includes(c.id)).map(c => c.name).join(', ') ?? '';
@@ -257,7 +264,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
       case 'points_ok': return 'Varje klass kan nå exakt sina poäng med kurser den får läsa.';
       case 'points_waiting': return 'Poängen prövas när blocket har klasser.';
       case 'class_without_courses': return `${who} har ingen kurs att välja, och ${item.points} p ska fyllas. Lägg till en kurs eller ändra klasserna på kurserna.`;
-      case 'points_unreachable': return `${who} når inte exakt ${item.points} p. Närmast går ${item.closest} p med kurser klassen får läsa. Lägg till en kurs eller ändra klasserna på kurserna.`;
+      case 'points_unreachable': return `${who} når inte exakt ${item.points} p. Närmast går ${item.closest} p med kurser klassen får läsa och inte redan läser. Lägg till en kurs eller ändra klasserna på kurserna.`;
     }
   }
   /** G3: an open line leads to the field that fixes it. */
@@ -331,7 +338,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
             <thead><tr><th scope="col">Kurs</th><th scope="col">Poäng</th><th scope="col">HT, timmar</th><th scope="col">VT, timmar</th><th scope="col">Får läsas av</th><th scope="col"><span className="sr-only">Åtgärd</span></th></tr></thead>
             <tbody>{draft.courses.map(c => {
               const own = courseErrors(c.id), badTime = tried && timeErrors.includes(c.id);
-              const editing = classesOf === c.id, picks = `${heading}-classes-${c.id}`;
+              const editing = classesOf === c.id, picks = `${heading}-classes-${c.id}`, alreadyReading = reading(c, c.classIds ?? readers);
               return <Fragment key={c.id}><tr>
                 <td data-label="Kurs"><input aria-label={`Namn på kursen ${c.itemCode}`} value={c.name} maxLength={200} disabled={busy} onChange={e => update(p => ({ ...p, courses: p.courses.map(x => x.id === c.id ? { ...x, name: e.target.value } : x) }))}/>
                   <small>{c.itemCode}{c.languageCode ? ` · ${programplanLanguageName(c.languageCode)}` : ''}</small>
@@ -342,6 +349,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
                   onChange={e => setTime(t => ({ ...t, [c.id]: { ...(t[c.id] ?? { ht: '', vt: '' }), [term]: e.target.value } }))}/></td>)}
                 <td data-label="Får läsas av"><div className="valplan-readers"><span>{valplanCourseReaders(linkedClasses, c.classIds)}</span>
                   {linkedClasses.length > 0 && <Button size="sm" variant="outline" disabled={busy} aria-label={`Ändra klasser för ${c.name}`} aria-expanded={editing} aria-controls={picks} onClick={() => setClassesOf(editing ? null : c.id)}>Ändra klasser</Button>}</div>
+                  {alreadyReading.length > 0 && <p className="valplan-muted">{readingNames(alreadyReading)} läser redan kursen, så eleverna kan inte välja den.</p>}
                   {!linkedClasses.length && <p className="valplan-muted">{linkedRows.length ? `Inga klasser är kopplade till timplanerna ${planningYearLabel(schoolYear)}. Koppla klasser under Klasser och läsår i timplanen.` : 'Kryssa i en timplan ovan för att välja klasser.'}</p>}</td>
                 <td className="valplan-remove"><Button size="sm" variant="outline" disabled={busy} aria-label={`Ta bort ${c.name}`} onClick={() => void removeCourse(c)}>Ta bort</Button></td>
               </tr>
@@ -353,9 +361,10 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
             {levels.some(l => MODERN.has(l.subjectCode)) ? <label>Språk för moderna språk<select value={language} disabled={busy} onChange={e => setLanguage(e.target.value)}>
               <option value="">Välj språk</option>{PROGRAMPLAN_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</select></label> : null}
             <CatalogLevelSearch levels={levels} searchLabel="Sök kurs att lägga till" listLabel="Kurser i katalogen" disabled={busy}
-              unavailable={inBlock}
-              label={l => `${levelLabel(l)} · ${l.itemCode} · ${l.points} p${inBlock(l) ? ' · finns i blocket' : ''}`} onPick={addCourse}/>
-            <Button variant="outline" onClick={() => setAdding(false)}>Klar med kurser</Button></div>
+              unavailable={l => inBlock(l) || readByAll(l)}
+              label={l => `${levelLabel(l)} · ${l.itemCode} · ${l.points} p${inBlock(l) ? ' · finns i blocket' : readByAll(l) ? ' · alla klasser läser kursen redan' : ''}`} onPick={addCourse}/>
+            {addedNote && <output className="valplan-notice">{addedNote}</output>}
+            <Button variant="outline" onClick={() => { setAdding(false); setAddedNote(null); }}>Klar med kurser</Button></div>
             : <Button variant="outline" disabled={busy} onClick={() => setAdding(true)}>Lägg till kurs</Button>}
         </section>
 
