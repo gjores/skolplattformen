@@ -5,17 +5,21 @@ import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
-import { parseValplanChoiceCommand, parseValplanChoiceRead, parseValplanChoiceReply, type ValplanChoiceCommand, type ValplanChoicePupil, type ValplanChoiceRead, type ValplanChoiceState } from '@/lib/valplan-choice-contract.ts';
+import { parseValplanChoiceCommand, parseValplanChoiceRead, parseValplanChoiceReply, valplanClosestPoints, type ValplanBlockedCourse, type ValplanChoiceCommand, type ValplanChoicePupil, type ValplanChoiceRead, type ValplanChoiceState } from '@/lib/valplan-choice-contract.ts';
 import ElectiveParticipantBindings from './elective-participant-bindings';
 import MfaStepUpNotice from './mfa-step-up';
 
 export const VALPLAN_STATE_LABEL: Record<ValplanChoiceState | 'not_chosen', string> = { not_chosen: 'Ej valt', awaiting_guardian: 'Väntar på vårdnadshavare', guardian_declined: 'Avböjt av vårdnadshavare',
   guardian_bindings_missing: 'Vårdnadshavare saknar koppling', ready_for_confirmation: 'Klart att bekräfta', confirmed: 'Bekräftat', course_changed: 'Kurs borttagen', course_held: 'Eleven har redan kursen' };
+const BLOCKED_REASON: Record<ValplanBlockedCourse['reason'], string> = { timplan: 'Ingår redan i elevens timplan', val: 'Eleven har redan valt kursen' };
 const stateOf = (pupil: ValplanChoicePupil) => pupil.choice?.state ?? 'not_chosen';
+const blockedReason = (pupil: ValplanChoicePupil, courseId: string) => pupil.blockedCourses.find(b => b.courseId === courseId)?.reason;
 function message(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.reason === 'valplan_choice_points') return 'Valet fyller inte elevens poäng. Välj kurser som tillsammans ger rätt poäng.';
     if (error.reason === 'valplan_choice_course') return 'En vald kurs finns inte längre i blocket.';
+    if (error.reason === 'valplan_choice_course_held') return 'Eleven har redan en av kurserna, i timplanen eller i ett annat val. Hämta aktuellt läge och välj en annan kurs.';
+    if (error.reason === 'valplan_choice_course_twice') return 'Samma kurs finns två gånger i valet, i olika versioner. Välj kursen en gång.';
     if (error.reason === 'valplan_round_date') return 'Sista valdag kan inte ligga bakåt i tiden.';
     if (error.reason === 'valplan_round_empty') return 'Blocket behöver minst en kurs och en timplansrad innan valet kan öppnas.';
     if (error.reason === 'valplan_round_points') return 'Valet öppnades inte. En klass kan inte nå exakt sina poäng med kurser den får läsa. Gå tillbaka till blocket och rätta under Kontroll.';
@@ -80,7 +84,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
   async function confirmAll() {
     for (const pupil of ready) if (!await send(command('confirm_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice!.revision }), `${ready.length} val är bekräftade.`)) return;
   }
-  function edit(pupil: ValplanChoicePupil) { setEditing(pupil.id); setPicked(pupil.choice?.courseIds.filter(id => data?.courses.some(c => c.id === id)) ?? []); setError(null); setNotice(null); }
+  function edit(pupil: ValplanChoicePupil) { setEditing(pupil.id); setPicked(pupil.choice?.courseIds.filter(id => data?.courses.some(c => c.id === id) && !blockedReason(pupil, id)) ?? []); setError(null); setNotice(null); }
 
   return <section className="valplan-card valplan-editor" aria-labelledby={heading}>
     <div className="section-heading"><h2 id={heading}>Elevval{data ? ` – ${data.valplanName}` : ''}</h2>
@@ -108,6 +112,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
       <section className="valplan-section" aria-label="Elever">
         <h3>Elever</h3>
         <p className="valplan-muted">{pupils.length === 1 ? '1 elev' : `${pupils.length} elever`} · {count('not_chosen')} har inte valt · {count('awaiting_guardian')} väntar på vårdnadshavare · {count('ready_for_confirmation')} klara att bekräfta · {count('confirmed')} bekräftade</p>
+        {count('course_held') > 0 && <p className="validation-warning">{count('course_held') === 1 ? '1 val har' : `${count('course_held')} val har`} en kurs eleven redan har. Valet ligger kvar men går inte att bekräfta och kommer inte med i grupper. Ändra det med Registrera val.</p>}
         <div className="valplan-fields">
           <label>Status<select value={stateFilter} onChange={e => setStateFilter(e.target.value)}><option value="">Alla</option>{Object.entries(VALPLAN_STATE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
           <label>Klass<select value={classFilter} onChange={e => setClassFilter(e.target.value)}><option value="">Alla</option>{data.classes.filter(c => data.pupils.some(p => p.classIds.includes(c.id))).map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></label>
@@ -119,16 +124,20 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
             <td data-label="Elev"><strong>{p.name}</strong>{p.targetPoints === null && <small>Utanför blockets klasser</small>}</td>
             <td data-label="Klass">{className(p)}</td>
             <td data-label="Status"><span className={stateOf(p) === 'confirmed' ? 'status-badge success' : 'status-badge'}>{VALPLAN_STATE_LABEL[stateOf(p)]}</span></td>
-            <td data-label="Val">{p.choice ? p.choice.courseIds.map(courseName).join(', ') : '–'}{p.choice?.submittedBy === 'school' && <small>Registrerat av skolan</small>}</td>
+            <td data-label="Val">{p.choice ? p.choice.courseIds.map(courseName).join(', ') : '–'}{p.choice?.submittedBy === 'school' && <small>Registrerat av skolan</small>}
+              {p.choice?.state === 'course_held' && p.choice.courseIds.map(id => { const reason = blockedReason(p, id); return reason && <small key={id}>{courseName(id)}: {BLOCKED_REASON[reason]}</small>; })}</td>
             <td className="valplan-remove"><div className="valplan-actions">
               <Button size="sm" variant="outline" disabled={busy} aria-label={`Registrera val åt ${p.name}`} onClick={() => edit(p)}>Registrera val</Button>
               {stateOf(p) === 'ready_for_confirmation' && <Button size="sm" disabled={busy} aria-label={`Bekräfta valet för ${p.name}`} onClick={() => void send(command('confirm_choice', { pupilId: p.id, expectedChoiceRevision: p.choice!.revision }), `Valet för ${p.name} är bekräftat.`)}>Bekräfta</Button>}
             </div></td></tr>)}</tbody></table></div> : <p className="valplan-muted">{pupils.length ? 'Inga elever matchar filtret.' : 'Inga elever att visa. Koppla klasser till timplanerna för läsåret.'}</p>}
-        {editing && (() => { const pupil = data.pupils.find(p => p.id === editing)!, target = pupil.targetPoints; return <fieldset className="valplan-add">
+        {editing && (() => { const pupil = data.pupils.find(p => p.id === editing)!, target = pupil.targetPoints;
+          const left = target === null ? 0 : target - pickedPoints, closest = target === null ? 0 : valplanClosestPoints(data.courses.filter(c => pupil.offeredCourseIds.includes(c.id)).map(c => c.points), target);
+          return <fieldset className="valplan-add">
           <legend>Val för {pupil.name}</legend>
-          {data.courses.map(c => <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy} checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/>
-            <span>{c.name}<small>{c.points} p{target !== null && !pupil.offeredCourseIds.includes(c.id) ? ' · Utanför elevens klass' : ''}</small></span></label>)}
-          <p className={target !== null && pickedPoints !== target ? 'validation-warning' : 'valplan-muted'}>{target === null ? `${pickedPoints} p valda. Eleven ligger utanför blockets klasser.` : `${pickedPoints} av ${target} p valda.`}</p>
+          {data.courses.map(c => { const reason = blockedReason(pupil, c.id); return <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy || !!reason} checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/>
+            <span>{c.name}<small>{c.points} p{reason ? ` · ${BLOCKED_REASON[reason]}` : target !== null && !pupil.offeredCourseIds.includes(c.id) ? ' · Utanför elevens klass' : ''}</small></span></label>; })}
+          <p className={target !== null && pickedPoints !== target ? 'validation-warning' : 'valplan-muted'}>{target === null ? `${pickedPoints} p valda. Eleven ligger utanför blockets klasser.` : `${pickedPoints} av ${target} p valda. ${left < 0 ? `${-left} p för mycket.` : `${left} p kvar.`}`}</p>
+          {target !== null && closest < target && <p className="validation-warning">Kurserna eleven kan välja räcker inte till {target} p. Närmast går {closest} p.</p>}
           <div className="valplan-actions">
             <Button disabled={busy || !picked.length || target !== null && pickedPoints !== target} onClick={async () => { if (await send(command('record_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice?.revision ?? 0, courseIds: picked }), `Valet för ${pupil.name} är sparat.`)) setEditing(null); }}>Spara val</Button>
             <Button variant="outline" disabled={busy} onClick={() => setEditing(null)}>Avbryt</Button></div></fieldset>; })()}

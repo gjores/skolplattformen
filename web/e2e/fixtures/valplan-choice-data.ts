@@ -5,6 +5,6 @@ export const classes = [{ id: id(20), name: 'SA26A' }, { id: id(21), name: 'SA26
 export const pupil = (n: number, name: string, classId: string) => ({ id: id(n), name, classIds: [classId], targetPoints: 200, offeredCourseIds: courses.map(c => c.id), blockedCourses: [] as { courseId: string; reason: 'timplan' | 'val' }[], choice: null as unknown });
 export function read() {
   return { contractVersion: 'valplan_choice_v1', ...scope, valplanName: 'Individuellt val 2027/28', valplanRevision: 1, guardianConfirmation: null as boolean | null, round: null as unknown, courses, classes, groupCourseIds: [] as string[],
-    pupils: [pupil(60, 'Syntetisk Elev A', id(20)), pupil(61, 'Syntetisk Elev B', id(20)), { ...pupil(62, 'Syntetisk Elev C', id(21)), targetPoints: null, offeredCourseIds: [] }] };
+    pupils: [pupil(60, 'Syntetisk Elev A', id(20)), pupil(61, 'Syntetisk Elev B', id(20)), { ...pupil(62, 'Syntetisk Elev C', id(21)), targetPoints: null, offeredCourseIds: [] as string[] }] };
 }
 export const person = { bindingId: id(70), unitId: id(1), schoolName: 'Provskolan', pupilId: id(60), pupilName: 'Syntetisk Elev A', bindingRevision: 1 };

@@ -5,12 +5,14 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { SelfParticipant } from '@/lib/elective-self-contract.ts';
-import { parseValplanSelfCommand, parseValplanSelfRead, parseValplanSelfReceipt, type ValplanChoiceState, type ValplanSelfCommand, type ValplanSelfOffer, type ValplanSelfRead } from '@/lib/valplan-choice-contract.ts';
+import { parseValplanSelfCommand, parseValplanSelfRead, parseValplanSelfReceipt, valplanClosestPoints, type ValplanBlockedCourse, type ValplanChoiceState, type ValplanSelfCommand, type ValplanSelfOffer, type ValplanSelfRead } from '@/lib/valplan-choice-contract.ts';
 
 const BASE = '/api/valplaner/egen';
 const STATE: Record<ValplanChoiceState, string> = { awaiting_guardian: 'Valet väntar på bekräftelse från vårdnadshavare.', guardian_declined: 'Vårdnadshavare har avböjt valet. Gör ett nytt val eller kontakta skolan.',
   guardian_bindings_missing: 'Skolan behöver kontrollera kopplingen till vårdnadshavare.', ready_for_confirmation: 'Valet är inlämnat och väntar på skolans bekräftelse.', confirmed: 'Skolan har bekräftat valet.', course_changed: 'En kurs i valet finns inte längre. Gör ett nytt val eller kontakta skolan.',
-  course_held: 'En kurs i valet ingår redan i din timplan eller finns i ett annat val. Gör ett nytt val eller kontakta skolan.' };
+  course_held: 'En kurs i valet finns redan i timplanen eller i ett annat val. Gör ett nytt val eller kontakta skolan.' };
+const REASON: Record<ValplanBlockedCourse['reason'], string> = { timplan: 'Ingår redan i din timplan', val: 'Du har redan valt kursen' };
+const sameCourses = (a: readonly string[], b: readonly string[]) => [...a].sort().join() === [...b].sort().join();
 type Props = { person: SelfParticipant; epoch: number; onLost: () => void; onCount: (count: number) => void };
 export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Props) {
   const [data, setData] = useState<ValplanSelfRead | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [feedback, setFeedback] = useState<string | null>(null);
@@ -32,7 +34,7 @@ export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Pr
       setPending(null); await load(); setFeedback(command.action === 'submit_choice' ? 'Ditt val är inlämnat.' : 'Ditt svar är sparat.');
     } catch (caught) {
       if (caught instanceof ApiError && [401, 403].includes(caught.status)) { setPending(null); onLost(); return; }
-      if (caught instanceof ApiError) { setPending(null); setError(caught.status === 409 ? 'Valet har ändrats eller stängts. Hämta aktuellt läge och kontrollera ditt val.' : 'Valet kunde inte sparas. Kontrollera att kurserna fyller poängen.'); }
+      if (caught instanceof ApiError) { setPending(null); setError(caught.status === 409 ? 'Valet har ändrats eller stängts. Hämta aktuellt läge och kontrollera ditt val.' : caught.reason === 'valplan_choice_course_held' ? 'Du har redan en av kurserna, i din timplan eller i ett annat val. Hämta aktuellt läge och välj en annan kurs.' : 'Valet kunde inte sparas. Kontrollera att kurserna fyller poängen.'); }
       else setError('Ändringen kunde inte bekräftas. Kontrollera sparstatus innan du försöker igen.');
     } finally { setBusy(false); }
   }
@@ -48,16 +50,20 @@ export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Pr
 }
 function Offer({ offer, person, disabled, onSend }: { offer: ValplanSelfOffer; person: SelfParticipant; disabled: boolean; onSend: (action: ValplanSelfCommand['action'], payload: ValplanSelfCommand['payload']) => Promise<void> }) {
   const choice = offer.choice, pupil = person.participant === 'pupil', open = offer.round.accepting;
-  const [picked, setPicked] = useState<string[]>(choice?.courseIds.filter(id => offer.courses.some(c => c.id === id)) ?? []);
+  const reasons = new Map(offer.blockedCourses.map(b => [b.courseId, b.reason])), free = offer.courses.filter(c => !reasons.has(c.id)), held = offer.courses.filter(c => reasons.has(c.id));
+  // A course the pupil already has leaves the choice here, but nothing changes until the pupil saves.
+  const [picked, setPicked] = useState<string[]>(choice?.courseIds.filter(id => free.some(c => c.id === id)) ?? []), [start] = useState(picked);
   const points = picked.reduce((n, id) => n + (offer.courses.find(c => c.id === id)?.points ?? 0), 0), target = offer.targetPoints, left = target === null ? 0 : target - points;
-  const changed = [...picked].sort().join() !== [...(choice?.courseIds ?? [])].sort().join();
-  useUnsavedChanges(`valplan-choice:${person.bindingId}:${offer.round.id}`, pupil && changed);
+  const changed = !sameCourses(picked, choice?.courseIds ?? []), closest = target === null ? 0 : valplanClosestPoints(free.map(c => c.points), target);
+  useUnsavedChanges(`valplan-choice:${person.bindingId}:${offer.round.id}`, pupil && !sameCourses(picked, start));
   return <article className="elective-card"><header><h2>{offer.valplanName}</h2><p className="elective-muted">{open ? `Sista valdag ${offer.round.closesOn}` : 'Valet är stängt'}{target !== null ? ` · ${target} p att välja` : ''}</p></header>
     {choice && <p className="elective-feedback">{STATE[choice.state]}</p>}
     {pupil ? <>
       <fieldset className="valplan-self-courses" disabled={disabled || !open}><legend>Dina kurser</legend>
-        {offer.courses.map(c => <label key={c.id} className="elective-choice"><input type="checkbox" checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/><span>{c.name} · {c.points} p</span></label>)}</fieldset>
+        {free.map(c => <label key={c.id} className="elective-choice"><input type="checkbox" checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/><span>{c.name} · {c.points} p</span></label>)}
+        {held.map(c => <label key={c.id} className="elective-choice"><input type="checkbox" checked={false} disabled/><span>{c.name} · {c.points} p<small>{REASON[reasons.get(c.id)!]}</small></span></label>)}</fieldset>
       {target !== null && <output className="elective-muted">{left === 0 ? 'Du har valt rätt antal poäng.' : left > 0 ? `${left} p kvar att välja.` : `${-left} p för mycket.`}</output>}
+      {open && target !== null && closest < target && <p className="validation-warning">Kurserna du kan välja räcker inte till {target} p. Närmast går {closest} p. Kontakta skolan.</p>}
       <p className="elective-muted">{offer.round.guardianConfirmation ? 'När du lämnat ditt val behöver din vårdnadshavare bekräfta det innan skolan går vidare.' : 'När du lämnat ditt val bekräftar skolan det.'}</p>
       <Button disabled={disabled || !open || !picked.length || left !== 0 || !!choice && !changed && choice.state !== 'guardian_declined'} onClick={() => void onSend('submit_choice', { roundId: offer.round.id, expectedChoiceRevision: choice?.revision ?? 0, courseIds: picked })}>{choice ? 'Ändra val' : 'Lämna val'}</Button>
     </> : !choice ? <p>Eleven har inte lämnat sitt val ännu.</p> : <>
