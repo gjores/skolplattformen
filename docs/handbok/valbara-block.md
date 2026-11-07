@@ -101,7 +101,7 @@ Så här avgörs det:
 - **Timplanen** räknas med kurser på fasta rader under hela utbildningen, också år som inte har börjat. Rader med alternativa ämnen räknas inte, eftersom timplanen inte visar vilket ämne eleven läser. En fast rad anger inget språk och hindrar därför inga moderna språk.
 - **Val** räknas från alla andra block och läsår på skolan, också om valet inte är bekräftat. Ändras valet, eller avböjer vårdnadshavare det, går kursen att välja igen.
 
-Spärren ser bara timplaner och val. Den ser inte betyg eller kurser från en tidigare skola, så den visar inte att eleven har läst kursen i verkligheten. Den känner heller inte till val i **Gamla valbara block**.
+Spärren ser bara timplaner och val. Den ser inte betyg eller kurser från en tidigare skola, så den visar inte att eleven har läst kursen i verkligheten. Den känner heller inte till val i **Gamla valbara block**, och kurser i timplanens valpaket räknas inte, eftersom timplanen inte visar vilket paket eleven läser.
 
 Ett val som redan finns ändras aldrig automatiskt. Innehåller det en kurs eleven också har i timplanen eller i ett annat val får valet status **Eleven har redan kursen**. Valet ligger kvar med sina kurser, och sidan säger vilken kurs det gäller. Det går inte att bekräfta, och det kommer inte med när du skapar grupper, också om det var bekräftat. Grupper eleven redan finns i ändras inte. Har två val samma kurs får båda statusen, och skolan avgör vilket som ska ändras. Ändra valet med **Registrera val**, eller be eleven välja om. Då gäller det andra valet igen.
 
