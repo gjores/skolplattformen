@@ -304,8 +304,8 @@ async function seedHistoricalGy25(t,f,seed) {
   const [{revision}] = await t`select revision from public.timplans where id=${planId}`;
   const command = async q => (await t`select public.phase5_class_command(${t.json(q)}) value`)[0].value;
   const klass=await command({operation:'create',commandId:randomUUID(),planId,expectedPlanRevision:revision,name:'SYNHBF',startYear:seed.year-1});
-  for(const [schoolYear,columnId] of [[seed.year-1,'ar1'],[seed.year,'ar2']]) await command({operation:'link',commandId:randomUUID(),classId:klass.id,schoolYear,planId,
-    expectedPlanRevision:revision,columnId,expectedLinkRevision:null,previousPlanId:null});
+  // One link covers the rest of the plan (CLASS-LINK), so the class follows into the next year by itself.
+  await command({operation:'link',commandId:randomUUID(),classId:klass.id,schoolYear:seed.year-1,planId,expectedPlanRevision:revision,columnId:'ar1',expectedLinkRevision:null,previousPlanId:null});
   return {scope:{unitId:seed.schools.A,schoolYear:seed.year},priorScope:{unitId:seed.schools.A,schoolYear:seed.year-1},classId:klass.id,planId,offeringId,programId,
     rowKey,sourceKey:`class_timplan:${klass.id}:${seed.year}:${rowKey}`,priorSourceKey:`class_timplan:${klass.id}:${seed.year-1}:${rowKey}`,
     unprovenRowKey:'foundation:ENGE:1:ENGE2000X',unprovenSourceKey:`class_timplan:${klass.id}:${seed.year}:foundation:ENGE:1:ENGE2000X`,
