@@ -132,7 +132,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <div className="valplan-open">
           <div className="protected-date-field"><label htmlFor={`${heading}-on`}>Ändringar gäller från</label><DatePicker id={`${heading}-on`} value={on} disabled={busy} onValueChange={setOn}/></div>
           {courseOptions.length > 0 && <label>Kurs<select value={courseFilter} onChange={e => setCourseFilter(e.target.value)}><option value="">Alla</option>{courseOptions.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
-          <div className="valplan-actions"><Button disabled={busy || draft !== null} onClick={newGroup}>Ny grupp</Button></div>
+          {!draft && <div className="valplan-actions"><Button disabled={busy} onClick={newGroup}>Ny grupp</Button></div>}
         </div>
         {mfa ? <MfaStepUpNotice message={error ?? 'Verifiering med engångskod krävs.'}/> : error && <div className="valplan-alert" role="alert"><p>{error}</p>
           {pending ? <Button disabled={busy} onClick={() => void send(pending, 'Sparandet är bekräftat.')}>Kontrollera sparstatus</Button> : <Button variant="outline" disabled={busy} onClick={() => void refresh()}>Hämta aktuellt läge</Button>}</div>}
@@ -167,12 +167,13 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
             {data.pupils.filter(p => !set.some(x => memberships(x).some(current) && memberships(x).some(m => m.pupilId === p.id && current(m)))).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label> : null}
           <div className="valplan-actions">
             <Button size="sm" variant="outline" disabled={busy} onClick={() => setAdding(adding === g.id ? null : g.id)}>{adding === g.id ? 'Klar' : 'Lägg till elev'}</Button>
-            <Button size="sm" variant="outline" disabled={busy || draft !== null} onClick={() => change(g)}>Ändra</Button>
+            {!draft && <Button size="sm" variant="outline" disabled={busy} onClick={() => change(g)}>Ändra</Button>}
             <Button size="sm" variant="outline" disabled={busy} onClick={() => void send(command('retire_group', { groupId: g.id, expectedRevision: g.revision }), 'Gruppen är avvecklad.')}>Avveckla</Button></div>
         </article>; })}</div>
         <div className="valplan-actions">
-          <Button variant="outline" disabled={busy || draft !== null} onClick={() => parallel(set)}>Ny parallell grupp</Button>
+          {!draft && <Button variant="outline" disabled={busy} onClick={() => parallel(set)}>Ny parallell grupp</Button>}
           <Button variant="outline" disabled={busy || !set.some(g => g.classIds.length)} onClick={() => void distribute(set)}>Fördela jämnt</Button></div>
+        {!set.some(g => g.classIds.length) && <p className="valplan-muted">Fördela jämnt hämtar eleverna från klasserna, och gruppen har inga klasser.</p>}
       </section>)}
       <LegacyBlockRetirement unitId={unitId} schoolYear={schoolYear} onSessionLost={onSessionLost}/>
     </>}

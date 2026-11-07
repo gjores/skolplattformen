@@ -79,6 +79,8 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
   const count = (state: string) => pupils.filter(p => stateOf(p) === state).length;
   const ready = pupils.filter(p => stateOf(p) === 'ready_for_confirmation');
   const round = data?.round ?? null;
+  // G9: one primary action per view, the next step in the work. An unconfirmed save comes first, then the form, then the round.
+  const next = pending && !busy ? 'status' : editing ? 'save' : ready.length ? 'confirm' : count('confirmed') ? 'groups' : round?.status === 'open' ? null : 'open';
 
   async function confirmAll() {
     for (const pupil of ready) if (!await send(command('confirm_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice!.revision }), `${ready.length} val är bekräftade.`)) return;
@@ -97,14 +99,14 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
         <fieldset className="valplan-new"><legend>Bekräftelse av vårdnadshavare</legend>
           <p className="valplan-muted">{data.guardianConfirmation === null ? 'Ange om vårdnadshavare ska bekräfta valen. Inställningen gäller hela skolan och öppna val.' : data.guardianConfirmation ? 'Vårdnadshavare bekräftar elevens val innan skolan bekräftar.' : 'Vårdnadshavare bekräftar inte valen. Skolan bekräftar direkt.'}</p>
           <div className="valplan-actions">
-            <Button variant={data.guardianConfirmation === true ? 'default' : 'outline'} aria-pressed={data.guardianConfirmation === true} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: true }), 'Vårdnadshavare bekräftar valen.')}>Vårdnadshavare bekräftar</Button>
-            <Button variant={data.guardianConfirmation === false ? 'default' : 'outline'} aria-pressed={data.guardianConfirmation === false} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: false }), 'Vårdnadshavare behöver inte bekräfta.')}>Ingen bekräftelse</Button>
+            <Button variant={data.guardianConfirmation === true ? 'secondary' : 'outline'} aria-pressed={data.guardianConfirmation === true} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: true }), 'Vårdnadshavare bekräftar valen.')}>Vårdnadshavare bekräftar</Button>
+            <Button variant={data.guardianConfirmation === false ? 'secondary' : 'outline'} aria-pressed={data.guardianConfirmation === false} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: false }), 'Vårdnadshavare behöver inte bekräfta.')}>Ingen bekräftelse</Button>
           </div></fieldset>
         {remaining.length > 0 && <div className="validation-warning"><p>{round?.status === 'open' ? 'Valet är öppet, men Kontroll i blocket visar att något behöver rättas:' : 'Valet går inte att öppna förrän det som återstår under Kontroll i blocket är löst:'}</p>
           <ul className="valplan-rows">{remaining.map(text => <li key={text}><small>{text}</small></li>)}</ul></div>}
         {round?.status === 'open' ? <div className="valplan-actions"><Button variant="outline" disabled={busy} onClick={() => void send(command('close_round', { expectedRevision: round.revision }), 'Valet är stängt.')}>Stäng val</Button></div>
           : <><div className="valplan-open"><div className="protected-date-field"><label htmlFor={`${heading}-closes`}>Sista valdag</label><DatePicker id={`${heading}-closes`} value={closesOn} disabled={busy} onValueChange={setClosesOn}/></div>
-            <div className="valplan-actions"><Button disabled={busy || !closesOn || data.guardianConfirmation === null || remaining.length > 0} onClick={() => void send(command('open_round', { expectedRevision: round?.revision ?? 0, closesOn }), 'Valet är öppet för eleverna.')}>{round ? 'Öppna val igen' : 'Öppna val'}</Button></div></div>
+            <div className="valplan-actions"><Button variant={next === 'open' ? 'default' : 'outline'} disabled={busy || !closesOn || data.guardianConfirmation === null || remaining.length > 0} onClick={() => void send(command('open_round', { expectedRevision: round?.revision ?? 0, closesOn }), 'Valet är öppet för eleverna.')}>{round ? 'Öppna val igen' : 'Öppna val'}</Button></div></div>
             {data.guardianConfirmation === null ? <p className="valplan-muted">Ange först om vårdnadshavare ska bekräfta valen.</p> : !closesOn && <p className="valplan-muted">Välj sista valdag för att öppna valet.</p>}</>}
       </section>
 
@@ -127,7 +129,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
               {p.choice?.state === 'course_held' && p.choice.courseIds.map(id => { const reason = blockedReason(p, id); return reason && <small key={id}>{courseName(id)}: {BLOCKED_REASON[reason]}</small>; })}</td>
             <td className="valplan-remove"><div className="valplan-actions">
               <Button size="sm" variant="outline" disabled={busy} aria-label={`Registrera val åt ${p.name}`} onClick={() => edit(p)}>Registrera val</Button>
-              {stateOf(p) === 'ready_for_confirmation' && <Button size="sm" disabled={busy} aria-label={`Bekräfta valet för ${p.name}`} onClick={() => void send(command('confirm_choice', { pupilId: p.id, expectedChoiceRevision: p.choice!.revision }), `Valet för ${p.name} är bekräftat.`)}>Bekräfta</Button>}
+              {stateOf(p) === 'ready_for_confirmation' && <Button size="sm" variant="outline" disabled={busy} aria-label={`Bekräfta valet för ${p.name}`} onClick={() => void send(command('confirm_choice', { pupilId: p.id, expectedChoiceRevision: p.choice!.revision }), `Valet för ${p.name} är bekräftat.`)}>Bekräfta</Button>}
             </div></td></tr>)}</tbody></table></div> : <p className="valplan-muted">{pupils.length ? 'Inga elever matchar filtret.' : 'Inga elever att visa. Koppla klasser till timplanerna för läsåret.'}</p>}
         {editing && (() => { const pupil = data.pupils.find(p => p.id === editing)!, target = pupil.targetPoints;
           // A read after a refusal can block a course that is already ticked.
@@ -148,10 +150,11 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
         <h3>Grupper från valet</h3>
         <p className="valplan-muted">Bekräftade elever läggs i en grupp per kurs. Grupperna delas och justeras under Undervisningsgrupper. Ett ändrat val flyttar aldrig en elev från en befintlig grupp.</p>
         <div className="valplan-actions">
-          {ready.length > 0 && <Button variant="outline" disabled={busy} onClick={() => void confirmAll()}>Bekräfta alla klara ({ready.length})</Button>}
-          <Button disabled={busy || !count('confirmed')} onClick={() => void send(command('create_groups', {}), g => `${g.created} nya grupper och ${g.added} elever tillagda.${g.notConfirmed ? ` ${g.notConfirmed} val är inte bekräftade och ingår inte.` : ''}`)}>Skapa grupper från valet</Button>
+          {ready.length > 0 && <Button variant={next === 'confirm' ? 'default' : 'outline'} disabled={busy} onClick={() => void confirmAll()}>Bekräfta alla klara ({ready.length})</Button>}
+          <Button variant={next === 'groups' ? 'default' : 'outline'} disabled={busy || !count('confirmed')} onClick={() => void send(command('create_groups', {}), g => `${g.created} nya grupper och ${g.added} elever tillagda.${g.notConfirmed ? ` ${g.notConfirmed} val är inte bekräftade och ingår inte.` : ''}`)}>Skapa grupper från valet</Button>
           {onOpenGroups && <Button variant="outline" disabled={busy} onClick={onOpenGroups}>Öppna Undervisningsgrupper</Button>}
         </div>
+        {!count('confirmed') && <p className="valplan-muted">Bekräfta minst ett val först.</p>}
       </section>
 
       {mfa ? <MfaStepUpNotice message={error ?? 'Verifiering med engångskod krävs.'}/> : error && <div className="valplan-alert" role="alert"><p>{error}</p>
