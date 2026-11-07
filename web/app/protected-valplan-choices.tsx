@@ -18,6 +18,12 @@ function message(error: unknown): string {
     if (error.reason === 'valplan_choice_course') return 'En vald kurs finns inte längre i blocket.';
     if (error.reason === 'valplan_round_date') return 'Sista valdag kan inte ligga bakåt i tiden.';
     if (error.reason === 'valplan_round_empty') return 'Blocket behöver minst en kurs och en timplansrad innan valet kan öppnas.';
+    if (error.reason === 'valplan_round_points') return 'Valet öppnades inte. En klass kan inte nå exakt sina poäng med kurser den får läsa. Gå tillbaka till blocket och rätta under Kontroll.';
+    if (error.reason === 'valplan_round_doubled') return 'Valet öppnades inte. En klass finns i två block. Gå tillbaka till blocket och rätta under Kontroll.';
+    if (error.reason === 'valplan_round_rows') return 'Valet öppnades inte. En klass finns i två rader i blocket. Gå tillbaka till blocket och rätta under Kontroll.';
+    if (error.reason === 'valplan_round_no_classes') return 'Valet öppnades inte. Inga klasser ingår i blocket. Gå tillbaka till blocket och rätta under Kontroll.';
+    if (error.reason === 'valplan_round_time') return 'Valet öppnades inte. En kurs saknar undervisningstid. Gå tillbaka till blocket och rätta under Kontroll.';
+    if (error.reason === 'valplan_round_row') return 'Valet öppnades inte. En kopplad timplansrad finns inte längre för läsåret.';
     if (error.reason === 'elective_policy_missing') return 'Ange först om vårdnadshavare ska bekräfta valen.';
     if (error.reason === 'elective_confirmation_required') return 'Valet kan inte bekräftas ännu. Kontrollera elevens status.';
     if (error.status === 409) return 'Underlaget har ändrats. Hämta aktuellt läge och granska ändringen igen.';
@@ -27,8 +33,9 @@ function message(error: unknown): string {
   return 'Sparandet kunde inte bekräftas. Kontrollera sparstatus innan du försöker igen.';
 }
 
-type Props = { unitId: string; schoolYear: number; valplanId: string; scopeKey: string; onBack: () => void; onOpenGroups?: () => void; onSessionLost: () => void };
-export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId, scopeKey, onBack, onOpenGroups, onSessionLost }: Props) {
+/** remaining: what Kontroll says is left. The database refuses the same opening. */
+type Props = { unitId: string; schoolYear: number; valplanId: string; scopeKey: string; remaining?: readonly string[]; onBack: () => void; onOpenGroups?: () => void; onSessionLost: () => void };
+export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId, scopeKey, remaining = [], onBack, onOpenGroups, onSessionLost }: Props) {
   const heading = useId();
   const [data, setData] = useState<ValplanChoiceRead | null>(null), [loadError, setLoadError] = useState(false), [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false);
@@ -90,9 +97,12 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
             <Button variant={data.guardianConfirmation === true ? 'default' : 'outline'} aria-pressed={data.guardianConfirmation === true} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: true }), 'Vårdnadshavare bekräftar valen.')}>Vårdnadshavare bekräftar</Button>
             <Button variant={data.guardianConfirmation === false ? 'default' : 'outline'} aria-pressed={data.guardianConfirmation === false} disabled={busy} onClick={() => void send(command('set_policy', { guardianConfirmation: false }), 'Vårdnadshavare behöver inte bekräfta.')}>Ingen bekräftelse</Button>
           </div></fieldset>
+        {remaining.length > 0 && <div className="validation-warning"><p>{round?.status === 'open' ? 'Valet är öppet, men Kontroll i blocket visar att något behöver rättas:' : 'Valet går inte att öppna förrän det som återstår under Kontroll i blocket är löst:'}</p>
+          <ul className="valplan-rows">{remaining.map(text => <li key={text}><small>{text}</small></li>)}</ul></div>}
         {round?.status === 'open' ? <div className="valplan-actions"><Button variant="outline" disabled={busy} onClick={() => void send(command('close_round', { expectedRevision: round.revision }), 'Valet är stängt.')}>Stäng val</Button></div>
-          : <div className="valplan-open"><div className="protected-date-field"><label htmlFor={`${heading}-closes`}>Sista valdag</label><DatePicker id={`${heading}-closes`} value={closesOn} disabled={busy} onValueChange={setClosesOn}/></div>
-            <div className="valplan-actions"><Button disabled={busy || !closesOn || data.guardianConfirmation === null} onClick={() => void send(command('open_round', { expectedRevision: round?.revision ?? 0, closesOn }), 'Valet är öppet för eleverna.')}>{round ? 'Öppna val igen' : 'Öppna val'}</Button></div></div>}
+          : <><div className="valplan-open"><div className="protected-date-field"><label htmlFor={`${heading}-closes`}>Sista valdag</label><DatePicker id={`${heading}-closes`} value={closesOn} disabled={busy} onValueChange={setClosesOn}/></div>
+            <div className="valplan-actions"><Button disabled={busy || !closesOn || data.guardianConfirmation === null || remaining.length > 0} onClick={() => void send(command('open_round', { expectedRevision: round?.revision ?? 0, closesOn }), 'Valet är öppet för eleverna.')}>{round ? 'Öppna val igen' : 'Öppna val'}</Button></div></div>
+            {data.guardianConfirmation === null ? <p className="valplan-muted">Ange först om vårdnadshavare ska bekräfta valen.</p> : !closesOn && <p className="valplan-muted">Välj sista valdag för att öppna valet.</p>}</>}
       </section>
 
       <section className="valplan-section" aria-label="Elever">

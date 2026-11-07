@@ -7,12 +7,13 @@ const headers = { 'X-Context-Epoch': '1' };
 const at = '2026-11-05T10:00:00.000Z';
 type Round = { id: string; status: 'open' | 'closed'; closesOn: string; guardianConfirmation: boolean; revision: number; accepting: boolean };
 async function staffMock(page: Page) {
-  const m = { state: read(), writes: [] as ValplanChoiceCommand[], lose: false };
+  const m = { state: read(), writes: [] as ValplanChoiceCommand[], lose: false, refuse: null as string | null };
   await page.route('**/api/valplaner/val/**', async route => {
     const path = new globalThis.URL(route.request().url()).pathname;
     if (path.endsWith('/lasa')) return route.fulfill({ json: m.state, headers });
     const c = parseValplanChoiceCommand(route.request().postDataJSON()); m.writes.push(c);
     if (m.lose) { m.lose = false; return route.abort('failed'); }
+    if (m.refuse) return route.fulfill({ status: 400, json: { code: 'bad_request', details: { reason: m.refuse } }, headers });
     const extra: Record<string, number> = {};
     const round = m.state.round as Round | null;
     if (c.action === 'set_policy') m.state.guardianConfirmation = c.payload.guardianConfirmation;
@@ -43,6 +44,19 @@ async function selfMock(page: Page, participant: 'pupil' | 'guardian', guardian 
   });
   return m;
 }
+
+test('nekar servern öppnandet säger sidan varför, och inget val öppnas', async ({ page }) => {
+  const m = await staffMock(page); m.state.guardianConfirmation = false; await page.goto(URL);
+  await expect(page.getByText('Välj sista valdag för att öppna valet.')).toBeVisible();
+  await page.getByLabel('Sista valdag').fill('2026-12-01');
+  await expect(page.getByText('Välj sista valdag för att öppna valet.')).toHaveCount(0);
+  for (const [reason, text] of [['valplan_round_points', 'En klass kan inte nå exakt sina poäng'], ['valplan_round_doubled', 'En klass finns i två block'], ['valplan_round_rows', 'En klass finns i två rader'], ['valplan_round_no_classes', 'Inga klasser ingår'], ['valplan_round_time', 'En kurs saknar undervisningstid'], ['valplan_round_row', 'En kopplad timplansrad finns inte längre']]) {
+    m.refuse = reason;
+    await page.getByRole('button', { name: 'Öppna val', exact: true }).click();
+    await expect(page.getByRole('alert').filter({ hasText: text })).toBeVisible();
+  }
+  await expect(page.getByText('Inte öppnat')).toBeVisible();
+});
 
 test('skolan öppnar valet, registrerar, bekräftar, skapar grupper och stänger', async ({ page }) => {
   const m = await staffMock(page); await page.goto(URL);

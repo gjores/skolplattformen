@@ -23,6 +23,8 @@ Om skolan ber om en kontoreferens öppnar du **Koppla konto till skolan** och l�
 
 Fram till sista valdag kan du ändra kurserna och välja **Ändra val**. Ett ändrat val behöver granskas igen och flyttar dig inte automatiskt från en grupp.
 
+Skolan kan bara öppna valet när din klass kan nå exakt sina poäng med kurser den får läsa. Går poängen ändå inte att fylla kontaktar du skolan.
+
 Äldre valomgångar från valbara block visas i samma vy om sådana finns. Där väljer du ett alternativ och **Lämna mitt val**.
 
 Om valomgången är stängd eller erbjudandet har ändrats kontaktar du skolan för rätt valomgång eller uppdaterat underlag.
