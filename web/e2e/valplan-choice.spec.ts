@@ -27,7 +27,7 @@ async function staffMock(page: Page) {
   return m;
 }
 async function selfMock(page: Page, participant: 'pupil' | 'guardian', guardian = false) {
-  const m = { offer: { round: { id: id(40), status: 'open', closesOn: '2026-12-01', guardianConfirmation: guardian, revision: 1, accepting: true }, valplanId: scope.valplanId, valplanName: 'Individuellt val 2027/28', kind: 'individualChoice', schoolYear: 2027, targetPoints: 200, courses, choice: null as unknown, decision: null as string | null }, writes: [] as unknown[] };
+  const m = { offer: { round: { id: id(40), status: 'open', closesOn: '2026-12-01', guardianConfirmation: guardian, revision: 1, accepting: true }, valplanId: scope.valplanId, valplanName: 'Individuellt val 2027/28', kind: 'individualChoice', schoolYear: 2027, targetPoints: 200, courses, blockedCourses: [] as { courseId: string; reason: 'timplan' | 'val' }[], choice: null as unknown, decision: null as string | null }, writes: [] as unknown[] };
   const participantRow = { ...person, participant, confirmationRequired: participant === 'guardian' };
   await page.route('**/api/valbara-block/egen/**', route => {
     const path = new globalThis.URL(route.request().url()).pathname;

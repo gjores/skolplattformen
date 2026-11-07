@@ -1,6 +1,9 @@
 import { ProgramplanContractError, type ProgramplanCatalog } from './programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES } from './programplan-languages.ts';
 import { programplanValpaketSubjectAllowed } from './programplan-packages.ts';
+import { valplanClosestPoints } from './valplan-choice-contract.ts';
+
+export { valplanClosestPoints };
 
 /** A school's offering of elective courses for one school year, shared by the timplan rows it fills.
  * Local planning information; groups and memberships are mapped to SS 12000 in study-group-model.ts. */
@@ -22,6 +25,8 @@ export type ValplanRowContext = Omit<ValplanRowLink, 'excludedClassIds'> & {
 };
 export type ValplanDiagnostic = { code: string; severity: 'error' | 'notice'; courseId?: string; rowKey?: string; classId?: string };
 export type ValplanOffer = { row: ValplanRowContext; points: number; courseIds: string[] };
+/** The fixed rows a class reads on its timplaner during the whole education. Fixed rows carry no language. */
+export type ValplanClassCourses = { classId: string; courses: { subjectCode: string; itemCode: string }[] };
 /** One line in Kontroll: done, still open (stops the opening) or worth knowing. */
 export type ValplanCheckItem = { area: 'classes' | 'courses' | 'time' | 'points'; state: 'done' | 'open' | 'notice';
   code: 'classes_ok' | 'no_classes' | 'row_missing' | 'class_doubled' | 'class_in_several_rows' | 'classes_waiting' | 'courses_ok' | 'no_courses' | 'time_ok' | 'time_missing' | 'time_deviates' | 'points_ok' | 'points_waiting' | 'class_without_courses' | 'points_unreachable';
@@ -77,7 +82,8 @@ function uuids(value: unknown): string[] {
 
 export function valplanRowKey(row: Pick<ValplanRowLink, 'timplanId' | 'rowKey' | 'year'>): string { return `${row.timplanId}:${row.rowKey}:${row.year}`; }
 export function valplanLevelKey(course: Pick<ValplanCourse, 'subjectCode' | 'subjectVersion' | 'itemCode'>): string { return `${course.subjectCode}:${course.subjectVersion}:${course.itemCode}`; }
-const courseKey = (c: ValplanCourse) => `${valplanLevelKey(c)}:${c.languageCode ?? '-'}`;
+/** The same course is the same subject, level and language, whichever subject version it belongs to. */
+const courseKey = (c: Pick<ValplanCourse, 'subjectCode' | 'itemCode' | 'languageCode'>) => `${c.subjectCode}:${c.itemCode}:${c.languageCode ?? '-'}`;
 
 export function parseValplan(value: unknown): Valplan {
   const r = shape(value, ['id', 'unitId', 'schoolYear', 'kind', 'name', 'revision', 'courses', 'rows']);
@@ -197,6 +203,12 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
   return out;
 }
 
+/** The classes among classIds that already read the course as a fixed row, as valplan_class_fixed says. */
+export function valplanClassesReading(course: Pick<ValplanCourse, 'subjectCode' | 'itemCode' | 'languageCode'>, classCourses: readonly ValplanClassCourses[], classIds: readonly string[]): string[] {
+  const key = courseKey(course);
+  return classIds.filter(id => classCourses.find(c => c.classId === id)?.courses.some(c => courseKey({ ...c, languageCode: null }) === key));
+}
+
 /** Suggested course time, pro rata from a linked row. Zero when the row has no time; the school adjusts it. */
 export function valplanTimeShare(points: number, row: Pick<ValplanRowContext, 'points' | 'minutesHt' | 'minutesVt'> | undefined) {
   const share = (minutes: number | null | undefined) => row?.points && minutes != null ? Math.round(minutes * points / row.points) : 0;
@@ -220,16 +232,10 @@ export function valplanCourseReaders(classes: readonly { id: string; name: strin
   if (!others.length) return 'Alla klasser';
   return others.length <= may.length ? `Alla klasser utom ${nameList(others)}` : `Bara ${nameList(may)}`;
 }
-/** The highest sum at or under the target. Each course counts once, as in a pupil's choice. */
-export function valplanClosestPoints(points: readonly number[], target: number): number {
-  const reach = new Set([0]);
-  // The new sums are collected first, so one course is not added on top of itself.
-  for (const p of points) { const next = [...reach].map(sum => sum + p).filter(sum => sum <= target); for (const sum of next) reach.add(sum); }
-  return Math.max(...reach);
-}
 /** Kontroll (G5). Open lines stop the opening, and valplan_round_problem refuses the same things in the database.
- * A class counts against the row it reads through this block, so an unticked class counts in its own block. */
-export function valplanCheck(plan: Valplan, rows: readonly ValplanRowContext[]): ValplanCheck {
+ * A class counts against the row it reads through this block, so an unticked class counts in its own block.
+ * A course the class already reads gives it no points, since its pupils cannot choose it (G6). */
+export function valplanCheck(plan: Valplan, rows: readonly ValplanRowContext[], classCourses: readonly ValplanClassCourses[] = []): ValplanCheck {
   const items: ValplanCheckItem[] = [];
   const add = (area: ValplanCheckItem['area'], code: ValplanCheckItem['code'], state: ValplanCheckItem['state'], extra: Partial<ValplanCheckItem> = {}) =>
     items.push({ area, code, state, classIds: [], courseIds: [], valplanIds: [], ...extra });
@@ -261,7 +267,7 @@ export function valplanCheck(plan: Valplan, rows: readonly ValplanRowContext[]):
 
   const missed = new Map<string, ValplanCheckItem>();
   for (const { row, classIds } of linked) for (const classId of classIds) {
-    const offered = rowCourses(plan, row, classId), closest = valplanClosestPoints(offered.map(c => c.points), row.points);
+    const offered = rowCourses(plan, row, classId).filter(c => !valplanClassesReading(c, classCourses, [classId]).length), closest = valplanClosestPoints(offered.map(c => c.points), row.points);
     if (closest === row.points) continue;
     const code = offered.length ? 'points_unreachable' : 'class_without_courses', key = `${code}:${row.points}:${closest}`, seen = missed.get(key);
     if (seen) { if (!seen.classIds.includes(classId)) seen.classIds.push(classId); }

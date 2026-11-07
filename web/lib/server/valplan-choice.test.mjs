@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registerHooks} from 'node:module';
 registerHooks({load(url,ctx,next){if(url===new URL('./session.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const readSession=()=>{throw Error("unexpected session")};export const tokenHash=()=>{throw Error("unexpected token")};'};if(url===new URL('./env.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const serverEnv=()=>({});'};if(url===new URL('./db.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export class Deny extends Error{constructor(code,status,details){super(code);this.code=code;this.status=status;this.details=details;}} export const withLoginPhase=()=>{throw Error("unexpected DB")};export const withSessionContext=()=>{throw Error("unexpected DB")};'};return next(url,ctx);}});
 const {readValplanChoices,commandValplanChoice}=await import('./valplan-choice.ts');
-import {parseValplanChoiceCommand,parseValplanChoiceScope,parseValplanSelfCommand} from '../valplan-choice-contract.ts';
+import {parseValplanChoiceCommand,parseValplanChoiceRead,parseValplanChoiceScope,parseValplanSelfCommand,parseValplanSelfRead} from '../valplan-choice-contract.ts';
 
 const id=n=>`58100000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2027,valplanId:id(2)},ctx={identityId:id(3),assignmentId:id(4),accessFunction:'rektor'};
@@ -26,11 +26,20 @@ test('sql outcomes map to clear statuses without leaking text',async()=>{
  await rejects(()=>commandValplanChoice(fixture(sql('42501')).tx,ctx,c),'forbidden');
  await assert.rejects(()=>commandValplanChoice(fixture(sql('40001','valplan_round_conflict')).tx,ctx,c),e=>e.code==='conflict'&&e.details.reason==='valplan_round_conflict');
  await assert.rejects(()=>commandValplanChoice(fixture(sql('22023','valplan_choice_points')).tx,ctx,c),e=>e.code==='bad_request'&&e.details.reason==='valplan_choice_points');
+ for(const reason of ['valplan_choice_course_held','valplan_choice_course_twice'])await assert.rejects(()=>commandValplanChoice(fixture(sql('22023',reason)).tx,ctx,c),e=>e.code==='bad_request'&&e.details.reason===reason);
  await rejects(()=>commandValplanChoice(fixture(sql('XX000')).tx,ctx,c),'AuditUnavailable');
 });
 test('commands return the new read and group counts from the receipt',async()=>{
  const c=command('create_groups',{}),reply=wrap({receipt:{commandId:id(6),action:'create_groups',replayed:false,created:2,added:5,notConfirmed:1},read:read()});
  const {body}=await commandValplanChoice(fixture(reply).tx,ctx,c);assert.deepEqual(body.receipt.groups,{created:2,added:5,notConfirmed:1});
+});
+test('the read says why a course cannot be chosen, and nothing else passes',()=>{
+ const pupil={id:id(60),name:'Syntetisk',classIds:[],targetPoints:200,offeredCourseIds:[],blockedCourses:[{courseId:id(30),reason:'timplan'}],choice:null},good=read({pupils:[pupil]});
+ assert.deepEqual(parseValplanChoiceRead(good,scope).pupils[0].blockedCourses,[{courseId:id(30),reason:'timplan'}]);
+ for(const blockedCourses of [[{courseId:id(30),reason:'betyg'}],[{courseId:id(30)}],undefined])assert.throws(()=>parseValplanChoiceRead(read({pupils:[{...pupil,blockedCourses}]}),scope));
+ const offer={round:{id:id(40),status:'open',closesOn:'2027-01-01',guardianConfirmation:false,revision:1,accepting:true},valplanId:id(2),valplanName:'IV',kind:'individualChoice',schoolYear:2027,targetPoints:200,courses:[],blockedCourses:[{courseId:id(30),reason:'val'}],choice:null,decision:null};
+ assert.equal(parseValplanSelfRead({contractVersion:'valplan_self_v1',epoch:1,offers:[offer]},1).offers[0].blockedCourses[0].reason,'val');
+ const {blockedCourses:_,...old}=offer;assert.throws(()=>parseValplanSelfRead({contractVersion:'valplan_self_v1',epoch:1,offers:[old]},1),'a read without the field is refused');
 });
 test('contracts refuse unknown shapes before the database',()=>{
  assert.throws(()=>parseValplanChoiceScope({...scope,extra:1}));

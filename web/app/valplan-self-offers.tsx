@@ -9,7 +9,8 @@ import { parseValplanSelfCommand, parseValplanSelfRead, parseValplanSelfReceipt,
 
 const BASE = '/api/valplaner/egen';
 const STATE: Record<ValplanChoiceState, string> = { awaiting_guardian: 'Valet väntar på bekräftelse från vårdnadshavare.', guardian_declined: 'Vårdnadshavare har avböjt valet. Gör ett nytt val eller kontakta skolan.',
-  guardian_bindings_missing: 'Skolan behöver kontrollera kopplingen till vårdnadshavare.', ready_for_confirmation: 'Valet är inlämnat och väntar på skolans bekräftelse.', confirmed: 'Skolan har bekräftat valet.', course_changed: 'En kurs i valet finns inte längre. Gör ett nytt val eller kontakta skolan.' };
+  guardian_bindings_missing: 'Skolan behöver kontrollera kopplingen till vårdnadshavare.', ready_for_confirmation: 'Valet är inlämnat och väntar på skolans bekräftelse.', confirmed: 'Skolan har bekräftat valet.', course_changed: 'En kurs i valet finns inte längre. Gör ett nytt val eller kontakta skolan.',
+  course_held: 'En kurs i valet ingår redan i din timplan eller finns i ett annat val. Gör ett nytt val eller kontakta skolan.' };
 type Props = { person: SelfParticipant; epoch: number; onLost: () => void; onCount: (count: number) => void };
 export default function ValplanSelfOffers({ person, epoch, onLost, onCount }: Props) {
   const [data, setData] = useState<ValplanSelfRead | null>(null), [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [feedback, setFeedback] = useState<string | null>(null);

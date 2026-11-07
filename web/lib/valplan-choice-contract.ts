@@ -3,13 +3,15 @@ import { selfBool, selfDate, selfInt, selfObject, selfText, selfTime, selfUuid, 
 /** VP-04. Local process per valplan. Only confirmed choices reach groups, and then through Undervisningsgrupper. */
 export const VALPLAN_CHOICE_VERSION = 'valplan_choice_v1' as const;
 export const VALPLAN_SELF_VERSION = 'valplan_self_v1' as const;
-export const VALPLAN_CHOICE_STATES = ['awaiting_guardian', 'guardian_declined', 'guardian_bindings_missing', 'ready_for_confirmation', 'confirmed', 'course_changed'] as const;
+export const VALPLAN_CHOICE_STATES = ['awaiting_guardian', 'guardian_declined', 'guardian_bindings_missing', 'ready_for_confirmation', 'confirmed', 'course_changed', 'course_held'] as const;
 export type ValplanChoiceState = typeof VALPLAN_CHOICE_STATES[number];
 export type ValplanChoiceScope = { unitId: string; schoolYear: number; valplanId: string };
 export type ValplanRound = { id: string; status: 'open' | 'closed'; closesOn: string; guardianConfirmation: boolean; revision: number; accepting: boolean };
 export type ValplanChoice = { id: string; roundId: string; pupilId: string; revision: number; courseIds: string[]; state: ValplanChoiceState;
   submittedBy: 'school' | 'participant'; submittedAt: string; confirmedAt: string | null };
-export type ValplanChoicePupil = { id: string; name: string; classIds: string[]; targetPoints: number | null; offeredCourseIds: string[]; choice: ValplanChoice | null };
+/** A course the pupil already has, from the timplan or from a choice in another block (F-08). */
+export type ValplanBlockedCourse = { courseId: string; reason: 'timplan' | 'val' };
+export type ValplanChoicePupil = { id: string; name: string; classIds: string[]; targetPoints: number | null; offeredCourseIds: string[]; blockedCourses: ValplanBlockedCourse[]; choice: ValplanChoice | null };
 export type ValplanChoiceCourse = { id: string; name: string; points: number };
 export type ValplanChoiceRead = ValplanChoiceScope & { contractVersion: typeof VALPLAN_CHOICE_VERSION; valplanName: string; valplanRevision: number;
   guardianConfirmation: boolean | null; round: ValplanRound | null; courses: ValplanChoiceCourse[]; classes: { id: string; name: string }[]; groupCourseIds: string[]; pupils: ValplanChoicePupil[] };
@@ -25,7 +27,7 @@ export type ValplanGroupResult = { created: number; added: number; notConfirmed:
 export type ValplanChoiceReply = { receipt: { commandId: string; action: ValplanChoiceCommand['action']; replayed: boolean; groups: ValplanGroupResult | null }; read: ValplanChoiceRead };
 
 export type ValplanSelfOffer = { round: ValplanRound; valplanId: string; valplanName: string; kind: string; schoolYear: number; targetPoints: number | null;
-  courses: ValplanChoiceCourse[]; choice: ValplanChoice | null; decision: 'approve' | 'decline' | null };
+  courses: ValplanChoiceCourse[]; blockedCourses: ValplanBlockedCourse[]; choice: ValplanChoice | null; decision: 'approve' | 'decline' | null };
 export type ValplanSelfRead = { contractVersion: typeof VALPLAN_SELF_VERSION; epoch: number; offers: ValplanSelfOffer[] };
 type SelfBase = ParticipantScope & { expectedBindingRevision: number; commandId: string };
 export type ValplanSelfCommand = SelfBase & (
@@ -38,6 +40,16 @@ function bad(): never { throw new ValplanChoiceContractError(); }
 function list<T>(value: unknown, max: number, parse: (v: unknown) => T): T[] { if (!Array.isArray(value) || value.length > max) bad(); return value.map(parse); }
 function ids(value: unknown, max = 50): string[] { const r = list(value, max, selfUuid); if (new Set(r).size !== r.length) bad(); return r; }
 function year(value: unknown): number { return selfInt(value, 2000, 2100); }
+function blocked(value: unknown): ValplanBlockedCourse[] {
+  return list(value, 500, v => { const r = selfObject(v, ['courseId', 'reason']); if (r.reason !== 'timplan' && r.reason !== 'val') bad(); return { courseId: selfUuid(r.courseId), reason: r.reason }; });
+}
+/** The highest sum at or under the target. Each course counts once, as in a pupil's choice. */
+export function valplanClosestPoints(points: readonly number[], target: number): number {
+  const reach = new Set([0]);
+  // The new sums are collected first, so one course is not added on top of itself.
+  for (const p of points) { const next = [...reach].map(sum => sum + p).filter(sum => sum <= target); for (const sum of next) reach.add(sum); }
+  return Math.max(...reach);
+}
 
 export function parseValplanChoiceScope(value: unknown): ValplanChoiceScope {
   const r = selfObject(value, ['unitId', 'schoolYear', 'valplanId']);
@@ -59,9 +71,9 @@ function course(value: unknown): ValplanChoiceCourse {
   return { id: selfUuid(r.id), name: selfText(r.name, 200), points: selfInt(r.points, 1, 10000) };
 }
 function pupil(value: unknown): ValplanChoicePupil {
-  const r = selfObject(value, ['id', 'name', 'classIds', 'targetPoints', 'offeredCourseIds', 'choice']);
+  const r = selfObject(value, ['id', 'name', 'classIds', 'targetPoints', 'offeredCourseIds', 'blockedCourses', 'choice']);
   return { id: selfUuid(r.id), name: selfText(r.name, 300), classIds: ids(r.classIds, 200), targetPoints: r.targetPoints === null ? null : selfInt(r.targetPoints, 0, 10000),
-    offeredCourseIds: ids(r.offeredCourseIds, 500), choice: r.choice === null ? null : choice(r.choice) };
+    offeredCourseIds: ids(r.offeredCourseIds, 500), blockedCourses: blocked(r.blockedCourses), choice: r.choice === null ? null : choice(r.choice) };
 }
 export function parseValplanChoiceRead(value: unknown, scope: ValplanChoiceScope): ValplanChoiceRead {
   const r = selfObject(value, ['contractVersion', 'unitId', 'schoolYear', 'valplanId', 'valplanName', 'valplanRevision', 'guardianConfirmation', 'round', 'courses', 'classes', 'groupCourseIds', 'pupils']);
@@ -94,10 +106,10 @@ export function parseValplanChoiceReply(value: unknown, command: ValplanChoiceCo
 }
 
 function selfOffer(value: unknown): ValplanSelfOffer {
-  const r = selfObject(value, ['round', 'valplanId', 'valplanName', 'kind', 'schoolYear', 'targetPoints', 'courses', 'choice', 'decision']);
+  const r = selfObject(value, ['round', 'valplanId', 'valplanName', 'kind', 'schoolYear', 'targetPoints', 'courses', 'blockedCourses', 'choice', 'decision']);
   if (r.decision !== null && r.decision !== 'approve' && r.decision !== 'decline') bad();
   return { round: round(r.round), valplanId: selfUuid(r.valplanId), valplanName: selfText(r.valplanName, 200), kind: selfText(r.kind, 40), schoolYear: year(r.schoolYear),
-    targetPoints: r.targetPoints === null ? null : selfInt(r.targetPoints, 0, 10000), courses: list(r.courses, 500, course), choice: r.choice === null ? null : choice(r.choice), decision: r.decision };
+    targetPoints: r.targetPoints === null ? null : selfInt(r.targetPoints, 0, 10000), courses: list(r.courses, 500, course), blockedCourses: blocked(r.blockedCourses), choice: r.choice === null ? null : choice(r.choice), decision: r.decision };
 }
 export function parseValplanSelfRead(value: unknown, epoch: number): ValplanSelfRead {
   const r = selfObject(value, ['contractVersion', 'epoch', 'offers']);

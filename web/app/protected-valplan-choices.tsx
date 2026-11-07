@@ -10,7 +10,7 @@ import ElectiveParticipantBindings from './elective-participant-bindings';
 import MfaStepUpNotice from './mfa-step-up';
 
 export const VALPLAN_STATE_LABEL: Record<ValplanChoiceState | 'not_chosen', string> = { not_chosen: 'Ej valt', awaiting_guardian: 'Väntar på vårdnadshavare', guardian_declined: 'Avböjt av vårdnadshavare',
-  guardian_bindings_missing: 'Vårdnadshavare saknar koppling', ready_for_confirmation: 'Klart att bekräfta', confirmed: 'Bekräftat', course_changed: 'Kurs borttagen' };
+  guardian_bindings_missing: 'Vårdnadshavare saknar koppling', ready_for_confirmation: 'Klart att bekräfta', confirmed: 'Bekräftat', course_changed: 'Kurs borttagen', course_held: 'Eleven har redan kursen' };
 const stateOf = (pupil: ValplanChoicePupil) => pupil.choice?.state ?? 'not_chosen';
 function message(error: unknown): string {
   if (error instanceof ApiError) {

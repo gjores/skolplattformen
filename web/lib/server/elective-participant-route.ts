@@ -17,6 +17,7 @@ export async function electiveAuthorityOperation<T>(run:()=>Promise<T>):Promise<
  if(e.code==='42501')throw new Deny('forbidden',403);
  if(e.code==='40001'&&e.hint==='elective_context_changed')throw new Deny('context_changed',409);
  if(e.code==='40001'&&typeof e.hint==='string'&&['elective_binding_conflict','elective_self_conflict','elective_stale_offer','elective_round_closed','elective_choice_conflict','elective_round_conflict','elective_policy_missing','elective_confirmation_required','elective_confirmation_conflict','elective_time_conflict','elective_stale_source','elective_duplicate_course'].includes(e.hint))throw new Deny('conflict',409,{reason:e.hint});
+ if(e.code==='22023'&&e.hint==='valplan_choice_course_held')throw new Deny('bad_request',400,{reason:e.hint});
  if(e.code==='22023'||e.code==='22P02'||e.code==='22007'||e.code==='22008')throw new Deny('bad_request',400);
  if(typeof e.code==='string'&&['08001','08003','08006','57P01','57P02','57P03','ECONNREFUSED','CONNECTION_CLOSED','CONNECT_TIMEOUT'].includes(e.code))throw new Deny('db_unreachable',503);
  if(error instanceof Deny||error instanceof AuditUnavailable)throw error;

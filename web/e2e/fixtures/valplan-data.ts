@@ -9,6 +9,7 @@ const row = (n: number, planName: string, classes: { id: string; name: string }[
 export type CourseChoices = { courseId: string; pupils: number; classes: { classId: string; pupils: number }[] };
 export function read() {
   return { contractVersion: 'valplan_v1' as const, unitId, schoolYear, valplans: [] as { catalogId: string; valplan: unknown; choiceCounts: { classId: string; pupils: number }[]; courseChoices: CourseChoices[] }[],
+    classCourses: [] as { classId: string; courses: { subjectCode: string; itemCode: string }[] }[],
     rows: [row(1, 'SA26 – samhälle', [{ id: id(20), name: 'SA26A' }, { id: id(21), name: 'SA26B' }]), row(2, 'NA26', [{ id: id(22), name: 'NA26A' }]),
       row(3, 'EK26', [{ id: id(23), name: 'EK26A' }], { blocks: [{ valplanId: id(99), classIds: [id(23)] }] }), { ...row(4, 'SA26 – samhälle', [{ id: id(20), name: 'SA26A' }]), rowKey: 'block:mosp', blockKind: 'modernLanguage' as const, rowLabel: 'Moderna språk' }] };
 }

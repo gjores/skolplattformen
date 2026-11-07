@@ -13,7 +13,7 @@ const row={timplanId:id(10),timplanVersion:1,rowKey:'block:iv1',year:1,rowKind:'
 const valplan={id:id(5),unitId:scope.unitId,schoolYear:2027,kind:'individualChoice',name:'IV 27/28',revision:1,
   courses:[{id:id(30),subjectCode:'RETO',subjectVersion:version('RETO'),itemCode:'RETO1000X',points:100,languageCode:null,name:'Retorik',minutesHt:2700,minutesVt:2700,classIds:null}],
   rows:[{timplanId:id(10),timplanVersion:1,rowKey:'block:iv1',year:1,excludedClassIds:[]}]};
-const read=(extra={})=>({contractVersion:'valplan_v1',...scope,valplans:[],rows:[row],...extra});
+const read=(extra={})=>({contractVersion:'valplan_v1',...scope,valplans:[],rows:[row],classCourses:[],...extra});
 const wrap=result=>({contractVersion:'valplan_sql_v1',actor:{identityId:ctx.identityId,assignmentId:ctx.assignmentId},result});
 const command=(doc=valplan)=>parseValplanCommand({contractVersion:'valplan_v1',commandId:id(6),action:'save',...scope,expectedRevision:0,catalogId:catalog.catalogId,valplan:doc});
 function fixture(...replies){const calls=[];const tx=async(strings)=>{calls.push(strings.join('?'));const next=replies.shift();if(next instanceof Error)throw next;return[{result:structuredClone(next)}];};tx.json=v=>v;return{tx,calls};}

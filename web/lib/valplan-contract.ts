@@ -1,5 +1,5 @@
 import { ProgramplanContractError } from './programplan-catalog.ts';
-import { VALPLAN_KINDS, parseValplan, type Valplan, type ValplanKind, type ValplanRowContext } from './valplan-model.ts';
+import { VALPLAN_KINDS, parseValplan, type Valplan, type ValplanClassCourses, type ValplanKind, type ValplanRowContext } from './valplan-model.ts';
 
 /** Wire contract for /api/valplaner. The database is the source; the server re-checks model rules before saving. */
 export const VALPLAN_CONTRACT_VERSION = 'valplan_v1' as const;
@@ -9,7 +9,7 @@ export type ValplanRowOption = ValplanRowContext & { blockKind: ValplanKind; pla
 export type ValplanClassChoices = { classId: string; pupils: number };
 /** Pupils who chose a course, in all and per class, so the view can ask before the course or a class is removed. */
 export type ValplanCourseChoices = { courseId: string; pupils: number; classes: ValplanClassChoices[] };
-export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan; choiceCounts: ValplanClassChoices[]; courseChoices: ValplanCourseChoices[] }[]; rows: ValplanRowOption[] };
+export type ValplanRead = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; valplans: { catalogId: string; valplan: Valplan; choiceCounts: ValplanClassChoices[]; courseChoices: ValplanCourseChoices[] }[]; rows: ValplanRowOption[]; classCourses: ValplanClassCourses[] };
 export type ValplanCommand = ValplanScope & { contractVersion: typeof VALPLAN_CONTRACT_VERSION; commandId: string; action: 'save'; expectedRevision: number; catalogId: string; valplan: Valplan };
 export type ValplanReceipt = { commandId: string; valplanId: string; revision: number; replayed: boolean };
 export type ValplanReply = { receipt: ValplanReceipt; read: ValplanRead };
@@ -59,13 +59,15 @@ function parseRow(value: unknown): ValplanRowOption {
     planName: text(r.planName, 200), rowLabel: text(r.rowLabel, 1000), classes };
 }
 export function parseValplanRead(value: unknown, scope: ValplanScope): ValplanRead {
-  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'valplans', 'rows']);
+  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'valplans', 'rows', 'classCourses']);
   if (r.contractVersion !== VALPLAN_CONTRACT_VERSION || uuid(r.unitId) !== scope.unitId || r.schoolYear !== scope.schoolYear) bad();
   const classChoices = (value: unknown) => list(value, 2000).map(c => { const y = shape(c, ['classId', 'pupils']); return { classId: uuid(y.classId), pupils: integer(y.pupils, 1, 1000000) }; });
   const valplans = list(r.valplans, 500).map(v => { const x = shape(v, ['catalogId', 'valplan', 'choiceCounts', 'courseChoices']); return { catalogId: catalogId(x.catalogId), valplan: parseValplan(x.valplan), choiceCounts: classChoices(x.choiceCounts),
     courseChoices: list(x.courseChoices, 200).map(c => { const y = shape(c, ['courseId', 'pupils', 'classes']); return { courseId: uuid(y.courseId), pupils: integer(y.pupils, 1, 1000000), classes: classChoices(y.classes) }; }) }; });
   if (valplans.some(v => v.valplan.unitId !== scope.unitId || v.valplan.schoolYear !== scope.schoolYear) || new Set(valplans.map(v => v.valplan.id)).size !== valplans.length) bad();
-  return { contractVersion: VALPLAN_CONTRACT_VERSION, ...scope, valplans, rows: list(r.rows, 2000).map(parseRow) };
+  const classCourses = list(r.classCourses, 2000).map(c => { const x = shape(c, ['classId', 'courses']); return { classId: uuid(x.classId),
+    courses: list(x.courses, 2000).map(k => { const y = shape(k, ['subjectCode', 'itemCode']); return { subjectCode: text(y.subjectCode, 96), itemCode: text(y.itemCode, 96) }; }) }; });
+  return { contractVersion: VALPLAN_CONTRACT_VERSION, ...scope, valplans, rows: list(r.rows, 2000).map(parseRow), classCourses };
 }
 export function parseValplanCommand(value: unknown): ValplanCommand {
   const r = shape(value, ['contractVersion', 'commandId', 'action', 'unitId', 'schoolYear', 'expectedRevision', 'catalogId', 'valplan']);

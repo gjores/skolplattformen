@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {VALPLAN_KINDS,parseValplan,valplanCheck,valplanClosestPoints,valplanCourseReaders,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanCheck,valplanClassesReading,valplanClosestPoints,valplanCourseReaders,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002',other='56000000-0000-4000-8000-000000000003';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -280,4 +280,31 @@ test('a course says who may read it by naming the shorter group',()=>{
   assert.equal(valplanCourseReaders([],null),'Inga klasser ännu');
   assert.equal(valplanCourseReaders(k,['0','1','2','3']),'Alla klasser');
   assert.equal(valplanCourseReaders(k,['0','9']),'Bara A','a class that left the block is not named');
+});
+
+// VP-14. Kurser klassen redan läser. Samma kurs är samma ämne, nivå och språk, oavsett ämnesversion.
+const reads=(classId,...codes)=>({classId,courses:codes.map(([subjectCode,itemCode])=>({subjectCode,itemCode}))});
+
+test('a class reads a course whatever the subject version, and a language makes it another course',()=>{
+  const fixed=[reads(cA,['PSYL','PSYL1000X'],['MODY','MODY1000X']),reads(cB,['FILS','FILS1000X'])];
+  assert.deepEqual(valplanClassesReading(course(1,'PSYL','PSYL1000X',50),fixed,[cA,cB,cC]),[cA]);
+  assert.deepEqual(valplanClassesReading(course(1,'PSYL','PSYL1000X',50,{subjectVersion:version('PSYL')+1}),fixed,[cA,cB]),[cA],'another version is the same course');
+  assert.deepEqual(valplanClassesReading(course(4,'MODY','MODY1000X',100,{languageCode:'es'}),fixed,[cA]),[],'a fixed row has no language');
+  assert.deepEqual(valplanClassesReading(course(1,'PSYL','PSYL1000X',50),fixed,[cB]),[],'only the given classes count');
+  assert.deepEqual(valplanClassesReading(course(1,'PSYL','PSYL2000X',50),fixed,[cA]),[],'another level is another course');
+});
+test('two versions of the same course in a block are a duplicate',()=>{
+  const p=plan();p.courses.push({...p.courses[0],id:'56000000-0000-4000-8000-000000000199',subjectVersion:p.courses[0].subjectVersion+1});
+  assert.ok(valplanDiagnostics(parseValplan(p),rows(),catalog).some(d=>d.code==='duplicate_course'));
+});
+test('Kontroll takes away a course the class already reads, for that class only',()=>{
+  const courses=[course(1,'PSYL','PSYL1000X',50),course(2,'FILS','FILS1000X',50),course(3,'RETO','RETO1000X',100)],mine=block(courses,[plan().rows[0]]);
+  assert.equal(valplanCheck(mine,rows()).ready,true,'without fixed courses both classes reach 100 p');
+  const check=valplanCheck(mine,rows(),[reads(cA,['RETO','RETO1000X'])]);
+  assert.deepEqual(open(check).map(i=>[i.code,i.classIds,i.closest]),[],'class A still reaches 100 p with 50 + 50');
+  const short=valplanCheck(block([courses[0],courses[2]],[plan().rows[0]]),rows(),[reads(cA,['RETO','RETO1000X'])]);
+  assert.deepEqual(open(short).map(i=>[i.code,i.classIds,i.closest]),[['points_unreachable',[cA],50]],'class B is not affected');
+  const none=valplanCheck(block([courses[2]],[plan().rows[0]]),rows(),[reads(cA,['RETO','RETO1000X'])]);
+  assert.deepEqual(open(none).map(i=>[i.code,i.classIds]),[['class_without_courses',[cA]]]);
+  assert.equal(valplanCheck(block([course(4,'MODY','MODY1000X',100,{languageCode:'es'})],[plan().rows[0]]),rows(),[reads(cA,['MODY','MODY1000X'])]).ready,true,'a course with a language counts');
 });
