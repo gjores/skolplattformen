@@ -54,7 +54,8 @@ export async function readValplaner(tx: Tx, ctx: ValplanAuthority, scope: Valpla
 export async function commandValplan(tx: Tx, ctx: ValplanAuthority, command: ValplanCommand) {
   authority(ctx);
   if (command.catalogId !== (catalog as ProgramplanCatalog).catalogId) throw new Deny('bad_request', 400, { reason: 'valplan_catalog' });
-  const current = await read(tx, ctx, command);
+  // The read takes only its scope: valplan_read refuses any other field.
+  const current = await read(tx, ctx, { unitId: command.unitId, schoolYear: command.schoolYear });
   const errors = valplanDiagnostics(command.valplan, current.rows, catalog as ProgramplanCatalog).filter(d => d.severity === 'error');
   if (errors.length) throw new Deny('bad_request', 400, { reason: `valplan_${errors[0].code}` });
   const rows = await operation(() => tx<{ result: unknown }[]>`select public.valplan_command(${tx.json(command)}) as result`);

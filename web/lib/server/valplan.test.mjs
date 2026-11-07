@@ -16,7 +16,7 @@ const valplan={id:id(5),unitId:scope.unitId,schoolYear:2027,kind:'individualChoi
 const read=(extra={})=>({contractVersion:'valplan_v1',...scope,valplans:[],rows:[row],classCourses:[],...extra});
 const wrap=result=>({contractVersion:'valplan_sql_v1',actor:{identityId:ctx.identityId,assignmentId:ctx.assignmentId},result});
 const command=(doc=valplan)=>parseValplanCommand({contractVersion:'valplan_v1',commandId:id(6),action:'save',...scope,expectedRevision:0,catalogId:catalog.catalogId,valplan:doc});
-function fixture(...replies){const calls=[];const tx=async(strings)=>{calls.push(strings.join('?'));const next=replies.shift();if(next instanceof Error)throw next;return[{result:structuredClone(next)}];};tx.json=v=>v;return{tx,calls};}
+function fixture(...replies){const calls=[],inputs=[];const tx=async(strings,...values)=>{calls.push(strings.join('?'));inputs.push(values);const next=replies.shift();if(next instanceof Error)throw next;return[{result:structuredClone(next)}];};tx.json=v=>v;return{tx,calls,inputs};}
 const rejects=(fn,check)=>assert.rejects(fn,e=>typeof check==='function'?check(e):e.code===check||e.name===check);
 
 test('read checks the true actor and the strict read contract',async()=>{
@@ -33,6 +33,7 @@ test('save re-checks model rules on rows read in the same transaction before the
   const reply={receipt:{commandId:id(6),valplanId:id(5),revision:1,replayed:false},read:read({valplans:[{catalogId:catalog.catalogId,valplan,choiceCounts:[],courseChoices:[]}],rows:[{...row,blocks:[{valplanId:id(5),classIds:[id(20)]}]}]})};
   const f=fixture(wrap(read()),wrap(reply));const saved=await commandValplan(f.tx,ctx,command());
   assert.equal(saved.body.receipt.revision,1);assert.equal(saved.event.action,'valplan_command');assert.deepEqual(f.calls.map(c=>/valplan_(\w+)\(/.exec(c)[1]),['read','command']);
+  assert.deepEqual(f.inputs[0],[scope],'valplan_read gets only unitId and schoolYear');
   const tooBig={...valplan,courses:[{...valplan.courses[0],classIds:[id(99)]}]};
   const g=fixture(wrap(read()));await rejects(()=>commandValplan(g.tx,ctx,command(tooBig)),e=>e.code==='bad_request'&&e.details.reason==='valplan_course_class_not_linked');assert.equal(g.calls.length,1);
   const taken=fixture(wrap(read({rows:[{...row,blocks:[{valplanId:id(77),classIds:[id(20)]}]}]})));await rejects(()=>commandValplan(taken.tx,ctx,command()),e=>e.details?.reason==='valplan_class_in_other_block');
