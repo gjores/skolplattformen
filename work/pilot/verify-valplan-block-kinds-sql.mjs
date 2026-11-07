@@ -23,7 +23,7 @@ try{
   await tx`set local session_replication_role=origin`;
   const read=async(t=tx)=>(await t`select public.valplan_read(${t.json(scope)}) value`)[0].value.result;
   const save=(t,doc,expectedRevision=0)=>t`select public.valplan_command(${t.json({contractVersion:'valplan_v1',commandId:randomUUID(),action:'save',unitId,schoolYear,expectedRevision,catalogId:catalog.catalogId,valplan:doc})}) value`;
-  const link=r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year});
+  const link=r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year,excludedClassIds:[]});
   const rows=(await read()).rows,sprk=rows.find(r=>r.rowKey==='block:sprk'),nave=rows.find(r=>r.rowKey==='block:nave');
   assert.deepEqual([sprk.blockKind,sprk.points,sprk.classIds],['languageSubject',300,[hu.classId]]);assert.deepEqual([nave.blockKind,nave.points,nave.classIds],['naturalScience',100,[na.classId]]);
   check('the HUSPK and NANAA rows are read with their kind, points and classes');
@@ -37,7 +37,7 @@ try{
   await deny(tx,'a modern language in Språkämne needs a language',t=>save(t,plan('languageSubject',sprk,[course('MODO','MODO1000X',100)])),['22023'],'valplan_invalid');
   const language=plan('languageSubject',sprk,[spanish,english,greek,latin]),science=plan('naturalScience',nave,[chem,bio]);
   await save(tx,language);await save(tx,science);
-  const after=await read();assert.equal(after.valplans.length,2);assert.equal(after.rows.find(r=>r.rowKey==='block:sprk').linkedValplanId,language.id);assert.equal(after.rows.find(r=>r.rowKey==='block:nave').linkedValplanId,science.id);
+  const after=await read();assert.equal(after.valplans.length,2);assert.deepEqual(after.rows.find(r=>r.rowKey==='block:sprk').blocks.map(b=>b.valplanId),[language.id]);assert.deepEqual(after.rows.find(r=>r.rowKey==='block:nave').blocks.map(b=>b.valplanId),[science.id]);
   assert.equal(after.valplans.find(v=>v.valplan.id===language.id).valplan.courses[0].languageCode,'es');check('both blocks are filled, and a modern language in Språkämne keeps its language');
   const staff=async(doc,action,payload)=>(await tx`select public.valplan_choice_command(${tx.json({contractVersion:'valplan_choice_v1',commandId:randomUUID(),action,unitId,schoolYear,valplanId:doc.id,payload})}) value`)[0].value.result;
   const later=(await tx`select (public.app_today()+30)::text value`)[0].value;

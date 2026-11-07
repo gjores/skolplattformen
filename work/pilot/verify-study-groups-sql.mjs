@@ -63,7 +63,7 @@ try{
   const vYear=seed.schoolYear;
   const rows=(await tx`select public.valplan_read(${tx.json({unitId,schoolYear:vYear})}) value`)[0].value.result.rows.filter(r=>r.rowKey==='block:iv1');
   const reto={id:randomUUID(),subjectCode:'RETO',subjectVersion:version('RETO'),itemCode:'RETO1000X',points:100,languageCode:null,name:'Retorik',minutesHt:2700,minutesVt:2700,classIds:null};
-  const vp={id:randomUUID(),unitId,schoolYear:vYear,kind:'individualChoice',name:'IV',revision:1,courses:[reto],rows:rows.map(r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year}))};
+  const vp={id:randomUUID(),unitId,schoolYear:vYear,kind:'individualChoice',name:'IV',revision:1,courses:[reto],rows:rows.map(r=>({timplanId:r.timplanId,timplanVersion:r.timplanVersion,rowKey:r.rowKey,year:r.year,excludedClassIds:[]}))};
   await tx`select public.valplan_command(${tx.json({contractVersion:'valplan_v1',commandId:randomUUID(),action:'save',unitId,schoolYear:vYear,expectedRevision:0,catalogId:catalog.catalogId,valplan:vp})})`;
   const fromValplan=g=>({id:randomUUID(),expectedRevision:0,name:'Retorik A',startsOn:`${vYear}-08-17`,endsOn:`${vYear+1}-06-11`,course:courseRef('RETO','RETO1000X',100),minutesHt:2700,minutesVt:2700,parallelSetId:randomUUID(),classIds:rows[0].classIds,origin:{kind:'valplan',valplanId:vp.id,courseId:reto.id},...g});
   await deny(tx,'valplan group must keep the course time',t=>run(t,'save_group',fromValplan({minutesHt:100}),vYear),['22023'],'study_group_valplan_course');

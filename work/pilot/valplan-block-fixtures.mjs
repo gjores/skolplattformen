@@ -5,6 +5,13 @@ import {readFileSync} from 'node:fs';
 import {defaultProgramplanChoiceBlocks} from '../../web/lib/programplan-choice-blocks.ts';
 import {programplanTermRows,programplanLevelRanks,suggestProgramplanTerms} from '../../web/lib/programplan-terms.ts';
 import {nextCohortStart} from '../../web/lib/programplan-lifecycle.ts';
+/** One more class on an approved plan, linked for the year. Actor must already be the school's principal. */
+export async function linkExtraClass(t,planId,schoolYear,name,columnId='ar1'){
+ const revision=async()=>(await t`select revision from public.timplans where id=${planId}`)[0].revision;
+ const klass=(await t`select public.phase5_class_command(${t.json({operation:'create',commandId:randomUUID(),planId,expectedPlanRevision:await revision(),name,startYear:schoolYear})}) value`)[0].value;
+ await t`select public.phase5_class_command(${t.json({operation:'link',commandId:randomUUID(),classId:klass.id,schoolYear,planId,expectedPlanRevision:await revision(),columnId,expectedLinkRevision:null,previousPlanId:null})})`;
+ return klass.id;
+}
 export async function seedSlotBlockFrame(t,f,code,orientationCode,blockKey){
  const catalog=JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8')),program=catalog.programs.filter(p=>p.code===code).at(-1);
  const reference={catalogId:catalog.catalogId,programRef:{code,version:program.version},orientationCode,startedOn:nextCohortStart(),specializationRefs:[],choiceBlocks:defaultProgramplanChoiceBlocks(program,orientationCode)};
