@@ -63,7 +63,7 @@ export function assertRehearsalEvidence(p,current){
  assert.deepEqual(p.finalSqlSourceHashes,current.sqlSourceHashes);hex(p.rehearsal?.fingerprint);
 }
 /** Lex only top-level statement boundaries; quoted routine bodies remain opaque. */
-function sqlStatements(sql){
+export function sqlStatements(sql){
  let plain='',i=0,start=0,tokenStart=null;const statements=[];
  const push=end=>{if(plain.trim())statements.push({text:plain.trim(),from:start,tokenStart,to:end});plain='';tokenStart=null;start=end;};
  while(i<sql.length){
