@@ -14,11 +14,14 @@ const ident=s=>'"'+s.replaceAll('"','""')+'"';
 const literal=s=>"'"+s.replaceAll("'","''")+"'";
 const binaries='/opt/homebrew/opt/postgresql@18/bin/';
 
-// pg_restore flattens these two pure AND checks. Keep the existing source canonical form;
+// pg_restore flattens these pure AND checks. Keep the existing source canonical form;
 // do not normalize any changed bound/operator, other rule or other table.
 const electiveConstraintForms=[
  ['elective_participant_bindings','elective_participant_bindings_source_reference_check','CHECK ((((length(source_reference) >= 1) AND (length(source_reference) <= 120)) AND (source_reference = btrim(source_reference))))','CHECK (((length(source_reference) >= 1) AND (length(source_reference) <= 120) AND (source_reference = btrim(source_reference))))'],
  ['elective_rounds','elective_rounds_check1','CHECK ((((max_choices >= 1) AND (max_choices <= 100)) AND (max_choices >= min_choices)))','CHECK (((max_choices >= 1) AND (max_choices <= 100) AND (max_choices >= min_choices)))'],
+ ["study_groups","study_groups_name_check","CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))","CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"],
+ ["valplan_courses","valplan_courses_name_check","CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))","CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"],
+ ["valplans","valplans_name_check","CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))","CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"],
 ];
 export function normalizeElectiveSnapshotConstraint(constraint){
  const match=electiveConstraintForms.find(([table,name,,flat])=>constraint.relname===table&&constraint.conname===name&&constraint.definition===flat);

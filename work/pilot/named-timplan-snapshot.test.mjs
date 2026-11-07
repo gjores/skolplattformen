@@ -4,6 +4,9 @@ import {normalizeElectiveSnapshotConstraint} from './named-timplan-snapshot.mjs'
 const forms=[
  {relname:'elective_participant_bindings',conname:'elective_participant_bindings_source_reference_check',nested:'CHECK ((((length(source_reference) >= 1) AND (length(source_reference) <= 120)) AND (source_reference = btrim(source_reference))))',flat:'CHECK (((length(source_reference) >= 1) AND (length(source_reference) <= 120) AND (source_reference = btrim(source_reference))))'},
  {relname:'elective_rounds',conname:'elective_rounds_check1',nested:'CHECK ((((max_choices >= 1) AND (max_choices <= 100)) AND (max_choices >= min_choices)))',flat:'CHECK (((max_choices >= 1) AND (max_choices <= 100) AND (max_choices >= min_choices)))'},
+ {relname:"study_groups",conname:"study_groups_name_check",nested:"CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))",flat:"CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"},
+ {relname:"valplan_courses",conname:"valplan_courses_name_check",nested:"CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))",flat:"CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"},
+ {relname:"valplans",conname:"valplans_name_check",nested:"CHECK ((((char_length(name) >= 1) AND (char_length(name) <= 200)) AND (btrim(name) <> ''::text)))",flat:"CHECK (((char_length(name) >= 1) AND (char_length(name) <= 200) AND (btrim(name) <> ''::text)))"},
 ];
 test('exact restored AND forms retain the already installed source fingerprint',()=>{
  for(const rule of forms){assert.equal(normalizeElectiveSnapshotConstraint({...rule,definition:rule.flat}),rule.nested);assert.equal(normalizeElectiveSnapshotConstraint({...rule,definition:rule.nested}),rule.nested);}
