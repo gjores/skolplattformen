@@ -79,7 +79,6 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
   const count = (state: string) => pupils.filter(p => stateOf(p) === state).length;
   const ready = pupils.filter(p => stateOf(p) === 'ready_for_confirmation');
   const round = data?.round ?? null;
-  const pickedPoints = picked.reduce((n, id) => n + (data?.courses.find(c => c.id === id)?.points ?? 0), 0);
 
   async function confirmAll() {
     for (const pupil of ready) if (!await send(command('confirm_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice!.revision }), `${ready.length} val är bekräftade.`)) return;
@@ -131,15 +130,17 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
               {stateOf(p) === 'ready_for_confirmation' && <Button size="sm" disabled={busy} aria-label={`Bekräfta valet för ${p.name}`} onClick={() => void send(command('confirm_choice', { pupilId: p.id, expectedChoiceRevision: p.choice!.revision }), `Valet för ${p.name} är bekräftat.`)}>Bekräfta</Button>}
             </div></td></tr>)}</tbody></table></div> : <p className="valplan-muted">{pupils.length ? 'Inga elever matchar filtret.' : 'Inga elever att visa. Koppla klasser till timplanerna för läsåret.'}</p>}
         {editing && (() => { const pupil = data.pupils.find(p => p.id === editing)!, target = pupil.targetPoints;
+          // A read after a refusal can block a course that is already ticked.
+          const valid = picked.filter(id => !blockedReason(pupil, id)), pickedPoints = valid.reduce((n, id) => n + (data.courses.find(c => c.id === id)?.points ?? 0), 0);
           const left = target === null ? 0 : target - pickedPoints, closest = target === null ? 0 : valplanClosestPoints(data.courses.filter(c => pupil.offeredCourseIds.includes(c.id)).map(c => c.points), target);
           return <fieldset className="valplan-add">
           <legend>Val för {pupil.name}</legend>
-          {data.courses.map(c => { const reason = blockedReason(pupil, c.id); return <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy || !!reason} checked={picked.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/>
+          {data.courses.map(c => { const reason = blockedReason(pupil, c.id); return <label key={c.id} className="valplan-check"><input type="checkbox" disabled={busy || !!reason} checked={valid.includes(c.id)} onChange={e => setPicked(list => e.target.checked ? [...list, c.id] : list.filter(id => id !== c.id))}/>
             <span>{c.name}<small>{c.points} p{reason ? ` · ${BLOCKED_REASON[reason]}` : target !== null && !pupil.offeredCourseIds.includes(c.id) ? ' · Utanför elevens klass' : ''}</small></span></label>; })}
           <p className={target !== null && pickedPoints !== target ? 'validation-warning' : 'valplan-muted'}>{target === null ? `${pickedPoints} p valda. Eleven ligger utanför blockets klasser.` : `${pickedPoints} av ${target} p valda. ${left < 0 ? `${-left} p för mycket.` : `${left} p kvar.`}`}</p>
           {target !== null && closest < target && <p className="validation-warning">Kurserna eleven kan välja räcker inte till {target} p. Närmast går {closest} p.</p>}
           <div className="valplan-actions">
-            <Button disabled={busy || !picked.length || target !== null && pickedPoints !== target} onClick={async () => { if (await send(command('record_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice?.revision ?? 0, courseIds: picked }), `Valet för ${pupil.name} är sparat.`)) setEditing(null); }}>Spara val</Button>
+            <Button disabled={busy || !valid.length || target !== null && pickedPoints !== target} onClick={async () => { if (await send(command('record_choice', { pupilId: pupil.id, expectedChoiceRevision: pupil.choice?.revision ?? 0, courseIds: valid }), `Valet för ${pupil.name} är sparat.`)) setEditing(null); }}>Spara val</Button>
             <Button variant="outline" disabled={busy} onClick={() => setEditing(null)}>Avbryt</Button></div></fieldset>; })()}
       </section>
 

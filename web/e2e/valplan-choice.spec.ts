@@ -112,6 +112,9 @@ test('skolan ser kurser som inte går att välja med skäl, poäng kvar och val 
   await page.getByRole('button', { name: 'Registrera val åt Syntetisk Elev C' }).click(); m.refuse = 'valplan_choice_course_held';
   const outside = page.getByRole('group', { name: 'Val för Syntetisk Elev C' }); await outside.getByLabel(/Psykologi/).check(); await outside.getByRole('button', { name: 'Spara val' }).click();
   await expect(page.getByRole('alert').filter({ hasText: 'Eleven har redan en av kurserna' })).toBeVisible();
+  m.refuse = null; m.state.pupils = m.state.pupils.map(p => p.id === id(62) ? { ...p, blockedCourses: [{ courseId: courses[0].id, reason: 'val' as const }] } : p);
+  await page.getByRole('button', { name: 'Hämta aktuellt läge' }).click();
+  await expect(outside.getByLabel(/Psykologi/)).toBeDisabled(); await expect(outside.getByLabel(/Psykologi/)).not.toBeChecked(); await expect(outside.getByRole('button', { name: 'Spara val' })).toBeDisabled();
   const box = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth); expect(box).toBeLessThanOrEqual(0);
 });
 

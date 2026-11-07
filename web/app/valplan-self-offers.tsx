@@ -52,7 +52,8 @@ function Offer({ offer, person, disabled, onSend }: { offer: ValplanSelfOffer; p
   const choice = offer.choice, pupil = person.participant === 'pupil', open = offer.round.accepting;
   const reasons = new Map(offer.blockedCourses.map(b => [b.courseId, b.reason])), free = offer.courses.filter(c => !reasons.has(c.id)), held = offer.courses.filter(c => reasons.has(c.id));
   // A course the pupil already has leaves the choice here, but nothing changes until the pupil saves.
-  const [picked, setPicked] = useState<string[]>(choice?.courseIds.filter(id => free.some(c => c.id === id)) ?? []), [start] = useState(picked);
+  const [ticked, setPicked] = useState<string[]>(choice?.courseIds.filter(id => free.some(c => c.id === id)) ?? []), [start] = useState(ticked);
+  const picked = ticked.filter(id => !reasons.has(id));
   const points = picked.reduce((n, id) => n + (offer.courses.find(c => c.id === id)?.points ?? 0), 0), target = offer.targetPoints, left = target === null ? 0 : target - points;
   const changed = !sameCourses(picked, choice?.courseIds ?? []), closest = target === null ? 0 : valplanClosestPoints(free.map(c => c.points), target);
   useUnsavedChanges(`valplan-choice:${person.bindingId}:${offer.round.id}`, pupil && !sameCourses(picked, start));
