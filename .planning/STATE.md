@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-15: användarprov återstår"
 status: executing
-stopped_at: "VP-15: installerat på 3012, kod 1f4e292477. Inloggat användarprov U1–U16 återstår."
+stopped_at: "VP-15: installerat på 3012, kod 0f547e446d med rättat sparande. Inloggat användarprov U1–U16 återstår."
 last_updated: "2026-11-07"
 last_activity: 2026-11-07
 last_activity_desc: "Fyra migrationer och ny kod installerade på 3012, journal 151 → 155. Inga block finns ännu på målet."
@@ -25,7 +25,7 @@ user_trial_status: pending_valplan_uat_u1_u16
 milestone_name: milestone
 ---
 
-**VP-15 installerat 2026-11-07:** [Helhetsprov och installation](phases/05.2-schemamodul/05.2-VP-15-SUMMARY.md). 3012 kör `1f4e292477`, journal 151 → 155 och raderna oförändrade. Inga block eller val finns ännu på målet. Nästa steg: [användarprovet](phases/05.2-schemamodul/05.2-VP-UAT.md) inloggat, sedan språkluckan.
+**VP-15 installerat 2026-11-07:** [Helhetsprov och installation](phases/05.2-schemamodul/05.2-VP-15-SUMMARY.md). 3012 kör `0f547e446d`, där sparandet av block är rättat, journal 151 → 155 och raderna oförändrade. Inga block eller val finns ännu på målet. Nästa steg: [användarprovet](phases/05.2-schemamodul/05.2-VP-UAT.md) inloggat, sedan språkluckan.
 
 **VP-14 klart 2026-11-07:** [En kurs eleven redan har går inte att välja](phases/05.2-schemamodul/05.2-VP-14-SUMMARY.md), varken av eleven eller av skolan. Syntetiskt provat, inte installerat på 3012. Nästa steg: VP-15.
 
