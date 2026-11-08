@@ -44,6 +44,10 @@ try{
    if(typeof passwords[username]!=='string'||!passwords[username])throw Error('Lokalt provkonto saknas');
    return {username,label,password:passwords[username],email:m.idp.users.find(user=>user.username===username)?.email,otpCredentialId:otpBindings[username]?.credentialId};
   });
+  // Pupil and guardian accounts from prepare-valplan-user-trial.mjs, when that trial data exists.
+  const trialLabels={'vp.elev':'Elev','vp.vardnadshavare1':'Vårdnadshavare 1','vp.vardnadshavare2':'Vårdnadshavare 2'};
+  let trial={accounts:[]};try{trial=JSON.parse(fs.readFileSync(path.join(root,'work/pilot/targets/protected/valplan-user-trial-private.json'),'utf8'));}catch(error){if(error.code!=='ENOENT')throw error;}
+  for(const a of trial.accounts??[])if(trialLabels[a.username]&&typeof a.password==='string'&&a.password)accounts.push({username:a.username,label:trialLabels[a.username],password:a.password,email:a.username+'@synthetic.example.test'});
   const target=path.join(dir,theme,'login');
   fs.mkdirSync(path.join(target,'resources/js'),{recursive:true,mode:0o700});
   fs.writeFileSync(path.join(target,'theme.properties'),'parent=keycloak.v2\nimport=common/keycloak\nscripts=js/test-accounts-v2.js\n',{mode:0o600});
@@ -53,6 +57,6 @@ try{
   execFileSync('docker',['exec','--user','0',m.idp.containerName,'chmod','-R','a+rX',`/opt/keycloak/themes/${theme}`],{stdio:'pipe'});
   await api(`/admin/realms/${realm}`,'PUT',{loginTheme:theme});
   if((await api(`/admin/realms/${realm}`)).loginTheme!==theme)throw Error('Temainställning kunde inte verifieras');
-  console.log('Lokala provknappar aktiverade för åtta provroller.');
+  console.log(`Lokala provknappar aktiverade för ${accounts.length} provroller.`);
  }
 }catch(error){console.error('Provknappar kunde inte uppdateras:',error instanceof Error&&/^Local IdP HTTP \d+$/.test(error.message)?error.message:'LOCAL_HELPER_FAILED');process.exitCode=1;}
