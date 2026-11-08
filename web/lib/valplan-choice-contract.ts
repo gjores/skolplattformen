@@ -78,7 +78,8 @@ function pupil(value: unknown): ValplanChoicePupil {
 export function parseValplanChoiceRead(value: unknown, scope: ValplanChoiceScope): ValplanChoiceRead {
   const r = selfObject(value, ['contractVersion', 'unitId', 'schoolYear', 'valplanId', 'valplanName', 'valplanRevision', 'guardianConfirmation', 'round', 'courses', 'classes', 'groupCourseIds', 'pupils']);
   if (r.contractVersion !== VALPLAN_CHOICE_VERSION || r.unitId !== scope.unitId || r.schoolYear !== scope.schoolYear || r.valplanId !== scope.valplanId) bad();
-  return { ...scope, contractVersion: VALPLAN_CHOICE_VERSION, valplanName: selfText(r.valplanName, 200), valplanRevision: selfInt(r.valplanRevision),
+  // Only the scope fields: a reply passes its command as scope, and the client parses the result again.
+  return { unitId: scope.unitId, schoolYear: scope.schoolYear, valplanId: scope.valplanId, contractVersion: VALPLAN_CHOICE_VERSION, valplanName: selfText(r.valplanName, 200), valplanRevision: selfInt(r.valplanRevision),
     guardianConfirmation: r.guardianConfirmation === null ? null : selfBool(r.guardianConfirmation), round: r.round === null ? null : round(r.round),
     courses: list(r.courses, 500, course), classes: list(r.classes, 2000, v => { const c = selfObject(v, ['id', 'name']); return { id: selfUuid(c.id), name: selfText(c.name, 200) }; }),
     groupCourseIds: ids(r.groupCourseIds, 500), pupils: list(r.pupils, 10000, pupil) };

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registerHooks} from 'node:module';
 registerHooks({load(url,ctx,next){if(url===new URL('./session.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const readSession=()=>{throw Error("unexpected session")};'};if(url===new URL('./env.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const serverEnv=()=>({});'};if(url===new URL('./db.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export class Deny extends Error{constructor(code,status,details){super(code);this.code=code;this.status=status;this.details=details;}} export const withLoginPhase=()=>{throw Error("unexpected DB")};export const withSessionContext=()=>{throw Error("unexpected DB")};'};return next(url,ctx);}});
 const {readStudyGroups,commandStudyGroup,studyGroupRequest}=await import('./study-groups.ts');
-import {parseStudyGroupCommand,parseStudyGroupScope} from '../study-group-contract.ts';
+import {parseStudyGroupCommand,parseStudyGroupReply,parseStudyGroupScope} from '../study-group-contract.ts';
 
 const id=n=>`59000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2026},ctx={identityId:id(3),assignmentId:id(4),accessFunction:'rektor'};
@@ -39,7 +39,8 @@ test('commands are strictly parsed per action',()=>{
 test('reply must echo the command and target; database hints become safe replies',async()=>{
   const save=command('save_group',{...saveFields,expectedRevision:0});
   const ok={receipt:{commandId:id(6),action:'save_group',replayed:false,groupId:id(10),revision:1},read:read()};
-  assert.equal((await commandStudyGroup(fixture(wrap(ok)).tx,ctx,save)).body.receipt.revision,1);
+  const {body}=await commandStudyGroup(fixture(wrap(ok)).tx,ctx,save);assert.equal(body.receipt.revision,1);
+  assert.deepEqual(parseStudyGroupReply(JSON.parse(JSON.stringify(body)),save),body,"the view accepts the reply the server sends");
   await rejects(()=>commandStudyGroup(fixture(wrap({...ok,receipt:{...ok.receipt,groupId:id(77)}})).tx,ctx,save),'AuditUnavailable');
   await rejects(()=>commandStudyGroup(fixture(wrap({...ok,receipt:{...ok.receipt,action:'retire_group'}})).tx,ctx,save),'AuditUnavailable');
   const sqlError=(code,hint)=>Object.assign(new Error('x'),{code,hint});

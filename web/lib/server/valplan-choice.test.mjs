@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {registerHooks} from 'node:module';
 registerHooks({load(url,ctx,next){if(url===new URL('./session.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const readSession=()=>{throw Error("unexpected session")};export const tokenHash=()=>{throw Error("unexpected token")};'};if(url===new URL('./env.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const serverEnv=()=>({});'};if(url===new URL('./db.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export class Deny extends Error{constructor(code,status,details){super(code);this.code=code;this.status=status;this.details=details;}} export const withLoginPhase=()=>{throw Error("unexpected DB")};export const withSessionContext=()=>{throw Error("unexpected DB")};'};return next(url,ctx);}});
 const {readValplanChoices,commandValplanChoice}=await import('./valplan-choice.ts');
-import {parseValplanChoiceCommand,parseValplanChoiceRead,parseValplanChoiceScope,parseValplanSelfCommand,parseValplanSelfRead} from '../valplan-choice-contract.ts';
+import {parseValplanChoiceCommand,parseValplanChoiceRead,parseValplanChoiceReply,parseValplanChoiceScope,parseValplanSelfCommand,parseValplanSelfRead} from '../valplan-choice-contract.ts';
 
 const id=n=>`58100000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2027,valplanId:id(2)},ctx={identityId:id(3),assignmentId:id(4),accessFunction:'rektor'};
@@ -31,7 +31,8 @@ test('sql outcomes map to clear statuses without leaking text',async()=>{
 });
 test('commands return the new read and group counts from the receipt',async()=>{
  const c=command('create_groups',{}),reply=wrap({receipt:{commandId:id(6),action:'create_groups',replayed:false,created:2,added:5,notConfirmed:1},read:read()});
- const {body}=await commandValplanChoice(fixture(reply).tx,ctx,c);assert.deepEqual(body.receipt.groups,{created:2,added:5,notConfirmed:1});
+ const {body}=await commandValplanChoice(fixture(reply).tx,ctx,c);
+ assert.deepEqual(parseValplanChoiceReply(JSON.parse(JSON.stringify(body)),c).receipt.groups,{created:2,added:5,notConfirmed:1},"the view reads the counts from the reply the server sends");
 });
 test('the read says why a course cannot be chosen, and nothing else passes',()=>{
  const pupil={id:id(60),name:'Syntetisk',classIds:[],targetPoints:200,offeredCourseIds:[],blockedCourses:[{courseId:id(30),reason:'timplan'}],choice:null},good=read({pupils:[pupil]});

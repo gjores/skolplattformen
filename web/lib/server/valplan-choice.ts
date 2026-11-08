@@ -43,8 +43,9 @@ export async function readValplanChoices(tx: Tx, ctx: ValplanChoiceAuthority, sc
 export async function commandValplanChoice(tx: Tx, ctx: ValplanChoiceAuthority, command: ValplanChoiceCommand) {
   authority(ctx);
   const rows = await operation(() => tx<{ result: unknown }[]>`select public.valplan_choice_command(${tx.json(command)}) as result`);
-  let body;
-  try { body = parseValplanChoiceReply(result(rows, ctx), command); } catch { throw new AuditUnavailable(); }
+  const body = result(rows, ctx);
+  // Checked here, sent in the database's form: the view parses the reply again and reads the group counts from the receipt.
+  try { parseValplanChoiceReply(body, command); } catch { throw new AuditUnavailable(); }
   return { body, event: { action: 'valplan_choice_command', objectType: 'valplan', objectId: command.valplanId, details: { unitId: command.unitId, action: command.action } } };
 }
 

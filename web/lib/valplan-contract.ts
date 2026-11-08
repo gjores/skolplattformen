@@ -67,7 +67,8 @@ export function parseValplanRead(value: unknown, scope: ValplanScope): ValplanRe
   if (valplans.some(v => v.valplan.unitId !== scope.unitId || v.valplan.schoolYear !== scope.schoolYear) || new Set(valplans.map(v => v.valplan.id)).size !== valplans.length) bad();
   const classCourses = list(r.classCourses, 2000).map(c => { const x = shape(c, ['classId', 'courses']); return { classId: uuid(x.classId),
     courses: list(x.courses, 2000).map(k => { const y = shape(k, ['subjectCode', 'itemCode']); return { subjectCode: text(y.subjectCode, 96), itemCode: text(y.itemCode, 96) }; }) }; });
-  return { contractVersion: VALPLAN_CONTRACT_VERSION, ...scope, valplans, rows: list(r.rows, 2000).map(parseRow), classCourses };
+  // Only the scope fields: a reply passes its command as scope, and the client parses the result again.
+  return { contractVersion: VALPLAN_CONTRACT_VERSION, unitId: scope.unitId, schoolYear: scope.schoolYear, valplans, rows: list(r.rows, 2000).map(parseRow), classCourses };
 }
 export function parseValplanCommand(value: unknown): ValplanCommand {
   const r = shape(value, ['contractVersion', 'commandId', 'action', 'unitId', 'schoolYear', 'expectedRevision', 'catalogId', 'valplan']);

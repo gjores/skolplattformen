@@ -4,7 +4,7 @@ import {registerHooks} from 'node:module';
 registerHooks({load(url,ctx,next){if(url===new URL('./session.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const readSession=()=>{throw Error("unexpected session")};'};if(url===new URL('./env.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export const serverEnv=()=>({});'};if(url===new URL('./db.ts',import.meta.url).href)return{format:'module',shortCircuit:true,source:'export class Deny extends Error{constructor(code,status,details){super(code);this.code=code;this.status=status;this.details=details;}} export const withLoginPhase=()=>{throw Error("unexpected DB")};export const withSessionContext=()=>{throw Error("unexpected DB")};'};return next(url,ctx);}});
 const {readValplaner,commandValplan,valplanRequest}=await import('./valplan.ts');
 import catalog from '../programplan-catalog.generated.json' with {type:'json'};
-import {parseValplanCommand,parseValplanScope} from '../valplan-contract.ts';
+import {parseValplanCommand,parseValplanReply,parseValplanScope} from '../valplan-contract.ts';
 
 const id=n=>`58000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const scope={unitId:id(1),schoolYear:2027},ctx={identityId:id(3),assignmentId:id(4),accessFunction:'rektor'};
@@ -34,6 +34,7 @@ test('save re-checks model rules on rows read in the same transaction before the
   const f=fixture(wrap(read()),wrap(reply));const saved=await commandValplan(f.tx,ctx,command());
   assert.equal(saved.body.receipt.revision,1);assert.equal(saved.event.action,'valplan_command');assert.deepEqual(f.calls.map(c=>/valplan_(\w+)\(/.exec(c)[1]),['read','command']);
   assert.deepEqual(f.inputs[0],[scope],'valplan_read gets only unitId and schoolYear');
+  assert.deepEqual(parseValplanReply(JSON.parse(JSON.stringify(saved.body)),command()),saved.body,"the view accepts the reply the server sends");
   const tooBig={...valplan,courses:[{...valplan.courses[0],classIds:[id(99)]}]};
   const g=fixture(wrap(read()));await rejects(()=>commandValplan(g.tx,ctx,command(tooBig)),e=>e.code==='bad_request'&&e.details.reason==='valplan_course_class_not_linked');assert.equal(g.calls.length,1);
   const taken=fixture(wrap(read({rows:[{...row,blocks:[{valplanId:id(77),classIds:[id(20)]}]}]})));await rejects(()=>commandValplan(taken.tx,ctx,command()),e=>e.details?.reason==='valplan_class_in_other_block');

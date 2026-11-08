@@ -64,7 +64,8 @@ export function parseStudyGroupRead(value: unknown, scope: StudyGroupScope): Stu
     if (typeof x.name !== 'string' || !x.name.trim() || x.name.length > 240) bad();
     return { id: uuid(x.id), name: x.name };
   });
-  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, ...scope, groups, memberships, pupils, classes };
+  // Only the scope fields: a reply passes its command as scope, and the client parses the result again.
+  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, unitId: scope.unitId, schoolYear: scope.schoolYear, groups, memberships, pupils, classes };
 }
 function parseSave(value: unknown): StudyGroupSave {
   const r = shape(value, ['id', 'expectedRevision', 'name', 'startsOn', 'endsOn', 'course', 'minutesHt', 'minutesVt', 'parallelSetId', 'classIds', 'origin']);
