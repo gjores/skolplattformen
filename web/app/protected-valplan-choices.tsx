@@ -113,6 +113,8 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
       <section className="valplan-section" aria-label="Elever">
         <h3>Elever</h3>
         <p className="valplan-muted">{pupils.length === 1 ? '1 elev' : `${pupils.length} elever`} · {count('not_chosen')} har inte valt · {count('awaiting_guardian')} väntar på vårdnadshavare · {count('ready_for_confirmation')} klara att bekräfta · {count('confirmed')} bekräftade</p>
+        {/* A choice belongs to a round: without one the database refuses the registration. */}
+        {!round && <p className="valplan-muted">Skolan kan registrera val när valet har öppnats.</p>}
         {count('course_held') > 0 && <p className="validation-warning">{count('course_held') === 1 ? '1 val har' : `${count('course_held')} val har`} en kurs eleven redan har. Valet ligger kvar men går inte att bekräfta och kommer inte med i grupper. Ändra det med Registrera val.</p>}
         <div className="valplan-fields">
           <label>Status<select value={stateFilter} onChange={e => setStateFilter(e.target.value)}><option value="">Alla</option>{Object.entries(VALPLAN_STATE_LABEL).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
@@ -128,7 +130,7 @@ export default function ProtectedValplanChoices({ unitId, schoolYear, valplanId,
             <td data-label="Val">{p.choice ? p.choice.courseIds.map(courseName).join(', ') : '–'}{p.choice?.submittedBy === 'school' && <small>Registrerat av skolan</small>}
               {p.choice?.state === 'course_held' && p.choice.courseIds.map(id => { const reason = blockedReason(p, id); return reason && <small key={id}>{courseName(id)}: {BLOCKED_REASON[reason]}</small>; })}</td>
             <td className="valplan-remove"><div className="valplan-actions">
-              <Button size="sm" variant="outline" disabled={busy} aria-label={`Registrera val åt ${p.name}`} onClick={() => edit(p)}>Registrera val</Button>
+              {round && <Button size="sm" variant="outline" disabled={busy} aria-label={`Registrera val åt ${p.name}`} onClick={() => edit(p)}>Registrera val</Button>}
               {stateOf(p) === 'ready_for_confirmation' && <Button size="sm" variant="outline" disabled={busy} aria-label={`Bekräfta valet för ${p.name}`} onClick={() => void send(command('confirm_choice', { pupilId: p.id, expectedChoiceRevision: p.choice!.revision }), `Valet för ${p.name} är bekräftat.`)}>Bekräfta</Button>}
             </div></td></tr>)}</tbody></table></div> : <p className="valplan-muted">{pupils.length ? 'Inga elever matchar filtret.' : 'Inga elever att visa. Koppla klasser till timplanerna för läsåret.'}</p>}
         {editing && (() => { const pupil = data.pupils.find(p => p.id === editing)!, target = pupil.targetPoints;

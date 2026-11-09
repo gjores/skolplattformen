@@ -56,6 +56,9 @@ test('nekar servern öppnandet säger sidan varför, och inget val öppnas', asy
     await expect(page.getByRole('alert').filter({ hasText: text })).toBeVisible();
   }
   await expect(page.getByText('Inte öppnat')).toBeVisible();
+  // Without a round the database refuses a registration, so the page offers none.
+  await expect(page.getByRole('button', { name: /^Registrera val åt/ })).toHaveCount(0);
+  await expect(page.getByText('Skolan kan registrera val när valet har öppnats.')).toBeVisible();
 });
 
 test('skolan öppnar valet, registrerar, bekräftar, skapar grupper och stänger', async ({ page }) => {

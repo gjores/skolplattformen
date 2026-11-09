@@ -87,7 +87,7 @@ Tabellen visar varje elev med klass, status och val. Filtrera på status eller k
 
 ## Registrera och bekräfta
 
-Eleven väljer kurser som tillsammans fyller radens poäng exakt. Med **Registrera val** kan skolan lämna valet åt eleven. Det ersätter varken vårdnadshavarens svar eller skolans bekräftelse.
+Eleven väljer kurser som tillsammans fyller radens poäng exakt. Med **Registrera val** kan skolan lämna valet åt eleven, när valet har öppnats. Det ersätter varken vårdnadshavarens svar eller skolans bekräftelse.
 
 Skolan kan registrera val även efter att valet stängts, och åt elever utanför blockets klasser. Markera då **Visa även elever utanför blockets klasser**. För dessa elever finns inget poängkrav.
 
