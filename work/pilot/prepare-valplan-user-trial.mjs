@@ -1,6 +1,7 @@
 // Additive user-trial data for valbara block on the protected target: synthetic pupils in
 // Nystartsgymnasiet's classes and IdP accounts for one pupil and two guardians.
-// Never resets data or changes mandates. Account bindings are made by the school in the app (U7).
+// Never resets data or changes mandates. Provisional: the accounts are bound to pupil 1 here, attested by the school's rektor,
+// since binding belongs to onboarding from the pupil register and not to the choice flow. An account is bound after its first login.
 // Passwords go only to a private, git-ignored file. `--rensa` removes what this script created.
 import { createRequire } from 'node:module';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -18,6 +19,9 @@ const customer = '33000000-0000-4000-8000-000000000001', unit = 'efe5d3b6-40f6-4
 const id = n => `55100200-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const pupils = [[1, 'BFS27'], [2, 'BFS27'], [3, 'SAB27'], [4, 'SAB27'], [5, 'TEMI28'], [6, 'TEMI28']];
 const accounts = [['vp.elev', 'pupil', 'Elev'], ['vp.vardnadshavare1', 'guardian', 'Vårdnadshavare 1'], ['vp.vardnadshavare2', 'guardian', 'Vårdnadshavare 2']];
+// Binding id and whether the account confirms choices. Guardian 2 sees the choice without confirming it.
+const bindings = { 'vp.elev': [id(101), false], 'vp.vardnadshavare1': [id(102), true], 'vp.vardnadshavare2': [id(103), false] };
+const bindingSource = 'Syntetiskt användarprov VP-15';
 const realm = new URL(target.idp.issuer).pathname.split('/').pop();
 
 async function keycloak(route, method = 'GET', body) {
@@ -77,23 +81,58 @@ async function prepare() {
     journal.accounts = journal.accounts.filter(a => a.username !== username).concat({ username, role, subject: created.id, password, pupil: id(1) });
     save();
   }
-  return { ...result, accounts: accounts.map(([username, role]) => ({ username, role })), privateFile: 'work/pilot/targets/protected/valplan-user-trial-private.json' };
+  const bound = await bind();
+  return { ...result, accounts: accounts.map(([username, role]) => ({ username, role, bound: bound[username] })), privateFile: 'work/pilot/targets/protected/valplan-user-trial-private.json' };
+}
+
+// What the school's attestation does in the app: passive customer membership and a binding from today, without end.
+async function bind() {
+  const state = {};
+  await db.begin(async tx => {
+    const rektor = await tx`select a.id, a.customer_id, a.organizer_id from public.access_assignments a where a.unit_id=${unit} and a.customer_id=${customer}
+      and a.function='rektor' and a.ended_at is null and a.valid_from<=public.app_today() and (a.valid_to is null or a.valid_to>=public.app_today())`;
+    if (rektor.length !== 1) throw new Error('REFUSED: skolan behöver exakt ett aktuellt rektorsuppdrag');
+    journal.membershipIds ??= [];
+    for (const [username, role] of accounts) {
+      const known = journal.accounts.find(a => a.username === username), [bindingId, confirms] = bindings[username];
+      const [identity] = await tx`select id from public.identities where issuer=${target.idp.issuer} and subject=${known.subject} and last_login_at is not null`;
+      if (!identity) { state[username] = 'logga in en gång och kör skriptet igen'; continue; }
+      const [existing] = await tx`select identity_id, revoked_at from public.elective_participant_bindings where id=${bindingId}`;
+      if (existing) {
+        if (existing.identity_id !== identity.id) throw new Error('REFUSED: provkopplingen gäller ett annat konto');
+        state[username] = existing.revoked_at ? 'koppling borttagen i appen' : 'kopplat'; continue;
+      }
+      const [member] = await tx`select status from public.memberships where identity_id=${identity.id} and customer_id=${customer}`;
+      if (member && member.status !== 'active') throw new Error('REFUSED: kontots medlemskap är spärrat');
+      if (!member) {
+        const [created] = await tx`insert into public.memberships(identity_id,customer_id) values(${identity.id},${customer}) returning id`;
+        journal.membershipIds.push(created.id);
+      }
+      await tx`insert into public.elective_participant_bindings(id,customer_id,organizer_id,unit_id,pupil_id,identity_id,participant,confirmation_required,starts_on,source_reference,attested_by_assignment_id)
+        values(${bindingId},${customer},${rektor[0].organizer_id},${unit},${id(1)},${identity.id},${role},${confirms},public.app_today(),${bindingSource},${rektor[0].id})`;
+      state[username] = 'kopplat';
+    }
+  });
+  save();
+  return state;
 }
 
 async function remove() {
-  const ids = pupils.map(([n]) => id(n));
+  const ids = pupils.map(([n]) => id(n)), own = Object.values(bindings).map(([b]) => b);
   const result = await db.begin(async tx => {
     const [used] = await tx`select (select count(*) from public.valplan_choices where pupil_id = any(${ids}::uuid[]))::int choices,
-      (select count(*) from public.elective_participant_bindings where pupil_id = any(${ids}::uuid[]))::int bindings,
+      (select count(*) from public.elective_participant_bindings where pupil_id = any(${ids}::uuid[]) and id <> all(${own}::uuid[]))::int bindings,
       (select count(*) from public.study_group_memberships where pupil_id = any(${ids}::uuid[]))::int groups`;
     if (used.choices || used.bindings || used.groups) throw new Error('REFUSED: eleverna har val, kontokopplingar eller grupper; ta bort dem i appen först');
+    await tx`delete from public.elective_participant_bindings where id = any(${own}::uuid[])`;
+    await tx`delete from public.memberships where id = any(${journal.membershipIds ?? []}::uuid[])`;
     await tx`delete from public.pupil_class_memberships where pupil_id = any(${ids}::uuid[])`;
     await tx`delete from public.pupil_placements where pupil_id = any(${ids}::uuid[])`;
     return { pupils: (await tx`delete from public.pupils where id = any(${ids}::uuid[]) returning id`).length };
   });
   let removed = 0;
   for (const a of journal.accounts) { const user = await findUser(a.username); if (user && user.id === a.subject) { await keycloak('/users/' + user.id, 'DELETE'); removed++; } }
-  journal.accounts = []; journal.pupilIds = []; save();
+  journal.accounts = []; journal.pupilIds = []; journal.membershipIds = []; save();
   return { ...result, accounts: removed };
 }
 
