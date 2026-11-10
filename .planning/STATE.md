@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-02 klar 2026-11-10 (modellstöd, syntetiskt provat i Node). Nästa: 05.1.1-03. VP-16 (824d294da1) är inte installerad på 3012."
+stopped_at: "05.1.1-03 klar 2026-11-10 (tracer utan migration och delade presentationsdelar, simulerat mot mockat API). Nästa: 05.1.1-04. VP-16 (824d294da1) är inte installerad på 3012."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-02: kopiering, ramjämförelse, stabila grupp-ID:n, regelkoder och kontrollsumma som rena funktioner, syntetiskt provade i Node."
+last_activity_desc: "05.1.1-03: delad kalender och presentationsdelar för demo och skyddad vy, lasarOps, minsta kontraktet lasar_sql_v1 och en lovdag genom skyddad vy, simulerat mot mockat API."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-03 klar 2026-11-10:** [Tracer utan migration](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-03-SUMMARY.md): demon och den skyddade vyn renderar samma kalender (`lasar-calendar.tsx`) och samma presentationsdelar (`lasar-parts.tsx`), och `lasar-view.tsx` har 453 rader i stället för 1 174. Demons fingeravtryck är exakt lika baslinjen. I den skyddade vyn går en lovdag som `set_days` med revision och payload-hash till ett mockat API och tillbaka med ”Sparat hh:mm”. Simulerat med syntetisk skola i fyra projekt; ingen migration, inget installerat, rutterna på servern kommer i plan 06. Nästa: 05.1.1-04.
 
 **05.1.1-02 klar 2026-11-10:** [Modellstöd](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-02-SUMMARY.md) för läsårskalendern: kopiering av förra läsåret med granskningslista, jämförelse med huvudmannens ram, grupper med ID ur stabila UUID:n, 15 regelkoder och kontrollsumma med 11 hashvektorer för SQL. Rena funktioner, syntetiskt provade i Node (65 prov); inget installerat, ingen migration, `lasar-model.ts` orörd. Nästa: 05.1.1-03.
 
