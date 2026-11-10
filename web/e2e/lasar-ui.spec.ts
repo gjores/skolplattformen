@@ -65,12 +65,26 @@ test('läsläge utan skrivförmåga skickar inget kommando',async({page},info)=>
  expect(errors).toEqual([]);
 });
 
-test('skyddad vy och demo har samma kalender och teckenförklaring för samma läsår',async({page})=>{
+test('skyddad vy och demo har samma kalender, teckenförklaring och räknare för samma läsår',async({page})=>{
+ const parts=['.ly-calendar','.ly-legend','.ly-terms','.ly-counters','.ly-holidays','.tp-frame-line > span'];
+ const read=async()=>Object.fromEntries(await Promise.all(parts.map(async p=>[p,await fingerprint(page,p)])));
  await open(page,'?vy=demo');
- const demo={calendar:await fingerprint(page,'.ly-calendar'),legend:await fingerprint(page,'.ly-legend')};
+ const demo=await read();
  await open(page);
- const protectedView={calendar:await fingerprint(page,'.ly-calendar'),legend:await fingerprint(page,'.ly-legend')};
- expect(protectedView.calendar.length).toBeGreaterThan(300);
- expect(protectedView.calendar).toEqual(demo.calendar);
- expect(protectedView.legend).toEqual(demo.legend.filter(e=>e.tag!=='button'&&!(e.tag==='svg'||e.tag==='path')));
+ const protectedView=await read();
+ expect(protectedView['.ly-calendar'].length).toBeGreaterThan(300);
+ // Terminerna visas i läsläge i den skyddade vyn tills set_term finns (plan 04); fakta och texten jämförs.
+ const terms=(entries:Entry[])=>entries.filter(e=>e.class==='ly-term-facts'||e.class==='cell-secondary');
+ for(const p of parts){
+  if(p==='.ly-terms'){expect(terms(protectedView[p])).toHaveLength(3);expect(terms(protectedView[p])).toEqual(terms(demo[p]));}
+  else expect(protectedView[p],p).toEqual(demo[p]);
+ }
+ // A-08 och A-10: rubrik, statusetikett och avgränsningstext i skyddad drift.
+ await expect(page.locator('.ly-side .og-card').first().getByRole('heading',{name:'Kontroll mot förordningarna'})).toBeVisible();
+ await expect(page.locator('.ly-side .og-card').first()).toContainText('Inom gränserna');
+ await expect(page.locator('.plan-boundary')).toContainText('Fastställandet sparas med datum, version och beslutstext. Tjänstefördelning och timplaner läser den fastställda versionen.');
+ await expect(page.locator('.plan-boundary')).not.toContainText('ingen handling i verklig mening');
+ await expect(page.locator('.tp-versions button')).toHaveText('Version 1 · Utkast');
+ await page.getByRole('button',{name:'Vad räknas som skoldag, lovdag och studiedag?'}).click();
+ await expect(page.locator('.ly-definitions')).toBeVisible();
 });

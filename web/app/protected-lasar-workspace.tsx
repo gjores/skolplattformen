@@ -9,7 +9,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CalendarCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { api, ApiError } from '@/lib/server-client.ts';
 import {
@@ -30,8 +29,10 @@ import {
   type DayInfo,
   type LasarState,
   type Planned,
+  type SchoolYear,
 } from '@/lib/lasar-model.ts';
-import { LasarCalendar, num, selectionFacts, statusText, toolCopy, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
+import { LasarCalendar, selectionFacts, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
+import { DEMO_BOUNDARY, LasarControlCard, LasarCover, LasarCoverSide, LasarFrameLine, LasarHolidaysCard, LasarInlineError, LasarLegend, LasarSchoolTools, LasarTerms, PlanBoundary } from './lasar-parts.tsx';
 import './protected-lasar.css';
 
 export type ProtectedLasarWorkspaceProps = {
@@ -47,6 +48,13 @@ const CONFLICT = 'Kalendern ändrades av någon annan. Den har lästs om och din
 const FORBIDDEN = 'Du har inte behörighet att ändra den här kalendern. Kalendern har lästs om.';
 const UNCERTAIN = 'Det gick inte att bekräfta att ändringen sparades. Kalendern har lästs om. Kontrollera dagen.';
 const REJECTED = 'Ändringen sparades inte. Kalendern har lästs om.';
+const UNSUPPORTED = 'Ändringen kan inte sparas här ännu. Bara skol-, lov- och studiedagar sparas i den här versionen av vyn.';
+/** A-08: ”ramen” betyder huvudmannens ram i skyddad drift. */
+const CONTROL = { heading: 'Kontroll mot förordningarna', ok: 'Inom gränserna' } as const;
+/** A-10: beslutet är verkligt och versionsbundet i skyddad drift. */
+const BOUNDARY = DEMO_BOUNDARY.replace(' Ett fastställt beslut i exemplet är ingen handling i verklig mening.', ' Fastställandet sparas med datum, version och beslutstext. Tjänstefördelning och timplaner läser den fastställda versionen.');
+const unsaved = (a: SchoolYear, b: SchoolYear) =>
+  JSON.stringify([a.ht, a.vt, a.groupExceptions, a.shortWeeks, a.status]) !== JSON.stringify([b.ht, b.vt, b.groupExceptions, b.shortWeeks, b.status]);
 const yearLabel = (startYear: number) => `${startYear}/${String(startYear + 1).slice(2)}`;
 const clockTime = () => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
 const isAbort = (caught: unknown) => caught instanceof DOMException && caught.name === 'AbortError';
@@ -157,6 +165,10 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
       setError(caught instanceof Error ? caught.message : 'Ändringen kunde inte göras.');
       return false;
     }
+    if (unsaved(yearOf(before, id), yearOf(next, id))) {
+      setError(UNSUPPORTED);
+      return false;
+    }
     const ops = lasarOps(yearOf(before, id), yearOf(next, id));
     setError('');
     local.current = next;
@@ -172,6 +184,9 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const sy = state.years[0];
   const editable = sy ? modelCanEdit(state, sy) : false;
   const summary = sy ? summarize(sy, schoolTypes) : undefined;
+  const errors = summary?.issues.filter((i) => i.level === 'error') ?? [];
+  const warnings = summary?.issues.filter((i) => i.level === 'warning') ?? [];
+  const gy = schoolTypes.includes('GY') || schoolTypes.includes('GYAN');
   const noteText = () => note.trim() || undefined;
   const { changeable } = selectionFacts(sy, calendar.selection, new Map());
 
@@ -194,26 +209,22 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
     <section className="admin-workspace timplan-workspace protected-lasar" aria-busy={phase === 'loading'}>
       <div className="ly-layout">
         <section className="tp-canvas ly-canvas">
-          <div className="tp-cover">
-            <div>
-              <h1 className="admin-kicker ly-page-title">Läsår och skoldagar · {schoolName}</h1>
-              <h2>{sy ? sy.label : `Läsåret ${yearLabel(schoolYear)}`}</h2>
-              <p>Rektorn föreslår skoldagar, lov och studiedagar. Huvudmannen fastställer terminernas början och slut.</p>
-            </div>
-            {sy && summary && (
-              <div className="tp-cover-side">
-                <span className={`tp-status tp-status-${sy.status}`}>{statusLabel[sy.status]}</span>
+          <LasarCover
+            kicker={<h1 className="admin-kicker ly-page-title">Läsår och skoldagar · {schoolName}</h1>}
+            title={sy ? sy.label : `Läsåret ${yearLabel(schoolYear)}`}
+            side={sy && summary && (
+              <LasarCoverSide sy={sy} summary={summary}>
                 {!read?.capabilities.canEdit && <span>Läsvy</span>}
                 {saving ? <output className="og-saving">Sparar…</output> : savedAt ? <output className="ly-saved">Sparat {savedAt}</output> : null}
-                <span>{num(summary.skoldagar)} skoldagar · {num(summary.weeks.total)} veckor</span>
-              </div>
+              </LasarCoverSide>
             )}
-          </div>
-          {error && (
-            <div className="validation-warning tp-inline-error">
-              <p><AlertTriangle size={16} /><span>{error}</span></p>
-            </div>
+          />
+          {phase === 'ready' && read?.calendar && sy && (
+            <LasarFrameLine gy={gy} legend="Versioner">
+              <button type="button" aria-pressed="true">Version {read.calendar.version} · {statusLabel[sy.status].split(' ')[0]}</button>
+            </LasarFrameLine>
           )}
+          {error && <LasarInlineError message={error} />}
           {phase === 'loading' ? (
             <div className="admin-empty">
               <Spinner className="size-7" aria-label="Läser läsårskalendern" />
@@ -235,23 +246,16 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
             </div>
           ) : (
             <>
-              <fieldset className="ly-tools">
-                <legend className="ly-tools-label">Markera som</legend>
-                {(['skoldag', 'lovdag', 'studiedag'] as Planned[]).map((t) => (
-                  <button key={t} type="button" className={`ly-tool ly-tool-${t}`} aria-pressed={tool === t} disabled={!editable} onClick={() => setTool(t)}>
-                    <i aria-hidden="true" /> {toolCopy[t].label}
-                  </button>
-                ))}
-                <div className="ly-note-field">
-                  <label className="ly-field-label" htmlFor="ly-note">Anteckning</label>
-                  <Input id="ly-note" value={note} disabled={!editable || tool === 'skoldag'} placeholder={tool === 'studiedag' ? 'Vad personalen gör, t.ex. Fortbildning' : tool === 'lovdag' ? 't.ex. Höstlov' : ''} onChange={(e) => setNoteText(e.target.value)} />
-                </div>
-                <span className="ly-tools-hint">
-                  {editable
-                    ? `${toolCopy[tool].hint} Skift-klicka för att markera ett intervall, kommando- eller ctrl-klicka för att markera flera. Högerklicka på markeringen för att ändra den.`
-                    : 'Du har läsbehörighet. Klicka på en dag för detaljer, skift- eller kommando-klicka för att markera flera.'}
-                </span>
-              </fieldset>
+              {/* Terminerna visas i läsläge tills set_term finns i kontraktet (plan 04). */}
+              <LasarTerms sy={sy} summary={summary} editable={false} />
+              <LasarSchoolTools
+                tool={tool}
+                onTool={setTool}
+                note={note}
+                onNote={setNoteText}
+                editable={editable}
+                readOnlyHint="Du har läsbehörighet. Klicka på en dag för detaljer, skift- eller kommando-klicka för att markera flera."
+              />
               <LasarCalendar
                 sy={sy}
                 summary={summary}
@@ -262,22 +266,17 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                 onWeekClick={onWeekClick}
                 onApplyToSelection={applyToSelection}
               />
-              <div className="ly-legend">
-                {(['skoldag', 'lovdag', 'studiedag', 'helgdag', 'helg'] as DayInfo['status'][]).map((s) => (
-                  <span key={s} className={`ly-legend-item ly-${s}`}>
-                    <i aria-hidden="true" />
-                    {statusText[s]}
-                    {s === 'skoldag' && <small>{num(summary.skoldagar)}</small>}
-                    {s === 'lovdag' && <small>{num(summary.lovdagar)}</small>}
-                    {s === 'studiedag' && <small>{num(summary.studiedagar)}</small>}
-                    {s === 'helgdag' && <small>{num(summary.helgdagar.length)}</small>}
-                  </span>
-                ))}
-                <span className="ly-legend-item"><i className="ly-note-dot ly-legend-dot" aria-hidden="true" /> Har anteckning</span>
-              </div>
+              <LasarLegend summary={summary} />
+              <PlanBoundary text={BOUNDARY} />
             </>
           )}
         </section>
+        {phase === 'ready' && sy && summary && (
+          <aside className="ly-side">
+            <LasarControlCard summary={summary} gy={gy} errors={errors} warnings={warnings} groupIssues={[]} heading={CONTROL.heading} okLabel={CONTROL.ok} />
+            <LasarHolidaysCard summary={summary} />
+          </aside>
+        )}
       </div>
     </section>
   );
