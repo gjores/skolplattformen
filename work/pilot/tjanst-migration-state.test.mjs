@@ -13,7 +13,8 @@ for (const [name, journal, mode, pending] of [
   ['installerat publiceringssuffix', versions.slice(0,9), 'registered-suffix:20261023100000', registry.slice(9).map(m => m.file)],
   ['installerat årsförhandsgranskningssuffix', versions.slice(0,10), 'registered-suffix:20261023110000', registry.slice(10).map(m => m.file)],
   ['installerat årskommandosuffix', versions.slice(0,11), 'registered-suffix:20261023120000', registry.slice(11).map(m=>m.file)],
-  ['installerat årsbehörighetssuffix', versions, 'registered-suffix:20261023130000', []],
+  ['installerat årsbehörighetssuffix', versions.slice(0,12), 'registered-suffix:20261023130000', registry.slice(12).map(m=>m.file)],
+  ['hela registret installerat', versions, 'registered-suffix:'+versions.at(-1), []],
   ['tidigare journalposter bevaras utanför fasen', ['20260910000000', ...gapVersions], 'etapp1+gap', registry.slice(8).map(m => m.file)],
 ]) test(name, () => {
   const result = classify(journal);
@@ -61,4 +62,23 @@ for(const installed of [[],versions.slice(1),[...versions,'20261024120000'],[...
 test('ACL nekar okänd eller omapplicerad fil',()=>{
   assert.throws(()=>expectedTjanstWorkerEntrypoints({installed:versions,applied:['unknown.sql']}));
   assert.throws(()=>expectedTjanstWorkerEntrypoints({installed:versions,applied:[registry.at(-1).file]}));
+});
+
+// 05.1.1-06: läsårskalenderns två migrationer ligger sist i registret, efter VP-16 (exakt prefix).
+const LASAR = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabase/migrations/20261111190000_lasar_worker_access.sql'];
+test('kalenderns migrationer är registrerade sist och i versionsordning', () => {
+  assert.deepEqual(registry.slice(-2).map(m => m.file), LASAR);
+  assert.ok(versions.every((v, i) => i === 0 || v > versions[i - 1]), 'registret ska vara strikt ordnat');
+  assert.ok(registry.slice(-2).every(m => /^[0-9a-f]{64}$/u.test(m.sha256)));
+});
+test('installerat till och med VP-16 ger kalenderns två filer som väntande', () => {
+  const vp16 = versions.indexOf('20261110100000');
+  assert.ok(vp16 > 0);
+  const result = classify(versions.slice(0, vp16 + 1));
+  assert.deepEqual(result.pendingMigrations, LASAR);
+  assert.equal(result.baselineMode, 'registered-suffix:20261110100000');
+});
+test('kalendern kan inte installeras före VP-16', () => {
+  assert.throws(() => classify(versions.filter(v => v !== '20261110100000')));
+  assert.throws(() => classify([...versions.slice(0, versions.indexOf('20261110100000')), '20261111100000']));
 });
