@@ -164,3 +164,143 @@ test('arbetssättet är låst när läsåret har börjat',async({page})=>{
  for(const radio of await page.locator('.ly-mode-card [role=radio]').all())await expect(radio).toHaveAttribute('aria-disabled','true');
  expect(errors).toEqual([]);
 });
+
+// ---------------------------------------------------------------- huvudmannens ram (avsnitt 11, avsnitt 16 fall 5, vy-delen)
+
+const day=(page:Page,long:string)=>page.locator(`button[title^="${long} ·"]`);
+const cell=(page:Page,long:string)=>page.locator('td.ly-day',{has:day(page,long)});
+
+test('ramvyn: utan gruppverktyg och korta veckor, och Ge ut ramen med frivilligt meddelande',async({page})=>{
+ const errors=await openPage(page,'?mal=ram&roll=huvudman&arbetssatt=ram','.ly-calendar');
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Huvudmannens ram'})).toBeVisible();
+ await expect(page.locator('#ly-group')).toHaveCount(0);
+ await expect(page.locator('.ly-shortweek')).toHaveCount(0);
+ await expect(page.locator('.ly-scope')).toHaveCount(0);
+ for(const name of ['Skicka förslag','Fastställ','Återställ förslaget'])await expect(page.getByRole('button',{name})).toHaveCount(0);
+ await expect(page.locator('.tp-cover-side .tp-status')).toHaveText('Utkast');
+ await page.getByRole('button',{name:'Ge ut ramen'}).click();
+ const dialog=page.getByRole('dialog');
+ await expect(dialog.getByRole('heading',{name:'Ge ut ramen till skolorna'})).toBeVisible();
+ await expect(dialog).toContainText('Inget i skolornas kalendrar ändras.');
+ expect(await decisions(page)).toEqual([]);
+ await dialog.getByRole('button',{name:'Ge ut ramen'}).click();
+ await expect(page.locator('.admin-notice')).toContainText('Ramen för 2026/27 är utgiven till skolorna.');
+ const sent=await decisions(page);
+ expect(sent).toHaveLength(1);
+ expect(sent[0].body).toMatchObject({action:'publish_frame',target:{kind:'frame'},text:'',mode:null,confirmAffected:[]});
+ await expect(page.locator('.tp-cover-side .tp-status')).toHaveText('Utgiven');
+ await expect(page.getByRole('button',{name:'Ge ut ramen'})).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('skolans jämförelse med ramen: kort, markörer och terminsavvikelse',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram','.ly-calendar');
+ const card=page.locator('.ly-frame-card');
+ await expect(card.getByRole('heading',{name:'Jämfört med huvudmannens ram'})).toBeVisible();
+ await expect(page.locator('.ly-side > *').first()).toHaveClass(/ly-frame-card/);
+ await expect(card).toContainText('Ramens version 1, utgiven 1 juni 2026');
+ await expect(card).toContainText('HT börjar 18 augusti 2026 · ramen 17 augusti 2026');
+ await expect(card.locator('.ly-counters')).toContainText('Dagar som skiljer sig2');
+ await expect(card.locator('.ly-frame-list li')).toHaveCount(2);
+ await expect(card).toContainText('måndag 12 oktober 2026: studiedag (Skolans studiedag) · ramen skoldag');
+ await expect(cell(page,'måndag 12 oktober 2026').locator('.ly-frame-mark')).toHaveCount(1);
+ await expect(cell(page,'fredag 13 november 2026').locator('.ly-frame-mark')).toHaveCount(1);
+ await expect(page.locator('.ly-frame-mark')).toHaveCount(2);
+ await expect(day(page,'måndag 12 oktober 2026')).toHaveAttribute('title',/skiljer sig från ramen: ramen skoldag/);
+ await expect(page.locator('.ly-term-field',{has:page.locator('#ly-ht-start')}).locator('.ly-frame-diff')).toHaveText('Ramen: 17 augusti 2026');
+ await expect(page.locator('.ly-frame-diff')).toHaveCount(1);
+ await expect(page.locator('.ly-legend')).toContainText('Skiljer sig från ramen');
+ await expect(page.locator('.ly-frame-banner')).toHaveCount(0);
+ await card.getByRole('button',{name:'Visa måndag 12 oktober 2026'}).click();
+ await expect(day(page,'måndag 12 oktober 2026')).toHaveAttribute('aria-pressed','true');
+ expect(await commands(page)).toEqual([]);
+ expect(errors).toEqual([]);
+});
+
+test('ramen ändrad: dialogens säkra knapp och Esc skickar inget och ändrar inga dagar',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram&ram=andrad','.ly-calendar');
+ const banner=page.locator('.ly-frame-banner');
+ await expect(banner).toContainText('Huvudmannen har ändrat ramen (version 2, 15 oktober 2026). 3 dagar skiljer sig från skolans kalender.');
+ // En primär knapp per vy: banderollens Ta in, inte Skicka förslag.
+ await expect(page.getByRole('button',{name:'Skicka förslag'})).not.toHaveClass(/bg-primary/);
+ await expect(banner.getByRole('button',{name:'Ta in ramens ändringar'})).toHaveClass(/bg-primary/);
+ await banner.getByRole('button',{name:'Visa skillnaderna'}).click();
+ await expect(day(page,'måndag 12 oktober 2026')).toHaveAttribute('aria-pressed','true');
+ await expect(day(page,'fredag 15 januari 2027')).toHaveAttribute('aria-pressed','true');
+
+ await banner.getByRole('button',{name:'Ta in ramens ändringar'}).click();
+ const dialog=page.getByRole('alertdialog');
+ await expect(dialog.getByRole('heading',{name:'Ta in ramens ändringar?'})).toBeVisible();
+ await expect(dialog).toContainText('2 dagar i skolans kalender ändras till ramens värden. Skolans egna justeringar på andra dagar ligger kvar.');
+ await expect(dialog.locator('.ly-dialog-list li')).toHaveCount(3);
+ const keep=dialog.getByRole('button',{name:'Behåll skolans kalender'});
+ await expect(keep).toBeFocused();
+ await keep.click();
+ await expect(page.getByRole('alertdialog')).toHaveCount(0);
+ await banner.getByRole('button',{name:'Ta in ramens ändringar'}).click();
+ await expect(page.getByRole('alertdialog')).toBeVisible();
+ await page.keyboard.press('Escape');
+ await expect(page.getByRole('alertdialog')).toHaveCount(0);
+
+ expect(await commands(page)).toEqual([]);
+ await expect(cell(page,'måndag 12 oktober 2026')).toHaveClass(/ly-studiedag/);
+ await expect(cell(page,'fredag 15 januari 2027')).toHaveClass(/ly-skoldag/);
+ await expect(page.locator('#ly-vt-end')).toHaveValue('2027-06-11');
+ await expect(banner).toBeVisible();
+ expect(errors).toEqual([]);
+});
+
+test('Ta in ramens ändringar skickar exakt de godkända nycklarna',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram&ram=andrad','.ly-calendar');
+ await page.locator('.ly-frame-banner').getByRole('button',{name:'Ta in ramens ändringar'}).click();
+ const dialog=page.getByRole('alertdialog');
+ const confirm=dialog.getByRole('button',{name:/^Ta in \d+ ändring/});
+ await expect(confirm).toHaveText('Ta in 2 ändringar');
+ await dialog.getByRole('checkbox').click();
+ await expect(confirm).toHaveText('Ta in 3 ändringar');
+ await dialog.getByRole('checkbox').click();
+ await expect(confirm).toHaveText('Ta in 2 ändringar');
+ await confirm.click();
+ await expect(page.locator('.ly-frame-banner')).toHaveCount(0);
+ const sent=await commands(page);
+ expect(sent).toHaveLength(1);
+ expect(sent[0].body.ops).toEqual([{op:'take_frame_changes',frameVersionId:tid(302),accepted:['term:vt:end','day:2027-01-15']}]);
+ await expect(cell(page,'fredag 15 januari 2027')).toHaveClass(/ly-studiedag/);
+ await expect(cell(page,'måndag 12 oktober 2026')).toHaveClass(/ly-studiedag/);
+ await expect(page.locator('.admin-notice')).toContainText('2 ändringar från ramens version 2 är intagna.');
+ await expect(page.locator('.ly-frame-card')).toContainText('Ramens version 2, utgiven 15 oktober 2026');
+ expect(errors).toEqual([]);
+});
+
+test('en vald konflikt tas in med ramens värde',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram&ram=andrad','.ly-calendar');
+ await page.locator('.ly-frame-banner').getByRole('button',{name:'Ta in ramens ändringar'}).click();
+ const dialog=page.getByRole('alertdialog');
+ await dialog.getByRole('checkbox').click();
+ await dialog.getByRole('button',{name:'Ta in 3 ändringar'}).click();
+ await expect(page.locator('.ly-frame-banner')).toHaveCount(0);
+ const sent=await commands(page);
+ expect(sent[0].body.ops[0].accepted).toEqual(['term:vt:end','day:2027-01-15','day:2026-10-12']);
+ await expect(cell(page,'måndag 12 oktober 2026')).toHaveClass(/ly-lovdag/);
+ expect(errors).toEqual([]);
+});
+
+test('Behåll skolans kalender kvitterar ramen och skillnaderna står kvar',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram&ram=andrad','.ly-calendar');
+ await page.locator('.ly-frame-banner').getByRole('button',{name:'Behåll skolans kalender'}).click();
+ await expect(page.locator('.ly-frame-banner')).toHaveCount(0);
+ const sent=await commands(page);
+ expect(sent.map(c=>c.body.ops)).toEqual([[{op:'keep_school_calendar',frameVersionId:tid(302)}]]);
+ await expect(cell(page,'fredag 15 januari 2027')).toHaveClass(/ly-skoldag/);
+ await expect(cell(page,'fredag 15 januari 2027').locator('.ly-frame-mark')).toHaveCount(1);
+ await expect(page.locator('.ly-frame-card')).toContainText('Ramens version 2, utgiven 15 oktober 2026');
+ expect(errors).toEqual([]);
+});
+
+test('huvudmannen ser att ramen har ändrats, utan knappar',async({page})=>{
+ const errors=await openPage(page,'?arbetssatt=ram&ram=andrad&roll=huvudman&status=forslag','.ly-calendar');
+ await expect(page.locator('.ly-frame-banner')).toHaveCount(0);
+ await expect(page.locator('.ly-frame-card')).toContainText('Ramen har ändrats sedan skolan började. Rektorn har inte tagit in ändringen.');
+ for(const name of ['Ta in ramens ändringar','Behåll skolans kalender'])await expect(page.getByRole('button',{name})).toHaveCount(0);
+ expect(errors).toEqual([]);
+});

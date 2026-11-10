@@ -121,7 +121,7 @@ export function LasarWorkflow({ text, children }: { text: ReactNode; children?: 
 }
 
 /** Terminerna `ly-terms`, med DatePicker när kalendern kan ändras. */
-export function LasarTerms({ sy, summary, editable, onTermChange, isEdgeLocked, min }: {
+export function LasarTerms({ sy, summary, editable, onTermChange, isEdgeLocked, min, edgeNote }: {
   sy: SchoolYear;
   summary: Summary;
   editable: boolean;
@@ -130,6 +130,8 @@ export function LasarTerms({ sy, summary, editable, onTermChange, isEdgeLocked, 
   isEdgeLocked?: (part: 'ht' | 'vt', edge: 'start' | 'end') => boolean;
   /** Tidigaste datum för en kant som går att ändra (editableFrom). */
   min?: string;
+  /** Skyddad drift (A-06, D-06): rad under fältet, till exempel ramens datum. Demon skickar ingen. */
+  edgeNote?: (part: 'ht' | 'vt', edge: 'start' | 'end') => ReactNode;
 }) {
   return (
     <div className="ly-terms">
@@ -146,6 +148,7 @@ export function LasarTerms({ sy, summary, editable, onTermChange, isEdgeLocked, 
               ) : (
                 <strong id={`ly-${part}-${edge}`}>{formatLong(sy[part][edge])}</strong>
               )}
+              {edgeNote?.(part, edge)}
             </div>
           ))}
           <span className="ly-term-facts">{num(summary.weeks[part])} veckor · {num(summary.terms[part].skoldagar)} skoldagar · {num(summary.terms[part].lovdagar)} lov · {num(summary.terms[part].studiedagar)} studiedagar · {num(summary.terms[part].helgdagar)} helgdagar</span>

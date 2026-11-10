@@ -83,6 +83,19 @@ import {
 } from './lasar-parts.tsx';
 import MfaStepUpNotice from './mfa-step-up.tsx';
 import { LasarReviewCard, ProtectedLasarStart, reviewCandidates } from './protected-lasar-start.tsx';
+import {
+  changeCount,
+  changedDates,
+  compareWithFrame,
+  frameReviewText,
+  frameValueText,
+  LasarFrameBanner,
+  LasarFrameCard,
+  LasarFrameCoverSide,
+  LasarPublishFrameDialog,
+  LasarTakeFrameDialog,
+} from './protected-lasar-frame.tsx';
+import type { FrameChanges } from '@/lib/lasar-frame.ts';
 import './protected-lasar.css';
 
 export type ProtectedLasarWorkspaceProps = {
@@ -138,6 +151,9 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const [comment, setComment] = useState('');
   const [dialog, setDialog] = useState<{ error: string; list: string[]; mfa: boolean }>({ error: '', list: [], mfa: false });
   const [busy, setBusy] = useState(false);
+  const [taking, setTaking] = useState<FrameChanges | null>(null);
+  const [publishing, setPublishing] = useState(false);
+  const [publishText, setPublishText] = useState('');
   const calendar = useCalendarSelection();
   const requestConfirm = useRequestConfirm();
   const requestDiscard = useRequestDiscard();
@@ -222,9 +238,14 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const openReview = review.filter((r) => !r.resolved).length;
   /** D-04: möjliga måldagar för ogranskade kopierade dagar får `ly-review`. */
   const reviewDates = new Set(review.filter((r) => !r.resolved).flatMap(reviewCandidates));
+  /** A-06, D-05, D-06: jämförelse med ramen i skolvy och arbetssättet ram. */
+  const comparison = !frameTarget && sy && read?.mode === 'ram' ? compareWithFrame(sy, read.frame) : null;
+  const bannerActive = Boolean(comparison?.pending && comparison.latest && caps?.canEdit);
   const dayMark = (d: DayInfo): DayMark | undefined => {
     const marks: DayMark[] = [];
     if (reviewDates.has(d.date)) marks.push({ className: 'ly-review', title: 'att granska efter kopieringen' });
+    const frameDiff = comparison?.days.get(d.date);
+    if (frameDiff) marks.push({ className: 'ly-frame-day', title: `skiljer sig från ramen: ramen ${frameValueText(frameDiff.frame)}`, mark: <i key="frame" className="ly-frame-mark" aria-hidden="true" /> });
     if (!marks.length) return undefined;
     return {
       className: marks.map((m) => m.className).filter(Boolean).join(' '),
@@ -245,6 +266,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   useUnsavedChanges('lasar-note', noteDirty);
   useUnsavedChanges('lasar-comment', talk.trim() !== '');
   useUnsavedChanges('lasar-dialog', action !== null && comment.trim() !== '');
+  useUnsavedChanges('lasar-publish', publishing && publishText.trim() !== '');
   useUnsavedChanges('navigation-block:lasar-save', saving || busy);
 
   /** Felets text ur serverns vitlistade orsak (UI-SPEC avsnitt 13); okända fel ger allmän text. */
@@ -376,6 +398,33 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
     calendar.setAnchor(days[0] ?? date);
     document.querySelector(`.protected-lasar button[title^="${formatLong(days[0] ?? date)} ·"]`)?.scrollIntoView({ block: 'center' });
   }
+  /** Markerar dagarna i kalendern och rullar till den första. */
+  function showDates(dates: string[]) {
+    if (!dates.length) return;
+    calendar.setSelection(dates);
+    calendar.setAnchor(dates[0]);
+    document.querySelector(`.protected-lasar button[title^="${formatLong(dates[0])} ·"]`)?.scrollIntoView({ block: 'center' });
+  }
+  /** D-05: inget skickas förrän rektorn har bekräftat i dialogen; bara godkända nycklar. */
+  function takeFrame(accepted: string[]) {
+    const latest = comparison?.latest;
+    setTaking(null);
+    if (!latest || !accepted.length) return;
+    void command({ op: 'take_frame_changes', frameVersionId: latest.versionId, accepted }, `${accepted.length} ${accepted.length === 1 ? 'ändring' : 'ändringar'} från ramens version ${latest.version} är intagna.`);
+  }
+  function keepSchoolCalendar() {
+    const latest = comparison?.latest;
+    if (!latest) return;
+    void command({ op: 'keep_school_calendar', frameVersionId: latest.versionId }, 'Skolans kalender är behållen. Skillnaderna står kvar som skolans avvikelser.');
+  }
+  async function publishFrame() {
+    if (busy) return;
+    if (await decide('publish_frame', publishText, true)) {
+      setPublishing(false);
+      setPublishText('');
+    }
+  }
+
   /** Klar: posten är granskad. Infogad om en möjlig måldag nu har samma slag, annars avfärdad. */
   function resolve(item: LasarReviewItem) {
     if (!sy) return;
@@ -432,6 +481,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
       case 'request_change': return 'Begäran om ändring är skickad till huvudmannen.';
       case 'withdraw_request': return 'Begäran om ändring är tagen tillbaka.';
       case 'decline_request': return 'Begäran om ändring är avslagen.';
+      case 'publish_frame': return `Ramen för ${yearLabel(schoolYear)} är utgiven till skolorna.`;
       default: return 'Ändringen är sparad.';
     }
   }
@@ -511,14 +561,18 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   }
 
   // Versionsraden (A-07, avsnitt 12) och arbetsflödets text (avsnitt 9).
-  const versionLine = current && latest
+  const versionLine = !frameTarget && current && latest
     ? latest.versionId !== current.versionId
       ? `Version ${latest.version} är ${statusWord[latest.status === 'forslag' ? 'förslag' : latest.status === 'atersand' ? 'återsänd' : 'utkast']}. Version ${current.version}, fastställd ${formatDate(current.decidedOn!, true)}, gäller tills den nya versionen är fastställd.`
       : `Version ${current.version} gäller sedan ${formatDate(current.decidedOn!, true)}.`
     : null;
   const request = read?.changeRequest;
   const onCurrent = Boolean(selected?.current);
-  const workflowText = !sy ? null : sy.status === 'utkast'
+  const workflowText = !sy ? null : frameTarget
+    ? sy.status === 'fastställd'
+      ? 'Ramen är utgiven. Rektorerna utgår från den och justerar för sin skola. Skolornas avvikelser syns när kalendrarna fastställs.'
+      : 'Ramen är ett utkast. Lägg terminer och gemensamma lov- och studiedagar. Skolorna ser ramen först när du ger ut den.'
+    : sy.status === 'utkast'
     ? editable ? 'Utkastet är rektorns arbetsyta. Välj vad du vill markera och klicka på dagar eller veckonummer. Skicka när kontrollerna är gröna.' : 'Rektorn arbetar med utkastet.'
     : sy.status === 'återsänd' ? 'Huvudmannen har återsänt förslaget. Se skälet i historiken, ändra och skicka igen.'
       : sy.status === 'förslag' ? 'Förslaget väntar på huvudmannens beslut om terminernas början och slut. Rektorn kan ta tillbaka det.'
@@ -549,21 +603,26 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
       <div className="ly-layout">
         <section className="tp-canvas ly-canvas">
           <LasarCover
-            kicker={<h1 className="admin-kicker ly-page-title">Läsår och skoldagar · {schoolName}</h1>}
+            kicker={<h1 className="admin-kicker ly-page-title">Läsår och skoldagar · {frameTarget ? 'Huvudmannens ram' : schoolName}</h1>}
             title={sy ? sy.label : `Läsåret ${yearLabel(schoolYear)}`}
-            side={phase === 'ready' && sy && summary && (
+            side={phase === 'ready' && sy && summary && (frameTarget ? (
+              <LasarFrameCoverSide sy={sy} summary={summary}>
+                {!caps?.canEdit && <span>Läsvy</span>}
+                {saving ? <output className="og-saving">Sparar…</output> : savedAt ? <output className="ly-saved">Sparat {savedAt}</output> : null}
+              </LasarFrameCoverSide>
+            ) : (
               <LasarCoverSide sy={sy} summary={summary}>
                 {current && <span>Gäller: version {current.version}</span>}
                 {!caps?.canEdit && <span>Läsvy</span>}
                 {saving ? <output className="og-saving">Sparar…</output> : savedAt ? <output className="ly-saved">Sparat {savedAt}</output> : null}
               </LasarCoverSide>
-            )}
+            ))}
           />
           {phase === 'ready' && read?.calendar && sy && (
             <LasarFrameLine gy={gy} legend="Versioner">
               {versions.map((v) => (
                 <button key={v.versionId} type="button" aria-pressed={v.versionId === read.calendar!.versionId} onClick={() => void chooseVersion(v.versionId)}>
-                  Version {v.version} · {statusLabel[v.status === 'forslag' ? 'förslag' : v.status === 'atersand' ? 'återsänd' : v.status === 'faststalld' ? 'fastställd' : 'utkast'].split(' ')[0]}{v.current ? ' · gäller' : ''}
+                  Version {v.version} · {frameTarget ? (v.status === 'faststalld' ? 'Utgiven' : 'Utkast') : statusLabel[v.status === 'forslag' ? 'förslag' : v.status === 'atersand' ? 'återsänd' : v.status === 'faststalld' ? 'fastställd' : 'utkast'].split(' ')[0]}{v.current ? ' · gäller' : ''}
                 </button>
               ))}
             </LasarFrameLine>
@@ -595,6 +654,16 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
             )
           ) : (
             <>
+              {bannerActive && comparison?.latest && (
+                <LasarFrameBanner
+                  latest={comparison.latest}
+                  count={changeCount(comparison.changes)}
+                  busy={busy || saving}
+                  onShowDiff={() => showDates(changedDates(comparison.changes))}
+                  onTake={() => setTaking(comparison.changes)}
+                  onKeep={keepSchoolCalendar}
+                />
+              )}
               <LasarWorkflow
                 text={
                   <>
@@ -604,47 +673,53 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                   </>
                 }
               >
-                {caps?.canEdit && (
+                {frameTarget && caps?.canPublishFrame && (
+                  <Button disabled={busy || errors.length > 0} onClick={() => { setDialog({ error: '', list: [], mfa: false }); setPublishing(true); }}>
+                    <Send size={15} /> Ge ut ramen
+                  </Button>
+                )}
+                {!frameTarget && caps?.canEdit && (
                   <Button variant="outline" onClick={() => void resetProposal()}>
                     <RotateCcw size={15} /> Återställ förslaget
                   </Button>
                 )}
-                {caps?.canSubmit && (
-                  <Button onClick={() => openDialog('submit')} disabled={errors.length > 0 || openReview > 0}>
+                {!frameTarget && caps?.canSubmit && (
+                  // Skolplattan: en primär knapp per vy. Medan ramens ändring väntar är den banderollens.
+                  <Button variant={bannerActive ? 'outline' : 'default'} onClick={() => openDialog('submit')} disabled={errors.length > 0 || openReview > 0}>
                     <Send size={15} /> Skicka förslag
                   </Button>
                 )}
-                {caps?.canWithdraw && (
+                {!frameTarget && caps?.canWithdraw && (
                   <Button variant="outline" disabled={busy} onClick={() => void decide('withdraw', '', false)}>
                     <Undo2 size={15} /> Ta tillbaka
                   </Button>
                 )}
-                {caps?.canReturn && (
+                {!frameTarget && caps?.canReturn && (
                   <Button variant="outline" onClick={() => openDialog('return')}>
                     <Undo2 size={15} /> Återsänd
                   </Button>
                 )}
-                {caps?.canApprove && (
+                {!frameTarget && caps?.canApprove && (
                   <Button onClick={() => openDialog('approve')} disabled={errors.length > 0}>
                     <CircleCheck size={15} /> Fastställ
                   </Button>
                 )}
-                {caps?.canWithdrawRequest && (
+                {!frameTarget && caps?.canWithdrawRequest && (
                   <Button variant="outline" disabled={busy} onClick={() => void decide('withdraw_request', '', false)}>
                     <Undo2 size={15} /> Ta tillbaka begäran
                   </Button>
                 )}
-                {caps?.canRequestChange && (
+                {!frameTarget && caps?.canRequestChange && (
                   <Button variant="outline" onClick={() => openDialog('request')}>
                     <MessageSquareText size={15} /> Begär ändring
                   </Button>
                 )}
-                {caps?.canDecline && (
+                {!frameTarget && caps?.canDecline && (
                   <Button variant="outline" onClick={() => openDialog('decline')}>
                     <X size={15} /> Avslå begäran
                   </Button>
                 )}
-                {caps?.canReopen && (
+                {!frameTarget && caps?.canReopen && (
                   <Button variant="outline" onClick={() => openDialog('reopen')}>
                     <Unlock size={15} /> Öppna för ändring
                   </Button>
@@ -657,6 +732,10 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                 editable={editable}
                 min={editableFrom ?? undefined}
                 isEdgeLocked={(part, edge) => Boolean(isLocked?.(sy[part][edge]))}
+                edgeNote={(part, edge) => {
+                  const d = comparison?.terms.get(`term:${part}:${edge}`);
+                  return d ? <small className="ly-frame-diff">Ramen: {frameValueText(d.frame)}</small> : null;
+                }}
                 onTermChange={(part, edge, value) => apply((s) => setTerm(s, sy.id, part, edge, value))}
               />
               <LasarSchoolTools
@@ -684,8 +763,9 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
               />
               <LasarLegend
                 summary={summary}
-                extra={(isLocked || openReview > 0) && (
+                extra={(isLocked || openReview > 0 || comparison) && (
                   <>
+                    {comparison && <span className="ly-legend-item ly-frame-legend"><i aria-hidden="true" /> Skiljer sig från ramen</span>}
                     {isLocked && <span className="ly-legend-item ly-past"><i aria-hidden="true" /> Passerad dag (låst)</span>}
                     {openReview > 0 && <span className="ly-legend-item ly-review-legend"><i aria-hidden="true" /> Att granska</span>}
                   </>
@@ -714,6 +794,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
         </section>
         {phase === 'ready' && sy && summary && (
           <aside className="ly-side">
+            {comparison && <LasarFrameCard comparison={comparison} showNotTaken={!caps?.canEdit} onShowDay={(date) => showDates([date])} />}
             <LasarControlCard summary={summary} gy={gy} errors={errors} warnings={warnings} groupIssues={[]} heading={CONTROL.heading} okLabel={CONTROL.ok} />
             <LasarHolidaysCard summary={summary} />
             <LasarTalkCard
@@ -742,6 +823,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
         errorList={dialog.list}
         notice={dialog.mfa ? <MfaStepUpNotice message={MFA_MESSAGE} detail={MFA_DETAIL} returnTo="/?vy=lasar" /> : undefined}
         description={dialogDescription}
+        reviewExtra={comparison ? <p className="ly-frame-review">{frameReviewText(comparison)}</p> : undefined}
         className="protected-lasar-dialog"
         cancelVariant="outline"
         busy={busy}
@@ -749,6 +831,18 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
         okLabel={CONTROL.ok}
         onClose={() => void closeDialog()}
         onRun={() => void runDialog()}
+      />
+      <LasarTakeFrameDialog changes={taking} busy={busy || saving} onCancel={() => setTaking(null)} onConfirm={takeFrame} />
+      <LasarPublishFrameDialog
+        open={publishing}
+        yearText={yearLabel(schoolYear)}
+        text={publishText}
+        onText={setPublishText}
+        error={dialog.error}
+        notice={dialog.mfa ? <MfaStepUpNotice message={MFA_MESSAGE} detail={MFA_DETAIL} returnTo="/?vy=lasar" /> : undefined}
+        busy={busy}
+        onCancel={() => { void (async () => { if (publishText.trim() && !(await requestDiscard())) return; setPublishing(false); setPublishText(''); })(); }}
+        onConfirm={() => void publishFrame()}
       />
     </section>
   );
