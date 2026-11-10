@@ -300,7 +300,7 @@ test('beslutets svar: samma kommando; öppna för ändring ger en ny version', (
   const base = { target: school, schoolYear: 2026, versionId: V1, expectedRevision: 5 };
   const reopen = lasarDecisionRequest({ ...base, action: 'reopen', text: 'Ny studiedag.' });
   const detail = read();
-  assert.equal(parseLasarDecisionReply({ receipt: { commandId: reopen.commandId, revision: 1, replayed: false }, detail }, reopen).detail.calendar.version, 2);
+  assert.equal(parseLasarDecisionReply({ receipt: { commandId: reopen.commandId, revision: 3, replayed: false }, detail }, reopen).detail.calendar.version, 2);
   const submit = lasarDecisionRequest({ ...base, versionId: V2, expectedRevision: 3, action: 'submit', text: 'Förslag.' });
   const d2 = read(); d2.calendar.revision = 4; d2.calendar.status = 'forslag'; d2.versions[1].status = 'forslag';
   assert.equal(parseLasarDecisionReply({ receipt: { commandId: submit.commandId, revision: 4, replayed: false }, detail: d2 }, submit).receipt.revision, 4);

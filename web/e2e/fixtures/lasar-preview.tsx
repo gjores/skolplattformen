@@ -36,10 +36,20 @@ const calendar = {
   revision: 3,
   terms: { ht: { ...proposal.ht }, vt: { ...proposal.vt } },
   exceptions: structuredClone(proposal.exceptions),
-  history: [{ id: tid(201), role: 'rektor' as const, at: '2026-09-04T08:00:00.000Z', action: 'Förslag skapat', comment: 'Terminer, helgdagar och vanliga lov föreslagna.' }],
+  groupDays: {},
+  shortWeeks: {},
+  frameVersionId: null,
+  contentHash: `sha256:${'0'.repeat(64)}`,
+  decidedOn: null,
+  history: [{ id: tid(201), role: 'rektor' as const, actorName: 'Syntetisk rektor', at: '2026-09-04T08:00:00.000Z', action: 'Förslag skapat', comment: 'Terminer, helgdagar och vanliga lov föreslagna.', version: 1 }],
 };
+const caps = { canEdit, canSubmit: canEdit, canWithdraw: false, canRequestChange: false, canWithdrawRequest: false, canReturn: false, canApprove: false,
+  canReopen: false, canDecline: false, canComment: canEdit, canCreate: [], canPublishFrame: false, canSetMode: false };
 const readReply = (): LasarReadReply => parseLasarReadReply(structuredClone({
-  contractVersion: 'lasar_sql_v1', unitId: UNIT, schoolYear: YEAR, calendar, capabilities: { canEdit },
+  contractVersion: 'lasar_sql_v1', target: { kind: 'school', unitId: UNIT }, schoolYear: YEAR, schoolName: SCHOOL, schoolTypes: TYPES,
+  mode: 'eget', modeLocked: false, versions: [{ versionId: VERSION, version: 1, status: calendar.status, decidedOn: null, current: false }],
+  calendar, capabilities: caps, editableFrom: null, changeRequest: null, review: [], frame: null, groups: [],
+  teaching: { classes: [], imClassIds: [] }, previousYearAvailable: false,
 }));
 
 type Logged = { path: string; body: unknown };
@@ -55,15 +65,16 @@ async function route(path: string, body: unknown): Promise<Reply> {
     if (path === '/api/lasar/lasa') {
       const q = parseLasarReadRequest(body);
       control.reads.push({ path, body: structuredClone(body) });
-      if (q.unitId !== UNIT || q.schoolYear !== YEAR) return error(403, 'forbidden');
+      if (q.target.kind !== 'school' || q.target.unitId !== UNIT || q.schoolYear !== YEAR) return error(403, 'forbidden');
       return { status: 200, json: readReply() };
     }
     if (path === '/api/lasar/kommando') {
       control.commands.push({ path, body: structuredClone(body) });
       const q = await verifyLasarCommandHash(body);
-      if (!canEdit || q.unitId !== UNIT || q.schoolYear !== YEAR || q.versionId !== VERSION) return error(403, 'forbidden');
+      if (!canEdit || q.target.kind !== 'school' || q.target.unitId !== UNIT || q.schoolYear !== YEAR || q.versionId !== VERSION) return error(403, 'forbidden');
       if (q.expectedRevision !== calendar.revision) return error(409, 'conflict');
       for (const op of q.ops) {
+        if (op.op !== 'set_days') return error(400, 'bad_request');
         for (const date of op.dates) {
           if (op.kind === 'skoldag') delete calendar.exceptions[date];
           else calendar.exceptions[date] = op.note === undefined ? { kind: op.kind } : { kind: op.kind, note: op.note };

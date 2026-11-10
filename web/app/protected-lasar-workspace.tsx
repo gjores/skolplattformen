@@ -96,7 +96,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const load = useCallback(async (quiet = false) => {
     const gen = ++generation.current;
     pending.current = 0;
-    const request = { unitId, schoolYear };
+    const request = { target: { kind: 'school' as const, unitId }, schoolYear, versionId: null };
     try {
       const reply = parseLasarReadReply(await api.post<unknown>('/api/lasar/lasa', request), request);
       if (gen !== generation.current) return;
@@ -132,7 +132,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
     const current = basis.current;
     if (gen !== generation.current || !current) return;
     try {
-      const request = await lasarCommandRequest({ unitId, schoolYear, versionId: current.versionId, expectedRevision: current.revision, ops });
+      const request = await lasarCommandRequest({ target: { kind: 'school', unitId }, schoolYear, versionId: current.versionId, expectedRevision: current.revision, ops });
       const reply = parseLasarCommandReply(await api.post<unknown>('/api/lasar/kommando', request), request);
       if (gen !== generation.current) return;
       basis.current = { versionId: current.versionId, revision: reply.receipt.revision };
