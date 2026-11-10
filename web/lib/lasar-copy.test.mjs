@@ -34,7 +34,8 @@ test('höstlov v44 2026 kopieras till v44 2027 med samma slag och anteckning', (
 
 test('terminernas kanter flyttas till samma ISO-vecka och veckodag', () => {
   const { draft } = copySchoolYear(source(), 2027, []);
-  assert.deepEqual(draft.ht, { start: '2027-08-23', end: '2027-12-17' });
+  // 2026 har 53 ISO-veckor, så höstens kanter hamnar en vecka senare än i förslaget för 2027.
+  assert.deepEqual(draft.ht, { start: '2027-08-23', end: '2027-12-24' });
   assert.deepEqual(draft.vt, { start: '2028-01-10', end: '2028-06-09' });
   assert.equal(draft.startYear, 2027);
 });
