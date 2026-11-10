@@ -97,3 +97,18 @@ export async function resetCommand({ unitId, schoolYear, versionId, expectedRevi
 export function lasarDecision({ unitId, schoolYear, versionId, expectedRevision, action, text = '', commandId = randomUUID() }) {
   return { commandId, target: school(unitId), schoolYear, versionId, expectedRevision, action, text, mode: null, confirmAffected: [] };
 }
+
+// 05.1.1-10: huvudmannens ram och arbetssätt. Målet är ramen ({ kind: 'frame' }); huvudmannen identifieras bara genom sitt
+// uppdrag (organizers.id), aldrig genom namn. Ramens förslag räknas fram som i servern med proposeSchoolYear för de skolformer
+// som huvudmannens skolenheter har.
+export const frameTarget = () => ({ kind: 'frame' });
+export async function frameCommand({ schoolYear, versionId = null, expectedRevision = null, ops, commandId = randomUUID() }) {
+  return { commandId, target: frameTarget(), schoolYear, versionId, expectedRevision, ops, payloadHash: await lasarPayloadHash(ops) };
+}
+/** Ramutkast ur helgdagar och vanliga lov: servern skickar innehållet, som vid skolans create. */
+export async function frameCreateCommand(schoolYear, schoolTypes, extra = {}) {
+  return { ...(await frameCommand({ schoolYear, ops: [{ op: 'create', source: 'proposal' }], ...extra })), proposal: proposalContent(schoolYear, 'ram', schoolTypes) };
+}
+export function frameDecision({ schoolYear, versionId = null, expectedRevision = null, action, text = '', mode = null, confirmAffected = [], commandId = randomUUID() }) {
+  return { commandId, target: frameTarget(), schoolYear, versionId, expectedRevision, action, text, mode, confirmAffected };
+}
