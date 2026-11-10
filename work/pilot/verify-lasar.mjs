@@ -26,8 +26,9 @@ const YEAR = 2027;
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
-  'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail', 'lasar_group_ref_guard',
-  'lasar_history', 'lasar_lock_version', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term', 'phase4_register_selection',
+  'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail',
+  'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term',
+  'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
 
@@ -74,6 +75,13 @@ function staticChecks(report) {
     assert.equal((sql.match(/add value/giu) ?? []).length, 0);
     assert.ok(!/session_replication_role|disable\s+trigger/iu.test(sql));
   });
+  record('ändringsbegärans fil (05.1.1-09) ger inga rättigheter, lägger inte till enumvärden och stänger inte av triggrar', () => {
+    const sql = file(lasarMigrations[3]);
+    assert.ok(lasarMigrations[3].endsWith('20261112110000_lasar_change_requests.sql'));
+    assert.equal(sql.split('\n').filter(l => !l.trim().startsWith('--') && /\bgrant\b/iu.test(l)).length, 0);
+    assert.equal((sql.match(/add value/giu) ?? []).length, 0);
+    assert.ok(!/session_replication_role|disable\s+trigger/iu.test(sql));
+  });
   record('demons vilande vägar är orörda: database.types.ts och planning-store.ts har kvar group_key (Pitfall 9)', () => {
     assert.ok(file('web/lib/database.types.ts').includes('group_key')); assert.ok(file('web/lib/planning-store.ts').includes('group_key'));
   });
@@ -85,7 +93,7 @@ async function structure(t, step) {
   });
   await step(t, 'unique (unit_id, start_year) är borttagen; versionsnyckel och partiella index finns', async u => {
     const cons = (await u`select pg_get_constraintdef(oid) d from pg_constraint where conrelid='public.school_years'::regclass and contype='u' order by 1`).map(r => r.d);
-    assert.deepEqual(cons, ['UNIQUE (unit_id, start_year, version)']);
+    assert.deepEqual(cons, ['UNIQUE (id, unit_id, start_year)', 'UNIQUE (unit_id, start_year, version)']);
     const idx = (await u`select indexname n, indexdef d from pg_indexes where schemaname='public' and tablename='school_years' and indexname like 'school_years_one_%' order by 1`);
     assert.deepEqual(idx.map(i => i.n), ['school_years_one_current', 'school_years_one_open']);
     assert.ok(idx.every(i => /UNIQUE INDEX/u.test(i.d) && /superseded_by IS NULL/u.test(i.d)));
@@ -833,6 +841,232 @@ async function groupParity(t, step, f) {
   }
 }
 
+/**
+ * 05.1.1-09 (D-10, D-12, D-16, LASAR-02): ändringsbegäran, återtagande, avslag, ny version, ersättning och låsta passerade dagar.
+ * app.fake_today sätts per fall med set_config(..., true) och återställs sist. Rektor och skoladministratör begär och tar tillbaka;
+ * bara huvudmannen öppnar och avslår (T-05.1.1-29). Begäran och svar står kvar (T-05.1.1-30).
+ */
+async function changes(t, step, f) {
+  const A = f.schools.A, types = f.schoolTypes.A, gr = f.offerings.gr;
+  const env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const read = async (name, versionId = null) => {
+    await f.actor(t, name);
+    const q = { target: school(A), schoolYear: YEAR, versionId };
+    return parseLasarReadReply(env(await lasarRead(t, q), name), q);
+  };
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const deny = (name, q, code, hint) => denied(t, async u => { await f.actor(u, name); await lasarSend(u, q); }, code, hint);
+  const today = async d => { await t`select set_config('app.fake_today', ${d ?? ''}, true)`; };
+  const dec = (action, text, versionId, rev) => lasarDecision({ unitId: A, schoolYear: YEAR, versionId, expectedRevision: rev, action, text });
+  const cmd = (ops, versionId, rev) => lasarCommand({ unitId: A, schoolYear: YEAR, versionId, expectedRevision: rev, ops });
+  const schoolDay = (sy, from) => { let d = from; while (dayInfo(sy, d).status !== 'skoldag') d = addDays(d, 1); return d; };
+  const current = async () => (await t`select (public.lasar_current(${A},${YEAR})).id v`)[0].v;
+  const requests = async () => [...await t`select status, reason, answer, school_year_id, answered_at is not null answered from public.school_year_change_requests
+    where unit_id=${A} and start_year=${YEAR} order by requested_at, id`];
+  const content = c => ({ terms: c.terms, exceptions: c.exceptions, groupDays: c.groupDays, shortWeeks: c.shortWeeks, frameVersionId: c.frameVersionId, version: c.version });
+  const rolledBack = async fn => { const sentinel = Error('changes_rollback'); try { await t.savepoint(async u => { await fn(u); throw sentinel; }); } catch (e) { if (e !== sentinel) throw e; } };
+  const ak1 = arskursGroupId(gr, 'ak1');
+  const MID = `${YEAR}-10-15`;
+  const s = {};
+
+  await step(t, 'ändring: version 1 fastställs med lovdag, gruppdag och kort vecka (utgångsläge)', async () => {
+    const created = await send('principalA', await createCommand(A, YEAR, types));
+    s.v1 = created.detail.calendar.versionId;
+    const sy = lasarSchoolYear(created.detail);
+    s.pastLov = schoolDay(sy, `${YEAR}-09-13`); s.pastGroup = schoolDay(sy, addDays(s.pastLov, 1));
+    const r = await send('principalA', await cmd([
+      { op: 'set_days', dates: [s.pastLov], kind: 'lovdag', note: 'Syntetisk lovdag' },
+      { op: 'set_group_days', groupId: ak1, dates: [s.pastGroup], cause: 'friluftsdag' },
+      { op: 'set_short_week', groupId: ak1, columnId: 'ak1', weekday: 4, reason: 'Syntetiska särskilda skäl' },
+    ], s.v1, created.receipt.revision));
+    const sub = await decide('principalA', dec('submit', 'Syntetiskt förslag', s.v1, r.receipt.revision));
+    s.approved1 = await decide('hm', dec('approve', 'Syntetiskt beslut', s.v1, sub.receipt.revision));
+    s.rev1 = s.approved1.receipt.revision;
+    assert.equal(s.approved1.detail.calendar.status, 'faststalld'); assert.equal(await current(), s.v1);
+  });
+  await step(t, 'ändring: på en fastställd version kan rektor och skoladministratör begära ändring och huvudmannen öppna; editableFrom är null', async () => {
+    const r = await read('principalA');
+    assert.equal(r.calendar.versionId, s.v1); assert.equal(r.changeRequest, null); assert.equal(r.editableFrom, null);
+    assert.deepEqual([r.capabilities.canRequestChange, r.capabilities.canWithdrawRequest, r.capabilities.canReopen, r.capabilities.canDecline], [true, false, false, false]);
+    assert.equal((await read('admin')).capabilities.canRequestChange, true);
+    const h = await read('hm');
+    assert.deepEqual([h.capabilities.canRequestChange, h.capabilities.canWithdrawRequest, h.capabilities.canReopen, h.capabilities.canDecline], [false, false, true, false]);
+  });
+  await step(t, 'begäran kräver orsak; huvudmannen kan inte begära ändring och rektor B når inte skolan', async () => {
+    await deny('principalA', dec('request_change', '', s.v1, s.rev1), '22023', 'lasar_text_required');
+    await deny('hm', dec('request_change', 'Syntetisk orsak', s.v1, s.rev1), '42501');
+    await deny('principalB', dec('request_change', 'Syntetisk orsak', s.v1, s.rev1), '42501');
+  });
+  await step(t, 'rektor begär ändring: begäran är öppen, version 1 gäller fortsatt och historiken får raden Ändring begärd', async () => {
+    const r = await decide('principalA', dec('request_change', 'Syntetisk orsak: ny studiedag i mars', s.v1, s.rev1));
+    const c = r.detail.calendar;
+    assert.equal(c.versionId, s.v1); assert.equal(c.status, 'faststalld'); assert.equal(c.revision, s.rev1 + 1);
+    assert.deepEqual([r.detail.changeRequest.status, r.detail.changeRequest.reason, r.detail.changeRequest.answer, r.detail.changeRequest.answeredAt],
+      ['open', 'Syntetisk orsak: ny studiedag i mars', null, null]);
+    assert.equal(r.detail.capabilities.canWithdrawRequest, true); assert.equal(r.detail.capabilities.canRequestChange, false);
+    assert.deepEqual([c.history[0].action, c.history[0].role, c.history[0].version, c.history[0].comment], ['Ändring begärd', 'rektor', 1, 'Syntetisk orsak: ny studiedag i mars']);
+    assert.equal(await current(), s.v1);
+    const h = await read('hm');
+    assert.equal(h.capabilities.canDecline, true); assert.equal(h.capabilities.canReopen, true); assert.equal(h.changeRequest.status, 'open');
+    s.rev1 = r.receipt.revision;
+  });
+  await step(t, 'en andra öppen begäran för skolans läsår nekas, i kommandot och i det unika indexet', async () => {
+    await deny('admin', dec('request_change', 'Syntetisk andra orsak', s.v1, s.rev1), '40001', 'lasar_revision_conflict');
+    await denied(t, u => u`insert into public.school_year_change_requests(school_year_id,unit_id,start_year,reason,requested_by_assignment)
+      values(${s.v1},${A},${YEAR},'Syntetisk andra orsak',${f.roles.admin})`, '23505');
+    assert.equal((await requests()).length, 1);
+  });
+  await step(t, 'skoladministratören tar tillbaka rektorns begäran (D-18); historiken får raden Begäran återtagen', async () => {
+    const r = await decide('admin', dec('withdraw_request', '', s.v1, s.rev1));
+    assert.equal(r.detail.changeRequest.status, 'withdrawn'); assert.ok(r.detail.changeRequest.answeredAt); assert.equal(r.detail.changeRequest.answer, null);
+    assert.equal(r.detail.capabilities.canRequestChange, true); assert.equal(r.detail.capabilities.canWithdrawRequest, false);
+    assert.deepEqual([r.detail.calendar.history[0].action, r.detail.calendar.history[0].role], ['Begäran återtagen', 'skoladministrator']);
+    s.rev1 = r.receipt.revision;
+    await deny('admin', dec('withdraw_request', '', s.v1, s.rev1), '40001', 'lasar_revision_conflict');
+  });
+  await step(t, 'avslag: bara huvudmannen avslår och öppnar, med motivering; den fastställda versionen gäller fortsatt (D-16, T-05.1.1-29)', async () => {
+    s.rev1 = (await decide('principalA', dec('request_change', 'Syntetisk ny begäran', s.v1, s.rev1))).receipt.revision;
+    for (const name of ['principalA', 'admin']) for (const action of ['decline_request', 'reopen']) await deny(name, dec(action, 'Syntetisk text', s.v1, s.rev1), '42501');
+    await deny('hm', dec('decline_request', '', s.v1, s.rev1), '22023', 'lasar_text_required');
+    const r = await decide('hm', dec('decline_request', 'Syntetisk motivering', s.v1, s.rev1));
+    assert.deepEqual([r.detail.changeRequest.status, r.detail.changeRequest.answer], ['declined', 'Syntetisk motivering']);
+    assert.deepEqual([r.detail.calendar.history[0].action, r.detail.calendar.history[0].role, r.detail.calendar.history[0].comment], ['Begäran avslagen', 'huvudman', 'Syntetisk motivering']);
+    assert.equal(await current(), s.v1); assert.deepEqual(r.detail.versions.map(v => [v.version, v.status, v.current]), [[1, 'faststalld', true]]);
+    const p = await read('principalA');
+    assert.equal(p.changeRequest.status, 'declined'); assert.equal(p.capabilities.canRequestChange, true);
+    s.rev1 = r.receipt.revision;
+  });
+  await step(t, 'begäran och svar står kvar och kan varken tas bort eller skrivas om (T-05.1.1-30); Workern når inte tabellen', async () => {
+    const rows = await requests();
+    assert.deepEqual(rows.map(r => [r.status, r.answer, r.answered]), [['withdrawn', null, true], ['declined', 'Syntetisk motivering', true]]);
+    assert.ok(rows.every(r => r.school_year_id === s.v1));
+    await denied(t, u => u`delete from public.school_year_change_requests where unit_id=${A}`, 'P0001');
+    await denied(t, u => u`update public.school_year_change_requests set status='open', answered_at=null, answered_by_assignment=null, answer=null where status='declined' and unit_id=${A}`, 'P0001');
+    await denied(t, u => u`update public.school_year_change_requests set reason='Ändrad' where unit_id=${A}`, 'P0001');
+    const [rls] = await t`select relrowsecurity r, relforcerowsecurity f from pg_class where oid='public.school_year_change_requests'::regclass`;
+    assert.ok(rls.r && rls.f);
+    for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker'])
+      assert.equal((await t`select has_table_privilege(${role},'public.school_year_change_requests','SELECT,INSERT,UPDATE,DELETE,TRUNCATE') v`)[0].v, false, role);
+  });
+  await step(t, 'öppna för ändring: version 2 blir utkast med samma innehåll och föregående version; begäran blir accepterad (D-10)', async () => {
+    s.rev1 = (await decide('principalA', dec('request_change', 'Syntetisk tredje begäran', s.v1, s.rev1))).receipt.revision;
+    const o = await decide('hm', dec('reopen', 'Syntetiskt skäl att öppna', s.v1, s.rev1));
+    const c1 = s.approved1.detail.calendar, c2 = o.detail.calendar;
+    assert.deepEqual([c2.version, c2.status, c2.revision], [2, 'utkast', 1]); assert.notEqual(c2.versionId, s.v1);
+    for (const k of ['terms', 'exceptions', 'groupDays', 'shortWeeks']) assert.deepEqual(c2[k], c1[k], k);
+    const [row] = await t`select previous_id, change_reason from public.school_years where id=${c2.versionId}`;
+    assert.deepEqual([row.previous_id, row.change_reason], [s.v1, 'Syntetiskt skäl att öppna']);
+    assert.deepEqual([o.detail.changeRequest.status, o.detail.changeRequest.answer], ['accepted', 'Syntetiskt skäl att öppna']);
+    assert.deepEqual(o.detail.versions.map(v => [v.version, v.status, v.current]), [[1, 'faststalld', true], [2, 'utkast', false]]);
+    assert.deepEqual([c2.history[0].action, c2.history[0].role, c2.history[0].version], ['Öppnat för ändring', 'huvudman', 2]);
+    assert.ok(c2.history.some(h => h.action === 'Begäran avslagen' && h.version === 1));
+    assert.equal(await current(), s.v1);
+    s.v2 = c2.versionId; s.rev2 = o.receipt.revision; s.rev1 += 1;
+    const p = await read('principalA');
+    assert.equal(p.calendar.versionId, s.v2); assert.equal(p.capabilities.canEdit, true);
+    const old = await read('principalA', s.v1);
+    assert.equal(old.capabilities.canRequestChange, false);
+    assert.equal((await read('hm', s.v1)).capabilities.canReopen, false);
+    await deny('hm', dec('reopen', 'Syntetiskt skäl', s.v1, s.rev1), '40001', 'lasar_revision_conflict');
+    await deny('principalA', dec('request_change', 'Syntetisk orsak', s.v1, s.rev1), '40001', 'lasar_revision_conflict');
+  });
+  await step(t, 'D-12: med app.fake_today mitt i läsåret är editableFrom dagens datum i version 2 och null i version 1 och före läsårets start', async () => {
+    await today(MID);
+    assert.equal((await read('principalA')).editableFrom, MID);
+    assert.equal((await read('principalA', s.v1)).editableFrom, null);
+    await today(`${YEAR}-07-20`);
+    assert.equal((await read('principalA')).editableFrom, null);
+    await today(null);
+    assert.equal((await read('principalA')).editableFrom, null);
+  });
+  await step(t, 'D-12: en passerad dag i version 2 nekas med lasar_past_day; en kommande dag går', async () => {
+    await today(MID);
+    const r = await read('principalA'), sy = lasarSchoolYear(r);
+    const past = schoolDay(sy, `${YEAR}-09-20`);
+    assert.ok(past < MID && s.pastLov < MID && s.pastGroup < MID);
+    for (const op of [{ op: 'set_days', dates: [past], kind: 'lovdag', note: 'Syntetisk' }, { op: 'set_days', dates: [s.pastLov], kind: 'skoldag' },
+      { op: 'set_notes', dates: [s.pastLov], note: 'Syntetisk ändring' }, { op: 'set_group_days', groupId: ak1, dates: [past], cause: 'apl' },
+      { op: 'clear_group_days', groupId: ak1, dates: [s.pastGroup] }, { op: 'clear_short_week', groupId: ak1 },
+      { op: 'set_short_week', groupId: ak1, columnId: 'ak1', weekday: 2, reason: 'Syntetiska skäl' }])
+      await deny('principalA', await cmd([op], s.v2, s.rev2), '40001', 'lasar_past_day');
+    s.future = schoolDay(sy, `${YEAR + 1}-03-14`);
+    const ok = await send('principalA', await cmd([{ op: 'set_days', dates: [s.future], kind: 'studiedag', note: 'Syntetisk studiedag i mars' }], s.v2, s.rev2));
+    assert.deepEqual(ok.detail.calendar.exceptions[s.future], { kind: 'studiedag', note: 'Syntetisk studiedag i mars' });
+    s.rev2 = ok.receipt.revision;
+  });
+  await step(t, 'D-12: passerad terminsstart är skrivskyddad; ett kommande terminsslut kan ändras', async () => {
+    await today(MID);
+    const c = (await read('principalA')).calendar;
+    await deny('principalA', await cmd([{ op: 'set_term', term: 'ht', edge: 'start', date: addDays(c.terms.ht.start, 1) }], s.v2, s.rev2), '40001', 'lasar_past_day');
+    await deny('principalA', await cmd([{ op: 'set_term', term: 'ht', edge: 'end', date: `${YEAR}-10-01` }], s.v2, s.rev2), '40001', 'lasar_past_day');
+    let r = await send('principalA', await cmd([{ op: 'set_term', term: 'vt', edge: 'end', date: addDays(c.terms.vt.end, -7) }], s.v2, s.rev2));
+    assert.equal(r.detail.calendar.terms.vt.end, addDays(c.terms.vt.end, -7));
+    r = await send('principalA', await cmd([{ op: 'set_term', term: 'vt', edge: 'end', date: c.terms.vt.end }], s.v2, r.receipt.revision));
+    s.rev2 = r.receipt.revision;
+  });
+  await step(t, 'D-12: skyddstriggern nekar passerade dagar och terminskanter också utanför kommandot', async () => {
+    await today(MID);
+    const past = schoolDay(lasarSchoolYear(await read('principalA')), `${YEAR}-09-21`);
+    for (const write of [
+      u => u`insert into public.school_year_days(school_year_id,day,kind) values(${s.v2},${past},'lovdag')`,
+      u => u`delete from public.school_year_days where school_year_id=${s.v2} and day=${s.pastLov}`,
+      u => u`update public.school_year_days set note='Ändrad' where school_year_id=${s.v2} and day=${s.pastLov}`,
+      u => u`delete from public.school_year_group_days where school_year_id=${s.v2} and day=${s.pastGroup}`,
+      u => u`delete from public.school_year_short_weeks where school_year_id=${s.v2}`,
+      u => u`update public.school_years set ht_start=ht_start+1 where id=${s.v2}`,
+    ]) await denied(t, write, '40001', 'lasar_past_day');
+    // Före läsårets start finns inga passerade dagar: samma ändring går (rullas tillbaka).
+    await rolledBack(async u => {
+      await u`select set_config('app.fake_today', ${`${YEAR}-07-20`}, true)`;
+      await u`insert into public.school_year_days(school_year_id,day,kind) values(${s.v2},${past},'lovdag')`;
+      await u`update public.school_years set ht_start=ht_start+1 where id=${s.v2}`;
+    });
+  });
+  await step(t, 'version 2 fastställs: version 1 ersätts först och blir oföränderlig; version 2 gäller för läsarna (Pitfall 5)', async () => {
+    await today(MID);
+    const sub = await decide('principalA', dec('submit', 'Syntetisk ändring', s.v2, s.rev2));
+    // Ordningen behövs: utan att den gamla versionen ersätts först krockar indexet för gällande version.
+    await denied(t, u => u`update public.school_years set status='faststalld', decided_on=${MID} where id=${s.v2}`, '23505');
+    const ok = await decide('hm', dec('approve', 'Syntetiskt nytt beslut', s.v2, sub.receipt.revision));
+    assert.deepEqual(ok.detail.versions.map(v => [v.version, v.status, v.current]), [[1, 'faststalld', false], [2, 'faststalld', true]]);
+    assert.equal(await current(), s.v2); assert.equal(ok.detail.calendar.decidedOn, MID);
+    const [old] = await t`select superseded_by, superseded_at is not null superseded from public.school_years where id=${s.v1}`;
+    assert.deepEqual([old.superseded_by, old.superseded], [s.v2, true]);
+    const [row] = await t`select content_hash from public.school_years where id=${s.v2}`;
+    assert.equal(row.content_hash, await lasarContentHash(content(ok.detail.calendar)));
+    assert.deepEqual([ok.detail.calendar.history[0].action, ok.detail.calendar.history[0].version], ['Fastställd', 2]);
+    s.rev2 = ok.receipt.revision;
+  });
+  await step(t, 'en ersatt version kan varken ändras, begäras eller öppnas', async () => {
+    const r1 = await read('hm', s.v1);
+    assert.equal(r1.capabilities.canReopen, false); assert.equal((await read('principalA', s.v1)).capabilities.canRequestChange, false);
+    await deny('principalA', dec('request_change', 'Syntetisk orsak', s.v1, r1.calendar.revision), '40001', 'lasar_locked_status');
+    await deny('hm', dec('reopen', 'Syntetiskt skäl', s.v1, r1.calendar.revision), '40001', 'lasar_locked_status');
+    await deny('principalA', await cmd([{ op: 'set_days', dates: [s.future], kind: 'skoldag' }], s.v1, r1.calendar.revision), '40001', 'lasar_locked_status');
+    await denied(t, u => u`update public.school_years set decision_comment='Ändrad' where id=${s.v1}`, 'P0001');
+    await denied(t, u => u`delete from public.school_year_days where school_year_id=${s.v1}`, 'P0001');
+  });
+  await step(t, 'huvudmannen kan öppna utan begäran: version 3 får version 2 som föregående och version 2 gäller', async () => {
+    await today(MID);
+    const before = (await requests()).length;
+    const o = await decide('hm', dec('reopen', 'Syntetiskt skäl utan begäran', s.v2, s.rev2));
+    assert.deepEqual([o.detail.calendar.version, o.detail.calendar.status], [3, 'utkast']);
+    assert.equal((await t`select previous_id from public.school_years where id=${o.detail.calendar.versionId}`)[0].previous_id, s.v2);
+    assert.equal((await requests()).length, before); assert.equal(await current(), s.v2);
+    assert.equal(o.detail.editableFrom, MID);
+    await today(null);
+  });
+  await step(t, 'ändringsflödet loggas utan personuppgifter', async () => {
+    const rows = await t`select details from public.security_events where action='lasar_decision' order by id`;
+    assert.ok(rows.some(r => r.details.action === 'request_change') && rows.some(r => r.details.action === 'reopen') && rows.some(r => r.details.action === 'decline_request'));
+    for (const r of rows) {
+      assert.ok(Object.keys(r.details).every(k => ['commandId', 'action', 'revision', 'version', 'unitId', 'schoolYear'].includes(k)), JSON.stringify(r.details));
+      assert.ok(!JSON.stringify(r.details).includes('Syntetisk'));
+    }
+  });
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -853,7 +1087,8 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
   const report = { kind: 'lasar-sql', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', cases: [], startedAt: new Date().toISOString(),
     limitations: ['Own database and synthetic fixtures only; nothing installed in any connected database', 'No HTTP/OIDC/Worker; the real chain is plan 15',
       ephemeral ? 'Schema built from repository migrations on a private PostgreSQL instance with minimal Supabase stubs' : 'Schema-only copy of the protected local target with pending migrations',
-      'Version 2 and the Pitfall 6 calendar are inserted directly by the owner (marked synthetic); group days go through lasar_command; reopen comes in a later plan',
+      'Version 2 in the tracer and the Pitfall 6 calendar are inserted directly by the owner (marked synthetic); group days, change requests and reopen go through lasar_command',
+      'D-12 is proven with app.fake_today set per case; the saved tjanst_rows row for the IM need is inserted directly by the owner (marked synthetic)',
       'Groups and teaching come from synthetic classes, offerings and timplans; no pupils and no pupil counts (A-18)',
       'SS 12000: the calendar has no object in the standard; unit_id is Organisation/Skolenhet; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
@@ -873,7 +1108,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    for (const run of [tracer, flow, parity, groups, groupParity]) {
+    for (const run of [tracer, flow, parity, groups, groupParity, changes]) {
       try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }

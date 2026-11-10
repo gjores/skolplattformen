@@ -304,3 +304,115 @@ test('serveradaptern bygger inga grupper själv: grupperna kommer ur läsningen 
   assert.match(source, /groupsFromRefs\(detail\.groups\)/u);
   assert.doesNotMatch(source, /studentGroups|klass:\$\{|programPrefix/u);
 });
+
+// ---------------------------------------------------------------- 05.1.1-09
+
+const request = (over = {}) => ({ id: uid(80), status: 'open', reason: 'Syntetisk orsak', answer: null, requestedAt: '2027-10-01T08:00:00.000Z', answeredAt: null, ...over });
+const decided = (over = {}) => calendar({ status: 'faststalld', revision: 6, decidedOn: '2027-06-01', ...over });
+const replyWith = (decision, { cal, changeRequest = null, capabilities = caps(), versions } = {}) => {
+  const detail = { ...read({ cal, capabilities }), changeRequest };
+  if (versions) detail.versions = versions;
+  return wrap({ receipt: { commandId: decision.commandId, revision: cal.revision, replayed: false }, detail });
+};
+const ask = (action, text, over = {}) => lasarDecisionRequest({ target, schoolYear: year, versionId: version, expectedRevision: 5, action, text, ...over });
+
+test('ändringsbegäran: rektor begär ändring på beslutsrutten med engångskod; svaret har en öppen begäran på samma version', async () => {
+  reset('rektor');
+  const decision = ask('request_change', 'Syntetisk orsak');
+  state.replies.lasar_command = replyWith(decision, { cal: decided(), changeRequest: request(), capabilities: caps({ canWithdrawRequest: true, canComment: true }) });
+  const noMfa = await post('beslut', decision);
+  assert.equal(noMfa.status, 403); assert.deepEqual(state.calls, []);
+  state.mfa = true;
+  const ok = await post('beslut', decision);
+  assert.equal(ok.status, 200);
+  const body = await ok.json();
+  assert.equal(body.detail.changeRequest.status, 'open'); assert.equal(body.detail.calendar.versionId, version);
+  assert.deepEqual(state.calls.map(c => c.fn), ['lasar_command']);
+  assert.equal(state.events.filter(e => e.outcome === 'ok')[0].action, 'lasar_decision');
+});
+
+test('ändringsbegäran: begäran och avslag utan text nekas med lasar_text_required innan SQL anropas; återtagande kräver ingen text', async () => {
+  for (const [fn, action] of [['rektor', 'request_change'], ['huvudman', 'decline_request'], ['huvudman', 'reopen']]) {
+    reset(fn); state.mfa = true;
+    const body = { ...ask(action, 'x'), text: '' };
+    const response = await post('beslut', body);
+    assert.equal(response.status, 400, action); assert.deepEqual((await response.json()).details, { reason: 'lasar_text_required' }); assert.deepEqual(state.calls, []);
+  }
+  reset('rektor'); state.mfa = true;
+  const withdraw = ask('withdraw_request', '');
+  state.replies.lasar_command = replyWith(withdraw, { cal: decided(), changeRequest: request({ status: 'withdrawn', answeredAt: '2027-10-02T08:00:00.000Z' }), capabilities: caps({ canRequestChange: true, canComment: true }) });
+  assert.equal((await post('beslut', withdraw)).status, 200);
+});
+
+test('ändringsbegäran: huvudmannen avslår med motivering; svaret ska ha den avslagna begäran med samma motivering', async () => {
+  reset('huvudman'); state.mfa = true;
+  const decision = ask('decline_request', 'Syntetisk motivering');
+  state.replies.lasar_command = replyWith(decision, { cal: decided(), changeRequest: request({ status: 'declined', answer: 'Syntetisk motivering', answeredAt: '2027-10-02T08:00:00.000Z' }), capabilities: caps({ canReopen: true, canComment: true }) });
+  assert.equal((await post('beslut', decision)).status, 200);
+  // Ett svar där begäran fortfarande är öppen, eller har en annan motivering, stämmer inte med beslutet: 500 utan innehåll.
+  for (const changeRequest of [request(), request({ status: 'declined', answer: 'Annan motivering', answeredAt: '2027-10-02T08:00:00.000Z' }), null]) {
+    reset('huvudman'); state.mfa = true;
+    const again = ask('decline_request', 'Syntetisk motivering');
+    state.replies.lasar_command = replyWith(again, { cal: decided(), changeRequest, capabilities: caps({ canReopen: true, canComment: true }) });
+    const response = await post('beslut', again);
+    assert.equal(response.status, 500, JSON.stringify(changeRequest)); assert.ok(!JSON.stringify(await response.json()).includes('Syntetisk'));
+  }
+});
+
+test('ändringsbegäran: svaret efter begäran och återtagande ska bära beslutets status', async () => {
+  for (const [action, text, changeRequest] of [['request_change', 'Syntetisk orsak', null], ['request_change', 'Syntetisk orsak', request({ status: 'withdrawn', answeredAt: '2027-10-02T08:00:00.000Z' })],
+    ['withdraw_request', '', request()]]) {
+    reset('rektor'); state.mfa = true;
+    const decision = ask(action, text);
+    state.replies.lasar_command = replyWith(decision, { cal: decided(), changeRequest, capabilities: caps({ canComment: true }) });
+    assert.equal((await post('beslut', decision)).status, 500, `${action} ${JSON.stringify(changeRequest)}`);
+  }
+});
+
+test('öppna för ändring: huvudmannen får en ny version som utkast; den tidigare versionen gäller fortsatt', async () => {
+  const next = uid(6);
+  const versions = [{ versionId: version, version: 1, status: 'faststalld', decidedOn: '2027-06-01', current: true },
+    { versionId: next, version: 2, status: 'utkast', decidedOn: null, current: false }];
+  reset('huvudman'); state.mfa = true;
+  const decision = ask('reopen', 'Syntetiskt skäl');
+  state.replies.lasar_command = replyWith(decision, { cal: calendar({ versionId: next, version: 2, revision: 1 }), changeRequest: request({ status: 'accepted', answer: 'Syntetiskt skäl', answeredAt: '2027-10-02T08:00:00.000Z' }),
+    capabilities: caps({ canComment: true }), versions });
+  const ok = await post('beslut', decision);
+  assert.equal(ok.status, 200);
+  const body = await ok.json();
+  assert.equal(body.detail.calendar.versionId, next); assert.equal(body.detail.calendar.status, 'utkast');
+  // Samma version, en fastställd version, en ny version utan den gällande eller en begäran som är öppen kvar ger 500.
+  for (const [cal, list, changeRequest] of [
+    [calendar({ revision: 1 }), [versions[0]], null],
+    [calendar({ versionId: next, version: 2, revision: 1, status: 'faststalld', decidedOn: '2027-10-02' }), [{ ...versions[0], current: false }, { ...versions[1], status: 'faststalld', decidedOn: '2027-10-02', current: true }], null],
+    [calendar({ versionId: next, version: 2, revision: 1 }), [{ ...versions[0], current: false }, versions[1]], null],
+    [calendar({ versionId: next, version: 2, revision: 1 }), versions, request()],
+  ]) {
+    reset('huvudman'); state.mfa = true;
+    const again = ask('reopen', 'Syntetiskt skäl');
+    state.replies.lasar_command = replyWith(again, { cal, changeRequest, capabilities: caps({ canComment: true }), versions: list });
+    assert.equal((await post('beslut', again)).status, 500, JSON.stringify(cal.status) + JSON.stringify(list.map(v => v.current)));
+  }
+});
+
+test('låsta passerade dagar: SQL:s lasar_past_day når klienten som 409 med orsaken', async () => {
+  reset('rektor'); state.sqlError = Object.assign(new Error('sql'), { code: '40001', hint: 'lasar_past_day' }); state.sqlErrorAt = 'lasar_command';
+  const { lasarPayloadHash } = await import('../lasar-contract.ts');
+  const ops = [{ op: 'set_days', dates: ['2027-09-01'], kind: 'lovdag' }];
+  const response = await post('kommando', { commandId: uid(81), target, schoolYear: year, versionId: version, expectedRevision: 2, ops, payloadHash: await lasarPayloadHash(ops) });
+  assert.equal(response.status, 409); assert.deepEqual((await response.json()).details, { reason: 'lasar_past_day' });
+});
+
+test('förmågor för ändringsflödet följer funktionen: skolan öppnar och avslår inte, huvudmannen begär och tar inte tillbaka', async () => {
+  for (const over of [{ canReopen: true }, { canDecline: true }]) {
+    reset('rektor', { lasar_read: wrap(read({ cal: decided(), capabilities: caps(over) })) });
+    assert.equal((await post('lasa', { target, schoolYear: year, versionId: null })).status, 500, JSON.stringify(over));
+  }
+  for (const over of [{ canRequestChange: true }, { canWithdrawRequest: true }]) {
+    reset('huvudman', { lasar_read: wrap(read({ cal: decided(), capabilities: caps(over) })) });
+    assert.equal((await post('lasa', { target, schoolYear: year, versionId: null })).status, 500, JSON.stringify(over));
+  }
+  reset('rektor', { lasar_read: wrap({ ...read({ cal: decided(), capabilities: caps({ canRequestChange: true, canComment: true }) }), editableFrom: '2027-10-15' }) });
+  const ok = await post('lasa', { target, schoolYear: year, versionId: null });
+  assert.equal(ok.status, 200); assert.equal((await ok.json()).editableFrom, '2027-10-15');
+});
