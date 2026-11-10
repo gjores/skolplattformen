@@ -184,7 +184,28 @@ function modelRules(detail: LasarReadReply): void {
   if (codes.length) throw new Deny('conflict', 409, { reason: 'lasar_rules_failed', rules: codes });
 }
 
-/** Beslut (skicka, fastställa m.fl.). Rutten kräver engångskod; SQL prövar vem som får fatta vilket beslut. */
+/**
+ * Ändringsflödet (05.1.1-09, D-10, D-16): svaret ska visa beslutets utfall. Efter en begäran är den senaste begäran öppen med
+ * samma orsak på den fastställda versionen; efter återtagande och avslag är den återtagen respektive avslagen med samma
+ * motivering; efter öppning är svaret en senare version som utkast medan den tidigare fortfarande gäller, och ingen begäran
+ * står öppen. Annars lämnar inget svar servern (500).
+ */
+function decisionOutcome(input: LasarDecisionRequest, detail: LasarReadReply): void {
+  const request = detail.changeRequest, calendar = detail.calendar;
+  if (input.action === 'request_change') {
+    if (request?.status !== 'open' || request.reason !== input.text || calendar?.status !== 'faststalld' || calendar.versionId !== input.versionId) invalid();
+  } else if (input.action === 'withdraw_request') {
+    if (request?.status !== 'withdrawn') invalid();
+  } else if (input.action === 'decline_request') {
+    if (request?.status !== 'declined' || request.answer !== input.text) invalid();
+  } else if (input.action === 'reopen') {
+    const previous = detail.versions.find((v) => v.versionId === input.versionId);
+    const opened = calendar ? detail.versions.find((v) => v.versionId === calendar.versionId) : undefined;
+    if (calendar?.status !== 'utkast' || !previous?.current || !opened || opened.version <= previous.version || request?.status === 'open') invalid();
+  }
+}
+
+/** Beslut (skicka, fastställa, ändringsflödet m.fl.). Rutten kräver engångskod; SQL prövar vem som får fatta vilket beslut. */
 export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_command(${json(tx, input)}) as result`));
@@ -192,6 +213,7 @@ export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authori
   try {
     body = parseLasarDecisionReply(envelope(raw, authority), input);
     readActor(body.detail, authority);
+    decisionOutcome(input, body.detail);
   } catch { throw new AuditUnavailable(); }
   if (input.action === 'submit' || input.action === 'approve') modelRules(body.detail);
   return { body, event: { action: 'lasar_decision', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,

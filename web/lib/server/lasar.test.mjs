@@ -365,7 +365,7 @@ test('ändringsbegäran: svaret efter begäran och återtagande ska bära beslut
     reset('rektor'); state.mfa = true;
     const decision = ask(action, text);
     state.replies.lasar_command = replyWith(decision, { cal: decided(), changeRequest, capabilities: caps({ canComment: true }) });
-    assert.equal((await post('beslut', decision)).status, 500, `${action} ${JSON.stringify(changeRequest)}`);
+    assert.equal((await post('beslut', decision)).status, 500, JSON.stringify([action, changeRequest]));
   }
 });
 

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 // 05.1.1-08 (LASAR-04): överföringen av group_key till stabila referenser för utbildning och klass, prövad i SQL.
 //   node work/pilot/verify-lasar-groups.mjs --ephemeral --out /private/tmp/lasar-groups.json
-// Egen PostgreSQL byggd från repots migrationer utan 20261112100000_lasar_groups.sql. Varje fixtur lägger syntetiska rader i
+// Egen PostgreSQL byggd från repots migrationer utan 20261112100000_lasar_groups.sql och de senare kalenderfilerna, som bygger på
+// den (05.1.1-09); schemat motsvarar då det skyddade målet, som slutar på 20261111190000. Varje fixtur lägger syntetiska rader i
 // gammal form (ägaren skriver de gamla kolumnerna, utan att stänga av några triggrar), kör migrationen i en transaktion som
 // alltid rullas tillbaka och kontrollerar utfallet: antal före = efter, 0 kvar oöverförda, fastställda kalendrar med samma
 // kontrollsumma, och att okända, tvetydiga eller främmande referenser avbryter hela migrationen. Inget installerat mål ändras.
@@ -10,11 +11,13 @@ import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createLasarFixture, gymClass } from './lasar-fixtures.mjs';
+import { createLasarFixture, gymClass, lasarMigrations } from './lasar-fixtures.mjs';
 import { addDays, dayInfo, proposeSchoolYear } from '../../web/lib/lasar-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const GROUP_MIGRATION = '20261112100000_lasar_groups.sql';
+/** Kalenderfiler efter gruppfilen bygger på den och läggs inte i den tillfälliga databasen (05.1.1-09). */
+export const LATER_LASAR_MIGRATIONS = Object.freeze(lasarMigrations.map(p => p.split('/').at(-1)).filter(f => f > GROUP_MIGRATION));
 const YEAR = 2027;
 const rollback = Error('expected_lasar_groups_rollback');
 const UUID = '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}';
@@ -244,7 +247,7 @@ export async function verifyLasarGroups(out) {
   assert.ok(!existsSync(output), 'REFUSED: output exists; choose a new private path');
   const fd = openSync(output, 'wx', 0o600);
   const report = { kind: 'lasar-groups-sql', status: 'FAIL', mode: 'ephemeral', migration: GROUP_MIGRATION, cases: [], transfers: [], startedAt: new Date().toISOString(),
-    limitations: ['Own ephemeral PostgreSQL built from repository migrations without the group migration; synthetic fixtures only; nothing installed',
+    limitations: ['Own ephemeral PostgreSQL built from repository migrations without the group migration and the later calendar files; synthetic fixtures only; nothing installed',
       'Old-form rows are written by the owner through the old columns with all triggers active',
       'The actual row count in the protected target is read in the delivery pre-check (plan 16)',
       'SS 12000: class_id is Group (groupType=Klass); offering_id is a local study path, not Programme; no exchange verified'] };
@@ -266,7 +269,7 @@ export async function verifyLasarGroups(out) {
       assert.equal(sql.split('\n').filter(l => !l.trim().startsWith('--') && /\bgrant\b/iu.test(l)).length, 0);
     });
     const { createEphemeralMigratedDb } = await import('./ephemeral-migrated-db.mjs');
-    const e = await createEphemeralMigratedDb({ exclude: [GROUP_MIGRATION] });
+    const e = await createEphemeralMigratedDb({ exclude: [GROUP_MIGRATION, ...LATER_LASAR_MIGRATIONS] });
     source = e; report.database = e.provenance; persist();
     const f = await e.db.begin(createLasarFixture);
     for (const fx of fixtures()) {
