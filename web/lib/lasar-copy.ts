@@ -56,6 +56,8 @@ function easterSuggestion(date: ISODate, yearOffset: number): ISODate | undefine
   return addDays(easterSunday(year + yearOffset), distance);
 }
 
+/** Ordning oberoende av språkinställning, så att granskningslistan blir lika i klient och server. */
+const byKey = ([a]: [string, unknown], [b]: [string, unknown]) => (a < b ? -1 : a > b ? 1 : 0);
 const reviewId = (reason: CopyReviewReason, sourceDate: ISODate | null, ref?: string) => `copy|${reason}|${sourceDate ?? '-'}|${ref ?? '-'}`;
 
 export function copySchoolYear(source: SchoolYear, targetStartYear: number, targetGroups: StudentGroup[]): { draft: SchoolYear; review: CopyReviewItem[] } {
@@ -101,16 +103,16 @@ export function copySchoolYear(source: SchoolYear, targetStartYear: number, targ
     return { target };
   };
 
-  for (const [date, e] of Object.entries(source.exceptions).sort(([a], [b]) => a.localeCompare(b)) as [ISODate, Exception][]) {
+  for (const [date, e] of Object.entries(source.exceptions).sort(byKey) as [ISODate, Exception][]) {
     const p = place(date);
     if (p.reason) add({ sourceDate: date, kind: e.kind, note: e.note, reason: p.reason, suggestedDate: p.suggestedDate, targetDate: p.target });
     else draft.exceptions[p.target!] = { ...e };
   }
 
-  for (const [groupId, days] of Object.entries(source.groupExceptions).sort(([a], [b]) => a.localeCompare(b))) {
+  for (const [groupId, days] of Object.entries(source.groupExceptions).sort(byKey)) {
     const isClass = groupId.startsWith('klass:');
     const continued = !isClass && targetGroups.some((g) => g.id === groupId && g.scope === 'årskurs');
-    for (const [date, e] of Object.entries(days).sort(([a], [b]) => a.localeCompare(b)) as [ISODate, GroupException][]) {
+    for (const [date, e] of Object.entries(days).sort(byKey) as [ISODate, GroupException][]) {
       const p = place(date);
       // Klassen byter årskurs eller finns inte nästa år; årskursen kopieras
       // bara när samma utbildning och kolumn finns i målåret.
@@ -121,7 +123,7 @@ export function copySchoolYear(source: SchoolYear, targetStartYear: number, targ
   }
 
   // Korta veckor kräver särskilda skäl som prövas för det nya året.
-  for (const [groupId, short] of Object.entries(source.shortWeeks).sort(([a], [b]) => a.localeCompare(b)))
+  for (const [groupId, short] of Object.entries(source.shortWeeks).sort(byKey))
     add({ sourceDate: null, kind: 'kort vecka', note: short.reason, reason: 'short_week', groupId, shortWeek: { ...short } });
 
   return { draft, review };
