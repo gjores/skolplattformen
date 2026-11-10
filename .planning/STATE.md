@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-01 klar 2026-11-10 (demons baslinje, simulerat). Nästa: 05.1.1-02. VP-16 (824d294da1) är inte installerad på 3012."
+stopped_at: "05.1.1-02 klar 2026-11-10 (modellstöd, syntetiskt provat i Node). Nästa: 05.1.1-03. VP-16 (824d294da1) är inte installerad på 3012."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-01: demoregression och baslinje för Läsår & skoldagar, simulerat i exempelläget."
+last_activity_desc: "05.1.1-02: kopiering, ramjämförelse, stabila grupp-ID:n, regelkoder och kontrollsumma som rena funktioner, syntetiskt provade i Node."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-02 klar 2026-11-10:** [Modellstöd](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-02-SUMMARY.md) för läsårskalendern: kopiering av förra läsåret med granskningslista, jämförelse med huvudmannens ram, grupper med ID ur stabila UUID:n, 15 regelkoder och kontrollsumma med 11 hashvektorer för SQL. Rena funktioner, syntetiskt provade i Node (65 prov); inget installerat, ingen migration, `lasar-model.ts` orörd. Nästa: 05.1.1-03.
 
 **05.1.1-01 klar 2026-11-10:** [Demons baslinje](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-01-SUMMARY.md) för Läsår & skoldagar: DOM-fingeravtryck för rektor och huvudman på dator och telefon, exakt jämförelse i `playwright.lasar-demo.config.ts`. Simulerat i exempelläget; ingen produktkod och ingen migration. Nästa: 05.1.1-02.
 

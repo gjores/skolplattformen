@@ -492,7 +492,7 @@ Arbetstidsavtal, individuell tjänstebedömning och TID-01–12 ingår inte. En 
 
 Plans:
 - [x] 05.1.1-01-PLAN.md — Demons baslinje före utbrytningen (våg 1). Simulerat i exempelläget: fingeravtryck 1 592 (rektor) och 1 520 (huvudman) element på dator och telefon, två körningar i rad PASS; commit 7b82c7b3
-- [ ] 05.1.1-02-PLAN.md — Modellstöd: kopiering, ramjämförelse, regelkoder, stabila grupp-ID:n och kontrollsumma (våg 1)
+- [x] 05.1.1-02-PLAN.md — Modellstöd: kopiering, ramjämförelse, regelkoder, stabila grupp-ID:n och kontrollsumma (våg 1). Rena funktioner, syntetiskt provade i Node: 65 prov PASS, 11 hashvektorer; ingen migration; commit a72b5ff3
 - [ ] 05.1.1-03-PLAN.md — Tracer utan migration: en lovdag i skyddad vy och delade presentationskomponenter (våg 2)
 - [ ] 05.1.1-04-PLAN.md — Fullständigt kontrakt och arbetsflödet i skyddad vy, simulerat (våg 3)
 - [ ] 05.1.1-05-PLAN.md — Startval, kopiering, huvudmannens ram och undervisningspanelen, simulerat (våg 4)
