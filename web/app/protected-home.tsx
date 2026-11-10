@@ -6,6 +6,7 @@ import ProtectedStudyGroups from './protected-study-groups';
 import Link from 'next/link';
 import {
   BriefcaseBusiness,
+  CalendarCheck,
   CalendarClock,
   ClipboardList,
   GraduationCap,
@@ -79,9 +80,12 @@ import MinTjanst from './min-tjanst';
 import PersonalWorkspace from './personal-workspace';
 import TjanstPlanningArea, { type TjanstPlanningSelection } from './tjanst-planning-bar';
 import TjanstWorkspace from './tjanst-workspace';
+import LasarPlanningArea from './lasar-planning-bar';
+import ProtectedLasarWorkspace from './protected-lasar-workspace';
+import type { LasarActorRole } from '@/lib/lasar-contract.ts';
 
 export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
-  | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
+  | 'lasar' | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -104,6 +108,8 @@ export type SessionResponse = {
 
 const PLANNING_FUNCTIONS = ['huvudman', 'rektor', 'administrator'];
 const TJANST_FUNCTIONS = ['rektor', 'administrator'];
+/** Läsår & skoldagar (05.1.1, D-07): sessionens uppdrag ger bara texter i tomläget; knappar styrs av serverns förmågor (A-01). */
+const LASAR_ROLE: Record<string, LasarActorRole> = { huvudman: 'huvudman', rektor: 'rektor', administrator: 'skoladministrator' };
 /** Egen tjänst (05.1-04B): läraren har bara Min tjänst. Servern nekar ändå allt annat; detta är vyvakten (D-03). */
 const isSelf = (session: SessionResponse | null) => session?.context?.scopeKind === 'self';
 /** Vyer som själva hanterar historik inom samma adress (tjvy, termin, personkort). */
@@ -133,7 +139,7 @@ function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
   if (isSelf(value)) return 'min-tjanst';
   if ((requested === 'tjanst' || requested === 'valplaner' || requested === 'undervisningsgrupper') && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
-  if (requested === 'start' && PLANNING_FUNCTIONS.includes(role)) return 'start';
+  if ((requested === 'start' || requested === 'lasar') && PLANNING_FUNCTIONS.includes(role)) return requested === 'lasar' ? 'lasar' : 'start';
   if (requested === 'skolor' && role === 'huvudman' || requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
     || requested === 'anslutning' && role === 'it') return requested as ProtectedView;
@@ -266,6 +272,8 @@ function ProtectedNavigation({
         {session.context && PLANNING_FUNCTIONS.includes(session.context.function) && <>
           <div className="nav-caption">PLANERING</div>
           <SidebarMenu className="main-nav" aria-label="Planering">
+            <SidebarMenuItem><SidebarMenuButton data-testid="lasar-nav" isActive={!overview && view === 'lasar'} aria-current={!overview && view === 'lasar' ? 'page' : undefined}
+              onClick={() => go('lasar')} className="nav-button"><CalendarCheck size={19}/><span>Läsår &amp; skoldagar</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton data-testid="planning-overview-nav" isActive={overview} aria-current={overview ? 'page' : undefined}
               onClick={() => { onOverview(); setOpenMobile(false); }} className="nav-button"><CalendarClock size={19}/><span>Läsårsöverblick</span></SidebarMenuButton></SidebarMenuItem>
             <SidebarMenuItem><SidebarMenuButton data-testid="programplan-list-nav" isActive={!overview && view === 'programplaner'} aria-current={!overview && view === 'programplaner' ? 'page' : undefined}
@@ -754,7 +762,7 @@ function ProtectedShell() {
     if (sessionScope(sessionRef.current) !== contextKey) return;
     const prior = planningLocationRef.current ?? planningFor('timplaner');
     const next: PlanLocation = { ...prior, planning: { ...prior.planning, schoolYear: selection.schoolYear,
-      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
+      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper' || viewRef.current === 'lasar') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
   async function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null}) {
@@ -802,6 +810,7 @@ function ProtectedShell() {
   const overview = isPlanningView(view) && planningLocation?.overview === true;
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
   const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
+    : view === 'lasar' ? 'Läsår & skoldagar'
     : view === 'valplaner' ? 'Valbara block' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
   return (
@@ -870,6 +879,12 @@ function ProtectedShell() {
             </>}</PlanningArea>}
             {view === 'min-tjanst' && isSelf(session) && <MinTjanst context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
+            {view === 'lasar' && !isSelf(session) && PLANNING_FUNCTIONS.includes(session.context!.function) && <LasarPlanningArea contextKey={contextKey} initial={tjanstPlanning()}
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{(selection, schoolName) => selection.unitId && schoolName
+                ? <ProtectedLasarWorkspace key={`${contextKey}:${selection.unitId}:${selection.schoolYear}`} unitId={selection.unitId} schoolName={schoolName} schoolYear={selection.schoolYear}
+                  schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession}/>
+                : <section className="empty-state" aria-label="Läsår och skoldagar"><h2>Välj skola</h2>
+                  <p>Läsår och skoldagar gäller en skolenhet. Välj skola i planeringsvalet.</p></section>}</LasarPlanningArea>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
                 schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={()=>void goToValplaner({unitId:selection.unitId!,schoolYear:selection.schoolYear,valplanId:null,row:null})} onOpenGroups={()=>void navigate('undervisningsgrupper')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
