@@ -6,7 +6,9 @@
 // SS 12000: skolenheterna nycklas på stabila ID (Organisation, organisationType=Skolenhet); kalendern saknar objekt i standarden.
 import { randomUUID } from 'node:crypto';
 import { createTjanstFixture, lasarMigrations } from './tjanst-fixtures.mjs';
-import { lasarPayloadHash } from '../../web/lib/lasar-contract.ts';
+import { lasarPayloadHash, lasarSchoolYear } from '../../web/lib/lasar-contract.ts';
+import { copySchoolYear } from '../../web/lib/lasar-copy.ts';
+import { groupsFromRefs } from '../../web/lib/lasar-groups.ts';
 import { proposeSchoolYear } from '../../web/lib/lasar-model.ts';
 
 export { lasarMigrations };
@@ -111,4 +113,43 @@ export async function frameCreateCommand(schoolYear, schoolTypes, extra = {}) {
 }
 export function frameDecision({ schoolYear, versionId = null, expectedRevision = null, action, text = '', mode = null, confirmAffected = [], commandId = randomUUID() }) {
   return { commandId, target: frameTarget(), schoolYear, versionId, expectedRevision, action, text, mode, confirmAffected };
+}
+
+// 05.1.1-11 (D-04): kopiera förra läsåret. Servern läser källan (förra årets gällande fastställda version eller senast utgivna
+// ram) och målårets grupper själv och räknar kopian med copySchoolYear; klienten skickar bara källan copy. Samma beräkning här.
+/** Kopians innehåll som servern skickar till SQL: källversionen, terminer, dagar, årskursernas gruppdagar och granskningsposterna. */
+export function copyContent(sourceRead, targetRead) {
+  const source = lasarSchoolYear(sourceRead);
+  if (!source || !sourceRead.calendar) throw new Error('Källan saknar kalender');
+  const { draft, review } = copySchoolYear(source, targetRead.schoolYear, groupsFromRefs(targetRead.groups));
+  return { sourceVersionId: sourceRead.calendar.versionId, terms: { ht: draft.ht, vt: draft.vt }, exceptions: draft.exceptions, groupDays: draft.groupExceptions, review };
+}
+export async function copyCommand(target, schoolYear, copy, extra = {}) {
+  const ops = [{ op: 'create', source: 'copy' }];
+  return { commandId: randomUUID(), target, schoolYear, versionId: null, expectedRevision: null, ops, payloadHash: await lasarPayloadHash(ops), copy, ...extra };
+}
+export async function resolveCommand(target, schoolYear, versionId, expectedRevision, itemId, resolution) {
+  const ops = [{ op: 'resolve_review', itemId, resolution }];
+  return { commandId: randomUUID(), target, schoolYear, versionId, expectedRevision, ops, payloadHash: await lasarPayloadHash(ops) };
+}
+/**
+ * Förra årets fastställda version, inlagd direkt av ägaren (syntetiskt, markerat i rapporten): skolans förslag för året plus
+ * angivna dagar, gruppdagar och korta veckor. Triggrarna är avstängda bara under inläggningen, som i fixturens timplaner.
+ */
+export async function seedDecidedYear(tx, f, { unitId, schoolYear, schoolTypes, exceptions = {}, groupDays = [], shortWeeks = [], ht, vt }) {
+  const p = proposeSchoolYear(schoolYear, unitId, schoolTypes), id = randomUUID();
+  const terms = { ht: ht ?? p.ht, vt: vt ?? p.vt };
+  await tx`set local session_replication_role=replica`;
+  await tx`insert into public.school_years(id,organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,version,revision,decided_on)
+    values(${id},${f.id(2)},${unitId},${schoolYear},${terms.ht.start},${terms.ht.end},${terms.vt.start},${terms.vt.end},'faststalld',1,3,${`${schoolYear}-06-01`})`;
+  for (const [day, e] of Object.entries({ ...p.exceptions, ...exceptions }))
+    await tx`insert into public.school_year_days(school_year_id,day,kind,note) values(${id},${day},${e.kind},${e.note ?? null})`;
+  for (const g of groupDays)
+    await tx`insert into public.school_year_group_days(school_year_id,scope,offering_id,column_id,class_id,day,cause,note)
+      values(${id},${g.scope},${g.offeringId ?? null},${g.columnId ?? null},${g.classId ?? null},${g.day},${g.cause},${g.note ?? null})`;
+  for (const w of shortWeeks)
+    await tx`insert into public.school_year_short_weeks(school_year_id,scope,offering_id,class_id,column_id,weekday,reason)
+      values(${id},${w.scope},${w.offeringId ?? null},${w.classId ?? null},${w.columnId},${w.weekday},${w.reason})`;
+  await tx`set local session_replication_role=origin`;
+  return id;
 }

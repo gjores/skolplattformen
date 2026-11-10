@@ -33,7 +33,8 @@ const fixture = globalThis.__lasarServerTest = {
     state.calls.push({ fn, sql, values });
     if (state.sqlError && fn === state.sqlErrorAt) throw state.sqlError;
     if (!fn || !(fn in state.replies)) throw new Error('Unexpected synthetic query');
-    return [{ result: structuredClone(state.replies[fn]) }];
+    const reply = state.replies[fn];
+    return [{ result: structuredClone(typeof reply === 'function' ? reply(values[0]) : reply) }];
   },
 };
 fixture.tx.json = value => value;
@@ -524,4 +525,96 @@ test('ge ut ramen: svaret ska visa samma version som utgiven, och modellen pröv
       assert.equal(details.reason, 'lasar_rules_failed'); assert.ok(details.rules.includes('study_days_max'), String(details.rules));
     }
   }
+});
+
+// 05.1.1-11 (D-04, T-05.1.1-35): Kopiera förra läsåret. Klienten skickar bara källan copy. Servern läser själv förra årets gällande
+// fastställda version (eller senast utgivna ram) och målårets grupper, räknar kopian med copySchoolYear och skickar innehållet,
+// källversionen och granskningsposterna till SQL, som prövar källan igen.
+const { copySchoolYear } = await import('../lasar-copy.ts');
+const { lasarSchoolYear } = await import('../lasar-contract.ts');
+const previous = uid(8), previousOpen = uid(9);
+const prevCalendar = (over = {}) => { const p = proposeSchoolYear(year - 1, unit, ['GR', 'GY']);
+  return calendar({ versionId: previous, status: 'faststalld', decidedOn: '2026-06-01', revision: 3, terms: { ht: p.ht, vt: p.vt },
+    exceptions: { ...p.exceptions, '2026-12-28': { kind: 'lovdag', note: 'Mellandag' } }, ...over }); };
+const readFor = (reply, { prevFirst = null, prev = null }) => q => {
+  if (q.schoolYear === year) return wrap(reply);
+  if (q.schoolYear === year - 1 && q.versionId === null) return wrap(prevFirst ?? prev);
+  if (q.schoolYear === year - 1 && q.versionId === previous) return wrap(prev);
+  throw new Error('Unexpected synthetic read');
+};
+const withVersions = (r, versions) => ({ ...r, schoolYear: year - 1, versions });
+const copyRequest = t => lasarCommandRequest({ target: t, schoolYear: year, versionId: null, expectedRevision: null, ops: [{ op: 'create', source: 'copy' }] });
+function expectedCopy(prevRead, targetRead) {
+  const { draft, review } = copySchoolYear(lasarSchoolYear(prevRead), year, []);
+  assert.equal(targetRead.groups.length, 0);
+  return { sourceVersionId: prevRead.calendar.versionId, terms: { ht: draft.ht, vt: draft.vt }, exceptions: draft.exceptions, groupDays: draft.groupExceptions, review };
+}
+
+test('kopiering: servern läser förra årets gällande version och målåret själv och skickar copySchoolYear-innehållet till lasar_command', async () => {
+  reset('rektor');
+  const targetRead = { ...read({ capabilities: caps({ canCreate: ['proposal', 'copy'] }) }), previousYearAvailable: true };
+  const prevRead = withVersions(read({ cal: prevCalendar() }), [{ versionId: previous, version: 1, status: 'faststalld', decidedOn: '2026-06-01', current: true }]);
+  state.replies.lasar_read = readFor(targetRead, { prev: prevRead });
+  const request = await copyRequest(target);
+  state.replies.lasar_command = created(request.commandId);
+  const response = await post('kommando', request);
+  assert.equal(response.status, 200);
+  assert.deepEqual(state.calls.map(c => c.fn), ['lasar_read', 'lasar_read', 'lasar_command']);
+  assert.deepEqual(state.calls.map(c => c.values[0].schoolYear).slice(0, 2), [year, year - 1]);
+  const sent = state.calls[2].values[0], copy = expectedCopy(prevRead, targetRead);
+  assert.deepEqual(sent, { ...JSON.parse(JSON.stringify(request)), copy: JSON.parse(JSON.stringify(copy)) });
+  assert.ok(copy.review.some(i => i.reason === 'missing_week' && i.sourceDate === '2026-12-28'));
+  assert.ok(copy.review.some(i => i.reason === 'easter'));
+  assert.equal(sent.copy.exceptions['2027-12-27'], undefined);
+});
+
+test('kopiering: när förra året har en öppen version läser servern om den gällande versionen och kopierar den', async () => {
+  reset('rektor');
+  const targetRead = { ...read({ capabilities: caps({ canCreate: ['proposal', 'copy'] }) }), previousYearAvailable: true };
+  const versions = [{ versionId: previous, version: 1, status: 'faststalld', decidedOn: '2026-06-01', current: true },
+    { versionId: previousOpen, version: 2, status: 'utkast', decidedOn: null, current: false }];
+  const open = withVersions(read({ cal: prevCalendar({ versionId: previousOpen, version: 2, status: 'utkast', decidedOn: null, exceptions: {} }) }), versions);
+  const prevRead = withVersions(read({ cal: prevCalendar() }), versions);
+  state.replies.lasar_read = readFor(targetRead, { prevFirst: open, prev: prevRead });
+  const request = await copyRequest(target);
+  state.replies.lasar_command = created(request.commandId);
+  assert.equal((await post('kommando', request)).status, 200);
+  assert.deepEqual(state.calls.map(c => [c.fn, c.values[0].schoolYear, c.values[0].versionId ?? null]),
+    [['lasar_read', year, null], ['lasar_read', year - 1, null], ['lasar_read', year - 1, previous], ['lasar_command', year, null]]);
+  assert.equal(state.calls[3].values[0].copy.sourceVersionId, previous);
+  assert.deepEqual(state.calls[3].values[0].copy, JSON.parse(JSON.stringify(expectedCopy(prevRead, targetRead))));
+});
+
+test('kopiering utan gällande version förra året ger 409 lasar_not_found och inget lasar_command', async () => {
+  reset('rektor');
+  const targetRead = read({ capabilities: caps({ canCreate: ['proposal', 'copy'] }) });
+  state.replies.lasar_read = readFor(targetRead, { prev: withVersions(read(), []) });
+  const response = await post('kommando', await copyRequest(target));
+  assert.equal(response.status, 409); assert.deepEqual((await response.json()).details, { reason: 'lasar_not_found' });
+  assert.ok(!state.calls.some(c => c.fn === 'lasar_command'));
+});
+
+test('klienten kan inte skicka eget kopieinnehåll eller ange källversionen', async () => {
+  reset('rektor');
+  const request = await copyRequest(target);
+  for (const extra of [{ copy: { sourceVersionId: previous } }, { sourceVersionId: previous }]) {
+    const response = await post('kommando', { ...request, ...extra });
+    assert.equal(response.status, 400);
+  }
+  assert.deepEqual(state.calls, []);
+});
+
+test('kopiering av ramen: huvudmannen kopierar förra årets utgivna ram; servern läser den utgivna versionen', async () => {
+  reset('huvudman');
+  const targetRead = { ...frameRead({ capabilities: caps({ canCreate: ['proposal', 'copy'], canSetMode: true }) }), previousYearAvailable: true };
+  const prevRead = withVersions(frameRead({ cal: prevCalendar({ versionId: previous }) }), [{ versionId: previous, version: 1, status: 'faststalld', decidedOn: '2026-06-01', current: true }]);
+  state.replies.lasar_read = readFor(targetRead, { prev: prevRead });
+  const request = await copyRequest(frameTarget);
+  state.replies.lasar_command = wrap({ receipt: { commandId: request.commandId, revision: 1, replayed: false },
+    detail: frameRead({ cal: frameCalendar(), capabilities: caps({ canEdit: true, canPublishFrame: true, canSetMode: true }) }) });
+  assert.equal((await post('kommando', request)).status, 200);
+  assert.deepEqual(state.calls.map(c => c.fn), ['lasar_read', 'lasar_read', 'lasar_command']);
+  assert.deepEqual(state.calls[1].values[0], { target: frameTarget, schoolYear: year - 1, versionId: null });
+  assert.equal(state.calls[2].values[0].copy.sourceVersionId, previous);
+  assert.deepEqual(state.calls[2].values[0].copy.groupDays, {});
 });

@@ -8,7 +8,8 @@ import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createLasarFixture, createCommand, gymClass, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school } from './lasar-fixtures.mjs';
+import { createLasarFixture, createCommand, gymClass, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school,
+  copyCommand, copyContent, frameCreateCommand, frameDecision, frameTarget, resolveCommand, seedDecidedYear } from './lasar-fixtures.mjs';
 import { seedGy25Class } from './tjanst-fixtures.mjs';
 import { parseLasarCommandReply, parseLasarDecisionReply, parseLasarEnvelope, parseLasarReadReply, lasarSchoolYear } from '../../web/lib/lasar-contract.ts';
 import { lasarContentHash } from '../../web/lib/lasar-content.ts';
@@ -33,6 +34,7 @@ export const SCHOOL_YEAR_READERS = Object.freeze([
   'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
+export const COPY_MIGRATION = 'supabase/migrations/20261112130000_lasar_copy_overview.sql';
 
 function caseRunner(report) {
   return async function step(t, name, fn) {
@@ -80,6 +82,13 @@ function staticChecks(report) {
   record('ändringsbegärans fil (05.1.1-09) ger inga rättigheter, lägger inte till enumvärden och stänger inte av triggrar', () => {
     const sql = file(lasarMigrations[3]);
     assert.ok(lasarMigrations[3].endsWith('20261112110000_lasar_change_requests.sql'));
+    assert.equal(sql.split('\n').filter(l => !l.trim().startsWith('--') && /\bgrant\b/iu.test(l)).length, 0);
+    assert.equal((sql.match(/add value/giu) ?? []).length, 0);
+    assert.ok(!/session_replication_role|disable\s+trigger/iu.test(sql));
+  });
+  record('kopieringsfilen (05.1.1-11) finns i lasarMigrations, ger inga rättigheter, lägger inte till enumvärden och stänger inte av triggrar', () => {
+    assert.ok(lasarMigrations.includes(COPY_MIGRATION));
+    const sql = file(COPY_MIGRATION);
     assert.equal(sql.split('\n').filter(l => !l.trim().startsWith('--') && /\bgrant\b/iu.test(l)).length, 0);
     assert.equal((sql.match(/add value/giu) ?? []).length, 0);
     assert.ok(!/session_replication_role|disable\s+trigger/iu.test(sql));
@@ -165,7 +174,7 @@ async function tracer(t, step, f) {
 
   await step(t, 'rektor A läser skola A 2027 utan kalender: inget innehåll, förmågan att skapa förslag och skolans skolformer', async () => {
     const r = await read('principalA');
-    assert.equal(r.calendar, null); assert.deepEqual(r.versions, []); assert.deepEqual(r.capabilities.canCreate, ['proposal']);
+    assert.equal(r.calendar, null); assert.deepEqual(r.versions, []); assert.deepEqual(r.capabilities.canCreate, ['proposal', 'copy']);
     assert.deepEqual(r.schoolTypes, f.schoolTypes.A); assert.equal(r.schoolName, 'Syntetisk skola A'); assert.equal(r.mode, 'eget');
     s.types = r.schoolTypes; s.basis0 = await basis(); assert.equal(await weeks(), null); assert.equal(await startsOn(), null);
   });
@@ -1169,6 +1178,194 @@ async function dependents(t, step, f) {
   });
 }
 
+/**
+ * 05.1.1-11 (D-04): kopiera förra läsåret. Förra årets fastställda version för skola A 2026 läggs in direkt av ägaren (syntetiskt)
+ * med en mellandag i vecka 53, en studiedag som blir första maj 2028, en årskursdag, en klassdag och en kort vecka. Kopian räknas
+ * som i servern (copyContent) och prövas i SQL: källan, härledningen, påskfönstret och att varje källdag är inlagd eller granskad.
+ */
+async function copies(t, step, f) {
+  const A = f.schools.A, B = f.schools.B, types = f.schoolTypes.A, gr = f.offerings.gr, PREV = YEAR - 1;
+  const env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const read = async (name, target, schoolYear, versionId = null) => {
+    await f.actor(t, name);
+    const q = { target, schoolYear, versionId };
+    return parseLasarReadReply(env(await lasarRead(t, q), name), q);
+  };
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const deny = (name, q, code, hint) => denied(t, async u => { await f.actor(u, name); await lasarSend(u, q); }, code, hint);
+  const rolledBack = async fn => { const sentinel = Error('copies_rollback'); try { await t.savepoint(async u => { await fn(u); throw sentinel; }); } catch (e) { if (e !== sentinel) throw e; } };
+  const rows = async (col, id) => [...await t`select item_id, resolution, resolved_by_assignment, resolved_at is not null at from public.school_year_review_items
+    where ${t(col)}=${id} order by ordinal`];
+  const ak1 = arskursGroupId(gr, 'ak1'), cls = klassGroupId(f.groups.classes.ak1);
+  const forged = (patch) => copyCommand(school(A), YEAR, { ...structuredClone(s.copy), ...patch(structuredClone(s.copy)) });
+  const s = {};
+
+  await step(t, 'kopia: utan förra årets kalender är previousYearAvailable falskt, canCreate har proposal och copy, och kopian nekas med lasar_not_found', async () => {
+    const r = await read('principalA', school(A), YEAR);
+    assert.equal(r.previousYearAvailable, false); assert.deepEqual(r.capabilities.canCreate, ['proposal', 'copy']); assert.deepEqual(r.review, []);
+    const p = proposeSchoolYear(YEAR, A, types);
+    await deny('principalA', await copyCommand(school(A), YEAR, { sourceVersionId: randomUUID(), terms: { ht: p.ht, vt: p.vt }, exceptions: {}, groupDays: {}, review: [] }),
+      '40001', 'lasar_not_found');
+    assert.equal((await t`select count(*)::int n from public.school_years where unit_id=${A} and start_year=${YEAR}`)[0].n, 0);
+  });
+  await step(t, 'kopia: förra årets fastställda version (syntetisk) ger previousYearAvailable och copySchoolYear ger vecka 53-, påsk-, helgdags-, klass- och kortveckeposter', async () => {
+    s.src = await seedDecidedYear(t, f, { unitId: A, schoolYear: PREV, schoolTypes: types,
+      exceptions: { '2026-12-28': { kind: 'lovdag', note: 'Mellandag' }, '2027-05-03': { kind: 'studiedag', note: 'Fortbildning' } },
+      groupDays: [{ scope: 'arskurs', offeringId: gr, columnId: 'ak1', day: '2026-10-07', cause: 'friluftsdag' },
+        { scope: 'klass', classId: f.groups.classes.ak1, day: '2026-10-08', cause: 'annat', note: 'Syntetisk klassdag' }],
+      shortWeeks: [{ scope: 'arskurs', offeringId: gr, columnId: 'ak1', weekday: 4, reason: 'Syntetiska särskilda skäl' }] });
+    const target = await read('principalA', school(A), YEAR);
+    assert.equal(target.previousYearAvailable, true);
+    s.prev = await read('principalA', school(A), PREV);
+    assert.equal(s.prev.calendar.versionId, s.src); assert.equal(s.prev.calendar.status, 'faststalld');
+    s.copy = copyContent(s.prev, target);
+    const reasons = Object.fromEntries(s.copy.review.map(i => [`${i.sourceDate ?? i.groupId}`, i.reason]));
+    assert.equal(reasons['2026-12-28'], 'missing_week'); assert.equal(reasons['2027-05-03'], 'holiday'); assert.equal(reasons['2026-10-08'], 'group_class');
+    for (const d of ['2027-03-22', '2027-03-23', '2027-03-24', '2027-03-25', '2027-05-07']) assert.equal(reasons[d], 'easter', d);
+    assert.equal(reasons[ak1], 'short_week');
+    assert.deepEqual(s.copy.terms.ht, { start: '2027-08-23', end: '2027-12-24' });
+    assert.deepEqual(s.copy.groupDays, { [ak1]: { '2027-10-13': { cause: 'friluftsdag' } } });
+  });
+  await step(t, 'kopia: källan måste vara samma skolas gällande fastställda version för föregående läsår (T-05.1.1-35)', async () => {
+    await rolledBack(async () => {
+      const other = await seedDecidedYear(t, f, { unitId: B, schoolYear: PREV, schoolTypes: ['GR'] });
+      await deny('principalA', await forged(() => ({ sourceVersionId: other })), '22023', 'lasar_invalid');
+      const older = await seedDecidedYear(t, f, { unitId: A, schoolYear: PREV - 1, schoolTypes: types });
+      await deny('principalA', await forged(() => ({ sourceVersionId: older })), '22023', 'lasar_invalid');
+      await t`set local session_replication_role=replica`;
+      const draft = randomUUID();
+      await t`insert into public.school_years(id,organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,version,revision)
+        select ${draft},organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,'utkast',2,1 from public.school_years where id=${s.src}`;
+      await t`set local session_replication_role=origin`;
+      await deny('principalA', await forged(() => ({ sourceVersionId: draft })), '22023', 'lasar_invalid');
+    });
+  });
+  await step(t, 'kopia: innehåll som inte kommer ur källan, en tyst inlagd påskdag, en saknad post, en klassdag eller ett påhittat post-ID nekas', async () => {
+    await deny('principalA', await forged(c => ({ exceptions: { ...c.exceptions, '2027-10-14': { kind: 'lovdag', note: 'Påhittad' } } })), '22023', 'lasar_invalid');
+    const easter = s.copy.review.find(i => i.reason === 'easter' && i.targetDate);
+    await deny('principalA', await forged(c => ({ exceptions: { ...c.exceptions, [easter.targetDate]: { kind: easter.kind, ...(easter.note ? { note: easter.note } : {}) } } })),
+      '22023', 'lasar_invalid');
+    await deny('principalA', await forged(c => ({ review: c.review.filter(i => i.reason !== 'missing_week') })), '22023', 'lasar_invalid');
+    await deny('principalA', await forged(c => ({ review: c.review.filter(i => i.reason !== 'short_week') })), '22023', 'lasar_invalid');
+    await deny('principalA', await forged(c => ({ groupDays: { ...c.groupDays, [cls]: { '2027-10-14': { cause: 'annat', note: 'Syntetisk klassdag' } } } })), '22023', 'lasar_invalid');
+    await deny('principalA', await forged(c => ({ review: c.review.map((i, n) => (n ? i : { ...i, id: `${i.id}x` })) })), '22023', 'lasar_invalid');
+    await deny('principalA', await forged(c => ({ terms: { ...c.terms, vt: { ...c.terms.vt, end: '2028-06-16' } } })), '22023', 'lasar_invalid');
+    const { copy: _copy, ...bare } = await copyCommand(school(A), YEAR, s.copy);
+    await deny('principalA', bare, '22023', 'lasar_invalid');
+    await deny('principalA', { ...(await createCommand(A, YEAR, types)), copy: s.copy }, '22023', 'lasar_invalid');
+    await deny('principalB', await copyCommand(school(A), YEAR, s.copy), '42501');
+    await deny('hm', await copyCommand(school(A), YEAR, s.copy), '42501');
+    assert.equal((await t`select count(*)::int n from public.school_years where unit_id=${A} and start_year=${YEAR}`)[0].n, 0);
+  });
+  await step(t, 'kopia: rektor A kopierar förra läsåret; utkastet har de entydiga dagarna och granskningsposterna sparas på servern', async () => {
+    s.q = await copyCommand(school(A), YEAR, s.copy);
+    s.created = await send('principalA', s.q);
+    const c = s.created.detail.calendar;
+    assert.equal(c.status, 'utkast'); assert.equal(c.version, 1); assert.equal(c.frameVersionId, null);
+    assert.deepEqual(c.terms, s.copy.terms); assert.deepEqual(c.exceptions, s.copy.exceptions); assert.deepEqual(c.groupDays, s.copy.groupDays); assert.deepEqual(c.shortWeeks, {});
+    assert.deepEqual(s.created.detail.review, s.copy.review.map(i => ({ ...i, resolved: false })));
+    assert.deepEqual([c.history[0].action, c.history[0].role], ['Kopierat från 2026/27', 'rektor']);
+    assert.deepEqual(s.created.detail.capabilities.canCreate, []);
+    s.v = c.versionId; s.rev = s.created.receipt.revision;
+    assert.equal((await rows('school_year_id', s.v)).length, s.copy.review.length);
+    const again = await send('principalA', s.q);
+    assert.equal(again.receipt.replayed, true);
+  });
+  await step(t, 'kopia: vecka 53 och påsk genom SQL – HT slutar fredag v51 (2027-12-24), mellandagen och påskens dagar är inte inlagda', async () => {
+    const c = s.created.detail.calendar;
+    assert.equal(c.terms.ht.end, '2027-12-24');
+    for (const i of s.copy.review.filter(x => ['easter', 'missing_week', 'holiday'].includes(x.reason)))
+      for (const d of [i.targetDate, i.suggestedDate].filter(Boolean)) assert.equal(c.exceptions[d], undefined, `${i.id} ${d}`);
+    assert.ok(!Object.values(c.exceptions).some(e => e.note === 'Mellandag' || e.note === 'Påsklov'));
+  });
+  await step(t, 'kopia: förslaget kan inte skickas med olösta poster (lasar_review_open)', async () => {
+    await deny('principalA', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'submit', text: 'Syntetiskt förslag' }),
+      '40001', 'lasar_review_open');
+  });
+  await step(t, 'kopia: en okänd post och en ogiltig lösning nekas; huvudmannen granskar inte skolans poster', async () => {
+    await deny('principalA', await resolveCommand(school(A), YEAR, s.v, s.rev, 'copy|easter|2000-01-01|-', 'dismissed'), '22023', 'lasar_invalid');
+    await deny('principalA', await resolveCommand(school(A), YEAR, s.v, s.rev, s.copy.review[0].id, 'ignored'), '22023', 'lasar_invalid');
+    await deny('hm', await resolveCommand(school(A), YEAR, s.v, s.rev, s.copy.review[0].id, 'dismissed'), '42501');
+  });
+  await step(t, 'kopia: varje post löses med inserted, changed eller dismissed och loggas med uppdrag och tid; den sista ger historikraden', async () => {
+    const items = s.copy.review, easter = items.find(i => i.reason === 'easter' && i.suggestedDate && i.kind === 'lovdag');
+    let r = await send('principalA', await lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev,
+      ops: [{ op: 'set_days', dates: [easter.suggestedDate], kind: easter.kind, ...(easter.note ? { note: easter.note } : {}) }] }));
+    s.rev = r.receipt.revision;
+    const plan = items.map((i, n) => [i, i === easter ? 'inserted' : n === 0 ? 'changed' : 'dismissed', n === 1 ? 'admin' : 'principalA']);
+    for (const [i, resolution, who] of plan) {
+      r = await send(who, await resolveCommand(school(A), YEAR, s.v, s.rev, i.id, resolution));
+      s.rev = r.receipt.revision;
+      assert.equal(r.detail.review.find(x => x.id === i.id).resolved, true);
+    }
+    const stored = await rows('school_year_id', s.v);
+    assert.deepEqual(stored.map(x => [x.item_id, x.resolution, x.resolved_by_assignment, x.at]), plan.map(([i, res, who]) => [i.id, res, f.roles[who], true]));
+    const h = r.detail.calendar.history;
+    assert.equal(h[0].action, `${items.length} dagar granskade`);
+    assert.equal(h.filter(x => /granskade$/u.test(x.action)).length, 1);
+    await deny('principalA', await resolveCommand(school(A), YEAR, s.v, s.rev, items[0].id, 'dismissed'), '40001', 'lasar_revision_conflict');
+  });
+  await step(t, 'kopia: när alla poster är lösta går submit', async () => {
+    const r = await decide('principalA', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'submit', text: 'Syntetiskt förslag' }));
+    assert.equal(r.detail.calendar.status, 'forslag');
+    await deny('principalA', await resolveCommand(school(A), YEAR, s.v, r.receipt.revision, s.copy.review[0].id, 'dismissed'), '40001', 'lasar_locked_status');
+  });
+  await step(t, 'kopia: granskningsposterna har tvingad RLS utan policyer, inga rättigheter och kan inte ändras eller tas bort direkt', async () => {
+    const [rls] = await t`select relrowsecurity r, relforcerowsecurity f from pg_class where oid='public.school_year_review_items'::regclass`;
+    assert.ok(rls.r && rls.f);
+    assert.equal((await t`select count(*)::int n from pg_policy where polrelid='public.school_year_review_items'::regclass`)[0].n, 0);
+    for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker'])
+      assert.equal((await t`select has_table_privilege(${role},'public.school_year_review_items','SELECT,INSERT,UPDATE,DELETE,TRUNCATE,REFERENCES,TRIGGER') v`)[0].v, false, role);
+    await denied(t, u => u`delete from public.school_year_review_items where school_year_id=${s.v}`, 'P0001');
+    await denied(t, u => u`update public.school_year_review_items set resolution='inserted' where school_year_id=${s.v}`, 'P0001');
+    await denied(t, u => u`update public.school_year_review_items set note='Ändrad' where school_year_id=${s.v}`, 'P0001');
+  });
+
+  // Ramen: huvudmannen kopierar förra årets utgivna ram (D-04 i arbetssättet ram).
+  const fread = async (schoolYear, versionId = null) => read('hm', frameTarget(), schoolYear, versionId);
+  await step(t, 'kopia av ramen: utan förra årets utgivna ram är previousYearAvailable falskt och kopian nekas med lasar_not_found', async () => {
+    const r = await fread(YEAR);
+    assert.equal(r.previousYearAvailable, false); assert.deepEqual(r.capabilities.canCreate, ['proposal', 'copy']);
+    const p = proposeSchoolYear(YEAR, 'ram', ['GR', 'GY']);
+    await deny('hm', await copyCommand(frameTarget(), YEAR, { sourceVersionId: randomUUID(), terms: { ht: p.ht, vt: p.vt }, exceptions: {}, groupDays: {}, review: [] }),
+      '40001', 'lasar_not_found');
+  });
+  await step(t, 'kopia av ramen: huvudmannen kopierar förra årets utgivna ram; utkastet har posterna och kan inte ges ut förrän de är lösta', async () => {
+    const created = await send('hm', await frameCreateCommand(PREV, ['GR', 'GY']));
+    await decide('hm', frameDecision({ schoolYear: PREV, versionId: created.detail.calendar.versionId, expectedRevision: created.receipt.revision, action: 'publish_frame' }));
+    const target = await fread(YEAR);
+    assert.equal(target.previousYearAvailable, true);
+    const copy = copyContent(await fread(PREV), target);
+    assert.ok(copy.review.some(i => i.reason === 'easter'));
+    await deny('principalA', await copyCommand(frameTarget(), YEAR, copy), '42501');
+    await deny('hm', await copyCommand(frameTarget(), YEAR, { ...copy, sourceVersionId: randomUUID() }), '22023', 'lasar_invalid');
+    let r = await send('hm', await copyCommand(frameTarget(), YEAR, copy));
+    const c = r.detail.calendar;
+    assert.equal(c.status, 'utkast'); assert.equal(c.version, 1);
+    assert.deepEqual(c.terms, copy.terms); assert.deepEqual(c.exceptions, copy.exceptions);
+    assert.deepEqual(r.detail.review, copy.review.map(i => ({ ...i, resolved: false })));
+    assert.equal(c.history[0].action, 'Kopierat från 2026/27');
+    await deny('hm', frameDecision({ schoolYear: YEAR, versionId: c.versionId, expectedRevision: r.receipt.revision, action: 'publish_frame' }), '40001', 'lasar_review_open');
+    for (const i of copy.review) r = await send('hm', await resolveCommand(frameTarget(), YEAR, c.versionId, r.receipt.revision, i.id, 'dismissed'));
+    assert.equal(r.detail.calendar.history[0].action, `${copy.review.length} dagar granskade`);
+    assert.deepEqual((await rows('frame_id', c.versionId)).map(x => [x.resolution, x.resolved_by_assignment]), copy.review.map(() => ['dismissed', f.roles.hm]));
+    const pub = await decide('hm', frameDecision({ schoolYear: YEAR, versionId: c.versionId, expectedRevision: r.receipt.revision, action: 'publish_frame' }));
+    assert.equal(pub.detail.calendar.status, 'faststalld');
+    s.frame = c.versionId;
+  });
+  await step(t, 'kopia i arbetssättet ram: rektor B kopierar sin skola; kalendern saknar ramversion och skolan får ramens markering (D-05, D-14, D-15)', async () => {
+    await seedDecidedYear(t, f, { unitId: B, schoolYear: PREV, schoolTypes: ['GR'] });
+    const affected = [A];
+    await decide('hm', frameDecision({ schoolYear: YEAR, action: 'set_mode', mode: 'ram', confirmAffected: affected }));
+    const target = await read('principalB', school(B), YEAR);
+    assert.equal(target.mode, 'ram'); assert.deepEqual(target.capabilities.canCreate, ['frame', 'copy']); assert.equal(target.previousYearAvailable, true);
+    const r = await send('principalB', await copyCommand(school(B), YEAR, copyContent(await read('principalB', school(B), PREV), target)));
+    assert.equal(r.detail.calendar.frameVersionId, null);
+    assert.equal(r.detail.frame.current, null); assert.equal(r.detail.frame.latest.versionId, s.frame); assert.equal(r.detail.frame.acknowledgedVersionId, null);
+  });
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -1192,6 +1389,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
       'Version 2 in the tracer and the Pitfall 6 calendar are inserted directly by the owner (marked synthetic); group days, change requests and reopen go through lasar_command',
       'D-12 is proven with app.fake_today set per case; the saved tjanst_rows row for the IM need is inserted directly by the owner (marked synthetic)',
       'Groups and teaching come from synthetic classes, offerings and timplans; no pupils and no pupil counts (A-18)',
+      'The previous school year copied in 05.1.1-11 is inserted directly by the owner (marked synthetic); the copy itself goes through lasar_command',
       'SS 12000: the calendar has no object in the standard; unit_id is Organisation/Skolenhet; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   const step = caseRunner(report);
@@ -1210,7 +1408,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    for (const run of [tracer, flow, parity, groups, groupParity, changes, dependents]) {
+    for (const run of [tracer, flow, parity, groups, groupParity, changes, dependents, copies]) {
       try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }
