@@ -1,5 +1,5 @@
 'use client';
-// Läsår & skoldagar i skyddad drift (fas 05.1.1, planerna 03 och 04).
+// Läsår & skoldagar i skyddad drift (fas 05.1.1, planerna 03–05).
 // Samma kalender, delar och klasser som demovyn (lasar-view.tsx), men data
 // kommer från /api/lasar/lasa, ändringar skickas som kommandon till
 // /api/lasar/kommando och beslut till /api/lasar/beslut. Knappar och
@@ -7,7 +7,8 @@
 // editableFrom; det finns ingen rollväxlare och inget klientval av roll
 // (A-01, LASAR-02). Modellens interna spärr kräver rollen 'rektor'; den
 // sätts bara när servern har sagt canEdit och visas aldrig som roll i vyn.
-// Avvikelser från demon: A-01–A-03, A-07, A-08, A-10–A-14 och A-16 (UI-SPEC).
+// Avvikelser från demon: A-01–A-14, A-16 och A-18 (UI-SPEC). Startval och
+// granskning efter kopiering ligger i protected-lasar-start.tsx.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -28,8 +29,11 @@ import {
   parseLasarCommandReply,
   parseLasarDecisionReply,
   parseLasarReadReply,
+  type LasarActorRole,
   type LasarAnyOp,
   type LasarCommandOp,
+  type LasarCreateSource,
+  type LasarReviewItem,
   type LasarDecision,
   type LasarErrorContext,
   type LasarReadReply,
@@ -37,9 +41,14 @@ import {
 } from '@/lib/lasar-contract.ts';
 import { lasarOps } from '@/lib/lasar-ops.ts';
 import {
+  addDays,
   allIssues,
   canEdit as modelCanEdit,
+  dayInfo,
   formatDate,
+  formatLong,
+  isoWeek,
+  mondayOfWeek,
   setDay,
   setDays,
   setNote,
@@ -53,7 +62,7 @@ import {
   type Planned,
   type SchoolYear,
 } from '@/lib/lasar-model.ts';
-import { LasarCalendar, selectionFacts, statusPlural, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
+import { LasarCalendar, selectionFacts, statusPlural, useCalendarSelection, type ClickModifiers, type DayMark } from './lasar-calendar.tsx';
 import {
   DEMO_BOUNDARY,
   LasarActionDialog,
@@ -73,6 +82,7 @@ import {
   type LasarAction,
 } from './lasar-parts.tsx';
 import MfaStepUpNotice from './mfa-step-up.tsx';
+import { LasarReviewCard, ProtectedLasarStart, reviewCandidates } from './protected-lasar-start.tsx';
 import './protected-lasar.css';
 
 export type ProtectedLasarWorkspaceProps = {
@@ -81,6 +91,10 @@ export type ProtectedLasarWorkspaceProps = {
   schoolYear: number;
   schoolTypes: string[];
   onSessionLost: () => void;
+  /** Huvudmannens ram (D-08) eller skolan; standard är skolan `unitId`. */
+  target?: LasarTarget;
+  /** Sessionens uppdrag, bara för texter i tomläget (A-01). Knappar styrs av förmågorna. */
+  actorRole?: LasarActorRole | null;
 };
 
 type Phase = 'loading' | 'error' | 'ready';
@@ -106,7 +120,7 @@ function stateOf(read: LasarReadReply): LasarState {
   return { role: read.capabilities.canEdit ? 'rektor' : 'huvudman', years: sy ? [sy] : [] };
 }
 
-export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, onSessionLost }: ProtectedLasarWorkspaceProps) {
+export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, onSessionLost, target: targetProp, actorRole = null }: ProtectedLasarWorkspaceProps) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [read, setRead] = useState<LasarReadReply | null>(null);
   const [state, setState] = useState<LasarState>({ role: 'huvudman', years: [] });
@@ -137,7 +151,8 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const pending = useRef(0);
   const lost = useRef(onSessionLost);
   useEffect(() => { lost.current = onSessionLost; });
-  const target: LasarTarget = { kind: 'school', unitId };
+  const frameTarget = targetProp?.kind === 'frame';
+  const target: LasarTarget = frameTarget ? { kind: 'frame' } : { kind: 'school', unitId };
 
   const adopt = useCallback((reply: LasarReadReply) => {
     const next = stateOf(reply);
@@ -152,7 +167,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const load = useCallback(async (quiet = false) => {
     const gen = ++generation.current;
     pending.current = 0;
-    const request = { target: { kind: 'school' as const, unitId }, schoolYear, versionId: chosenVersion.current };
+    const request = { target: frameTarget ? { kind: 'frame' as const } : { kind: 'school' as const, unitId }, schoolYear, versionId: chosenVersion.current };
     try {
       const reply = parseLasarReadReply(await api.post<unknown>('/api/lasar/lasa', request), request);
       if (gen !== generation.current) return;
@@ -163,10 +178,10 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
       if (caught instanceof ApiError && (caught.status === 401 || caught.status === 403)) { lost.current(); return; }
       if (!quiet) { setRead(null); setState({ role: 'huvudman', years: [] }); setPhase('error'); }
     }
-  }, [unitId, schoolYear, adopt]);
+  }, [unitId, schoolYear, frameTarget, adopt]);
 
   // Byte av skola eller läsår nollställer allt som hör till det tidigare urvalet (som choose() i demon).
-  const scope = `${unitId}:${schoolYear}`;
+  const scope = `${frameTarget ? 'ram' : unitId}:${schoolYear}`;
   const [shownScope, setShownScope] = useState(scope);
   if (shownScope !== scope) {
     setShownScope(scope);
@@ -203,7 +218,20 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const latest = versions.at(-1);
   const selected = read?.calendar ? versions.find((v) => v.versionId === read.calendar!.versionId) : undefined;
   const olderSelected = Boolean(selected && latest && selected.versionId !== latest.versionId);
-  const openReview = read?.review.filter((r) => !r.resolved).length ?? 0;
+  const review = read?.review ?? [];
+  const openReview = review.filter((r) => !r.resolved).length;
+  /** D-04: möjliga måldagar för ogranskade kopierade dagar får `ly-review`. */
+  const reviewDates = new Set(review.filter((r) => !r.resolved).flatMap(reviewCandidates));
+  const dayMark = (d: DayInfo): DayMark | undefined => {
+    const marks: DayMark[] = [];
+    if (reviewDates.has(d.date)) marks.push({ className: 'ly-review', title: 'att granska efter kopieringen' });
+    if (!marks.length) return undefined;
+    return {
+      className: marks.map((m) => m.className).filter(Boolean).join(' '),
+      title: marks.map((m) => m.title).filter(Boolean).join(' · '),
+      mark: marks.map((m) => m.mark).filter(Boolean),
+    };
+  };
   const ctx = (extra: LasarErrorContext = {}): LasarErrorContext => ({ status: sy?.status, editableFrom, schoolYear, reviewOpen: openReview, ...extra });
 
   const { selectedDays, changeable, groupChangeable, groupMarked } = selectionFacts(sy, calendar.selection, new Map(), isLocked);
@@ -306,6 +334,53 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   function command(op: LasarCommandOp, message: string): Promise<boolean> {
     setError('');
     return enqueue([op], message);
+  }
+
+  /** Startval (avsnitt 10): skapar kalendern; servern räknar fram innehållet ur källan. */
+  async function create(source: LasarCreateSource) {
+    if (busy || basis.current) return;
+    const gen = generation.current;
+    setBusy(true);
+    setError('');
+    try {
+      const request = await lasarCommandRequest({ target, schoolYear, versionId: null, expectedRevision: null, ops: [{ op: 'create', source }] });
+      const reply = parseLasarCommandReply(await api.post<unknown>('/api/lasar/kommando', request), request);
+      if (gen !== generation.current) return;
+      adopt(reply.detail);
+      calendar.clear();
+      setSavedAt(clockTime());
+      const label = yearLabel(schoolYear);
+      setNotice(source === 'copy'
+        ? `Dagarna från ${yearLabel(schoolYear - 1)} är kopierade. Granska de dagar som inte kunde flyttas innan du skickar förslaget.`
+        : source === 'frame'
+          ? `Läsåret ${label} utgår från huvudmannens ram.`
+          : frameTarget ? `Ett utkast till ramen för ${label} är skapat.` : `Ett förslag för läsåret ${label} är skapat.`);
+    } catch (caught) {
+      if (gen !== generation.current) return;
+      const f = failure(caught);
+      if (f) showInline(f);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** D-04: Visa veckan markerar veckans ändringsbara dagar och rullar dit. */
+  function showWeek(item: LasarReviewItem) {
+    if (!sy) return;
+    const date = reviewCandidates(item)[0];
+    if (!date) return;
+    const { year, week } = isoWeek(date);
+    const monday = mondayOfWeek(year, week);
+    const days = [0, 1, 2, 3, 4].map((i) => addDays(monday, i)).filter((d) => dayInfo(sy, d).editable && !isLocked?.(d));
+    calendar.setSelection(days.length ? days : [date]);
+    calendar.setAnchor(days[0] ?? date);
+    document.querySelector(`.protected-lasar button[title^="${formatLong(days[0] ?? date)} ·"]`)?.scrollIntoView({ block: 'center' });
+  }
+  /** Klar: posten är granskad. Infogad om en möjlig måldag nu har samma slag, annars avfärdad. */
+  function resolve(item: LasarReviewItem) {
+    if (!sy) return;
+    const inserted = (item.kind === 'lovdag' || item.kind === 'studiedag') && reviewCandidates(item).some((d) => sy.exceptions[d]?.kind === item.kind);
+    void command({ op: 'resolve_review', itemId: item.id, resolution: inserted ? 'inserted' : 'dismissed' }, 'Dagen är granskad.');
   }
 
   async function decide(decision: LasarDecision, text: string, inDialog: boolean): Promise<boolean> {
@@ -509,11 +584,15 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
               <Button variant="outline" onClick={() => { setPhase('loading'); void load(); }}>Försök igen</Button>
             </div>
           ) : !sy || !summary ? (
-            <div className="admin-empty">
-              <CalendarCheck size={28} />
-              <h2>Inget läsår ännu</h2>
-              <p>Ingen kalender är skapad för {schoolName} {yearLabel(schoolYear)}.</p>
-            </div>
+            read ? (
+              <ProtectedLasarStart read={read} actorRole={actorRole} schoolName={schoolName} busy={busy} onCreate={(source) => void create(source)} />
+            ) : (
+              <div className="admin-empty">
+                <CalendarCheck size={28} />
+                <h2>Inget läsår ännu</h2>
+                <p>Ingen kalender är skapad för {schoolName} {yearLabel(schoolYear)}.</p>
+              </div>
+            )
           ) : (
             <>
               <LasarWorkflow
@@ -521,6 +600,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                   <>
                     {versionLine && <p className="ly-version-line">{versionLine}</p>}
                     {workflowText}
+                    {caps?.canSubmit && openReview > 0 && <p className="ly-review-hint">{lasarErrorText('lasar_review_open', ctx())}</p>}
                   </>
                 }
               >
@@ -570,6 +650,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                   </Button>
                 )}
               </LasarWorkflow>
+              <LasarReviewCard items={review} schoolYear={schoolYear} canResolve={Boolean(caps?.canEdit)} busy={busy} onShowWeek={showWeek} onResolve={resolve} />
               <LasarTerms
                 sy={sy}
                 summary={summary}
@@ -594,6 +675,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                 editable={editable}
                 tool={tool}
                 isLocked={isLocked}
+                dayMark={dayMark}
                 menuClassName="protected-lasar-menu"
                 touchSelect
                 onDayClick={onDayClick}
@@ -602,8 +684,11 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
               />
               <LasarLegend
                 summary={summary}
-                extra={isLocked && (
-                  <span className="ly-legend-item ly-past"><i aria-hidden="true" /> Passerad dag (låst)</span>
+                extra={(isLocked || openReview > 0) && (
+                  <>
+                    {isLocked && <span className="ly-legend-item ly-past"><i aria-hidden="true" /> Passerad dag (låst)</span>}
+                    {openReview > 0 && <span className="ly-legend-item ly-review-legend"><i aria-hidden="true" /> Att granska</span>}
+                  </>
                 )}
               />
               {calendar.selection.length > 0 && (

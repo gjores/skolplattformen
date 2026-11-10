@@ -1,10 +1,10 @@
-// Syntetisk förhandsvisning av Läsår & skoldagar i skyddad drift (05.1.1-03 och 04).
+// Syntetisk förhandsvisning av Läsår & skoldagar i skyddad drift (05.1.1-03–05).
 // Ingen databas, ingen server och ingen inloggning: /api/lasar/lasa,
 // /api/lasar/kommando och /api/lasar/beslut besvaras av en mock i webbläsaren
 // som använder kontraktets tolkar. Förmågorna räknas här som en grov
 // efterbildning av serverns regler; de bevisar inte behörighet (det gör SQL-
-// och Worker/OIDC-proven i plan 06–07). Syntetisk skola och syntetiska namn,
-// inga personuppgifter. Simulerat komponentprov, inte faktiskt prov.
+// och Worker/OIDC-proven i plan 06–11). Syntetisk skola och syntetiska namn,
+// inga personuppgifter och inga elevantal. Simulerat komponentprov, inte faktiskt prov.
 //
 // URL-parametrar:
 //   roll=rektor|huvudman|lasare|admin   (lasare och admin saknar förmågor)
@@ -14,14 +14,25 @@
 //   passerade=1   läsåret har börjat: editableFrom = 2026-11-09 (D-12)
 //   fel=konflikt|osaker|403|mfa|regler|passerad   nästa skrivning nekas så
 //   vy=demo   demovyn LasarView med samma syntetiska läsår för jämförelse
+//   vy=arbetssatt   kortet Arbetssätt för läsåret (D-01, D-15)
+//   ar=2027   läsårets startår (standard 2026); 2027 ger vecka 53 i kopian
+//   tom=1   ingen kalender ännu (startval, avsnitt 10)
+//   forra=0   ingen kalender förra läsåret att kopiera
+//   arbetssatt=ram|eget   huvudmannens arbetssätt (standard eget)
+//   ram=saknas|utgiven|andrad   ramens läge för skolan i arbetssättet ram
+//   mal=ram   huvudmannens ram i stället för skolan (D-08)
+//   last=1   arbetssättet är låst (läsåret har börjat)
+//   klasser=1   klasser, årskurser och timplaner för panelen Undervisning (A-09)
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ProtectedLasarWorkspace from '../../app/protected-lasar-workspace';
+import { ProtectedLasarModeCard } from '../../app/protected-lasar-start';
 import LasarView from '../../app/lasar-view';
 import {
   parseLasarCommandReply,
   parseLasarDecisionReply,
   parseLasarDecisionRequest,
+  parseLasarModePreviewReply,
   parseLasarReadReply,
   parseLasarReadRequest,
   verifyLasarCommandHash,
@@ -29,81 +40,177 @@ import {
   type LasarActorRole,
   type LasarChangeRequest,
   type LasarDbStatus,
+  type LasarMode,
   type LasarReadReply,
+  type LasarReviewItem,
+  type LasarTarget,
 } from '../../lib/lasar-contract';
-import { proposeSchoolYear, type Exception, type GroupException, type LasarState, type ShortWeek } from '../../lib/lasar-model';
+import { copySchoolYear } from '../../lib/lasar-copy';
+import { applyFrameChanges, frameChanges, type FrameYear } from '../../lib/lasar-frame';
+import { groupsFromRefs, type LasarGroupRef } from '../../lib/lasar-groups';
+import { proposeSchoolYear, type Exception, type GroupException, type LasarState, type SchoolYear, type ShortWeek } from '../../lib/lasar-model';
 import { UnsavedChangesProvider } from '../../lib/unsaved-changes';
 import '../../app/globals.css';
 
 const tid = (n: number) => `51a50000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const params = new URLSearchParams(location.search);
-const UNIT = tid(3), YEAR = 2026, SCHOOL = 'Syntetiska grundskolan', TYPES = ['GR'];
+const UNIT = tid(3), YEAR = Number(params.get('ar') ?? 2026), SCHOOL = 'Syntetiska grundskolan', TYPES = ['GR'];
 const HASH = `sha256:${'0'.repeat(64)}`;
 let role = (params.get('roll') ?? 'rektor') as 'rektor' | 'huvudman' | 'lasare' | 'admin';
 const startStatus = (params.get('status') ?? 'utkast') as LasarDbStatus;
 const editableFrom = params.get('passerade') === '1' ? '2026-11-09' : null;
 let fault = params.get('fel');
+let mode = (params.get('arbetssatt') ?? 'eget') as LasarMode;
+const modeLocked = editableFrom !== null || params.get('last') === '1';
+const frameView = params.get('mal') === 'ram';
+const frameParam = params.get('ram') ?? (mode === 'ram' ? 'utgiven' : 'saknas');
+const withClasses = params.get('klasser') === '1';
+const previousYearAvailable = params.get('forra') !== '0';
+const empty = params.get('tom') === '1';
+const label = (y: number) => `${y}/${String(y + 1).slice(2)}`;
 
 type Version = {
   versionId: string; version: number; status: LasarDbStatus; decidedOn: string | null; revision: number;
   terms: { ht: { start: string; end: string }; vt: { start: string; end: string } };
   exceptions: Record<string, Exception>; groupDays: Record<string, Record<string, GroupException>>; shortWeeks: Record<string, ShortWeek>;
+  frameVersionId: string | null;
   history: { id: string; role: LasarActorRole; actorName: string; at: string; action: string; comment: string; version: number }[];
 };
+type Store = { target: LasarTarget; versions: Version[]; review: LasarReviewItem[] };
 const proposal = proposeSchoolYear(YEAR, UNIT, TYPES);
 let ids = 900;
 const names: Record<LasarActorRole, string> = { rektor: 'Syntetisk rektor', skoladministrator: 'Syntetisk administratör', huvudman: 'Syntetisk huvudman' };
 function entry(v: Version, who: LasarActorRole, action: string, comment: string, at = new Date().toISOString()) {
   v.history.unshift({ id: tid(++ids), role: who, actorName: names[who], at, action, comment, version: v.version });
 }
-function makeVersion(n: number, status: LasarDbStatus, from?: Version): Version {
+type Content = Pick<Version, 'terms' | 'exceptions'>;
+function makeVersion(n: number, status: LasarDbStatus, from?: Content, history = true): Version {
   const v: Version = {
-    versionId: tid(100 + n), version: n, status, decidedOn: status === 'faststalld' ? '2026-03-18' : null, revision: 3,
+    versionId: tid((frameView ? 200 : 100) + n), version: n, status, decidedOn: status === 'faststalld' ? '2026-03-18' : null, revision: 3,
     terms: structuredClone(from?.terms ?? { ht: proposal.ht, vt: proposal.vt }),
-    exceptions: structuredClone(from?.exceptions ?? proposal.exceptions), groupDays: {}, shortWeeks: {}, history: [],
+    exceptions: structuredClone(from?.exceptions ?? proposal.exceptions), groupDays: {}, shortWeeks: {}, frameVersionId: null, history: [],
   };
-  entry(v, 'rektor', 'Förslag skapat', 'Terminer, helgdagar och vanliga lov föreslagna.', '2026-09-04T08:00:00.000Z');
+  if (!history) return v;
+  entry(v, frameView ? 'huvudman' : 'rektor', frameView ? 'Ram skapad' : 'Förslag skapat', 'Terminer, helgdagar och vanliga lov föreslagna.', '2026-09-04T08:00:00.000Z');
   if (status === 'faststalld') entry(v, 'huvudman', 'Fastställd', 'Fastställd av syntetisk nämnd.', '2026-03-18T09:00:00.000Z');
   return v;
 }
-const versions: Version[] = params.get('version') === '2'
-  ? [makeVersion(1, 'faststalld'), makeVersion(2, startStatus)]
-  : [makeVersion(1, startStatus)];
-const begaran = params.get('begaran');
-let changeRequest: LasarChangeRequest | null = begaran === 'open' || begaran === 'declined'
-  ? { id: tid(701), status: begaran, reason: 'Ny studiedag i mars för syntetisk fortbildning.', answer: begaran === 'declined' ? 'Studiedagarna är redan fem.' : null,
-    requestedAt: '2026-10-01T09:00:00.000Z', answeredAt: begaran === 'declined' ? '2026-10-02T09:00:00.000Z' : null }
-  : null;
-const latest = () => versions[versions.length - 1];
 
-function capabilities(v: Version) {
-  const r = role === 'rektor', h = role === 'huvudman', last = v === latest();
-  const editable = r && last && (v.status === 'utkast' || v.status === 'atersand');
-  const fixed = last && v.status === 'faststalld', open = changeRequest?.status === 'open';
+// ---- Huvudmannens ram (D-02, D-05, D-06): version 1 är förslaget; version 2 ändrar tre punkter.
+const iso = (y: number, m: number, d: number) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+const CONFLICT_DAY = iso(YEAR, 10, 12), OWN_DAY = iso(YEAR, 11, 13), FRAME_DAY = iso(YEAR + 1, 1, 15);
+const frameV1: FrameYear & { publishedOn: string } = { versionId: tid(301), version: 1, publishedOn: iso(YEAR, 6, 1), terms: { ht: { ...proposal.ht }, vt: { ...proposal.vt } }, exceptions: structuredClone(proposal.exceptions) };
+const frameV2: FrameYear & { publishedOn: string } = {
+  versionId: tid(302), version: 2, publishedOn: iso(YEAR, 10, 15),
+  terms: { ht: { ...proposal.ht }, vt: { ...proposal.vt, end: '2027-06-10' } },
+  exceptions: { ...structuredClone(proposal.exceptions), [FRAME_DAY]: { kind: 'studiedag', note: 'Gemensam studiedag' }, [CONFLICT_DAY]: { kind: 'lovdag', note: 'Gemensam lovdag' } },
+};
+const frames = mode === 'ram' && frameParam !== 'saknas' ? (frameParam === 'andrad' ? [frameV1, frameV2] : [frameV1]) : [];
+let frameAck: string | null = frames.length ? frameV1.versionId : null;
+let frameBase: typeof frameV1 | null = frames.length ? frameV1 : null;
+
+// ---- Klasser och timplaner för panelen Undervisning (A-09). Inga elevuppgifter (A-18).
+const GR = tid(11), IM = tid(12), C7A = tid(21), C8B = tid(22), CIM = tid(23), T1 = tid(31), T2 = tid(32);
+const groupRefs: LasarGroupRef[] = withClasses ? [
+  { scope: 'arskurs', offeringId: GR, columnId: 'ak7', label: 'Åk 7', educationName: 'Grundskolan 7–9', kind: 'grundskola' },
+  { scope: 'arskurs', offeringId: GR, columnId: 'ak8', label: 'Åk 8', educationName: 'Grundskolan 7–9', kind: 'grundskola' },
+  { scope: 'arskurs', offeringId: GR, columnId: 'ak9', label: 'Åk 9', educationName: 'Grundskolan 7–9', kind: 'grundskola' },
+  { scope: 'klass', classId: C7A, offeringId: GR, columnId: 'ak7', label: '7A', educationName: 'Grundskolan 7–9', kind: 'grundskola' },
+  { scope: 'klass', classId: C8B, offeringId: GR, columnId: 'ak8', label: '8B', educationName: 'Grundskolan 7–9', kind: 'grundskola' },
+  { scope: 'klass', classId: CIM, offeringId: IM, columnId: null, label: 'IMA', educationName: 'Introduktionsprogram', kind: 'introduktionsprogram' },
+] : [];
+const grRows = [{ columnId: 'ak7', hours: 950 }, { columnId: 'ak8', hours: 950 }, { columnId: 'ak9', hours: 990 }];
+const teaching = withClasses ? {
+  classes: [
+    { classId: C7A, name: '7A', offeringId: GR, columnId: 'ak7', timplanId: T1, timplanVersion: 2, rows: grRows },
+    { classId: C8B, name: '8B', offeringId: GR, columnId: 'ak8', timplanId: T1, timplanVersion: 2, rows: grRows },
+    { classId: CIM, name: 'IMA', offeringId: IM, columnId: null, timplanId: T2, timplanVersion: 1, rows: [{ columnId: 'vecka', hours: 23 }] },
+  ],
+  imClassIds: [CIM],
+} : { classes: [], imClassIds: [] };
+
+/** Skolans kalender i arbetssättet ram: ramversion 1 med skolans egna justeringar (D-06). */
+function schoolFromFrame(base: FrameYear): Content {
   return {
-    canEdit: editable, canSubmit: editable, canWithdraw: r && last && v.status === 'forslag', canRequestChange: r && fixed && !open,
-    canWithdrawRequest: r && fixed && open, canReturn: h && last && v.status === 'forslag', canApprove: h && last && v.status === 'forslag',
-    canReopen: h && fixed, canDecline: h && fixed && open, canComment: r || h, canCreate: [], canPublishFrame: false, canSetMode: false,
+    terms: { ht: { ...base.terms.ht, start: iso(YEAR, 8, 18) }, vt: { ...base.terms.vt } },
+    exceptions: { ...structuredClone(base.exceptions), [CONFLICT_DAY]: { kind: 'studiedag', note: 'Skolans studiedag' }, [OWN_DAY]: { kind: 'studiedag', note: 'Skolans fortbildning' } },
   };
 }
-function readReply(versionId: string | null): LasarReadReply {
-  const v = versions.find((x) => x.versionId === versionId) ?? latest();
-  const current = [...versions].reverse().find((x) => x.status === 'faststalld');
+function initialSchool(): Version[] {
+  if (empty) return [];
+  const from = mode === 'ram' && frameBase ? schoolFromFrame(frameBase) : undefined;
+  const list = params.get('version') === '2' ? [makeVersion(1, 'faststalld', from), makeVersion(2, startStatus, from)] : [makeVersion(1, startStatus, from)];
+  for (const v of list) {
+    if (from) v.frameVersionId = frameV1.versionId;
+    if (withClasses) v.groupDays = { [`klass:${C8B}`]: { [iso(YEAR, 11, 5)]: { cause: 'nationellt prov' } } };
+  }
+  return list;
+}
+const schoolStore: Store = { target: { kind: 'school', unitId: UNIT }, versions: frameView ? [] : initialSchool(), review: [] };
+const frameStore: Store = { target: { kind: 'frame' }, versions: frameView && !empty ? [makeVersion(1, 'utkast')] : [], review: [] };
+const active = frameView ? frameStore : schoolStore;
+const storeOf = (t: LasarTarget) => (t.kind === 'frame' ? frameStore : t.unitId === UNIT ? schoolStore : null);
+const latestOf = (s: Store) => s.versions[s.versions.length - 1];
+let changeRequest: LasarChangeRequest | null = (() => {
+  const begaran = params.get('begaran');
+  return begaran === 'open' || begaran === 'declined'
+    ? { id: tid(701), status: begaran, reason: 'Ny studiedag i mars för syntetisk fortbildning.', answer: begaran === 'declined' ? 'Studiedagarna är redan fem.' : null,
+      requestedAt: '2026-10-01T09:00:00.000Z', answeredAt: begaran === 'declined' ? '2026-10-02T09:00:00.000Z' : null }
+    : null;
+})();
+
+function capabilities(s: Store, v: Version | undefined) {
+  const r = role === 'rektor', h = role === 'huvudman', last = v !== undefined && v === latestOf(s);
+  const frame = s.target.kind === 'frame';
+  const editable = v !== undefined && last && (frame ? h && v.status === 'utkast' : r && (v.status === 'utkast' || v.status === 'atersand'));
+  const fixed = !frame && last && v?.status === 'faststalld', open = changeRequest?.status === 'open';
+  const canCreate = v !== undefined ? []
+    : frame ? (h ? ['proposal', 'copy'] : [])
+      : r ? (mode === 'ram' ? (frames.length ? ['frame', 'copy'] : []) : ['proposal', 'copy']) : [];
+  return {
+    canEdit: editable, canSubmit: !frame && editable, canWithdraw: !frame && r && last && v?.status === 'forslag', canRequestChange: r && fixed && !open,
+    canWithdrawRequest: r && fixed && open, canReturn: !frame && h && last && v?.status === 'forslag', canApprove: !frame && h && last && v?.status === 'forslag',
+    canReopen: h && fixed, canDecline: h && fixed && open, canComment: v !== undefined && (r || h), canCreate,
+    canPublishFrame: frame && editable, canSetMode: frame && h,
+  };
+}
+const frameRef = (f: typeof frameV1 | null) => (f ? structuredClone(f) : null);
+function readReply(s: Store, versionId: string | null): LasarReadReply {
+  const v = s.versions.find((x) => x.versionId === versionId) ?? latestOf(s);
+  const current = [...s.versions].reverse().find((x) => x.status === 'faststalld');
+  const frame = s.target.kind === 'school' && mode === 'ram'
+    ? { current: frameRef(frameBase), latest: frameRef(frames.at(-1) ?? null), acknowledgedVersionId: frameAck }
+    : null;
   return parseLasarReadReply(structuredClone({
-    contractVersion: 'lasar_sql_v1', target: { kind: 'school', unitId: UNIT }, schoolYear: YEAR, schoolName: SCHOOL, schoolTypes: TYPES,
-    mode: 'eget', modeLocked: editableFrom !== null,
-    versions: versions.map((x) => ({ versionId: x.versionId, version: x.version, status: x.status, decidedOn: x.decidedOn, current: x === current })),
-    calendar: {
+    contractVersion: 'lasar_sql_v1', target: s.target, schoolYear: YEAR, schoolName: s.target.kind === 'frame' ? 'Huvudmannens ram' : SCHOOL, schoolTypes: TYPES,
+    mode, modeLocked,
+    versions: s.versions.map((x) => ({ versionId: x.versionId, version: x.version, status: x.status, decidedOn: x.decidedOn, current: s.target.kind === 'school' && x === current })),
+    calendar: v ? {
       versionId: v.versionId, version: v.version, status: v.status, revision: v.revision, terms: v.terms, exceptions: v.exceptions,
-      groupDays: v.groupDays, shortWeeks: v.shortWeeks, frameVersionId: null, contentHash: HASH, decidedOn: v.decidedOn, history: v.history,
-    },
-    capabilities: capabilities(v), editableFrom, changeRequest, review: [], frame: null, groups: [],
-    teaching: { classes: [], imClassIds: [] }, previousYearAvailable: false,
+      groupDays: v.groupDays, shortWeeks: v.shortWeeks, frameVersionId: v.frameVersionId, contentHash: HASH, decidedOn: v.decidedOn, history: v.history,
+    } : null,
+    capabilities: capabilities(s, v), editableFrom, changeRequest: s.target.kind === 'school' ? changeRequest : null, review: s.review, frame,
+    groups: s.target.kind === 'school' ? groupRefs : [], teaching: s.target.kind === 'school' ? teaching : { classes: [], imClassIds: [] }, previousYearAvailable,
   }));
 }
+/** Modellens läsår för en version, för kopiering och ramjämförelse i mocken. */
+function modelOf(v: Version): SchoolYear {
+  return { id: v.versionId, unitId: UNIT, startYear: YEAR, label: `Läsåret ${label(YEAR)}`, ht: { ...v.terms.ht }, vt: { ...v.terms.vt }, exceptions: structuredClone(v.exceptions), groupExceptions: {}, shortWeeks: {}, status: 'utkast', history: [] };
+}
+/** Förra läsåret: förslaget plus en studiedag i november och, för 2026/27, en i vecka 53. */
+function previousYear(): SchoolYear {
+  const source = proposeSchoolYear(YEAR - 1, UNIT, TYPES);
+  source.exceptions[iso(YEAR - 1, 11, 13)] = { kind: 'studiedag', note: 'Syntetisk fortbildning' };
+  if (YEAR - 1 === 2026) source.exceptions['2026-12-28'] = { kind: 'studiedag', note: 'Syntetisk planeringsdag' };
+  return source;
+}
+const AFFECTED = [
+  { unitId: tid(4), schoolName: 'Syntetiska gymnasiet', status: 'utkast' as const },
+  { unitId: tid(5), schoolName: 'Syntetiska skolan Norr', status: 'forslag' as const },
+];
 
 type Logged = { path: string; body: unknown };
-const control = { commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], revision: () => latest().revision, versions: () => versions.length };
+const control = { commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], revision: () => latestOf(active)?.revision ?? 0, versions: () => active.versions.length };
 declare global { interface Window { __lasar: typeof control } }
 window.__lasar = control;
 
@@ -121,14 +228,40 @@ async function route(path: string, body: unknown): Promise<Reply> {
     if (path === '/api/lasar/lasa') {
       const q = parseLasarReadRequest(body);
       control.reads.push({ path, body: structuredClone(body) });
-      if (q.target.kind !== 'school' || q.target.unitId !== UNIT || q.schoolYear !== YEAR) return error(403, 'forbidden');
-      return { status: 200, json: readReply(q.versionId) };
+      const s = storeOf(q.target);
+      if (!s || q.schoolYear !== YEAR) return error(403, 'forbidden');
+      if (q.target.kind === 'frame' && role !== 'huvudman') return error(403, 'forbidden');
+      return { status: 200, json: readReply(s, q.versionId) };
     }
     if (path === '/api/lasar/kommando') {
       control.commands.push({ path, body: structuredClone(body) });
       const q = await verifyLasarCommandHash(body);
-      const v = versions.find((x) => x.versionId === q.versionId);
-      if (q.target.kind !== 'school' || q.target.unitId !== UNIT || q.schoolYear !== YEAR || !v) return error(403, 'forbidden');
+      const s = storeOf(q.target);
+      if (!s || q.schoolYear !== YEAR) return error(403, 'forbidden');
+      if (q.ops[0].op === 'create') {
+        const op = q.ops[0];
+        if (!capabilities(s, latestOf(s)).canCreate.includes(op.source) || (op.source === 'copy' && !previousYearAvailable)) return error(403, 'forbidden');
+        let v: Version;
+        if (op.source === 'copy') {
+          const { draft, review } = copySchoolYear(previousYear(), YEAR, groupsFromRefs(groupRefs));
+          v = makeVersion(1, 'utkast', { terms: { ht: draft.ht, vt: draft.vt }, exceptions: draft.exceptions }, false);
+          s.review = review.map((item) => ({ ...item, resolved: false }));
+          entry(v, who(), `Kopierat från ${label(YEAR - 1)}`, `${review.length} dagar att granska.`);
+        } else if (op.source === 'frame') {
+          const base = frames.at(-1)!;
+          v = makeVersion(1, 'utkast', { terms: base.terms, exceptions: base.exceptions }, false);
+          v.frameVersionId = base.versionId; frameBase = base; frameAck = base.versionId;
+          entry(v, who(), 'Utgår från huvudmannens ram', `Ramens version ${base.version}.`);
+        } else {
+          v = makeVersion(1, 'utkast', undefined, false);
+          entry(v, who(), s.target.kind === 'frame' ? 'Ram skapad' : 'Förslag skapat', 'Terminer, helgdagar och vanliga lov föreslagna.');
+        }
+        v.revision = 1;
+        s.versions.push(v);
+        return { status: 200, json: parseLasarCommandReply({ receipt: { commandId: q.commandId, revision: v.revision, replayed: false }, detail: readReply(s, v.versionId) }, q) };
+      }
+      const v = s.versions.find((x) => x.versionId === q.versionId);
+      if (!v) return error(403, 'forbidden');
       const f = takeFault(['konflikt', 'osaker', '403', 'passerad']);
       if (f === '403') { role = 'lasare'; return error(403, 'forbidden'); }
       if (f === 'passerad') return error(409, 'conflict', 'lasar_past_day');
@@ -137,7 +270,7 @@ async function route(path: string, body: unknown): Promise<Reply> {
         v.exceptions['2026-11-20'] = { kind: 'lovdag', note: 'Ändrad i annan session' };
         v.revision += 1;
       }
-      const caps = capabilities(v);
+      const caps = capabilities(s, v);
       const comment = q.ops[0].op === 'comment';
       if (comment ? !caps.canComment : !caps.canEdit) return error(403, 'forbidden');
       if (q.expectedRevision !== v.revision) return error(409, 'conflict', 'lasar_revision_conflict');
@@ -159,48 +292,81 @@ async function route(path: string, body: unknown): Promise<Reply> {
         }
         else if (op.op === 'reset_to_proposal') { v.terms = structuredClone({ ht: proposal.ht, vt: proposal.vt }); v.exceptions = structuredClone(proposal.exceptions); entry(v, who(), 'Förslag återställt', 'Terminer och lov enligt förslaget utifrån helgdagarna.'); }
         else if (op.op === 'comment') entry(v, who(), 'Kommentar', op.text);
+        else if (op.op === 'resolve_review') {
+          const item = s.review.find((i) => i.id === op.itemId);
+          if (!item || item.resolved) return error(400, 'bad_request');
+          item.resolved = true;
+          if (s.review.every((i) => i.resolved)) entry(v, who(), `Kopierat från ${label(YEAR - 1)}, ${s.review.length} dagar granskade`, '');
+        }
+        else if (op.op === 'take_frame_changes' || op.op === 'keep_school_calendar') {
+          const latest = frames.at(-1);
+          if (!latest || !frameBase || op.frameVersionId !== latest.versionId) return error(409, 'conflict', 'lasar_frame_stale');
+          if (op.op === 'take_frame_changes') {
+            // Samma prövning som servern ska göra (plan 10): bara godkända nycklar under apply eller conflicts.
+            const next = applyFrameChanges(modelOf(v), frameChanges(frameBase, latest, modelOf(v)), op.accepted);
+            v.terms = { ht: next.ht, vt: next.vt }; v.exceptions = next.exceptions;
+            entry(v, who(), 'Ramens ändringar intagna', `${op.accepted.length} ändringar från ramens version ${latest.version}.`);
+          } else entry(v, who(), 'Skolans kalender behållen', `Ramens version ${latest.version} är kvitterad.`);
+          v.frameVersionId = latest.versionId; frameBase = latest; frameAck = latest.versionId;
+        }
         else return error(400, 'bad_request');
       }
       v.revision += 1;
       if (f === 'osaker') return { status: 502, json: { code: 'internal_error' } };
-      return { status: 200, json: parseLasarCommandReply({ receipt: { commandId: q.commandId, revision: v.revision, replayed: false }, detail: readReply(v.versionId) }, q) };
+      return { status: 200, json: parseLasarCommandReply({ receipt: { commandId: q.commandId, revision: v.revision, replayed: false }, detail: readReply(s, v.versionId) }, q) };
     }
     if (path === '/api/lasar/beslut') {
       control.decisions.push({ path, body: structuredClone(body) });
       const q = parseLasarDecisionRequest(body);
-      const v = versions.find((x) => x.versionId === q.versionId);
-      if (!v || q.target.kind !== 'school' || q.target.unitId !== UNIT) return error(403, 'forbidden');
+      const s = storeOf(q.target);
+      if (!s || q.schoolYear !== YEAR) return error(403, 'forbidden');
+      if (q.action === 'preview_mode_change' || q.action === 'set_mode') {
+        if (!capabilities(s, latestOf(s)).canSetMode) return error(403, 'forbidden');
+        if (modeLocked) return error(409, 'conflict', 'lasar_mode_locked');
+        if (q.action === 'preview_mode_change')
+          return { status: 200, json: parseLasarModePreviewReply({ contractVersion: 'lasar_sql_v1', schoolYear: YEAR, mode: q.mode, affected: AFFECTED }) };
+        if (JSON.stringify([...q.confirmAffected].sort()) !== JSON.stringify(AFFECTED.map((a) => a.unitId).sort())) return error(409, 'conflict', 'lasar_command_conflict');
+        mode = q.mode!;
+        return { status: 200, json: parseLasarDecisionReply({ receipt: { commandId: q.commandId, revision: 1, replayed: false }, detail: readReply(s, null) }, q) };
+      }
+      const v = s.versions.find((x) => x.versionId === q.versionId);
+      if (!v) return error(403, 'forbidden');
       const f = takeFault(['mfa', 'regler']);
       if (f === 'mfa') return error(403, 'mfa_required');
       if (f === 'regler' && (q.action === 'submit' || q.action === 'approve')) return error(409, 'conflict', 'lasar_rules_failed', ['school_days_min']);
       if (q.expectedRevision !== v.revision) return error(409, 'conflict', 'lasar_revision_conflict');
-      const caps = capabilities(v);
+      const caps = capabilities(s, v);
       const now = new Date().toISOString();
       let result = v;
       switch (q.action) {
-        case 'submit': if (!caps.canSubmit) return error(403, 'forbidden'); v.status = 'forslag'; entry(v, 'rektor', 'Förslag skickat', q.text); break;
+        case 'submit':
+          if (!caps.canSubmit) return error(403, 'forbidden');
+          if (s.review.some((i) => !i.resolved)) return error(409, 'conflict', 'lasar_review_open');
+          v.status = 'forslag'; entry(v, 'rektor', 'Förslag skickat', q.text); break;
         case 'withdraw': if (!caps.canWithdraw) return error(403, 'forbidden'); v.status = 'utkast'; entry(v, 'rektor', 'Förslag återtaget', 'Förslaget togs tillbaka för fortsatt arbete.'); break;
         case 'return': if (!caps.canReturn) return error(403, 'forbidden'); v.status = 'atersand'; entry(v, 'huvudman', 'Återsänd för ändring', q.text); break;
         case 'approve': if (!caps.canApprove) return error(403, 'forbidden'); v.status = 'faststalld'; v.decidedOn = '2026-11-10'; entry(v, 'huvudman', 'Fastställd', q.text); break;
+        case 'publish_frame': if (!caps.canPublishFrame) return error(403, 'forbidden'); v.status = 'faststalld'; v.decidedOn = '2026-11-10'; entry(v, 'huvudman', 'Ramen utgiven', q.text); break;
         case 'request_change': if (!caps.canRequestChange) return error(403, 'forbidden'); changeRequest = { id: tid(++ids), status: 'open', reason: q.text, answer: null, requestedAt: now, answeredAt: null }; entry(v, 'rektor', 'Ändring begärd', q.text); break;
         case 'withdraw_request': if (!caps.canWithdrawRequest || !changeRequest) return error(403, 'forbidden'); changeRequest = { ...changeRequest, status: 'withdrawn', answeredAt: now }; entry(v, 'rektor', 'Begäran återtagen', ''); break;
         case 'decline_request': if (!caps.canDecline || !changeRequest) return error(403, 'forbidden'); changeRequest = { ...changeRequest, status: 'declined', answer: q.text, answeredAt: now }; entry(v, 'huvudman', 'Begäran avslagen', q.text); break;
         case 'reopen': {
           if (!caps.canReopen) return error(403, 'forbidden');
           if (changeRequest?.status === 'open') changeRequest = { ...changeRequest, status: 'accepted', answeredAt: now };
-          result = { ...makeVersion(v.version + 1, 'utkast', v), revision: 1, history: [] };
+          result = { ...makeVersion(v.version + 1, 'utkast', v), revision: 1, history: [], frameVersionId: v.frameVersionId };
           entry(result, 'huvudman', 'Öppnat för ändring', q.text);
-          versions.push(result);
+          s.versions.push(result);
           break;
         }
         default: return error(400, 'bad_request');
       }
       if (result === v) v.revision += 1;
-      return { status: 200, json: parseLasarDecisionReply({ receipt: { commandId: q.commandId, revision: result.revision, replayed: false }, detail: readReply(result.versionId) }, q) };
+      return { status: 200, json: parseLasarDecisionReply({ receipt: { commandId: q.commandId, revision: result.revision, replayed: false }, detail: readReply(s, result.versionId) }, q) };
     }
     return error(404, 'not_found');
   } catch (caught) {
     if (caught instanceof LasarContractError) return error(400, 'bad_request');
+    if (caught instanceof Error && caught.message.includes('jämförelsen')) return error(409, 'conflict', 'lasar_frame_stale');
     throw caught;
   }
 }
@@ -232,12 +398,17 @@ function Demo() {
   );
 }
 
+const actorRole: LasarActorRole | null = role === 'rektor' ? 'rektor' : role === 'huvudman' ? 'huvudman' : null;
 function Harness() {
+  const view = params.get('vy');
   return (
     <main id="workspace" lang="sv" className="workspace is-admin">
-      {params.get('vy') === 'demo'
+      {view === 'demo'
         ? <Demo />
-        : <ProtectedLasarWorkspace unitId={UNIT} schoolName={params.get('skola') ?? SCHOOL} schoolYear={YEAR} schoolTypes={TYPES} onSessionLost={() => undefined} />}
+        : view === 'arbetssatt'
+          ? <section className="admin-workspace timplan-workspace protected-lasar"><ProtectedLasarModeCard schoolYear={YEAR} onSessionLost={() => undefined} /></section>
+          : <ProtectedLasarWorkspace unitId={UNIT} schoolName={frameView ? 'Huvudmannens ram' : params.get('skola') ?? SCHOOL} schoolYear={YEAR} schoolTypes={TYPES} onSessionLost={() => undefined}
+            target={frameView ? { kind: 'frame' } : undefined} actorRole={actorRole} />}
     </main>
   );
 }

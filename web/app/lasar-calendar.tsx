@@ -4,7 +4,7 @@
 // demons (UI-SPEC avsnitt 1 rad 9–10 och avsnitt 8) och får inte ändras utan
 // att demoregressionen (e2e/lasar-demo.spec.ts) blir röd.
 import { CalendarCheck } from 'lucide-react';
-import { useRef, useState, type TouchEvent } from 'react';
+import { useRef, useState, type ReactNode, type TouchEvent } from 'react';
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -181,7 +181,13 @@ export type LasarCalendarProps = {
   menuClassName?: string;
   /** Telefon (A-13): långtryck markerar dagen innan menyn öppnas, och tryckets klick ändrar inte dagen. */
   touchSelect?: boolean;
+  /**
+   * Skyddad drift (A-06, avsnitt 10): extra klass på cellen, tillägg i titeln och
+   * markör i knappen, till exempel att granska eller skillnad mot ramen. Demon skickar ingen.
+   */
+  dayMark?: (day: DayInfo) => DayMark | undefined;
 };
+export type DayMark = { className?: string; title?: string; mark?: ReactNode };
 
 const noGroupDays: Map<string, GroupDay> = new Map();
 
@@ -202,6 +208,7 @@ export function LasarCalendar({
   isLocked,
   menuClassName,
   touchSelect = false,
+  dayMark,
 }: LasarCalendarProps) {
   const { selection, anchor } = calendar;
   const { selectedDays, changeable, groupChangeable, groupMarked } = selectionFacts(sy, selection, groupCalendar, isLocked);
@@ -212,12 +219,13 @@ export function LasarCalendar({
     const dayNumber = Number(d.date.slice(8));
     const off = groupCalendar.get(d.date)?.off;
     const locked = past(d);
+    const extra = d.status === 'utanför' ? undefined : dayMark?.(d);
     const title =
       d.status === 'utanför'
         ? `${formatLong(d.date)} · utanför läsåret`
-        : `${formatLong(d.date)} · ${d.holiday ?? statusText[d.status]}${d.note ? ` · ${d.note}` : ''}${d.part === 'jullov' ? ' · mellan terminerna' : ''}${off ? ` · ingen undervisning för ${off.from}: ${causeLabel[off.cause]}${off.note ? `, ${off.note}` : ''}` : ''}${locked ? ' · passerad dag, låst' : ''}`;
+        : `${formatLong(d.date)} · ${d.holiday ?? statusText[d.status]}${d.note ? ` · ${d.note}` : ''}${d.part === 'jullov' ? ' · mellan terminerna' : ''}${off ? ` · ingen undervisning för ${off.from}: ${causeLabel[off.cause]}${off.note ? `, ${off.note}` : ''}` : ''}${locked ? ' · passerad dag, låst' : ''}${extra?.title ? ` · ${extra.title}` : ''}`;
     const marked = selection.includes(d.date);
-    const className = `ly-day ly-${d.status}${off ? ' ly-off' : ''}${d.part === 'jullov' ? ' ly-between' : ''}${marked ? ' ly-selected' : ''}${anchor === d.date && marked && selection.length > 1 ? ' ly-anchor' : ''}${d.date === sy.ht.start || d.date === sy.vt.start ? ' ly-term-start' : ''}${d.date === sy.ht.end || d.date === sy.vt.end ? ' ly-term-end' : ''}${locked ? ' ly-past' : ''}`;
+    const className = `ly-day ly-${d.status}${off ? ' ly-off' : ''}${d.part === 'jullov' ? ' ly-between' : ''}${marked ? ' ly-selected' : ''}${anchor === d.date && marked && selection.length > 1 ? ' ly-anchor' : ''}${d.date === sy.ht.start || d.date === sy.vt.start ? ' ly-term-start' : ''}${d.date === sy.ht.end || d.date === sy.vt.end ? ' ly-term-end' : ''}${locked ? ' ly-past' : ''}${extra?.className ? ` ${extra.className}` : ''}`;
     if (d.status === 'utanför')
       return (
         <td key={d.date} className={className}>
@@ -238,6 +246,7 @@ export function LasarCalendar({
           {dayNumber}
           {d.note && <i className="ly-note-dot" aria-hidden="true" />}
           {d.holiday && i < 5 && <i className="ly-holiday-mark" aria-hidden="true" />}
+          {extra?.mark}
         </button>
       </td>
     );

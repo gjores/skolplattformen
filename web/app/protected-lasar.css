@@ -65,6 +65,150 @@
   }
 }
 
+/* A-04, avsnitt 10: startval i tomläget. Högst en primärknapp; övriga outline. */
+.protected-lasar .ly-start-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.protected-lasar .ly-start-actions button {
+  margin-top: 0;
+  min-height: var(--control-height);
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+}
+.protected-lasar .admin-empty p.ly-start-help {
+  margin: 8px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+
+/* D-04: granskning efter kopiering. Varningsfärg som validation-warning, via variabler. */
+.protected-lasar .ly-review-card {
+  margin: 16px 0 0;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--warning-foreground) 35%, transparent);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--warning-foreground) 6%, var(--card));
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.protected-lasar .ly-review-card h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.protected-lasar .ly-review-card ul {
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.protected-lasar .ly-review-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 0;
+  border-top: 1px solid color-mix(in srgb, var(--warning-foreground) 25%, transparent);
+}
+.protected-lasar .ly-review-text {
+  display: grid;
+  flex: 1 1 240px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.protected-lasar .ly-review-text strong {
+  font-weight: 500;
+}
+.protected-lasar .ly-review-text span {
+  color: var(--warning-foreground);
+  font-size: 0.75rem;
+}
+.protected-lasar .ly-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.protected-lasar .ly-review-actions button {
+  min-height: var(--control-height);
+}
+.protected-lasar .ly-day.ly-review > button {
+  outline: 2px dashed var(--warning-foreground);
+  outline-offset: -2px;
+}
+.protected-lasar .ly-legend .ly-review-legend i {
+  background: var(--card);
+  border: 2px dashed var(--warning-foreground);
+}
+.protected-lasar .ly-review-hint {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  color: var(--warning-foreground);
+}
+
+/* D-01: huvudmannens arbetssätt. */
+.ly-mode-card [data-slot='radio-group'] {
+  margin: 12px 0;
+}
+.ly-mode-card .ly-mode-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-height: var(--control-height);
+  padding: 8px 0;
+  cursor: pointer;
+}
+.ly-mode-card .ly-mode-option [data-slot='radio-group-item'] {
+  margin-top: 3px;
+}
+.ly-mode-card .ly-mode-option > span {
+  display: grid;
+  gap: 4px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.ly-mode-card .ly-mode-option strong {
+  font-weight: 500;
+}
+.ly-mode-card .ly-mode-locked {
+  margin: 0 0 12px;
+  font-size: 0.875rem;
+  color: var(--warning-foreground);
+}
+.ly-mode-card .ly-mode-actions button {
+  min-height: var(--control-height);
+}
+
+/* A-12: bekräftelser med lista (Byt arbetssätt, Ta in ramens ändringar). Listan rullar inom dialogen. */
+.ly-dialog-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.ly-dialog-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 12px;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.ly-dialog-list small {
+  color: var(--muted-foreground);
+}
+.ly-list-dialog .dialog-actions button {
+  min-height: var(--control-height);
+  height: auto;
+  white-space: normal;
+}
+
 /* Historik och kicker: långa namn och texter bryts utan att knappar trycks ut. */
 .protected-lasar .admin-history span,
 .protected-lasar .admin-history p,
