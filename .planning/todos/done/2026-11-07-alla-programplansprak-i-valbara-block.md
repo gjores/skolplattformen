@@ -2,7 +2,7 @@
 created: 2026-11-07
 title: Modersmål, teckenspråk och minoritetsspråk i valbara block
 area: planning
-status: pending
+status: done
 phase: "05.2"
 requirements: [GROUP-01]
 ---
@@ -31,3 +31,5 @@ Låt valplanen följa `PROGRAMPLAN_LANGUAGE_LADDERS` i modell, vy och databas i 
 - Grupper och tjänstefördelning ska hålla isär språken på samma kurs.
 - Handboken beskriver luckan och ska ändras i samma leverans.
 - SS 12000: ange i planen hur språket i undervisningsgruppen förhåller sig till standarden.
+
+**Klart 2026-11-10 i VP-16** (`824d294da1`). Språkämne är oförändrat enligt 4 kap. 1 a §. Inte installerat på 3012.

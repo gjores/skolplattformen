@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
-current_plan: "VP-15 klar"
+current_plan: "VP-16 klar"
 status: executing
-stopped_at: "VP-15 klar 2026-11-10: användarprovet U1–U16 fungerar på 3012 (ba60d267fc). Nästa: språkluckan i valbara block."
+stopped_at: "VP-16 klar 2026-11-10 (824d294da1), inte installerad på 3012. Nästa: fas 05.1.1 läsårskalender, enligt användaren."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "Användarprovet U1–U16 för valbara block fungerar inloggat på 3012. VP-15 stängd."
+last_activity_desc: "VP-16: modersmål, teckenspråk och minoritetsspråk i valbara block, syntetiskt provat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**VP-16 klart 2026-11-10:** [Modersmål, teckenspråk och minoritetsspråk i valbara block](phases/05.2-schemamodul/05.2-VP-16-SUMMARY.md). Syntetiskt provat, inte installerat på 3012: migrationen kräver stoppad 3012 och användarens klartecken. Användaren valde 2026-11-10 läsårskalendern 05.1.1 som nästa steg, före schemamotorn.
 
 **VP-15 klart 2026-11-10:** användaren har gått igenom U1–U16 inloggat och allt fungerar. Gränssnittet ska förenklas senare ([uppgift](todos/pending/2026-11-10-snyggare-enklare-valbara-block.md)), och konton ska kopplas vid inskrivning ([uppgift](todos/pending/2026-11-09-kontokoppling-vid-inskrivning.md)). Nästa steg: [språkluckan](todos/pending/2026-11-07-alla-programplansprak-i-valbara-block.md).
 
