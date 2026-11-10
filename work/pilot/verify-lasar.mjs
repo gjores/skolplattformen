@@ -22,12 +22,14 @@ const YEAR = 2027;
 /**
  * Funktioner som får nämna school_years (assumption_delta_decision): accessorn, lasar-ingångarna och deras hjälp,
  * triggervakten för dagar och det distinkta läsårsurvalet phase4_register_selection (fas 4, omdefinierat i 05.1; det läser
- * bara vilka läsår som finns). En ny läsare som inte står här gör provet rött; den ska gå via lasar_current eller ange en
+ * bara vilka läsår som finns). 05.1.1-10: skolans start ur ramen och listan över skolor med påbörjade kalendrar vid byte av
+ * arbetssätt. En ny läsare som inte står här gör provet rött; den ska gå via lasar_current eller ange en
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
-  'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail',
-  'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term',
+  'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_from_frame', 'lasar_create_proposal', 'lasar_current',
+  'lasar_detail', 'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_mode_affected', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules',
+  'lasar_school_days', 'lasar_set_term',
   'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];

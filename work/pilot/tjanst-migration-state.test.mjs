@@ -70,8 +70,10 @@ const LASAR = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabas
 const GROUPS = 'supabase/migrations/20261112100000_lasar_groups.sql';
 // 05.1.1-09: ändringsbegäran, ny version och låsta passerade dagar; sorterar efter gruppfilen.
 const CHANGES = 'supabase/migrations/20261112110000_lasar_change_requests.sql';
+// 05.1.1-10: huvudmannens ram och arbetssätt; sorterar efter ändringsbegärans fil.
+const FRAMES = 'supabase/migrations/20261112120000_lasar_frames.sql';
 /** Kalenderns filer som inte är installerade på 3012, i registrets ordning. */
-const PENDING_3012 = [GROUPS, CHANGES];
+const PENDING_3012 = [GROUPS, CHANGES, FRAMES];
 const INSTALLED_3012 = { 'supabase/migrations/20261111100000_lasar_versions.sql': '10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66',
   'supabase/migrations/20261111190000_lasar_worker_access.sql': '3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c' };
 test('kalenderns migrationer är registrerade sist och i versionsordning', () => {
@@ -104,6 +106,12 @@ test('installerat på 3012 till och med 20261111190000 ger alla ej installerade 
 test('ändringsbegärans fil (05.1.1-09) är registrerad direkt efter gruppfilen', () => {
   const at = registry.findIndex(m => m.file === GROUPS);
   assert.equal(registry[at + 1]?.file, CHANGES);
+  assert.match(registry[at + 1].sha256, /^[0-9a-f]{64}$/u);
+});
+test('ramens fil (05.1.1-10) är registrerad direkt efter ändringsbegärans fil och sist i registret', () => {
+  const at = registry.findIndex(m => m.file === CHANGES);
+  assert.equal(registry[at + 1]?.file, FRAMES);
+  assert.equal(registry.at(-1).file, FRAMES);
   assert.match(registry[at + 1].sha256, /^[0-9a-f]{64}$/u);
 });
 test('de installerade kalenderfilernas hashar står fast', () => {
