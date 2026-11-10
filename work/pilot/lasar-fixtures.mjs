@@ -28,6 +28,8 @@ export async function createLasarFixture(tx) {
 const value = rows => rows[0].value;
 export const lasarRead = async (t, q) => value(await t`select public.lasar_read(${t.json(q)}) value`);
 export const lasarSend = async (t, q) => value(await t`select public.lasar_command(${t.json(q)}) value`);
+/** Utfallet för ett kommando-id (05.1.1-07): samma aktör, mål och läsår; utförs aldrig igen. */
+export const lasarStatus = async (t, q) => value(await t`select public.lasar_status(${t.json(q)}) value`);
 export const school = unitId => ({ kind: 'school', unitId });
 
 /** Kommando som klienten bygger det (payloadHash över exakt de kommandon som skickas). */
@@ -41,6 +43,11 @@ export function proposalContent(schoolYear, unitId, schoolTypes) {
 }
 export async function createCommand(unitId, schoolYear, schoolTypes, extra = {}) {
   return { ...(await lasarCommand({ unitId, schoolYear, ops: [{ op: 'create', source: 'proposal' }], ...extra })), proposal: proposalContent(schoolYear, unitId, schoolTypes) };
+}
+/** Återställ förslaget: servern räknar fram innehållet som vid create (05.1.1-07). */
+export async function resetCommand({ unitId, schoolYear, versionId, expectedRevision, schoolTypes, commandId }) {
+  return { ...(await lasarCommand({ unitId, schoolYear, versionId, expectedRevision, ops: [{ op: 'reset_to_proposal' }], ...(commandId ? { commandId } : {}) })),
+    proposal: proposalContent(schoolYear, unitId, schoolTypes) };
 }
 export function lasarDecision({ unitId, schoolYear, versionId, expectedRevision, action, text = '', commandId = randomUUID() }) {
   return { commandId, target: school(unitId), schoolYear, versionId, expectedRevision, action, text, mode: null, confirmAffected: [] };

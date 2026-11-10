@@ -7,10 +7,11 @@ import assert from 'node:assert/strict';
 import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { createLasarFixture, createCommand, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarMigrations, school } from './lasar-fixtures.mjs';
+import { randomUUID } from 'node:crypto';
+import { createLasarFixture, createCommand, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school } from './lasar-fixtures.mjs';
 import { parseLasarCommandReply, parseLasarDecisionReply, parseLasarEnvelope, parseLasarReadReply, lasarSchoolYear } from '../../web/lib/lasar-contract.ts';
 import { lasarContentHash } from '../../web/lib/lasar-content.ts';
-import { addDays, dayInfo, summarize } from '../../web/lib/lasar-model.ts';
+import { addDays, dayInfo, proposeSchoolYear, setTerm, summarize } from '../../web/lib/lasar-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const rollback = Error('expected_lasar_rollback');
@@ -22,8 +23,8 @@ const YEAR = 2027;
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
-  'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail',
-  'lasar_lock_version', 'lasar_rules', 'lasar_school_days', 'phase4_register_selection',
+  'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail', 'lasar_history',
+  'lasar_lock_version', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term', 'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
 
@@ -54,10 +55,11 @@ function staticChecks(report) {
   record('versionsfilen lägger inte till något enumvärde (Pitfall 1)', () => {
     assert.equal((file(lasarMigrations[0]).match(/add value/giu) ?? []).length, 0);
   });
-  record('versionsfilen har inga rättighetssatser; grant-filen bara execute på lasar_read och lasar_command', () => {
+  record('versionsfilen har inga rättighetssatser; grant-filen bara execute på lasar_read, lasar_command och lasar_status', () => {
     assert.equal(file(lasarMigrations[0]).split('\n').filter(l => !l.startsWith('--') && /grant /iu.test(l)).length, 0);
     const lines = file(lasarMigrations[1]).split('\n').filter(l => l.trim() && !l.startsWith('--'));
-    assert.deepEqual(lines, ['grant execute on function public.lasar_read(jsonb) to skolplattform_worker;', 'grant execute on function public.lasar_command(jsonb) to skolplattform_worker;']);
+    assert.deepEqual(lines, ['grant execute on function public.lasar_read(jsonb) to skolplattform_worker;', 'grant execute on function public.lasar_command(jsonb) to skolplattform_worker;',
+      'grant execute on function public.lasar_status(jsonb) to skolplattform_worker;']);
   });
   record('inga demofunktioner i lasar-fixturer och prov', () => {
     for (const p of ['work/pilot/lasar-fixtures.mjs', 'work/pilot/verify-lasar.mjs']) for (const word of FORBIDDEN_DEMO) assert.ok(!file(p).includes(word), p);
@@ -77,13 +79,13 @@ async function structure(t, step) {
     const cols = (await u`select attname from pg_attribute where attrelid='public.school_years'::regclass and attnum>0 and not attisdropped order by attnum`).map(r => r.attname);
     for (const c of ['version', 'revision', 'superseded_at', 'superseded_by', 'previous_id', 'content_hash', 'change_reason', 'decision_comment']) assert.ok(cols.includes(c), c);
   });
-  await step(t, 'Workern får bara execute på lasar_read och lasar_command; övriga lasar-funktioner är stängda', async u => {
+  await step(t, 'Workern får bara execute på lasar_read, lasar_command och lasar_status; övriga lasar-funktioner är stängda', async u => {
     const rows = await u`select p.oid::regprocedure::text s, has_function_privilege('skolplattform_worker',p.oid,'EXECUTE') w,
       has_function_privilege('anon',p.oid,'EXECUTE') or has_function_privilege('authenticated',p.oid,'EXECUTE') or has_function_privilege('service_role',p.oid,'EXECUTE') c,
       exists(select 1 from aclexplode(coalesce(p.proacl,acldefault('f',p.proowner))) a where a.grantee=0) pub
       from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'lasar\\_%' order by 1`;
     assert.ok(rows.length >= 20, String(rows.length));
-    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_read(jsonb)']);
+    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_read(jsonb)', 'lasar_status(jsonb)']);
     assert.deepEqual(rows.filter(r => r.c || r.pub).map(r => r.s), []);
   });
   await step(t, 'lasar_commands har tvingad RLS utan policyer och inga rättigheter för Worker eller klientroller', async u => {
@@ -307,6 +309,185 @@ async function tracer(t, step, f) {
   });
 }
 
+/** 05.1.1-07: hela flödet för skolans version 1 med mandat per åtgärd (D-18), historik (A-16) och statusvägen. */
+async function flow(t, step, f) {
+  const A = f.schools.A, B = f.schools.B, types = f.schoolTypes.A;
+  const env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const read = async (name, unitId = A) => {
+    await f.actor(t, name);
+    const q = { target: school(unitId), schoolYear: YEAR, versionId: null };
+    return parseLasarReadReply(env(await lasarRead(t, q), name), q);
+  };
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const deny = (name, q, code, hint) => denied(t, async u => { await f.actor(u, name); await lasarSend(u, q); }, code, hint);
+  const s = {};
+  const keep = r => { s.rev = r.receipt.revision; s.last = r; return r; };
+  const cmd = (ops, rev = s.rev) => lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: rev, ops });
+  const dec = (action, text, rev = s.rev) => lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: rev, action, text });
+  const reset = (extra = {}) => resetCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, schoolTypes: types, ...extra });
+  const schoolDay = (sy, from) => { let d = from; while (dayInfo(sy, d).status !== 'skoldag') d = addDays(d, 1); return d; };
+  const snapshot = async () => (await t`select y.status::text status, y.revision,
+    (select count(*)::int from public.school_year_events e where e.school_year_id=y.id) events,
+    (select count(*)::int from public.lasar_commands c where c.school_year_id=y.id) commands,
+    (select count(*)::int from public.school_year_days d where d.school_year_id=y.id) days from public.school_years y where y.id=${s.v}`)[0];
+  const onlyB = async u => {
+    const aid = randomUUID();
+    await u`insert into public.access_assignments(id,membership_id,customer_id,organizer_id,function,profile_id,scope_kind) values(${aid},${f.membership('hm')},${f.id(1)},${f.id(2)},'huvudman','synthetic-v1','school')`;
+    await u`insert into public.mandate_units values(${aid},${f.id(1)},${f.id(2)},${B})`;
+    const saved = f.roles.hm; f.roles.hm = aid;
+    try { await f.sessionFor(u, 'hm'); await f.actor(u, 'hm'); } finally { f.roles.hm = saved; }
+  };
+
+  await step(t, 'flöde: rektor A skapar version 1 ur förslaget; historiken får raden Förslag skapat', async () => {
+    const r = keep(await send('principalA', await createCommand(A, YEAR, types)));
+    s.v = r.detail.calendar.versionId;
+    const h = r.detail.calendar.history;
+    assert.deepEqual(h.map(x => [x.action, x.role, x.actorName, x.version]), [['Förslag skapat', 'rektor', 'Syntetisk principalA', 1]]);
+    assert.equal(r.detail.capabilities.canComment, true);
+  });
+  await step(t, 'rektor ändrar höstterminens slut (set_term); dagar utanför terminen faller bort som i modellen', async () => {
+    const ht = s.last.detail.calendar.terms.ht, day = schoolDay(lasarSchoolYear(s.last.detail), addDays(ht.end, -2));
+    assert.ok(day <= ht.end);
+    keep(await send('principalA', await cmd([{ op: 'set_days', dates: [day], kind: 'lovdag', note: 'Syntetisk lovdag' }])));
+    const before = lasarSchoolYear(s.last.detail), end = addDays(ht.end, -7);
+    const r = keep(await send('principalA', await cmd([{ op: 'set_term', term: 'ht', edge: 'end', date: end }])));
+    const expected = setTerm({ role: 'rektor', years: [before] }, before.id, 'ht', 'end', end).years[0];
+    assert.equal(r.detail.calendar.terms.ht.end, end); assert.equal(r.detail.calendar.exceptions[day], undefined);
+    assert.deepEqual(r.detail.calendar.exceptions, expected.exceptions);
+  });
+  await step(t, 'terminer i fel ordning nekas med regelkoden term_order; ett annat kalenderår nekas', async () => {
+    const vt = s.last.detail.calendar.terms.vt;
+    const e = await deny('principalA', await cmd([{ op: 'set_term', term: 'ht', edge: 'end', date: addDays(vt.start, 1) }]), '40001', 'lasar_rules_failed');
+    assert.deepEqual(JSON.parse(e.detail), ['term_order']);
+    await deny('principalA', await cmd([{ op: 'set_term', term: 'vt', edge: 'end', date: `${YEAR + 2}-06-09` }]), '22023', 'lasar_invalid');
+  });
+  await step(t, 'skoladministratören sätter och tar bort en anteckning på en lovdag (set_notes); en skoldag nekas', async () => {
+    const c = s.last.detail.calendar, lov = Object.keys(c.exceptions).sort()[0], kind = c.exceptions[lov].kind;
+    let r = keep(await send('admin', await cmd([{ op: 'set_notes', dates: [lov], note: 'Syntetisk anteckning' }])));
+    assert.deepEqual(r.detail.calendar.exceptions[lov], { kind, note: 'Syntetisk anteckning' });
+    r = keep(await send('admin', await cmd([{ op: 'set_notes', dates: [lov] }])));
+    assert.deepEqual(r.detail.calendar.exceptions[lov], { kind });
+    const sd = schoolDay(lasarSchoolYear(r.detail), `${YEAR}-09-01`);
+    await deny('admin', await cmd([{ op: 'set_notes', dates: [sd], note: 'Syntetisk' }]), '22023', 'lasar_invalid');
+  });
+  await step(t, 'rektor kommenterar; en tom kommentar nekas med lasar_text_required', async () => {
+    const r = keep(await send('principalA', await cmd([{ op: 'comment', text: 'Syntetisk kommentar\nandra raden' }])));
+    const h = r.detail.calendar.history[0];
+    assert.deepEqual([h.role, h.actorName, h.action, h.comment, h.version], ['rektor', 'Syntetisk principalA', 'Kommentar', 'Syntetisk kommentar\nandra raden', 1]);
+    await deny('principalA', await cmd([{ op: 'comment', text: '' }]), '22023', 'lasar_text_required');
+  });
+  await step(t, 'huvudmannen kommenterar utkastet men kan inte ändra eller återställa det', async () => {
+    const r = keep(await send('hm', await cmd([{ op: 'comment', text: 'Syntetisk fråga' }])));
+    assert.equal(r.detail.calendar.history[0].role, 'huvudman'); assert.equal(r.detail.capabilities.canEdit, false);
+    await deny('hm', await cmd([{ op: 'set_term', term: 'ht', edge: 'end', date: r.detail.calendar.terms.ht.end }]), '42501');
+    await deny('hm', await reset(), '42501');
+  });
+  await step(t, 'skoladministratören återställer förslaget: terminer och lov enligt förslaget, gruppdagar ligger kvar', async () => {
+    await deny('admin', await cmd([{ op: 'reset_to_proposal' }]), '22023', 'lasar_invalid');
+    await deny('admin', { ...(await cmd([{ op: 'comment', text: 'Syntetisk' }])), proposal: (await reset()).proposal }, '22023', 'lasar_invalid');
+    const key = `klass:${f.classes.group}`, gd = schoolDay(lasarSchoolYear(s.last.detail), `${YEAR}-09-06`);
+    await t`insert into public.school_year_group_days(school_year_id,group_key,day,cause) values(${s.v},${key},${gd},'friluftsdag')`;
+    const r = keep(await send('admin', await reset()));
+    const p = proposeSchoolYear(YEAR, A, types);
+    assert.deepEqual(r.detail.calendar.terms, { ht: p.ht, vt: p.vt }); assert.deepEqual(r.detail.calendar.exceptions, p.exceptions);
+    assert.deepEqual(r.detail.calendar.groupDays, { [key]: { [gd]: { cause: 'friluftsdag' } } });
+    assert.deepEqual([r.detail.calendar.history[0].action, r.detail.calendar.history[0].role], ['Förslag återställt', 'skoladministrator']);
+  });
+  await step(t, 'rektor B kan varken ändra, kommentera, återställa eller ta tillbaka i skola A', async () => {
+    await deny('principalB', await cmd([{ op: 'comment', text: 'Syntetisk' }]), '42501');
+    await deny('principalB', await cmd([{ op: 'set_term', term: 'ht', edge: 'end', date: s.last.detail.calendar.terms.ht.end }]), '42501');
+    await deny('principalB', await reset(), '42501');
+    await deny('principalB', dec('withdraw', ''), '42501');
+  });
+  await step(t, 'rektor skickar; skoladministratören tar tillbaka förslaget utan text (withdraw)', async () => {
+    let r = keep(await decide('principalA', dec('submit', 'Syntetiskt förslag')));
+    assert.equal(r.detail.calendar.status, 'forslag'); assert.equal(r.detail.capabilities.canWithdraw, true);
+    r = keep(await decide('admin', dec('withdraw', '')));
+    assert.equal(r.detail.calendar.status, 'utkast'); assert.equal(r.detail.capabilities.canEdit, true); assert.equal(r.detail.capabilities.canWithdraw, false);
+    assert.deepEqual([r.detail.calendar.history[0].action, r.detail.calendar.history[0].role], ['Förslag återtaget', 'skoladministrator']);
+    await deny('principalA', dec('withdraw', ''), '40001', 'lasar_locked_status');
+  });
+  await step(t, 'skoladministratören kan inte återsända, fastställa, öppna eller avslå (D-18); rektor kan inte återsända', async () => {
+    keep(await decide('admin', dec('submit', 'Syntetiskt förslag igen')));
+    for (const action of ['return', 'approve', 'reopen', 'decline_request']) await deny('admin', dec(action, 'Syntetisk text'), '42501');
+    await deny('principalA', dec('return', 'Syntetisk text'), '42501');
+  });
+  await step(t, 'återsändning kräver text', async () => {
+    await deny('hm', dec('return', ''), '22023', 'lasar_text_required');
+  });
+  await step(t, 'en revision som inte stämmer ger lasar_revision_conflict utan delresultat', async () => {
+    const before = await snapshot();
+    await deny('hm', dec('return', 'Syntetisk text', s.rev - 1), '40001', 'lasar_revision_conflict');
+    await deny('hm', await cmd([{ op: 'comment', text: 'Syntetisk' }], s.rev - 1), '40001', 'lasar_revision_conflict');
+    assert.deepEqual(await snapshot(), before);
+  });
+  await step(t, 'huvudmannen återsänder; rektor ändrar och skickar på nytt', async () => {
+    s.returnQ = dec('return', 'Syntetisk begäran om ändring');
+    s.returned = keep(await decide('hm', s.returnQ));
+    assert.equal(s.returned.detail.calendar.status, 'atersand'); assert.equal(s.returned.detail.capabilities.canReturn, false);
+    const pr = await read('principalA'); assert.equal(pr.capabilities.canEdit, true); assert.equal(pr.capabilities.canSubmit, true);
+    const day = schoolDay(lasarSchoolYear(s.returned.detail), `${YEAR}-11-15`);
+    keep(await send('principalA', await cmd([{ op: 'set_days', dates: [day], kind: 'studiedag', note: 'Syntetisk studiedag' }])));
+    assert.equal(keep(await decide('principalA', dec('submit', 'Syntetiskt nytt förslag'))).detail.calendar.status, 'forslag');
+    const hr = await read('hm'); assert.equal(hr.capabilities.canReturn, true); assert.equal(hr.capabilities.canApprove, true);
+  });
+  await step(t, 'lasar_status ger utfallet för ett journalfört kommando-id utan att utföra det igen', async () => {
+    const before = await snapshot();
+    await f.actor(t, 'hm');
+    const st = env(await lasarStatus(t, { commandId: s.returnQ.commandId, target: school(A), schoolYear: YEAR }), 'hm');
+    assert.equal(st.state, 'completed'); assert.equal(st.result.receipt.replayed, true);
+    assert.deepEqual(parseLasarDecisionReply({ ...st.result, receipt: { ...st.result.receipt, replayed: false } }, s.returnQ), s.returned);
+    const none = env(await lasarStatus(t, { commandId: randomUUID(), target: school(A), schoolYear: YEAR }), 'hm');
+    assert.deepEqual(none, { state: 'not_found', result: null });
+    assert.deepEqual(await snapshot(), before);
+  });
+  await step(t, 'lasar_status nekar en annan aktör, ett annat läsår och en skola utanför uppdraget', async () => {
+    const q = { commandId: s.returnQ.commandId, target: school(A), schoolYear: YEAR };
+    await denied(t, async u => { await f.actor(u, 'principalA'); await lasarStatus(u, q); }, '40001', 'lasar_command_conflict');
+    await denied(t, async u => { await f.actor(u, 'hm'); await lasarStatus(u, { ...q, schoolYear: YEAR + 1 }); }, '40001', 'lasar_command_conflict');
+    await denied(t, async u => { await f.actor(u, 'principalB'); await lasarStatus(u, q); }, '42501');
+    await denied(t, async u => { await f.actor(u, 'hm'); await lasarStatus(u, { ...q, extra: 1 }); }, '22023', 'lasar_invalid');
+  });
+  await step(t, 'en huvudman utan skolans enhet i sitt uppdrag nekas', async () => {
+    await denied(t, async u => { await onlyB(u); await lasarSend(u, dec('approve', 'Syntetiskt beslut')); }, '42501');
+    await denied(t, async u => { await onlyB(u); await lasarRead(u, { target: school(A), schoolYear: YEAR, versionId: null }); }, '42501');
+  });
+  await step(t, 'ett ogiltigt mandat nekas (rektorns utfärdande huvudmannauppdrag är avslutat)', async () => {
+    await denied(t, async u => {
+      await u`update public.access_assignments set ended_at=clock_timestamp() where id=${f.roles.hm}`;
+      await f.actor(u, 'principalA'); await lasarSend(u, await cmd([{ op: 'comment', text: 'Syntetisk' }]));
+    }, '42501');
+  });
+  await step(t, 'huvudmannen fastställer; historiken visar varje steg med roll, verifierad aktör och version (A-16)', async () => {
+    const r = keep(await decide('hm', dec('approve', 'Syntetiskt beslut')));
+    const h = r.detail.calendar.history;
+    assert.deepEqual(h.map(x => [x.action, x.role]), [['Fastställd', 'huvudman'], ['Förslag skickat', 'rektor'], ['Återsänd för ändring', 'huvudman'],
+      ['Förslag skickat', 'skoladministrator'], ['Förslag återtaget', 'skoladministrator'], ['Förslag skickat', 'rektor'], ['Förslag återställt', 'skoladministrator'],
+      ['Kommentar', 'huvudman'], ['Kommentar', 'rektor'], ['Förslag skapat', 'rektor']]);
+    assert.deepEqual(h.slice(0, 3).map(x => x.comment), ['Syntetiskt beslut', 'Syntetiskt nytt förslag', 'Syntetisk begäran om ändring']);
+    assert.ok(h.every(x => x.version === 1 && x.actorName === `Syntetisk ${{ huvudman: 'hm', rektor: 'principalA', skoladministrator: 'admin' }[x.role]}`));
+    assert.ok(h.every((x, i) => i === 0 || x.at <= h[i - 1].at));
+  });
+  await step(t, 'Workern ser inte kalenderns historikrader och kan inte skriva dem direkt', async () => {
+    const [p] = await t`select polpermissive p, pg_get_expr(polqual, polrelid) q from pg_policy where polrelid='public.school_year_events'::regclass and polname='school_year_events_lasar_rpc_only'`;
+    assert.equal(p.p, false); assert.match(p.q, /actor_identity_id IS NULL/u);
+    await denied(t, async u => {
+      await f.actor(u, 'hm'); await u`set local role skolplattform_worker`;
+      await u`insert into public.school_year_events(school_year_id,actor_role,action,comment) values(${s.v},'huvudman','lasar_approve','Syntetiskt förfalskat')`;
+    }, '42501');
+  });
+  await step(t, 'statusläsning och kalenderns åtgärder loggas utan personuppgifter', async () => {
+    const rows = await t`select action, object_type, details from public.security_events where action like 'lasar\\_%' order by id`;
+    assert.ok(['lasar_status', 'lasar_command', 'lasar_decision', 'lasar_read'].every(a => rows.some(r => r.action === a)));
+    for (const r of rows) {
+      assert.equal(r.object_type, 'school_year');
+      assert.ok(Object.keys(r.details).every(k => ['commandId', 'action', 'revision', 'version', 'unitId', 'schoolYear'].includes(k)), JSON.stringify(r.details));
+      assert.ok(!JSON.stringify(r.details).includes('Syntetisk'));
+    }
+  });
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -327,7 +508,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
   const report = { kind: 'lasar-sql', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', cases: [], startedAt: new Date().toISOString(),
     limitations: ['Own database and synthetic fixtures only; nothing installed in any connected database', 'No HTTP/OIDC/Worker; the real chain is plan 15',
       ephemeral ? 'Schema built from repository migrations on a private PostgreSQL instance with minimal Supabase stubs' : 'Schema-only copy of the protected local target with pending migrations',
-      'Version 2 and the Pitfall 6 calendar are inserted directly by the owner (marked synthetic); reopen comes in a later plan',
+      'Version 2, the Pitfall 6 calendar and one group day are inserted directly by the owner (marked synthetic); reopen comes in a later plan',
       'SS 12000: the calendar has no object in the standard; unit_id is Organisation/Skolenhet; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   const step = caseRunner(report);
@@ -346,7 +527,9 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await tracer(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
+    for (const run of [tracer, flow]) {
+      try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
+    }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }
   finally {
     try { await source?.close(); } catch (e) { report.cleanupFailure = { message: e.message }; }

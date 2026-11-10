@@ -51,6 +51,7 @@ const routes = {
   lasa: (await import('../../app/api/lasar/lasa/route.ts')).POST,
   kommando: (await import('../../app/api/lasar/kommando/route.ts')).POST,
   beslut: (await import('../../app/api/lasar/beslut/route.ts')).POST,
+  status: (await import('../../app/api/lasar/status/route.ts')).POST,
 };
 function post(path, body, origin = 'http://localhost') {
   return routes[path](new Request(`http://localhost/api/lasar/${path}`, { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'X-Context-Epoch': '1' },
@@ -189,6 +190,71 @@ test('främmande ursprung nekas för kommandon och läsning', async () => {
 
 test('inga demofunktioner i lasar-vägen', () => {
   const words = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
-  for (const path of ['./lasar.ts', '../../app/api/lasar/lasa/route.ts', '../../app/api/lasar/kommando/route.ts', '../../app/api/lasar/beslut/route.ts', '../../app/lasar-planning-bar.tsx'])
+  for (const path of ['./lasar.ts', '../../app/api/lasar/lasa/route.ts', '../../app/api/lasar/kommando/route.ts', '../../app/api/lasar/beslut/route.ts', '../../app/api/lasar/status/route.ts', '../../app/lasar-planning-bar.tsx'])
     for (const word of words) assert.ok(!readFileSync(new URL(path, import.meta.url), 'utf8').includes(word), path);
+});
+
+// ---------------------------------------------------------------- 05.1.1-07
+
+test('återställ förslaget: servern läser skolformerna och skickar serverberäknat innehåll', async () => {
+  reset('rektor');
+  const request = await lasarCommandRequest({ target, schoolYear: year, versionId: version, expectedRevision: 3, ops: [{ op: 'reset_to_proposal' }] });
+  state.replies.lasar_read = wrap(read({ cal: calendar({ revision: 3 }), capabilities: caps({ canEdit: true, canSubmit: true, canComment: true }) }));
+  state.replies.lasar_command = wrap({ receipt: { commandId: request.commandId, revision: 4, replayed: false }, detail: read({ cal: calendar({ revision: 4 }), capabilities: caps({ canEdit: true, canSubmit: true, canComment: true }) }) });
+  const response = await post('kommando', request);
+  assert.equal(response.status, 200);
+  assert.deepEqual(state.calls.map(c => c.fn), ['lasar_read', 'lasar_command']);
+  assert.deepEqual(state.calls[0].values, [{ target, schoolYear: year, versionId: version }]);
+  const p = proposeSchoolYear(year, unit, ['GR', 'GY']);
+  assert.deepEqual(state.calls[1].values, [{ ...JSON.parse(JSON.stringify(request)), proposal: { terms: { ht: p.ht, vt: p.vt }, exceptions: p.exceptions } }]);
+});
+
+test('en tom kommentar nekas med lasar_text_required innan SQL anropas', async () => {
+  reset('rektor');
+  const ops = [{ op: 'comment', text: '' }];
+  const { lasarPayloadHash } = await import('../lasar-contract.ts');
+  const body = { commandId: uid(70), target, schoolYear: year, versionId: version, expectedRevision: 1, ops, payloadHash: await lasarPayloadHash(ops) };
+  const response = await post('kommando', body);
+  assert.equal(response.status, 400); assert.deepEqual((await response.json()).details, { reason: 'lasar_text_required' }); assert.deepEqual(state.calls, []);
+});
+
+const statusRequest = (over = {}) => ({ commandId: uid(71), target, schoolYear: year, ...over });
+test('status: utfallet för ett journalfört kommando-id, rutt, SQL-anrop och händelse', async () => {
+  reset('rektor');
+  state.replies.lasar_status = wrap({ state: 'completed', result: { receipt: { commandId: uid(71), revision: 2, replayed: true }, detail: read({ cal: calendar({ revision: 2 }), capabilities: caps({ canEdit: true, canSubmit: true, canComment: true }) }) } });
+  const response = await post('status', statusRequest());
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.state, 'completed'); assert.equal(body.result.receipt.replayed, true); assert.equal(body.result.detail.calendar.revision, 2);
+  assert.match(state.calls[0].sql, /select public\.lasar_status\(\?\) as result/u);
+  assert.deepEqual(state.calls[0].values, [statusRequest()]);
+  assert.deepEqual(state.events.filter(e => e.outcome === 'ok').map(e => [e.action, e.objectType, e.objectId, e.details.unitId, e.details.schoolYear]),
+    [['lasar_status', 'school_year', version, unit, year]]);
+});
+
+test('status: okänt kommando-id ger not_found; ett svar för ett annat kommando eller en annan revision ger 500', async () => {
+  reset('huvudman');
+  state.replies.lasar_status = wrap({ state: 'not_found', result: null });
+  const none = await post('status', statusRequest());
+  assert.equal(none.status, 200); assert.deepEqual(await none.json(), { state: 'not_found', result: null });
+  for (const result of [{ receipt: { commandId: uid(72), revision: 2, replayed: true }, detail: read({ cal: calendar({ revision: 2 }) }) },
+    { receipt: { commandId: uid(71), revision: 3, replayed: true }, detail: read({ cal: calendar({ revision: 2 }) }) },
+    { receipt: { commandId: uid(71), revision: 2, replayed: true }, detail: { ...read({ cal: calendar({ revision: 2 }) }), schoolYear: year + 1 } }]) {
+    reset('huvudman', { lasar_status: wrap({ state: 'completed', result }) });
+    assert.equal((await post('status', statusRequest())).status, 500);
+  }
+  reset('huvudman', { lasar_status: wrap({ state: 'not_found', result: null }, { identityId: uid(90), assignmentId }) });
+  assert.equal((await post('status', statusRequest())).status, 500);
+});
+
+test('status: strikt begäran, samma ursprung, ingen engångskod och bara kalenderns tre funktioner', async () => {
+  reset('rektor');
+  assert.equal((await post('status', statusRequest({ extra: 1 }))).status, 400);
+  assert.equal((await post('status', { target, schoolYear: year })).status, 400);
+  assert.equal((await post('status', statusRequest(), 'https://example.invalid')).status, 403);
+  assert.deepEqual(state.calls, []);
+  for (const fn of ['larare', 'kundadmin']) { reset(fn); assert.equal((await post('status', statusRequest())).status, 403); assert.deepEqual(state.calls, []); }
+  const source = readFileSync(new URL('../../app/api/lasar/status/route.ts', import.meta.url), 'utf8');
+  assert.match(source, /protectedRoute\(request, 'lasar_status', \{ mutating: false, audit: 'required', functions: \['huvudman', 'rektor', 'administrator'\] \}/u);
+  assert.match(source, /requireSameOrigin\(request\)/u); assert.doesNotMatch(source, /mfa/u);
 });
