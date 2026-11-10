@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-07 klar 2026-11-10 (utkast- och beslutsflödet, D-18, historik, lasar_status och fullständiga regler med paritet; prövat i ephemeral PostgreSQL; inget installerat). Nästa: 05.1.1-08. Kalenderns migrationer kräver att VP-16 installeras på 3012 först."
+stopped_at: "05.1.1-07 klar och tidigt installerad på 3012 2026-11-10 med VP-16 (261fc0db); användarprovet K1–K9 och V1: Allt funkar! Nästa: 05.1.1-08."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
 last_activity_desc: "05.1.1-07: lasar_command med set_term, set_notes, comment, reset_to_proposal, withdraw och return med mandat per åtgärd (D-18), historik med verifierad aktör (A-16), lasar_status och /api/lasar/status, regler i SQL med paritet mot lasar-model.ts och modellkontroll i servern. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
