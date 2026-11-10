@@ -102,6 +102,8 @@ const CLASSIFY = [
   ['group_days_min', /undervisningsdagar mot skolans/],
 ];
 
+const sorted = (values) => [...values].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+
 function ruleMatrix() {
   const p = proposeSchoolYear(2026, 'u1', ['GR']);
   const year = (patch = {}) => ({ ...p, ht: { ...p.ht }, vt: { ...p.vt }, exceptions: { ...p.exceptions }, groupExceptions: {}, shortWeeks: {}, ...patch });
@@ -135,9 +137,9 @@ test('LASAR_RULE_CODES täcker varje fel- och varningsregel som allIssues ger p�
       seen.set(code, new Set([...(seen.get(code) ?? []), issue.level]));
     }
   }
-  assert.deepEqual([...seen.keys()].sort(), Object.keys(LASAR_RULE_CODES).sort());
-  assert.deepEqual([...seen.get('gy_weeks')].sort(), ['error', 'warning']);
-  for (const [code, levels] of seen) assert.deepEqual([...levels].sort(), [...LASAR_RULE_CODES[code].levels].sort(), code);
+  assert.deepEqual(sorted(seen.keys()), sorted(Object.keys(LASAR_RULE_CODES)));
+  assert.deepEqual(sorted(seen.get('gy_weeks')), ['error', 'warning']);
+  for (const [code, levels] of seen) assert.deepEqual(sorted(levels), sorted(LASAR_RULE_CODES[code].levels), code);
 });
 
 test('regelkoderna är fastlagda med nivå och omfattning', () => {
