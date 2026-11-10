@@ -304,3 +304,103 @@ test('huvudmannen ser att ramen har ändrats, utan knappar',async({page})=>{
  for(const name of ['Ta in ramens ändringar','Behåll skolans kalender'])await expect(page.getByRole('button',{name})).toHaveCount(0);
  expect(errors).toEqual([]);
 });
+
+// ---------------------------------------------------------------- Undervisning som läsåret rymmer (A-09, A-17, A-18)
+
+const phone=(name:string)=>name.startsWith('phone');
+const noSideScroll=(page:Page)=>page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
+const smallButtons=(page:Page,scope:string)=>page.locator(scope).evaluateAll(roots=>roots.flatMap(root=>[...root.querySelectorAll('button,[role=menuitem],[role=checkbox],[role=radio]')]
+ .filter(b=>!b.closest('.ly-day')&&!b.closest('.ly-week'))
+ .map(b=>{const r=(b.closest('label')??b).getBoundingClientRect();return {tag:b.tagName,text:(b.closest('label')??b).textContent?.trim().slice(0,40),height:r.height};})
+ .filter(b=>b.height>0&&b.height<43.5)));
+
+test('panelen utan klassdata visar den dokumenterade raden och inget schema',async({page})=>{
+ const errors=await openPage(page,'','.ly-calendar');
+ const panel=page.locator('.ly-teaching');
+ await expect(panel.getByRole('heading',{name:'Undervisning som läsåret rymmer'})).toBeVisible();
+ await expect(panel.getByRole('heading',{name:'Skoldagar per veckodag'})).toBeVisible();
+ await expect(panel.locator('.ly-weekdays li')).toHaveCount(5);
+ await expect(panel).toContainText('Ingen fastställd timplan att räkna på.');
+ await expect(panel.locator('.ly-class-missing')).toHaveText('Lärotider per klass visas när klassernas avvikande dagar är knutna till klassregistret.');
+ await expect(panel.locator('.ly-schedule')).toHaveCount(0);
+ await expect(page.getByText('Schemats pass under läsåret')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('panelen med klassdata: timplanens timmar, lärotider per klass och IM utan årstimme',async({page})=>{
+ const errors=await openPage(page,'?klasser=1','.ly-calendar');
+ const panel=page.locator('.ly-teaching');
+ const plan=panel.locator('.ly-teaching-grid .ly-teaching-table');
+ await expect(plan.locator('tr.tp-block-row')).toHaveText(['Grundskolan 7–9','Introduktionsprogram']);
+ await expect(plan.locator('tbody tr:not(.tp-block-row) th')).toHaveText(['Åk 7','Åk 8','Åk 9',/^Veckoram/]);
+ await expect(plan.locator('tbody tr',{hasText:'Åk 9'}).locator('td').first()).toHaveText('990');
+ // A-17: IM har en veckoram och ingen årstimme.
+ const imRow=plan.locator('tr.ly-im-row');
+ await expect(imRow.locator('th')).toContainText('23 timmar per vecka');
+ await expect(imRow.locator('td').first()).toHaveText('–ingen årstimme');
+ const classes=panel.locator('.ly-schedule');
+ await expect(classes).toHaveCount(1);
+ await expect(classes.getByRole('heading',{name:'Lärotider per klass'})).toBeVisible();
+ await expect(classes.locator('thead th')).toHaveText(['Klass','Undervisningsdagar','Skäl till avvikelse','Per skoldag']);
+ await expect(classes.locator('tbody tr')).toHaveCount(3);
+ const b8=classes.locator('tbody tr',{hasText:'8B'});
+ await expect(b8).toContainText('1 färre än skolan');
+ await expect(b8).toContainText('Nationellt prov · 1 dagar');
+ await expect(classes.locator('tbody tr',{hasText:'7A'})).toContainText('följer skolans dagar');
+ await expect(classes.locator('tbody tr',{hasText:'IMA'}).locator('td').last()).toHaveText('–');
+ await expect(panel.locator('.ly-class-missing')).toHaveCount(0);
+ // A-18: inga antal ur personregistret i panelen eller i vyn.
+ await expect(panel).not.toContainText(/elever/i);
+ await expect(page.locator('.protected-lasar')).not.toContainText(/\d+\s*elever/i);
+ await expect(page.getByText('Schemats pass under läsåret')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('ramvyn visar inte panelens timplansdelar eller lärotider (A-05)',async({page})=>{
+ const errors=await openPage(page,'?mal=ram&roll=huvudman&arbetssatt=ram&klasser=1','.ly-calendar');
+ const panel=page.locator('.ly-teaching');
+ await expect(panel.getByRole('heading',{name:'Skoldagar per veckodag'})).toBeVisible();
+ await expect(panel.getByText('Timplanens timmar med läsårets skoldagar')).toHaveCount(0);
+ await expect(panel.getByText('Lärotider per klass')).toHaveCount(0);
+ await expect(panel.locator('.ly-schedule, .ly-class-missing, .ly-teaching-table')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('telefon: panel, banderoll och ramkort utan sidledsrullning, och dagslistan rullar inom dialogen',async({page},info)=>{
+ test.skip(!phone(info.project.name),'telefonfall');
+ const errors=await openPage(page,'?klasser=1&arbetssatt=ram&ram=andrad','.ly-calendar');
+ await page.locator('.ly-teaching').scrollIntoViewIfNeeded();
+ expect(await noSideScroll(page)).toBe(true);
+ for(const table of await page.locator('.ly-teaching .tp-grid-scroll').all())
+  expect(await table.evaluate(el=>getComputedStyle(el).overflowX)).toMatch(/auto|scroll/);
+ expect(await smallButtons(page,'.ly-frame-banner, .ly-frame-card')).toEqual([]);
+ await page.locator('.ly-frame-banner').getByRole('button',{name:'Ta in ramens ändringar'}).click();
+ const dialog=page.getByRole('alertdialog');
+ await expect(dialog).toBeVisible();
+ const box=(await dialog.boundingBox())!;
+ const viewport=page.viewportSize()!;
+ expect(box.y).toBeGreaterThanOrEqual(0);
+ expect(box.y+box.height).toBeLessThanOrEqual(viewport.height+1);
+ expect(box.x+box.width).toBeLessThanOrEqual(viewport.width+1);
+ expect(await dialog.evaluate(el=>getComputedStyle(el).overflowY)).toMatch(/auto|scroll/);
+ const keep=dialog.getByRole('button',{name:'Behåll skolans kalender'});
+ await keep.scrollIntoViewIfNeeded();
+ await expect(keep).toBeInViewport();
+ expect(await smallButtons(page,'[role=alertdialog]')).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+ await keep.click();
+ expect(await commands(page)).toEqual([]);
+ expect(errors).toEqual([]);
+});
+
+test('telefon: startval och granskningskort utan sidledsrullning med 44px knappar',async({page},info)=>{
+ test.skip(!phone(info.project.name),'telefonfall');
+ const errors=await openPage(page,'?tom=1&ar=2027','.ly-start');
+ expect(await smallButtons(page,'.ly-start')).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+ await page.getByRole('button',{name:'Kopiera förra läsåret'}).click();
+ await expect(page.locator('.ly-review-card')).toBeVisible();
+ expect(await smallButtons(page,'.ly-review-card')).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+ expect(errors).toEqual([]);
+});

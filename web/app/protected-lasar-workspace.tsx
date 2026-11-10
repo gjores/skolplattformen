@@ -8,7 +8,9 @@
 // (A-01, LASAR-02). Modellens interna spärr kräver rollen 'rektor'; den
 // sätts bara när servern har sagt canEdit och visas aldrig som roll i vyn.
 // Avvikelser från demon: A-01–A-14, A-16 och A-18 (UI-SPEC). Startval och
-// granskning efter kopiering ligger i protected-lasar-start.tsx.
+// granskning efter kopiering ligger i protected-lasar-start.tsx, huvudmannens
+// ram i protected-lasar-frame.tsx och undervisningspanelen i
+// protected-lasar-teaching.tsx.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -83,6 +85,7 @@ import {
 } from './lasar-parts.tsx';
 import MfaStepUpNotice from './mfa-step-up.tsx';
 import { LasarReviewCard, ProtectedLasarStart, reviewCandidates } from './protected-lasar-start.tsx';
+import { ProtectedLasarTeaching } from './protected-lasar-teaching.tsx';
 import {
   changeCount,
   changedDates,
@@ -788,6 +791,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                   onClear={() => calendar.setSelection([])}
                 />
               )}
+              {read && <ProtectedLasarTeaching sy={sy} summary={summary} teaching={read.teaching} groupRefs={read.groups} frame={frameTarget} />}
               <PlanBoundary text={BOUNDARY} />
             </>
           )}

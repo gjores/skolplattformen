@@ -269,6 +269,11 @@
   cursor: pointer;
 }
 
+/* A-09: panelen Undervisning utan klassdata visar en rad i stället för Lärotider per klass. */
+.protected-lasar .ly-teaching .ly-class-missing {
+  margin-top: 16px;
+}
+
 /* D-01: huvudmannens arbetssätt. */
 .ly-mode-card [data-slot='radio-group'] {
   margin: 12px 0;
