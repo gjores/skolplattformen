@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-08 klar 2026-11-10: stabila grupp-ID:n (LASAR-04) prövade i ephemeral PostgreSQL; 20261112100000_lasar_groups.sql registrerad, inte installerad. Nästa: 05.1.1-09."
+stopped_at: "05.1.1-09 klar 2026-11-10: ändringsbegäran, ny version och låsta passerade dagar prövade i ephemeral PostgreSQL; 20261112110000_lasar_change_requests.sql registrerad, inte installerad. Nästa: 05.1.1-10."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-08: gruppdagar och korta veckor knutna till utbildningens ID och kolumn eller klassens ID, avstämd fail-closed överföring av group_key (alternativ a), gruppkommandon, gruppregler i SQL med paritet, grupper och undervisning i läsningen. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-09: begär ändring, ta tillbaka, avslå och öppna för ändring som ny version (D-10, D-16), ersättning i rätt ordning, låsta passerade dagar (D-12) och beroende underlag som bara följer den gällande versionen (D-11, LASAR-05). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-09 klar 2026-11-10:** [Ny version, ändringsbegäran och låsta passerade dagar](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-09-SUMMARY.md): rektor eller skoladministratör begär ändring av en fastställd kalender med orsak och kan ta tillbaka begäran; huvudmannen avslår med motivering eller öppnar kalendern som en ny version med samma innehåll (D-10, D-16). Begäran och svar står kvar i `school_year_change_requests` och historiken. Den tidigare versionen gäller tills den nya fastställs och ersätts då i rätt ordning. När läsåret har börjat (från 1 augusti) nekar servern ändringar av passerade dagar, passerad terminsstart och korta veckor efter terminsstarten i en ny version (`lasar_past_day`, D-12). Ett utkast av version 2 ändrar varken IM-behov, basisHash eller reservstart; när version 2 fastställs blir en sparad IM-rad stale utan omräkning (D-11, LASAR-05). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 126 PASS, verify-lasar-groups 13 PASS, 05.1:s fyra sviter PASS, Node 52 PASS, tsc och oxlint gröna. `20261112110000_lasar_change_requests.sql` (`ff1b486b…b581`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-10.
 
 **05.1.1-08 klar 2026-11-10:** [Stabila grupp-ID:n](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-08-SUMMARY.md): avvikande dagar och korta veckor för en årskurs eller klass sparas med utbildningens ID och kolumn eller klassens ID i stället för klassnamn (LASAR-04, alternativ a: `group_key` blir låst historik). Befintliga rader förs över avstämt: antal före = efter, 0 kvar, och fastställda kalendrar behåller sin kontrollsumma. Okänd form, tvetydigt klassnamn eller främmande utbildning eller klass avbryter migrationen. Rektor och skoladministratör sätter och tar bort gruppdagar och korta veckor; gruppreglerna har samma koder i SQL som i modellen, och läsningen ger skolans grupper och undervisning per klass utan elevantal (A-18). IM-klassens gruppdagar ändrar inte IM-behovet (D-20). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar-groups 13 PASS, verify-lasar 104 PASS, 05.1:s fyra sviter PASS, Node 45 PASS, tsc, oxlint, lasar-ui (simulerat) och demoregressionen gröna. `20261112100000_lasar_groups.sql` (`6361521a…2965`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-09.
 
