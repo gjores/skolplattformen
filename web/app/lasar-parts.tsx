@@ -5,7 +5,7 @@
 // avvikelse. Texter som ändras i skyddad drift (A-08 och A-10) är props med
 // demons texter som standard. Ingen del läser roll eller lokalt demotillstånd.
 import { DatePicker } from '@/components/ui/date-picker';
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useState, type KeyboardEvent, type ReactNode } from 'react';
 import { AlertTriangle, BookOpen, CircleCheck, ExternalLink, History, Info, MessageSquareText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,12 +38,15 @@ import {
 } from '@/lib/lasar-model.ts';
 import { num, statusPlural, statusText, toolCopy } from './lasar-calendar.tsx';
 
-export type LasarAction = 'submit' | 'approve' | 'return' | 'reopen';
+export type LasarAction = 'submit' | 'approve' | 'return' | 'reopen' | 'request' | 'decline';
 export const actionCopy: Record<LasarAction, { title: string; description: string; button: string; placeholder: string; label: string }> = {
   submit: { title: 'Skicka förslag till huvudmannen', description: 'Terminernas början och slut beslutas av huvudmannen. Förslaget låses tills huvudmannen fastställer det eller återsänder det med skäl.', button: 'Skicka förslag', placeholder: 'Beskriv lov, studiedagar och vad huvudmannen särskilt bör se.', label: 'Meddelande till huvudmannen' },
   approve: { title: 'Fastställ läsårstiderna', description: 'Beslutet dokumenteras med datum. Skoldagarna blir grund för timplanens riktvärden och schemat.', button: 'Fastställ', placeholder: 'Dokumentera beslutet, till exempel styrelse eller nämnd, datum och diarienummer.', label: 'Beslut' },
   return: { title: 'Återsänd för ändring', description: 'Rektorn kan därefter ändra förslaget och skicka det på nytt. Skälet blir en del av historiken.', button: 'Återsänd', placeholder: 'Ange vad som behöver ändras och varför.', label: 'Skäl' },
   reopen: { title: 'Öppna läsåret för ändring', description: 'Det fastställda beslutet ligger kvar i historiken. Rektorn kan ändra och skicka ett nytt förslag.', button: 'Öppna', placeholder: 'Ange skälet, till exempel ändrade lovdagar i kommunen.', label: 'Skäl' },
+  // Skyddad drift (UI-SPEC avsnitt 9, D-10 och D-16); demon använder dem inte.
+  request: { title: 'Begär ändring av läsårskalendern', description: 'Huvudmannen får begäran och kan öppna kalendern för en ny version. Den fastställda versionen gäller tills en ny är fastställd.', button: 'Skicka begäran', placeholder: 'Beskriv vad som behöver ändras och varför, till exempel en ny studiedag i mars.', label: 'Orsak' },
+  decline: { title: 'Avslå begäran om ändring', description: 'Den fastställda versionen gäller fortsatt. Rektorn ser motiveringen i Samtal och beslut och kan skicka en ny begäran.', button: 'Avslå begäran', placeholder: 'Ange skälet till avslaget.', label: 'Motivering' },
 };
 
 /** Demons texter för kontrollkortet; skyddad drift skickar A-08:s texter. */
@@ -118,11 +121,15 @@ export function LasarWorkflow({ text, children }: { text: ReactNode; children?: 
 }
 
 /** Terminerna `ly-terms`, med DatePicker när kalendern kan ändras. */
-export function LasarTerms({ sy, summary, editable, onTermChange }: {
+export function LasarTerms({ sy, summary, editable, onTermChange, isEdgeLocked, min }: {
   sy: SchoolYear;
   summary: Summary;
   editable: boolean;
   onTermChange?: (part: 'ht' | 'vt', edge: 'start' | 'end', value: string) => void;
+  /** Skyddad drift (D-12): en passerad terminskant visas skrivskyddad. */
+  isEdgeLocked?: (part: 'ht' | 'vt', edge: 'start' | 'end') => boolean;
+  /** Tidigaste datum för en kant som går att ändra (editableFrom). */
+  min?: string;
 }) {
   return (
     <div className="ly-terms">
@@ -134,8 +141,8 @@ export function LasarTerms({ sy, summary, editable, onTermChange }: {
               <label className="ly-field-label" htmlFor={`ly-${part}-${edge}`}>
                 {edge === 'start' ? 'Börjar' : 'Slutar'}
               </label>
-              {editable ? (
-                <DatePicker id={`ly-${part}-${edge}`} value={sy[part][edge]} onValueChange={value => { if (value) onTermChange?.(part, edge, value); }} />
+              {editable && !isEdgeLocked?.(part, edge) ? (
+                <DatePicker id={`ly-${part}-${edge}`} value={sy[part][edge]} min={min} onValueChange={value => { if (value) onTermChange?.(part, edge, value); }} />
               ) : (
                 <strong id={`ly-${part}-${edge}`}>{formatLong(sy[part][edge])}</strong>
               )}
@@ -194,13 +201,15 @@ export function LasarScope({ groups, groupId, group, gSummary, onGroupChange }: 
 }
 
 /** Verktygen för hela skolan (`ly-tools`, ”Markera som”). */
-export function LasarSchoolTools({ tool, onTool, note, onNote, editable, readOnlyHint }: {
+export function LasarSchoolTools({ tool, onTool, note, onNote, editable, readOnlyHint, selectMode }: {
   tool: Planned;
   onTool: (tool: Planned) => void;
   note: string;
   onNote: (note: string) => void;
   editable: boolean;
   readOnlyHint: string;
+  /** Telefon (A-13): ”Markera flera” lägger till dagar i markeringen utan att ändra dem. Demon skickar ingen. */
+  selectMode?: { on: boolean; onToggle: () => void };
 }) {
   return (
     <fieldset className="ly-tools">
@@ -210,6 +219,11 @@ export function LasarSchoolTools({ tool, onTool, note, onNote, editable, readOnl
           <i aria-hidden="true" /> {toolCopy[t].label}
         </button>
       ))}
+      {selectMode && (
+        <button type="button" className="ly-tool ly-select-mode" aria-pressed={selectMode.on} onClick={selectMode.onToggle}>
+          <i aria-hidden="true" /> Markera flera
+        </button>
+      )}
       <div className="ly-note-field">
         <label className="ly-field-label" htmlFor="ly-note">Anteckning</label>
         <Input id="ly-note" value={note} disabled={!editable || tool === 'skoldag'} placeholder={tool === 'studiedag' ? 'Vad personalen gör, t.ex. Fortbildning' : tool === 'lovdag' ? 't.ex. Höstlov' : ''} onChange={(e) => onNote(e.target.value)} />
@@ -299,7 +313,7 @@ export function LasarGroupTools({
 }
 
 /** Teckenförklaringen `ly-legend` och begreppen `ly-definitions`. */
-export function LasarLegend({ summary }: { summary: Summary }) {
+export function LasarLegend({ summary, extra }: { summary: Summary; extra?: ReactNode }) {
   const [showDefinitions, setShowDefinitions] = useState(false);
   return (
     <>
@@ -315,6 +329,7 @@ export function LasarLegend({ summary }: { summary: Summary }) {
           </span>
         ))}
         <span className="ly-legend-item"><i className="ly-note-dot ly-legend-dot" aria-hidden="true" /> Har anteckning</span>
+        {extra}
         <button type="button" className="text-link" aria-expanded={showDefinitions} onClick={() => setShowDefinitions((v) => !v)}>
           <BookOpen size={14} /> {showDefinitions ? 'Dölj definitionerna' : 'Vad räknas som skoldag, lovdag och studiedag?'}
         </button>
@@ -339,7 +354,7 @@ export function LasarLegend({ summary }: { summary: Summary }) {
 /** Markeringen `ly-marking`: vad som är markerat, anteckning och åtgärder. */
 export function LasarMarking({
   selection, selectedDays, changeable, groupChangeable, groupMarked, group, editable,
-  onNote, onApplyToGroup, onFollowSchool, onApplyToSelection, onClear,
+  onNote, onApplyToGroup, onFollowSchool, onApplyToSelection, onClear, isLocked, noteDraft,
 }: {
   selection: string[];
   selectedDays: DayInfo[];
@@ -353,8 +368,13 @@ export function LasarMarking({
   onFollowSchool: () => void;
   onApplyToSelection: (kind: Planned) => void;
   onClear: () => void;
+  /** Skyddad drift (D-12): passerade dagar förklaras som låsta. */
+  isLocked?: (date: string) => boolean;
+  /** Skyddad drift (A-11): anteckningen sparas vid blur eller Enter, inte vid varje tangenttryckning. */
+  noteDraft?: { value: string; dirty: boolean; onChange: (text: string) => void; onCommit: () => void };
 }) {
   const selectedInfo = selectedDays.length === 1 ? selectedDays[0] : undefined;
+  const selectedLocked = selectedInfo ? Boolean(isLocked?.(selectedInfo.date)) && selectedInfo.status !== 'utanför' : false;
   return (
     <div className="ly-marking">
       <div className="ly-marking-what">
@@ -370,6 +390,7 @@ export function LasarMarking({
               {selectedInfo.part === 'jullov' ? ' · mellan terminerna' : selectedInfo.part ? ` · ${selectedInfo.part === 'ht' ? 'höstterminen' : 'vårterminen'}` : ''}
               {selectedInfo.status === 'helgdag' && ' · allmän helgdag, kan inte vara skoldag'}
               {selectedInfo.status === 'helg' && ' · skolarbetet förläggs måndag–fredag'}
+              {selectedLocked && ' · passerad dag, låst'}
             </>
           ) : (
             <>
@@ -389,10 +410,12 @@ export function LasarMarking({
           <label className="ly-field-label" htmlFor="ly-day-note">Anteckning</label>
           <Input
             id="ly-day-note"
-            value={selectedInfo ? selectedInfo.note ?? '' : ''}
+            value={noteDraft ? noteDraft.value : selectedInfo ? selectedInfo.note ?? '' : ''}
             placeholder={selectedInfo ? (selectedInfo.status === 'studiedag' ? 'Vad personalen gör' : 'Lovets namn') : 'Samma anteckning på alla markerade lov- och studiedagar'}
-            onChange={(e) => onNote(e.target.value)}
+            onChange={(e) => (noteDraft ? noteDraft.onChange(e.target.value) : onNote(e.target.value))}
+            {...(noteDraft ? { onBlur: noteDraft.onCommit, onKeyDown: (e: KeyboardEvent<HTMLInputElement>) => { if (e.key === 'Enter') { e.preventDefault(); noteDraft.onCommit(); } } } : {})}
           />
+          {noteDraft?.dirty && <output className="ly-note-status">Osparad anteckning</output>}
         </div>
       )}
       {!editable && selectedInfo?.note && <span className="ly-marking-text">{selectedInfo.note}</span>}
@@ -761,24 +784,37 @@ export function LasarHolidaysCard({ summary }: { summary: Summary }) {
 }
 
 /** Sidokortet Samtal och beslut. `onComment` svarar sant när kommentaren är sparad. */
-export function LasarTalkCard({ placeholder, history, historyLabel, onComment }: {
+export function LasarTalkCard({ placeholder, history, historyLabel, onComment, canComment = true, onTextChange }: {
   placeholder: string;
   history: Entry[];
   historyLabel: (entry: Entry) => string;
-  onComment: (text: string) => boolean;
+  /** Sant när kommentaren är sparad; skyddad drift svarar asynkront. */
+  onComment: (text: string) => boolean | Promise<boolean>;
+  /** Skyddad drift: utan förmågan att kommentera visas inte fältet (A-01). */
+  canComment?: boolean;
+  /** Skyddad drift: osparad text registreras av vyn (A-11). */
+  onTextChange?: (text: string) => void;
 }) {
-  const [talk, setTalk] = useState('');
+  const [talk, setTalkText] = useState('');
+  const setTalk = (text: string) => { setTalkText(text); onTextChange?.(text); };
+  function comment() {
+    const done = onComment(talk);
+    if (done === true) setTalk('');
+    else if (done) void done.then((ok) => { if (ok) setTalk(''); });
+  }
   return (
     <div className="og-card">
       <div className="section-heading">
         <h3><History size={16} /> Samtal och beslut</h3>
       </div>
-      <div className="tp-comment-box">
-        <Textarea aria-label="Ny kommentar" rows={2} value={talk} placeholder={placeholder} onChange={(e) => setTalk(e.target.value)} />
-        <Button variant="outline" onClick={() => { if (onComment(talk)) setTalk(''); }}>
-          <MessageSquareText size={15} /> Kommentera
-        </Button>
-      </div>
+      {canComment && (
+        <div className="tp-comment-box">
+          <Textarea aria-label="Ny kommentar" rows={2} value={talk} placeholder={placeholder} onChange={(e) => setTalk(e.target.value)} />
+          <Button variant="outline" onClick={comment}>
+            <MessageSquareText size={15} /> Kommentera
+          </Button>
+        </div>
+      )}
       <div className="admin-history tp-entries">
         {history.map((h) => (
           <div key={h.id}>
@@ -796,6 +832,7 @@ export function LasarTalkCard({ placeholder, history, historyLabel, onComment }:
 export function LasarActionDialog({
   action, sy, summary, unitName, errors, comment, onComment, error, onClose, onRun,
   reviewHeading = DEMO_CONTROL.heading, okLabel = DEMO_CONTROL.ok,
+  description, reviewExtra, errorList, notice, className, cancelVariant = 'ghost', busy = false,
 }: {
   action: LasarAction | null;
   sy?: SchoolYear;
@@ -809,10 +846,21 @@ export function LasarActionDialog({
   onRun: () => void;
   reviewHeading?: string;
   okLabel?: string;
+  /** Skyddad drift: egen beskrivning (öppna för ändring, fastställ version 2 och senare). */
+  description?: string;
+  /** Skyddad drift: extra rad i granskningsrutan. */
+  reviewExtra?: ReactNode;
+  /** Skyddad drift: serverns regeltexter under felet (UI-SPEC avsnitt 13). */
+  errorList?: string[];
+  /** Skyddad drift: till exempel verifiering med engångskod. */
+  notice?: ReactNode;
+  className?: string;
+  cancelVariant?: 'ghost' | 'outline';
+  busy?: boolean;
 }) {
   return (
     <Dialog open={action !== null} onOpenChange={(open) => { if (!open) onClose(); }}>
-      <DialogContent className="admin-dialog" showCloseButton={false}>
+      <DialogContent className={className ? `admin-dialog ${className}` : 'admin-dialog'} showCloseButton={false}>
         {action && sy && summary && (
           <>
             <div className="dialog-eyebrow">
@@ -820,7 +868,7 @@ export function LasarActionDialog({
               <span>{unitName.toLocaleUpperCase('sv')}</span>
             </div>
             <DialogTitle>{actionCopy[action].title}</DialogTitle>
-            <DialogDescription>{actionCopy[action].description}</DialogDescription>
+            <DialogDescription>{description ?? actionCopy[action].description}</DialogDescription>
             {(action === 'submit' || action === 'approve') && (
               <div className="review-summary">
                 <span>{reviewHeading}</span>
@@ -828,16 +876,18 @@ export function LasarActionDialog({
                 <p>
                   Hösttermin {formatDate(sy.ht.start)} – {formatDate(sy.ht.end)}, vårtermin {formatDate(sy.vt.start)} – {formatDate(sy.vt.end)}. {num(summary.skoldagar)} skoldagar, {num(summary.lovdagar)} lovdagar, {num(summary.studiedagar)} studiedagar, {num(summary.weeks.total)} veckor.
                 </p>
+                {reviewExtra}
               </div>
             )}
             <label className="field-label" htmlFor="ly-action-comment">{actionCopy[action].label}</label>
             <Textarea id="ly-action-comment" rows={4} placeholder={actionCopy[action].placeholder} value={comment} onChange={(e) => onComment(e.target.value)} />
             {error && (
-              <div className="validation-warning"><p><AlertTriangle size={16} /><span>{error}</span></p></div>
+              <div className="validation-warning"><p><AlertTriangle size={16} /><span>{error}</span></p>{errorList?.map((t) => <p key={t}>{t}</p>)}</div>
             )}
+            {notice}
             <div className="dialog-actions">
-              <Button variant="ghost" onClick={onClose}>Avbryt</Button>
-              <Button onClick={onRun}>{actionCopy[action].button}</Button>
+              <Button variant={cancelVariant} onClick={onClose}>Avbryt</Button>
+              <Button onClick={onRun} disabled={busy}>{actionCopy[action].button}</Button>
             </div>
           </>
         )}

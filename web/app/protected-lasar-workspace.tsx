@@ -1,28 +1,50 @@
 'use client';
-// Läsår & skoldagar i skyddad drift (fas 05.1.1, plan 03: tracer).
-// Samma kalender och klasser som demovyn (lasar-view.tsx), men data kommer
-// från /api/lasar/lasa och ändringar skickas som kommandon till
-// /api/lasar/kommando. Redigering styrs bara av serverns capabilities.canEdit;
-// det finns ingen rollväxlare och inget klientval av roll (A-01, LASAR-02).
-// Modellens interna spärr kräver rollen 'rektor'; den sätts bara när servern
-// har sagt canEdit och visas aldrig som roll i vyn.
+// Läsår & skoldagar i skyddad drift (fas 05.1.1, planerna 03 och 04).
+// Samma kalender, delar och klasser som demovyn (lasar-view.tsx), men data
+// kommer från /api/lasar/lasa, ändringar skickas som kommandon till
+// /api/lasar/kommando och beslut till /api/lasar/beslut. Knappar och
+// redigering styrs bara av serverns förmågor (capabilities) och
+// editableFrom; det finns ingen rollväxlare och inget klientval av roll
+// (A-01, LASAR-02). Modellens interna spärr kräver rollen 'rektor'; den
+// sätts bara när servern har sagt canEdit och visas aldrig som roll i vyn.
+// Avvikelser från demon: A-01–A-03, A-07, A-08, A-10–A-14 och A-16 (UI-SPEC).
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CalendarCheck } from 'lucide-react';
+import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { api, ApiError } from '@/lib/server-client.ts';
+import { useRequestConfirm, useRequestDiscard, useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import {
+  isLasarReason,
   lasarCommandRequest,
+  lasarDecisionRequest,
+  lasarErrorText,
+  lasarHistoryTime,
+  lasarRoleLabel,
   lasarSchoolYear,
+  LasarContractError,
+  LASAR_GENERIC_TEXT,
+  LASAR_UNCERTAIN_TEXT,
   parseLasarCommandReply,
+  parseLasarDecisionReply,
   parseLasarReadReply,
+  type LasarAnyOp,
+  type LasarCommandOp,
+  type LasarDecision,
+  type LasarErrorContext,
   type LasarReadReply,
+  type LasarTarget,
 } from '@/lib/lasar-contract.ts';
-import { lasarOps, type LasarOp } from '@/lib/lasar-ops.ts';
+import { lasarOps } from '@/lib/lasar-ops.ts';
 import {
+  allIssues,
   canEdit as modelCanEdit,
+  formatDate,
   setDay,
   setDays,
+  setNote,
+  setNotes,
+  setTerm,
   statusLabel,
   summarize,
   yearOf,
@@ -31,8 +53,26 @@ import {
   type Planned,
   type SchoolYear,
 } from '@/lib/lasar-model.ts';
-import { LasarCalendar, selectionFacts, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
-import { DEMO_BOUNDARY, LasarControlCard, LasarCover, LasarCoverSide, LasarFrameLine, LasarHolidaysCard, LasarInlineError, LasarLegend, LasarSchoolTools, LasarTerms, PlanBoundary } from './lasar-parts.tsx';
+import { LasarCalendar, selectionFacts, statusPlural, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
+import {
+  DEMO_BOUNDARY,
+  LasarActionDialog,
+  LasarControlCard,
+  LasarCover,
+  LasarCoverSide,
+  LasarFrameLine,
+  LasarHolidaysCard,
+  LasarInlineError,
+  LasarLegend,
+  LasarMarking,
+  LasarSchoolTools,
+  LasarTalkCard,
+  LasarTerms,
+  LasarWorkflow,
+  PlanBoundary,
+  type LasarAction,
+} from './lasar-parts.tsx';
+import MfaStepUpNotice from './mfa-step-up.tsx';
 import './protected-lasar.css';
 
 export type ProtectedLasarWorkspaceProps = {
@@ -44,20 +84,22 @@ export type ProtectedLasarWorkspaceProps = {
 };
 
 type Phase = 'loading' | 'error' | 'ready';
-const CONFLICT = 'Kalendern ändrades av någon annan. Den har lästs om och din senaste ändring sparades inte. Gör om ändringen om den fortfarande behövs.';
-const FORBIDDEN = 'Du har inte behörighet att ändra den här kalendern. Kalendern har lästs om.';
-const UNCERTAIN = 'Det gick inte att bekräfta att ändringen sparades. Kalendern har lästs om. Kontrollera dagen.';
-const REJECTED = 'Ändringen sparades inte. Kalendern har lästs om.';
-const UNSUPPORTED = 'Ändringen kan inte sparas här ännu. Bara skol-, lov- och studiedagar sparas i den här versionen av vyn.';
+type Failure = { text: string; mfa: boolean; rules: boolean; reload: boolean };
 /** A-08: ”ramen” betyder huvudmannens ram i skyddad drift. */
 const CONTROL = { heading: 'Kontroll mot förordningarna', ok: 'Inom gränserna' } as const;
 /** A-10: beslutet är verkligt och versionsbundet i skyddad drift. */
 const BOUNDARY = DEMO_BOUNDARY.replace(' Ett fastställt beslut i exemplet är ingen handling i verklig mening.', ' Fastställandet sparas med datum, version och beslutstext. Tjänstefördelning och timplaner läser den fastställda versionen.');
-const unsaved = (a: SchoolYear, b: SchoolYear) =>
-  JSON.stringify([a.ht, a.vt, a.groupExceptions, a.shortWeeks, a.status]) !== JSON.stringify([b.ht, b.vt, b.groupExceptions, b.shortWeeks, b.status]);
+const READ_ONLY_HINT = 'Du har läsbehörighet. Klicka på en dag för detaljer, skift- eller kommando-klicka för att markera flera.';
+const MFA_MESSAGE = 'Verifiering med engångskod krävs.';
+const MFA_DETAIL = 'Din osparade text finns kvar här. Om du väljer verifiering lämnar du sidan.';
+const UNSUPPORTED = 'Ändringen kan inte sparas här. Kalendern har inte ändrats.';
+/** Beslut per dialog i vyn (UI-SPEC avsnitt 9). */
+const DECISION: Record<LasarAction, LasarDecision> = { submit: 'submit', approve: 'approve', return: 'return', reopen: 'reopen', request: 'request_change', decline: 'decline_request' };
 const yearLabel = (startYear: number) => `${startYear}/${String(startYear + 1).slice(2)}`;
 const clockTime = () => new Date().toLocaleTimeString('sv-SE', { hour: '2-digit', minute: '2-digit' });
 const isAbort = (caught: unknown) => caught instanceof DOMException && caught.name === 'AbortError';
+const stockholmDate = (at: string) => new Date(at).toLocaleDateString('sv-SE', { timeZone: 'Europe/Stockholm' });
+const statusWord: Record<SchoolYear['status'], string> = { utkast: 'utkast', förslag: 'förslag', återsänd: 'återsänd', fastställd: 'fastställd' };
 
 function stateOf(read: LasarReadReply): LasarState {
   const sy = lasarSchoolYear(read);
@@ -69,25 +111,39 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const [read, setRead] = useState<LasarReadReply | null>(null);
   const [state, setState] = useState<LasarState>({ role: 'huvudman', years: [] });
   const [error, setError] = useState('');
+  const [inlineMfa, setInlineMfa] = useState(false);
+  const [notice, setNotice] = useState('');
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
   const [tool, setTool] = useState<Planned>('lovdag');
   const [note, setNoteText] = useState('');
+  const [selectMode, setSelectMode] = useState(false);
+  const [noteDraft, setNoteDraft] = useState<{ key: string; value: string } | null>(null);
+  const [talk, setTalk] = useState('');
+  const [action, setAction] = useState<LasarAction | null>(null);
+  const [comment, setComment] = useState('');
+  const [dialog, setDialog] = useState<{ error: string; list: string[]; mfa: boolean }>({ error: '', list: [], mfa: false });
+  const [busy, setBusy] = useState(false);
   const calendar = useCalendarSelection();
+  const requestConfirm = useRequestConfirm();
+  const requestDiscard = useRequestDiscard();
 
   // Senaste lokala läge och serverns version/revision, utan att vänta på rendering.
   const local = useRef(state);
   const basis = useRef<{ versionId: string; revision: number } | null>(null);
+  const chosenVersion = useRef<string | null>(null);
   const generation = useRef(0);
-  const queue = useRef<Promise<void>>(Promise.resolve());
+  const queue = useRef<Promise<unknown>>(Promise.resolve());
   const pending = useRef(0);
   const lost = useRef(onSessionLost);
   useEffect(() => { lost.current = onSessionLost; });
+  const target: LasarTarget = { kind: 'school', unitId };
 
   const adopt = useCallback((reply: LasarReadReply) => {
     const next = stateOf(reply);
     local.current = next;
     basis.current = reply.calendar ? { versionId: reply.calendar.versionId, revision: reply.calendar.revision } : null;
+    chosenVersion.current = reply.calendar?.versionId ?? chosenVersion.current;
     setRead(reply);
     setState(next);
   }, []);
@@ -96,7 +152,7 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
   const load = useCallback(async (quiet = false) => {
     const gen = ++generation.current;
     pending.current = 0;
-    const request = { target: { kind: 'school' as const, unitId }, schoolYear, versionId: null };
+    const request = { target: { kind: 'school' as const, unitId }, schoolYear, versionId: chosenVersion.current };
     try {
       const reply = parseLasarReadReply(await api.post<unknown>('/api/lasar/lasa', request), request);
       if (gen !== generation.current) return;
@@ -105,11 +161,11 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
     } catch (caught) {
       if (gen !== generation.current || isAbort(caught)) return;
       if (caught instanceof ApiError && (caught.status === 401 || caught.status === 403)) { lost.current(); return; }
-      if (!quiet) setPhase('error');
+      if (!quiet) { setRead(null); setState({ role: 'huvudman', years: [] }); setPhase('error'); }
     }
   }, [unitId, schoolYear, adopt]);
 
-  // Byte av skola eller läsår nollställer markering, fel och sparstatus (som choose() i demon).
+  // Byte av skola eller läsår nollställer allt som hör till det tidigare urvalet (som choose() i demon).
   const scope = `${unitId}:${schoolYear}`;
   const [shownScope, setShownScope] = useState(scope);
   if (shownScope !== scope) {
@@ -120,41 +176,109 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
     setSaving(false);
     calendar.clear();
     setError('');
+    setNotice('');
     setSavedAt(null);
+    setAction(null);
+    setNoteDraft(null);
   }
   useEffect(() => {
     let active = true;
+    chosenVersion.current = null;
     queueMicrotask(() => { if (active) void load(); });
     return () => { active = false; generation.current += 1; };
   }, [load]);
 
-  async function send(ops: LasarOp[], gen: number) {
-    const current = basis.current;
-    if (gen !== generation.current || !current) return;
+  const sy = state.years[0];
+  const caps = read?.capabilities;
+  const editable = sy ? modelCanEdit(state, sy) : false;
+  const types = read?.schoolTypes ?? schoolTypes;
+  const summary = sy ? summarize(sy, types) : undefined;
+  const errors = summary?.issues.filter((i) => i.level === 'error') ?? [];
+  const warnings = summary?.issues.filter((i) => i.level === 'warning') ?? [];
+  const gy = types.includes('GY') || types.includes('GYAN');
+  const editableFrom = read?.editableFrom ?? null;
+  const isLocked = editableFrom ? (date: string) => date < editableFrom : undefined;
+  const versions = read?.versions ?? [];
+  const current = versions.find((v) => v.current);
+  const latest = versions.at(-1);
+  const selected = read?.calendar ? versions.find((v) => v.versionId === read.calendar!.versionId) : undefined;
+  const olderSelected = Boolean(selected && latest && selected.versionId !== latest.versionId);
+  const openReview = read?.review.filter((r) => !r.resolved).length ?? 0;
+  const ctx = (extra: LasarErrorContext = {}): LasarErrorContext => ({ status: sy?.status, editableFrom, schoolYear, reviewOpen: openReview, ...extra });
+
+  const { selectedDays, changeable, groupChangeable, groupMarked } = selectionFacts(sy, calendar.selection, new Map(), isLocked);
+  const selectedInfo = selectedDays.length === 1 ? selectedDays[0] : undefined;
+  const selectionKey = calendar.selection.join(',');
+  const currentNote = selectedInfo ? selectedInfo.note ?? '' : '';
+  const draftValue = noteDraft?.key === selectionKey ? noteDraft.value : currentNote;
+  const noteDirty = noteDraft?.key === selectionKey && noteDraft.value.trim() !== currentNote.trim();
+
+  // A-11: osparad text och pågående sparning.
+  useUnsavedChanges('lasar-note', noteDirty);
+  useUnsavedChanges('lasar-comment', talk.trim() !== '');
+  useUnsavedChanges('lasar-dialog', action !== null && comment.trim() !== '');
+  useUnsavedChanges('navigation-block:lasar-save', saving || busy);
+
+  /** Felets text ur serverns vitlistade orsak (UI-SPEC avsnitt 13); okända fel ger allmän text. */
+  function failure(caught: unknown, extra: LasarErrorContext = {}): Failure | null {
+    if (isAbort(caught)) return null;
+    if (caught instanceof ApiError) {
+      if (caught.status === 401) { lost.current(); return null; }
+      if (caught.code === 'mfa_required') return { text: '', mfa: true, rules: false, reload: false };
+      if (isLasarReason(caught.reason)) {
+        const reason = caught.reason;
+        return { text: lasarErrorText(reason, ctx(extra)), mfa: false, rules: reason === 'lasar_rules_failed', reload: reason !== 'lasar_text_required' };
+      }
+      if (caught.status === 409) return { text: lasarErrorText('lasar_revision_conflict', {}), mfa: false, rules: false, reload: true };
+      if (caught.status === 403) return { text: lasarErrorText('lasar_forbidden', {}), mfa: false, rules: false, reload: true };
+      if (caught.status >= 500) return { text: LASAR_UNCERTAIN_TEXT, mfa: false, rules: false, reload: true };
+      return { text: LASAR_GENERIC_TEXT, mfa: false, rules: false, reload: true };
+    }
+    return { text: LASAR_UNCERTAIN_TEXT, mfa: false, rules: false, reload: true };
+  }
+  function showInline(f: Failure) {
+    setNotice('');
+    setInlineMfa(f.mfa);
+    setError(f.mfa ? '' : f.text);
+    if (f.reload) void load(true);
+  }
+
+  async function send(ops: LasarAnyOp[], gen: number, message?: string): Promise<boolean> {
+    const base = basis.current;
+    if (gen !== generation.current || !base) return false;
     try {
-      const request = await lasarCommandRequest({ target: { kind: 'school', unitId }, schoolYear, versionId: current.versionId, expectedRevision: current.revision, ops });
+      const request = await lasarCommandRequest({ target, schoolYear, versionId: base.versionId, expectedRevision: base.revision, ops });
       const reply = parseLasarCommandReply(await api.post<unknown>('/api/lasar/kommando', request), request);
-      if (gen !== generation.current) return;
-      basis.current = { versionId: current.versionId, revision: reply.receipt.revision };
+      if (gen !== generation.current) return false;
+      basis.current = { versionId: base.versionId, revision: reply.receipt.revision };
       pending.current -= 1;
       if (pending.current === 0) {
         adopt(reply.detail);
         setSaving(false);
         setSavedAt(clockTime());
       }
+      if (message) setNotice(message);
+      return true;
     } catch (caught) {
-      if (gen !== generation.current || isAbort(caught)) return;
+      if (gen !== generation.current) return false;
+      pending.current = 0;
       setSaving(false);
-      if (caught instanceof ApiError && caught.status === 401) { lost.current(); return; }
-      setError(caught instanceof ApiError
-        ? caught.status === 409 ? CONFLICT : caught.status === 403 ? FORBIDDEN : caught.status >= 500 ? UNCERTAIN : REJECTED
-        : UNCERTAIN);
-      void load(true);
+      const f = failure(caught);
+      if (f) showInline(f);
+      return false;
     }
+  }
+  function enqueue(ops: LasarAnyOp[], message?: string): Promise<boolean> {
+    pending.current += 1;
+    setSaving(true);
+    const gen = generation.current;
+    const run = queue.current.then(() => send(ops, gen, message));
+    queue.current = run;
+    return run;
   }
 
   /** Kör modellens funktion lokalt och skickar skillnaden som kommando; svaret ersätter den lokala kopian. */
-  function apply(fn: (s: LasarState) => LasarState): boolean {
+  function apply(fn: (s: LasarState) => LasarState, message?: string): boolean {
     const before = local.current;
     const id = before.years[0]?.id;
     if (!id) return false;
@@ -165,66 +289,212 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
       setError(caught instanceof Error ? caught.message : 'Ändringen kunde inte göras.');
       return false;
     }
-    if (unsaved(yearOf(before, id), yearOf(next, id))) {
-      setError(UNSUPPORTED);
-      return false;
-    }
-    const ops = lasarOps(yearOf(before, id), yearOf(next, id));
+    const was = yearOf(before, id), now = yearOf(next, id);
+    if (was.status !== now.status) { setError(UNSUPPORTED); return false; }
+    const ops = lasarOps(was, now, { editableFrom });
+    // D-12: något föll bort i filtret, så ändringen rör en passerad dag och görs inte alls.
+    if (JSON.stringify(ops) !== JSON.stringify(lasarOps(was, now))) { setError(lasarErrorText('lasar_past_day', ctx())); return false; }
     setError('');
+    setInlineMfa(false);
     local.current = next;
     setState(next);
-    if (!ops.length) return true;
-    pending.current += 1;
-    setSaving(true);
-    const gen = generation.current;
-    queue.current = queue.current.then(() => send(ops, gen));
+    if (ops.length) void enqueue(ops, message);
     return true;
   }
 
-  const sy = state.years[0];
-  const editable = sy ? modelCanEdit(state, sy) : false;
-  const summary = sy ? summarize(sy, schoolTypes) : undefined;
-  const errors = summary?.issues.filter((i) => i.level === 'error') ?? [];
-  const warnings = summary?.issues.filter((i) => i.level === 'warning') ?? [];
-  const gy = schoolTypes.includes('GY') || schoolTypes.includes('GYAN');
-  const noteText = () => note.trim() || undefined;
-  const { changeable } = selectionFacts(sy, calendar.selection, new Map());
+  /** Ett uttryckligt kommando (återställ, kommentar) efter de köade ändringarna. */
+  function command(op: LasarCommandOp, message: string): Promise<boolean> {
+    setError('');
+    return enqueue([op], message);
+  }
+
+  async function decide(decision: LasarDecision, text: string, inDialog: boolean): Promise<boolean> {
+    await queue.current;
+    const base = basis.current;
+    if (!base || !sy) return false;
+    let request;
+    try {
+      request = lasarDecisionRequest({ target, schoolYear, versionId: base.versionId, expectedRevision: base.revision, action: decision, text });
+    } catch (caught) {
+      const reason = caught instanceof LasarContractError && caught.reason === 'lasar_text_required' ? 'lasar_text_required' : null;
+      const textError = reason ? lasarErrorText(reason, { action: decision }) : LASAR_GENERIC_TEXT;
+      if (inDialog) setDialog({ error: textError, list: [], mfa: false }); else setError(textError);
+      return false;
+    }
+    const gen = generation.current;
+    setBusy(true);
+    try {
+      const reply = parseLasarDecisionReply(await api.post<unknown>('/api/lasar/beslut', request), request);
+      if (gen !== generation.current) return false;
+      adopt(reply.detail);
+      calendar.clear();
+      setError('');
+      setInlineMfa(false);
+      setNotice(successText(decision, reply.detail));
+      return true;
+    } catch (caught) {
+      if (gen !== generation.current) return false;
+      const f = failure(caught, { action: decision });
+      if (!f) return false;
+      if (!inDialog) { showInline(f); return false; }
+      // Dialogen står öppen med texten kvar och felet i dialogen (UI-SPEC avsnitt 9 och 13).
+      const list = f.rules ? allIssues(sy, types).filter((i) => i.level === 'error').map((i) => i.text) : [];
+      setDialog({ error: f.text, list, mfa: f.mfa });
+      if (f.reload) void load(true);
+      return false;
+    } finally {
+      setBusy(false);
+    }
+  }
+  function successText(decision: LasarDecision, detail: LasarReadReply): string {
+    const label = sy?.label ?? `Läsåret ${yearLabel(schoolYear)}`;
+    switch (decision) {
+      case 'submit': return 'Förslaget är skickat till huvudmannen.';
+      case 'withdraw': return 'Förslaget är taget tillbaka.';
+      case 'return': return 'Förslaget är återsänt till rektorn.';
+      case 'approve': return `${label} är fastställt.`;
+      case 'reopen': return `${label} är öppnat för ändring. Version ${detail.calendar?.version ?? ''} är ett utkast.`;
+      case 'request_change': return 'Begäran om ändring är skickad till huvudmannen.';
+      case 'withdraw_request': return 'Begäran om ändring är tagen tillbaka.';
+      case 'decline_request': return 'Begäran om ändring är avslagen.';
+      default: return 'Ändringen är sparad.';
+    }
+  }
+
+  function openDialog(next: LasarAction) {
+    setAction(next);
+    setComment('');
+    setDialog({ error: '', list: [], mfa: false });
+  }
+  async function closeDialog() {
+    if (comment.trim() && !(await requestDiscard())) return;
+    setAction(null);
+    setComment('');
+    setDialog({ error: '', list: [], mfa: false });
+  }
+  async function runDialog() {
+    if (!action || busy) return;
+    if (await decide(DECISION[action], comment, true)) {
+      setAction(null);
+      setComment('');
+    }
+  }
+
+  async function resetProposal() {
+    if (!sy) return;
+    const yes = await requestConfirm({
+      title: 'Återställ förslaget?',
+      description: 'Terminer, lovdagar och studiedagar sätts tillbaka till förslaget ur helgdagar och vanliga lov. Skolans ändringar i den här versionen försvinner. Gruppernas avvikande dagar ligger kvar.',
+      confirmLabel: 'Återställ',
+      cancelLabel: 'Behåll förslaget',
+    });
+    if (yes) void command({ op: 'reset_to_proposal' }, 'Terminer och lov är återställda till förslaget.');
+  }
+
+  async function chooseVersion(versionId: string) {
+    if (versionId === read?.calendar?.versionId) return;
+    if ((noteDirty || talk.trim()) && !(await requestDiscard())) return;
+    // En anteckning som sparades vid blur ligger i kön; den skickas innan versionen byts.
+    await queue.current;
+    chosenVersion.current = versionId;
+    calendar.clear();
+    setNoteDraft(null);
+    setError('');
+    setNotice('');
+    setPhase('loading');
+    void load();
+  }
 
   function onDayClick(date: string, event: ClickModifiers) {
-    if (!sy || !calendar.dayClick(sy, date, event) || !editable) return;
-    apply((s) => setDay(s, sy.id, date, tool, noteText()));
+    if (!sy) return;
+    const ev = selectMode ? { shiftKey: false, metaKey: true, ctrlKey: false } : event;
+    if (!calendar.dayClick(sy, date, ev) || !editable || isLocked?.(date)) return;
+    apply((s) => setDay(s, sy.id, date, tool, note.trim() || undefined));
   }
   function onWeekClick(days: DayInfo[], event: Pick<ClickModifiers, 'metaKey' | 'ctrlKey'>) {
     if (!sy) return;
     const weekdays = days.filter((d) => d.editable).map((d) => d.date);
-    if (!calendar.weekClick(weekdays, event) || !editable) return;
-    apply((s) => setDays(s, sy.id, weekdays, tool, noteText()));
+    const ev = selectMode ? { metaKey: true, ctrlKey: false } : event;
+    if (!calendar.weekClick(weekdays, ev) || !editable) return;
+    const open = weekdays.filter((d) => !isLocked?.(d));
+    if (open.length) apply((s) => setDays(s, sy.id, open, tool, note.trim() || undefined));
   }
   function applyToSelection(kind: Planned) {
     if (!sy || !changeable.length) return;
-    apply((s) => setDays(s, sy.id, changeable.map((d) => d.date), kind, noteText()));
+    apply(
+      (s) => setDays(s, sy.id, changeable.map((d) => d.date), kind, note.trim() || undefined),
+      changeable.length > 1 ? `${changeable.length} dagar är nu ${statusPlural[kind]}.` : undefined,
+    );
   }
+  function commitNote() {
+    if (!sy || !noteDirty || !noteDraft) return;
+    const text = noteDraft.value;
+    const done = selectedInfo
+      ? apply((s) => setNote(s, sy.id, selectedInfo.date, text))
+      : apply((s) => setNotes(s, sy.id, changeable.map((d) => d.date), text));
+    if (done) setNoteDraft(null);
+  }
+
+  // Versionsraden (A-07, avsnitt 12) och arbetsflödets text (avsnitt 9).
+  const versionLine = current && latest
+    ? latest.versionId !== current.versionId
+      ? `Version ${latest.version} är ${statusWord[latest.status === 'forslag' ? 'förslag' : latest.status === 'atersand' ? 'återsänd' : 'utkast']}. Version ${current.version}, fastställd ${formatDate(current.decidedOn!, true)}, gäller tills den nya versionen är fastställd.`
+      : `Version ${current.version} gäller sedan ${formatDate(current.decidedOn!, true)}.`
+    : null;
+  const request = read?.changeRequest;
+  const onCurrent = Boolean(selected?.current);
+  const workflowText = !sy ? null : sy.status === 'utkast'
+    ? editable ? 'Utkastet är rektorns arbetsyta. Välj vad du vill markera och klicka på dagar eller veckonummer. Skicka när kontrollerna är gröna.' : 'Rektorn arbetar med utkastet.'
+    : sy.status === 'återsänd' ? 'Huvudmannen har återsänt förslaget. Se skälet i historiken, ändra och skicka igen.'
+      : sy.status === 'förslag' ? 'Förslaget väntar på huvudmannens beslut om terminernas början och slut. Rektorn kan ta tillbaka det.'
+        : onCurrent && request?.status === 'open' ? `Rektorn har begärt ändring: ”${request.reason}”. Öppna kalendern för ändring eller avslå begäran med motivering.`
+          : onCurrent && request?.status === 'declined' && request.answeredAt ? `Huvudmannen avslog begäran ${formatDate(stockholmDate(request.answeredAt), true)}: ”${request.answer}”. Version ${sy && selected ? selected.version : ''} gäller fortsatt.`
+            : 'Fastställda läsårstider. Skoldagarna ligger till grund för timplanens riktvärden och schemat.';
+  const readOnlyHint = olderSelected && selected
+    ? `Du läser version ${selected.version}. Den gäller ${selected.current ? 'fortfarande' : 'inte längre'}.`
+    : READ_ONLY_HINT;
+  const historyById = new Map((read?.calendar?.history ?? []).map((h) => [h.id, h]));
+  const dialogDescription = action === 'reopen' && current
+    ? `Version ${current.version} gäller tills den nya versionen är fastställd. Rektorn kan ändra kommande dagar och skicka ett nytt förslag. Passerade dagar är låsta.`
+    : action === 'approve' && selected && selected.version >= 2
+      ? 'Beslutet dokumenteras med datum. Skoldagarna blir grund för timplanens riktvärden och schemat. Tjänstefördelningen och timplanerna får en markering om den nya versionen. Ingen omräkning sker automatiskt.'
+      : undefined;
 
   return (
     <section className="admin-workspace timplan-workspace protected-lasar" aria-busy={phase === 'loading'}>
+      {notice && (
+        <output className="admin-notice">
+          <CheckCheck size={17} aria-hidden="true" />
+          <span>{notice}</span>
+          <button type="button" aria-label="Stäng meddelandet" onClick={() => setNotice('')}>
+            <X size={16} aria-hidden="true" />
+          </button>
+        </output>
+      )}
       <div className="ly-layout">
         <section className="tp-canvas ly-canvas">
           <LasarCover
             kicker={<h1 className="admin-kicker ly-page-title">Läsår och skoldagar · {schoolName}</h1>}
             title={sy ? sy.label : `Läsåret ${yearLabel(schoolYear)}`}
-            side={sy && summary && (
+            side={phase === 'ready' && sy && summary && (
               <LasarCoverSide sy={sy} summary={summary}>
-                {!read?.capabilities.canEdit && <span>Läsvy</span>}
+                {current && <span>Gäller: version {current.version}</span>}
+                {!caps?.canEdit && <span>Läsvy</span>}
                 {saving ? <output className="og-saving">Sparar…</output> : savedAt ? <output className="ly-saved">Sparat {savedAt}</output> : null}
               </LasarCoverSide>
             )}
           />
           {phase === 'ready' && read?.calendar && sy && (
             <LasarFrameLine gy={gy} legend="Versioner">
-              <button type="button" aria-pressed="true">Version {read.calendar.version} · {statusLabel[sy.status].split(' ')[0]}</button>
+              {versions.map((v) => (
+                <button key={v.versionId} type="button" aria-pressed={v.versionId === read.calendar!.versionId} onClick={() => void chooseVersion(v.versionId)}>
+                  Version {v.version} · {statusLabel[v.status === 'forslag' ? 'förslag' : v.status === 'atersand' ? 'återsänd' : v.status === 'faststalld' ? 'fastställd' : 'utkast'].split(' ')[0]}{v.current ? ' · gäller' : ''}
+                </button>
+              ))}
             </LasarFrameLine>
           )}
           {error && <LasarInlineError message={error} />}
+          {inlineMfa && <MfaStepUpNotice className="tp-inline-error" message={MFA_MESSAGE} detail={MFA_DETAIL} returnTo="/?vy=lasar" />}
           {phase === 'loading' ? (
             <div className="admin-empty">
               <Spinner className="size-7" aria-label="Läser läsårskalendern" />
@@ -242,19 +512,80 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
             <div className="admin-empty">
               <CalendarCheck size={28} />
               <h2>Inget läsår ännu</h2>
-              <p>Det finns ingen läsårskalender för {schoolName} {yearLabel(schoolYear)} ännu.</p>
+              <p>Ingen kalender är skapad för {schoolName} {yearLabel(schoolYear)}.</p>
             </div>
           ) : (
             <>
-              {/* Terminerna visas i läsläge tills set_term finns i kontraktet (plan 04). */}
-              <LasarTerms sy={sy} summary={summary} editable={false} />
+              <LasarWorkflow
+                text={
+                  <>
+                    {versionLine && <p className="ly-version-line">{versionLine}</p>}
+                    {workflowText}
+                  </>
+                }
+              >
+                {caps?.canEdit && (
+                  <Button variant="outline" onClick={() => void resetProposal()}>
+                    <RotateCcw size={15} /> Återställ förslaget
+                  </Button>
+                )}
+                {caps?.canSubmit && (
+                  <Button onClick={() => openDialog('submit')} disabled={errors.length > 0 || openReview > 0}>
+                    <Send size={15} /> Skicka förslag
+                  </Button>
+                )}
+                {caps?.canWithdraw && (
+                  <Button variant="outline" disabled={busy} onClick={() => void decide('withdraw', '', false)}>
+                    <Undo2 size={15} /> Ta tillbaka
+                  </Button>
+                )}
+                {caps?.canReturn && (
+                  <Button variant="outline" onClick={() => openDialog('return')}>
+                    <Undo2 size={15} /> Återsänd
+                  </Button>
+                )}
+                {caps?.canApprove && (
+                  <Button onClick={() => openDialog('approve')} disabled={errors.length > 0}>
+                    <CircleCheck size={15} /> Fastställ
+                  </Button>
+                )}
+                {caps?.canWithdrawRequest && (
+                  <Button variant="outline" disabled={busy} onClick={() => void decide('withdraw_request', '', false)}>
+                    <Undo2 size={15} /> Ta tillbaka begäran
+                  </Button>
+                )}
+                {caps?.canRequestChange && (
+                  <Button variant="outline" onClick={() => openDialog('request')}>
+                    <MessageSquareText size={15} /> Begär ändring
+                  </Button>
+                )}
+                {caps?.canDecline && (
+                  <Button variant="outline" onClick={() => openDialog('decline')}>
+                    <X size={15} /> Avslå begäran
+                  </Button>
+                )}
+                {caps?.canReopen && (
+                  <Button variant="outline" onClick={() => openDialog('reopen')}>
+                    <Unlock size={15} /> Öppna för ändring
+                  </Button>
+                )}
+              </LasarWorkflow>
+              <LasarTerms
+                sy={sy}
+                summary={summary}
+                editable={editable}
+                min={editableFrom ?? undefined}
+                isEdgeLocked={(part, edge) => Boolean(isLocked?.(sy[part][edge]))}
+                onTermChange={(part, edge, value) => apply((s) => setTerm(s, sy.id, part, edge, value))}
+              />
               <LasarSchoolTools
                 tool={tool}
                 onTool={setTool}
                 note={note}
                 onNote={setNoteText}
                 editable={editable}
-                readOnlyHint="Du har läsbehörighet. Klicka på en dag för detaljer, skift- eller kommando-klicka för att markera flera."
+                readOnlyHint={readOnlyHint}
+                selectMode={{ on: selectMode, onToggle: () => setSelectMode((on) => !on) }}
               />
               <LasarCalendar
                 sy={sy}
@@ -262,11 +593,36 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
                 calendar={calendar}
                 editable={editable}
                 tool={tool}
+                isLocked={isLocked}
+                menuClassName="protected-lasar-menu"
+                touchSelect
                 onDayClick={onDayClick}
                 onWeekClick={onWeekClick}
                 onApplyToSelection={applyToSelection}
               />
-              <LasarLegend summary={summary} />
+              <LasarLegend
+                summary={summary}
+                extra={isLocked && (
+                  <span className="ly-legend-item ly-past"><i aria-hidden="true" /> Passerad dag (låst)</span>
+                )}
+              />
+              {calendar.selection.length > 0 && (
+                <LasarMarking
+                  selection={calendar.selection}
+                  selectedDays={selectedDays}
+                  changeable={changeable}
+                  groupChangeable={groupChangeable}
+                  groupMarked={groupMarked}
+                  editable={editable}
+                  isLocked={isLocked}
+                  onNote={() => undefined}
+                  noteDraft={{ value: draftValue, dirty: noteDirty, onChange: (value) => setNoteDraft({ key: selectionKey, value }), onCommit: commitNote }}
+                  onApplyToGroup={() => undefined}
+                  onFollowSchool={() => undefined}
+                  onApplyToSelection={applyToSelection}
+                  onClear={() => calendar.setSelection([])}
+                />
+              )}
               <PlanBoundary text={BOUNDARY} />
             </>
           )}
@@ -275,9 +631,40 @@ export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear
           <aside className="ly-side">
             <LasarControlCard summary={summary} gy={gy} errors={errors} warnings={warnings} groupIssues={[]} heading={CONTROL.heading} okLabel={CONTROL.ok} />
             <LasarHolidaysCard summary={summary} />
+            <LasarTalkCard
+              placeholder="Skriv en kommentar…"
+              history={sy.history}
+              canComment={Boolean(caps?.canComment)}
+              onTextChange={setTalk}
+              historyLabel={(h) => {
+                const entry = historyById.get(h.id);
+                return entry ? `${lasarRoleLabel[entry.role]} · ${entry.actorName} · ${lasarHistoryTime(entry.at)} · Version ${entry.version}` : h.time;
+              }}
+              onComment={(text) => (text.trim() ? command({ op: 'comment', text: text.trim() }, 'Kommentaren är sparad.') : (setError('Skriv en kommentar.'), false))}
+            />
           </aside>
         )}
       </div>
+      <LasarActionDialog
+        action={action}
+        sy={sy}
+        summary={summary}
+        unitName={schoolName}
+        errors={errors}
+        comment={comment}
+        onComment={setComment}
+        error={dialog.error}
+        errorList={dialog.list}
+        notice={dialog.mfa ? <MfaStepUpNotice message={MFA_MESSAGE} detail={MFA_DETAIL} returnTo="/?vy=lasar" /> : undefined}
+        description={dialogDescription}
+        className="protected-lasar-dialog"
+        cancelVariant="outline"
+        busy={busy}
+        reviewHeading={CONTROL.heading}
+        okLabel={CONTROL.ok}
+        onClose={() => void closeDialog()}
+        onRun={() => void runDialog()}
+      />
     </section>
   );
 }

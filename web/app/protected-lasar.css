@@ -23,3 +23,52 @@
   margin: 0 auto 8px;
   color: var(--muted-foreground);
 }
+
+/* A-07, avsnitt 12: versionsraden ovanför arbetsflödets text. */
+.protected-lasar .ly-version-line {
+  margin: 0 0 4px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--foreground);
+  overflow-wrap: anywhere;
+}
+
+/* A-07, D-12: passerad dag i en ny version. Status bärs också av titeln och teckenförklaringen. */
+.protected-lasar .ly-day.ly-past > button {
+  opacity: 0.6;
+  cursor: default;
+}
+.protected-lasar .ly-legend .ly-past i {
+  background: var(--card);
+  border-color: var(--border);
+  opacity: 0.6;
+}
+
+/* A-11: anteckningen sparas vid blur eller Enter; till dess står den som osparad. */
+.protected-lasar .ly-note-status {
+  font-size: 0.75rem;
+  color: var(--warning-foreground);
+  white-space: nowrap;
+}
+
+/* A-13 (a): Markera flera visas bara på telefon eller pekskärm. */
+.protected-lasar .ly-select-mode {
+  display: none;
+}
+.protected-lasar .ly-select-mode i {
+  background: var(--card);
+  border: 1px dashed var(--ring);
+}
+@media (max-width: 700px), (pointer: coarse) {
+  .protected-lasar .ly-select-mode {
+    display: inline-flex;
+  }
+}
+
+/* Historik och kicker: långa namn och texter bryts utan att knappar trycks ut. */
+.protected-lasar .admin-history span,
+.protected-lasar .admin-history p,
+.protected-lasar .ly-tools-hint,
+.protected-lasar .tp-workflow-text {
+  overflow-wrap: anywhere;
+}

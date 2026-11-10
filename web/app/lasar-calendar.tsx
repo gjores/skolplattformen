@@ -4,7 +4,7 @@
 // demons (UI-SPEC avsnitt 1 rad 9–10 och avsnitt 8) och får inte ändras utan
 // att demoregressionen (e2e/lasar-demo.spec.ts) blir röd.
 import { CalendarCheck } from 'lucide-react';
-import { useState } from 'react';
+import { useRef, useState, type TouchEvent } from 'react';
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -104,12 +104,60 @@ export function useCalendarSelection() {
 }
 export type CalendarSelection = ReturnType<typeof useCalendarSelection>;
 
-/** Vad markeringen omfattar: ändringsbara dagar och, för en grupp, skolans skoldagar. */
-export function selectionFacts(sy: SchoolYear | undefined, selection: string[], groupCalendar: Map<string, GroupDay>) {
+/** Samma fördröjning som Base UI:s ContextMenuTrigger (LONG_PRESS_DELAY). */
+const LONG_PRESS_MS = 500;
+/**
+ * Långtryck på en dag (A-13): efter 500 ms markeras dagen, och Base UI öppnar
+ * `ly-menu` på samma tryck. Klicket som följer när fingret lyfts ändrar inte
+ * dagen. Ett kort tryck är ett vanligt klick.
+ */
+function useLongPress(onPress: (date: string) => void) {
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pressed = useRef<string | null>(null);
+  const start = useRef<{ x: number; y: number } | null>(null);
+  const cancel = () => {
+    if (timer.current) clearTimeout(timer.current);
+    timer.current = null;
+  };
+  return {
+    handlers: (date: string) => ({
+      onTouchStart: (e: TouchEvent<HTMLButtonElement>) => {
+        cancel();
+        pressed.current = null;
+        if (e.touches.length !== 1) return;
+        start.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+        timer.current = setTimeout(() => {
+          timer.current = null;
+          pressed.current = date;
+          onPress(date);
+        }, LONG_PRESS_MS);
+      },
+      onTouchMove: (e: TouchEvent<HTMLButtonElement>) => {
+        const t = e.touches[0];
+        if (start.current && t && (Math.abs(t.clientX - start.current.x) > 10 || Math.abs(t.clientY - start.current.y) > 10)) cancel();
+      },
+      onTouchEnd: cancel,
+      onTouchCancel: cancel,
+    }),
+    /** Sant en gång för klicket efter ett långtryck på samma dag. */
+    consumed(date: string) {
+      if (pressed.current !== date) return false;
+      pressed.current = null;
+      return true;
+    },
+  };
+}
+
+/**
+ * Vad markeringen omfattar: ändringsbara dagar och, för en grupp, skolans
+ * skoldagar. `isLocked` (skyddad drift, D-12) räknar passerade dagar som låsta.
+ */
+export function selectionFacts(sy: SchoolYear | undefined, selection: string[], groupCalendar: Map<string, GroupDay>, isLocked?: (date: string) => boolean) {
   const selectedDays = sy ? selection.map((d) => dayInfo(sy, d)) : [];
-  const changeable = selectedDays.filter((d) => d.editable);
+  const open = (d: DayInfo) => !isLocked?.(d.date);
+  const changeable = selectedDays.filter((d) => d.editable && open(d));
   /** Dagar i markeringen som är skolans skoldagar; bara de kan gälla en grupp. */
-  const groupChangeable = selectedDays.filter((d) => d.status === 'skoldag');
+  const groupChangeable = selectedDays.filter((d) => d.status === 'skoldag' && open(d));
   const groupMarked = groupChangeable.filter((d) => groupCalendar.get(d.date)?.off);
   return { selectedDays, changeable, groupChangeable, groupMarked };
 }
@@ -127,6 +175,12 @@ export type LasarCalendarProps = {
   onApplyToSelection: (kind: Planned) => void;
   onApplyToGroup?: () => void;
   onFollowSchool?: () => void;
+  /** Skyddad drift (A-07, D-12): passerade dagar får `ly-past` och kan inte ändras. Demon skickar ingen. */
+  isLocked?: (date: string) => boolean;
+  /** Extra klass på `ly-menu`, som ligger i en portal utanför vyns behållare. */
+  menuClassName?: string;
+  /** Telefon (A-13): långtryck markerar dagen innan menyn öppnas, och tryckets klick ändrar inte dagen. */
+  touchSelect?: boolean;
 };
 
 const noGroupDays: Map<string, GroupDay> = new Map();
@@ -145,19 +199,25 @@ export function LasarCalendar({
   onApplyToSelection,
   onApplyToGroup,
   onFollowSchool,
+  isLocked,
+  menuClassName,
+  touchSelect = false,
 }: LasarCalendarProps) {
   const { selection, anchor } = calendar;
-  const { changeable, groupChangeable, groupMarked } = selectionFacts(sy, selection, groupCalendar);
+  const { selectedDays, changeable, groupChangeable, groupMarked } = selectionFacts(sy, selection, groupCalendar, isLocked);
+  const past = (d: DayInfo) => d.status !== 'utanför' && Boolean(isLocked?.(d.date));
+  const press = useLongPress((date) => calendar.contextMenu(date));
 
   function dayCell(d: DayInfo, i: number) {
     const dayNumber = Number(d.date.slice(8));
     const off = groupCalendar.get(d.date)?.off;
+    const locked = past(d);
     const title =
       d.status === 'utanför'
         ? `${formatLong(d.date)} · utanför läsåret`
-        : `${formatLong(d.date)} · ${d.holiday ?? statusText[d.status]}${d.note ? ` · ${d.note}` : ''}${d.part === 'jullov' ? ' · mellan terminerna' : ''}${off ? ` · ingen undervisning för ${off.from}: ${causeLabel[off.cause]}${off.note ? `, ${off.note}` : ''}` : ''}`;
+        : `${formatLong(d.date)} · ${d.holiday ?? statusText[d.status]}${d.note ? ` · ${d.note}` : ''}${d.part === 'jullov' ? ' · mellan terminerna' : ''}${off ? ` · ingen undervisning för ${off.from}: ${causeLabel[off.cause]}${off.note ? `, ${off.note}` : ''}` : ''}${locked ? ' · passerad dag, låst' : ''}`;
     const marked = selection.includes(d.date);
-    const className = `ly-day ly-${d.status}${off ? ' ly-off' : ''}${d.part === 'jullov' ? ' ly-between' : ''}${marked ? ' ly-selected' : ''}${anchor === d.date && marked && selection.length > 1 ? ' ly-anchor' : ''}${d.date === sy.ht.start || d.date === sy.vt.start ? ' ly-term-start' : ''}${d.date === sy.ht.end || d.date === sy.vt.end ? ' ly-term-end' : ''}`;
+    const className = `ly-day ly-${d.status}${off ? ' ly-off' : ''}${d.part === 'jullov' ? ' ly-between' : ''}${marked ? ' ly-selected' : ''}${anchor === d.date && marked && selection.length > 1 ? ' ly-anchor' : ''}${d.date === sy.ht.start || d.date === sy.vt.start ? ' ly-term-start' : ''}${d.date === sy.ht.end || d.date === sy.vt.end ? ' ly-term-end' : ''}${locked ? ' ly-past' : ''}`;
     if (d.status === 'utanför')
       return (
         <td key={d.date} className={className}>
@@ -171,8 +231,9 @@ export function LasarCalendar({
           aria-label={marked ? `${title} · markerad` : title}
           aria-pressed={marked}
           title={title}
-          onClick={(e) => onDayClick(d.date, e)}
+          onClick={(e) => { if (touchSelect && press.consumed(d.date)) return; onDayClick(d.date, e); }}
           onContextMenu={() => calendar.contextMenu(d.date)}
+          {...(touchSelect ? press.handlers(d.date) : {})}
         >
           {dayNumber}
           {d.note && <i className="ly-note-dot" aria-hidden="true" />}
@@ -209,7 +270,7 @@ export function LasarCalendar({
           </thead>
           <tbody>
             {rows.map((row) => {
-              const paintable = row.days.some((d) => d.editable);
+              const paintable = row.days.some((d) => d.editable && !past(d));
               return (
                 <tr key={`${row.year}-${row.week}`} className={row.monthLabel ? 'ly-month-start' : ''}>
                   <th scope="row" className="ly-month">{row.monthLabel ?? ''}</th>
@@ -247,7 +308,7 @@ export function LasarCalendar({
           </div>
         }
       />
-      <ContextMenuContent className="ly-menu">
+      <ContextMenuContent className={menuClassName ? `ly-menu ${menuClassName}` : 'ly-menu'}>
         <ContextMenuGroup>
         <ContextMenuLabel>
           {changeable.length === 1
@@ -287,7 +348,9 @@ export function LasarCalendar({
           <ContextMenuItem disabled>
             {!editable
               ? 'Läsåret kan inte ändras nu'
-              : 'Helger, helgdagar och dagarna mellan terminerna är låsta'}
+              : selectedDays.some((d) => d.editable && past(d))
+                ? 'Passerade dagar är låsta'
+                : 'Helger, helgdagar och dagarna mellan terminerna är låsta'}
           </ContextMenuItem>
         )}
         </ContextMenuGroup>
