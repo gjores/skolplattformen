@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "VP-16 klar 2026-11-10 (824d294da1), inte installerad på 3012. Nästa: fas 05.1.1 läsårskalender, enligt användaren."
+stopped_at: "05.1.1-planerna avstämda 2026-11-10; väntar på användarens klartecken före våg 1. VP-16 (824d294da1) är inte installerad på 3012."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
 last_activity_desc: "VP-16: modersmål, teckenspråk och minoritetsspråk i valbara block, syntetiskt provat."
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1 avstämd 2026-11-10:** Planerna för [läsårskalendern](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-CONTEXT.md) är avstämda mot Skolplattan, de 27 migrationer som tillkommit och dagens kod. Migrationerna heter `20261111…`, installation sker med eget `apply-lasar.mjs` och kräver att VP-16 är installerad först. Inget är genomfört; våg 1 väntar på användarens klartecken.
 
 **VP-16 klart 2026-11-10:** [Modersmål, teckenspråk och minoritetsspråk i valbara block](phases/05.2-schemamodul/05.2-VP-16-SUMMARY.md). Syntetiskt provat, inte installerat på 3012: migrationen kräver stoppad 3012 och användarens klartecken. Användaren valde 2026-11-10 läsårskalendern 05.1.1 som nästa steg, före schemamotorn.
 
