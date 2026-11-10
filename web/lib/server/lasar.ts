@@ -1,9 +1,9 @@
 import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import {
   LASAR_REASONS, LasarContractError, parseLasarCommandReply, parseLasarDecisionReply, parseLasarDecisionRequest, parseLasarEnvelope,
-  lasarSchoolYear, parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
-  type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarReadReply, type LasarReadRequest, type LasarReason,
-  type LasarStatusRequest,
+  lasarSchoolYear, parseLasarModePreviewReply, parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
+  type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarModePreview, type LasarReadReply, type LasarReadRequest,
+  type LasarReason, type LasarStatusRequest, type LasarTarget,
 } from '../lasar-contract.ts';
 import { groupsFromRefs } from '../lasar-groups.ts';
 import { allIssues, proposeSchoolYear } from '../lasar-model.ts';
@@ -21,6 +21,10 @@ import { mandateOperation } from './mandate-route.ts';
  * SS 12000: läsår, terminer och kalenderns versioner saknar objekt i standarden. Skolenheten (Organisation,
  * organisationType=Skolenhet) anges bara med stabilt ID. Klientens rollval är inget behörighetsbevis; SQL prövar
  * mandatet mot den låsta sessionen.
+ *
+ * Huvudmannens ram (05.1.1-10, D-08): målet { kind: 'frame' } går oförändrat till samma ingångar. SQL ger ramen bara till
+ * huvudmannen, och ett svar för ramen till rektor eller skoladministratör lämnar aldrig servern (readActor). Ramen nycklas i
+ * SQL på huvudmannens ID ur uppdraget (Organisation, organisationType=Huvudman), aldrig på namn.
  */
 export type LasarAuthority = Pick<SessionContext, 'identityId' | 'assignmentId' | 'accessFunction'>;
 export const LASAR_REQUEST_BYTES = 64 * 1024;
@@ -91,7 +95,9 @@ function readActor(body: LasarReadReply, authority: LasarAuthority): LasarReadRe
   return body;
 }
 const json = (tx: Tx, value: unknown) => tx.json(value as Parameters<Tx['json']>[0]);
-const unitOf = (request: { target: LasarCommandRequest['target'] }) => (request.target.kind === 'school' ? request.target.unitId : null);
+const unitOf = (request: { target: LasarTarget }) => (request.target.kind === 'school' ? request.target.unitId : null);
+/** Händelsens objekt: skolans kalenderversion eller huvudmannens ramversion. */
+const objectTypeOf = (target: LasarTarget) => (target.kind === 'frame' ? 'school_year_frame' : 'school_year');
 
 /** Läser hela kroppen med en övre gräns, också när Content-Length saknas eller inte stämmer. */
 export async function lasarRequest<T>(request: Request, parse: (value: unknown) => T | Promise<T>): Promise<T> {
@@ -142,29 +148,31 @@ async function readRaw(tx: Tx, input: LasarReadRequest, authority: LasarAuthorit
 export async function lasarRead(tx: Tx, input: LasarReadRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
   const body = await readRaw(tx, input, authority);
-  return { body, event: { action: 'lasar_read', objectType: 'school_year', objectId: body.calendar?.versionId ?? null,
+  return { body, event: { action: 'lasar_read', objectType: objectTypeOf(input.target), objectId: body.calendar?.versionId ?? null,
     details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
 }
 
 /**
  * Utkastarbete. Vid create med källan proposal och vid reset_to_proposal räknar servern fram innehållet med
  * proposeSchoolYear (D-03) för skolformerna i serverns egen läsning; klienten kan inte skicka innehållet. SQL prövar det igen.
+ * För huvudmannens ram är skolformerna alla huvudmannens skolenheters (ramens läsning). Skolans start ur ramen och en ny
+ * ramversion (källan frame) har inget förslagsinnehåll; SQL tar ramens innehåll.
  */
 export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
   let sent: LasarCommandRequest & { proposal?: unknown } = input;
   const first = input.ops[0];
   const creating = first?.op === 'create' && first.source === 'proposal';
-  if ((creating || first?.op === 'reset_to_proposal') && input.target.kind === 'school') {
+  if (creating || first?.op === 'reset_to_proposal') {
     const current = await readRaw(tx, { target: input.target, schoolYear: input.schoolYear, versionId: creating ? null : input.versionId }, authority);
-    const proposal = proposeSchoolYear(input.schoolYear, input.target.unitId, current.schoolTypes);
+    const proposal = proposeSchoolYear(input.schoolYear, input.target.kind === 'school' ? input.target.unitId : 'ram', current.schoolTypes);
     sent = { ...input, proposal: { terms: { ht: proposal.ht, vt: proposal.vt }, exceptions: proposal.exceptions } };
   }
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_command(${json(tx, sent)}) as result`));
   try {
     const body = parseLasarCommandReply(envelope(raw, authority), input);
     readActor(body.detail, authority);
-    return { body, event: { action: 'lasar_command', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,
+    return { body, event: { action: 'lasar_command', objectType: objectTypeOf(input.target), objectId: body.detail.calendar?.versionId ?? null,
       details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
 }
@@ -198,6 +206,12 @@ function decisionOutcome(input: LasarDecisionRequest, detail: LasarReadReply): v
     if (request?.status !== 'withdrawn') invalid();
   } else if (input.action === 'decline_request') {
     if (request?.status !== 'declined' || request.answer !== input.text) invalid();
+  } else if (input.action === 'publish_frame') {
+    // Ramen (D-13): samma version är nu utgiven (status faststalld i kontraktet) och gäller för skolorna.
+    const ref = detail.versions.find((v) => v.versionId === input.versionId);
+    if (detail.target.kind !== 'frame' || calendar?.versionId !== input.versionId || calendar.status !== 'faststalld' || !ref?.current) invalid();
+  } else if (input.action === 'set_mode') {
+    if (detail.target.kind !== 'frame' || detail.mode !== input.mode) invalid();
   } else if (input.action === 'reopen') {
     const previous = detail.versions.find((v) => v.versionId === input.versionId);
     const opened = calendar ? detail.versions.find((v) => v.versionId === calendar.versionId) : undefined;
@@ -206,17 +220,27 @@ function decisionOutcome(input: LasarDecisionRequest, detail: LasarReadReply): v
 }
 
 /** Beslut (skicka, fastställa, ändringsflödet m.fl.). Rutten kräver engångskod; SQL prövar vem som får fatta vilket beslut. */
-export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authority: LasarAuthority) {
+export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authority: LasarAuthority): Promise<{ body: LasarCommandReply | LasarModePreview;
+  event: { action: string; objectType: string; objectId: string | null; details: { unitId: string | null; schoolYear: number } } }> {
   role(authority, LASAR_FUNCTIONS);
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_command(${json(tx, input)}) as result`));
+  if (input.action === 'preview_mode_change') {
+    // D-15: förhandsvisningen sparar inget och ger skolorna med påbörjade kalendrar för samma läsår och arbetssätt.
+    let preview: LasarModePreview;
+    try {
+      preview = parseLasarModePreviewReply(envelope(raw, authority));
+      if (preview.schoolYear !== input.schoolYear || preview.mode !== input.mode) invalid();
+    } catch { throw new AuditUnavailable(); }
+    return { body: preview, event: { action: 'lasar_decision', objectType: 'school_year_frame', objectId: null, details: { unitId: null, schoolYear: input.schoolYear } } };
+  }
   let body: LasarCommandReply;
   try {
     body = parseLasarDecisionReply(envelope(raw, authority), input);
     readActor(body.detail, authority);
     decisionOutcome(input, body.detail);
   } catch { throw new AuditUnavailable(); }
-  if (input.action === 'submit' || input.action === 'approve') modelRules(body.detail);
-  return { body, event: { action: 'lasar_decision', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,
+  if (input.action === 'submit' || input.action === 'approve' || input.action === 'publish_frame') modelRules(body.detail);
+  return { body, event: { action: 'lasar_decision', objectType: objectTypeOf(input.target), objectId: body.detail.calendar?.versionId ?? null,
     details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
 }
 
@@ -249,7 +273,7 @@ export async function lasarStatus(tx: Tx, input: LasarCommandStatusRequest, auth
   try {
     const body = parseStatusReply(envelope(raw, authority), input);
     if (body.result) readActor(body.result.detail, authority);
-    return { body, event: { action: 'lasar_status', objectType: 'school_year', objectId: body.result?.detail.calendar?.versionId ?? null,
+    return { body, event: { action: 'lasar_status', objectType: objectTypeOf(input.target), objectId: body.result?.detail.calendar?.versionId ?? null,
       details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
 }

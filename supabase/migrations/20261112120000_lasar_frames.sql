@@ -803,6 +803,101 @@ begin
   return y;
 end $$;
 
+-- Intag och kvittering av ramens ändringar (D-05). Bas = skolans frame_id, deras = senast utgivna ram, våra = skolans kalender.
+-- take_frame_changes skriver ramens värde för exakt de angivna nycklarna (terminskant eller dag) och flyttar frame_id och frame_ack_id
+-- till den utgivna versionen. En nyckel tas in bara om ramen har ändrat den (deras ≠ bas) och skolan inte redan har ramens värde;
+-- en konflikt (skolan har också ändrat) tas in bara när den anges. Annars, eller när frameVersionId inte är den senast utgivna,
+-- nekas hela intaget med lasar_frame_stale. Saknar skolan bas (började i eget förslag, D-15) är varje skillnad en konflikt.
+-- keep_school_calendar flyttar bara frame_ack_id; dagarna är oförändrade. I en ny version efter läsårets start är passerade dagar
+-- och terminskanter låsta (D-12, lasar_past_day).
+create function public.lasar_take_frame_changes(y public.school_years, op jsonb) returns public.school_years
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare v_take boolean := op ->> 'op' = 'take_frame_changes'; v_latest public.school_year_frames; v_base public.school_year_frames;
+  v_from date := public.lasar_editable_from(y); v_key text; v_date date; v_edge text; v_base_v jsonb; v_their jsonb; v_our jsonb;
+  v_ht_start date := y.ht_start; v_ht_end date := y.ht_end; v_vt_start date := y.vt_start; v_vt_end date := y.vt_end; v_days jsonb := '{}'::jsonb;
+  v_day record; v_n integer := 0;
+begin
+  if v_take then perform public.lasar_shape(op, array['op', 'frameVersionId', 'accepted']);
+  else perform public.lasar_shape(op, array['op', 'frameVersionId']); end if;
+  v_latest := public.lasar_frame_latest(y.organizer_id, y.start_year);
+  if v_latest.id is null or v_latest.id <> public.lasar_uuid(op -> 'frameVersionId') then
+    raise exception 'Ramen har ändrats sedan jämförelsen.' using errcode = '40001', hint = 'lasar_frame_stale';
+  end if;
+  if not v_take then
+    if y.frame_ack_id is not distinct from v_latest.id then
+      raise exception 'Ramversionen är redan kvitterad.' using errcode = '40001', hint = 'lasar_frame_stale';
+    end if;
+    update public.school_years x set frame_ack_id = v_latest.id where x.id = y.id returning * into y;
+    perform public.lasar_history_add(y.id, 'keep_school_calendar',
+      format('Ramens version %s är kvitterad. Skillnaderna står kvar som skolans avvikelser.', v_latest.version));
+    return y;
+  end if;
+  if y.frame_id is not distinct from v_latest.id then
+    raise exception 'Skolan följer redan ramens senaste version.' using errcode = '40001', hint = 'lasar_frame_stale';
+  end if;
+  if jsonb_typeof(op -> 'accepted') <> 'array' or jsonb_array_length(op -> 'accepted') not between 1 and 400
+     or exists (select 1 from jsonb_array_elements(op -> 'accepted') k where jsonb_typeof(k) <> 'string'
+       or (k #>> '{}') !~ '^(term:(ht|vt):(start|end)|day:\d{4}-\d{2}-\d{2})$')
+     or (select count(distinct k) from jsonb_array_elements_text(op -> 'accepted') k) <> jsonb_array_length(op -> 'accepted') then
+    raise exception 'Ogiltigt intag av ramens ändringar.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  if y.frame_id is not null then select * into v_base from public.school_year_frames f where f.id = y.frame_id; end if;
+  for v_key in select k from jsonb_array_elements_text(op -> 'accepted') k loop
+    if v_key like 'term:%' then
+      v_edge := substr(v_key, 6);
+      v_base_v := case when v_base.id is null then null else to_jsonb(case v_edge when 'ht:start' then v_base.ht_start when 'ht:end' then v_base.ht_end
+        when 'vt:start' then v_base.vt_start else v_base.vt_end end) end;
+      v_their := to_jsonb(case v_edge when 'ht:start' then v_latest.ht_start when 'ht:end' then v_latest.ht_end when 'vt:start' then v_latest.vt_start else v_latest.vt_end end);
+      v_our := to_jsonb(case v_edge when 'ht:start' then y.ht_start when 'ht:end' then y.ht_end when 'vt:start' then y.vt_start else y.vt_end end);
+    else
+      v_date := public.lasar_date(to_jsonb(substr(v_key, 5)));
+      v_base_v := case when v_base.id is null then null else coalesce((select jsonb_strip_nulls(jsonb_build_object('kind', d.kind, 'note', d.note))
+        from public.school_year_frame_days d where d.frame_id = v_base.id and d.day = v_date), 'null'::jsonb) end;
+      v_their := coalesce((select jsonb_strip_nulls(jsonb_build_object('kind', d.kind, 'note', d.note)) from public.school_year_frame_days d
+        where d.frame_id = v_latest.id and d.day = v_date), 'null'::jsonb);
+      v_our := coalesce((select jsonb_strip_nulls(jsonb_build_object('kind', d.kind, 'note', d.note)) from public.school_year_days d
+        where d.school_year_id = y.id and d.day = v_date), 'null'::jsonb);
+    end if;
+    -- Ingen ändring i ramen (bara skolans egen avvikelse eller ingen skillnad alls), eller skolan har redan ramens värde.
+    if (v_base.id is not null and v_their = v_base_v) or v_our = v_their then
+      raise exception 'Punkten är inte en ändring i ramen som kan tas in.' using errcode = '40001', hint = 'lasar_frame_stale';
+    end if;
+    if v_from is not null and (v_key like 'day:%' and v_date < v_from
+       or v_key like 'term:%' and ((v_our #>> '{}')::date < v_from or (v_their #>> '{}')::date < v_from)) then
+      raise exception 'Passerade dagar kan inte ändras.' using errcode = '40001', hint = 'lasar_past_day';
+    end if;
+    if v_key like 'term:%' then
+      case v_edge when 'ht:start' then v_ht_start := (v_their #>> '{}')::date; when 'ht:end' then v_ht_end := (v_their #>> '{}')::date;
+        when 'vt:start' then v_vt_start := (v_their #>> '{}')::date; else v_vt_end := (v_their #>> '{}')::date; end case;
+    else
+      v_days := v_days || jsonb_build_object(v_date::text, v_their);
+    end if;
+    v_n := v_n + 1;
+  end loop;
+  if not (v_ht_start < v_ht_end and v_ht_end < v_vt_start and v_vt_start < v_vt_end) then
+    raise exception 'Kalendern uppfyller inte förordningarna.' using errcode = '40001', hint = 'lasar_rules_failed', detail = '["term_order"]';
+  end if;
+  update public.school_years x set ht_start = v_ht_start, ht_end = v_ht_end, vt_start = v_vt_start, vt_end = v_vt_end,
+    frame_id = v_latest.id, frame_ack_id = v_latest.id where x.id = y.id returning * into y;
+  for v_day in select e.key::date d, e.value v from jsonb_each(v_days) e order by e.key loop
+    if v_day.v = 'null'::jsonb then
+      delete from public.school_year_days d where d.school_year_id = y.id and d.day = v_day.d;
+    else
+      if not public.lasar_day_editable(y, v_day.d) then
+        raise exception 'Ramens dag ligger utanför skolans terminer.' using errcode = '22023', hint = 'lasar_invalid';
+      end if;
+      insert into public.school_year_days (school_year_id, day, kind, note) values (y.id, v_day.d, (v_day.v ->> 'kind')::public.school_day_kind, v_day.v ->> 'note')
+      on conflict (school_year_id, day) do update set kind = excluded.kind, note = excluded.note;
+    end if;
+  end loop;
+  -- Som set_term: dagar och gruppdagar som inte längre är ändringsbara dagar faller bort.
+  delete from public.school_year_days d where d.school_year_id = y.id and not public.lasar_day_editable(y, d.day);
+  delete from public.school_year_group_days g where g.school_year_id = y.id and not public.lasar_day_editable(y, g.day);
+  perform public.lasar_history_add(y.id, 'take_frame_changes', format('%s %s från ramens version %s.', v_n,
+    case when v_n = 1 then 'ändring' else 'ändringar' end, v_latest.version));
+  return y;
+end $$;
+
 -- ---------------------------------------------------------------------------
 -- 7. Ingångar
 -- ---------------------------------------------------------------------------
@@ -833,7 +928,7 @@ end $$;
 
 -- Som 20261112110000 plus målet ramen (lasar_frame_command), skolans start ur ramen och startvalet per arbetssätt (D-14):
 -- i arbetssättet ram utan utgiven ram nekas varje start med lasar_frame_missing; förslag hör till eget förslag och ramen till
--- arbetssättet ram. Kopiering (källan copy) kommer i plan 11.
+-- arbetssättet ram. Kopiering (källan copy) kommer i plan 11. take_frame_changes och keep_school_calendar i ett öppet utkast (D-05).
 create or replace function public.lasar_command(input jsonb) returns jsonb
 language plpgsql volatile security definer set search_path = pg_catalog, public as $$
 declare a public.access_assignments; s public.app_sessions; q jsonb; v_kind text; v_action text; v_request uuid; v_unit uuid; v_year integer;
@@ -970,6 +1065,7 @@ begin
           when 'clear_group_days' then perform public.lasar_clear_group_days(y, v_op);
           when 'set_short_week' then perform public.lasar_set_short_week(y, v_op);
           when 'clear_short_week' then perform public.lasar_clear_short_week(y, v_op);
+          when 'take_frame_changes', 'keep_school_calendar' then y := public.lasar_take_frame_changes(y, v_op);
           when 'reset_to_proposal' then
             perform public.lasar_shape(v_op, array['op']);
             y := public.lasar_reset_proposal(y, input -> 'proposal');
@@ -1119,5 +1215,6 @@ revoke all on function public.lasar_frame_guard(), public.lasar_frame_days_guard
   public.lasar_frame_set_term(public.school_year_frames, jsonb), public.lasar_frame_reset(public.school_year_frames, jsonb),
   public.lasar_mode_affected(uuid, integer),
   public.lasar_frame_command(public.access_assignments, public.app_sessions, jsonb, jsonb, text, text, uuid, integer, uuid, integer, text),
-  public.lasar_create_from_frame(public.access_assignments, uuid, integer, public.school_year_frames)
+  public.lasar_create_from_frame(public.access_assignments, uuid, integer, public.school_year_frames),
+  public.lasar_take_frame_changes(public.school_years, jsonb)
   from public, anon, authenticated, service_role, skolplattform_worker;

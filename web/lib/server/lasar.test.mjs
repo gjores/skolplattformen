@@ -508,14 +508,20 @@ test('arbetssätt: svaret efter set_mode ska bära det valda arbetssättet på r
 });
 
 test('ge ut ramen: svaret ska visa samma version som utgiven, och modellen prövar ramens innehåll', async () => {
-  const ask = cal => lasarDecisionRequest({ target: frameTarget, schoolYear: year, versionId: frameVersion, expectedRevision: 3, action: 'publish_frame', text: '' });
+  const ask = () => lasarDecisionRequest({ target: frameTarget, schoolYear: year, versionId: frameVersion, expectedRevision: 3, action: 'publish_frame', text: '' });
   const published = frameCalendar({ status: 'faststalld', decidedOn: '2026-11-11', revision: 4 });
-  for (const [cal, status] of [[published, 200], [frameCalendar({ revision: 4 }), 500], [{ ...published, exceptions: {} }, 409]]) {
+  // Sex studiedagar bryter mot högst fem (study_days_max): SQL har godkänt, men modellen nekar och inget delresultat lämnar servern.
+  const { addDays, dayInfo } = await import('../lasar-model.ts'), sy = frameProposal(), study = { ...published.exceptions };
+  for (let d = '2027-09-01', n = 0; n < 6; d = addDays(d, 1)) if (dayInfo(sy, d).status === 'skoldag') { study[d] = { kind: 'studiedag', note: 'Syntetisk' }; n += 1; }
+  for (const [cal, status] of [[published, 200], [frameCalendar({ revision: 4 }), 500], [{ ...published, exceptions: study }, 409]]) {
     reset('huvudman'); state.mfa = true;
-    const decision = ask(cal);
+    const decision = ask();
     state.replies.lasar_command = wrap({ receipt: { commandId: decision.commandId, revision: 4, replayed: false }, detail: frameRead({ cal, capabilities: caps({ canCreate: [], canSetMode: true }) }) });
     const response = await post('beslut', decision);
     assert.equal(response.status, status, cal.status + Object.keys(cal.exceptions).length);
-    if (status === 409) assert.equal((await response.json()).details.reason, 'lasar_rules_failed');
+    if (status === 409) {
+      const details = (await response.json()).details;
+      assert.equal(details.reason, 'lasar_rules_failed'); assert.ok(details.rules.includes('study_days_max'), String(details.rules));
+    }
   }
 });

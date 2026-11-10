@@ -880,7 +880,11 @@ function ProtectedShell() {
             {view === 'min-tjanst' && isSelf(session) && <MinTjanst context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'lasar' && !isSelf(session) && PLANNING_FUNCTIONS.includes(session.context!.function) && <LasarPlanningArea contextKey={contextKey} initial={tjanstPlanning()}
-              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{(selection, schoolName) => selection.unitId && schoolName
+              frameChoice={session.context!.function === 'huvudman'} onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{(selection, schoolName) => selection.frame
+                // Huvudmannens ram (D-08): samma vy med målet ramen; skolans ID används inte för ramen.
+                ? <ProtectedLasarWorkspace key={`${contextKey}:ram:${selection.schoolYear}`} unitId="ram" target={{ kind: 'frame' }} schoolName="Huvudmannens ram"
+                  schoolYear={selection.schoolYear} schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession}/>
+                : selection.unitId && schoolName
                 ? <ProtectedLasarWorkspace key={`${contextKey}:${selection.unitId}:${selection.schoolYear}`} unitId={selection.unitId} schoolName={schoolName} schoolYear={selection.schoolYear}
                   schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession}/>
                 : <section className="empty-state" aria-label="Läsår och skoldagar"><h2>Välj skola</h2>
