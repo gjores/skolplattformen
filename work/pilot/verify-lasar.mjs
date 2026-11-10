@@ -1067,6 +1067,106 @@ async function changes(t, step, f) {
   });
 }
 
+/**
+ * 05.1.1-09 (D-11, D-19, LASAR-05): beroende underlag läser exakt den gällande versionen. Ett utkast av version 2 ändrar varken
+ * IM-behovet, tjänstefördelningens basisHash eller programplanens reservstart; när version 2 fastställs ändras IM-behovet och en
+ * sparad IM-rad blir stale utan att ögonblicksbilden i tjanst_rows räknas om. Den sparade raden läggs direkt av ägaren
+ * (syntetiskt, samma kolumner som tjänstefördelningens kommando sparar). app.fake_today sätts inte här, eftersom basisHash bär dagens datum.
+ */
+async function dependents(t, step, f) {
+  const A = f.schools.A, types = f.schoolTypes.A, k = f.groups.classes;
+  const env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const dec = (action, text, versionId, rev) => lasarDecision({ unitId: A, schoolYear: YEAR, versionId, expectedRevision: rev, action, text });
+  const cmd = (ops, versionId, rev) => lasarCommand({ unitId: A, schoolYear: YEAR, versionId, expectedRevision: rev, ops });
+  const schoolDay = (sy, from) => { let d = from; while (dayInfo(sy, d).status !== 'skoldag') d = addDays(d, 1); return d; };
+  const content = c => ({ terms: c.terms, exceptions: c.exceptions, groupDays: c.groupDays, shortWeeks: c.shortWeeks, frameVersionId: c.frameVersionId, version: c.version });
+  const key = `class_timplan:${k.im}:${YEAR}:im-sv`;
+  const core = async () => (await t`select public.tjanst_year_core(a,${A},${YEAR}) c from public.access_assignments a where a.id=${f.roles.principalA}`)[0].c;
+  const basis = async () => (await core()).base.basisHash;
+  const savedRow = async () => (await core()).rows.find(r => r.id === s.rowId);
+  const weeks = async () => (await t`select public.tjanst_school_weeks(${A},${YEAR}) w`)[0].w;
+  const startsOn = async () => (await t`select public.phase5_programplan_starts_on(o)::text d from public.offerings o where o.id=${f.offerings.gy}`)[0].d;
+  const imNeed = async () => (await t`select public.tjanst_need(${A},${YEAR},${key}) n`)[0].n;
+  const current = async () => (await t`select (public.lasar_current(${A},${YEAR})).id v`)[0].v;
+  const snapshot = async () => (await t`select need_ht_minutes ht, need_vt_minutes vt, need_basis basis, link_revision, timplan_id from public.tjanst_rows where id=${s.rowId}`)[0];
+  const s = {};
+
+  await step(t, 'beroende underlag: version 1 fastställs; IM-behovet räknas ur version 1 och en IM-rad sparas i tjänstefördelningen', async () => {
+    const created = await send('principalA', await createCommand(A, YEAR, types));
+    s.v1 = created.detail.calendar.versionId;
+    const sy = lasarSchoolYear(created.detail);
+    const r = await send('principalA', await cmd([{ op: 'set_group_days', groupId: klassGroupId(k.ak1), dates: [schoolDay(sy, `${YEAR}-09-20`)], cause: 'friluftsdag' }], s.v1, created.receipt.revision));
+    const sub = await decide('principalA', dec('submit', 'Syntetiskt förslag', s.v1, r.receipt.revision));
+    s.approved1 = await decide('hm', dec('approve', 'Syntetiskt beslut', s.v1, sub.receipt.revision));
+    s.rev1 = s.approved1.receipt.revision;
+    const sum = summarize(lasarSchoolYear(s.approved1.detail), types);
+    s.need1 = await imNeed();
+    assert.deepEqual([s.need1.needHt, s.need1.needVt, s.need1.needBasis], [5 * 12 * sum.terms.ht.skoldagar, 5 * 12 * sum.terms.vt.skoldagar, 'weekly_calendar']);
+    // Syntetisk sparad rad i ett utkast av tjänstefördelningen, med behovets ögonblicksbild ur version 1.
+    const dist = randomUUID(), version = randomUUID();
+    s.rowId = randomUUID();
+    await t`insert into public.tjanst_distributions(id,customer_id,organizer_id,unit_id,school_year) values(${dist},${f.id(1)},${f.id(2)},${A},${YEAR})`;
+    await t`insert into public.tjanst_versions(id,distribution_id,version_no,status,created_by_identity_id,created_by_assignment_id)
+      values(${version},${dist},1,'draft',${f.identity('principalA')},${f.roles.principalA})`;
+    await t`insert into public.tjanst_rows(id,version_id,lineage_id,staff_person_id,source_kind,source_key,class_id,school_year,link_revision,timplan_id,series_id,timplan_version,
+      timplan_row_key,link_column,need_label,need_ht_minutes,need_vt_minutes,need_basis,teacher_ht_minutes,teacher_vt_minutes)
+      values(${s.rowId},${version},${randomUUID()},null,'class_timplan',${key},${k.im},${YEAR},${s.need1.link.linkRevision},${s.need1.link.timplanId},
+        (select series_id from public.timplans where id=${s.need1.link.timplanId}),${s.need1.link.timplanVersion},'im-sv','vecka',${s.need1.label},
+        ${s.need1.needHt},${s.need1.needVt},'weekly_calendar',600,600)`;
+    s.snapshot = await snapshot();
+    assert.equal((await savedRow()).stale, false);
+    s.basis1 = await basis(); s.weeks1 = await weeks(); s.starts1 = await startsOn();
+    assert.deepEqual(s.weeks1, { htSchoolDays: sum.terms.ht.skoldagar, vtSchoolDays: sum.terms.vt.skoldagar });
+    assert.equal(s.starts1, s.approved1.detail.calendar.terms.ht.start);
+  });
+  await step(t, 'ett utkast av version 2 med fler lovdagar och tidigare höststart ändrar varken IM-behovet, basisHash eller reservstarten (D-11, D-19)', async () => {
+    const req = await decide('principalA', dec('request_change', 'Syntetisk orsak', s.v1, s.rev1));
+    const o = await decide('hm', dec('reopen', 'Syntetiskt skäl', s.v1, req.receipt.revision));
+    s.v2 = o.detail.calendar.versionId;
+    const c1 = s.approved1.detail.calendar, sy = lasarSchoolYear(o.detail);
+    s.htStart2 = addDays(c1.terms.ht.start, -7);
+    assert.equal(s.htStart2.slice(5, 7), '08');
+    const lov = [schoolDay(sy, `${YEAR}-11-08`)]; lov.push(schoolDay(sy, addDays(lov[0], 1)));
+    let r = await send('principalA', await cmd([{ op: 'set_days', dates: lov, kind: 'lovdag', note: 'Syntetisk lovdag' },
+      { op: 'set_term', term: 'ht', edge: 'start', date: s.htStart2 }], s.v2, o.receipt.revision));
+    const check = async label => {
+      assert.equal(await current(), s.v1, label);
+      assert.deepEqual(await imNeed(), s.need1, label); assert.equal(await basis(), s.basis1, label);
+      assert.deepEqual(await weeks(), s.weeks1, label); assert.equal(await startsOn(), s.starts1, label);
+      assert.equal((await savedRow()).stale, false, label);
+    };
+    await check('utkast');
+    r = await decide('principalA', dec('submit', 'Syntetisk ändring', s.v2, r.receipt.revision));
+    await check('förslag');
+    s.sub2 = r;
+  });
+  await step(t, 'när version 2 fastställs följer IM-behovet version 2, basisHash ändras och IM-raden blir stale: ingen omräkning av ögonblicksbilden (LASAR-05)', async () => {
+    const ok = await decide('hm', dec('approve', 'Syntetiskt nytt beslut', s.v2, s.sub2.receipt.revision));
+    s.approved2 = ok;
+    const sum2 = summarize(lasarSchoolYear(ok.detail), types), need2 = await imNeed();
+    assert.equal(await current(), s.v2);
+    assert.deepEqual([need2.needHt, need2.needVt], [5 * 12 * sum2.terms.ht.skoldagar, 5 * 12 * sum2.terms.vt.skoldagar]);
+    assert.notEqual(need2.needHt, s.need1.needHt);
+    assert.deepEqual(await weeks(), { htSchoolDays: sum2.terms.ht.skoldagar, vtSchoolDays: sum2.terms.vt.skoldagar });
+    assert.notEqual(await basis(), s.basis1);
+    assert.equal(await startsOn(), s.htStart2);
+    const row = await savedRow();
+    assert.equal(row.stale, true);
+    assert.deepEqual([row.needHt, row.needVt], [s.need1.needHt, s.need1.needVt]);
+    assert.deepEqual(await snapshot(), s.snapshot, 'tjanst_rows skrivs inte om');
+  });
+  await step(t, 'kontrollsumman för version 2 är TS-hashen och skiljer sig från version 1; grupp-ID:n är desamma i båda versionerna (SS 12000)', async () => {
+    const c1 = s.approved1.detail.calendar, c2 = s.approved2.detail.calendar;
+    const [row] = await t`select content_hash, public.lasar_content_hash(id) computed from public.school_years where id=${s.v2}`;
+    assert.equal(row.content_hash, await lasarContentHash(content(c2))); assert.equal(row.computed, row.content_hash);
+    assert.notEqual(row.content_hash, c1.contentHash);
+    assert.deepEqual(Object.keys(c2.groupDays), Object.keys(c1.groupDays)); assert.deepEqual(Object.keys(c2.groupDays), [klassGroupId(k.ak1)]);
+    assert.deepEqual(s.approved2.detail.groups, s.approved1.detail.groups);
+  });
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -1108,7 +1208,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    for (const run of [tracer, flow, parity, groups, groupParity, changes]) {
+    for (const run of [tracer, flow, parity, groups, groupParity, changes, dependents]) {
       try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }
