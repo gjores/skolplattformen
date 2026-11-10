@@ -32,6 +32,18 @@ export async function createLasarFixture(tx) {
  * utan koppling i SA25. Klasserna SYN7A och SYN7B (2026) hör inte till läsåret 2027. Timplanernas status sätts direkt av ägaren
  * (syntetiskt, som seedGrimNeeds); kopplingarna går genom rektors GR/IM-kommando. Inga elever och inga elevantal (A-18).
  */
+/**
+ * Gymnasieklass utan programplan (syntetiskt): klasskyddet kräver annars en fastställd programplan med startdatum. Ägaren lägger
+ * klassen med elevkullens startdatum som giltighet, samma värden som skyddet hade satt.
+ */
+export async function gymClass(tx, f, { id = randomUUID(), offeringId, name, startYear, unitId = f.schools.A }) {
+  await tx`set local session_replication_role=replica`;
+  await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year,starts_on,validity_source,created_at,updated_at)
+   values(${id},${f.id(1)},${f.id(2)},${unitId},${offeringId},${name},${startYear},${`${startYear}-08-17`},'education_start',clock_timestamp(),clock_timestamp())`;
+  await tx`set local session_replication_role=origin`;
+  return id;
+}
+
 export async function seedLasarGroups(tx, f, { gy, im }) {
   const gr = randomUUID(), grPlan = randomUUID(), imPlan = randomUUID();
   const classes = { ak1: randomUUID(), ak3: randomUUID(), unlinked: randomUUID(), im: randomUUID(), gy: randomUUID() };
@@ -48,8 +60,8 @@ export async function seedLasarGroups(tx, f, { gy, im }) {
   await tx`set local session_replication_role=origin`;
   await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year) values
    (${classes.ak1},${f.id(1)},${f.id(2)},${f.schools.A},${gr},'SYN1A',2027),(${classes.ak3},${f.id(1)},${f.id(2)},${f.schools.A},${gr},'SYN3A',2027),
-   (${classes.unlinked},${f.id(1)},${f.id(2)},${f.schools.A},${gr},'SYN2X',2027),(${classes.im},${f.id(1)},${f.id(2)},${f.schools.A},${im},'SYNIM27',2027),
-   (${classes.gy},${f.id(1)},${f.id(2)},${f.schools.A},${gy},'SA27A',2027)`;
+   (${classes.unlinked},${f.id(1)},${f.id(2)},${f.schools.A},${gr},'SYN2X',2027),(${classes.im},${f.id(1)},${f.id(2)},${f.schools.A},${im},'SYNIM27',2027)`;
+  await gymClass(tx, f, { id: classes.gy, offeringId: gy, name: 'SA27A', startYear: 2027 });
   await f.actor(tx, 'principalA');
   const link = (classId, planId, columnId) => tx`select public.phase51_grim_class_command(${tx.json({ action: 'link', commandId: randomUUID(), classId, planId,
     expectedPlanRevision: 0, columnId, expectedLinkRevision: null, previousPlanId: null })}) value`;

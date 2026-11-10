@@ -10,7 +10,7 @@ import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createLasarFixture } from './lasar-fixtures.mjs';
+import { createLasarFixture, gymClass } from './lasar-fixtures.mjs';
 import { addDays, dayInfo, proposeSchoolYear } from '../../web/lib/lasar-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -43,7 +43,7 @@ async function oldCalendar(t, f, { unit = f.schools.A, version = 1, groupDays = 
 const supersede = (t, oldId, newId) => t`update public.school_years set superseded_at=clock_timestamp(),superseded_by=${newId} where id=${oldId}`;
 
 async function rows(t) {
-  return [...await t`select 'group_days' tbl, school_year_id, group_key, day::text day from public.school_year_group_days
+  return [...await t`select 'group_days' tbl, school_year_id, group_key, day::text as day from public.school_year_group_days
     union all select 'short_weeks', school_year_id, group_key, null from public.school_year_short_weeks order by 1,2,3,4`];
 }
 const formCounts = list => list.reduce((c, r) => ({ ...c, [formOf(r.group_key)]: c[formOf(r.group_key)] + 1, total: c.total + 1 }), { arskurs: 0, klass: 0, okand: 0, total: 0 });
@@ -90,8 +90,8 @@ function fixtures() {
       name: 'klassnamn som finns för två startår i samma skola och båda passar läsåret avbryter',
       expect: 'abort',
       build: async (t, f) => {
-        await t`insert into public.school_classes(customer_id,organizer_id,unit_id,offering_id,name,start_year) values
-          (${f.id(1)},${f.id(2)},${f.schools.A},${f.offerings.gy},'SYNDUP',2026),(${f.id(1)},${f.id(2)},${f.schools.A},${f.offerings.gy},'SYNDUP',2027)`;
+        await gymClass(t, f, { offeringId: f.offerings.gy, name: 'SYNDUP', startYear: 2026 });
+        await gymClass(t, f, { offeringId: f.offerings.gy, name: 'SYNDUP', startYear: 2027 });
         await oldCalendar(t, f, { groupDays: [{ key: 'klass:SYNDUP', day: d(5), cause: 'friluftsdag' }, { key: `${f.offerings.gr}:ak1`, day: d(6), cause: 'apl' }] });
       },
     },
