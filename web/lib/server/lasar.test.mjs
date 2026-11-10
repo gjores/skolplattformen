@@ -416,3 +416,106 @@ test('förmågor för ändringsflödet följer funktionen: skolan öppnar och av
   const ok = await post('lasa', { target, schoolYear: year, versionId: null });
   assert.equal(ok.status, 200); assert.equal((await ok.json()).editableFrom, '2027-10-15');
 });
+
+// 05.1.1-10: huvudmannens ram och arbetssättet. Målet ramen ({ kind: 'frame' }) går oförändrat till SQL; bara huvudmannen får
+// ett svar för ramen, och rektor eller skoladministratör får det aldrig, även om SQL skulle svara (D-08, T-05.1.1-31).
+const frameTarget = { kind: 'frame' };
+const frameVersion = uid(7);
+const frameProposal = () => proposeSchoolYear(year, 'ram', ['GR', 'GY']);
+const frameCalendar = (over = {}) => { const p = frameProposal(); return calendar({ versionId: frameVersion, terms: { ht: p.ht, vt: p.vt }, exceptions: p.exceptions, ...over }); };
+function frameRead({ cal = null, capabilities = caps({ canSetMode: true }), mode = 'ram' } = {}) {
+  return { ...read({ cal, capabilities }), target: frameTarget, schoolName: 'Huvudmannens ram', mode };
+}
+
+test('ramen: huvudmannen läser ramens mål; målet går oförändrat till SQL och händelsen gäller ramen', async () => {
+  reset('huvudman', { lasar_read: wrap(frameRead({ capabilities: caps({ canCreate: ['proposal'], canSetMode: true }) })) });
+  const response = await post('lasa', { target: frameTarget, schoolYear: year, versionId: null });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.deepEqual(body.target, frameTarget); assert.equal(body.mode, 'ram');
+  assert.deepEqual(state.calls[0].values, [{ target: frameTarget, schoolYear: year, versionId: null }]);
+  const event = state.events.filter(e => e.outcome === 'ok')[0];
+  assert.equal(event.action, 'lasar_read'); assert.equal(event.objectType, 'school_year_frame');
+});
+
+test('ramen: rektor och skoladministratör får aldrig ramens mål, varken när SQL nekar eller om SQL skulle svara', async () => {
+  for (const fn of ['rektor', 'administrator']) {
+    reset(fn, { lasar_read: wrap(frameRead({ capabilities: caps() })) });
+    const response = await post('lasa', { target: frameTarget, schoolYear: year, versionId: null });
+    assert.equal(response.status, 500, fn);
+    assert.ok(!JSON.stringify(await response.json()).includes('Huvudmannens ram'));
+    reset(fn); state.sqlError = Object.assign(new Error('sql'), { code: '42501' }); state.sqlErrorAt = 'lasar_read';
+    const denied = await post('lasa', { target: frameTarget, schoolYear: year, versionId: null });
+    assert.equal(denied.status, 403); assert.deepEqual((await denied.json()).details, { reason: 'lasar_forbidden' });
+  }
+  // En skolläsning med ram och arbetssätt är tillåten för rektor; förmågorna för ramen är det inte.
+  reset('rektor', { lasar_read: wrap({ ...read({ capabilities: caps({ canCreate: ['frame'] }) }), mode: 'ram', frame: { current: null, latest: null, acknowledgedVersionId: null } }) });
+  assert.equal((await post('lasa', { target, schoolYear: year, versionId: null })).status, 200);
+  reset('rektor', { lasar_read: wrap(read({ capabilities: caps({ canPublishFrame: true }) })) });
+  assert.equal((await post('lasa', { target, schoolYear: year, versionId: null })).status, 500);
+});
+
+test('ramen: huvudmannen skapar ramutkast; servern läser huvudmannens skolformer och skickar serverberäknat förslag', async () => {
+  reset('huvudman', { lasar_read: wrap(frameRead({ capabilities: caps({ canCreate: ['proposal'], canSetMode: true }) })) });
+  const request = await lasarCommandRequest({ target: frameTarget, schoolYear: year, versionId: null, expectedRevision: null, ops: [{ op: 'create', source: 'proposal' }] });
+  state.replies.lasar_command = wrap({ receipt: { commandId: request.commandId, revision: 1, replayed: false },
+    detail: frameRead({ cal: frameCalendar(), capabilities: caps({ canEdit: true, canPublishFrame: true, canSetMode: true }) }) });
+  const response = await post('kommando', request);
+  assert.equal(response.status, 200);
+  assert.deepEqual(state.calls.map(c => c.fn), ['lasar_read', 'lasar_command']);
+  assert.deepEqual(state.calls[0].values, [{ target: frameTarget, schoolYear: year, versionId: null }]);
+  const p = frameProposal();
+  assert.deepEqual(state.calls[1].values, [{ ...JSON.parse(JSON.stringify(request)), proposal: { terms: { ht: p.ht, vt: p.vt }, exceptions: p.exceptions } }]);
+  assert.equal(state.events.filter(e => e.outcome === 'ok')[0].objectType, 'school_year_frame');
+});
+
+test('ramen: skolans start ur ramen och en ny ramversion skickar inget förslagsinnehåll', async () => {
+  for (const [fn, t, reply] of [['rektor', target, read({ cal: calendar({ frameVersionId: frameVersion }), capabilities: caps({ canEdit: true, canSubmit: true }) })],
+    ['huvudman', frameTarget, frameRead({ cal: frameCalendar({ version: 2 }), capabilities: caps({ canEdit: true, canPublishFrame: true, canSetMode: true }) })]]) {
+    reset(fn);
+    const request = await lasarCommandRequest({ target: t, schoolYear: year, versionId: null, expectedRevision: null, ops: [{ op: 'create', source: 'frame' }] });
+    state.replies.lasar_command = wrap({ receipt: { commandId: request.commandId, revision: 1, replayed: false }, detail: reply });
+    const response = await post('kommando', request);
+    assert.equal(response.status, 200, fn);
+    assert.deepEqual(state.calls.map(c => c.fn), ['lasar_command']);
+    assert.ok(!('proposal' in state.calls[0].values[0]));
+  }
+});
+
+test('arbetssätt: förhandsvisningen går genom beslutsrutten med engångskod och ger skollistan', async () => {
+  reset('huvudman');
+  const decision = lasarDecisionRequest({ target: frameTarget, schoolYear: year, versionId: null, expectedRevision: null, action: 'preview_mode_change', text: '', mode: 'ram' });
+  const preview = { contractVersion: 'lasar_sql_v1', schoolYear: year, mode: 'ram', affected: [{ unitId: unit, schoolName: 'Syntetisk skola A', status: 'utkast' }] };
+  state.replies.lasar_command = wrap(preview);
+  assert.equal((await post('beslut', decision)).status, 403);
+  state.mfa = true;
+  const ok = await post('beslut', decision);
+  assert.equal(ok.status, 200); assert.deepEqual(await ok.json(), preview);
+  // Fel läsår, fel arbetssätt eller ett annat kuvert ger 500 utan innehåll.
+  for (const bad of [{ ...preview, schoolYear: year + 1 }, { ...preview, mode: 'eget' }, { receipt: { commandId: decision.commandId, revision: 1, replayed: false }, detail: frameRead() }]) {
+    reset('huvudman'); state.mfa = true; state.replies.lasar_command = wrap(bad);
+    assert.equal((await post('beslut', decision)).status, 500, JSON.stringify(bad).slice(0, 80));
+  }
+});
+
+test('arbetssätt: svaret efter set_mode ska bära det valda arbetssättet på ramens mål', async () => {
+  for (const [mode, status] of [['ram', 200], ['eget', 500]]) {
+    reset('huvudman'); state.mfa = true;
+    const decision = lasarDecisionRequest({ target: frameTarget, schoolYear: year, versionId: null, expectedRevision: null, action: 'set_mode', text: '', mode: 'ram', confirmAffected: [unit] });
+    state.replies.lasar_command = wrap({ receipt: { commandId: decision.commandId, revision: 1, replayed: false }, detail: frameRead({ mode }) });
+    assert.equal((await post('beslut', decision)).status, status, mode);
+  }
+});
+
+test('ge ut ramen: svaret ska visa samma version som utgiven, och modellen prövar ramens innehåll', async () => {
+  const ask = cal => lasarDecisionRequest({ target: frameTarget, schoolYear: year, versionId: frameVersion, expectedRevision: 3, action: 'publish_frame', text: '' });
+  const published = frameCalendar({ status: 'faststalld', decidedOn: '2026-11-11', revision: 4 });
+  for (const [cal, status] of [[published, 200], [frameCalendar({ revision: 4 }), 500], [{ ...published, exceptions: {} }, 409]]) {
+    reset('huvudman'); state.mfa = true;
+    const decision = ask(cal);
+    state.replies.lasar_command = wrap({ receipt: { commandId: decision.commandId, revision: 4, replayed: false }, detail: frameRead({ cal, capabilities: caps({ canCreate: [], canSetMode: true }) }) });
+    const response = await post('beslut', decision);
+    assert.equal(response.status, status, cal.status + Object.keys(cal.exceptions).length);
+    if (status === 409) assert.equal((await response.json()).details.reason, 'lasar_rules_failed');
+  }
+});

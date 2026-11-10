@@ -381,8 +381,117 @@ async function frames(t, step, f) {
   await intake(t, step, f, { s, readSchool, send, decide, deny, today, hashOf, rowsOf, scmd });
 }
 
-/** Uppgift 2 (05.1.1-10): intag och kvittering av ramens ändringar. */
-async function intake() { /* fylls i uppgift 2 */ }
+/**
+ * Uppgift 2 (05.1.1-10, D-05, D-10, D-12, D-15): intag och kvittering av ramens ändringar. Bas = skolans frame_id, deras = senast
+ * utgivna ram, våra = skolans kalender. En nyckel tas in bara om ramen har ändrat den (deras ≠ bas) och skolan inte redan har
+ * ramens värde; en konflikt (skolan har också ändrat) tas in bara när nyckeln anges. Varje fall körs i en sparpunkt som rullas
+ * tillbaka, så att fallen utgår från samma läge.
+ */
+async function intake(t, step, f, { s, readSchool, send, decide, deny, today, hashOf, rowsOf, scmd }) {
+  const A = f.schools.A, B = f.schools.B;
+  const rolledBack = async fn => { const sentinel = Error('intake_rollback'); try { await t.savepoint(async u => { await fn(u); throw sentinel; }); } catch (e) { if (e !== sentinel) throw e; } };
+  const take = (unitId, versionId, rev, accepted, frameVersionId = s.f2) => scmd(unitId, [{ op: 'take_frame_changes', frameVersionId, accepted }], versionId, rev);
+  const keep = (unitId, versionId, rev, frameVersionId = s.f2) => scmd(unitId, [{ op: 'keep_school_calendar', frameVersionId }], versionId, rev);
+  const key = d => `day:${d}`;
+  const dec = (unitId, action, text, versionId, rev) => lasarDecision({ unitId, schoolYear: YEAR, versionId, expectedRevision: rev, action, text });
+
+  await step(t, 'intag och kvittering mot en äldre ramversion nekas med lasar_frame_stale', async () => {
+    await deny('principalB', await take(B, s.b, s.brev, [key(s.applyDay)], s.f1), '40001', 'lasar_frame_stale');
+    await deny('principalB', await keep(B, s.b, s.brev, s.f1), '40001', 'lasar_frame_stale');
+    await deny('principalB', await take(B, s.b, s.brev, [key(s.applyDay)], f.id(98)), '40001', 'lasar_frame_stale');
+  });
+  await step(t, 'en nyckel där bara skolan har ändrat eller där ramen inte har ändrats nekas med lasar_frame_stale; inget skrivs', async () => {
+    const before = await rowsOf(s.b);
+    for (const k of ['term:vt:end', key(s.ownDay), key(s.study), 'term:ht:start', key(`${YEAR}-10-12`)])
+      await deny('principalB', await take(B, s.b, s.brev, [key(s.applyDay), k]), '40001', 'lasar_frame_stale');
+    assert.deepEqual(await rowsOf(s.b), before);
+  });
+  await step(t, 'huvudmannen tar inte in ramen åt skolan (D-18, T-05.1.1-31)', async () => {
+    await deny('hm', await take(B, s.b, s.brev, [key(s.applyDay)]), '42501');
+    await deny('hm', await keep(B, s.b, s.brev), '42501');
+  });
+  await step(t, 'intag av ändringar som skolan inte har rört skriver ramens värden och flyttar frame_id och frame_ack_id; konflikten och skolans egna avvikelser ligger kvar (D-05)', async () => {
+    await rolledBack(async () => {
+      const r = await send('principalB', await take(B, s.b, s.brev, ['term:ht:end', key(s.applyDay)]));
+      const c = r.detail.calendar;
+      assert.equal(c.terms.ht.end, s.htEnd2); assert.equal(c.terms.vt.end, s.vtEndB);
+      assert.deepEqual(c.exceptions[s.applyDay], { kind: 'lovdag', note: 'Syntetisk lovdag i ramen' });
+      assert.deepEqual(c.exceptions[s.conflictDay], { kind: 'studiedag', note: 'Syntetisk skolans studiedag' });
+      assert.deepEqual(c.exceptions[s.ownDay], { kind: 'studiedag', note: 'Syntetisk egen studiedag' });
+      assert.equal(c.frameVersionId, s.f2);
+      assert.deepEqual([r.detail.frame.current.versionId, r.detail.frame.latest.versionId, r.detail.frame.acknowledgedVersionId], [s.f2, s.f2, s.f2]);
+      assert.deepEqual([c.history[0].action, c.history[0].comment], ['Ramens ändringar intagna', '2 ändringar från ramens version 2.']);
+      const row = await rowsOf(s.b);
+      assert.deepEqual([row.year.frame_id, row.year.frame_ack_id], [s.f2, s.f2]);
+      assert.deepEqual(frameDeviation(lasarSchoolYear(r.detail), r.detail.frame.current).map(d => d.key), ['term:vt:end', key(s.conflictDay), key(s.ownDay)]);
+      assert.equal(c.contentHash, await lasarContentHash({ terms: c.terms, exceptions: c.exceptions, groupDays: c.groupDays, shortWeeks: c.shortWeeks, frameVersionId: s.f2, version: 1 }));
+    });
+  });
+  await step(t, 'en konflikt tas in bara när nyckeln anges uttryckligen', async () => {
+    await rolledBack(async () => {
+      const r = await send('principalB', await take(B, s.b, s.brev, [key(s.conflictDay)]));
+      assert.deepEqual(r.detail.calendar.exceptions[s.conflictDay], { kind: 'lovdag', note: 'Syntetisk lovdag i ramen' });
+      assert.equal(r.detail.calendar.exceptions[s.applyDay], undefined, 'den ej angivna ändringen tas inte in');
+      assert.equal(r.detail.calendar.terms.ht.end, s.f1pub.terms.ht.end);
+    });
+  });
+  await step(t, 'Behåll skolans kalender kvitterar ramversionen: bara frame_ack_id flyttas, dagarna och kontrollsumman är oförändrade', async () => {
+    await rolledBack(async () => {
+      const before = await rowsOf(s.b), hash = await hashOf(s.b);
+      const r = await send('principalB', await keep(B, s.b, s.brev));
+      const after = await rowsOf(s.b);
+      assert.deepEqual(after.days, before.days);
+      assert.deepEqual({ ...after.year, revision: 0, frame_ack_id: null }, { ...before.year, revision: 0, frame_ack_id: null });
+      assert.deepEqual([after.year.frame_id, after.year.frame_ack_id], [s.f1, s.f2]);
+      assert.equal(await hashOf(s.b), hash);
+      assert.deepEqual([r.detail.frame.current.versionId, r.detail.frame.latest.versionId, r.detail.frame.acknowledgedVersionId], [s.f1, s.f2, s.f2]);
+      assert.equal(r.detail.calendar.history[0].action, 'Skolans kalender behållen');
+      await deny('principalB', await keep(B, s.b, r.receipt.revision), '40001', 'lasar_frame_stale');
+    });
+  });
+  await step(t, 'en skola som började i eget förslag (ingen ramversion) tar in ramens värde bara uttryckligen och kan kvittera (D-15)', async () => {
+    await rolledBack(async () => {
+      const a = await readSchool('principalA', A);
+      const same = Object.keys(s.f2pub.exceptions).find(d => JSON.stringify(a.calendar.exceptions[d]) === JSON.stringify(s.f2pub.exceptions[d]));
+      assert.ok(same);
+      await deny('principalA', await take(A, s.aId, a.calendar.revision, [key(same)]), '40001', 'lasar_frame_stale');
+      const r = await send('principalA', await take(A, s.aId, a.calendar.revision, [key(s.applyDay)]));
+      assert.deepEqual(r.detail.calendar.exceptions[s.applyDay], { kind: 'lovdag', note: 'Syntetisk lovdag i ramen' });
+      assert.deepEqual([r.detail.frame.current.versionId, r.detail.frame.acknowledgedVersionId], [s.f2, s.f2]);
+    });
+    await rolledBack(async () => {
+      const a = await readSchool('principalA', A);
+      const r = await send('principalA', await keep(A, s.aId, a.calendar.revision));
+      assert.deepEqual([r.detail.frame.current, r.detail.frame.acknowledgedVersionId], [null, s.f2]);
+      assert.equal(await hashOf(s.aId), s.aHash);
+    });
+  });
+  await step(t, 'en fastställd skolkalender får bara markering; intag kräver ny version, och i den nya versionen är passerade dagar låsta (D-10, D-12)', async () => {
+    await rolledBack(async () => {
+      try {
+        const sub = await decide('principalB', dec(B, 'submit', 'Syntetiskt förslag', s.b, s.brev));
+        const ok = await decide('hm', dec(B, 'approve', 'Syntetiskt beslut', s.b, sub.receipt.revision));
+        const r = await readSchool('principalB', B);
+        assert.equal(r.calendar.status, 'faststalld'); assert.equal(r.frame.latest.versionId, s.f2); assert.equal(r.frame.acknowledgedVersionId, s.f1);
+        await deny('principalB', await take(B, s.b, ok.receipt.revision, [key(s.applyDay)]), '40001', 'lasar_locked_status');
+        await deny('principalB', await keep(B, s.b, ok.receipt.revision), '40001', 'lasar_locked_status');
+        await denied(t, u => u`update public.school_years set frame_ack_id=${s.f2} where id=${s.b}`, 'P0001');
+        const req = await decide('principalB', dec(B, 'request_change', 'Syntetisk orsak: ramen har ändrats', s.b, ok.receipt.revision));
+        const open = await decide('hm', dec(B, 'reopen', 'Syntetiskt skäl', s.b, req.receipt.revision));
+        const v2 = open.detail.calendar.versionId;
+        assert.deepEqual([open.detail.calendar.frameVersionId, open.detail.frame.current.versionId, open.detail.frame.acknowledgedVersionId], [s.f1, s.f1, s.f1]);
+        await today(`${YEAR}-10-15`);
+        const mid = await readSchool('principalB', B);
+        assert.equal(mid.editableFrom, `${YEAR}-10-15`);
+        assert.ok(s.applyDay < mid.editableFrom);
+        await deny('principalB', await take(B, v2, mid.calendar.revision, [key(s.applyDay)]), '40001', 'lasar_past_day');
+        const done = await send('principalB', await take(B, v2, mid.calendar.revision, ['term:ht:end']));
+        assert.equal(done.detail.calendar.terms.ht.end, s.htEnd2); assert.equal(done.detail.calendar.frameVersionId, s.f2);
+        assert.equal(done.detail.calendar.exceptions[s.applyDay], undefined);
+      } finally { await today(null).catch(() => undefined); }
+    });
+  });
+}
 
 export async function verifyLasarFrames(out, { ephemeral = false } = {}) {
   const output = resolve(out);
