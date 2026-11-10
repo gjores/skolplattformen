@@ -72,3 +72,84 @@
 .protected-lasar .tp-workflow-text {
   overflow-wrap: anywhere;
 }
+
+/* Menyval minst lika höga som knappar (Skolplattan control-height). ly-menu ligger i en portal. */
+.protected-lasar-menu [data-slot='context-menu-item'] {
+  min-height: var(--control-height);
+}
+
+/*
+ * A-13: telefon (≤ 700px eller pekskärm).
+ * Dagceller och veckoknappar är 36px, ett redovisat undantag från 44px så att
+ * sju kolumner ryms på 320px. Dagarna nås också med Markera flera och menyn,
+ * vars val är 44px. Övriga knappar är minst 44px och bryter text vid stor
+ * textstorlek i stället för att trycka ut sidan.
+ */
+@media (max-width: 700px), (pointer: coarse) {
+
+  .protected-lasar .ly-day > button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+  .protected-lasar button {
+    min-height: var(--control-height);
+    height: auto;
+    max-width: 100%;
+    white-space: normal;
+  }
+  /* globals.css ger alla knappar min-height 44px !important vid pekskärm; undantaget måste därför också vara !important. */
+  .protected-lasar .ly-day > button,
+  .protected-lasar .ly-day > span {
+    min-height: 0 !important;
+    height: 36px;
+  }
+  .protected-lasar .ly-week button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 36px !important;
+  }
+  .protected-lasar .tp-workflow-actions button {
+    flex: 1 1 100%;
+  }
+  /* Markeringen är fast nederst, så att åtgärderna nås medan kalendern rullar. */
+  .protected-lasar .ly-canvas {
+    overflow: clip;
+  }
+  .protected-lasar .ly-marking {
+    position: sticky;
+    bottom: 0;
+    z-index: 5;
+    box-shadow: 0 -4px 12px color-mix(in srgb, var(--foreground) 14%, transparent);
+  }
+  .protected-lasar .ly-marking-note input {
+    width: 100%;
+  }
+  /* 200 % textstorlek: terminer och helgdagar bryts i stället för att trycka ut sidan. */
+  .protected-lasar .ly-term,
+  .protected-lasar .ly-term-field {
+    max-width: 100%;
+  }
+  .protected-lasar .ly-term-field strong,
+  .protected-lasar .ly-term-facts {
+    overflow-wrap: anywhere;
+  }
+  .protected-lasar .ly-holidays li {
+    flex-wrap: wrap;
+  }
+  .protected-lasar .ly-holidays li > * {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .protected-lasar .ly-holidays small {
+    white-space: normal;
+  }
+  .protected-lasar-dialog .dialog-actions button {
+    flex: 1 1 100%;
+    min-height: var(--control-height);
+    height: auto;
+    white-space: normal;
+  }
+}

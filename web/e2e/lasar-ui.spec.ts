@@ -351,3 +351,94 @@ test('anteckningen sparas vid Enter, och osparad text frågar innan versionsbyte
  await expect(page.locator('.tp-versions button').first()).toHaveAttribute('aria-pressed','true');
  await expect(page.getByRole('textbox',{name:'Ny kommentar'})).toHaveValue('Ett utkast till kommentar.');
 });
+
+// ---- Plan 05.1.1-04 uppgift 3: telefon (A-13, UI-SPEC avsnitt 16 fall 10). Simulerat i WebKit eller Chromium enligt konfigurationen.
+type Box={tag:string;text:string;height:number;right:number};
+/** Synliga knappar utom dagceller och veckoknappar (36px, redovisat undantag). */
+const smallButtons=(page:Page,scope:string)=>page.locator(scope).evaluateAll(roots=>roots.flatMap(root=>[...root.querySelectorAll('button,[role=menuitem]')]
+ .filter(b=>!b.closest('.ly-day')&&!b.closest('.ly-week'))
+ .map(b=>{const r=b.getBoundingClientRect();return {tag:b.tagName,text:(b.textContent??'').trim().slice(0,40),height:r.height,right:r.right};})
+ .filter(b=>b.height>0&&b.height<43.5))) as Promise<Box[]>;
+const noSideScroll=(page:Page)=>page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth);
+async function longPress(page:Page,label:string){
+ const b=dayButton(page,label);await b.scrollIntoViewIfNeeded();
+ const box=(await b.boundingBox())!;const t=[{identifier:0,clientX:box.x+box.width/2,clientY:box.y+box.height/2}];
+ await b.dispatchEvent('touchstart',{touches:t,changedTouches:t,targetTouches:t});
+ await page.waitForTimeout(700);
+ await b.dispatchEvent('touchend',{touches:[],changedTouches:t,targetTouches:[]});
+}
+
+test('telefon: långtryck öppnar menyn och Markera flera markerar tre dagar utan att ändra dem',async({page},info)=>{
+ test.skip(!phone(info.project.name),'telefonfall');
+ const errors=await open(page);
+ await longPress(page,'onsdag 7 oktober 2026');
+ await expect(page.locator('.ly-menu')).toBeVisible();
+ await expect(dayButton(page,'onsdag 7 oktober 2026')).toHaveAttribute('aria-pressed','true');
+ await expect(page.locator('.ly-menu')).toContainText('onsdag 7 oktober 2026');
+ await expect(page.locator('.ly-menu').getByRole('menuitem',{name:'Gör till lovdag'})).toBeVisible();
+ expect(await smallButtons(page,'.ly-menu')).toEqual([]);
+ await page.keyboard.press('Escape');
+ await expect(page.locator('.ly-menu')).toBeHidden();
+ const mode=page.getByRole('button',{name:'Markera flera'});
+ await expect(mode).toBeVisible();
+ await mode.tap();
+ await expect(mode).toHaveAttribute('aria-pressed','true');
+ for(const d of ['torsdag 8 oktober 2026','fredag 9 oktober 2026'])await dayButton(page,d).tap();
+ await expect(page.locator('.ly-marking-what')).toContainText('3 dagar markerade');
+ for(const d of ['onsdag 7 oktober 2026','torsdag 8 oktober 2026','fredag 9 oktober 2026']){
+  await expect(dayButton(page,d)).toHaveAttribute('aria-pressed','true');
+  await expect(page.locator('td.ly-day',{has:dayButton(page,d)})).toHaveClass(/ly-skoldag/);
+ }
+ expect(await commands(page)).toEqual([]);
+ // Åtgärden i den fasta markeringen ändrar alla tre.
+ await page.locator('.ly-marking').getByRole('button',{name:'Gör till lovdagar (3)'}).tap();
+ await expect(page.locator('.tp-cover-side')).toContainText(/Sparat \d{2}:\d{2}/);
+ expect((await commands(page)).map(c=>c.body.ops)).toEqual([[{op:'set_days',dates:['2026-10-07','2026-10-08','2026-10-09'],kind:'lovdag'}]]);
+ expect(errors).toEqual([]);
+});
+
+test('telefon: fast markering, 36px dagar, 44px knappar och ingen sidledsrullning',async({page},info)=>{
+ test.skip(!phone(info.project.name),'telefonfall');
+ await open(page,'?status=faststalld&version=2&passerade=1');
+ expect(await noSideScroll(page)).toBe(true);
+ const day=await dayButton(page,'onsdag 18 november 2026').boundingBox();
+ expect(Math.round(day!.height)).toBe(36);
+ const week=await page.getByRole('button',{name:/^Vecka 47:/}).boundingBox();
+ expect(Math.round(week!.height)).toBeGreaterThanOrEqual(36);
+ await page.getByRole('button',{name:'Markera flera'}).tap();
+ await dayButton(page,'onsdag 18 november 2026').tap();
+ const marking=page.locator('.ly-marking');
+ await expect(marking).toBeVisible();
+ expect(await marking.evaluate(el=>getComputedStyle(el).position)).toBe('sticky');
+ await page.evaluate(()=>window.scrollTo(0,0));
+ const pinned=await marking.evaluate(el=>{const r=el.getBoundingClientRect();return {top:r.top,bottom:r.bottom,h:innerHeight};});
+ expect(pinned.bottom).toBeLessThanOrEqual(pinned.h+1);
+ expect(pinned.top).toBeLessThan(pinned.h);
+ expect(await smallButtons(page,'.protected-lasar')).toEqual([]);
+ const actions=page.locator('.tp-workflow-actions button');
+ expect(await actions.count()).toBeGreaterThan(0);
+ const canvas=(await page.locator('.tp-workflow-actions').boundingBox())!;
+ for(const b of await actions.all()){const r=(await b.boundingBox())!;expect(r.width).toBeGreaterThanOrEqual(canvas.width-1);}
+ await page.locator('.tp-workflow-actions').getByRole('button').first().tap();
+ await expect(dialog(page)).toBeVisible();
+ expect(await smallButtons(page,'[role=dialog]')).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+});
+
+test('telefon: långa namn och 200 % textstorlek bryts utan sidledsrullning',async({page},info)=>{
+ test.skip(!phone(info.project.name),'telefonfall');
+ const long='Syntetiska grundskolan med ett mycket långt namn för kommunens skolenhet i norra stadsdelen';
+ await open(page,`?skola=${encodeURIComponent(long)}`);
+ await page.getByRole('textbox',{name:'Ny kommentar'}).fill('Enmycketlångkommentarutanmellanslagsomintefårtryckautsidanpåtelefon');
+ await page.getByRole('button',{name:'Kommentera'}).tap();
+ await expect(page.locator('.admin-history')).toContainText('Enmycketlång');
+ await expect(page.getByRole('heading',{level:1})).toContainText(long);
+ expect(await noSideScroll(page)).toBe(true);
+ test.skip(info.project.name!=='phone','200 % prövas på 390 px');
+ await page.evaluate(()=>{document.documentElement.style.fontSize='200%';});
+ await expect(page.locator('.ly-calendar')).toBeVisible();
+ const wide=await page.evaluate(()=>[...document.querySelectorAll('#workspace *')].filter(e=>e.getBoundingClientRect().right>innerWidth+.5).map(e=>`${e.tagName}.${e.className}`).slice(0,10));
+ expect(wide).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+ expect(await smallButtons(page,'.protected-lasar')).toEqual([]);
+});
