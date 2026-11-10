@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-09 klar 2026-11-10: ändringsbegäran, ny version och låsta passerade dagar prövade i ephemeral PostgreSQL; 20261112110000_lasar_change_requests.sql registrerad, inte installerad. Nästa: 05.1.1-10."
-last_updated: "2026-11-10"
-last_activity: 2026-11-10
-last_activity_desc: "05.1.1-09: begär ändring, ta tillbaka, avslå och öppna för ändring som ny version (D-10, D-16), ersättning i rätt ordning, låsta passerade dagar (D-12) och beroende underlag som bara följer den gällande versionen (D-11, LASAR-05). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+stopped_at: "05.1.1-10 klar 2026-11-11: huvudmannens ram och arbetssätt prövade i ephemeral PostgreSQL; 20261112120000_lasar_frames.sql registrerad, inte installerad. Nästa: 05.1.1-11."
+last_updated: "2026-11-11"
+last_activity: 2026-11-11
+last_activity_desc: "05.1.1-10: arbetssätt per läsår, huvudmannens ram med utgivning och egna versioner, skolans start ur ramen, intag eller kvittering av ramens ändringar och Huvudmannens ram i planeringsvalet (D-01, D-02, D-05, D-06, D-08, D-13–D-15). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-10 klar 2026-11-11:** [Huvudmannens ram och arbetssätt](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-10-SUMMARY.md): huvudmannen väljer arbetssätt per läsår för alla skolenheter; ett byte visar först skolor med påbörjade kalendrar och sparas bara med den bekräftade listan, och påbörjade kalendrar ändras inte (D-01, D-15). Från 1 augusti är arbetssättet låst (användarbeslut 2026-11-10, alternativ a). Huvudmannen lägger ramen i ett utkast och ger ut den som en oföränderlig version; rektor ser ramen först efter utgivning och kan i arbetssättet ram bara börja ur den (D-02, D-13, D-14). En ny utgivning ger skolan en markering; rektor tar in valda punkter eller behåller skolans kalender, och en fastställd kalender kräver en ny version (D-05, D-10, D-12). Huvudmannens ram står först i planeringsvalet för huvudman i arbetssättet ram (D-08). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar-frames 42 PASS, verify-lasar 126 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 59 PASS, tsc, oxlint, lasar-ui (simulerat), demoregressionen och build:protected gröna. `20261112120000_lasar_frames.sql` (`11bf09a0…8c62`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Öppet till plan 12: knapp för ny ramversion och avvikelse mot senaste ram efter kvittering. Nästa: 05.1.1-11.
 
 **05.1.1-09 klar 2026-11-10:** [Ny version, ändringsbegäran och låsta passerade dagar](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-09-SUMMARY.md): rektor eller skoladministratör begär ändring av en fastställd kalender med orsak och kan ta tillbaka begäran; huvudmannen avslår med motivering eller öppnar kalendern som en ny version med samma innehåll (D-10, D-16). Begäran och svar står kvar i `school_year_change_requests` och historiken. Den tidigare versionen gäller tills den nya fastställs och ersätts då i rätt ordning. När läsåret har börjat (från 1 augusti) nekar servern ändringar av passerade dagar, passerad terminsstart och korta veckor efter terminsstarten i en ny version (`lasar_past_day`, D-12). Ett utkast av version 2 ändrar varken IM-behov, basisHash eller reservstart; när version 2 fastställs blir en sparad IM-rad stale utan omräkning (D-11, LASAR-05). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 126 PASS, verify-lasar-groups 13 PASS, 05.1:s fyra sviter PASS, Node 52 PASS, tsc och oxlint gröna. `20261112110000_lasar_change_requests.sql` (`ff1b486b…b581`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-10.
 
