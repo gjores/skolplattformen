@@ -72,6 +72,7 @@
   --border: #e3e7ee;
   --input: #cbd2df;
   --ring: #4469ee;
+  --warning-foreground: #86601f;
   /* Skolplattan: minsta pekyta för knappar och menyval. */
   --control-height: 44px;
   --radius: 0.65rem;

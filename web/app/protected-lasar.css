@@ -1,0 +1,25 @@
+/*
+ * Läsår & skoldagar i skyddad drift (fas 05.1.1). Bara det demon saknar läggs
+ * här; demons ly-, tp- och admin-klasser i globals.css används oförändrade.
+ * Designsystemet Skolplattan: inga hexvärden, färg bara via variabler.
+ */
+
+/* A-02: sidans h1 är omslagets kickerrad. Versalerna kommer från CSS så att skärmläsare läser texten rätt. */
+.protected-lasar .ly-page-title {
+  margin: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+/* A-11: sparstatus i omslaget. */
+.protected-lasar .ly-saved {
+  color: var(--muted-foreground);
+}
+
+.protected-lasar .admin-empty > [data-slot='spinner'] {
+  display: block;
+  margin: 0 auto 8px;
+  color: var(--muted-foreground);
+}

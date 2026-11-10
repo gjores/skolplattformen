@@ -26,19 +26,9 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog';
-import {
-  ContextMenu,
-  ContextMenuTrigger,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuLabel,
-  ContextMenuGroup,
-  ContextMenuSeparator,
-} from '@/components/ui/context-menu';
+import { LasarCalendar, num, selectionFacts, statusPlural, statusText, toolCopy, useCalendarSelection, type ClickModifiers } from './lasar-calendar.tsx';
 import {
   summarize,
-  weekRows,
-  dayInfo,
   canEdit,
   setDay,
   setDays,
@@ -52,7 +42,6 @@ import {
   causeLabel,
   setNote,
   setNotes,
-  editableRange,
   setTerm,
   resetToProposal,
   submit,
@@ -93,30 +82,8 @@ import {
   type TimplanState,
 } from '@/lib/timplan-model.ts';
 
-const num = (n: number, digits = 0) => n.toLocaleString('sv-SE', { minimumFractionDigits: digits, maximumFractionDigits: digits });
-const statusText: Record<DayInfo['status'], string> = {
-  skoldag: 'Skoldag',
-  lovdag: 'Lovdag',
-  studiedag: 'Studiedag',
-  helgdag: 'Helgdag',
-  helg: 'Helg',
-  utanför: 'Utanför läsåret',
-};
 /** Läsårets korta beteckning. Id:t är databasens och visas inte. */
 const shortLabel = (startYear: number) => `${startYear}/${String(startYear + 1).slice(2)}`;
-const statusPlural: Record<DayInfo['status'], string> = {
-  skoldag: 'skoldagar',
-  lovdag: 'lovdagar',
-  studiedag: 'studiedagar',
-  helgdag: 'helgdagar',
-  helg: 'helger',
-  utanför: 'dagar utanför läsåret',
-};
-const toolCopy: Record<Planned, { label: string; hint: string }> = {
-  skoldag: { label: 'Skoldag', hint: 'Klicka på en lov- eller studiedag för att göra den till skoldag igen.' },
-  lovdag: { label: 'Lovdag', hint: 'Klicka på dagar eller på ett veckonummer. Skift-klicka för ett intervall.' },
-  studiedag: { label: 'Studiedag', hint: 'Högst fem per läsår. Skriv vad personalen gör så syns det i planen.' },
-};
 type Action = 'submit' | 'approve' | 'return' | 'reopen';
 const actionCopy: Record<Action, { title: string; description: string; button: string; placeholder: string; label: string }> = {
   submit: { title: 'Skicka förslag till huvudmannen', description: 'Terminernas början och slut beslutas av huvudmannen. Förslaget låses tills huvudmannen fastställer det eller återsänder det med skäl.', button: 'Skicka förslag', placeholder: 'Beskriv lov, studiedagar och vad huvudmannen särskilt bör se.', label: 'Meddelande till huvudmannen' },
@@ -171,8 +138,8 @@ export default function LasarView({
   const [yearId, setYearId] = useState<string | null>(null);
   const [tool, setTool] = useState<Planned>('lovdag');
   const [note, setNoteText] = useState('');
-  const [anchor, setAnchor] = useState<string | null>(null);
-  const [selection, setSelection] = useState<string[]>([]);
+  const calendar = useCalendarSelection();
+  const { selection } = calendar;
   const [action, setAction] = useState<Action | null>(null);
   const [comment, setComment] = useState('');
   const [talk, setTalk] = useState('');
@@ -202,8 +169,7 @@ export default function LasarView({
 
   function choose(id: string) {
     setYearId(id);
-    setAnchor(null);
-    setSelection([]);
+    calendar.clear();
     clearError();
   }
   const noteText = () => note.trim() || undefined;
@@ -213,21 +179,9 @@ export default function LasarView({
    * kommando eller ctrl lägger till en dag i markeringen, båda utan att ändra
    * något; markerade dagar redigeras sedan med högerklick eller knapparna.
    */
-  function onDayClick(date: string, event: { shiftKey: boolean; metaKey: boolean; ctrlKey: boolean }) {
+  function onDayClick(date: string, event: ClickModifiers) {
     if (!sy) return;
-    if (event.metaKey || event.ctrlKey) {
-      setSelection((prev) => (prev.includes(date) ? prev.filter((d) => d !== date) : [...prev, date]));
-      setAnchor(date);
-      return;
-    }
-    if (event.shiftKey && anchor) {
-      const range = editableRange(sy, anchor, date);
-      setSelection(range.length ? range : [date]);
-      return;
-    }
-    setSelection([date]);
-    setAnchor(date);
-    if (!editable) return;
+    if (!calendar.dayClick(sy, date, event) || !editable) return;
     if (group) {
       apply((s) => setGroupDays(s, sy.id, group, [date], cause, noteText()));
       return;
@@ -235,38 +189,19 @@ export default function LasarView({
     // Ett klick på en låst dag förklarar varför den är låst.
     apply((s) => setDay(s, sy.id, date, tool, noteText()));
   }
-  function onWeekClick(days: DayInfo[], event: { metaKey: boolean; ctrlKey: boolean }) {
+  function onWeekClick(days: DayInfo[], event: Pick<ClickModifiers, 'metaKey' | 'ctrlKey'>) {
     if (!sy) return;
     const weekdays = days
       .filter((d) => (group ? d.status === 'skoldag' : d.editable))
       .map((d) => d.date);
-    if (!weekdays.length) return;
-    if (event.metaKey || event.ctrlKey) {
-      setSelection((prev) => [...prev.filter((d) => !weekdays.includes(d)), ...weekdays]);
-      setAnchor(weekdays[0]);
-      return;
-    }
-    setSelection(weekdays);
-    setAnchor(weekdays[0]);
-    if (!editable) return;
+    if (!calendar.weekClick(weekdays, event) || !editable) return;
     if (group) {
       apply((s) => setGroupDays(s, sy.id, group, weekdays, cause, noteText()));
       return;
     }
     apply((s) => setDays(s, sy.id, weekdays, tool, noteText()));
   }
-  /** Högerklick redigerar markeringen; en omarkerad dag markeras först. */
-  function onDayContextMenu(date: string) {
-    if (!selection.includes(date)) {
-      setSelection([date]);
-      setAnchor(date);
-    }
-  }
-  const selectedDays = sy ? selection.map((d) => dayInfo(sy, d)) : [];
-  const changeable = selectedDays.filter((d) => d.editable);
-  /** Dagar i markeringen som är skolans skoldagar; bara de kan gälla en grupp. */
-  const groupChangeable = selectedDays.filter((d) => d.status === 'skoldag');
-  const groupMarked = groupChangeable.filter((d) => groupCalendar.get(d.date)?.off);
+  const { selectedDays, changeable, groupChangeable, groupMarked } = selectionFacts(sy, selection, groupCalendar);
   function applyToGroup() {
     if (!sy || !group || !groupChangeable.length) return;
     apply(
@@ -305,95 +240,6 @@ export default function LasarView({
   }
 
   const selectedInfo = selectedDays.length === 1 ? selectedDays[0] : undefined;
-
-  function dayCell(d: DayInfo, i: number) {
-    const dayNumber = Number(d.date.slice(8));
-    const off = groupCalendar.get(d.date)?.off;
-    const title =
-      d.status === 'utanför'
-        ? `${formatLong(d.date)} · utanför läsåret`
-        : `${formatLong(d.date)} · ${d.holiday ?? statusText[d.status]}${d.note ? ` · ${d.note}` : ''}${d.part === 'jullov' ? ' · mellan terminerna' : ''}${off ? ` · ingen undervisning för ${off.from}: ${causeLabel[off.cause]}${off.note ? `, ${off.note}` : ''}` : ''}`;
-    const marked = selection.includes(d.date);
-    const className = `ly-day ly-${d.status}${off ? ' ly-off' : ''}${d.part === 'jullov' ? ' ly-between' : ''}${marked ? ' ly-selected' : ''}${anchor === d.date && marked && selection.length > 1 ? ' ly-anchor' : ''}${d.date === sy?.ht.start || d.date === sy?.vt.start ? ' ly-term-start' : ''}${d.date === sy?.ht.end || d.date === sy?.vt.end ? ' ly-term-end' : ''}`;
-    if (d.status === 'utanför')
-      return (
-        <td key={d.date} className={className}>
-          <span aria-hidden="true">{dayNumber}</span>
-        </td>
-      );
-    return (
-      <td key={d.date} className={className}>
-        <button
-          type="button"
-          aria-label={marked ? `${title} · markerad` : title}
-          aria-pressed={marked}
-          title={title}
-          onClick={(e) => onDayClick(d.date, e)}
-          onContextMenu={() => onDayContextMenu(d.date)}
-        >
-          {dayNumber}
-          {d.note && <i className="ly-note-dot" aria-hidden="true" />}
-          {d.holiday && i < 5 && <i className="ly-holiday-mark" aria-hidden="true" />}
-        </button>
-      </td>
-    );
-  }
-
-  function half(part: 'ht' | 'vt') {
-    if (!sy || !summary) return null;
-    const rows = weekRows(sy, part);
-    const term = summary.terms[part];
-    return (
-      <div className="ly-half">
-        <div className="ly-half-heading">
-          <h3>{part === 'ht' ? 'Höstterminen' : 'Vårterminen'}</h3>
-          <span>
-            {formatDate(sy[part].start)} – {formatDate(sy[part].end)} · {num(summary.weeks[part])} veckor · {num(term.skoldagar)} skoldagar
-          </span>
-        </div>
-        <table className="ly-grid" aria-label={part === 'ht' ? 'Höstterminens kalender' : 'Vårterminens kalender'}>
-          <thead>
-            <tr>
-              <th scope="col" className="ly-month-head"><span className="sr-only">Månad</span></th>
-              <th scope="col" className="ly-week-head" title="Vecka">v.</th>
-              {weekdayShort.map((w, i) => (
-                <th scope="col" key={w} className={i >= 5 ? 'ly-weekend-head' : ''}>{w}</th>
-              ))}
-              <th scope="col" className="ly-count-head" title="Skoldagar i veckan">
-                <CalendarCheck size={13} aria-hidden="true" />
-                <span className="sr-only">Skoldagar i veckan</span>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => {
-              const paintable = row.days.some((d) => d.editable);
-              return (
-                <tr key={`${row.year}-${row.week}`} className={row.monthLabel ? 'ly-month-start' : ''}>
-                  <th scope="row" className="ly-month">{row.monthLabel ?? ''}</th>
-                  <td className="ly-week">
-                    {paintable ? (
-                      <button type="button" aria-label={`Vecka ${row.week}: sätt måndag–fredag som ${toolCopy[tool].label.toLocaleLowerCase('sv')}`} title={`Vecka ${row.week} · klicka för att sätta hela veckan som ${toolCopy[tool].label.toLocaleLowerCase('sv')}, kommando- eller ctrl-klicka för att markera veckan`} onClick={(e) => onWeekClick(row.days, e)}>
-                        {row.week}
-                      </button>
-                    ) : (
-                      <button type="button" aria-label={`Vecka ${row.week}: markera måndag–fredag`} title={`Vecka ${row.week} · klicka för att markera veckan`} onClick={(e) => onWeekClick(row.days, e)}>
-                        {row.week}
-                      </button>
-                    )}
-                  </td>
-                  {row.days.map(dayCell)}
-                  <td className={`ly-count ${row.schoolDays === 0 ? 'ly-count-zero' : row.schoolDays < 5 ? 'ly-count-short' : ''}`}>
-                    {row.days.some((d) => d.status !== 'utanför') ? row.schoolDays : ''}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
 
   // Timmarna räknas på varje årskurs egna undervisningsdagar, inte på skolans.
   const teachingRows = timplans.educations.flatMap((e) => {
@@ -554,8 +400,7 @@ export default function LasarView({
                 value={groupId}
                 onChange={(e) => {
                   setGroupId(e.target.value);
-                  setSelection([]);
-                  setAnchor(null);
+                  calendar.clear();
                   clearError();
                 }}
               >
@@ -656,65 +501,20 @@ export default function LasarView({
             </fieldset>
             )}
 
-            <ContextMenu>
-              <ContextMenuTrigger
-                render={
-                  <div className="ly-calendar">
-                    {half('ht')}
-                    {half('vt')}
-                  </div>
-                }
-              />
-              <ContextMenuContent className="ly-menu">
-                <ContextMenuGroup>
-                <ContextMenuLabel>
-                  {changeable.length === 1
-                    ? formatLong(changeable[0].date)
-                    : changeable.length
-                      ? `${num(changeable.length)} dagar markerade`
-                      : selection.length
-                        ? 'Markerade dagar är låsta'
-                        : 'Ingen dag markerad'}
-                </ContextMenuLabel>
-                <ContextMenuSeparator />
-                {editable && group ? (
-                  groupChangeable.length > 0 ? (
-                    <>
-                      <ContextMenuItem onClick={applyToGroup}>
-                        Ingen undervisning för {group.name}
-                        {groupChangeable.length > 1 ? ` (${num(groupChangeable.length)})` : ''}
-                      </ContextMenuItem>
-                      <ContextMenuItem disabled={!groupMarked.length} onClick={followSchool}>
-                        Följ skolans dag
-                        {groupMarked.length > 1 ? ` (${num(groupMarked.length)})` : ''}
-                      </ContextMenuItem>
-                    </>
-                  ) : (
-                    <ContextMenuItem disabled>Bara skolans skoldagar kan gälla en grupp</ContextMenuItem>
-                  )
-                ) : editable && changeable.length > 0 ? (
-                  (['skoldag', 'lovdag', 'studiedag'] as Planned[]).map((t) => (
-                    <ContextMenuItem key={t} onClick={() => applyToSelection(t)}>
-                      Gör till{' '}
-                      {changeable.length > 1
-                        ? `${statusPlural[t]} (${num(changeable.length)})`
-                        : toolCopy[t].label.toLocaleLowerCase('sv')}
-                    </ContextMenuItem>
-                  ))
-                ) : (
-                  <ContextMenuItem disabled>
-                    {!editable
-                      ? 'Läsåret kan inte ändras nu'
-                      : 'Helger, helgdagar och dagarna mellan terminerna är låsta'}
-                  </ContextMenuItem>
-                )}
-                </ContextMenuGroup>
-                <ContextMenuSeparator />
-                <ContextMenuItem disabled={!selection.length} onClick={() => setSelection([])}>
-                  Avmarkera
-                </ContextMenuItem>
-              </ContextMenuContent>
-            </ContextMenu>
+            <LasarCalendar
+              sy={sy}
+              summary={summary}
+              calendar={calendar}
+              editable={editable}
+              tool={tool}
+              group={group}
+              groupCalendar={groupCalendar}
+              onDayClick={onDayClick}
+              onWeekClick={onWeekClick}
+              onApplyToSelection={applyToSelection}
+              onApplyToGroup={applyToGroup}
+              onFollowSchool={followSchool}
+            />
 
             <div className="ly-legend">
               {(['skoldag', 'lovdag', 'studiedag', 'helgdag', 'helg'] as DayInfo['status'][]).map((s) => (
@@ -819,7 +619,7 @@ export default function LasarView({
                             : toolCopy[t].label.toLocaleLowerCase('sv')}
                         </Button>
                       ))}
-                  <button type="button" className="text-link ly-clear" onClick={() => setSelection([])}>
+                  <button type="button" className="text-link ly-clear" onClick={() => calendar.setSelection([])}>
                     Avmarkera
                   </button>
                 </div>
@@ -943,7 +743,7 @@ export default function LasarView({
                                 type="button"
                                 className="pupil-link"
                                 aria-label={`Visa lärotider för klass ${g.name}`}
-                                onClick={() => { setGroupId(g.id); setSelection([]); setAnchor(null); clearError(); }}
+                                onClick={() => { setGroupId(g.id); calendar.clear(); clearError(); }}
                               >
                                 <span>
                                   <strong>{g.name}</strong>
