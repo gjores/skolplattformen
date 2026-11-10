@@ -488,10 +488,10 @@ Arbetstidsavtal, individuell tjänstebedömning och TID-01–12 ingår inte. En 
 5. En fastställd kalender har version och kontrollsumma. Tjänstefördelningens IM-behov, timplanens veckotid och schemaläggningen läser exakt den versionen. En ändring efter fastställandet ger spårbar avvikelse i beroende underlag och ingen tyst omräkning. Timplanernas IM-text stämmer med Tjänstefördelning (todo 2026-10-21). (LASAR-05)
 6. SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data visar mandatgränser, regler, fastställande, återöppning och läsning från tjänstefördelningen. Handbokssidan om läsår och skoldagar är uppdaterad och byggd. (LASAR-06)
 
-**Plans**: 17 plans (planerade 2026-10-30, avstämda 2026-11-10 mot Skolplattan, 27 nya migrationer och dagens kod; inget genomfört). Våg 1–4 är utan migration. Kalenderns migrationer heter `20261111…` och installeras med eget `apply-lasar.mjs` efter VP-16. Plan 06 börjar med grinden D-17; se [avstämningen](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-CONTEXT.md).
+**Plans**: 17 plans (planerade 2026-10-30, avstämda 2026-11-10 mot Skolplattan, 27 nya migrationer och dagens kod; plan 01 genomförd 2026-11-10). Våg 1–4 är utan migration. Kalenderns migrationer heter `20261111…` och installeras med eget `apply-lasar.mjs` efter VP-16. Plan 06 börjar med grinden D-17; se [avstämningen](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-CONTEXT.md).
 
 Plans:
-- [ ] 05.1.1-01-PLAN.md — Demons baslinje före utbrytningen (våg 1)
+- [x] 05.1.1-01-PLAN.md — Demons baslinje före utbrytningen (våg 1). Simulerat i exempelläget: fingeravtryck 1 592 (rektor) och 1 520 (huvudman) element på dator och telefon, två körningar i rad PASS; commit 7b82c7b3
 - [ ] 05.1.1-02-PLAN.md — Modellstöd: kopiering, ramjämförelse, regelkoder, stabila grupp-ID:n och kontrollsumma (våg 1)
 - [ ] 05.1.1-03-PLAN.md — Tracer utan migration: en lovdag i skyddad vy och delade presentationskomponenter (våg 2)
 - [ ] 05.1.1-04-PLAN.md — Fullständigt kontrakt och arbetsflödet i skyddad vy, simulerat (våg 3)
