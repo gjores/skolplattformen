@@ -316,7 +316,494 @@ language sql stable security definer set search_path = pg_catalog, public as $$
     'history', public.lasar_history(y))
 $$;
 
+-- ---------------------------------------------------------------------------
+-- 7. Grupper, undervisning och gruppregler i läsningen (LASAR-04, LASAR-01, LASAR-03)
+-- ---------------------------------------------------------------------------
+-- Skolans grupper för ett läsår i kontraktets form (LasarGroupRef): först årskurserna per utbildning på skolan och kolumn,
+-- sedan klasserna ur school_classes som hör till läsåret, med utbildning och kolumn ur timplanskopplingen (class_timplans).
+-- Bara ID:n är nycklar; namn är etiketter. Inga elevantal (A-18).
+create function public.lasar_groups(unit uuid, year integer) returns jsonb
+language sql stable security definer set search_path = pg_catalog, public as $$
+  select coalesce((select jsonb_agg(g.ref order by g.part, g.k1 collate "C", g.k2 collate "C", g.k3 collate "C") from (
+    select 0 part, public.lasar_display_name(o.name) k1, o.id::text k2, col k3,
+      jsonb_build_object('scope', 'arskurs', 'offeringId', o.id, 'columnId', col, 'label', public.lasar_column_label(col),
+        'educationName', public.lasar_display_name(o.name), 'kind', o.kind) ref
+      from public.offerings o cross join lateral unnest(public.lasar_offering_columns(o, year)) col
+     where public.lasar_offering_at(o, unit)
+    union all
+    select 1, public.lasar_display_name(c.name), c.id::text, '',
+      jsonb_build_object('scope', 'klass', 'classId', c.id, 'offeringId', c.offering_id, 'columnId', l.column_id, 'label', public.lasar_display_name(c.name),
+        'educationName', public.lasar_display_name(o.name), 'kind', o.kind)
+      from public.school_classes c join public.offerings o on o.id = c.offering_id
+      left join public.class_timplans l on l.class_id = c.id and l.start_year = year
+     where c.unit_id = unit and public.lasar_class_in_year(c, o.kind, year)) g), '[]'::jsonb)
+$$;
 
+-- Grupperna som groupsFromRefs i lasar-groups.ts bygger dem: grupp-ID, och för en klass årskursgruppen som förälder och
+-- kolumnen bara när årskursgruppen finns. Ingången för både regler och kommandon.
+create function public.lasar_group_effective(groups jsonb) returns jsonb
+language sql immutable set search_path = pg_catalog, public as $$
+  with r as (
+    select x.value v, x.n, case when x.value ->> 'scope' = 'arskurs' then 0 else 1 end part,
+      'arskurs:' || (x.value ->> 'offeringId') || ':' || (x.value ->> 'columnId') arskurs_id
+    from jsonb_array_elements(coalesce(groups, '[]'::jsonb)) with ordinality x(value, n)
+  ), a as (select arskurs_id from r where part = 0)
+  select coalesce(jsonb_agg(jsonb_build_object(
+      'id', case when part = 0 then arskurs_id else 'klass:' || (v ->> 'classId') end,
+      'scope', v ->> 'scope', 'kind', v ->> 'kind', 'offeringId', v ->> 'offeringId', 'classId', v ->> 'classId',
+      'column', case when part = 0 then v ->> 'columnId' when arskurs_id in (select arskurs_id from a) then v ->> 'columnId' end,
+      'parent', case when part = 1 and arskurs_id in (select arskurs_id from a) then arskurs_id end) order by part, n), '[]'::jsonb)
+  from r
+$$;
+
+-- Timplanens årstimmar per kolumn (A-09): grundskolan per årskurs utan att räkna NO/SO och deras delämnen dubbelt (som
+-- tjanst_needs), introduktionsprogrammet veckotimmar och gymnasiet per år ur v2-tiden eller timmarna per termin.
+create function public.lasar_timplan_hours(t public.timplans, o public.offerings) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare r jsonb := '[]'; n integer; i integer; idx integer; total numeric; v2 boolean; grades smallint[];
+begin
+  if t.gym_basis is not null then
+    v2 := exists (select 1 from public.timplan_time_models m where m.plan_id = t.id);
+    for n in 1..3 loop
+      i := 2 * (n - 1);
+      select coalesce(sum(case when v2 then coalesce((c2.school_minutes ->> i)::numeric, 0) + coalesce((c2.school_minutes ->> (i + 1))::numeric, 0)
+          else (case when coalesce(c1.allocated[i + 1], false) then coalesce(c1.hours[i + 1], 0) else 0 end
+              + case when coalesce(c1.allocated[i + 2], false) then coalesce(c1.hours[i + 2], 0) else 0 end) * 60 end), 0) / 60
+        into total
+        from jsonb_array_elements(t.gym_basis -> 'rows') x
+        left join public.timplan_time_cells_v2 c2 on v2 and c2.plan_id = t.id and c2.row_key = x.value ->> 'key'
+        left join public.timplan_cells c1 on not v2 and c1.timplan_id = t.id and c1.row_id = x.value ->> 'key'
+       where x.value ->> 'key' not like 'meta:%'
+         and exists (select 1 from jsonb_array_elements(t.gym_basis -> 'distribution') d where d.value ->> 'rowKey' = x.value ->> 'key'
+           and coalesce((d.value -> 'points' ->> i)::integer, 0) + coalesce((d.value -> 'points' ->> (i + 1))::integer, 0) > 0);
+      r := r || jsonb_build_array(jsonb_build_object('columnId', 'ar' || n, 'hours', round(total)::integer));
+    end loop;
+  elsif o.kind = 'grundskola' then
+    grades := coalesce(o.grades, array[1, 2, 3, 4, 5, 6, 7, 8, 9]::smallint[]);
+    for idx in 1..coalesce(array_length(grades, 1), 0) loop
+      n := grades[idx];
+      continue when n not between 1 and 9;
+      select coalesce(sum(c.hours[idx]), 0) into total from public.timplan_cells c where c.timplan_id = t.id
+        and not (n <= 3 and c.row_id in ('biologi', 'fysik', 'kemi', 'geografi', 'historia', 'religion', 'samhallskunskap'))
+        and not (n > 3 and c.row_id in ('no', 'so'));
+      r := r || jsonb_build_array(jsonb_build_object('columnId', 'ak' || n, 'hours', round(total)::integer));
+    end loop;
+  else
+    select coalesce(sum(c.hours[1]), 0) into total from public.timplan_cells c where c.timplan_id = t.id;
+    r := jsonb_build_array(jsonb_build_object('columnId', 'vecka', 'hours', round(total)::integer));
+  end if;
+  return r;
+end $$;
+
+-- Panelen Undervisning som läsåret rymmer: per klass i läsåret med en fastställd timplan via kopplingen, timplanens version och
+-- årstimmar. IM-klasserna anges för sig (veckoram, A-17). Inga elevantal (A-18).
+create function public.lasar_teaching(unit uuid, year integer) returns jsonb
+language sql stable security definer set search_path = pg_catalog, public as $$
+  select jsonb_build_object(
+    'classes', coalesce((select jsonb_agg(jsonb_build_object('classId', c.id, 'name', public.lasar_display_name(c.name), 'offeringId', c.offering_id,
+        'columnId', l.column_id, 'timplanId', t.id, 'timplanVersion', t.version, 'rows', public.lasar_timplan_hours(t, tp))
+        order by public.lasar_display_name(c.name) collate "C", c.id)
+      from public.school_classes c join public.offerings o on o.id = c.offering_id
+      join public.class_timplans l on l.class_id = c.id and l.start_year = year
+      join public.timplans t on t.id = l.timplan_id and t.status = 'faststalld'
+      join public.offerings tp on tp.id = t.offering_id
+     where c.unit_id = unit and public.lasar_class_in_year(c, o.kind, year)), '[]'::jsonb),
+    'imClassIds', coalesce((select jsonb_agg(c.id order by c.id) from public.school_classes c join public.offerings o on o.id = c.offering_id
+     where c.unit_id = unit and o.kind = 'introduktionsprogram' and public.lasar_class_in_year(c, o.kind, year)), '[]'::jsonb))
+$$;
+
+-- Gruppreglerna med koder ur web/lib/lasar-rule-codes.ts, som groupSummary i lasar-model.ts för varje grupp ur
+-- groupsFromRefs: kort vecka bara för grundskolans åk 1–2 (short_week_column) och med särskilda skäl (short_week_reason),
+-- orsaken annat kräver anteckning (group_other_note), och en varning när gruppen har färre än 178 undervisningsdagar medan
+-- skolan har minst 178 (group_days_min). En klass ärver sin årskursgrupps dagar och korta vecka. Skolförordningen 3 kap. 2 och
+-- 4 §§. Indata: terms, exceptions, grupperna i kontraktets form, groupDays och shortWeeks per grupp-ID.
+create function public.lasar_group_rule_check(terms jsonb, exceptions jsonb, groups jsonb, group_days jsonb, short_weeks jsonb) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare
+  ht_start date := (terms #>> '{ht,start}')::date; ht_end date := (terms #>> '{ht,end}')::date;
+  vt_start date := (terms #>> '{vt,start}')::date; vt_end date := (terms #>> '{vt,end}')::date;
+  v_groups jsonb := public.lasar_group_effective(groups); v_school date[]; v_count integer; r jsonb := '[]'; g record; v_chain text[];
+  v_owner text; v_owner_g jsonb; v_teach integer; v_member text;
+begin
+  group_days := coalesce(group_days, '{}'::jsonb); short_weeks := coalesce(short_weeks, '{}'::jsonb);
+  select coalesce(array_agg(x.d order by x.d), '{}') into v_school
+    from (select s::date d from generate_series(ht_start, vt_end, interval '1 day') s) x
+   where (x.d between ht_start and ht_end or x.d between vt_start and vt_end) and extract(isodow from x.d) < 6
+     and not public.tjanst_is_holiday(x.d) and not coalesce(exceptions ? x.d::text, false);
+  v_count := coalesce(array_length(v_school, 1), 0);
+  for g in select x.value v from jsonb_array_elements(v_groups) with ordinality x(value, n) order by x.n loop
+    v_chain := array[g.v ->> 'id'] || case when g.v ->> 'parent' is null then '{}'::text[] else array[g.v ->> 'parent'] end;
+    v_owner := (select m from unnest(v_chain) with ordinality u(m, n) where short_weeks ? m order by n limit 1);
+    if v_owner is not null then
+      select x.value into v_owner_g from jsonb_array_elements(v_groups) x where x.value ->> 'id' = v_owner limit 1;
+      if not (v_owner_g ->> 'kind' = 'grundskola' and coalesce(v_owner_g ->> 'column', '') in ('ak1', 'ak2')) then
+        r := r || jsonb_build_array(jsonb_build_object('code', 'short_week_column', 'level', 'error'));
+      end if;
+      if coalesce(short_weeks #>> array[v_owner, 'reason'], '') ~ '^[[:space:]]*$' then
+        r := r || jsonb_build_array(jsonb_build_object('code', 'short_week_reason', 'level', 'error'));
+      end if;
+    end if;
+    foreach v_member in array v_chain loop
+      r := r || coalesce((select jsonb_agg(jsonb_build_object('code', 'group_other_note', 'level', 'error'))
+        from jsonb_each(case when jsonb_typeof(group_days -> v_member) = 'object' then group_days -> v_member else '{}'::jsonb end) d
+       where d.value ->> 'cause' = 'annat' and coalesce(d.value ->> 'note', '') ~ '^[[:space:]]*$'), '[]'::jsonb);
+    end loop;
+    select count(*)::integer into v_teach from unnest(v_school) s(d)
+     where not exists (select 1 from unnest(v_chain) m(id)
+       where coalesce((group_days -> m.id) ? s.d::text, false)
+          or (short_weeks -> m.id ->> 'weekday')::integer = extract(isodow from s.d)::integer - 1);
+    if v_teach < 178 and v_count >= 178 then
+      r := r || jsonb_build_array(jsonb_build_object('code', 'group_days_min', 'level', 'warning'));
+    end if;
+  end loop;
+  return r;
+end $$;
+
+-- Som 20261111100000 plus gruppreglerna för skolans grupper i läsåret. Returnerar [{code, level}].
+create or replace function public.lasar_rules(version_id uuid) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare v_year public.school_years; v_exceptions jsonb; v_types text[]; v_terms jsonb;
+begin
+  select * into v_year from public.school_years s where s.id = version_id;
+  if not found then raise exception 'Kalenderversionen finns inte.' using errcode = '40001', hint = 'lasar_not_found'; end if;
+  select coalesce(jsonb_object_agg(d.day::text, jsonb_strip_nulls(jsonb_build_object('kind', d.kind, 'note', d.note))), '{}'::jsonb) into v_exceptions
+    from public.school_year_days d where d.school_year_id = v_year.id;
+  select coalesce(array_agg(t.school_type order by t.school_type collate "C"), '{}') into v_types
+    from (select distinct x.school_type from public.school_unit_types x where x.unit_id = v_year.unit_id and x.school_type ~ '^[A-Z]{2,6}$' order by 1 limit 10) t;
+  v_terms := jsonb_build_object('ht', jsonb_build_object('start', v_year.ht_start, 'end', v_year.ht_end),
+    'vt', jsonb_build_object('start', v_year.vt_start, 'end', v_year.vt_end));
+  return public.lasar_rule_check(v_terms, v_exceptions, v_types)
+    || public.lasar_group_rule_check(v_terms, v_exceptions, public.lasar_groups(v_year.unit_id, v_year.start_year),
+         public.lasar_group_days_json(v_year.id), public.lasar_short_weeks_json(v_year.id));
+end $$;
+
+-- Som 20261111100000 men med skolans grupper och undervisning för läsåret i stället för tomma listor.
+create or replace function public.lasar_detail(a public.access_assignments, unit uuid, year integer, version_id uuid) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare v_unit public.school_units; v_year public.school_years; v_versions jsonb; v_types jsonb; v_school boolean := a.function in ('rektor', 'administrator');
+  v_open boolean; v_sent boolean; v_caps jsonb; v_groups jsonb;
+begin
+  select * into v_unit from public.school_units u where u.id = unit;
+  if version_id is not null then
+    select * into v_year from public.school_years s where s.id = version_id and s.unit_id = unit and s.start_year = year and s.organizer_id = a.organizer_id;
+    if not found then raise exception 'Kalenderversionen finns inte.' using errcode = '40001', hint = 'lasar_not_found'; end if;
+  else
+    select * into v_year from public.school_years s where s.unit_id = unit and s.start_year = year and s.organizer_id = a.organizer_id
+     order by (s.status in ('utkast', 'forslag', 'atersand') and s.superseded_by is null) desc, (s.status = 'faststalld' and s.superseded_by is null) desc, s.version desc
+     limit 1;
+  end if;
+  select coalesce(jsonb_agg(jsonb_build_object('versionId', s.id, 'version', s.version, 'status', s.status, 'decidedOn', s.decided_on,
+    'current', s.status = 'faststalld' and s.superseded_by is null) order by s.version), '[]') into v_versions
+    from public.school_years s where s.unit_id = unit and s.start_year = year and s.organizer_id = a.organizer_id;
+  select coalesce(jsonb_agg(t.school_type order by t.school_type collate "C"), '[]') into v_types
+    from (select distinct x.school_type from public.school_unit_types x where x.unit_id = unit and x.school_type ~ '^[A-Z]{2,6}$' order by 1 limit 10) t;
+  v_groups := public.lasar_groups(unit, year);
+  if jsonb_array_length(v_groups) > 2000 then
+    raise exception 'Skolan har fler grupper än läsningen rymmer.' using errcode = '54000';
+  end if;
+  v_open := v_year.id is not null and v_year.status in ('utkast', 'atersand') and v_year.superseded_by is null;
+  v_sent := v_year.id is not null and v_year.status = 'forslag' and v_year.superseded_by is null;
+  -- D-18: rektor och skoladministratör arbetar i utkastet, skickar och tar tillbaka; huvudmannen återsänder och fastställer.
+  v_caps := jsonb_build_object('canEdit', v_school and v_open, 'canSubmit', v_school and v_open, 'canWithdraw', v_school and v_sent, 'canRequestChange', false,
+    'canWithdrawRequest', false, 'canReturn', a.function = 'huvudman' and v_sent, 'canApprove', a.function = 'huvudman' and v_sent,
+    'canReopen', false, 'canDecline', false, 'canComment', v_year.id is not null and v_year.superseded_by is null,
+    'canCreate', case when v_school and jsonb_array_length(v_versions) = 0 then '["proposal"]'::jsonb else '[]'::jsonb end,
+    'canPublishFrame', false, 'canSetMode', false);
+  return jsonb_build_object('contractVersion', 'lasar_sql_v1', 'target', jsonb_build_object('kind', 'school', 'unitId', unit), 'schoolYear', year,
+    'schoolName', left(btrim(v_unit.name), 200), 'schoolTypes', v_types, 'mode', 'eget', 'modeLocked', false, 'versions', v_versions,
+    'calendar', case when v_year.id is null then null else public.lasar_calendar_json(v_year) end,
+    'capabilities', v_caps, 'editableFrom', null, 'changeRequest', null, 'review', '[]'::jsonb, 'frame', null, 'groups', v_groups,
+    'teaching', public.lasar_teaching(unit, year),
+    'previousYearAvailable', (public.lasar_current(unit, year - 1)).id is not null);
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 8. Gruppkommandon i en öppen version
+-- ---------------------------------------------------------------------------
+-- Gruppen ur skolans grupper i versionens läsår, eller lasar_invalid. Ett klassnamn eller programprefix är aldrig ett grupp-ID.
+create function public.lasar_find_group(y public.school_years, v jsonb) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare g jsonb;
+begin
+  if jsonb_typeof(v) is distinct from 'string' then
+    raise exception 'Ogiltig grupp.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  select x.value into g from jsonb_array_elements(public.lasar_group_effective(public.lasar_groups(y.unit_id, y.start_year))) x
+   where x.value ->> 'id' = (v #>> '{}') limit 1;
+  if g is null then raise exception 'Gruppen finns inte i skolans läsår.' using errcode = '22023', hint = 'lasar_invalid'; end if;
+  return g;
+end $$;
+
+-- Datumlista i stigande ordning (1–400 dagar).
+create function public.lasar_op_dates(v jsonb) returns date[]
+language plpgsql immutable set search_path = pg_catalog, public as $$
+declare v_out date[] := '{}'; v_date date; v_item record;
+begin
+  if jsonb_typeof(v) is distinct from 'array' or jsonb_array_length(v) not between 1 and 400 then
+    raise exception 'Ogiltiga datum.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  for v_item in select e.value from jsonb_array_elements(v) with ordinality e(value, n) order by e.n loop
+    v_date := public.lasar_date(v_item.value);
+    if cardinality(v_out) > 0 and v_date <= v_out[cardinality(v_out)] then
+      raise exception 'Ogiltiga datum.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    v_out := v_out || v_date;
+  end loop;
+  return v_out;
+end $$;
+
+-- set_group_days: skoldagar utan undervisning för gruppen, med orsak och anteckning (setGroupDays). Bara skolans skoldagar;
+-- orsaken annat utan anteckning ger regelkoden group_other_note.
+create function public.lasar_set_group_days(y public.school_years, op jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare g jsonb; v_cause text; v_note text; v_date date;
+begin
+  perform public.lasar_shape(op, array['op', 'groupId', 'dates', 'cause'], array['note']);
+  g := public.lasar_find_group(y, op -> 'groupId');
+  v_cause := op ->> 'cause';
+  if jsonb_typeof(op -> 'cause') is distinct from 'string' or v_cause not in ('nationellt prov', 'apl', 'friluftsdag', 'annat') then
+    raise exception 'Ogiltig orsak.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_note := case when op ? 'note' then public.lasar_text(op -> 'note', 200, false) end;
+  if v_cause = 'annat' and v_note is null then
+    raise exception 'Kalendern uppfyller inte förordningarna.' using errcode = '40001', hint = 'lasar_rules_failed', detail = '["group_other_note"]';
+  end if;
+  foreach v_date in array public.lasar_op_dates(op -> 'dates') loop
+    if not public.lasar_day_editable(y, v_date) or exists (select 1 from public.school_year_days d where d.school_year_id = y.id and d.day = v_date) then
+      raise exception 'Bara skolans skoldagar kan sakna undervisning för en grupp.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    insert into public.school_year_group_days (school_year_id, scope, offering_id, column_id, class_id, day, cause, note)
+    values (y.id, g ->> 'scope', case when g ->> 'scope' = 'arskurs' then (g ->> 'offeringId')::uuid end, case when g ->> 'scope' = 'arskurs' then g ->> 'column' end,
+      case when g ->> 'scope' = 'klass' then (g ->> 'classId')::uuid end, v_date, v_cause::public.group_off_cause, v_note)
+    on conflict on constraint school_year_group_days_pkey do update set cause = excluded.cause, note = excluded.note;
+  end loop;
+end $$;
+
+-- clear_group_days: gruppens egna avvikelser tas bort (clearGroupDays); minst en ska finnas.
+create function public.lasar_clear_group_days(y public.school_years, op jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare g jsonb; n integer;
+begin
+  perform public.lasar_shape(op, array['op', 'groupId', 'dates']);
+  g := public.lasar_find_group(y, op -> 'groupId');
+  delete from public.school_year_group_days x where x.school_year_id = y.id and x.group_ref = g ->> 'id' and x.day = any (public.lasar_op_dates(op -> 'dates'));
+  get diagnostics n = row_count;
+  if n = 0 then raise exception 'Ingen av dagarna är en egen avvikelse för gruppen.' using errcode = '22023', hint = 'lasar_invalid'; end if;
+end $$;
+
+-- set_short_week: fyra skoldagar i veckan (setShortWeek). Bara grundskolans åk 1–2 (short_week_column) och med särskilda skäl
+-- (short_week_reason), Skolförordningen 3 kap. 4 § andra stycket. Årskursen är gruppens: årskursgruppens kolumn eller klassens
+-- kolumn ur timplanskopplingen för läsåret.
+create function public.lasar_set_short_week(y public.school_years, op jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare g jsonb; v_weekday integer; v_reason text; v_codes jsonb := '[]';
+begin
+  perform public.lasar_shape(op, array['op', 'groupId', 'columnId', 'weekday', 'reason']);
+  g := public.lasar_find_group(y, op -> 'groupId');
+  v_weekday := public.lasar_int(op -> 'weekday', 0, 4);
+  if jsonb_typeof(op -> 'columnId') is distinct from 'string' or (op ->> 'columnId') !~ '^(ar[1-3]|ak[1-9]|vecka)$'
+     or jsonb_typeof(op -> 'reason') is distinct from 'string' then
+    raise exception 'Ogiltig kort vecka.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  if not (g ->> 'kind' = 'grundskola' and coalesce(g ->> 'column', '') in ('ak1', 'ak2')) then v_codes := v_codes || '["short_week_column"]'::jsonb; end if;
+  if (op ->> 'reason') ~ '^[[:space:]]*$' then v_codes := v_codes || '["short_week_reason"]'::jsonb; end if;
+  if jsonb_array_length(v_codes) > 0 then
+    raise exception 'Kalendern uppfyller inte förordningarna.' using errcode = '40001', hint = 'lasar_rules_failed', detail = v_codes::text;
+  end if;
+  if op ->> 'columnId' <> g ->> 'column' then
+    raise exception 'Årskursen stämmer inte med gruppen.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_reason := public.lasar_text(op -> 'reason', 200, false);
+  insert into public.school_year_short_weeks (school_year_id, scope, offering_id, class_id, column_id, weekday, reason)
+  values (y.id, g ->> 'scope', case when g ->> 'scope' = 'arskurs' then (g ->> 'offeringId')::uuid end,
+    case when g ->> 'scope' = 'klass' then (g ->> 'classId')::uuid end, g ->> 'column', v_weekday, v_reason)
+  on conflict on constraint school_year_short_weeks_pkey do update set weekday = excluded.weekday, reason = excluded.reason, column_id = excluded.column_id;
+end $$;
+
+-- clear_short_week: gruppens korta vecka tas bort (clearShortWeek); den ska finnas.
+create function public.lasar_clear_short_week(y public.school_years, op jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare g jsonb; n integer;
+begin
+  perform public.lasar_shape(op, array['op', 'groupId']);
+  g := public.lasar_find_group(y, op -> 'groupId');
+  delete from public.school_year_short_weeks w where w.school_year_id = y.id and w.group_ref = g ->> 'id';
+  get diagnostics n = row_count;
+  if n = 0 then raise exception 'Gruppen har ingen kort vecka.' using errcode = '22023', hint = 'lasar_invalid'; end if;
+end $$;
+
+-- Som 20261111100000 plus gruppåtgärderna set_group_days, clear_group_days, set_short_week och clear_short_week. Ordning:
+-- aktör, storlek, tolkning, skolenhet, lås på kommando-id, exakt återspelning, payload-hash, behörighet per åtgärd, status,
+-- revision, skrivning, kvitto, journal, historik och logg. Övriga åtgärder ger lasar_unsupported.
+create or replace function public.lasar_command(input jsonb) returns jsonb
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare a public.access_assignments; s public.app_sessions; q jsonb; v_kind text; v_action text; v_request uuid; v_unit uuid; v_year integer;
+  v_version uuid; v_expected integer; v_text text; v_row public.lasar_commands; y public.school_years; v_current public.school_years;
+  v_op jsonb; v_detail jsonb; v_envelope jsonb;
+begin
+  a := public.lasar_actor(); s := public.phase5_programplan_session_check();
+  if input is null or jsonb_typeof(input) <> 'object' or octet_length(input::text) > 65536 then
+    raise exception 'Ogiltigt kommando.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_kind := case when input ? 'ops' then 'command' when input ? 'action' then 'decision' else null end;
+  if v_kind = 'command' then
+    perform public.lasar_shape(input, array['commandId', 'target', 'schoolYear', 'versionId', 'expectedRevision', 'ops', 'payloadHash'], array['proposal']);
+  elsif v_kind = 'decision' then
+    perform public.lasar_shape(input, array['commandId', 'target', 'schoolYear', 'versionId', 'expectedRevision', 'action', 'text', 'mode', 'confirmAffected']);
+  else
+    raise exception 'Ogiltigt kommando.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_request := public.lasar_uuid(input -> 'commandId');
+  v_unit := public.lasar_target(input -> 'target');
+  v_year := public.lasar_int(input -> 'schoolYear', 2000, 2100);
+  v_version := case when input -> 'versionId' = 'null'::jsonb then null else public.lasar_uuid(input -> 'versionId') end;
+  v_expected := case when input -> 'expectedRevision' = 'null'::jsonb then null else public.lasar_int(input -> 'expectedRevision', 0, 2147483647) end;
+  if v_kind = 'command' then
+    if jsonb_typeof(input -> 'ops') <> 'array' or jsonb_array_length(input -> 'ops') not between 1 and 50
+       or exists (select 1 from jsonb_array_elements(input -> 'ops') o where jsonb_typeof(o) <> 'object' or jsonb_typeof(o -> 'op') <> 'string')
+       or jsonb_typeof(input -> 'payloadHash') <> 'string' or (input ->> 'payloadHash') !~ '^sha256:[0-9a-f]{64}$' then
+      raise exception 'Ogiltigt kommando.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    v_action := input #>> '{ops,0,op}';
+    q := jsonb_build_object('commandId', v_request, 'target', jsonb_build_object('kind', 'school', 'unitId', v_unit), 'schoolYear', v_year,
+      'versionId', v_version, 'expectedRevision', v_expected, 'ops', input -> 'ops', 'payloadHash', input -> 'payloadHash', 'proposal', input -> 'proposal');
+  else
+    v_action := input ->> 'action';
+    if jsonb_typeof(input -> 'action') <> 'string' or v_action not in ('submit', 'withdraw', 'return', 'approve', 'reopen', 'request_change', 'withdraw_request',
+         'decline_request', 'publish_frame', 'preview_mode_change', 'set_mode')
+       or not (input -> 'mode' = 'null'::jsonb or input -> 'mode' in ('"ram"'::jsonb, '"eget"'::jsonb))
+       or jsonb_typeof(input -> 'confirmAffected') <> 'array' or jsonb_array_length(input -> 'confirmAffected') > 1000 then
+      raise exception 'Ogiltigt beslut.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    v_text := public.lasar_text(input -> 'text', 4000, true, true);
+    q := jsonb_build_object('commandId', v_request, 'target', jsonb_build_object('kind', 'school', 'unitId', v_unit), 'schoolYear', v_year,
+      'versionId', v_version, 'expectedRevision', v_expected, 'action', v_action, 'text', v_text, 'mode', input -> 'mode',
+      'confirmAffected', (select coalesce(jsonb_agg(to_jsonb(public.lasar_uuid(c))), '[]') from jsonb_array_elements(input -> 'confirmAffected') c));
+  end if;
+  perform public.lasar_scope(a, v_unit);
+  perform pg_advisory_xact_lock(hashtextextended(v_request::text, 5571));
+  select * into v_row from public.lasar_commands c where c.command_id = v_request;
+  if found then
+    -- Exakt återspelning: samma aktör, uppdrag, mål och begäran ger samma svar; allt annat nekas (T-05.1.1-15).
+    if (v_row.kind, v_row.customer_id, v_row.organizer_id, v_row.actor_identity_id, v_row.assignment_id, v_row.unit_id, v_row.school_year, v_row.request)
+       is distinct from (v_kind, a.customer_id, a.organizer_id, s.identity_id, a.id, v_unit, v_year, q) then
+      raise exception 'Kommandot har redan skickats med andra uppgifter.' using errcode = '40001', hint = 'lasar_command_conflict';
+    end if;
+    return jsonb_set(v_row.envelope, '{result,receipt,replayed}', 'true'::jsonb, false);
+  end if;
+
+  if v_kind = 'command' then
+    if public.tjanst_hash(jsonb_build_array('lasar_payload_v1', input -> 'ops')) <> input ->> 'payloadHash' then
+      raise exception 'Kommandots kontrollsumma stämmer inte.' using errcode = '22023', hint = 'lasar_payload_hash';
+    end if;
+    if exists (select 1 from jsonb_array_elements(input -> 'ops') o where o ->> 'op' in ('create', 'reset_to_proposal', 'resolve_review',
+         'take_frame_changes', 'keep_school_calendar', 'comment')) and jsonb_array_length(input -> 'ops') <> 1 then
+      raise exception 'Ett uttryckligt kommando står ensamt.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    if (v_action = 'create') <> (v_version is null) or (v_action = 'create') <> (v_expected is null) then
+      raise exception 'Bara create saknar version.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    -- Förslagets innehåll räknas fram i servern och hör bara till create och reset_to_proposal.
+    if (input ? 'proposal') <> (v_action in ('create', 'reset_to_proposal')) then
+      raise exception 'Förslaget hör bara till create och reset_to_proposal.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    -- Utkastarbetet är skolans: rektor och skoladministratör (D-18). Huvudmannen kommenterar men ändrar inte skolans kalender.
+    if a.function not in ('rektor', 'administrator') and v_action <> 'comment' then
+      raise exception 'Läsårskalendern nekas.' using errcode = '42501';
+    end if;
+    if v_action = 'create' then
+      perform public.lasar_shape(input #> '{ops,0}', array['op', 'source']);
+      if input #>> '{ops,0,source}' is distinct from 'proposal' then
+        raise exception 'Bara förslaget finns i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
+      end if;
+      if exists (select 1 from public.school_years x where x.unit_id = v_unit and x.start_year = v_year) then
+        raise exception 'Kalendern finns redan.' using errcode = '40001', hint = 'lasar_revision_conflict';
+      end if;
+      y := public.lasar_create_proposal(a, v_unit, v_year, input -> 'proposal');
+      perform public.lasar_history_add(y.id, 'create', 'Terminer, helgdagar och vanliga lov föreslagna. Studiedagar läggs ut av rektorn.');
+    else
+      y := public.lasar_lock_version(a, v_unit, v_year, v_version);
+      -- En kommentar går att skriva på varje version som inte är ersatt; allt annat bara i ett öppet utkast.
+      if y.superseded_by is not null or (v_action <> 'comment' and y.status not in ('utkast', 'atersand')) then
+        raise exception 'Kalendern är låst.' using errcode = '40001', hint = 'lasar_locked_status';
+      end if;
+      if y.revision <> v_expected then
+        raise exception 'Kalendern har ändrats.' using errcode = '40001', hint = 'lasar_revision_conflict';
+      end if;
+      for v_op in select o.value from jsonb_array_elements(input -> 'ops') with ordinality o(value, n) order by o.n loop
+        case v_op ->> 'op'
+          when 'set_days' then perform public.lasar_set_days(y, v_op);
+          when 'set_notes' then perform public.lasar_set_notes(y, v_op);
+          when 'set_term' then y := public.lasar_set_term(y, v_op);
+          when 'set_group_days' then perform public.lasar_set_group_days(y, v_op);
+          when 'clear_group_days' then perform public.lasar_clear_group_days(y, v_op);
+          when 'set_short_week' then perform public.lasar_set_short_week(y, v_op);
+          when 'clear_short_week' then perform public.lasar_clear_short_week(y, v_op);
+          when 'reset_to_proposal' then
+            perform public.lasar_shape(v_op, array['op']);
+            y := public.lasar_reset_proposal(y, input -> 'proposal');
+            perform public.lasar_history_add(y.id, 'reset_to_proposal', 'Terminer och lov enligt förslaget utifrån helgdagarna.');
+          when 'comment' then
+            perform public.lasar_shape(v_op, array['op', 'text']);
+            v_text := public.lasar_text(v_op -> 'text', 4000, true, true);
+            if v_text = '' then raise exception 'Text krävs.' using errcode = '22023', hint = 'lasar_text_required'; end if;
+            perform public.lasar_history_add(y.id, 'comment', v_text);
+          else raise exception 'Åtgärden finns inte i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
+        end case;
+      end loop;
+      update public.school_years x set revision = x.revision + 1 where x.id = y.id returning * into y;
+    end if;
+  else
+    if v_version is null or v_expected is null or input -> 'mode' <> 'null'::jsonb or jsonb_array_length(input -> 'confirmAffected') <> 0 then
+      raise exception 'Ogiltigt beslut.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    if v_text = '' and v_action in ('submit', 'return', 'approve', 'reopen', 'request_change', 'decline_request') then
+      raise exception 'Text krävs.' using errcode = '22023', hint = 'lasar_text_required';
+    end if;
+    -- D-18: rektor och skoladministratör skickar, tar tillbaka och begär ändring; bara huvudmannen återsänder,
+    -- fastställer, öppnar, avslår och styr ramen (T-05.1.1-14, T-05.1.1-19).
+    if (v_action in ('submit', 'withdraw', 'request_change', 'withdraw_request') and a.function not in ('rektor', 'administrator'))
+       or (v_action in ('return', 'approve', 'reopen', 'decline_request', 'publish_frame', 'preview_mode_change', 'set_mode') and a.function <> 'huvudman') then
+      raise exception 'Läsårskalendern nekas.' using errcode = '42501';
+    end if;
+    if v_action not in ('submit', 'withdraw', 'return', 'approve') then
+      raise exception 'Beslutet finns inte i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
+    end if;
+    y := public.lasar_lock_version(a, v_unit, v_year, v_version);
+    if y.superseded_by is not null or (v_action = 'submit' and y.status not in ('utkast', 'atersand')) or (v_action <> 'submit' and y.status <> 'forslag') then
+      raise exception 'Kalendern är låst.' using errcode = '40001', hint = 'lasar_locked_status';
+    end if;
+    if y.revision <> v_expected then
+      raise exception 'Kalendern har ändrats.' using errcode = '40001', hint = 'lasar_revision_conflict';
+    end if;
+    if v_action in ('submit', 'approve') then perform public.lasar_require_rules(y.id); end if;
+    if v_action = 'submit' then
+      update public.school_years x set status = 'forslag', revision = x.revision + 1 where x.id = y.id returning * into y;
+    elsif v_action = 'withdraw' then
+      update public.school_years x set status = 'utkast', revision = x.revision + 1 where x.id = y.id returning * into y;
+    elsif v_action = 'return' then
+      update public.school_years x set status = 'atersand', revision = x.revision + 1 where x.id = y.id returning * into y;
+    else
+      -- Pitfall 5: den tidigare gällande versionen ersätts före fastställandet, så att indexet för gällande version håller.
+      v_current := public.lasar_current(v_unit, v_year);
+      if v_current.id is not null and v_current.id <> y.id then
+        update public.school_years x set superseded_at = clock_timestamp(), superseded_by = y.id where x.id = v_current.id;
+      end if;
+      update public.school_years x set status = 'faststalld', decided_on = public.app_today(), decision_comment = v_text,
+        content_hash = public.lasar_content_hash(x.id), revision = x.revision + 1
+       where x.id = y.id returning * into y;
+    end if;
+    perform public.lasar_history_add(y.id, v_action, case when v_action = 'withdraw' and v_text = '' then 'Förslaget togs tillbaka för fortsatt arbete.' else v_text end);
+  end if;
+  v_detail := public.lasar_detail(a, v_unit, v_year, y.id);
+  v_envelope := jsonb_build_object('contractVersion', 'lasar_sql_v1', 'actor', jsonb_build_object('identityId', s.identity_id, 'assignmentId', a.id),
+    'result', jsonb_build_object('receipt', jsonb_build_object('commandId', v_request, 'revision', y.revision, 'replayed', false), 'detail', v_detail));
+  insert into public.lasar_commands (command_id, kind, action, customer_id, organizer_id, unit_id, school_year, school_year_id, actor_identity_id, assignment_id, request, envelope)
+  values (v_request, v_kind, v_action, a.customer_id, a.organizer_id, v_unit, v_year, y.id, s.identity_id, a.id, q, v_envelope);
+  perform public.lasar_audit(case when v_kind = 'command' then 'lasar_command' else 'lasar_decision' end, 'school_year', y.id,
+    jsonb_build_object('commandId', v_request, 'action', v_action, 'revision', y.revision, 'version', y.version, 'unitId', v_unit, 'schoolYear', v_year));
+  return v_envelope;
+end $$;
 
 -- ---------------------------------------------------------------------------
 -- 9. Avstämning: fastställda versioner har samma kontrollsumma som före överföringen
@@ -338,5 +825,9 @@ drop table lasar_group_hashes;
 -- ---------------------------------------------------------------------------
 revoke all on function public.lasar_group_migration_active(), public.lasar_column_label(text), public.lasar_offering_columns(public.offerings, integer),
   public.lasar_offering_at(public.offerings, uuid), public.lasar_class_in_year(public.school_classes, public.offering_kind, integer),
-  public.lasar_group_ref_guard(), public.lasar_group_days_json(uuid), public.lasar_short_weeks_json(uuid)
+  public.lasar_group_ref_guard(), public.lasar_group_days_json(uuid), public.lasar_short_weeks_json(uuid),
+  public.lasar_groups(uuid, integer), public.lasar_group_effective(jsonb), public.lasar_timplan_hours(public.timplans, public.offerings),
+  public.lasar_teaching(uuid, integer), public.lasar_group_rule_check(jsonb, jsonb, jsonb, jsonb, jsonb), public.lasar_find_group(public.school_years, jsonb),
+  public.lasar_op_dates(jsonb), public.lasar_set_group_days(public.school_years, jsonb), public.lasar_clear_group_days(public.school_years, jsonb),
+  public.lasar_set_short_week(public.school_years, jsonb), public.lasar_clear_short_week(public.school_years, jsonb)
   from public, anon, authenticated, service_role, skolplattform_worker;

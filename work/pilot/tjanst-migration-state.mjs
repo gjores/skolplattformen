@@ -48,7 +48,7 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261111100000_lasar_versions.sql', '10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66'],
   ['supabase/migrations/20261111190000_lasar_worker_access.sql', '3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c'],
   // 05.1.1-08: stabila grupp-ID:n (LASAR-04); sorterar efter de två kalenderfiler som är installerade på 3012 och låsta.
-  ['supabase/migrations/20261112100000_lasar_groups.sql', 'adee141f4599a2329bb79e16ecee7fd8cbff80019fcf160854c085b04efb8f76'],
+  ['supabase/migrations/20261112100000_lasar_groups.sql', '6361521a9122d5b3e845efe7e150110a85700ff85c2694467345a749ba122965'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;

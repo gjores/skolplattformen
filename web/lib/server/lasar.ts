@@ -5,6 +5,7 @@ import {
   type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarReadReply, type LasarReadRequest, type LasarReason,
   type LasarStatusRequest,
 } from '../lasar-contract.ts';
+import { groupsFromRefs } from '../lasar-groups.ts';
 import { allIssues, proposeSchoolYear } from '../lasar-model.ts';
 import { LASAR_RULE_CODES } from '../lasar-rule-codes.ts';
 import { AuditUnavailable } from './authz.ts';
@@ -172,12 +173,14 @@ export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority
  * Dubbel regelkontroll (RESEARCH A8): SQL är auktoritativ, och efter ett godkänt förslag eller fastställande prövar
  * servern dessutom det sparade innehållet med allIssues i lasar-model.ts. Hittar modellen ett fel som SQL missat nekas
  * beslutet med lasar_rules_failed (409) och modellens regelkoder, och transaktionen rullas tillbaka utan delresultat.
- * Gruppreglerna läggs till när grupperna finns i läsningen (plan 08).
+ * Gruppreglerna (05.1.1-08) prövas för skolans grupper ur läsningen: servern bygger inga grupper själv, utan
+ * groupsFromRefs gör dem ur serverns stabila referenser (utbildning, kolumn och klass), aldrig ur klassnamn.
  */
 function modelRules(detail: LasarReadReply): void {
   const sy = lasarSchoolYear(detail);
   if (!sy) invalid();
-  const codes = [...new Set(allIssues(sy, detail.schoolTypes).filter((i) => i.level === 'error').map((i) => i.code))];
+  const groups = (() => { try { return groupsFromRefs(detail.groups); } catch { return invalid(); } })();
+  const codes = [...new Set(allIssues(sy, detail.schoolTypes, groups).filter((i) => i.level === 'error').map((i) => i.code))];
   if (codes.length) throw new Deny('conflict', 409, { reason: 'lasar_rules_failed', rules: codes });
 }
 

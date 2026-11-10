@@ -150,6 +150,14 @@ if (gr) {
 // ---------------------------------------------------------------------------
 // Läsår
 // ---------------------------------------------------------------------------
+// Spärr (05.1.1-08, LASAR-04): kalenderdelen nedan skriver group_key ('klass:namn' och 'utbildning:kolumn') i
+// school_year_group_days och school_year_short_weeks. Sedan migrationen 20261112100000_lasar_groups.sql är group_key
+// ersatt av stabila referenser (utbildningens ID och kolumn, klassens ID) och tar inga nya värden. Skriptet ska inte
+// köras mot läsårskalendern; kalendern provas med work/pilot/verify-lasar.mjs --ephemeral.
+console.log('\nSTOPP: group_key är ersatt av stabila grupp-ID:n sedan migrationen 20261112100000_lasar_groups.sql.');
+console.log('Kör inte detta skript mot läsårskalendern. Kalendern provas med work/pilot/verify-lasar.mjs --ephemeral.');
+await db.auth.signOut();
+process.exit(1);
 const unit = after.units[0];
 const types = unit.schoolTypes.map((t) => t.code);
 const years = await loadSchoolYears(unit.id, types);
