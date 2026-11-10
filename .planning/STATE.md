@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
-current_plan: "VP-15: användarprov återstår"
+current_plan: "VP-15 klar"
 status: executing
-stopped_at: "VP-15: installerat på 3012, kod ba60d267fc. U1–U9 godkända 2026-11-09, U10–U16 återstår."
-last_updated: "2026-11-07"
-last_activity: 2026-11-07
-last_activity_desc: "Fyra migrationer och ny kod installerade på 3012, journal 151 → 155. Inga block finns ännu på målet."
+stopped_at: "VP-15 klar 2026-11-10: användarprovet U1–U16 fungerar på 3012 (ba60d267fc). Nästa: språkluckan i valbara block."
+last_updated: "2026-11-10"
+last_activity: 2026-11-10
+last_activity_desc: "Användarprovet U1–U16 för valbara block fungerar inloggat på 3012. VP-15 stängd."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -21,9 +21,11 @@ worker_status: valplan_series_installed_sql_rehearsed_applied
 worker_build_revision: 5157e2f74ca87aaf9f2135b75314fdb5bfcce33a
 verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
-user_trial_status: pending_valplan_uat_u1_u16
+user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**VP-15 klart 2026-11-10:** användaren har gått igenom U1–U16 inloggat och allt fungerar. Gränssnittet ska förenklas senare ([uppgift](todos/pending/2026-11-10-snyggare-enklare-valbara-block.md)), och konton ska kopplas vid inskrivning ([uppgift](todos/pending/2026-11-09-kontokoppling-vid-inskrivning.md)). Nästa steg: [språkluckan](todos/pending/2026-11-07-alla-programplansprak-i-valbara-block.md).
 
 **VP-15 installerat 2026-11-07:** [Helhetsprov och installation](phases/05.2-schemamodul/05.2-VP-15-SUMMARY.md). 3012 kör `ba60d267fc`, där sparandet av block, vyns sparbesked och Registrera val före öppnat val är rättade, journal 151 → 155 och raderna oförändrade. Två block är sparade under användarprovet. Nästa steg: [användarprovet](phases/05.2-schemamodul/05.2-VP-UAT.md) inloggat, sedan språkluckan.
 
