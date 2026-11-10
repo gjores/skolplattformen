@@ -16,6 +16,7 @@
 // definitionerna nedan är produktens och följer av paragrafernas uppbyggnad.
 
 import { today, uid, clock } from './common.ts';
+import type { LasarRuleCode } from './lasar-rule-codes.ts';
 
 export type Role = 'rektor' | 'huvudman';
 export const roleLabel: Record<Role, string> = { rektor: 'Rektor', huvudman: 'Huvudman' };
@@ -391,17 +392,17 @@ export function groupSummary(sy: SchoolYear, group: StudentGroup, groups: Studen
     const short = sy.shortWeeks[shortOwner.id];
     const allowed = shortOwner.kind === 'grundskola' && (shortOwner.columnId === 'ak1' || shortOwner.columnId === 'ak2');
     if (!allowed)
-      issues.push({ level: 'error', text: `${shortOwner.name} läser fyra dagar i veckan. Antalet skoldagar i veckan får bara begränsas för en grupp elever i årskurs 1 eller 2 (Skolförordningen 3 kap. 4 § andra stycket).` });
+      issues.push({ level: 'error', code: 'short_week_column', text: `${shortOwner.name} läser fyra dagar i veckan. Antalet skoldagar i veckan får bara begränsas för en grupp elever i årskurs 1 eller 2 (Skolförordningen 3 kap. 4 § andra stycket).` });
     if (!short.reason.trim())
-      issues.push({ level: 'error', text: `Fyra skoldagar i veckan för ${shortOwner.name} kräver särskilda skäl. Ange dem.` });
+      issues.push({ level: 'error', code: 'short_week_reason', text: `Fyra skoldagar i veckan för ${shortOwner.name} kräver särskilda skäl. Ange dem.` });
   }
   for (const g of chain)
     for (const [date, e] of Object.entries(sy.groupExceptions[g.id] ?? {}))
       if (e.cause === 'annat' && !e.note?.trim())
-        issues.push({ level: 'error', text: `${g.name} saknar undervisning ${formatLong(date)} utan angiven orsak. Skriv vad som gäller den dagen.` });
+        issues.push({ level: 'error', code: 'group_other_note', text: `${g.name} saknar undervisning ${formatLong(date)} utan angiven orsak. Skriv vad som gäller den dagen.` });
   const schoolDays = days.filter((d) => d.status === 'skoldag').length;
   if (teaching.length < minSchoolDays && schoolDays >= minSchoolDays)
-    issues.push({ level: 'warning', text: `${group.name} har ${format(teaching.length)} undervisningsdagar mot skolans ${format(schoolDays)}. Läsåret ska ha minst ${minSchoolDays} skoldagar; avsteg för en grupp behöver kunna motiveras, och den garanterade undervisningstiden i timmar ska ändå nås.` });
+    issues.push({ level: 'warning', code: 'group_days_min', text: `${group.name} har ${format(teaching.length)} undervisningsdagar mot skolans ${format(schoolDays)}. Läsåret ska ha minst ${minSchoolDays} skoldagar; avsteg för en grupp behöver kunna motiveras, och den garanterade undervisningstiden i timmar ska ändå nås.` });
   return {
     days: teaching.length,
     perWeekday,
@@ -412,7 +413,8 @@ export function groupSummary(sy: SchoolYear, group: StudentGroup, groups: Studen
   };
 }
 
-export type Issue = { level: 'error' | 'warning'; text: string };
+/** `code` ur LASAR_RULE_CODES kopplar avvikelsen till SQL:s regelkoder (LASAR-03). */
+export type Issue = { level: 'error' | 'warning'; text: string; code: LasarRuleCode };
 export type Summary = {
   skoldagar: number;
   lovdagar: number;
@@ -457,30 +459,30 @@ export function summarize(sy: SchoolYear, schoolTypes: string[] = ['GR']): Summa
   const gy = schoolTypes.includes('GY') || schoolTypes.includes('GYAN');
   const gr = schoolTypes.some((t) => ['GR', 'GRAN', 'SP', 'SAM', 'FSK', 'FKLASS'].includes(t));
 
-  if (sy.ht.start.slice(5, 7) !== '08') issues.push({ level: 'error', text: 'Läsåret ska börja i augusti.' });
-  if (sy.vt.end.slice(5, 7) !== '06') issues.push({ level: 'error', text: gy && !gr ? 'Läsåret ska sluta senast i juni.' : 'Läsåret ska sluta i juni.' });
+  if (sy.ht.start.slice(5, 7) !== '08') issues.push({ level: 'error', code: 'term_start_august', text: 'Läsåret ska börja i augusti.' });
+  if (sy.vt.end.slice(5, 7) !== '06') issues.push({ level: 'error', code: 'term_end_june', text: gy && !gr ? 'Läsåret ska sluta senast i juni.' : 'Läsåret ska sluta i juni.' });
   if (sy.ht.end <= sy.ht.start || sy.vt.end <= sy.vt.start || sy.vt.start <= sy.ht.end)
-    issues.push({ level: 'error', text: 'Terminerna överlappar eller är omvända. Höstterminen slutar före vårterminen börjar.' });
+    issues.push({ level: 'error', code: 'term_order', text: 'Terminerna överlappar eller är omvända. Höstterminen slutar före vårterminen börjar.' });
   if (skoldagar < minSchoolDays)
-    issues.push({ level: 'error', text: `Läsåret har ${format(skoldagar)} skoldagar; minst ${minSchoolDays} krävs. Ta bort ${format(minSchoolDays - skoldagar)} lov- eller studiedag${minSchoolDays - skoldagar > 1 ? 'ar' : ''} eller förläng en termin.` });
+    issues.push({ level: 'error', code: 'school_days_min', text: `Läsåret har ${format(skoldagar)} skoldagar; minst ${minSchoolDays} krävs. Ta bort ${format(minSchoolDays - skoldagar)} lov- eller studiedag${minSchoolDays - skoldagar > 1 ? 'ar' : ''} eller förläng en termin.` });
   if (lovdagarTerminer + lovdagarJullov < minHolidays)
-    issues.push({ level: 'error', text: `Läsåret har ${format(lovdagarTerminer + lovdagarJullov)} lovdagar; minst ${minHolidays} krävs.` });
+    issues.push({ level: 'error', code: 'holidays_min', text: `Läsåret har ${format(lovdagarTerminer + lovdagarJullov)} lovdagar; minst ${minHolidays} krävs.` });
   if (studiedagar > maxStudyDays)
-    issues.push({ level: 'error', text: `${format(studiedagar)} studiedagar är utlagda; högst ${maxStudyDays} får läggas ut inom läsåret.` });
+    issues.push({ level: 'error', code: 'study_days_max', text: `${format(studiedagar)} studiedagar är utlagda; högst ${maxStudyDays} får läggas ut inom läsåret.` });
   if (gy && weeks.total !== gymnasiumWeeks)
-    issues.push({ level: gr ? 'warning' : 'error', text: `Terminerna omfattar ${format(weeks.total)} veckor; gymnasieskolans läsår ska omfatta ${gymnasiumWeeks} veckor (Gymnasieförordningen 3 kap. 1 §).${gr ? ' Grundskolan har inget veckokrav.' : ''}` });
+    issues.push({ level: gr ? 'warning' : 'error', code: 'gy_weeks', text: `Terminerna omfattar ${format(weeks.total)} veckor; gymnasieskolans läsår ska omfatta ${gymnasiumWeeks} veckor (Gymnasieförordningen 3 kap. 1 §).${gr ? ' Grundskolan har inget veckokrav.' : ''}` });
   for (const [term, name] of [['ht', 'Höstterminen'], ['vt', 'Vårterminen']] as const) {
     for (const edge of ['start', 'end'] as const) {
       const d = sy[term][edge];
       if (isWeekend(d) || holidayName(d))
-        issues.push({ level: 'warning', text: `${name} ${edge === 'start' ? 'börjar' : 'slutar'} ${formatLong(d)}, som är ${holidayName(d) ? holidayName(d)!.toLocaleLowerCase('sv') : 'en helg'}.` });
+        issues.push({ level: 'warning', code: 'term_edge_holiday', text: `${name} ${edge === 'start' ? 'börjar' : 'slutar'} ${formatLong(d)}, som är ${holidayName(d) ? holidayName(d)!.toLocaleLowerCase('sv') : 'en helg'}.` });
     }
   }
   const spread = Math.max(...perWeekday) - Math.min(...perWeekday);
   if (spread >= 4) {
     const low = perWeekday.indexOf(Math.min(...perWeekday));
     const high = perWeekday.indexOf(Math.max(...perWeekday));
-    issues.push({ level: 'warning', text: `Skoldagarna är ojämnt fördelade över veckan: ${format(perWeekday[low])} ${weekdayNames[low]}ar mot ${format(perWeekday[high])} ${weekdayNames[high]}ar. Undervisning som bara ligger på ${weekdayNames[low]}ar får ${format(spread)} färre tillfällen. Lägg studiedagar och lovdagar på andra veckodagar.` });
+    issues.push({ level: 'warning', code: 'weekday_balance', text: `Skoldagarna är ojämnt fördelade över veckan: ${format(perWeekday[low])} ${weekdayNames[low]}ar mot ${format(perWeekday[high])} ${weekdayNames[high]}ar. Undervisning som bara ligger på ${weekdayNames[low]}ar får ${format(spread)} färre tillfällen. Lägg studiedagar och lovdagar på andra veckodagar.` });
   }
   // Skoldagar i följd utan lov. En svensk hösttermin har normalt tio till elva
   // veckor fram till höstlovet; först en termin helt utan avbrott flaggas.
@@ -496,10 +498,10 @@ export function summarize(sy: SchoolYear, schoolTypes: string[] = ['GR']): Summa
   }
   if (run > longest.length) longest = { length: run, end: addDays(sy.vt.end, 1) };
   if (longest.length > longRun)
-    issues.push({ level: 'warning', text: `${format(longest.length)} skoldagar i följd utan lov fram till ${formatDate(addDays(longest.end, -1))}, mer än ${longRun / 5} veckor. Skoldagarna ska vara så jämnt fördelade över läsåret som möjligt.` });
+    issues.push({ level: 'warning', code: 'long_run', text: `${format(longest.length)} skoldagar i följd utan lov fram till ${formatDate(addDays(longest.end, -1))}, mer än ${longRun / 5} veckor. Skoldagarna ska vara så jämnt fördelade över läsåret som möjligt.` });
   for (const d of days)
     if (d.status === 'studiedag' && d.note === undefined)
-      issues.push({ level: 'warning', text: `Studiedagen ${formatLong(d.date)} saknar anteckning om vad personalen gör.` });
+      issues.push({ level: 'warning', code: 'study_day_note', text: `Studiedagen ${formatLong(d.date)} saknar anteckning om vad personalen gör.` });
 
   return {
     skoldagar,

@@ -45,7 +45,7 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261107130000_valplan_held_courses.sql', '29378c94806687b68e9485e36677d0f3021f71c1c5c657c108b62516fbb20953'],
   ['supabase/migrations/20261110100000_valplan_language_ladders.sql', '9f6faed56c136467d9375ce246392f2a7b89d6eed1fa30fb1f3da152cc43fcc5'],
   // 05.1.1-06: läsårskalenderns versioner och Worker-öppning; installeras först efter VP-16 (exakt prefix).
-  ['supabase/migrations/20261111100000_lasar_versions.sql', '14525e909b5b3253d5ba6f6d0a2d5c12b60e75b11efdae7802cc2e13f3097159'],
+  ['supabase/migrations/20261111100000_lasar_versions.sql', '10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66'],
   ['supabase/migrations/20261111190000_lasar_worker_access.sql', '3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;

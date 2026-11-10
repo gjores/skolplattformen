@@ -595,7 +595,7 @@ async function parity(t, step, f) {
     const r2 = await send('principalA', await lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: r.receipt.revision, ops: [{ op: 'set_days', dates: [d], kind: 'studiedag' }] }));
     assert.deepEqual(pairsOf(summarize(lasarSchoolYear(r2.detail), f.schoolTypes.A).issues), ['study_day_note:warning']);
     const sub = await decide('principalA', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: r2.receipt.revision, action: 'submit', text: 'Syntetiskt förslag' }));
-    assert.equal(sub.detail.calendar.status, 'forslag'); s.rev = sub.receipt.revision;
+    assert.equal(sub.detail.calendar.status, 'forslag'); s.rev = sub.receipt.revision; s.submitted = sub;
   });
   await step(t, 'fastställandet nekas med regelkoderna när det skickade innehållet bryter mot förordningen', async () => {
     // Syntetiskt: ägaren lägger en sjätte studiedag i det skickade förslaget förbi låset (som en äldre rad eller ett fel).
@@ -603,7 +603,10 @@ async function parity(t, step, f) {
     for (const d of s.study) await t`insert into public.school_year_days(school_year_id,day,kind,note) values(${s.v},${d},'studiedag','Syntetisk') on conflict do nothing`;
     await t`set local session_replication_role=origin`;
     const e = await denied(t, async u => { await f.actor(u, 'hm'); await lasarSend(u, lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'approve', text: 'Syntetiskt beslut' })); }, '40001', 'lasar_rules_failed');
-    assert.deepEqual(JSON.parse(e.detail), ['study_days_max']);
+    const sy = lasarSchoolYear(s.submitted.detail);
+    for (const d of s.study) sy.exceptions[d] ??= { kind: 'studiedag', note: 'Syntetisk' };
+    const modelErrors = summarize(sy, f.schoolTypes.A).issues.filter(i => i.level === 'error').map(i => i.code);
+    assert.ok(modelErrors.includes('study_days_max')); assert.deepEqual(JSON.parse(e.detail), modelErrors);
     assert.equal((await t`select status::text s from public.school_years where id=${s.v}`)[0].s, 'forslag');
   });
 }

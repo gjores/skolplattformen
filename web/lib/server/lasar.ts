@@ -1,11 +1,11 @@
 import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import {
   LASAR_REASONS, LasarContractError, parseLasarCommandReply, parseLasarDecisionReply, parseLasarDecisionRequest, parseLasarEnvelope,
-  parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
+  lasarSchoolYear, parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
   type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarReadReply, type LasarReadRequest, type LasarReason,
   type LasarStatusRequest,
 } from '../lasar-contract.ts';
-import { proposeSchoolYear } from '../lasar-model.ts';
+import { allIssues, proposeSchoolYear } from '../lasar-model.ts';
 import { LASAR_RULE_CODES } from '../lasar-rule-codes.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type SessionContext, type Tx } from './db.ts';
@@ -168,16 +168,31 @@ export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority
   } catch { throw new AuditUnavailable(); }
 }
 
+/**
+ * Dubbel regelkontroll (RESEARCH A8): SQL är auktoritativ, och efter ett godkänt förslag eller fastställande prövar
+ * servern dessutom det sparade innehållet med allIssues i lasar-model.ts. Hittar modellen ett fel som SQL missat nekas
+ * beslutet med lasar_rules_failed (409) och modellens regelkoder, och transaktionen rullas tillbaka utan delresultat.
+ * Gruppreglerna läggs till när grupperna finns i läsningen (plan 08).
+ */
+function modelRules(detail: LasarReadReply): void {
+  const sy = lasarSchoolYear(detail);
+  if (!sy) invalid();
+  const codes = [...new Set(allIssues(sy, detail.schoolTypes).filter((i) => i.level === 'error').map((i) => i.code))];
+  if (codes.length) throw new Deny('conflict', 409, { reason: 'lasar_rules_failed', rules: codes });
+}
+
 /** Beslut (skicka, fastställa m.fl.). Rutten kräver engångskod; SQL prövar vem som får fatta vilket beslut. */
 export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_command(${json(tx, input)}) as result`));
+  let body: LasarCommandReply;
   try {
-    const body = parseLasarDecisionReply(envelope(raw, authority), input);
+    body = parseLasarDecisionReply(envelope(raw, authority), input);
     readActor(body.detail, authority);
-    return { body, event: { action: 'lasar_decision', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,
-      details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
+  if (input.action === 'submit' || input.action === 'approve') modelRules(body.detail);
+  return { body, event: { action: 'lasar_decision', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,
+    details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
 }
 
 /** Statusbegäran: kontraktets mål och läsår samt kommando-id:t vars svar uteblev (05.1.1-07). */

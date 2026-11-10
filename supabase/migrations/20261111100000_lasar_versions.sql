@@ -425,24 +425,83 @@ language sql stable security definer set search_path = pg_catalog, public as $$
     and not public.tjanst_is_holiday(d)
 $$;
 
--- Regelkoder ur web/lib/lasar-rule-codes.ts i modellens ordning. Tracern prövar terminsordning, start i augusti,
--- slut i juni och minst 178 skoldagar; plan 07 lägger till resten.
+-- Skolans regler (LASAR-03) med koder ur web/lib/lasar-rule-codes.ts, i samma ordning och antal som summarize i
+-- web/lib/lasar-model.ts: varje dag klassas som dayInfo (utanför, helg, helgdag, jullov som lovdag, undantag eller
+-- skoldag) och räknas som där. Skolförordningen 3 kap. 2–4 §§, gymnasieförordningen 3 kap. 1–3 §§ och lagen
+-- (1989:253) om allmänna helgdagar. Gruppreglerna (kort vecka, orsak annat) kommer i plan 08.
+-- Indata: terms {ht:{start,end}, vt:{start,end}}, exceptions {datum: {kind, note?}} och skolformerna.
+create function public.lasar_rule_check(terms jsonb, exceptions jsonb, school_types text[]) returns jsonb
+language plpgsql stable security definer set search_path = pg_catalog, public as $$
+declare
+  ht_start date := (terms #>> '{ht,start}')::date; ht_end date := (terms #>> '{ht,end}')::date;
+  vt_start date := (terms #>> '{vt,start}')::date; vt_end date := (terms #>> '{vt,end}')::date;
+  gy boolean := coalesce(school_types && array['GY', 'GYAN'], false);
+  gr boolean := coalesce(school_types && array['GR', 'GRAN', 'SP', 'SAM', 'FSK', 'FKLASS'], false);
+  r jsonb := '[]'; v_day record; v_school integer := 0; v_holidays integer := 0; v_study integer := 0; v_per integer[] := array[0, 0, 0, 0, 0];
+  v_run integer := 0; v_longest integer := 0; v_weeks integer; v_edge date; v_notes date[] := '{}';
+begin
+  if extract(month from ht_start) <> 8 then r := r || jsonb_build_array(jsonb_build_object('code', 'term_start_august', 'level', 'error')); end if;
+  if extract(month from vt_end) <> 6 then r := r || jsonb_build_array(jsonb_build_object('code', 'term_end_june', 'level', 'error')); end if;
+  if ht_end <= ht_start or vt_end <= vt_start or vt_start <= ht_end then
+    r := r || jsonb_build_array(jsonb_build_object('code', 'term_order', 'level', 'error'));
+  end if;
+  for v_day in
+    select x.d, case
+        when x.part is null then 'utanför' when extract(isodow from x.d) >= 6 then 'helg' when public.tjanst_is_holiday(x.d) then 'helgdag'
+        when x.part = 'jullov' then 'lovdag' else coalesce(exceptions -> x.d::text ->> 'kind', 'skoldag') end status,
+      exceptions -> x.d::text ? 'note' has_note
+    from (select g::date d, case when g::date between ht_start and ht_end then 'ht' when g::date between vt_start and vt_end then 'vt'
+            when g::date > ht_end and g::date < vt_start then 'jullov' end part
+          from generate_series(ht_start, vt_end, interval '1 day') g) x
+    order by x.d
+  loop
+    if v_day.status = 'skoldag' then
+      v_school := v_school + 1; v_run := v_run + 1;
+      v_per[extract(isodow from v_day.d)::integer] := v_per[extract(isodow from v_day.d)::integer] + 1;
+    elsif v_day.status <> 'helg' then
+      v_longest := greatest(v_longest, v_run); v_run := 0;
+      if v_day.status = 'lovdag' then v_holidays := v_holidays + 1; end if;
+      if v_day.status = 'studiedag' then
+        v_study := v_study + 1;
+        if not coalesce(v_day.has_note, false) then v_notes := v_notes || v_day.d; end if;
+      end if;
+    end if;
+  end loop;
+  v_longest := greatest(v_longest, v_run);
+  if v_school < 178 then r := r || jsonb_build_array(jsonb_build_object('code', 'school_days_min', 'level', 'error')); end if;
+  if v_holidays < 12 then r := r || jsonb_build_array(jsonb_build_object('code', 'holidays_min', 'level', 'error')); end if;
+  if v_study > 5 then r := r || jsonb_build_array(jsonb_build_object('code', 'study_days_max', 'level', 'error')); end if;
+  -- Veckor som termWeeks: kalenderveckor från terminens första till sista måndag.
+  v_weeks := ((ht_end - (extract(isodow from ht_end)::integer - 1)) - (ht_start - (extract(isodow from ht_start)::integer - 1))) / 7 + 1
+           + ((vt_end - (extract(isodow from vt_end)::integer - 1)) - (vt_start - (extract(isodow from vt_start)::integer - 1))) / 7 + 1;
+  if gy and v_weeks <> 40 then
+    r := r || jsonb_build_array(jsonb_build_object('code', 'gy_weeks', 'level', case when gr then 'warning' else 'error' end));
+  end if;
+  foreach v_edge in array array[ht_start, ht_end, vt_start, vt_end] loop
+    if extract(isodow from v_edge) >= 6 or public.tjanst_is_holiday(v_edge) then
+      r := r || jsonb_build_array(jsonb_build_object('code', 'term_edge_holiday', 'level', 'warning'));
+    end if;
+  end loop;
+  if (select max(x) - min(x) from unnest(v_per) x) >= 4 then r := r || jsonb_build_array(jsonb_build_object('code', 'weekday_balance', 'level', 'warning')); end if;
+  if v_longest > 60 then r := r || jsonb_build_array(jsonb_build_object('code', 'long_run', 'level', 'warning')); end if;
+  r := r || coalesce((select jsonb_agg(jsonb_build_object('code', 'study_day_note', 'level', 'warning')) from unnest(v_notes) n), '[]'::jsonb);
+  return r;
+end $$;
+
+-- Reglerna för en lagrad version: dess terminer och lov- och studiedagar och skolenhetens skolformer (samma urval
+-- som läsningens schoolTypes). Returnerar [{code, level}].
 create function public.lasar_rules(version_id uuid) returns jsonb
 language plpgsql stable security definer set search_path = pg_catalog, public as $$
-declare v_year public.school_years; v_days jsonb; v_result jsonb := '[]';
+declare v_year public.school_years; v_exceptions jsonb; v_types text[];
 begin
   select * into v_year from public.school_years s where s.id = version_id;
   if not found then raise exception 'Kalenderversionen finns inte.' using errcode = '40001', hint = 'lasar_not_found'; end if;
-  if extract(month from v_year.ht_start) <> 8 then v_result := v_result || jsonb_build_array(jsonb_build_object('code', 'term_start_august', 'level', 'error')); end if;
-  if extract(month from v_year.vt_end) <> 6 then v_result := v_result || jsonb_build_array(jsonb_build_object('code', 'term_end_june', 'level', 'error')); end if;
-  if not (v_year.ht_start < v_year.ht_end and v_year.ht_end < v_year.vt_start and v_year.vt_start < v_year.vt_end) then
-    v_result := v_result || jsonb_build_array(jsonb_build_object('code', 'term_order', 'level', 'error'));
-  end if;
-  v_days := public.lasar_school_days(v_year.id);
-  if (v_days ->> 'htSchoolDays')::integer + (v_days ->> 'vtSchoolDays')::integer < 178 then
-    v_result := v_result || jsonb_build_array(jsonb_build_object('code', 'school_days_min', 'level', 'error'));
-  end if;
-  return v_result;
+  select coalesce(jsonb_object_agg(d.day::text, jsonb_strip_nulls(jsonb_build_object('kind', d.kind, 'note', d.note))), '{}'::jsonb) into v_exceptions
+    from public.school_year_days d where d.school_year_id = v_year.id;
+  select coalesce(array_agg(t.school_type order by t.school_type collate "C"), '{}') into v_types
+    from (select distinct x.school_type from public.school_unit_types x where x.unit_id = v_year.unit_id and x.school_type ~ '^[A-Z]{2,6}$' order by 1 limit 10) t;
+  return public.lasar_rule_check(jsonb_build_object('ht', jsonb_build_object('start', v_year.ht_start, 'end', v_year.ht_end),
+    'vt', jsonb_build_object('start', v_year.vt_start, 'end', v_year.vt_end)), v_exceptions, v_types);
 end $$;
 
 create function public.lasar_require_rules(version_id uuid) returns void
@@ -942,7 +1001,7 @@ revoke all on function public.lasar_current(uuid, integer), public.lasar_school_
   public.lasar_content_hash(uuid), public.lasar_shape(jsonb, text[], text[]), public.lasar_uuid(jsonb), public.lasar_int(jsonb, integer, integer),
   public.lasar_date(jsonb), public.lasar_text(jsonb, integer, boolean, boolean), public.lasar_target(jsonb), public.lasar_actor(),
   public.lasar_scope(public.access_assignments, uuid), public.lasar_audit(text, text, uuid, jsonb), public.lasar_day_editable(public.school_years, date),
-  public.lasar_rules(uuid), public.lasar_require_rules(uuid), public.lasar_calendar_json(public.school_years),
+  public.lasar_rule_check(jsonb, jsonb, text[]), public.lasar_rules(uuid), public.lasar_require_rules(uuid), public.lasar_calendar_json(public.school_years),
   public.lasar_detail(public.access_assignments, uuid, integer, uuid), public.lasar_create_proposal(public.access_assignments, uuid, integer, jsonb),
   public.lasar_set_days(public.school_years, jsonb), public.lasar_lock_version(public.access_assignments, uuid, integer, uuid),
   public.lasar_event_actor(), public.lasar_display_name(text), public.lasar_history_add(uuid, text, text), public.lasar_history(public.school_years),
