@@ -497,7 +497,7 @@ Plans:
 - [x] 05.1.1-04-PLAN.md — Fullständigt kontrakt och arbetsflödet i skyddad vy, simulerat (våg 3). Simulerat mot mockat API: kontrakt och lasarOps 25 PASS, lasar-ui 69 PASS i fyra projekt (telefonfallen också i WebKit), demoregressionen 4 PASS; ingen migration; commits d81aa4d0, af8d33ca, 613e7ae6, 8ed1b778
 - [x] 05.1.1-05-PLAN.md — Startval, kopiering, huvudmannens ram och undervisningspanelen, simulerat (våg 4). Simulerat mot mockat API: lasar-ui 157 PASS i fyra projekt (varav lasar-start 88), demoregressionen 4 PASS; ingen migration; commits 09499c04, 07ab78ed, a58f99d8
 - [x] 05.1.1-06-PLAN.md — Grind och tracer: en lovdag från rektor till fastställd version (våg 5). Grinden besvarad 2026-11-10 (1a, D-19 ja). SQL i ephemeral PostgreSQL med syntetiska data: verify-lasar 42 PASS, 05.1:s fyra sviter PASS. Node 11 PASS, lasar-ui 157 PASS (simulerat), build:protected grönt. Migrationerna 20261111100000/20261111190000 är registrerade men inte installerade; commits b4aa5564, d77af747, 958c8c35
-- [ ] 05.1.1-07-PLAN.md — Kärnflödet på servern: utkastkommandon, beslut, regler och återhämtning (våg 6)
+- [x] 05.1.1-07-PLAN.md — Kärnflödet på servern: utkastkommandon, beslut, regler och återhämtning (våg 6). SQL i ephemeral PostgreSQL med syntetiska data: verify-lasar 80 PASS (14 paritetsfall), 05.1:s fyra sviter PASS, Node 43 PASS, demoregressionen 4 passed. Migrationerna registrerade med nya hashar, inte installerade; commits 75ed9f19, 8f53a8dd, 4d1fd772, f081a7c2
 - [ ] 05.1.1-08-PLAN.md — Stabila grupp-ID:n (LASAR-04) och gruppernas dagar (våg 7)
 - [ ] 05.1.1-09-PLAN.md — Ny version, ändringsbegäran och låsta passerade dagar (våg 8)
 - [ ] 05.1.1-10-PLAN.md — Huvudmannens ram och arbetssätt (våg 9)

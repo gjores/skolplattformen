@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-06 klar 2026-11-10 (kalenderns versioner och tracern i SQL, prövat i ephemeral PostgreSQL; rutter och menyval; inget installerat). Nästa: 05.1.1-07. VP-16 (824d294da1) är inte installerad på 3012, och kalenderns migrationer kräver den först."
+stopped_at: "05.1.1-07 klar 2026-11-10 (utkast- och beslutsflödet, D-18, historik, lasar_status och fullständiga regler med paritet; prövat i ephemeral PostgreSQL; inget installerat). Nästa: 05.1.1-08. Kalenderns migrationer kräver att VP-16 installeras på 3012 först."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-06: grinden D-17 passerad med användarens svar, kalenderns versioner i school_years med lasar_current och ombyggda läsare, lasar_read och lasar_command, rutterna /api/lasar/lasa, /kommando och /beslut samt menyvalet Läsår & skoldagar. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-07: lasar_command med set_term, set_notes, comment, reset_to_proposal, withdraw och return med mandat per åtgärd (D-18), historik med verifierad aktör (A-16), lasar_status och /api/lasar/status, regler i SQL med paritet mot lasar-model.ts och modellkontroll i servern. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-07 klar 2026-11-10:** [Kärnflödet på servern](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-07-SUMMARY.md): rektor och skoladministratör ändrar terminer, dagar och anteckningar, kommenterar, återställer förslaget, skickar och tar tillbaka; huvudmannen kommenterar, återsänder och fastställer (D-18). Historiken visar roll, verifierat namn, tid och version (A-16). `/api/lasar/status` ger utfallet för ett kommando-id utan att utföra det igen. Reglerna i SQL (178/12/5, augusti–juni, ordning, 40 veckor, helgdagskanter, veckodagar, långa perioder, studiedagsanteckning) är lika `summarize` i en paritetsmatris med 14 fall, och servern nekar med 409 om modellen hittar fler fel. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 80/80, 05.1:s fyra sviter PASS, Node 43 PASS, tsc, oxlint och demoregressionen gröna. Migrationernas SHA-256: `10961843…3f66` och `3b95e261…027c`; registrerade, inte installerade. Nästa: 05.1.1-08.
 
 **05.1.1-06 klar 2026-11-10:** [Grind och tracer](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-06-SUMMARY.md): grinden D-17 är passerad med användarens svar ”Kör 1a 2ja 3a 4a” (alternativ a, D-19 ja). Två nya migrationer, `20261111100000_lasar_versions.sql` och `20261111190000_lasar_worker_access.sql`, är registrerade efter VP-16 men inte installerade. Kalenderns versioner ligger i `school_years`. Tjänstefördelningens IM-behov, dess basisHash och programplanens reservstart läser bara den gällande fastställda versionen, så ett utkast påverkar dem inte. Rektor skapar ett förslag, sparar en lovdag och skickar det, och huvudmannen fastställer med kontrollsumma. Det är prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 42/42, och 05.1:s fyra sviter passerar. Servern har rutterna `/api/lasar/lasa`, `/kommando` och `/beslut` (med engångskod), och menyvalet Läsår & skoldagar ligger först under PLANERING. Node-proven, tsc, oxlint, lasar-ui (simulerat, 157 passed) och build:protected är gröna. Worker/OIDC-kedjan provas i plan 15, och installationen sker i plan 16. Nästa: 05.1.1-07.
 
