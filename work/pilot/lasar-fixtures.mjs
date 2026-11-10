@@ -5,11 +5,11 @@
 // C bara GY. Bara syntetiska namn, inga personnummer utöver repots syntetiska TEST-lista, inga demofunktioner.
 // SS 12000: skolenheterna nycklas på stabila ID (Organisation, organisationType=Skolenhet); kalendern saknar objekt i standarden.
 import { randomUUID } from 'node:crypto';
-import { createTjanstFixture } from './tjanst-fixtures.mjs';
+import { createTjanstFixture, lasarMigrations } from './tjanst-fixtures.mjs';
 import { lasarPayloadHash } from '../../web/lib/lasar-contract.ts';
 import { proposeSchoolYear } from '../../web/lib/lasar-model.ts';
 
-export const lasarMigrations = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabase/migrations/20261111190000_lasar_worker_access.sql'];
+export { lasarMigrations };
 
 /** Tjänstefördelningens bas plus skolformer och utbildningar per skola. Kräver bara schemat före 05.1.1-06. */
 export async function createLasarFixture(tx) {

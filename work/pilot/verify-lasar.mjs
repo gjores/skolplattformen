@@ -17,12 +17,13 @@ const rollback = Error('expected_lasar_rollback');
 const YEAR = 2027;
 /**
  * Funktioner som får nämna school_years (assumption_delta_decision): accessorn, lasar-ingångarna och deras hjälp,
- * triggervakten för dagar och de distinkta läsårsurvalen i fas 4 och 05.1. En ny läsare som inte står här gör provet rött;
- * den ska gå via lasar_current eller ange en version uttryckligen.
+ * triggervakten för dagar och det distinkta läsårsurvalet phase4_register_selection (fas 4, omdefinierat i 05.1; det läser
+ * bara vilka läsår som finns). En ny läsare som inte står här gör provet rött; den ska gå via lasar_current eller ange en
+ * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
   'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail',
-  'lasar_lock_version', 'lasar_rules', 'lasar_school_days', 'phase4_selection_years', 'tjanst_personal_years',
+  'lasar_lock_version', 'lasar_rules', 'lasar_school_days', 'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
 
