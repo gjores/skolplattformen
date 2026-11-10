@@ -5,16 +5,16 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-07 klar och tidigt installerad på 3012 2026-11-10 med VP-16 (261fc0db); användarprovet K1–K9 och V1: Allt funkar! Nästa: 05.1.1-08."
+stopped_at: "05.1.1-08 klar 2026-11-10: stabila grupp-ID:n (LASAR-04) prövade i ephemeral PostgreSQL; 20261112100000_lasar_groups.sql registrerad, inte installerad. Nästa: 05.1.1-09."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-07: lasar_command med set_term, set_notes, comment, reset_to_proposal, withdraw och return med mandat per åtgärd (D-18), historik med verifierad aktör (A-16), lasar_status och /api/lasar/status, regler i SQL med paritet mot lasar-model.ts och modellkontroll i servern. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-08: gruppdagar och korta veckor knutna till utbildningens ID och kolumn eller klassens ID, avstämd fail-closed överföring av group_key (alternativ a), gruppkommandon, gruppregler i SQL med paritet, grupper och undervisning i läsningen. Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 96
+  completed_plans: 97
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
 worker_status: valplan_series_installed_sql_rehearsed_applied
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-08 klar 2026-11-10:** [Stabila grupp-ID:n](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-08-SUMMARY.md): avvikande dagar och korta veckor för en årskurs eller klass sparas med utbildningens ID och kolumn eller klassens ID i stället för klassnamn (LASAR-04, alternativ a: `group_key` blir låst historik). Befintliga rader förs över avstämt: antal före = efter, 0 kvar, och fastställda kalendrar behåller sin kontrollsumma. Okänd form, tvetydigt klassnamn eller främmande utbildning eller klass avbryter migrationen. Rektor och skoladministratör sätter och tar bort gruppdagar och korta veckor; gruppreglerna har samma koder i SQL som i modellen, och läsningen ger skolans grupper och undervisning per klass utan elevantal (A-18). IM-klassens gruppdagar ändrar inte IM-behovet (D-20). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar-groups 13 PASS, verify-lasar 104 PASS, 05.1:s fyra sviter PASS, Node 45 PASS, tsc, oxlint, lasar-ui (simulerat) och demoregressionen gröna. `20261112100000_lasar_groups.sql` (`6361521a…2965`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-09.
 
 **05.1.1-07 klar 2026-11-10:** [Kärnflödet på servern](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-07-SUMMARY.md): rektor och skoladministratör ändrar terminer, dagar och anteckningar, kommenterar, återställer förslaget, skickar och tar tillbaka; huvudmannen kommenterar, återsänder och fastställer (D-18). Historiken visar roll, verifierat namn, tid och version (A-16). `/api/lasar/status` ger utfallet för ett kommando-id utan att utföra det igen. Reglerna i SQL (178/12/5, augusti–juni, ordning, 40 veckor, helgdagskanter, veckodagar, långa perioder, studiedagsanteckning) är lika `summarize` i en paritetsmatris med 14 fall, och servern nekar med 409 om modellen hittar fler fel. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 80/80, 05.1:s fyra sviter PASS, Node 43 PASS, tsc, oxlint och demoregressionen gröna. Migrationernas SHA-256: `10961843…3f66` och `3b95e261…027c`; registrerade, inte installerade. Nästa: 05.1.1-08.
 
