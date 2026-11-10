@@ -495,7 +495,7 @@ Plans:
 - [x] 05.1.1-02-PLAN.md — Modellstöd: kopiering, ramjämförelse, regelkoder, stabila grupp-ID:n och kontrollsumma (våg 1). Rena funktioner, syntetiskt provade i Node: 65 prov PASS, 11 hashvektorer; ingen migration; commit a72b5ff3
 - [x] 05.1.1-03-PLAN.md — Tracer utan migration: en lovdag i skyddad vy och delade presentationskomponenter (våg 2). Simulerat mot mockat API: lasar-ui 12 PASS i fyra projekt, demoregressionen 4 PASS mot oförändrad baslinje, build:example och build:protected PASS; ingen migration; commits 61d3922b, a33b7945
 - [x] 05.1.1-04-PLAN.md — Fullständigt kontrakt och arbetsflödet i skyddad vy, simulerat (våg 3). Simulerat mot mockat API: kontrakt och lasarOps 25 PASS, lasar-ui 69 PASS i fyra projekt (telefonfallen också i WebKit), demoregressionen 4 PASS; ingen migration; commits d81aa4d0, af8d33ca, 613e7ae6, 8ed1b778
-- [ ] 05.1.1-05-PLAN.md — Startval, kopiering, huvudmannens ram och undervisningspanelen, simulerat (våg 4)
+- [x] 05.1.1-05-PLAN.md — Startval, kopiering, huvudmannens ram och undervisningspanelen, simulerat (våg 4). Simulerat mot mockat API: lasar-ui 157 PASS i fyra projekt (varav lasar-start 88), demoregressionen 4 PASS; ingen migration; commits 09499c04, 07ab78ed, a58f99d8
 - [ ] 05.1.1-06-PLAN.md — Grind och tracer: en lovdag från rektor till fastställd version (våg 5)
 - [ ] 05.1.1-07-PLAN.md — Kärnflödet på servern: utkastkommandon, beslut, regler och återhämtning (våg 6)
 - [ ] 05.1.1-08-PLAN.md — Stabila grupp-ID:n (LASAR-04) och gruppernas dagar (våg 7)

@@ -5,16 +5,16 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-04 klar 2026-11-10 (hela kontraktet lasar_sql_v1 och arbetsflödet i skyddad vy, simulerat mot mockat API). Nästa: 05.1.1-05. VP-16 (824d294da1) är inte installerad på 3012."
+stopped_at: "05.1.1-05 klar 2026-11-10 (startval, kopiering med granskning, arbetssätt, huvudmannens ram och undervisningspanelen i skyddad vy, simulerat mot mockat API). Nästa: 05.1.1-06. VP-16 (824d294da1) är inte installerad på 3012."
 last_updated: "2026-11-10"
 last_activity: 2026-11-10
-last_activity_desc: "05.1.1-04: hela kontraktet lasar_sql_v1, lasarOps för terminer, anteckningar, gruppdagar och korta veckor, arbetsflöde, versioner, dialoger, lägen och telefonanpassning i skyddad vy, simulerat mot mockat API."
+last_activity_desc: "05.1.1-05: startval per arbetssätt, granskning efter kopiering, arbetssättskort med bekräftelse, ramvy med Ge ut ramen, jämförelse och intag av ramens ändringar samt panelen Undervisning som läsåret rymmer, simulerat mot mockat API."
 state_head: 494f951
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 94
+  completed_plans: 95
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
 worker_status: valplan_series_installed_sql_rehearsed_applied
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-05 klar 2026-11-10:** [Startval, kopiering, ram och undervisningspanel](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-05-SUMMARY.md): ett nytt läsår startas enligt arbetssättet, som förslag, från huvudmannens ram eller som kopia av förra läsåret. Knapparna kommer bara ur serverns `canCreate`, och utan utgiven ram visas ”Ramen saknas” utan knappar. Kopierade dagar som inte kunde flyttas, till exempel vecka 53 och påsken, granskas i ett eget kort, och *Skicka förslag* är spärrad tills alla är klara. Huvudmannens arbetssätt sparas först efter en bekräftelse som visar berörda skolor. Ramen har en egen vy med *Ge ut ramen*. Skolan ser sina skillnader mot ramen och tar in ramens ändringar först efter bekräftelse, med exakt de godkända punkterna. Panelen *Undervisning som läsåret rymmer* läser skyddade data, utan schemapass och elevantal. Simulerat mot mockat API med syntetiska data: lasar-ui 157 passed i fyra projekt och demoregressionen 4 passed. Bevisar inte behörighet. Ingen migration, inget installerat. Designsystemets avsnitt Läsårskalendern är förberett för publicering. Nästa: 05.1.1-06.
 
 **05.1.1-04 klar 2026-11-10:** [Fullständigt kontrakt och arbetsflöde](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-04-SUMMARY.md): `lasar-contract.ts` beskriver hela fasens läsning, kommandon, beslut, status, överblick, sammanfattning och tolv felorsaker med texter. I den skyddade vyn finns skicka, ta tillbaka, återsänd, fastställ, öppna för ändring (ny version), begär ändring och avslå begäran, styrt bara av serverns förmågor. Där finns också versioner med ”· gäller”, låsta passerade dagar, felägena i UI-SPEC avsnitt 13 och telefonanpassning (36px dagar, Markera flera, långtryck). Simulerat mot mockat API med syntetiska data i fyra projekt; telefonfallen också i WebKit. Bevisar inte behörighet. Ingen migration, inget installerat. Designsystemets avsnitt Läsårskalendern är förberett för publicering. Nästa: 05.1.1-05.
 
