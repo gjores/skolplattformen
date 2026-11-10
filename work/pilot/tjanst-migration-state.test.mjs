@@ -66,19 +66,37 @@ test('ACL nekar okänd eller omapplicerad fil',()=>{
 
 // 05.1.1-06: läsårskalenderns två migrationer ligger sist i registret, efter VP-16 (exakt prefix).
 const LASAR = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabase/migrations/20261111190000_lasar_worker_access.sql'];
+// 05.1.1-08: de två kalenderfilerna är installerade på 3012 (2026-11-10) och låsta; gruppfilen sorterar efter dem.
+const GROUPS = 'supabase/migrations/20261112100000_lasar_groups.sql';
+const INSTALLED_3012 = { 'supabase/migrations/20261111100000_lasar_versions.sql': '10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66',
+  'supabase/migrations/20261111190000_lasar_worker_access.sql': '3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c' };
 test('kalenderns migrationer är registrerade sist och i versionsordning', () => {
-  assert.deepEqual(registry.slice(-2).map(m => m.file), LASAR);
+  const first = registry.findIndex(m => m.file === LASAR[0]);
+  assert.deepEqual(registry.slice(first, first + 2).map(m => m.file), LASAR);
+  assert.ok(registry.slice(first).every(m => /_lasar_/u.test(m.file)), 'efter kalenderns första fil kommer bara kalenderns filer');
   assert.ok(versions.every((v, i) => i === 0 || v > versions[i - 1]), 'registret ska vara strikt ordnat');
-  assert.ok(registry.slice(-2).every(m => /^[0-9a-f]{64}$/u.test(m.sha256)));
+  assert.ok(registry.slice(first).every(m => /^[0-9a-f]{64}$/u.test(m.sha256)));
 });
 test('installerat till och med VP-16 ger kalenderns två filer som väntande', () => {
   const vp16 = versions.indexOf('20261110100000');
   assert.ok(vp16 > 0);
   const result = classify(versions.slice(0, vp16 + 1));
-  assert.deepEqual(result.pendingMigrations, LASAR);
+  assert.deepEqual(result.pendingMigrations.slice(0, 2), LASAR);
+  assert.deepEqual(result.pendingMigrations.slice(2), [GROUPS]);
   assert.equal(result.baselineMode, 'registered-suffix:20261110100000');
 });
 test('kalendern kan inte installeras före VP-16', () => {
   assert.throws(() => classify(versions.filter(v => v !== '20261110100000')));
   assert.throws(() => classify([...versions.slice(0, versions.indexOf('20261110100000')), '20261111100000']));
+});
+test('installerat på 3012 till och med 20261111190000 ger exakt gruppfilen som väntande', () => {
+  const end = versions.indexOf('20261111190000');
+  assert.ok(end > 0);
+  const result = classify(versions.slice(0, end + 1));
+  assert.deepEqual(result.pendingMigrations, [GROUPS]);
+  assert.equal(result.baselineMode, 'registered-suffix:20261111190000');
+  assert.ok(GROUPS.split('/').at(-1).slice(0, 14) > '20261111190000');
+});
+test('de installerade kalenderfilernas hashar står fast', () => {
+  for (const [file, sha256] of Object.entries(INSTALLED_3012)) assert.equal(registry.find(m => m.file === file)?.sha256, sha256, file);
 });
