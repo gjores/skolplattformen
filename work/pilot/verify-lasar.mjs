@@ -23,12 +23,12 @@ const YEAR = 2027;
 /**
  * Funktioner som får nämna school_years (assumption_delta_decision): accessorn, lasar-ingångarna och deras hjälp,
  * triggervakten för dagar och det distinkta läsårsurvalet phase4_register_selection (fas 4, omdefinierat i 05.1; det läser
- * bara vilka läsår som finns). 05.1.1-10: skolans start ur ramen, intaget av ramens ändringar och listan över skolor med påbörjade kalendrar vid byte av
+ * bara vilka läsår som finns). 05.1.1-11: skolans kopia av förra läsåret. 05.1.1-10: skolans start ur ramen, intaget av ramens ändringar och listan över skolor med påbörjade kalendrar vid byte av
  * arbetssätt. En ny läsare som inte står här gör provet rött; den ska gå via lasar_current eller ange en
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
-  'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_from_frame', 'lasar_create_proposal', 'lasar_current',
+  'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_copy', 'lasar_create_from_frame', 'lasar_create_proposal', 'lasar_current',
   'lasar_detail', 'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_mode_affected', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules',
   'lasar_school_days', 'lasar_set_term', 'lasar_take_frame_changes',
   'phase4_register_selection',
@@ -1230,30 +1230,32 @@ async function copies(t, step, f) {
   await step(t, 'kopia: källan måste vara samma skolas gällande fastställda version för föregående läsår (T-05.1.1-35)', async () => {
     await rolledBack(async () => {
       const other = await seedDecidedYear(t, f, { unitId: B, schoolYear: PREV, schoolTypes: ['GR'] });
-      await deny('principalA', await forged(() => ({ sourceVersionId: other })), '22023', 'lasar_invalid');
+      const because = async (q, re) => assert.match((await deny('principalA', q, '22023', 'lasar_invalid')).message, re);
+      await because(await forged(() => ({ sourceVersionId: other })), /inte förra läsårets gällande version/u);
       const older = await seedDecidedYear(t, f, { unitId: A, schoolYear: PREV - 1, schoolTypes: types });
-      await deny('principalA', await forged(() => ({ sourceVersionId: older })), '22023', 'lasar_invalid');
+      await because(await forged(() => ({ sourceVersionId: older })), /inte förra läsårets gällande version/u);
       await t`set local session_replication_role=replica`;
       const draft = randomUUID();
       await t`insert into public.school_years(id,organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,version,revision)
         select ${draft},organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,'utkast',2,1 from public.school_years where id=${s.src}`;
       await t`set local session_replication_role=origin`;
-      await deny('principalA', await forged(() => ({ sourceVersionId: draft })), '22023', 'lasar_invalid');
+      await because(await forged(() => ({ sourceVersionId: draft })), /inte förra läsårets gällande version/u);
     });
   });
   await step(t, 'kopia: innehåll som inte kommer ur källan, en tyst inlagd påskdag, en saknad post, en klassdag eller ett påhittat post-ID nekas', async () => {
-    await deny('principalA', await forged(c => ({ exceptions: { ...c.exceptions, '2027-10-14': { kind: 'lovdag', note: 'Påhittad' } } })), '22023', 'lasar_invalid');
+    const because = async (q, re) => assert.match((await deny('principalA', q, '22023', 'lasar_invalid')).message, re);
+    await because(await forged(c => ({ exceptions: { ...c.exceptions, '2027-10-14': { kind: 'lovdag', note: 'Påhittad' } } })), /Dagen kommer inte entydigt/u);
     const easter = s.copy.review.find(i => i.reason === 'easter' && i.targetDate);
-    await deny('principalA', await forged(c => ({ exceptions: { ...c.exceptions, [easter.targetDate]: { kind: easter.kind, ...(easter.note ? { note: easter.note } : {}) } } })),
-      '22023', 'lasar_invalid');
-    await deny('principalA', await forged(c => ({ review: c.review.filter(i => i.reason !== 'missing_week') })), '22023', 'lasar_invalid');
-    await deny('principalA', await forged(c => ({ review: c.review.filter(i => i.reason !== 'short_week') })), '22023', 'lasar_invalid');
-    await deny('principalA', await forged(c => ({ groupDays: { ...c.groupDays, [cls]: { '2027-10-14': { cause: 'annat', note: 'Syntetisk klassdag' } } } })), '22023', 'lasar_invalid');
-    await deny('principalA', await forged(c => ({ review: c.review.map((i, n) => (n ? i : { ...i, id: `${i.id}x` })) })), '22023', 'lasar_invalid');
-    await deny('principalA', await forged(c => ({ terms: { ...c.terms, vt: { ...c.terms.vt, end: '2028-06-16' } } })), '22023', 'lasar_invalid');
+    await because(await forged(c => ({ exceptions: { ...c.exceptions, [easter.targetDate]: { kind: easter.kind, ...(easter.note ? { note: easter.note } : {}) } } })),
+      /Dagen kommer inte entydigt/u);
+    await because(await forged(c => ({ review: c.review.filter(i => i.reason !== 'missing_week') })), /En dag i källan saknas/u);
+    await because(await forged(c => ({ review: c.review.filter(i => i.reason !== 'short_week') })), /kort vecka i källan saknas/u);
+    await because(await forged(c => ({ groupDays: { ...c.groupDays, [cls]: { '2027-10-14': { cause: 'annat', note: 'Syntetisk klassdag' } } } })), /Bara årskursernas gruppdagar/u);
+    await because(await forged(c => ({ review: c.review.map((i, n) => (n ? i : { ...i, id: `${i.id}x` })) })), /Ogiltig granskningspost/u);
+    await because(await forged(c => ({ terms: { ...c.terms, vt: { ...c.terms.vt, end: '2028-06-16' } } })), /Terminen kommer inte ur källan/u);
     const { copy: _copy, ...bare } = await copyCommand(school(A), YEAR, s.copy);
-    await deny('principalA', bare, '22023', 'lasar_invalid');
-    await deny('principalA', { ...(await createCommand(A, YEAR, types)), copy: s.copy }, '22023', 'lasar_invalid');
+    await because(bare, /Kopian räknas fram i servern/u);
+    await because({ ...(await createCommand(A, YEAR, types)), copy: s.copy }, /Kopian hör bara till create med källan copy/u);
     await deny('principalB', await copyCommand(school(A), YEAR, s.copy), '42501');
     await deny('hm', await copyCommand(school(A), YEAR, s.copy), '42501');
     assert.equal((await t`select count(*)::int n from public.school_years where unit_id=${A} and start_year=${YEAR}`)[0].n, 0);

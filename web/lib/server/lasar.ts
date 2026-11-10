@@ -5,6 +5,7 @@ import {
   type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarModePreview, type LasarReadReply, type LasarReadRequest,
   type LasarReason, type LasarStatusRequest, type LasarTarget,
 } from '../lasar-contract.ts';
+import { copySchoolYear, type CopyReviewItem } from '../lasar-copy.ts';
 import { groupsFromRefs } from '../lasar-groups.ts';
 import { allIssues, proposeSchoolYear } from '../lasar-model.ts';
 import { LASAR_RULE_CODES } from '../lasar-rule-codes.ts';
@@ -157,16 +158,22 @@ export async function lasarRead(tx: Tx, input: LasarReadRequest, authority: Lasa
  * proposeSchoolYear (D-03) för skolformerna i serverns egen läsning; klienten kan inte skicka innehållet. SQL prövar det igen.
  * För huvudmannens ram är skolformerna alla huvudmannens skolenheters (ramens läsning). Skolans start ur ramen och en ny
  * ramversion (källan frame) har inget förslagsinnehåll; SQL tar ramens innehåll.
+ *
+ * Kopiera förra läsåret (05.1.1-11, D-04, T-05.1.1-35): klienten anger bara källan copy. Servern läser själv målåret (skolans grupper)
+ * och föregående läsår, och där den gällande fastställda versionen eller den senast utgivna ramen (versionen med current). Kopian
+ * räknas med copySchoolYear och skickas med källversionen och granskningsposterna; SQL prövar källan och innehållet igen.
  */
 export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
-  let sent: LasarCommandRequest & { proposal?: unknown } = input;
+  let sent: LasarCommandRequest & { proposal?: unknown; copy?: unknown } = input;
   const first = input.ops[0];
   const creating = first?.op === 'create' && first.source === 'proposal';
   if (creating || first?.op === 'reset_to_proposal') {
     const current = await readRaw(tx, { target: input.target, schoolYear: input.schoolYear, versionId: creating ? null : input.versionId }, authority);
     const proposal = proposeSchoolYear(input.schoolYear, input.target.kind === 'school' ? input.target.unitId : 'ram', current.schoolTypes);
     sent = { ...input, proposal: { terms: { ht: proposal.ht, vt: proposal.vt }, exceptions: proposal.exceptions } };
+  } else if (first?.op === 'create' && first.source === 'copy') {
+    sent = { ...input, copy: await copyContent(tx, input, authority) };
   }
   const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_command(${json(tx, sent)}) as result`));
   try {
@@ -175,6 +182,22 @@ export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority
     return { body, event: { action: 'lasar_command', objectType: objectTypeOf(input.target), objectId: body.detail.calendar?.versionId ?? null,
       details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
+}
+
+/** Kopians innehåll ur serverns egen läsning av källan och målåret; inget tas ur klientens begäran. */
+async function copyContent(tx: Tx, input: LasarCommandRequest, authority: LasarAuthority): Promise<{ sourceVersionId: string;
+  terms: { ht: { start: string; end: string }; vt: { start: string; end: string } }; exceptions: unknown; groupDays: unknown; review: CopyReviewItem[] }> {
+  const target = await readRaw(tx, { target: input.target, schoolYear: input.schoolYear, versionId: null }, authority);
+  const previousYear = input.schoolYear - 1;
+  let source = await readRaw(tx, { target: input.target, schoolYear: previousYear, versionId: null }, authority);
+  const current = source.versions.find((v) => v.current);
+  if (!current) throw new Deny('conflict', 409, { reason: 'lasar_not_found' });
+  if (source.calendar?.versionId !== current.versionId) source = await readRaw(tx, { target: input.target, schoolYear: previousYear, versionId: current.versionId }, authority);
+  const sy = lasarSchoolYear(source);
+  if (!sy || source.calendar?.versionId !== current.versionId || source.calendar.status !== 'faststalld') invalid();
+  const groups = (() => { try { return groupsFromRefs(target.groups); } catch { return invalid(); } })();
+  const { draft, review } = copySchoolYear(sy, input.schoolYear, groups);
+  return { sourceVersionId: current.versionId, terms: { ht: draft.ht, vt: draft.vt }, exceptions: draft.exceptions, groupDays: draft.groupExceptions, review };
 }
 
 /**

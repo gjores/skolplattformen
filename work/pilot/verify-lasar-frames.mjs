@@ -64,9 +64,10 @@ function staticChecks(report) {
   const file = p => readFileSync(resolve(root, p), 'utf8');
   const sha = p => createHash('sha256').update(readFileSync(resolve(root, p))).digest('hex');
   const record = (name, fn) => { try { fn(); report.cases.push({ name, status: 'PASS' }); } catch (e) { report.cases.push({ name, status: 'FAIL', message: String(e.message).slice(0, 500) }); } };
-  record('ramfilen finns, står sist i lasarMigrations och i registret med samma SHA-256', () => {
+  // 05.1.1-11: kopieringens fil sorterar efter ramens fil, så ramens fil står inte längre sist.
+  record('ramfilen finns, står direkt efter ändringsbegärans fil i lasarMigrations och i registret med samma SHA-256', () => {
     assert.ok(existsSync(resolve(root, FRAME_MIGRATION)));
-    assert.equal(lasarMigrations.at(-1), FRAME_MIGRATION);
+    assert.equal(lasarMigrations[lasarMigrations.indexOf(FRAME_MIGRATION) - 1], 'supabase/migrations/20261112110000_lasar_change_requests.sql');
     assert.equal(TJANST_MIGRATION_REGISTRY.find(m => m.file === FRAME_MIGRATION)?.sha256, sha(FRAME_MIGRATION));
   });
   record('ramfilen ger inga rättigheter, lägger inte till enumvärden och stänger inte av triggrar', () => {
@@ -161,14 +162,14 @@ async function frames(t, step, f) {
 
   await step(t, 'utan inställning gäller eget förslag: skolan har ingen ram och kan skapa förslag', async () => {
     const r = await readSchool('principalA', A);
-    assert.equal(r.mode, 'eget'); assert.equal(r.modeLocked, false); assert.equal(r.frame, null); assert.deepEqual(r.capabilities.canCreate, ['proposal']);
+    assert.equal(r.mode, 'eget'); assert.equal(r.modeLocked, false); assert.equal(r.frame, null); assert.deepEqual(r.capabilities.canCreate, ['proposal', 'copy']);
     assert.equal((await t`select count(*)::int n from public.school_year_frame_settings where organizer_id=${f.id(2)}`)[0].n, 0);
   });
   await step(t, 'huvudmannen läser ramens mål: ingen ram, eget förslag, kan skapa ram och byta arbetssätt', async () => {
     const r = await readFrame();
     assert.deepEqual(r.target, { kind: 'frame' }); assert.equal(r.schoolName, 'Huvudmannens ram'); assert.equal(r.calendar, null); assert.deepEqual(r.versions, []);
     assert.equal(r.mode, 'eget'); assert.equal(r.modeLocked, false); assert.deepEqual(r.schoolTypes, TYPES);
-    assert.deepEqual(r.capabilities.canCreate, ['proposal']); assert.equal(r.capabilities.canSetMode, true); assert.equal(r.capabilities.canPublishFrame, false);
+    assert.deepEqual(r.capabilities.canCreate, ['proposal', 'copy']); assert.equal(r.capabilities.canSetMode, true); assert.equal(r.capabilities.canPublishFrame, false);
     assert.equal(r.capabilities.canSubmit || r.capabilities.canApprove || r.capabilities.canComment, false);
     assert.equal(r.frame, null); assert.deepEqual(r.groups, []);
   });
@@ -307,13 +308,13 @@ async function frames(t, step, f) {
     await denied(t, u => u`update public.school_year_frame_days set note='Syntetisk' where frame_id=${s.f1}`, 'P0001');
     await denied(t, u => u`delete from public.school_year_frame_events where frame_id=${s.f1}`, 'P0001');
   });
-  await step(t, 'rektor ser den utgivna ramen och kan bara utgå från den; förslag nekas i arbetssättet ram och kopian kommer i plan 11 (D-02)', async () => {
+  await step(t, 'rektor ser den utgivna ramen och kan utgå från den eller kopiera; förslag och en kopia utan serverns innehåll nekas i arbetssättet ram (D-02)', async () => {
     const r = await readSchool('principalB', B);
-    assert.deepEqual(r.capabilities.canCreate, ['frame']);
+    assert.deepEqual(r.capabilities.canCreate, ['frame', 'copy']);
     assert.equal(r.frame.current, null); assert.equal(r.frame.latest.versionId, s.f1); assert.equal(r.frame.latest.version, 1);
     assert.deepEqual(r.frame.latest.terms, s.f1pub.terms); assert.deepEqual(r.frame.latest.exceptions, s.f1pub.exceptions); assert.equal(r.frame.latest.publishedOn, s.f1pub.decidedOn);
     await deny('principalB', await createCommand(B, YEAR, ['GR']), '22023', 'lasar_invalid');
-    await deny('principalB', await scmd(B, [{ op: 'create', source: 'copy' }]), '22023', 'lasar_unsupported');
+    await deny('principalB', await scmd(B, [{ op: 'create', source: 'copy' }]), '22023', 'lasar_invalid');
   });
   await step(t, 'rektor B utgår från ramen: utkastet har ramens terminer och dagar, och frame_id och kvitterad version är den utgivna', async () => {
     const r = await send('principalB', await scmd(B, [{ op: 'create', source: 'frame' }]));
@@ -503,7 +504,7 @@ export async function verifyLasarFrames(out, { ephemeral = false } = {}) {
     limitations: ['Own database built from repository migrations with synthetic fixtures only; nothing installed in any connected database',
       'No HTTP/OIDC/Worker; MFA for decisions is enforced by the route (lasar.test.mjs); the real chain is plan 15',
       'The year-start lock and D-12 are proven with app.fake_today set per case',
-      'Copying last year (create copy) is plan 11 and is only proven to be refused here',
+      'Copying last year (create copy) is proven in verify-lasar.mjs (05.1.1-11); here only the refusals without a published frame or without server content',
       'SS 12000: frame and mode have no object in the standard; the frame is keyed on organizers.id; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   const step = caseRunner(report);

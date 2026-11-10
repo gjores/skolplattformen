@@ -31,7 +31,7 @@ export const tjanstNeedSharingMigrations = ['supabase/migrations/20261028100000_
  * tjanst_school_weeks och tjanst_year_core och styr när en ny version gäller, därför i tjänstefördelningens kedja. */
 export const lasarMigrations = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabase/migrations/20261111190000_lasar_worker_access.sql',
   'supabase/migrations/20261112100000_lasar_groups.sql', 'supabase/migrations/20261112110000_lasar_change_requests.sql',
-  'supabase/migrations/20261112120000_lasar_frames.sql'];
+  'supabase/migrations/20261112120000_lasar_frames.sql', 'supabase/migrations/20261112130000_lasar_copy_overview.sql'];
 export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations, ...tjanstClassAplMigrations, ...tjanstNeedSharingMigrations, ...lasarMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
