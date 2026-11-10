@@ -408,3 +408,65 @@ test('utlagd undervisning räknas på gruppens egna dagar', () => {
   // Samma timplan på färre dagar kräver längre dagar.
   assert.ok(hoursPerSchoolDay(630, s.days) > hoursPerSchoolDay(630, skolan.skoldagar));
 });
+
+// ---------------------------------------------------------------- 05.1.1-07: regelkoder (LASAR-03)
+
+import { addDays } from './lasar-model.ts';
+
+test('varje fel och varning i summarize bär rätt kod ur LASAR_RULE_CODES med tillåten nivå', async () => {
+  const { LASAR_RULE_CODES } = await import('./lasar-rule-codes.ts');
+  const pairs = (sy, types) => summarize(sy, types).issues.map((i) => {
+    assert.ok(Object.hasOwn(LASAR_RULE_CODES, i.code), `okänd kod ${i.code} för ${i.text}`);
+    assert.ok(LASAR_RULE_CODES[i.code].levels.includes(i.level), `${i.code} ${i.level}`);
+    assert.equal(LASAR_RULE_CODES[i.code].scope, 'läsår');
+    return `${i.code}:${i.level}`;
+  });
+  const base = proposeSchoolYear(2027, 'u', ['GR', 'GY']);
+  const gr = proposeSchoolYear(2027, 'u', ['GR']);
+  const has = (list, pair) => assert.ok(list.includes(pair), `${pair} saknas i ${list.join(', ')}`);
+  has(pairs({ ...base, ht: { ...base.ht, start: '2027-07-30' } }, ['GR', 'GY']), 'term_start_august:error');
+  has(pairs({ ...base, vt: { ...base.vt, end: '2028-07-03' } }, ['GR', 'GY']), 'term_end_june:error');
+  has(pairs({ ...base, vt: { ...base.vt, end: '2028-07-03' } }, ['GY']), 'term_end_june:error');
+  has(pairs({ ...base, ht: { ...base.ht, end: addDays(base.vt.start, 3) } }, ['GR', 'GY']), 'term_order:error');
+  const lov = { ...gr, exceptions: { ...gr.exceptions } };
+  for (let d = '2027-09-01'; d < '2027-10-15'; d = addDays(d, 1)) if (dayInfo(lov, d).status === 'skoldag') lov.exceptions[d] = { kind: 'lovdag' };
+  has(pairs(lov, ['GR']), 'school_days_min:error');
+  const shortXmas = { ...gr, ht: { ...gr.ht, end: '2027-12-21' }, vt: { ...gr.vt, start: '2028-01-03' }, exceptions: {} };
+  has(pairs(shortXmas, ['GR']), 'holidays_min:error');
+  const study = { ...gr, exceptions: { ...gr.exceptions } };
+  for (const d of ['2027-09-07', '2027-09-15', '2027-09-23', '2027-10-05', '2027-10-13', '2027-10-21']) study.exceptions[d] = { kind: 'studiedag', note: 'Syntetisk' };
+  has(pairs(study, ['GR']), 'study_days_max:error');
+  const gy = proposeSchoolYear(2027, 'u', ['GY']);
+  const gy39 = { ...gy, ht: { ...gy.ht, start: addDays(gy.ht.start, 7) } };
+  has(pairs(gy39, ['GY']), 'gy_weeks:error');
+  has(pairs(gy39, ['GR', 'GY']), 'gy_weeks:warning');
+  has(pairs({ ...gr, vt: { ...gr.vt, start: '2028-01-06' } }, ['GR']), 'term_edge_holiday:warning');
+  const monday = { ...gr, exceptions: { ...gr.exceptions } };
+  for (const d of ['2027-09-06', '2027-09-13', '2027-09-20', '2027-09-27']) monday.exceptions[d] = { kind: 'lovdag' };
+  has(pairs(monday, ['GR']), 'weekday_balance:warning');
+  has(pairs({ ...gr, exceptions: {} }, ['GR']), 'long_run:warning');
+  has(pairs({ ...gr, exceptions: { ...gr.exceptions, '2027-09-15': { kind: 'studiedag' } } }, ['GR']), 'study_day_note:warning');
+  assert.deepEqual(pairs(proposeSchoolYear(2026, 'u', ['GR', 'GY']), ['GR', 'GY']), []);
+});
+
+test('varje fel och varning i gruppreglerna bär rätt kod ur LASAR_RULE_CODES', async () => {
+  const { LASAR_RULE_CODES } = await import('./lasar-rule-codes.ts');
+  let state = createLasarState();
+  const id = '2027/28';
+  const groups = demoGroups();
+  const klass = groupBy('8A');
+  state = setShortWeek(state, id, yearGroup('ak1'), 4, 'Långa skoldagar för de yngsta eleverna');
+  state = setGroupDays(state, id, klass, ['2027-09-15'], 'annat', 'Tillfälligt');
+  const sy = structuredClone(state.years[1]);
+  sy.groupExceptions[klass.id]['2027-09-15'] = { cause: 'annat' };
+  sy.shortWeeks[yearGroup('ak3').id] = { weekday: 4, reason: ' ', columnId: 'ak3' };
+  const codes = groups.flatMap((g) => groupSummary(sy, g, groups).issues).map((i) => {
+    assert.ok(Object.hasOwn(LASAR_RULE_CODES, i.code), `okänd kod ${i.code} för ${i.text}`);
+    assert.equal(LASAR_RULE_CODES[i.code].scope, 'grupp');
+    assert.ok(LASAR_RULE_CODES[i.code].levels.includes(i.level));
+    return `${i.code}:${i.level}`;
+  });
+  for (const pair of ['group_days_min:warning', 'group_other_note:error', 'short_week_column:error', 'short_week_reason:error'])
+    assert.ok(codes.includes(pair), `${pair} saknas i ${[...new Set(codes)].join(', ')}`);
+  assert.ok(allIssues(sy, ['GR'], groups).every((i) => Object.hasOwn(LASAR_RULE_CODES, i.code)));
+});

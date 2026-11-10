@@ -11,6 +11,7 @@ import { randomUUID } from 'node:crypto';
 import { createLasarFixture, createCommand, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school } from './lasar-fixtures.mjs';
 import { parseLasarCommandReply, parseLasarDecisionReply, parseLasarEnvelope, parseLasarReadReply, lasarSchoolYear } from '../../web/lib/lasar-contract.ts';
 import { lasarContentHash } from '../../web/lib/lasar-content.ts';
+import { LASAR_RULE_CODES } from '../../web/lib/lasar-rule-codes.ts';
 import { addDays, dayInfo, proposeSchoolYear, setTerm, summarize } from '../../web/lib/lasar-model.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -488,6 +489,125 @@ async function flow(t, step, f) {
   });
 }
 
+/**
+ * 05.1.1-07 (LASAR-03): paritetsmatris mellan SQL:s regler och summarize i lasar-model.ts. Varje rad jämför mängden
+ * (multimängden) {kod, nivå} från SQL-kärnan lasar_rule_check med modellens; lagringsbara rader prövas också genom
+ * lasar_rules(version_id) på en lagrad version. En avvikelse gör fallet rött.
+ */
+const PARITY_UNITS = { GR: 'B', GY: 'C', 'GR,GY': 'A' };
+function parityMatrix() {
+  const gr = proposeSchoolYear(YEAR, 'paritet', ['GR']), gy = proposeSchoolYear(YEAR, 'paritet', ['GY']), both = proposeSchoolYear(YEAR, 'paritet', ['GR', 'GY']);
+  const withSchoolDays = (sy, types, target) => {
+    const next = structuredClone(sy), lov = Object.keys(next.exceptions).sort();
+    while (summarize(next, types).skoldagar < target && lov.length) delete next.exceptions[lov.pop()];
+    for (let d = `${YEAR}-09-01`; summarize(next, types).skoldagar > target; d = addDays(d, 1))
+      if (dayInfo(next, d).status === 'skoldag') next.exceptions[d] = { kind: 'lovdag', note: 'Syntetisk lovdag' };
+    assert.equal(summarize(next, types).skoldagar, target);
+    return next;
+  };
+  const withHolidays = target => {
+    const next = { ...structuredClone(gr), ht: { start: gr.ht.start, end: `${YEAR}-12-21` }, vt: { start: `${YEAR + 1}-01-03`, end: gr.vt.end }, exceptions: {} };
+    for (let d = `${YEAR}-09-06`; summarize(next, ['GR']).lovdagar < target; d = addDays(d, 7)) next.exceptions[d] = { kind: 'lovdag', note: 'Syntetisk lovdag' };
+    assert.equal(summarize(next, ['GR']).lovdagar, target);
+    return next;
+  };
+  const withStudyDays = n => {
+    const next = structuredClone(gr);
+    let d = `${YEAR}-09-07`;
+    for (let i = 0; i < n; d = addDays(d, 8)) if (dayInfo(next, d).status === 'skoldag') { next.exceptions[d] = { kind: 'studiedag', note: 'Syntetisk studiedag' }; i += 1; }
+    return next;
+  };
+  const noHostlov = { ...structuredClone(gr), exceptions: Object.fromEntries(Object.entries(gr.exceptions).filter(([, e]) => e.note !== 'Höstlov')) };
+  const gy39 = sy => ({ ...structuredClone(sy), ht: { ...sy.ht, start: addDays(sy.ht.start, 7) } });
+  let bare = `${YEAR}-09-15`; while (dayInfo(gr, bare).status !== 'skoldag') bare = addDays(bare, 1);
+  return [
+    { name: '177 skoldagar', types: ['GR'], sy: withSchoolDays(gr, ['GR'], 177), expect: ['school_days_min:error'] },
+    { name: '178 skoldagar', types: ['GR'], sy: withSchoolDays(gr, ['GR'], 178), absent: ['school_days_min:error'] },
+    { name: '11 lovdagar', types: ['GR'], sy: withHolidays(11), expect: ['holidays_min:error'] },
+    { name: '12 lovdagar', types: ['GR'], sy: withHolidays(12), absent: ['holidays_min:error'] },
+    { name: '5 studiedagar', types: ['GR'], sy: withStudyDays(5), absent: ['study_days_max:error'] },
+    { name: '6 studiedagar', types: ['GR'], sy: withStudyDays(6), expect: ['study_days_max:error'] },
+    { name: 'start i juli', types: ['GR', 'GY'], sy: { ...structuredClone(both), ht: { ...both.ht, start: `${YEAR}-07-30` } }, expect: ['term_start_august:error'] },
+    { name: 'slut i juli', types: ['GR', 'GY'], sy: { ...structuredClone(both), vt: { ...both.vt, end: `${YEAR + 1}-07-03` } }, expect: ['term_end_june:error'] },
+    { name: 'fel ordning', types: ['GR', 'GY'], sy: { ...structuredClone(both), ht: { ...both.ht, end: addDays(both.vt.start, 3) } }, expect: ['term_order:error'], stored: false },
+    { name: 'enbart GY med 39 veckor (fel)', types: ['GY'], sy: gy39(gy), expect: ['gy_weeks:error'] },
+    { name: 'GR+GY med 39 veckor (varning)', types: ['GR', 'GY'], sy: gy39(both), expect: ['gy_weeks:warning'], absent: ['gy_weeks:error'] },
+    { name: 'terminskant på helgdag (varning)', types: ['GR'], sy: { ...structuredClone(gr), vt: { ...gr.vt, start: `${YEAR + 1}-01-06` } }, expect: ['term_edge_holiday:warning'] },
+    { name: 'över 60 skoldagar i följd (varning)', types: ['GR'], sy: noHostlov, expect: ['long_run:warning'] },
+    { name: 'studiedag utan anteckning (varning)', types: ['GR'], sy: { ...structuredClone(gr), exceptions: { ...gr.exceptions, [bare]: { kind: 'studiedag' } } }, expect: ['study_day_note:warning'] },
+  ];
+}
+const pairsOf = list => list.map(i => `${i.code}:${i.level}`).sort();
+
+async function parity(t, step, f) {
+  const sentinel = Error('parity_rollback');
+  const rolledBack = async fn => { let out; try { await t.savepoint(async u => { out = await fn(u); throw sentinel; }); } catch (e) { if (e !== sentinel) throw e; } return out; };
+  for (const row of parityMatrix()) {
+    await step(t, `paritet: ${row.name}`, async () => {
+      const model = pairsOf(summarize(row.sy, row.types).issues);
+      for (const p of row.expect ?? []) assert.ok(model.includes(p), `modellen saknar ${p}: ${model.join(', ')}`);
+      for (const p of row.absent ?? []) assert.ok(!model.includes(p), `modellen har ${p}`);
+      const terms = { ht: row.sy.ht, vt: row.sy.vt };
+      const core = pairsOf((await t`select public.lasar_rule_check(${t.json(terms)}, ${t.json(row.sy.exceptions)}, ${row.types}::text[]) r`)[0].r);
+      assert.deepEqual(core, model, 'SQL-kärnan');
+      if (row.stored === false) return;
+      const unit = f.schools[PARITY_UNITS[row.types.join(',')]];
+      const stored = await rolledBack(async u => {
+        const id = (await u`insert into public.school_years(organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,version)
+          values(${f.id(2)},${unit},${YEAR},${row.sy.ht.start},${row.sy.ht.end},${row.sy.vt.start},${row.sy.vt.end},'utkast',1) returning id`)[0].id;
+        for (const [day, e] of Object.entries(row.sy.exceptions))
+          await u`insert into public.school_year_days(school_year_id,day,kind,note) values(${id},${day},${e.kind},${e.note ?? null})`;
+        return (await u`select public.lasar_rules(${id}) r`)[0].r;
+      });
+      assert.deepEqual(pairsOf(stored), model, 'lagrad version');
+    });
+  }
+  await step(t, 'paritet: SQL:s regelkoder står i LASAR_RULE_CODES och nivån är tillåten', async () => {
+    for (const row of parityMatrix()) {
+      const r = (await t`select public.lasar_rule_check(${t.json({ ht: row.sy.ht, vt: row.sy.vt })}, ${t.json(row.sy.exceptions)}, ${row.types}::text[]) r`)[0].r;
+      for (const i of r) assert.ok(Object.hasOwn(LASAR_RULE_CODES, i.code) && LASAR_RULE_CODES[i.code].levels.includes(i.level), JSON.stringify(i));
+    }
+  });
+
+  // Förslag och fastställande genom kommandona: fel hindrar, varningar följer inte med som hinder.
+  const A = f.schools.A, env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const s = {};
+  await step(t, 'förslaget nekas med alla felkoder (start i juli och sex studiedagar)', async () => {
+    const r = await send('principalA', await createCommand(A, YEAR, f.schoolTypes.A));
+    s.v = r.detail.calendar.versionId; s.rev = r.receipt.revision;
+    let sy = lasarSchoolYear(r.detail), d = `${YEAR}-09-07`;
+    const dates = [];
+    while (dates.length < 6) { if (dayInfo(sy, d).status === 'skoldag') dates.push(d); d = addDays(d, 8); }
+    s.study = dates;
+    const r2 = await send('principalA', await lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev,
+      ops: [{ op: 'set_days', dates, kind: 'studiedag', note: 'Syntetisk studiedag' }, { op: 'set_term', term: 'ht', edge: 'start', date: `${YEAR}-07-30` }] }));
+    s.rev = r2.receipt.revision; sy = lasarSchoolYear(r2.detail);
+    const modelErrors = [...new Set(summarize(sy, f.schoolTypes.A).issues.filter(i => i.level === 'error').map(i => i.code))].sort();
+    const e = await denied(t, async u => { await f.actor(u, 'principalA'); await lasarSend(u, lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'submit', text: 'Syntetiskt förslag' })); }, '40001', 'lasar_rules_failed');
+    assert.deepEqual([...JSON.parse(e.detail)].sort(), modelErrors);
+    assert.ok(modelErrors.includes('term_start_august') && modelErrors.includes('study_days_max'));
+  });
+  await step(t, 'varningar hindrar inte förslaget (studiedag utan anteckning)', async () => {
+    const r = await send('principalA', await resetCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, schoolTypes: f.schoolTypes.A }));
+    const sy = lasarSchoolYear(r.detail); let d = `${YEAR}-09-15`; while (dayInfo(sy, d).status !== 'skoldag') d = addDays(d, 1);
+    const r2 = await send('principalA', await lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: r.receipt.revision, ops: [{ op: 'set_days', dates: [d], kind: 'studiedag' }] }));
+    assert.deepEqual(pairsOf(summarize(lasarSchoolYear(r2.detail), f.schoolTypes.A).issues), ['study_day_note:warning']);
+    const sub = await decide('principalA', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: r2.receipt.revision, action: 'submit', text: 'Syntetiskt förslag' }));
+    assert.equal(sub.detail.calendar.status, 'forslag'); s.rev = sub.receipt.revision;
+  });
+  await step(t, 'fastställandet nekas med regelkoderna när det skickade innehållet bryter mot förordningen', async () => {
+    // Syntetiskt: ägaren lägger en sjätte studiedag i det skickade förslaget förbi låset (som en äldre rad eller ett fel).
+    await t`set local session_replication_role=replica`;
+    for (const d of s.study) await t`insert into public.school_year_days(school_year_id,day,kind,note) values(${s.v},${d},'studiedag','Syntetisk') on conflict do nothing`;
+    await t`set local session_replication_role=origin`;
+    const e = await denied(t, async u => { await f.actor(u, 'hm'); await lasarSend(u, lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'approve', text: 'Syntetiskt beslut' })); }, '40001', 'lasar_rules_failed');
+    assert.deepEqual(JSON.parse(e.detail), ['study_days_max']);
+    assert.equal((await t`select status::text s from public.school_years where id=${s.v}`)[0].s, 'forslag');
+  });
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -527,7 +647,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    for (const run of [tracer, flow]) {
+    for (const run of [tracer, flow, parity]) {
       try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }

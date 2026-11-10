@@ -258,3 +258,24 @@ test('status: strikt begäran, samma ursprung, ingen engångskod och bara kalend
   assert.match(source, /protectedRoute\(request, 'lasar_status', \{ mutating: false, audit: 'required', functions: \['huvudman', 'rektor', 'administrator'\] \}/u);
   assert.match(source, /requireSameOrigin\(request\)/u); assert.doesNotMatch(source, /mfa/u);
 });
+
+test('SQL godkänner men modellen hittar ett fel: 409 lasar_rules_failed utan delresultat (RESEARCH A8)', async () => {
+  const decided = { status: 'faststalld', revision: 3, decidedOn: '2027-05-01' };
+  for (const [fn, action, over] of [['huvudman', 'approve', decided], ['rektor', 'submit', { status: 'forslag', revision: 3 }]]) {
+    reset(fn); state.mfa = true;
+    const decision = lasarDecisionRequest({ target, schoolYear: year, versionId: version, expectedRevision: 2, action, text: 'Syntetisk text' });
+    const bad = calendar({ ...over, terms: { ht: { start: '2027-08-16', end: '2027-12-17' }, vt: { start: '2028-01-10', end: '2028-07-03' } } });
+    state.replies.lasar_command = wrap({ receipt: { commandId: decision.commandId, revision: 3, replayed: false }, detail: read({ cal: bad }) });
+    const response = await post('beslut', decision);
+    assert.equal(response.status, 409, action);
+    const body = await response.json();
+    assert.equal(body.details.reason, 'lasar_rules_failed'); assert.ok(body.details.rules.includes('term_end_june'), JSON.stringify(body.details));
+    assert.equal(body.detail, undefined); assert.ok(!JSON.stringify(body).includes('Syntetisk skola'));
+    assert.deepEqual(state.events.filter(e => e.outcome === 'ok'), []);
+  }
+  // Samma beslut med innehåll utan fel (bara varningar) går igenom.
+  reset('huvudman'); state.mfa = true;
+  const ok = lasarDecisionRequest({ target, schoolYear: year, versionId: version, expectedRevision: 2, action: 'approve', text: 'Syntetisk text' });
+  state.replies.lasar_command = wrap({ receipt: { commandId: ok.commandId, revision: 3, replayed: false }, detail: read({ cal: calendar(decided) }) });
+  assert.equal((await post('beslut', ok)).status, 200);
+});
