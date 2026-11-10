@@ -1,0 +1,605 @@
+{
+  "kind": "lasar-content-hash-vectors",
+  "version": 1,
+  "note": "Syntetiska värden. TS (web/lib/lasar-content.ts, lasarContentCanonical/lasarContentHash) och SQL-funktionen lasar_content_hash (plan 06 och 08) ska ge samma kanoniska form och sha256. Kanonisk form: [prefix, version, ramversion|null, [ht.start, ht.end, vt.start, vt.end], [[datum, slag, anteckning|null]…], [[grupp-id, datum, orsak, anteckning|null]…], [[grupp-id, kolumn, veckodag, skäl]…]], listorna sorterade på UTF-8-byte.",
+  "vectors": [
+    {
+      "name": "tom",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {},
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a0:a0:a0:",
+      "sha256": "sha256:d63d4cf3cfadc83e4a3187347fa4130386aec7539d7bee0f180086d123fe51bf"
+    },
+    {
+      "name": "en lovdag",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {
+          "2026-10-26": {
+            "kind": "lovdag",
+            "note": "Höstlov"
+          }
+        },
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-10-26",
+            "lovdag",
+            "Höstlov"
+          ]
+        ],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a1:a3:s10:2026-10-26s6:lovdags8:Höstlova0:a0:",
+      "sha256": "sha256:91271b9d6db2ea816da26642e44c4ba69a98a64f9019d1031eb94b7877b8b34e"
+    },
+    {
+      "name": "studiedag utan anteckning",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {
+          "2026-11-20": {
+            "kind": "studiedag"
+          }
+        },
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-11-20",
+            "studiedag",
+            null
+          ]
+        ],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a1:a3:s10:2026-11-20s9:studiedagna0:a0:",
+      "sha256": "sha256:a2bd472a43df8dfc29a82816abbacc04708a14d054541492528822d83878e247"
+    },
+    {
+      "name": "studiedag med tom anteckning",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {
+          "2026-11-20": {
+            "kind": "studiedag",
+            "note": ""
+          }
+        },
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-11-20",
+            "studiedag",
+            ""
+          ]
+        ],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a1:a3:s10:2026-11-20s9:studiedags0:a0:a0:",
+      "sha256": "sha256:e9c339c2297c353a1cda095681486d23f4f18693fec7f78a94d132e1002b04a8"
+    },
+    {
+      "name": "gruppdag",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {},
+        "groupDays": {
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "2026-09-16": {
+              "cause": "friluftsdag",
+              "note": "Skogen"
+            }
+          }
+        },
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "2026-09-16",
+            "friluftsdag",
+            "Skogen"
+          ]
+        ],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a0:a1:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s10:2026-09-16s11:friluftsdags6:Skogena0:",
+      "sha256": "sha256:958fe46f47ad7b9a14e29f70952cb39a6dd1f4e63e1595629195f34b3e441d58"
+    },
+    {
+      "name": "kort vecka",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {},
+        "groupDays": {},
+        "shortWeeks": {
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "weekday": 4,
+            "reason": "Inskolning",
+            "columnId": "ak1"
+          }
+        },
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [],
+        [],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "ak1",
+            4,
+            "Inskolning"
+          ]
+        ]
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a0:a0:a1:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s3:ak1i4;s10:Inskolning",
+      "sha256": "sha256:e0dbce41f8db79ed02a909eb8da876cccb9cc091c7159f1327dd7bac8aba141c"
+    },
+    {
+      "name": "ramversion",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {},
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": "51a10000-0000-4000-8000-0000000000f1",
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        "51a10000-0000-4000-8000-0000000000f1",
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;s36:51a10000-0000-4000-8000-0000000000f1a4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a0:a0:a0:",
+      "sha256": "sha256:75d3aaf5fbbf18132ffb0f63523bde327c36ff41d52ba216fd978f6c9cc1c256"
+    },
+    {
+      "name": "version 2",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {},
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 2
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        2,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i2;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a0:a0:a0:",
+      "sha256": "sha256:5756b022bdcb26b5f7891118ddeecefe932ace3d3307177101fe4c4bdf05f642"
+    },
+    {
+      "name": "unicode i anteckning",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {
+          "2026-10-26": {
+            "kind": "lovdag",
+            "note": "Lov för åk 7–9 ✓"
+          }
+        },
+        "groupDays": {},
+        "shortWeeks": {},
+        "frameVersionId": null,
+        "version": 1
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        1,
+        null,
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-10-26",
+            "lovdag",
+            "Lov för åk 7–9 ✓"
+          ]
+        ],
+        [],
+        []
+      ],
+      "canonical": "a7:s16:lasar_content_v1i1;na4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a1:a3:s10:2026-10-26s6:lovdags22:Lov för åk 7–9 ✓a0:a0:",
+      "sha256": "sha256:e7ea0507c8120d3dd03ca01d27727f8f9c0146421852065aeec5a20f8cc07b50"
+    },
+    {
+      "name": "fullt innehåll",
+      "input": {
+        "terms": {
+          "ht": {
+            "start": "2026-08-17",
+            "end": "2026-12-18"
+          },
+          "vt": {
+            "start": "2027-01-11",
+            "end": "2027-06-11"
+          }
+        },
+        "exceptions": {
+          "2026-10-27": {
+            "kind": "lovdag",
+            "note": "Höstlov"
+          },
+          "2026-10-26": {
+            "kind": "lovdag",
+            "note": "Höstlov"
+          },
+          "2026-11-20": {
+            "kind": "studiedag"
+          }
+        },
+        "groupDays": {
+          "klass:51a10000-0000-4000-8000-000000000101": {
+            "2026-09-17": {
+              "cause": "apl"
+            }
+          },
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "2026-09-16": {
+              "cause": "friluftsdag",
+              "note": "Skogen"
+            }
+          }
+        },
+        "shortWeeks": {
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "weekday": 4,
+            "reason": "Inskolning",
+            "columnId": "ak1"
+          }
+        },
+        "frameVersionId": "51a10000-0000-4000-8000-0000000000f1",
+        "version": 3
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        3,
+        "51a10000-0000-4000-8000-0000000000f1",
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-10-26",
+            "lovdag",
+            "Höstlov"
+          ],
+          [
+            "2026-10-27",
+            "lovdag",
+            "Höstlov"
+          ],
+          [
+            "2026-11-20",
+            "studiedag",
+            null
+          ]
+        ],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "2026-09-16",
+            "friluftsdag",
+            "Skogen"
+          ],
+          [
+            "klass:51a10000-0000-4000-8000-000000000101",
+            "2026-09-17",
+            "apl",
+            null
+          ]
+        ],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "ak1",
+            4,
+            "Inskolning"
+          ]
+        ]
+      ],
+      "canonical": "a7:s16:lasar_content_v1i3;s36:51a10000-0000-4000-8000-0000000000f1a4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a3:a3:s10:2026-10-26s6:lovdags8:Höstlova3:s10:2026-10-27s6:lovdags8:Höstlova3:s10:2026-11-20s9:studiedagna2:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s10:2026-09-16s11:friluftsdags6:Skogena4:s42:klass:51a10000-0000-4000-8000-000000000101s10:2026-09-17s3:aplna1:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s3:ak1i4;s10:Inskolning",
+      "sha256": "sha256:496f2e3a58dc5121095c88501db40b387d4cc97873ed8f3842dcac998468516f"
+    },
+    {
+      "name": "fullt innehåll, nycklar i omvänd ordning",
+      "input": {
+        "version": 3,
+        "frameVersionId": "51a10000-0000-4000-8000-0000000000f1",
+        "shortWeeks": {
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "columnId": "ak1",
+            "reason": "Inskolning",
+            "weekday": 4
+          }
+        },
+        "groupDays": {
+          "arskurs:51a10000-0000-4000-8000-000000000001:ak1": {
+            "2026-09-16": {
+              "note": "Skogen",
+              "cause": "friluftsdag"
+            }
+          },
+          "klass:51a10000-0000-4000-8000-000000000101": {
+            "2026-09-17": {
+              "cause": "apl"
+            }
+          }
+        },
+        "exceptions": {
+          "2026-11-20": {
+            "kind": "studiedag"
+          },
+          "2026-10-26": {
+            "note": "Höstlov",
+            "kind": "lovdag"
+          },
+          "2026-10-27": {
+            "note": "Höstlov",
+            "kind": "lovdag"
+          }
+        },
+        "terms": {
+          "vt": {
+            "end": "2027-06-11",
+            "start": "2027-01-11"
+          },
+          "ht": {
+            "end": "2026-12-18",
+            "start": "2026-08-17"
+          }
+        }
+      },
+      "canonicalArray": [
+        "lasar_content_v1",
+        3,
+        "51a10000-0000-4000-8000-0000000000f1",
+        [
+          "2026-08-17",
+          "2026-12-18",
+          "2027-01-11",
+          "2027-06-11"
+        ],
+        [
+          [
+            "2026-10-26",
+            "lovdag",
+            "Höstlov"
+          ],
+          [
+            "2026-10-27",
+            "lovdag",
+            "Höstlov"
+          ],
+          [
+            "2026-11-20",
+            "studiedag",
+            null
+          ]
+        ],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "2026-09-16",
+            "friluftsdag",
+            "Skogen"
+          ],
+          [
+            "klass:51a10000-0000-4000-8000-000000000101",
+            "2026-09-17",
+            "apl",
+            null
+          ]
+        ],
+        [
+          [
+            "arskurs:51a10000-0000-4000-8000-000000000001:ak1",
+            "ak1",
+            4,
+            "Inskolning"
+          ]
+        ]
+      ],
+      "canonical": "a7:s16:lasar_content_v1i3;s36:51a10000-0000-4000-8000-0000000000f1a4:s10:2026-08-17s10:2026-12-18s10:2027-01-11s10:2027-06-11a3:a3:s10:2026-10-26s6:lovdags8:Höstlova3:s10:2026-10-27s6:lovdags8:Höstlova3:s10:2026-11-20s9:studiedagna2:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s10:2026-09-16s11:friluftsdags6:Skogena4:s42:klass:51a10000-0000-4000-8000-000000000101s10:2026-09-17s3:aplna1:a4:s48:arskurs:51a10000-0000-4000-8000-000000000001:ak1s3:ak1i4;s10:Inskolning",
+      "sha256": "sha256:496f2e3a58dc5121095c88501db40b387d4cc97873ed8f3842dcac998468516f"
+    }
+  ]
+}
