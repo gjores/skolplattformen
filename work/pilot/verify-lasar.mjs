@@ -8,11 +8,13 @@ import { existsSync, fsyncSync, ftruncateSync, openSync, readFileSync, writeSync
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
-import { createLasarFixture, createCommand, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school } from './lasar-fixtures.mjs';
+import { createLasarFixture, createCommand, gymClass, lasarCommand, lasarDecision, lasarRead, lasarSend, lasarStatus, lasarMigrations, resetCommand, school } from './lasar-fixtures.mjs';
+import { seedGy25Class } from './tjanst-fixtures.mjs';
 import { parseLasarCommandReply, parseLasarDecisionReply, parseLasarEnvelope, parseLasarReadReply, lasarSchoolYear } from '../../web/lib/lasar-contract.ts';
 import { lasarContentHash } from '../../web/lib/lasar-content.ts';
 import { LASAR_RULE_CODES } from '../../web/lib/lasar-rule-codes.ts';
-import { addDays, dayInfo, proposeSchoolYear, setTerm, summarize } from '../../web/lib/lasar-model.ts';
+import { addDays, allIssues, dayInfo, groupSummary, proposeSchoolYear, setTerm, summarize } from '../../web/lib/lasar-model.ts';
+import { arskursGroupId, groupsFromRefs, klassGroupId } from '../../web/lib/lasar-groups.ts';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const rollback = Error('expected_lasar_rollback');
@@ -24,8 +26,8 @@ const YEAR = 2027;
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
-  'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail', 'lasar_history',
-  'lasar_lock_version', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term', 'phase4_register_selection',
+  'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_proposal', 'lasar_current', 'lasar_detail', 'lasar_group_ref_guard',
+  'lasar_history', 'lasar_lock_version', 'lasar_reset_proposal', 'lasar_rules', 'lasar_school_days', 'lasar_set_term', 'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
 
@@ -63,7 +65,17 @@ function staticChecks(report) {
       'grant execute on function public.lasar_status(jsonb) to skolplattform_worker;']);
   });
   record('inga demofunktioner i lasar-fixturer och prov', () => {
-    for (const p of ['work/pilot/lasar-fixtures.mjs', 'work/pilot/verify-lasar.mjs']) for (const word of FORBIDDEN_DEMO) assert.ok(!file(p).includes(word), p);
+    for (const p of ['work/pilot/lasar-fixtures.mjs', 'work/pilot/verify-lasar.mjs', 'work/pilot/verify-lasar-groups.mjs']) for (const word of FORBIDDEN_DEMO) assert.ok(!file(p).includes(word), p);
+  });
+  record('gruppfilen (05.1.1-08) ger inga rättigheter, lägger inte till enumvärden och stänger inte av triggrar', () => {
+    const sql = file(lasarMigrations[2]);
+    assert.ok(lasarMigrations[2].endsWith('20261112100000_lasar_groups.sql'));
+    assert.equal(sql.split('\n').filter(l => !l.trim().startsWith('--') && /\bgrant\b/iu.test(l)).length, 0);
+    assert.equal((sql.match(/add value/giu) ?? []).length, 0);
+    assert.ok(!/session_replication_role|disable\s+trigger/iu.test(sql));
+  });
+  record('demons vilande vägar är orörda: database.types.ts och planning-store.ts har kvar group_key (Pitfall 9)', () => {
+    assert.ok(file('web/lib/database.types.ts').includes('group_key')); assert.ok(file('web/lib/planning-store.ts').includes('group_key'));
   });
 }
 
@@ -387,8 +399,8 @@ async function flow(t, step, f) {
   await step(t, 'skoladministratören återställer förslaget: terminer och lov enligt förslaget, gruppdagar ligger kvar', async () => {
     await deny('admin', await cmd([{ op: 'reset_to_proposal' }]), '22023', 'lasar_invalid');
     await deny('admin', { ...(await cmd([{ op: 'comment', text: 'Syntetisk' }])), proposal: (await reset()).proposal }, '22023', 'lasar_invalid');
-    const key = `klass:${f.classes.group}`, gd = schoolDay(lasarSchoolYear(s.last.detail), `${YEAR}-09-06`);
-    await t`insert into public.school_year_group_days(school_year_id,group_key,day,cause) values(${s.v},${key},${gd},'friluftsdag')`;
+    const key = klassGroupId(f.groups.classes.ak1), gd = schoolDay(lasarSchoolYear(s.last.detail), `${YEAR}-09-06`);
+    keep(await send('admin', await cmd([{ op: 'set_group_days', groupId: key, dates: [gd], cause: 'friluftsdag' }])));
     const r = keep(await send('admin', await reset()));
     const p = proposeSchoolYear(YEAR, A, types);
     assert.deepEqual(r.detail.calendar.terms, { ht: p.ht, vt: p.vt }); assert.deepEqual(r.detail.calendar.exceptions, p.exceptions);
@@ -611,6 +623,216 @@ async function parity(t, step, f) {
   });
 }
 
+/**
+ * 05.1.1-08 (LASAR-04, LASAR-01): skolans grupper och undervisning i läsningen, gruppkommandona och D-20. Grupperna kommer ur
+ * school_classes, offerings och class_timplans med bara ID:n som nycklar; inga elevantal (A-18).
+ */
+async function groups(t, step, f) {
+  const A = f.schools.A, types = f.schoolTypes.A, k = f.groups.classes, gr = f.offerings.gr;
+  const env = (raw, name) => parseLasarEnvelope(raw, actorOf(f, name));
+  const read = async (name, unitId = A, schoolYear = YEAR) => {
+    await f.actor(t, name);
+    const q = { target: school(unitId), schoolYear, versionId: null };
+    return parseLasarReadReply(env(await lasarRead(t, q), name), q);
+  };
+  const send = async (name, q) => { await f.actor(t, name); return parseLasarCommandReply(env(await lasarSend(t, q), name), q); };
+  const decide = async (name, q) => { await f.actor(t, name); return parseLasarDecisionReply(env(await lasarSend(t, q), name), q); };
+  const deny = (name, q, code, hint) => denied(t, async u => { await f.actor(u, name); await lasarSend(u, q); }, code, hint);
+  const s = {};
+  const keep = r => { s.rev = r.receipt.revision; s.last = r; return r; };
+  const cmd = (ops, rev = s.rev) => lasarCommand({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: rev, ops });
+  const content = c => ({ terms: c.terms, exceptions: c.exceptions, groupDays: c.groupDays, shortWeeks: c.shortWeeks, frameVersionId: c.frameVersionId, version: c.version });
+  const schoolDays = (sy, from, n) => { const out = []; for (let d = from; out.length < n; d = addDays(d, 1)) if (dayInfo(sy, d).status === 'skoldag') out.push(d); return out; };
+  const nonSchool = (sy, from) => { let d = from; while (dayInfo(sy, d).status === 'skoldag') d = addDays(d, 1); return d; };
+  const ak = c => arskursGroupId(gr, c), im = arskursGroupId(f.offerings.im, 'vecka'), gyAr1 = arskursGroupId(f.offerings.gy, 'ar1');
+  const byKey = list => [...list].sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b)));
+  const needHours = async (classId, year = YEAR) => {
+    const c = (await t`select x.value c from jsonb_array_elements(public.tjanst_needs(${A},${year})) x where x.value->>'classId'=${classId}`)[0].c;
+    return Math.round(c.needs.reduce((sum, n) => sum + (n.needHt ?? 0) + (n.needVt ?? 0), 0) / 60);
+  };
+
+  await step(t, 'grupper: årskurser per utbildning och kolumn och klasser ur klassregistret, bara med ID som nycklar', async () => {
+    const r = await read('principalA');
+    const expected = [
+      ...['ak1', 'ak2', 'ak3'].map(c => ({ scope: 'arskurs', offeringId: gr, columnId: c, label: `Åk ${c.slice(2)}`, educationName: 'Syntetisk GR 1–3', kind: 'grundskola' })),
+      { scope: 'arskurs', offeringId: f.offerings.im, columnId: 'vecka', label: 'Per vecka', educationName: 'Syntetiskt IM', kind: 'introduktionsprogram' },
+      { scope: 'arskurs', offeringId: f.offerings.gy, columnId: 'ar1', label: 'År 1', educationName: 'Syntetiskt SA25', kind: 'gymnasium' },
+      { scope: 'klass', classId: k.gy, offeringId: f.offerings.gy, columnId: null, label: 'SA27A', educationName: 'Syntetiskt SA25', kind: 'gymnasium' },
+      { scope: 'klass', classId: k.ak1, offeringId: gr, columnId: 'ak1', label: 'SYN1A', educationName: 'Syntetisk GR 1–3', kind: 'grundskola' },
+      { scope: 'klass', classId: k.unlinked, offeringId: gr, columnId: null, label: 'SYN2X', educationName: 'Syntetisk GR 1–3', kind: 'grundskola' },
+      { scope: 'klass', classId: k.ak3, offeringId: gr, columnId: 'ak3', label: 'SYN3A', educationName: 'Syntetisk GR 1–3', kind: 'grundskola' },
+      { scope: 'klass', classId: k.im, offeringId: f.offerings.im, columnId: 'vecka', label: 'SYNIM27', educationName: 'Syntetiskt IM', kind: 'introduktionsprogram' },
+    ];
+    assert.deepEqual(r.groups, expected);
+    const built = groupsFromRefs(r.groups);
+    assert.deepEqual(built.find(g => g.id === klassGroupId(k.ak1)).parentId, ak('ak1'));
+    assert.equal(built.find(g => g.id === klassGroupId(k.im)).parentId, im);
+    assert.ok(built.every(g => /^(arskurs:[0-9a-f-]{36}:(ar[1-3]|ak[1-9]|vecka)|klass:[0-9a-f-]{36})$/u.test(g.id)), 'bara stabila ID:n');
+    assert.ok(!r.groups.some(g => g.classId === f.classes.group || g.classId === f.classes.other), 'klasser utanför läsåret saknas');
+    assert.ok(!/pupil|elev/iu.test(JSON.stringify({ groups: r.groups, teaching: r.teaching })), 'inga elevuppgifter eller elevantal (A-18)');
+    s.groups = r.groups;
+  });
+  await step(t, 'undervisning: fastställd timplan, version och timmar per klass; IM-klassen har veckoram (A-09, A-17)', async () => {
+    const r = await read('admin');
+    assert.deepEqual(r.teaching.imClassIds, [k.im]);
+    const rows = [{ columnId: 'ak1', hours: 220 }, { columnId: 'ak2', hours: 240 }, { columnId: 'ak3', hours: 260 }];
+    assert.deepEqual(r.teaching.classes, [
+      { classId: k.ak1, name: 'SYN1A', offeringId: gr, columnId: 'ak1', timplanId: f.groups.grPlan, timplanVersion: 1, rows },
+      { classId: k.ak3, name: 'SYN3A', offeringId: gr, columnId: 'ak3', timplanId: f.groups.grPlan, timplanVersion: 1, rows },
+      { classId: k.im, name: 'SYNIM27', offeringId: f.offerings.im, columnId: 'vecka', timplanId: f.groups.imPlan, timplanVersion: 1, rows: [{ columnId: 'vecka', hours: 8 }] },
+    ]);
+    // Samma årstimmar som tjänstefördelningens behov för klassens årskurs.
+    assert.equal(await needHours(k.ak1), 220); assert.equal(await needHours(k.ak3), 260);
+  });
+  await step(t, 'undervisning: gymnasieklassens timmar per år ur den fastställda timplanen stämmer med tjänstefördelningens behov', async () => {
+    const g = await seedGy25Class(t, f, 'SYNBF1');
+    const r = await read('principalA', A, g.year);
+    const c = r.teaching.classes.find(x => x.classId === g.classId);
+    assert.ok(c, 'klassen saknas'); assert.equal(c.columnId, 'ar1'); assert.deepEqual(c.rows.map(x => x.columnId), ['ar1', 'ar2', 'ar3']);
+    assert.equal(c.rows[0].hours, await needHours(g.classId, g.year));
+    assert.ok(r.groups.some(x => x.scope === 'klass' && x.classId === g.classId && x.columnId === 'ar1'));
+  });
+  await step(t, 'SS 12000: två klasser med samma namn och olika startår får olika referenser', async () => {
+    const sentinel = Error('ss12000_rollback');
+    try {
+      await t.savepoint(async u => {
+        const a = await gymClass(u, f, { offeringId: f.offerings.gy, name: 'SYNDUP', startYear: 2026 }), b = await gymClass(u, f, { offeringId: f.offerings.gy, name: 'SYNDUP', startYear: 2027 });
+        await f.actor(u, 'principalA');
+        const q = { target: school(A), schoolYear: YEAR, versionId: null };
+        const r = parseLasarReadReply(env(await lasarRead(u, q), 'principalA'), q);
+        const dup = r.groups.filter(g => g.label === 'SYNDUP');
+        assert.deepEqual(dup.map(g => g.classId).sort(), [a, b].sort());
+        assert.equal(new Set(groupsFromRefs(r.groups).map(g => g.id)).size, r.groups.length);
+        throw sentinel;
+      });
+    } catch (e) { if (e !== sentinel) throw e; }
+  });
+
+  await step(t, 'gruppdagar: rektor sätter dagar för en årskurs och en klass; kalendern nycklas på grupp-ID och kontrollsumman stämmer', async () => {
+    const created = keep(await send('principalA', await createCommand(A, YEAR, types)));
+    s.v = created.detail.calendar.versionId;
+    const sy = lasarSchoolYear(created.detail);
+    s.days = schoolDays(sy, `${YEAR}-09-01`, 6);
+    const r = keep(await send('principalA', await cmd([
+      { op: 'set_group_days', groupId: ak('ak1'), dates: [s.days[0], s.days[1]], cause: 'friluftsdag' },
+      { op: 'set_group_days', groupId: klassGroupId(k.ak1), dates: [s.days[2]], cause: 'annat', note: 'Syntetisk utflykt' },
+    ])));
+    const c = r.detail.calendar;
+    assert.deepEqual(c.groupDays, { [ak('ak1')]: { [s.days[0]]: { cause: 'friluftsdag' }, [s.days[1]]: { cause: 'friluftsdag' } },
+      [klassGroupId(k.ak1)]: { [s.days[2]]: { cause: 'annat', note: 'Syntetisk utflykt' } } });
+    assert.equal(c.contentHash, await lasarContentHash(content(c)));
+    const built = groupsFromRefs(r.detail.groups), summary = groupSummary(lasarSchoolYear(r.detail), built.find(g => g.id === klassGroupId(k.ak1)), built);
+    assert.equal(summary.fewer, 3, 'klassen ärver årskursens två dagar och har en egen');
+  });
+  await step(t, 'korta veckor: åk 1 med särskilda skäl går; åk 3, en klass utan årskurs, IM och gymnasiet ger short_week_column', async () => {
+    const r = keep(await send('principalA', await cmd([{ op: 'set_short_week', groupId: ak('ak1'), columnId: 'ak1', weekday: 4, reason: 'Syntetiska särskilda skäl' }])));
+    assert.deepEqual(r.detail.calendar.shortWeeks, { [ak('ak1')]: { weekday: 4, reason: 'Syntetiska särskilda skäl', columnId: 'ak1' } });
+    for (const [groupId, columnId] of [[ak('ak3'), 'ak3'], [klassGroupId(k.ak3), 'ak3'], [klassGroupId(k.unlinked), 'ak1'], [im, 'vecka'], [klassGroupId(k.im), 'vecka'], [gyAr1, 'ar1']]) {
+      const e = await deny('principalA', await cmd([{ op: 'set_short_week', groupId, columnId, weekday: 0, reason: 'Syntetiska skäl' }]), '40001', 'lasar_rules_failed');
+      assert.deepEqual(JSON.parse(e.detail), ['short_week_column'], groupId);
+    }
+    // Samma regel i modellen: setShortWeek nekar åk 3.
+    const built = groupsFromRefs(r.detail.groups), sy = lasarSchoolYear(r.detail);
+    sy.shortWeeks[ak('ak3')] = { weekday: 0, reason: 'Syntetiska skäl', columnId: 'ak3' };
+    assert.ok(groupSummary(sy, built.find(g => g.id === ak('ak3')), built).issues.some(i => i.code === 'short_week_column'));
+  });
+  await step(t, 'gruppregler med samma koder som modellen: saknade särskilda skäl och orsak annat utan anteckning', async () => {
+    const e1 = await deny('principalA', await cmd([{ op: 'set_short_week', groupId: ak('ak2'), columnId: 'ak2', weekday: 2, reason: '  ' }]), '40001', 'lasar_rules_failed');
+    assert.deepEqual(JSON.parse(e1.detail), ['short_week_reason']);
+    const e2 = await deny('principalA', await cmd([{ op: 'set_group_days', groupId: ak('ak2'), dates: [s.days[3]], cause: 'annat' }]), '40001', 'lasar_rules_failed');
+    assert.deepEqual(JSON.parse(e2.detail), ['group_other_note']);
+    await deny('principalA', await cmd([{ op: 'set_short_week', groupId: ak('ak1'), columnId: 'ak2', weekday: 2, reason: 'Syntetiska skäl' }]), '22023', 'lasar_invalid');
+  });
+  await step(t, 'gruppdagar bara på skolans skoldagar och bara för skolans grupper i läsåret', async () => {
+    const sy = lasarSchoolYear(s.last.detail);
+    const lov = Object.keys(sy.exceptions).sort()[0], weekend = nonSchool(sy, `${YEAR}-09-05`);
+    for (const d of [lov, weekend, `${YEAR}-07-01`]) await deny('principalA', await cmd([{ op: 'set_group_days', groupId: ak('ak2'), dates: [d], cause: 'apl' }]), '22023', 'lasar_invalid');
+    for (const groupId of [klassGroupId(f.classes.group), klassGroupId(randomUUID()), arskursGroupId(gr, 'ak7'), arskursGroupId(f.offerings.gy, 'ar2')])
+      await deny('principalA', await cmd([{ op: 'set_group_days', groupId, dates: [s.days[4]], cause: 'apl' }]), '22023', 'lasar_invalid');
+    await deny('principalA', await cmd([{ op: 'set_group_days', groupId: 'klass:SYN1A', dates: [s.days[4]], cause: 'apl' }]), '22023', 'lasar_invalid');
+  });
+  await step(t, 'mandat: skoladministratören sätter gruppdagar (D-18); rektor B och huvudmannen nekas', async () => {
+    keep(await send('admin', await cmd([{ op: 'set_group_days', groupId: klassGroupId(k.unlinked), dates: [s.days[4]], cause: 'nationellt prov' }])));
+    await deny('principalB', await cmd([{ op: 'set_group_days', groupId: klassGroupId(k.unlinked), dates: [s.days[5]], cause: 'apl' }]), '42501');
+    await deny('hm', await cmd([{ op: 'clear_short_week', groupId: ak('ak1') }]), '42501');
+  });
+  await step(t, 'ta bort gruppdagar och kort vecka; det som inte finns nekas', async () => {
+    let r = keep(await send('principalA', await cmd([{ op: 'clear_group_days', groupId: ak('ak1'), dates: [s.days[1]] }])));
+    assert.deepEqual(Object.keys(r.detail.calendar.groupDays[ak('ak1')]), [s.days[0]]);
+    await deny('principalA', await cmd([{ op: 'clear_group_days', groupId: ak('ak1'), dates: [s.days[5]] }]), '22023', 'lasar_invalid');
+    r = keep(await send('principalA', await cmd([{ op: 'clear_short_week', groupId: ak('ak1') }])));
+    assert.deepEqual(r.detail.calendar.shortWeeks, {});
+    await deny('principalA', await cmd([{ op: 'clear_short_week', groupId: ak('ak1') }]), '22023', 'lasar_invalid');
+    keep(await send('principalA', await cmd([{ op: 'set_short_week', groupId: klassGroupId(k.ak1), columnId: 'ak1', weekday: 4, reason: 'Syntetiska särskilda skäl' }])));
+  });
+  await step(t, 'D-20: en gruppdag för IM-klassen ändrar varken skoldagarna eller IM-behovet i tjänstefördelningen', async () => {
+    keep(await send('principalA', await cmd([{ op: 'set_group_days', groupId: klassGroupId(k.im), dates: [s.days[0], s.days[5]], cause: 'apl' },
+      { op: 'set_group_days', groupId: im, dates: [s.days[3]], cause: 'friluftsdag' }])));
+    const sub = keep(await decide('principalA', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: s.rev, action: 'submit', text: 'Syntetiskt förslag' })));
+    await deny('principalA', await cmd([{ op: 'clear_short_week', groupId: klassGroupId(k.ak1) }]), '40001', 'lasar_locked_status');
+    const ok = keep(await decide('hm', lasarDecision({ unitId: A, schoolYear: YEAR, versionId: s.v, expectedRevision: sub.receipt.revision, action: 'approve', text: 'Syntetiskt beslut' })));
+    const sy = lasarSchoolYear(ok.detail), sum = summarize(sy, types);
+    assert.ok(Object.keys(ok.detail.calendar.groupDays[klassGroupId(k.im)]).length === 2);
+    const weeks = (await t`select public.tjanst_school_weeks(${A},${YEAR}) w`)[0].w;
+    assert.deepEqual(weeks, { htSchoolDays: sum.terms.ht.skoldagar, vtSchoolDays: sum.terms.vt.skoldagar });
+    const imNeeds = (await t`select x.value c from jsonb_array_elements(public.tjanst_needs(${A},${YEAR})) x where x.value->>'classId'=${k.im}`)[0].c.needs;
+    assert.deepEqual(imNeeds.map(n => [n.rowKey, n.needHt, n.needVt]).sort(), [['im-ma', 3 * 12 * sum.terms.ht.skoldagar, 3 * 12 * sum.terms.vt.skoldagar],
+      ['im-sv', 5 * 12 * sum.terms.ht.skoldagar, 5 * 12 * sum.terms.vt.skoldagar]]);
+    const [row] = await t`select content_hash from public.school_years where id=${s.v}`;
+    assert.equal(row.content_hash, await lasarContentHash(content(ok.detail.calendar)));
+    s.approved = ok;
+  });
+  await step(t, 'lasar_rules på den lagrade versionen ger samma koder som allIssues med grupperna (gruppdagar under 178 som varning)', async () => {
+    const sy = lasarSchoolYear(s.approved.detail), built = groupsFromRefs(s.approved.detail.groups);
+    const model = pairsOf(allIssues(sy, types, built));
+    assert.ok(model.includes('group_days_min:warning'), model.join(', '));
+    assert.deepEqual(pairsOf((await t`select public.lasar_rules(${s.v}) r`)[0].r), model);
+  });
+  await step(t, 'gruppkommandon loggas utan personuppgifter eller klassnamn', async () => {
+    const rows = await t`select details from public.security_events where action='lasar_command' order by id`;
+    assert.ok(rows.length > 0);
+    for (const r of rows) assert.ok(!/SYN|SA27A|Syntetisk/u.test(JSON.stringify(r.details)), JSON.stringify(r.details));
+  });
+}
+
+/**
+ * 05.1.1-08 (LASAR-03): gruppreglernas paritet. SQL-kärnan lasar_group_rule_check jämförs med groupSummary i lasar-model.ts för
+ * alla grupper ur groupsFromRefs, som multimängd {kod, nivå}. Fallen bygger på skolans grupper ur läsningen.
+ */
+async function groupParity(t, step, f) {
+  await f.actor(t, 'principalA');
+  const q = { target: school(f.schools.A), schoolYear: YEAR, versionId: null };
+  const refs = parseLasarReadReply(parseLasarEnvelope(await lasarRead(t, q), actorOf(f, 'principalA')), q).groups;
+  const built = groupsFromRefs(refs), k = f.groups.classes, gr = f.offerings.gr;
+  const base = proposeSchoolYear(YEAR, f.schools.A, f.schoolTypes.A);
+  const days = []; for (let d = `${YEAR}-09-01`; days.length < 60; d = addDays(d, 1)) if (dayInfo(base, d).status === 'skoldag') days.push(d);
+  const ak = c => arskursGroupId(gr, c);
+  const many = n => Object.fromEntries(days.slice(0, n).map(d => [d, { cause: 'apl' }]));
+  const rows = [
+    { name: 'inga gruppavvikelser', groupDays: {}, shortWeeks: {}, expect: [] },
+    { name: 'kort vecka åk 1 med skäl (inget fel)', groupDays: {}, shortWeeks: { [ak('ak1')]: { weekday: 4, reason: 'Syntetiska skäl', columnId: 'ak1' } }, absent: ['short_week_column:error'] },
+    { name: 'kort vecka åk 3 ger short_week_column, också för klassen som ärver', groupDays: {}, shortWeeks: { [ak('ak3')]: { weekday: 0, reason: 'Syntetiska skäl', columnId: 'ak3' } }, expect: ['short_week_column:error'] },
+    { name: 'kort vecka utan skäl', groupDays: {}, shortWeeks: { [ak('ak2')]: { weekday: 1, reason: '', columnId: 'ak2' } }, expect: ['short_week_reason:error'] },
+    { name: 'orsak annat utan anteckning, ärvd av klassen', groupDays: { [ak('ak1')]: { [days[0]]: { cause: 'annat' } } }, shortWeeks: {}, expect: ['group_other_note:error'] },
+    { name: 'färre än 178 undervisningsdagar (varning)', groupDays: { [klassGroupId(k.unlinked)]: many(10) }, shortWeeks: {}, expect: ['group_days_min:warning'] },
+    { name: 'klass utan årskursgrupp med kort vecka', groupDays: {}, shortWeeks: { [klassGroupId(k.gy)]: { weekday: 2, reason: 'Syntetiska skäl', columnId: 'ar1' } }, expect: ['short_week_column:error'] },
+    { name: 'IM-klass med kort vecka', groupDays: {}, shortWeeks: { [klassGroupId(k.im)]: { weekday: 2, reason: 'Syntetiska skäl', columnId: 'vecka' } }, expect: ['short_week_column:error'] },
+    { name: 'gruppdagar för en grupp som inte finns i läsåret räknas inte', groupDays: { [klassGroupId(f.classes.group)]: { [days[0]]: { cause: 'annat' } } }, shortWeeks: {}, expect: [] },
+  ];
+  for (const row of rows) {
+    await step(t, `gruppparitet: ${row.name}`, async () => {
+      const sy = { ...structuredClone(base), groupExceptions: row.groupDays, shortWeeks: row.shortWeeks };
+      const model = pairsOf(built.flatMap(g => groupSummary(sy, g, built).issues));
+      if (row.expect) for (const p of row.expect) assert.ok(model.includes(p), `modellen saknar ${p}: ${model.join(', ')}`);
+      if (row.expect?.length === 0) assert.deepEqual(model, []);
+      for (const p of row.absent ?? []) assert.ok(!model.includes(p), `modellen har ${p}`);
+      const sql = (await t`select public.lasar_group_rule_check(${t.json({ ht: sy.ht, vt: sy.vt })}, ${t.json(sy.exceptions)}, ${t.json(refs)}, ${t.json(row.groupDays)}, ${t.json(row.shortWeeks)}) r`)[0].r;
+      assert.deepEqual(pairsOf(sql), model, 'SQL-kärnan');
+      for (const i of sql) assert.ok(Object.hasOwn(LASAR_RULE_CODES, i.code) && LASAR_RULE_CODES[i.code].levels.includes(i.level) && LASAR_RULE_CODES[i.code].scope === 'grupp', JSON.stringify(i));
+    });
+  }
+}
+
 async function schemaCopy(report) {
   const { targetPendingMigrations } = await import('./verify-tjanst-actual.mjs');
   const { createNamedTimplanSnapshot } = await import('./named-timplan-snapshot.mjs');
@@ -631,7 +853,8 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
   const report = { kind: 'lasar-sql', status: 'FAIL', mode: ephemeral ? 'ephemeral' : 'schema-snapshot', cases: [], startedAt: new Date().toISOString(),
     limitations: ['Own database and synthetic fixtures only; nothing installed in any connected database', 'No HTTP/OIDC/Worker; the real chain is plan 15',
       ephemeral ? 'Schema built from repository migrations on a private PostgreSQL instance with minimal Supabase stubs' : 'Schema-only copy of the protected local target with pending migrations',
-      'Version 2, the Pitfall 6 calendar and one group day are inserted directly by the owner (marked synthetic); reopen comes in a later plan',
+      'Version 2 and the Pitfall 6 calendar are inserted directly by the owner (marked synthetic); group days go through lasar_command; reopen comes in a later plan',
+      'Groups and teaching come from synthetic classes, offerings and timplans; no pupils and no pupil counts (A-18)',
       'SS 12000: the calendar has no object in the standard; unit_id is Organisation/Skolenhet; no exchange verified'] };
   const persist = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   const step = caseRunner(report);
@@ -650,7 +873,7 @@ export async function verifyLasar(out, { ephemeral = false } = {}) {
     for (const run of [structure, invariant, vectors]) {
       try { await db.begin(async tx => { await run(tx, step); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
-    for (const run of [tracer, flow, parity]) {
+    for (const run of [tracer, flow, parity, groups, groupParity]) {
       try { await db.begin(async tx => { await tx`set local statement_timeout='120s'`; await run(tx, step, f); throw rollback; }); } catch (e) { if (e !== rollback) throw e; }
     }
   } catch (e) { report.failure = { code: e.code ?? 'ASSERTION', hint: e.hint, message: e.message, stack: e.stack }; }

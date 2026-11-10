@@ -279,3 +279,28 @@ test('SQL godkänner men modellen hittar ett fel: 409 lasar_rules_failed utan de
   state.replies.lasar_command = wrap({ receipt: { commandId: ok.commandId, revision: 3, replayed: false }, detail: read({ cal: calendar(decided) }) });
   assert.equal((await post('beslut', ok)).status, 200);
 });
+
+test('modellkontrollen tar med grupperna ur läsningen: en kort vecka för åk 3 ger 409 short_week_column (05.1.1-08)', async () => {
+  const offeringId = uid(10), group = `arskurs:${offeringId}:ak3`;
+  const groups = [{ scope: 'arskurs', offeringId, columnId: 'ak3', label: 'Åk 3', educationName: 'Syntetisk GR', kind: 'grundskola' }];
+  reset('rektor'); state.mfa = true;
+  const decision = lasarDecisionRequest({ target, schoolYear: year, versionId: version, expectedRevision: 2, action: 'submit', text: 'Syntetisk text' });
+  const cal = calendar({ status: 'forslag', revision: 3, shortWeeks: { [group]: { weekday: 4, reason: 'Syntetiska skäl', columnId: 'ak3' } } });
+  state.replies.lasar_command = wrap({ receipt: { commandId: decision.commandId, revision: 3, replayed: false }, detail: { ...read({ cal }), groups } });
+  const response = await post('beslut', decision);
+  assert.equal(response.status, 409);
+  const body = await response.json();
+  assert.equal(body.details.reason, 'lasar_rules_failed'); assert.deepEqual(body.details.rules, ['short_week_column']);
+  assert.deepEqual(state.events.filter(e => e.outcome === 'ok'), []);
+  // Samma kalender utan grupper i läsningen prövas bara på skolnivå och går igenom (gruppen finns inte för modellen).
+  reset('rektor'); state.mfa = true;
+  const ok = lasarDecisionRequest({ target, schoolYear: year, versionId: version, expectedRevision: 2, action: 'submit', text: 'Syntetisk text' });
+  state.replies.lasar_command = wrap({ receipt: { commandId: ok.commandId, revision: 3, replayed: false }, detail: read({ cal }) });
+  assert.equal((await post('beslut', ok)).status, 200);
+});
+
+test('serveradaptern bygger inga grupper själv: grupperna kommer ur läsningen via groupsFromRefs', () => {
+  const source = readFileSync(new URL('./lasar.ts', import.meta.url), 'utf8');
+  assert.match(source, /groupsFromRefs\(detail\.groups\)/u);
+  assert.doesNotMatch(source, /studentGroups|klass:\$\{|programPrefix/u);
+});
