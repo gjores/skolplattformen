@@ -1,5 +1,5 @@
 import { ProgramplanContractError, type ProgramplanCatalog } from './programplan-catalog.ts';
-import { PROGRAMPLAN_LANGUAGES } from './programplan-languages.ts';
+import { PROGRAMPLAN_LANGUAGES, PROGRAMPLAN_LANGUAGE_LADDERS } from './programplan-languages.ts';
 import { programplanValpaketSubjectAllowed } from './programplan-packages.ts';
 import { valplanClosestPoints } from './valplan-choice-contract.ts';
 
@@ -36,10 +36,20 @@ export type ValplanChoiceResult = { errors: string[]; points: number; minutesHt:
 
 const MODERN_LANGUAGE_SUBJECTS = new Set(['MODY', 'MODG', 'MODO', 'MODF']);
 const LANGUAGE_CODES = new Set(PROGRAMPLAN_LANGUAGES.map(l => l.code));
+/** Every subject in programplanens språktrappor: moderna språk, modersmål, teckenspråk för hörande and the minority languages. */
+const LADDER_SUBJECTS = new Set(PROGRAMPLAN_LANGUAGE_LADDERS.flatMap(l => l.steps.map(s => s.subjectCode)));
 
-/** Språkämne and naturvetenskapligt ämne follow programplanens package rule (4 kap. 1 a §), with modern languages as courses. */
+/** The ladder decides the language: required from the list, given by the ladder (minority languages), or none.
+ * Null for subjects outside the ladders, which never carry a language. The database function valplan_language_rule agrees. */
+export function valplanLanguageRule(subjectCode: string): { required: boolean; fixed: string | null } | null {
+  const ladder = PROGRAMPLAN_LANGUAGE_LADDERS.find(l => l.steps.some(s => s.subjectCode === subjectCode));
+  return ladder ? { required: ladder.languageRequired, fixed: ladder.languageCode } : null;
+}
+
+/** Moderna språk takes every ladder, so modersmål and teckenspråk can share the block (05-23 D-06, 4 kap. 10 a och 17 §§).
+ * Språkämne and naturvetenskapligt ämne follow programplanens package rule (4 kap. 1 a §), with modern languages as courses. */
 export function valplanSubjectAllowed(kind: ValplanKind, subjectCode: string): boolean {
-  if (kind === 'modernLanguage') return MODERN_LANGUAGE_SUBJECTS.has(subjectCode);
+  if (kind === 'modernLanguage') return LADDER_SUBJECTS.has(subjectCode);
   if (kind === 'languageSubject') return MODERN_LANGUAGE_SUBJECTS.has(subjectCode) || programplanValpaketSubjectAllowed(kind, subjectCode);
   return kind === 'naturalScience' ? programplanValpaketSubjectAllowed(kind, subjectCode) : true;
 }
@@ -186,9 +196,9 @@ export function valplanDiagnostics(plan: Valplan, rows: readonly ValplanRowConte
     if (!subject || !item || item.points !== course.points) out.push({ code: 'course_not_in_catalog', severity: 'error', ...at });
     else if (!subject.startDate || startsOn < subject.startDate || subject.endDate && startsOn > subject.endDate || subject.canceledDate && startsOn >= subject.canceledDate)
       out.push({ code: 'course_not_valid', severity: 'error', ...at });
-    const language = MODERN_LANGUAGE_SUBJECTS.has(course.subjectCode);
-    if (language && course.languageCode === null) out.push({ code: 'language_required', severity: 'error', ...at });
-    if (!language && course.languageCode !== null) out.push({ code: 'language_not_applicable', severity: 'error', ...at });
+    const rule = valplanLanguageRule(course.subjectCode);
+    if (rule?.required && course.languageCode === null) out.push({ code: 'language_required', severity: 'error', ...at });
+    if (course.languageCode !== null && (!rule?.required || rule.fixed !== null && rule.fixed !== course.languageCode)) out.push({ code: 'language_not_applicable', severity: 'error', ...at });
     if (!valplanSubjectAllowed(plan.kind, course.subjectCode)) out.push({ code: 'course_kind_mismatch', severity: 'error', ...at });
     if (course.minutesHt + course.minutesVt === 0) out.push({ code: 'course_time_missing', severity: 'error', ...at });
     if (course.classIds?.some(id => !classRow.has(id))) out.push({ code: 'course_class_not_linked', severity: 'error', ...at });

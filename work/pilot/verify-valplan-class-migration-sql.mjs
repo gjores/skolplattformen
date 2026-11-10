@@ -10,7 +10,7 @@ import {seedElectiveTimeFrame} from './elective-time-fixtures.mjs';
 import {linkExtraClass} from './valplan-block-fixtures.mjs';
 const file='20261107110000_valplan_class_selection.sql';
 const catalog=JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json',import.meta.url),'utf8'));
-const later=['20261107120000_valplan_open_check.sql','20261107130000_valplan_held_courses.sql']; // Bygger på den här migrationen och installeras efter den.
+const later=['20261107120000_valplan_open_check.sql','20261107130000_valplan_held_courses.sql','20261110100000_valplan_language_ladders.sql']; // Bygger på den här migrationen och installeras efter den.
 const own=await createEphemeralMigratedDb({exclude:[file,...later]}),report={kind:'ephemeral-valplan-class-migration-sql',provenance:own.provenance,checks:[],ok:false};
 const out=process.argv.includes('--out')?process.argv[process.argv.indexOf('--out')+1]:'/private/tmp/valplan-class-migration-sql.json';assert.ok(out?.startsWith('/private/tmp/'));
 const check=name=>{report.checks.push({name,ok:true});console.log('PASS '+name);};

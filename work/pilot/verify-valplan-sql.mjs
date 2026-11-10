@@ -53,6 +53,19 @@ try{
   await deny(tx,'unknown catalog item is rejected',t=>run(t,cmd({...noRows,courses:[course('PSYL','PSYL9000X',50)]})),['22023'],'valplan_course_not_in_catalog');
   await deny(tx,'catalog points cannot be changed',t=>run(t,cmd({...noRows,courses:[course('PSYL','PSYL1000X',100)]})),['22023'],'valplan_course_not_in_catalog');
   await deny(tx,'modern language course requires a language',t=>run(t,cmd({...noRows,courses:[course('MODY','MODY1000X',100)]})),['22023'],'valplan_invalid');
+  // VP-16: the ladders decide the language, and the database agrees with the model for every subject in the catalog.
+  const accepts=async(name,c)=>{const done=Symbol();try{await tx.savepoint(async t=>{await run(t,c);throw done;});}catch(e){if(e!==done)throw new Error(`${name}: ${e.code} ${e.message}`);}check(name);};
+  const ladders={...noRows,kind:'modernLanguage'};
+  await accepts('Moderna språk takes modersmål in two languages, teckenspråk without and finska with its own',cmd({...ladders,courses:[course('MODE','MODE1000X',100,{languageCode:'ar'}),course('MODE','MODE1000X',100,{languageCode:'so'}),course('SVEY','SVEY1000X',100),course('FINX','FINX1000X',100,{languageCode:'fi'})]}));
+  await deny(tx,'modersmål requires a language',t=>run(t,cmd({...ladders,courses:[course('MODE','MODE1000X',100)]})),['22023'],'valplan_invalid');
+  await deny(tx,'teckenspråk carries no language',t=>run(t,cmd({...ladders,courses:[course('SVEY','SVEY1000X',100,{languageCode:'fr'})]})),['22023'],'valplan_invalid');
+  await deny(tx,'a minority language carries its own language only',t=>run(t,cmd({...ladders,courses:[course('FINX','FINX1000X',100,{languageCode:'se'})]})),['22023'],'valplan_invalid');
+  await deny(tx,'språkämne keeps 4 kap. 1 a § and takes no modersmål',t=>run(t,cmd({...noRows,kind:'languageSubject',courses:[course('MODE','MODE1000X',100,{languageCode:'ar'})]})),['22023'],'valplan_invalid');
+  const {valplanLanguageRule}=await import('../../web/lib/valplan-model.ts');
+  const subjects=[...new Set(catalog.subjects.filter(x=>x.schoolTypes.includes('GY')).map(x=>x.code))];
+  const sqlRules=new Map((await tx`select code,public.valplan_language_rule(code) rule from unnest(${subjects}::text[]) code`).map(r=>[r.code,r.rule]));
+  for(const code of subjects){const r=valplanLanguageRule(code);assert.equal(sqlRules.get(code),r===null?null:!r.required?'none':r.fixed??'pick',code);}
+  check(`the database language rule agrees with the model for ${subjects.length} subjects`);
   await deny(tx,'course without teaching time is rejected',t=>run(t,cmd({...noRows,courses:[course('FILS','FILS2000X',50,{minutesHt:0,minutesVt:0})]})),['22023'],'valplan_invalid');
   await deny(tx,'course class restriction outside linked classes is rejected',t=>run(t,cmd({...noRows,courses:[course('FILS','FILS2000X',50,{classIds:[classA]})]})),['22023'],'valplan_course_class');
   await deny(tx,'duplicate course content is rejected',t=>run(t,cmd({...noRows,courses:[course('FILS','FILS2000X',50),course('FILS','FILS2000X',50)]})),['22023'],'valplan_duplicate_course');

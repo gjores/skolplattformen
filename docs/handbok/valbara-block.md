@@ -26,7 +26,10 @@ Blocket skapas alltid från en rad, så typ och rad behöver du inte leta fram.
 1. Välj **Skapa valbart block** på raden i timplanen, eller under **Rader som saknar block** på sidan **Valbara block**.
 2. Finns redan ett block av samma typ får du välja mellan att lägga till raden i det eller skapa ett nytt. Lägg till raden om klasserna ska välja bland samma kurser.
 3. Namn, typ, rad och klasser är ifyllda. Under **Timplaner och klasser** kan du lägga till fler rader och kryssa ur klasser som inte ska ingå. Eleverna i de ikryssade klasserna får välja.
-4. Sök under **Kurser** i Skolverkets katalog. Varje kurs har poäng och egen undervisningstid för HT och VT. Tiden föreslås från raden och kan justeras. **Språkämne** visar bara moderna språk, engelska, klassisk grekiska och latin. **Naturvetenskapligt ämne** visar bara biologi, bioteknik, fysik, fysik fördjupning och kemi. Modersmål, svenskt teckenspråk och nationella minoritetsspråk går inte att lägga till i ett block ännu.
+4. Sök under **Kurser** i Skolverkets katalog. Varje kurs har poäng och egen undervisningstid för HT och VT. Tiden föreslås från raden och kan justeras. **Språkämne** visar bara moderna språk, engelska, klassisk grekiska och latin. **Naturvetenskapligt ämne** visar bara biologi, bioteknik, fysik, fysik fördjupning och kemi. **Moderna språk** visar moderna språk, modersmål, svenskt teckenspråk för hörande och de nationella minoritetsspråken. Modersmål går också att lägga till i **Individuellt val** och **Programfördjupning**, men inte i **Språkämne**.
+   - För moderna språk och modersmål väljer du först språk under **Språk** och lägger sedan till kursen. Samma nivå på två språk blir två kurser, med var sin grupp och var sitt behov i tjänstefördelningen.
+   - Svenskt teckenspråk för hörande har inget språk.
+   - Ett nationellt minoritetsspråk, till exempel finska eller samiska, får sitt språk av kursen.
 5. Under **Får läsas av** står vilka klasser som får läsa kursen, till exempel *Alla klasser utom SA27B*. Välj **Ändra klasser** och kryssa ur de klasser som inte ska läsa kursen.
 6. Välj **Spara valbart block**.
 
@@ -98,7 +101,7 @@ En kurs eleven redan har går inte att välja, varken av eleven eller av skolan.
 Så här avgörs det:
 
 - **Samma kurs** är samma ämne, nivå och språk. Annan ämnesversion är samma kurs. Annat språk är en annan kurs, så spanska hindrar inte tyska på samma nivå.
-- **Timplanen** räknas med kurser på fasta rader under hela utbildningen, också år som inte har börjat. Rader med alternativa ämnen räknas inte, eftersom timplanen inte visar vilket ämne eleven läser. En fast rad anger inget språk och hindrar därför inga moderna språk.
+- **Timplanen** räknas med kurser på fasta rader under hela utbildningen, också år som inte har börjat. Rader med alternativa ämnen räknas inte, eftersom timplanen inte visar vilket ämne eleven läser. En fast rad anger inget språk och hindrar därför inga moderna språk, modersmål eller minoritetsspråk.
 - **Val** räknas från alla andra block och läsår på skolan, också om valet inte är bekräftat. Ändras valet, eller avböjer vårdnadshavare det, går kursen att välja igen.
 
 Spärren ser bara timplaner och val. Den ser inte betyg eller kurser från en tidigare skola, så den visar inte att eleven har läst kursen i verkligheten. Den känner heller inte till val i **Gamla valbara block**, och kurser i timplanens valpaket räknas inte, eftersom timplanen inte visar vilket paket eleven läser.

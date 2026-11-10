@@ -9,7 +9,7 @@ import type { ProgramplanCatalog } from '@/lib/programplan-catalog.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '@/lib/programplan-languages.ts';
 import { gyGradeLevels, type CatalogLevel } from '@/lib/catalog-levels.ts';
 import { formatTimplanMinutes, parseTimplanMinuteInput } from '@/lib/timplan-time.ts';
-import { valplanCheck, valplanClassesReading, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLinkClasses, valplanNames, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind, type ValplanRowLink } from '@/lib/valplan-model.ts';
+import { valplanCheck, valplanClassesReading, valplanClassLabel, valplanCourseReaders, valplanDiagnostics, valplanLanguageRule, valplanLinkClasses, valplanNames, valplanRowDoubled, valplanRowKey, valplanRowLink, valplanRowMissing, valplanRowStage, valplanSubjectAllowed, valplanTakesRow, valplanTimeShare, valplanWithRow, type Valplan, type ValplanCheckItem, type ValplanCourse, type ValplanDiagnostic, type ValplanKind, type ValplanRowLink } from '@/lib/valplan-model.ts';
 import { parseValplanCommand, parseValplanRead, parseValplanReply, type ValplanCommand, type ValplanRead, type ValplanRowOption } from '@/lib/valplan-contract.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { formatTime } from './tjanst-service-summary';
@@ -20,7 +20,9 @@ import './valplaner.css';
 
 const catalog = artifact as ProgramplanCatalog;
 export const VALPLAN_KIND_LABEL: Record<ValplanKind, string> = { individualChoice: 'Individuellt val', modernLanguage: 'Moderna språk', languageSubject: 'Språkämne', naturalScience: 'Naturvetenskapligt ämne', specialization: 'Programfördjupning' };
-const MODERN = new Set(['MODY', 'MODG', 'MODO', 'MODF']);
+/** A course carries a language when its ladder requires one. The school picks it unless the ladder gives it (minority languages). */
+const carriesLanguage = (subjectCode: string) => !!valplanLanguageRule(subjectCode)?.required;
+const picksLanguage = (subjectCode: string) => carriesLanguage(subjectCode) && !valplanLanguageRule(subjectCode)?.fixed;
 const SUBJECT_LIMIT: Partial<Record<ValplanKind, string>> = {
   languageSubject: 'Här finns moderna språk, engelska, klassisk grekiska och latin, enligt gymnasieförordningen.',
   naturalScience: 'Här finns biologi, bioteknik, fysik, fysik fördjupning och kemi, enligt gymnasieförordningen.',
@@ -30,7 +32,7 @@ const DIAGNOSTIC: Record<string, string> = {
   course_not_in_catalog: 'Kursen finns inte i Skolverkets katalog med de här poängen.',
   course_not_valid: 'Kursen gäller inte när läsåret börjar.',
   language_required: 'Välj språk för kursen.',
-  language_not_applicable: 'Språk anges bara för moderna språk.',
+  language_not_applicable: 'Språket passar inte kursen.',
   course_kind_mismatch: 'Ämnet är inte tillåtet i den här typen av block.',
   course_time_missing: 'Ange undervisningstid för HT eller VT.',
   course_class_not_linked: 'En vald klass ingår inte längre i blocket. Välj andra klasser eller ta bort kursen.',
@@ -145,21 +147,22 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const check = draft && data ? valplanCheck(withTime(draft, time), data.rows, data.classCourses) : null;
   const remaining = check?.items.filter(i => i.state === 'open') ?? [];
   const kind = draft?.kind;
-  const levels = useMemo(() => gyGradeLevels(catalog, `${schoolYear}-07-01`, code => !!kind && code !== 'MODE' && valplanSubjectAllowed(kind, code)), [schoolYear, kind]);
+  const levels = useMemo(() => gyGradeLevels(catalog, `${schoolYear}-07-01`, code => !!kind && valplanSubjectAllowed(kind, code)), [schoolYear, kind]);
 
   const readers = linkedClasses.map(c => c.id);
   const reading = (course: Pick<ValplanCourse, 'subjectCode' | 'itemCode' | 'languageCode'>, classIds: readonly string[] = readers) => valplanClassesReading(course, data?.classCourses ?? [], classIds);
   const readingNames = (ids: readonly string[]) => valplanNames(linkedClasses.filter(c => ids.includes(c.id)).map(c => c.name));
-  /** G6: a fixed row has no language, so a modern language is never stopped here. */
-  const readByAll = (l: CatalogLevel) => readers.length > 0 && !MODERN.has(l.subjectCode) && reading({ ...l, languageCode: null }).length === readers.length;
+  /** G6: a fixed row has no language, so a course with a language is never stopped here. */
+  const readByAll = (l: CatalogLevel) => readers.length > 0 && !carriesLanguage(l.subjectCode) && reading({ ...l, languageCode: null }).length === readers.length;
   function addCourse(level: CatalogLevel) {
     if (!draft) return;
-    const lang = MODERN.has(level.subjectCode) ? language || null : null;
-    if (MODERN.has(level.subjectCode) && !lang) { setError('Välj språk innan du lägger till en kurs i moderna språk.'); return; }
+    const fixed = valplanLanguageRule(level.subjectCode)?.fixed ?? null;
+    const lang = carriesLanguage(level.subjectCode) ? fixed ?? (language || null) : null;
+    if (carriesLanguage(level.subjectCode) && !lang) { setError('Välj språk innan du lägger till kursen.'); return; }
     // Suggest time from the first linked row; the school adjusts it. Classes that already read the course leave it, and the user is told.
     const held = reading({ ...level, languageCode: lang }), left = readers.filter(id => !held.includes(id));
     const course: ValplanCourse = { id: newId(), subjectCode: level.subjectCode, subjectVersion: level.subjectVersion, itemCode: level.itemCode, points: level.points, languageCode: lang,
-      name: `${levelLabel(level)}${lang ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, ...valplanTimeShare(level.points, linkedRows[0]), classIds: held.length ? left : null };
+      name: `${levelLabel(level)}${lang && !fixed ? `, ${programplanLanguageName(lang).toLocaleLowerCase('sv')}` : ''}`, ...valplanTimeShare(level.points, linkedRows[0]), classIds: held.length ? left : null };
     update(p => ({ ...p, courses: [...p.courses, course] }));
     setAddedNote(held.length ? `${readingNames(held)} läser redan ${course.name} och har tagits bort från kursen.` : null);
     setTime(t => ({ ...t, [course.id]: { ht: formatTimplanMinutes(course.minutesHt), vt: formatTimplanMinutes(course.minutesVt) } })); setError(null);
@@ -243,7 +246,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
   const stageOf = (r: ValplanRowOption) => valplanRowStage({ approved: true, classCount: r.classes.length, blockCount: r.blocks.length, missingCount: valplanRowMissing(r).length, doubledCount: valplanRowDoubled(r).length });
   const openClasses = (r: ValplanRowOption) => classNames(r, stageOf(r) === 'doubled' ? valplanRowDoubled(r) : valplanRowMissing(r));
   const blockMissing = (plan: Valplan) => (data?.rows ?? []).filter(r => plan.rows.some(l => valplanRowKey(l) === valplanRowKey(r))).flatMap(r => classNames(r, valplanRowMissing(r)));
-  const inBlock = (l: CatalogLevel) => !MODERN.has(l.subjectCode) && !!draft?.courses.some(c => c.subjectCode === l.subjectCode && c.itemCode === l.itemCode);
+  const inBlock = (l: CatalogLevel) => !picksLanguage(l.subjectCode) && !!draft?.courses.some(c => c.subjectCode === l.subjectCode && c.itemCode === l.itemCode);
 
   const classNamesOf = (ids: readonly string[]) => [...new Set((data?.rows ?? []).flatMap(r => classNames(r, ids)))];
   const courseNames = (ids: readonly string[]) => draft?.courses.filter(c => ids.includes(c.id)).map(c => c.name).join(', ') ?? '';
@@ -358,7 +361,7 @@ function Workspace({ unitId, schoolYear, scopeKey, initialValplanId = null, init
             })}</tbody></table></div> : <p className="valplan-muted">Inga kurser ännu. Lägg till de kurser som eleverna kan välja.</p>}
           {adding ? <div className="valplan-add">
             {SUBJECT_LIMIT[draft.kind] && <p className="valplan-muted">{SUBJECT_LIMIT[draft.kind]}</p>}
-            {levels.some(l => MODERN.has(l.subjectCode)) ? <label>Språk för moderna språk<select value={language} disabled={busy} onChange={e => setLanguage(e.target.value)}>
+            {levels.some(l => picksLanguage(l.subjectCode)) ? <label>Språk<small>För moderna språk och modersmål.</small><select value={language} disabled={busy} onChange={e => setLanguage(e.target.value)}>
               <option value="">Välj språk</option>{PROGRAMPLAN_LANGUAGES.map(l => <option key={l.code} value={l.code}>{l.name}</option>)}</select></label> : null}
             <CatalogLevelSearch levels={levels} searchLabel="Sök kurs att lägga till" listLabel="Kurser i katalogen" disabled={busy}
               unavailable={l => inBlock(l) || readByAll(l)}

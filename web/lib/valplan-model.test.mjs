@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import catalog from './programplan-catalog.generated.json' with {type:'json'};
-import {VALPLAN_KINDS,parseValplan,valplanCheck,valplanClassesReading,valplanClosestPoints,valplanCourseReaders,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
+import {VALPLAN_KINDS,parseValplan,valplanCheck,valplanClassesReading,valplanClosestPoints,valplanCourseReaders,valplanDiagnostics,valplanOffer,validateValplanChoice,valplanClassLabel,valplanLinkClasses,valplanRowDoubled,valplanRowKey,valplanRowLink,valplanRowMissing,valplanRowStage,valplanLanguageRule,valplanSubjectAllowed,valplanTakesRow,valplanTimeShare,valplanWithRow} from './valplan-model.ts';
 
 const unit='56000000-0000-4000-8000-000000000001',vp='56000000-0000-4000-8000-000000000002',other='56000000-0000-4000-8000-000000000003';
 const tA='56000000-0000-4000-8000-000000000010',tB='56000000-0000-4000-8000-000000000011';
@@ -43,6 +43,19 @@ test('catalog, validity, language and duplicate rules block saving errors',()=>{
   assert.ok(codes(valplanDiagnostics(parseValplan(ended),rows(),catalog),'error').includes('course_not_valid'));
   const lang=plan();lang.kind='modernLanguage';
   assert.ok(codes(valplanDiagnostics(parseValplan(lang),rows(),catalog),'error').includes('course_kind_mismatch'));
+});
+
+test('the language ladders decide the language: modersmål and modern languages pick one, teckenspråk has none, a minority language has its own',()=>{
+  assert.deepEqual([valplanLanguageRule('MODE'),valplanLanguageRule('MODO'),valplanLanguageRule('SVEY'),valplanLanguageRule('FINX'),valplanLanguageRule('PSYL')],
+    [{required:true,fixed:null},{required:true,fixed:null},{required:false,fixed:null},{required:true,fixed:'fi'},null]);
+  const subjects=['MODY','MODE','SVEY','SVEF','FINX','SAMW','ENGE','PSYL'];
+  assert.deepEqual(subjects.filter(code=>valplanSubjectAllowed('modernLanguage',code)),['MODY','MODE','SVEY','SVEF','FINX','SAMW']);
+  assert.deepEqual(subjects.filter(code=>valplanSubjectAllowed('languageSubject',code)),['MODY','ENGE'],'språkämne keeps 4 kap. 1 a §');
+  const row=rows().map(r=>({...r,blockKind:'modernLanguage'}));
+  const errors=courses=>codes(valplanDiagnostics(parseValplan({...plan(),kind:'modernLanguage',courses}),row,catalog),'error');
+  assert.deepEqual(errors([course(1,'MODE','MODE1000X',100,{languageCode:'ar'}),course(2,'MODE','MODE1000X',100,{languageCode:'so'}),course(3,'SVEY','SVEY1000X',100),course(4,'FINX','FINX1000X',100,{languageCode:'fi'})]),[],'two languages of modersmål are two courses');
+  for(const [c,code] of [[course(1,'MODE','MODE1000X',100),'language_required'],[course(1,'SVEY','SVEY1000X',100,{languageCode:'fr'}),'language_not_applicable'],
+    [course(1,'FINX','FINX1000X',100,{languageCode:'se'}),'language_not_applicable'],[course(1,'FINX','FINX1000X',100),'language_required']])assert.ok(errors([c]).includes(code),code);
 });
 
 test('all five block kinds parse, and språkämne and naturvetenskapligt ämne keep to 4 kap. 1 a §',()=>{

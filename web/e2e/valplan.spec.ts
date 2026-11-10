@@ -174,7 +174,7 @@ test('från raden utan block av samma typ öppnas utkastet direkt med allt ifyll
   await expect(page.getByRole('combobox', { name: 'Typ' })).toHaveCount(0);
   await expect(page.getByText('Lägg till minst en kurs innan du sparar.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Spara valbart block' })).toBeDisabled();
-  await page.getByLabel('Språk för moderna språk').selectOption('es');
+  await page.getByRole('combobox', { name: /^Språk/ }).selectOption('es');
   await page.getByLabel('Sök kurs att lägga till').fill('MODO1000X');
   await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button').first().click();
   await expect(page.getByText('Elevvalet öppnas från ett sparat block.')).toBeVisible();
@@ -183,6 +183,20 @@ test('från raden utan block av samma typ öppnas utkastet direkt med allt ifyll
   expect(m.writes[0].valplan.kind).toBe('modernLanguage');
   await expect(page.getByRole('button', { name: 'Elevval' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Spara valbart block' })).toHaveCount(0);
+});
+
+test('moderna språk tar modersmål, teckenspråk och minoritetsspråk med rätt språk', async ({ page }) => {
+  const m = await mock(page); await page.goto(`${URL}?row=${id(14)}|block:mosp|2`);
+  const language = page.getByRole('combobox', { name: /^Språk/ }), search = page.getByLabel('Sök kurs att lägga till');
+  const pick = async (code: string) => { await search.fill(code); await page.getByRole('list', { name: 'Kurser i katalogen' }).getByRole('button', { name: new RegExp(code) }).click(); };
+  await pick('MODE1000X');
+  await expect(page.getByText('Välj språk innan du lägger till kursen.')).toBeVisible();
+  await language.selectOption('ar'); await pick('MODE1000X');
+  await language.selectOption('so'); await pick('MODE1000X');
+  await language.selectOption(''); await pick('SVEY1000X'); await pick('FINX1000X');
+  await page.getByRole('button', { name: 'Spara valbart block' }).click();
+  await expect(page.getByText('Blocket är sparat.')).toBeVisible();
+  expect(m.writes[0].valplan.courses.map(c => [c.subjectCode, c.languageCode])).toEqual([['MODE', 'ar'], ['MODE', 'so'], ['SVEY', null], ['FINX', 'fi']]);
 });
 
 test('finns ett block av samma typ väljer användaren mellan det och ett nytt', async ({ page }) => {
@@ -218,11 +232,12 @@ test('språkämne och naturvetenskapligt ämne visar bara tillåtna ämnen', asy
   await page.getByRole('button', { name: /Skapa valbart block för .* Språkämne/ }).click();
   await expect(page.getByLabel('Namn', { exact: true })).toHaveValue('Språkämne 2027/28');
   await expect(page.getByText('Här finns moderna språk, engelska, klassisk grekiska och latin')).toBeVisible();
-  await expect(page.getByLabel('Språk för moderna språk')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: /^Språk/ })).toBeVisible();
   await search.fill('LATI2000X'); await expect(page.getByRole('button', { name: /LATI2000X/ })).toBeVisible();
   await search.fill('PSYL1000X'); await expect(page.getByRole('button', { name: /PSYL1000X/ })).toHaveCount(0);
+  await search.fill('MODE1000X'); await expect(page.getByRole('button', { name: /MODE1000X/ })).toHaveCount(0);
   await page.getByRole('button', { name: /Skapa valbart block för .* Naturvetenskapligt ämne/ }).click();
-  await expect(page.getByLabel('Språk för moderna språk')).toHaveCount(0);
+  await expect(page.getByRole('combobox', { name: /^Språk/ })).toHaveCount(0);
   await search.fill('KEMI2000X'); await expect(page.getByRole('button', { name: /KEMI2000X/ })).toBeVisible();
   await search.fill('ENGE3000X'); await expect(page.getByRole('button', { name: /ENGE3000X/ })).toHaveCount(0);
 });
