@@ -1,7 +1,9 @@
+import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import {
   LASAR_REASONS, LasarContractError, parseLasarCommandReply, parseLasarDecisionReply, parseLasarDecisionRequest, parseLasarEnvelope,
-  parseLasarReadReply, parseLasarReadRequest, verifyLasarCommandHash,
-  type LasarCommandRequest, type LasarDecisionRequest, type LasarReadReply, type LasarReadRequest, type LasarReason,
+  parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
+  type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarReadReply, type LasarReadRequest, type LasarReason,
+  type LasarStatusRequest,
 } from '../lasar-contract.ts';
 import { proposeSchoolYear } from '../lasar-model.ts';
 import { LASAR_RULE_CODES } from '../lasar-rule-codes.ts';
@@ -121,8 +123,14 @@ export async function lasarRequest<T>(request: Request, parse: (value: unknown) 
   }
 }
 export const parseLasarReadInput = (value: unknown): LasarReadRequest => parseLasarReadRequest(value);
-/** Kommandot med kontrollerad payloadHash. Beslut har en egen rutt med engångskod. */
-export const parseLasarCommandInput = (value: unknown): Promise<LasarCommandRequest> => verifyLasarCommandHash(value);
+/** Kommandot med kontrollerad payloadHash. Beslut har en egen rutt med engångskod. En tom kommentar ger lasar_text_required. */
+export const parseLasarCommandInput = (value: unknown): Promise<LasarCommandRequest> => {
+  const ops: unknown = value !== null && typeof value === 'object' ? (value as { ops?: unknown }).ops : undefined;
+  const first: unknown = Array.isArray(ops) && ops.length === 1 ? ops[0] : undefined;
+  if (first !== null && typeof first === 'object' && (first as { op?: unknown }).op === 'comment' && (first as { text?: unknown }).text === '')
+    throw new LasarContractError('lasar_text_required');
+  return verifyLasarCommandHash(value);
+};
 export const parseLasarDecisionInput = (value: unknown): LasarDecisionRequest => parseLasarDecisionRequest(value);
 
 async function readRaw(tx: Tx, input: LasarReadRequest, authority: LasarAuthority): Promise<LasarReadReply> {
@@ -138,15 +146,16 @@ export async function lasarRead(tx: Tx, input: LasarReadRequest, authority: Lasa
 }
 
 /**
- * Utkastarbete. Vid create med källan proposal räknar servern fram innehållet med proposeSchoolYear (D-03) för
- * skolformerna i serverns egen läsning; klienten kan inte skicka innehållet. SQL prövar det igen.
+ * Utkastarbete. Vid create med källan proposal och vid reset_to_proposal räknar servern fram innehållet med
+ * proposeSchoolYear (D-03) för skolformerna i serverns egen läsning; klienten kan inte skicka innehållet. SQL prövar det igen.
  */
 export async function lasarCommand(tx: Tx, input: LasarCommandRequest, authority: LasarAuthority) {
   role(authority, LASAR_FUNCTIONS);
   let sent: LasarCommandRequest & { proposal?: unknown } = input;
   const first = input.ops[0];
-  if (first?.op === 'create' && first.source === 'proposal' && input.target.kind === 'school') {
-    const current = await readRaw(tx, { target: input.target, schoolYear: input.schoolYear, versionId: null }, authority);
+  const creating = first?.op === 'create' && first.source === 'proposal';
+  if ((creating || first?.op === 'reset_to_proposal') && input.target.kind === 'school') {
+    const current = await readRaw(tx, { target: input.target, schoolYear: input.schoolYear, versionId: creating ? null : input.versionId }, authority);
     const proposal = proposeSchoolYear(input.schoolYear, input.target.unitId, current.schoolTypes);
     sent = { ...input, proposal: { terms: { ht: proposal.ht, vt: proposal.vt }, exceptions: proposal.exceptions } };
   }
@@ -167,6 +176,40 @@ export async function lasarDecision(tx: Tx, input: LasarDecisionRequest, authori
     const body = parseLasarDecisionReply(envelope(raw, authority), input);
     readActor(body.detail, authority);
     return { body, event: { action: 'lasar_decision', objectType: 'school_year', objectId: body.detail.calendar?.versionId ?? null,
+      details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
+  } catch { throw new AuditUnavailable(); }
+}
+
+/** Statusbegäran: kontraktets mål och läsår samt kommando-id:t vars svar uteblev (05.1.1-07). */
+export type LasarCommandStatusRequest = LasarStatusRequest & { commandId: string };
+export type LasarCommandStatusReply = { state: 'completed'; result: LasarCommandReply } | { state: 'not_found'; result: null };
+export function parseLasarStatusInput(value: unknown): LasarCommandStatusRequest {
+  if (value === null || typeof value !== 'object' || Array.isArray(value) || !Object.hasOwn(value, 'commandId')) throw new LasarContractError();
+  const { commandId, ...rest } = value as Record<string, unknown>;
+  let id: string;
+  try { id = gymUuid(commandId); } catch { throw new LasarContractError(); }
+  return { commandId: id, ...parseLasarStatusRequest(rest) };
+}
+/** Utfallet ur journalen: samma kommando, mål och läsår, återspelat kvitto och kalenderns revision lika med kvittots. */
+function parseStatusReply(value: unknown, request: LasarCommandStatusRequest): LasarCommandStatusReply {
+  const r = gymShape(value, ['state', 'result']);
+  if (r.state === 'not_found') { if (r.result !== null) invalid(); return { state: 'not_found', result: null }; }
+  if (r.state !== 'completed') invalid();
+  const c = gymShape(r.result, ['receipt', 'detail']), k = gymShape(c.receipt, ['commandId', 'revision', 'replayed']);
+  const receipt = { commandId: gymUuid(k.commandId), revision: gymInteger(k.revision), replayed: gymBoolean(k.replayed) };
+  const detail = parseLasarReadReply(c.detail, { target: request.target, schoolYear: request.schoolYear });
+  if (receipt.commandId !== request.commandId.toLowerCase() || !receipt.replayed || !detail.calendar || detail.calendar.revision !== receipt.revision) invalid();
+  return { state: 'completed', result: { receipt, detail } };
+}
+
+/** Statusvägen efter ett uteblivet svar: läser journalens utfall för sessionens eget kommando-id och utför inget igen. */
+export async function lasarStatus(tx: Tx, input: LasarCommandStatusRequest, authority: LasarAuthority) {
+  role(authority, LASAR_FUNCTIONS);
+  const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_status(${json(tx, input)}) as result`));
+  try {
+    const body = parseStatusReply(envelope(raw, authority), input);
+    if (body.result) readActor(body.result.detail, authority);
+    return { body, event: { action: 'lasar_status', objectType: 'school_year', objectId: body.result?.detail.calendar?.versionId ?? null,
       details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
 }

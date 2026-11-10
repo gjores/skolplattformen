@@ -1,5 +1,8 @@
 -- 05.1.1-06: läsårskalenderns versioner (D-10), gällande version för alla läsare (D-19, Pitfall 3, 4 och 6) och
 -- tracerns skyddade ingångar lasar_read/lasar_command (rektor föreslår, huvudmannen fastställer).
+-- 05.1.1-07: hela utkast- och beslutsflödet för skolans version (set_term, set_notes, comment, reset_to_proposal,
+-- withdraw, return) med mandat per åtgärd (D-18), historik med verifierad aktör (A-16), statusvägen lasar_status
+-- och fullständiga regler med paritet mot lasar-model.ts (LASAR-03). Filen var inte installerad när den byggdes ut.
 --
 -- En rad i school_years är från och med denna migration en version av skolenhetens kalender för ett läsår.
 -- Versionerna ligger på plats: barntabellernas nycklar (school_year_id) behålls och ingen rad nycklas om.
@@ -72,6 +75,42 @@ begin
   end if;
   return coalesce(new, old);
 end $$;
+
+-- Historikrader med verifierad aktör (A-16). Kolumnerna är tillägg; äldre rader behåller alla sina värden.
+-- Kalenderns rader (action lasar_*) skrivs bara av de skyddade ingångarna; aktören härleds ur den låsta sessionen
+-- och uppdraget, aldrig ur begäran. Samma mönster som timplanens gymnasiehistorik (20261005110000).
+alter table public.school_year_events
+  add column actor_identity_id uuid references public.identities (id),
+  add column session_id uuid references public.app_sessions (id),
+  add column membership_id uuid references public.memberships (id),
+  add column assignment_id uuid references public.access_assignments (id);
+create policy school_year_events_lasar_rpc_only on public.school_year_events as restrictive for all to public
+  using (actor_identity_id is null and session_id is null and membership_id is null and assignment_id is null)
+  with check (actor_identity_id is null and session_id is null and membership_id is null and assignment_id is null);
+
+create function public.lasar_event_actor() returns trigger
+language plpgsql security definer set search_path = pg_catalog, public as $$
+declare a public.access_assignments; s public.app_sessions;
+begin
+  if new.action like 'lasar\_%' then
+    a := public.phase3_actor(); s := public.phase5_programplan_session_check();
+    if a.function not in ('huvudman', 'rektor', 'administrator') then
+      raise exception 'Läsårskalenderns historik nekas.' using errcode = '42501';
+    end if;
+    new.actor := null; new.actor_role := a.function::text::public.app_role;
+    new.actor_identity_id := s.identity_id; new.session_id := s.id; new.membership_id := a.membership_id; new.assignment_id := a.id;
+  else
+    -- Äldre väg oförändrad (set_event_actor), men utan kalenderns aktörsfält.
+    if new.actor_identity_id is not null or new.session_id is not null or new.membership_id is not null or new.assignment_id is not null
+       or public.current_actor_auth_user_id() is null or public.current_app_role() is null then
+      raise exception 'Händelse utan serverkontext (aktör/roll saknas)' using errcode = '42501';
+    end if;
+    new.actor := public.current_actor_auth_user_id(); new.actor_role := public.current_app_role();
+  end if;
+  return new;
+end $$;
+drop trigger school_year_events_actor on public.school_year_events;
+create trigger school_year_events_actor before insert on public.school_year_events for each row execute function public.lasar_event_actor();
 
 -- ---------------------------------------------------------------------------
 -- 2. Accessor, skoldagar och kontrollsumma
@@ -362,7 +401,7 @@ create function public.lasar_audit(operation text, object_type text, object_id u
 language plpgsql volatile security definer set search_path = pg_catalog, public as $$
 declare a public.access_assignments; s public.app_sessions; i public.identities;
 begin
-  if operation is null or operation not in ('lasar_read', 'lasar_command', 'lasar_decision')
+  if operation is null or operation not in ('lasar_read', 'lasar_command', 'lasar_decision', 'lasar_status')
      or object_type is distinct from 'school_year' or not coalesce(public.tjanst_audit_details(details), false) then
     raise exception 'Ogiltig logg för läsårskalendern.' using errcode = '22023', hint = 'lasar_invalid';
   end if;
@@ -417,8 +456,51 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- 8. Läsningens svar (kontraktet lasar_sql_v1)
+-- 8. Historik (A-16) och läsningens svar (kontraktet lasar_sql_v1)
 -- ---------------------------------------------------------------------------
+-- Visningsnamnet ur den verifierade identiteten, rensat så att kontraktets texttolk tar det (inga styr- eller
+-- formattecken, inga omgivande blanktecken, högst 200 tecken).
+create function public.lasar_display_name(name text) returns text
+language sql immutable set search_path = pg_catalog, public as $$
+  select coalesce(nullif(regexp_replace(left(regexp_replace(regexp_replace(coalesce(name, ''),
+    '[[:cntrl:]\u00ad\u0600-\u0605\u061c\u06dd\u070f\u180e\u200b-\u200f\u202a-\u202e\u2060-\u2064\u2066-\u206f\ufeff\ufff9-\ufffb]', '', 'g'),
+    '^[[:space:]\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+', ''), 200),
+    '[[:space:]\u00a0\u1680\u2000-\u200a\u2028\u2029\u202f\u205f\u3000]+$', ''), ''), 'Namn saknas')
+$$;
+
+-- Historikraden skrivs av ingångarna; aktören sätts av triggern lasar_event_actor ur sessionen.
+create function public.lasar_history_add(version_id uuid, action text, comment text) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+begin
+  if action not in ('create', 'reset_to_proposal', 'comment', 'submit', 'withdraw', 'return', 'approve') then
+    raise exception 'Ogiltig historik för läsårskalendern.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  insert into public.school_year_events (school_year_id, actor_role, action, comment, created_at)
+  values (version_id, 'rektor', 'lasar_' || action, comment, clock_timestamp());
+end $$;
+
+-- Skolans historik för läsåret till och med vald version, nyast först. Bara kalenderns rader med verifierad aktör
+-- visas; äldre rader utan identitet hör till exempelläget. Rollen administrator heter skoladministrator i kontraktet.
+create function public.lasar_history(y public.school_years) returns jsonb
+language sql stable security definer set search_path = pg_catalog, public as $$
+  select coalesce(jsonb_agg(h.entry order by h.at desc, h.id desc), '[]'::jsonb) from (
+    select e.id, e.created_at at, jsonb_build_object('id', e.id,
+      'role', case e.actor_role when 'administrator' then 'skoladministrator' else e.actor_role::text end,
+      'actorName', public.lasar_display_name(i.display_name),
+      'at', to_char(e.created_at at time zone 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"'),
+      'action', case e.action when 'lasar_create' then 'Förslag skapat' when 'lasar_reset_to_proposal' then 'Förslag återställt'
+        when 'lasar_comment' then 'Kommentar' when 'lasar_submit' then 'Förslag skickat' when 'lasar_withdraw' then 'Förslag återtaget'
+        when 'lasar_return' then 'Återsänd för ändring' when 'lasar_approve' then 'Fastställd' end,
+      'comment', e.comment, 'version', v.version) entry
+    from public.school_year_events e
+    join public.school_years v on v.id = e.school_year_id
+    left join public.identities i on i.id = e.actor_identity_id
+    where v.unit_id = y.unit_id and v.start_year = y.start_year and v.organizer_id = y.organizer_id and v.version <= y.version
+      and e.actor_identity_id is not null and e.actor_role in ('huvudman', 'rektor', 'administrator')
+      and e.action in ('lasar_create', 'lasar_reset_to_proposal', 'lasar_comment', 'lasar_submit', 'lasar_withdraw', 'lasar_return', 'lasar_approve')
+    order by e.created_at desc, e.id desc limit 500) h
+$$;
+
 -- Gruppnycklar som inte är stabila grupp-ID (lasar-groups.ts) visas inte; de förs över i plan 08 (LASAR-04).
 create function public.lasar_calendar_json(y public.school_years) returns jsonb
 language sql stable security definer set search_path = pg_catalog, public as $$
@@ -435,7 +517,7 @@ language sql stable security definer set search_path = pg_catalog, public as $$
       from public.school_year_short_weeks w where w.school_year_id = y.id
        and w.group_key ~ '^(arskurs:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}:(ar[1-3]|ak[1-9]|vecka)|klass:[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$'), '{}'::jsonb),
     'frameVersionId', null, 'contentHash', coalesce(y.content_hash, public.lasar_content_hash(y.id)), 'decidedOn', y.decided_on,
-    'history', '[]'::jsonb)
+    'history', public.lasar_history(y))
 $$;
 
 -- Hela läsningen för en skola, ett läsår och vald (eller förvald) version. Förmågorna följer aktörens funktion
@@ -443,7 +525,7 @@ $$;
 create function public.lasar_detail(a public.access_assignments, unit uuid, year integer, version_id uuid) returns jsonb
 language plpgsql stable security definer set search_path = pg_catalog, public as $$
 declare v_unit public.school_units; v_year public.school_years; v_versions jsonb; v_types jsonb; v_school boolean := a.function in ('rektor', 'administrator');
-  v_open boolean; v_caps jsonb;
+  v_open boolean; v_sent boolean; v_caps jsonb;
 begin
   select * into v_unit from public.school_units u where u.id = unit;
   if version_id is not null then
@@ -460,10 +542,11 @@ begin
   select coalesce(jsonb_agg(t.school_type order by t.school_type collate "C"), '[]') into v_types
     from (select distinct x.school_type from public.school_unit_types x where x.unit_id = unit and x.school_type ~ '^[A-Z]{2,6}$' order by 1 limit 10) t;
   v_open := v_year.id is not null and v_year.status in ('utkast', 'atersand') and v_year.superseded_by is null;
-  v_caps := jsonb_build_object('canEdit', v_school and v_open, 'canSubmit', v_school and v_open, 'canWithdraw', false, 'canRequestChange', false,
-    'canWithdrawRequest', false, 'canReturn', false,
-    'canApprove', coalesce(a.function = 'huvudman' and v_year.status = 'forslag' and v_year.superseded_by is null, false),
-    'canReopen', false, 'canDecline', false, 'canComment', false,
+  v_sent := v_year.id is not null and v_year.status = 'forslag' and v_year.superseded_by is null;
+  -- D-18: rektor och skoladministratör arbetar i utkastet, skickar och tar tillbaka; huvudmannen återsänder och fastställer.
+  v_caps := jsonb_build_object('canEdit', v_school and v_open, 'canSubmit', v_school and v_open, 'canWithdraw', v_school and v_sent, 'canRequestChange', false,
+    'canWithdrawRequest', false, 'canReturn', a.function = 'huvudman' and v_sent, 'canApprove', a.function = 'huvudman' and v_sent,
+    'canReopen', false, 'canDecline', false, 'canComment', v_year.id is not null and v_year.superseded_by is null,
     'canCreate', case when v_school and jsonb_array_length(v_versions) = 0 then '["proposal"]'::jsonb else '[]'::jsonb end,
     'canPublishFrame', false, 'canSetMode', false);
   return jsonb_build_object('contractVersion', 'lasar_sql_v1', 'target', jsonb_build_object('kind', 'school', 'unitId', unit), 'schoolYear', year,
@@ -477,11 +560,31 @@ end $$;
 -- ---------------------------------------------------------------------------
 -- 9. Skrivningar i en öppen version
 -- ---------------------------------------------------------------------------
+-- Förslagets lov- och studiedagar: varje dag ska vara en ändringsbar vardag i versionens terminer.
+create function public.lasar_proposal_days(y public.school_years, exceptions jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare v_day record; v_date date; v_kind text; v_note text;
+begin
+  if jsonb_typeof(exceptions) is distinct from 'object' or (select count(*) from jsonb_object_keys(exceptions)) > 400 then
+    raise exception 'Ogiltigt förslag.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  for v_day in select e.key, e.value from jsonb_each(exceptions) e loop
+    v_date := public.lasar_date(to_jsonb(v_day.key));
+    perform public.lasar_shape(v_day.value, array['kind'], array['note']);
+    v_kind := v_day.value ->> 'kind';
+    if jsonb_typeof(v_day.value -> 'kind') <> 'string' or v_kind not in ('lovdag', 'studiedag') or not public.lasar_day_editable(y, v_date) then
+      raise exception 'Ogiltig dag i förslaget.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    v_note := case when v_day.value ? 'note' then public.lasar_text(v_day.value -> 'note', 200, false) end;
+    insert into public.school_year_days (school_year_id, day, kind, note) values (y.id, v_date, v_kind::public.school_day_kind, v_note);
+  end loop;
+end $$;
+
 -- Förslaget räknas fram i servern med proposeSchoolYear (D-03) och prövas här: datum, terminer och att varje
 -- lov- eller studiedag är en ändringsbar vardag. Versionen börjar som utkast med revision 1.
 create function public.lasar_create_proposal(a public.access_assignments, unit uuid, year integer, proposal jsonb) returns public.school_years
 language plpgsql volatile security definer set search_path = pg_catalog, public as $$
-declare v_year public.school_years; v_terms jsonb; v_day record; v_date date; v_kind text; v_note text;
+declare v_year public.school_years; v_terms jsonb;
 begin
   perform public.lasar_shape(proposal, array['terms', 'exceptions']);
   v_terms := public.lasar_shape(proposal -> 'terms', array['ht', 'vt']);
@@ -498,16 +601,7 @@ begin
     when check_violation then raise exception 'Ogiltiga terminer.' using errcode = '22023', hint = 'lasar_invalid';
     when unique_violation then raise exception 'Kalendern finns redan.' using errcode = '40001', hint = 'lasar_revision_conflict';
   end;
-  for v_day in select e.key, e.value from jsonb_each(proposal -> 'exceptions') e loop
-    v_date := public.lasar_date(to_jsonb(v_day.key));
-    perform public.lasar_shape(v_day.value, array['kind'], array['note']);
-    v_kind := v_day.value ->> 'kind';
-    if jsonb_typeof(v_day.value -> 'kind') <> 'string' or v_kind not in ('lovdag', 'studiedag') or not public.lasar_day_editable(v_year, v_date) then
-      raise exception 'Ogiltig dag i förslaget.' using errcode = '22023', hint = 'lasar_invalid';
-    end if;
-    v_note := case when v_day.value ? 'note' then public.lasar_text(v_day.value -> 'note', 200, false) end;
-    insert into public.school_year_days (school_year_id, day, kind, note) values (v_year.id, v_date, v_kind::public.school_day_kind, v_note);
-  end loop;
+  perform public.lasar_proposal_days(v_year, proposal -> 'exceptions');
   return v_year;
 end $$;
 
@@ -536,6 +630,73 @@ begin
       on conflict (school_year_id, day) do update set kind = excluded.kind, note = excluded.note;
     end if;
   end loop;
+end $$;
+
+-- set_notes: samma anteckning på markerade lov- och studiedagar; utan note tas anteckningen bort (setNotes).
+-- Skoldagar hoppas över; nekas om ingen markerad dag har ett undantag.
+create function public.lasar_set_notes(y public.school_years, op jsonb) returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare v_note text; v_date date; v_prev date; v_item record; v_changed integer := 0; n integer;
+begin
+  perform public.lasar_shape(op, array['op', 'dates'], array['note']);
+  if jsonb_typeof(op -> 'dates') <> 'array' or jsonb_array_length(op -> 'dates') not between 1 and 400 then
+    raise exception 'Ogiltig anteckning.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_note := case when op ? 'note' then public.lasar_text(op -> 'note', 200, false) end;
+  for v_item in select e.value from jsonb_array_elements(op -> 'dates') with ordinality e(value, n) order by e.n loop
+    v_date := public.lasar_date(v_item.value);
+    if v_prev is not null and v_date <= v_prev then raise exception 'Ogiltig anteckning.' using errcode = '22023', hint = 'lasar_invalid'; end if;
+    v_prev := v_date;
+    update public.school_year_days d set note = v_note where d.school_year_id = y.id and d.day = v_date and public.lasar_day_editable(y, v_date);
+    get diagnostics n = row_count; v_changed := v_changed + n;
+  end loop;
+  if v_changed = 0 then raise exception 'Bara lov- och studiedagar har anteckning.' using errcode = '22023', hint = 'lasar_invalid'; end if;
+end $$;
+
+-- set_term: en terminskant. Ordning som i setTerm (fel ordning ger regelkoden term_order) och läsårets två kalenderår.
+-- Lov, studiedagar och gruppdagar som inte längre är ändringsbara dagar faller bort, som i modellen.
+create function public.lasar_set_term(y public.school_years, op jsonb) returns public.school_years
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare v_term text; v_edge text; v_date date; v_ht_start date := y.ht_start; v_ht_end date := y.ht_end; v_vt_start date := y.vt_start; v_vt_end date := y.vt_end;
+begin
+  perform public.lasar_shape(op, array['op', 'term', 'edge', 'date']);
+  v_term := op ->> 'term'; v_edge := op ->> 'edge';
+  if jsonb_typeof(op -> 'term') <> 'string' or jsonb_typeof(op -> 'edge') <> 'string' or v_term not in ('ht', 'vt') or v_edge not in ('start', 'end') then
+    raise exception 'Ogiltig terminsändring.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  v_date := public.lasar_date(op -> 'date');
+  if v_term = 'ht' and v_edge = 'start' then v_ht_start := v_date; elsif v_term = 'ht' then v_ht_end := v_date;
+  elsif v_edge = 'start' then v_vt_start := v_date; else v_vt_end := v_date; end if;
+  if not (v_ht_start < v_ht_end and v_ht_end < v_vt_start and v_vt_start < v_vt_end) then
+    raise exception 'Kalendern uppfyller inte förordningarna.' using errcode = '40001', hint = 'lasar_rules_failed', detail = '["term_order"]';
+  end if;
+  if extract(year from v_ht_start) <> y.start_year or extract(year from v_vt_end) <> y.start_year + 1 then
+    raise exception 'Läsåret ligger utanför sina kalenderår.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  update public.school_years x set ht_start = v_ht_start, ht_end = v_ht_end, vt_start = v_vt_start, vt_end = v_vt_end where x.id = y.id returning * into y;
+  delete from public.school_year_days d where d.school_year_id = y.id and not public.lasar_day_editable(y, d.day);
+  delete from public.school_year_group_days g where g.school_year_id = y.id and not public.lasar_day_editable(y, g.day);
+  return y;
+end $$;
+
+-- reset_to_proposal: terminer och lov- och studiedagar enligt serverns förslag (proposeSchoolYear, D-03);
+-- gruppdagar och korta veckor ligger kvar, som i resetToProposal.
+create function public.lasar_reset_proposal(y public.school_years, proposal jsonb) returns public.school_years
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare v_terms jsonb;
+begin
+  perform public.lasar_shape(proposal, array['terms', 'exceptions']);
+  v_terms := public.lasar_shape(proposal -> 'terms', array['ht', 'vt']);
+  perform public.lasar_shape(v_terms -> 'ht', array['start', 'end']); perform public.lasar_shape(v_terms -> 'vt', array['start', 'end']);
+  delete from public.school_year_days d where d.school_year_id = y.id;
+  begin
+    update public.school_years x set ht_start = public.lasar_date(v_terms #> '{ht,start}'), ht_end = public.lasar_date(v_terms #> '{ht,end}'),
+      vt_start = public.lasar_date(v_terms #> '{vt,start}'), vt_end = public.lasar_date(v_terms #> '{vt,end}')
+     where x.id = y.id returning * into y;
+  exception when check_violation then raise exception 'Ogiltiga terminer.' using errcode = '22023', hint = 'lasar_invalid';
+  end;
+  perform public.lasar_proposal_days(y, proposal -> 'exceptions');
+  return y;
 end $$;
 
 -- Låser versionen för ändring och kontrollerar mål, huvudman och revision.
@@ -574,7 +735,8 @@ end $$;
 
 -- Kommandon (kontraktets ops) och beslut (action) i samma journal. Ordning: aktör, storlek, tolkning, skolenhet,
 -- lås på kommando-id, exakt återspelning, payload-hash, behörighet per åtgärd, status, revision, skrivning,
--- kvitto, journal och logg. Tracerns åtgärder: create (källan proposal), set_days, submit och approve.
+-- kvitto, journal, historik och logg. Åtgärder i denna version: create (källan proposal), set_days, set_notes, set_term,
+-- reset_to_proposal och comment samt besluten submit, withdraw, return och approve. Övriga ger lasar_unsupported.
 create function public.lasar_command(input jsonb) returns jsonb
 language plpgsql volatile security definer set search_path = pg_catalog, public as $$
 declare a public.access_assignments; s public.app_sessions; q jsonb; v_kind text; v_action text; v_request uuid; v_unit uuid; v_year integer;
@@ -643,23 +805,28 @@ begin
     if (v_action = 'create') <> (v_version is null) or (v_action = 'create') <> (v_expected is null) then
       raise exception 'Bara create saknar version.' using errcode = '22023', hint = 'lasar_invalid';
     end if;
-    -- Utkastarbetet är skolans: rektor och skoladministratör (D-18). Huvudmannen ändrar inte skolans dagar.
-    if a.function not in ('rektor', 'administrator') then
+    -- Förslagets innehåll räknas fram i servern och hör bara till create och reset_to_proposal.
+    if (input ? 'proposal') <> (v_action in ('create', 'reset_to_proposal')) then
+      raise exception 'Förslaget hör bara till create och reset_to_proposal.' using errcode = '22023', hint = 'lasar_invalid';
+    end if;
+    -- Utkastarbetet är skolans: rektor och skoladministratör (D-18). Huvudmannen kommenterar men ändrar inte skolans kalender.
+    if a.function not in ('rektor', 'administrator') and v_action <> 'comment' then
       raise exception 'Läsårskalendern nekas.' using errcode = '42501';
     end if;
     if v_action = 'create' then
       perform public.lasar_shape(input #> '{ops,0}', array['op', 'source']);
-      if input #>> '{ops,0,source}' is distinct from 'proposal' or not (input ? 'proposal') then
+      if input #>> '{ops,0,source}' is distinct from 'proposal' then
         raise exception 'Bara förslaget finns i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
       end if;
       if exists (select 1 from public.school_years x where x.unit_id = v_unit and x.start_year = v_year) then
         raise exception 'Kalendern finns redan.' using errcode = '40001', hint = 'lasar_revision_conflict';
       end if;
       y := public.lasar_create_proposal(a, v_unit, v_year, input -> 'proposal');
+      perform public.lasar_history_add(y.id, 'create', 'Terminer, helgdagar och vanliga lov föreslagna. Studiedagar läggs ut av rektorn.');
     else
-      if input ? 'proposal' then raise exception 'Förslaget hör bara till create.' using errcode = '22023', hint = 'lasar_invalid'; end if;
       y := public.lasar_lock_version(a, v_unit, v_year, v_version);
-      if y.status not in ('utkast', 'atersand') or y.superseded_by is not null then
+      -- En kommentar går att skriva på varje version som inte är ersatt; allt annat bara i ett öppet utkast.
+      if y.superseded_by is not null or (v_action <> 'comment' and y.status not in ('utkast', 'atersand')) then
         raise exception 'Kalendern är låst.' using errcode = '40001', hint = 'lasar_locked_status';
       end if;
       if y.revision <> v_expected then
@@ -668,33 +835,52 @@ begin
       for v_op in select o.value from jsonb_array_elements(input -> 'ops') with ordinality o(value, n) order by o.n loop
         case v_op ->> 'op'
           when 'set_days' then perform public.lasar_set_days(y, v_op);
+          when 'set_notes' then perform public.lasar_set_notes(y, v_op);
+          when 'set_term' then y := public.lasar_set_term(y, v_op);
+          when 'reset_to_proposal' then
+            perform public.lasar_shape(v_op, array['op']);
+            y := public.lasar_reset_proposal(y, input -> 'proposal');
+            perform public.lasar_history_add(y.id, 'reset_to_proposal', 'Terminer och lov enligt förslaget utifrån helgdagarna.');
+          when 'comment' then
+            perform public.lasar_shape(v_op, array['op', 'text']);
+            v_text := public.lasar_text(v_op -> 'text', 4000, true, true);
+            if v_text = '' then raise exception 'Text krävs.' using errcode = '22023', hint = 'lasar_text_required'; end if;
+            perform public.lasar_history_add(y.id, 'comment', v_text);
           else raise exception 'Åtgärden finns inte i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
         end case;
       end loop;
       update public.school_years x set revision = x.revision + 1 where x.id = y.id returning * into y;
     end if;
   else
-    if v_action not in ('submit', 'approve') then
-      raise exception 'Beslutet finns inte i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
-    end if;
     if v_version is null or v_expected is null or input -> 'mode' <> 'null'::jsonb or jsonb_array_length(input -> 'confirmAffected') <> 0 then
       raise exception 'Ogiltigt beslut.' using errcode = '22023', hint = 'lasar_invalid';
     end if;
-    if v_text = '' then raise exception 'Text krävs.' using errcode = '22023', hint = 'lasar_text_required'; end if;
-    -- Rektor och skoladministratör skickar (D-18); bara huvudmannen fastställer (T-05.1.1-14).
-    if (v_action = 'submit' and a.function not in ('rektor', 'administrator')) or (v_action = 'approve' and a.function <> 'huvudman') then
+    if v_text = '' and v_action in ('submit', 'return', 'approve', 'reopen', 'request_change', 'decline_request') then
+      raise exception 'Text krävs.' using errcode = '22023', hint = 'lasar_text_required';
+    end if;
+    -- D-18: rektor och skoladministratör skickar, tar tillbaka och begär ändring; bara huvudmannen återsänder,
+    -- fastställer, öppnar, avslår och styr ramen (T-05.1.1-14, T-05.1.1-19).
+    if (v_action in ('submit', 'withdraw', 'request_change', 'withdraw_request') and a.function not in ('rektor', 'administrator'))
+       or (v_action in ('return', 'approve', 'reopen', 'decline_request', 'publish_frame', 'preview_mode_change', 'set_mode') and a.function <> 'huvudman') then
       raise exception 'Läsårskalendern nekas.' using errcode = '42501';
     end if;
+    if v_action not in ('submit', 'withdraw', 'return', 'approve') then
+      raise exception 'Beslutet finns inte i denna version.' using errcode = '22023', hint = 'lasar_unsupported';
+    end if;
     y := public.lasar_lock_version(a, v_unit, v_year, v_version);
-    if y.superseded_by is not null or (v_action = 'submit' and y.status not in ('utkast', 'atersand')) or (v_action = 'approve' and y.status <> 'forslag') then
+    if y.superseded_by is not null or (v_action = 'submit' and y.status not in ('utkast', 'atersand')) or (v_action <> 'submit' and y.status <> 'forslag') then
       raise exception 'Kalendern är låst.' using errcode = '40001', hint = 'lasar_locked_status';
     end if;
     if y.revision <> v_expected then
       raise exception 'Kalendern har ändrats.' using errcode = '40001', hint = 'lasar_revision_conflict';
     end if;
-    perform public.lasar_require_rules(y.id);
+    if v_action in ('submit', 'approve') then perform public.lasar_require_rules(y.id); end if;
     if v_action = 'submit' then
       update public.school_years x set status = 'forslag', revision = x.revision + 1 where x.id = y.id returning * into y;
+    elsif v_action = 'withdraw' then
+      update public.school_years x set status = 'utkast', revision = x.revision + 1 where x.id = y.id returning * into y;
+    elsif v_action = 'return' then
+      update public.school_years x set status = 'atersand', revision = x.revision + 1 where x.id = y.id returning * into y;
     else
       -- Pitfall 5: den tidigare gällande versionen ersätts före fastställandet, så att indexet för gällande version håller.
       v_current := public.lasar_current(v_unit, v_year);
@@ -705,8 +891,8 @@ begin
         content_hash = public.lasar_content_hash(x.id), revision = x.revision + 1
        where x.id = y.id returning * into y;
     end if;
+    perform public.lasar_history_add(y.id, v_action, case when v_action = 'withdraw' and v_text = '' then 'Förslaget togs tillbaka för fortsatt arbete.' else v_text end);
   end if;
-
   v_detail := public.lasar_detail(a, v_unit, v_year, y.id);
   v_envelope := jsonb_build_object('contractVersion', 'lasar_sql_v1', 'actor', jsonb_build_object('identityId', s.identity_id, 'assignmentId', a.id),
     'result', jsonb_build_object('receipt', jsonb_build_object('commandId', v_request, 'revision', y.revision, 'replayed', false), 'detail', v_detail));
@@ -715,6 +901,38 @@ begin
   perform public.lasar_audit(case when v_kind = 'command' then 'lasar_command' else 'lasar_decision' end, 'school_year', y.id,
     jsonb_build_object('commandId', v_request, 'action', v_action, 'revision', y.revision, 'version', y.version, 'unitId', v_unit, 'schoolYear', v_year));
   return v_envelope;
+end $$;
+
+-- Statusvägen (T-05.1.1-21, T-05.1.1-22): utfallet för ett kommando-id efter ett uteblivet svar, utan att kommandot
+-- utförs igen. Bara samma aktör, uppdrag, skolenhet och läsår får läsa utfallet; finns inget journalfört kommando
+-- blir svaret not_found. Låset på kommando-id väntar ut ett kommando som pågår.
+create function public.lasar_status(input jsonb) returns jsonb
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare a public.access_assignments; s public.app_sessions; v_request uuid; v_unit uuid; v_year integer; v_row public.lasar_commands; v_result jsonb;
+begin
+  a := public.lasar_actor(); s := public.phase5_programplan_session_check();
+  if input is null or octet_length(input::text) > 65536 then
+    raise exception 'Ogiltig statusläsning.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  perform public.lasar_shape(input, array['commandId', 'target', 'schoolYear']);
+  v_request := public.lasar_uuid(input -> 'commandId');
+  v_unit := public.lasar_target(input -> 'target');
+  v_year := public.lasar_int(input -> 'schoolYear', 2000, 2100);
+  perform public.lasar_scope(a, v_unit);
+  perform pg_advisory_xact_lock(hashtextextended(v_request::text, 5571));
+  select * into v_row from public.lasar_commands c where c.command_id = v_request;
+  if not found then
+    v_result := jsonb_build_object('state', 'not_found', 'result', null);
+  else
+    if (v_row.customer_id, v_row.organizer_id, v_row.actor_identity_id, v_row.assignment_id, v_row.unit_id, v_row.school_year)
+       is distinct from (a.customer_id, a.organizer_id, s.identity_id, a.id, v_unit, v_year) then
+      raise exception 'Kommandot hör till någon annan.' using errcode = '40001', hint = 'lasar_command_conflict';
+    end if;
+    v_result := jsonb_build_object('state', 'completed', 'result', jsonb_set(v_row.envelope -> 'result', '{receipt,replayed}', 'true'::jsonb, false));
+  end if;
+  perform public.lasar_audit('lasar_status', 'school_year', v_row.school_year_id,
+    jsonb_build_object('commandId', v_request, 'unitId', v_unit, 'schoolYear', v_year));
+  return jsonb_build_object('contractVersion', 'lasar_sql_v1', 'actor', jsonb_build_object('identityId', s.identity_id, 'assignmentId', a.id), 'result', v_result);
 end $$;
 
 -- ---------------------------------------------------------------------------
@@ -727,5 +945,8 @@ revoke all on function public.lasar_current(uuid, integer), public.lasar_school_
   public.lasar_rules(uuid), public.lasar_require_rules(uuid), public.lasar_calendar_json(public.school_years),
   public.lasar_detail(public.access_assignments, uuid, integer, uuid), public.lasar_create_proposal(public.access_assignments, uuid, integer, jsonb),
   public.lasar_set_days(public.school_years, jsonb), public.lasar_lock_version(public.access_assignments, uuid, integer, uuid),
-  public.lasar_read(jsonb), public.lasar_command(jsonb)
+  public.lasar_event_actor(), public.lasar_display_name(text), public.lasar_history_add(uuid, text, text), public.lasar_history(public.school_years),
+  public.lasar_proposal_days(public.school_years, jsonb), public.lasar_set_notes(public.school_years, jsonb), public.lasar_set_term(public.school_years, jsonb),
+  public.lasar_reset_proposal(public.school_years, jsonb),
+  public.lasar_read(jsonb), public.lasar_command(jsonb), public.lasar_status(jsonb)
   from public, anon, authenticated, service_role, skolplattform_worker;
