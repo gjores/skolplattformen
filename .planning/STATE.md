@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-11 klar 2026-11-11: kopiera förra läsåret med granskningsposter och kalenderstatus per skola prövade i ephemeral PostgreSQL; 20261112130000 och 20261112131000 registrerade, inte installerade. Nästa: 05.1.1-12."
+stopped_at: "05.1.1-12 klar 2026-11-11: kalenderstatus per skola i Läsårsöverblick och skollistan i Läsår & skoldagar, simulerat mot mockat API; Ändra ramen och avvikelser mot senaste ramen; inget installerat. Nästa: 05.1.1-13."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "05.1.1-11: Kopiera förra läsåret för skola och ram med granskningsposter som servern sparar och som spärrar förslag och utgivning (D-04), och läsvägen för kalenderstatus per skola inom aktörens mandat (D-09). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-12: Kalenderstatus per skola i Läsårsöverblick och i Läsår & skoldagar med Alla behöriga skolor (D-09), arbetssättskortet monterat, Ändra ramen efter utgivning och avvikelser mot den senast utgivna ramen. Simulerat mot mockat API med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-12 klar 2026-11-11:** [Kalenderstatus i Läsårsöverblick och skollistan i vyn](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-12-SUMMARY.md): Läsårsöverblick visar direkt under sidhuvudet kalenderstatus per skola ur `/api/lasar/oversikt` (status, versionstext, *Ramen har ändrats*, *Ändring begärd*, ramen först i arbetssättet ram, det som väntar på den egna rollen först) och *Öppna kalendern* till rätt skola och läsår (D-09). Läsår & skoldagar med *Alla behöriga skolor* visar *Välj skola*, arbetssättskortet för huvudmannen och samma lista; ett byte av arbetssätt läser om listan och planeringsvalets ram. Extra (plan 10:s öppna punkter 1–3): *Ändra ramen* skapar nästa ramversion som utkast, avvikelser räknas mot den senast utgivna ramen så att behållna skillnader syns, och en skola utan ramversion får banderollen med val utan förkryssning. Simulerat mot mockat API med syntetiska data: lasar-ui 209 passed (11 skipped) i fyra projekt, named-planning 20 passed, demoregressionen 4 passed, tsc, oxlint och build:protected gröna; Läsårsöverblickens läsning, tolk och spec oförändrade. Inga migrationer, inget installerat. Designsystemets avsnitt Läsårskalendern är utökat för publicering. Nästa: 05.1.1-13.
 
 **05.1.1-11 klar 2026-11-11:** [Kopiera förra läsåret och kalenderstatus per skola](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-11-SUMMARY.md): rektor och skoladministratör kopierar förra läsåret och huvudmannen förra årets ram på servern. Servern läser själv källan (gällande fastställd version eller senast utgivna ram för föregående läsår) och räknar kopian med `copySchoolYear`. SQL prövar källan och att varje dag kommer ur den. Dagar som inte kan flyttas entydigt (påsk, vecka 53, helgdag, klassdagar, korta veckor) sparas som granskningsposter, och förslaget skickas eller ramen ges ut först när alla är lösta (`lasar_review_open`, D-04). `POST /api/lasar/oversikt` ger status per skola i aktörens aktuella uppdrag med ramens status först i arbetssättet ram och det som väntar på rollen först (D-09); vyn byggs i plan 12. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 150 PASS, verify-lasar-frames 42 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 1121 PASS, tsc, oxlint och build:protected gröna. `20261112130000_lasar_copy_overview.sql` (`7481a392…91d6`) och `20261112131000_lasar_overview_worker_access.sql` (`d110a94a…9179`) är registrerade men inte installerade; 3012 har bara de två första kalenderfilerna. Öppet till plan 12: HT-slut på julafton efter ett år med 53 veckor ger ingen granskningspost. Nästa: 05.1.1-12.
 
