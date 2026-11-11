@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "16 – skript och repetition klara; installationsbeslut saknas"
+current_plan: "16 – uppdaterad målbas repeterad; inväntar beslut"
 status: awaiting_approval
-stopped_at: "05.1.1-16 första uppgiften klar:447 kandidatbundna SQL-kontroller,83 Node och kopierepetition PASS. Inget installerat eller bytt på3012. Inväntar separat kandidat-/paketbundet installationsbeslut."
+stopped_at: "Installation godkänd genom kör på, men apply01 avbröts före DDL på rättat typfel. Under omrepetition ändrades en kalenders revision/updated_at. Ny repetition08 PASS; inväntar beslut om uppdaterad målbas. Inget installerat; gamla3012 återstartad."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "apply-lasar.mjs byggt; mål bara läst och egen syntetisk kopierepetition återrullad/städad. Kandidat7dda9d75 och sju hashbundna migrationer redo för separat beslut."
-state_head: f1e72263
+last_activity_desc: "85 Node PASS och repetition08 PASS på c1b6fb08. Produkt7dda9d75 och sju migrationshashar oförändrade. Faktisk metadataändring i målkalender kräver nytt basbeslut; originalgodkännandet bevarat."
+state_head: c1b6fb08
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,7 +25,7 @@ user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
 
-**05.1.1-16 förberedd 2026-11-11:** [Kandidat, sjufilslista med hash och kopierepetition](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md). `apply-lasar.mjs` och SQL-/schema-/beviskontroller är byggda. Fryst produktkandidat `7dda9d75` har nytt SQL-körmanifest **447 PASS** i sju originalsviter, **83 Node PASS** och egen syntetisk kopierepetition PASS (`committed=false`, rollback/städning kompletta). Målbasen lästes bara;3 kalendrar/1 fastställd,0 grupprader,0 förväntade basisHash-ändringar. Gamla parserns32 moduler är byteidentiska med kandidaten och accepterar repeterat lässvar. Extra äldre personalprovet är blockerat före sina fall; användaren valde uttryckligen planens sju sviter. **Inget installerat, ingen mål-DDL eller installationslåsning, inget stopp/byte av3012. Installationsgodkännande saknas.** Verktyg `f1e72263` binds separat. Nästa steg kräver användarens uttryckliga ja till exakt kandidat och listade sju filer; ingen godkännandefil har skapats och `--apply` har inte körts. Plan16 är ännu inte avslutad; plan17/fasverifiering återstår.
+**05.1.1-16, uppdaterat beslutsunderlag 2026-11-11:** [Kandidat, sjufilslista och repetition08](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md). Användaren svarade **”kör på!”** på exakt kandidat/paket. Apply01 avbröts före installationslås/DDL/DML på drivrutinens Result/JSON-Array-jämförelse; rättat och **85 Node PASS**. Repetition06 PASS;07 FAIL när målkalenderns metadata faktiskt ändrades under körningen (en av tre rader, endast revision/updated_at). Schema/journal/övriga kalenderkolumner oförändrade. Ny egen kopierepetition08 **PASS**, rollback/städning/full målkonstans, verktyg `c1b6fb08`. Produkt `7dda9d75`,447 SQL och plan15:s actual-/bildbevis oförändrade. Originalgodkännandet och05-hashen bevaras; teknisk kedja får inte godta ändrad målbas. **Ingen migration installerad. Gamla3012 återstartad på261fc0db, health200; ny runtime-kopia förberedd men aldrig startad.** Privat backup finns (före metadataändringen). Nästa: användarens beslut om målbasen i repetition08; därefter upprepad förkontroll, installation/runtimebyte/hälsa/efterlägesprov. Plan16,17 och fasverifiering är inte klara.
 
 **05.1.1-15 klar 2026-11-11:** [Faktiskt prov och handbok](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md). Terminer staplas när kalenderns egen innehållsbredd är högst 780 px (A-19). Ren kandidat `7dda9d75` har kalender **36/36** och tjänsteregression **88/88**, verklig lokal Worker/OIDC/PostgreSQL med syntetiska data, Chromium/WebKit, 0 omprov, full städning, oförändrat mål och bevarad artefakt. Alla 14 kalenderbilder är granskade; handboken är granskad och byggd men inte publicerad. Ingen installation eller runtimeändring på 3012; `261fc0db` och journal till `20261111190000` består. Plan 16–17 och formell fas-/kravverifiering återstår, liksom ordinarie användargodkännande. **Nästa enligt färdplanen: plan 16:s skript, kandidatbundna SQL-prov och kopierepetition. Installation är inte beställd och kräver uttryckligt ja till exakt kandidat och sju migrationer.** Historiska huvudmilstolpsantal är oförändrade.
 
