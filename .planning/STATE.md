@@ -5,16 +5,16 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-12 klar 2026-11-11: kalenderstatus per skola i Läsårsöverblick och skollistan i Läsår & skoldagar, simulerat mot mockat API; Ändra ramen och avvikelser mot senaste ramen; inget installerat. Nästa: 05.1.1-13."
+stopped_at: "05.1.1-13 klar 2026-11-11: kalenderns sammanfattning (gällande och föregående fastställda version) och texterna för IM och markeringen, prövat i ephemeral PostgreSQL och Node; inget installerat. Nästa: 05.1.1-14."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "05.1.1-12: Kalenderstatus per skola i Läsårsöverblick och i Läsår & skoldagar med Alla behöriga skolor (D-09), arbetssättskortet monterat, Ändra ramen efter utgivning och avvikelser mot den senast utgivna ramen. Simulerat mot mockat API med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-13: lasar_summary och POST /api/lasar/sammanfattning ger gällande och föregående fastställda version med skoldagar lika med tjanst_school_weeks; lasarImWeeklyText, lasarBasisChange och lasarBasisText som rena funktioner. Prövat i ephemeral PostgreSQL och Node med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 98
+  completed_plans: 99
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
 worker_status: valplan_series_installed_sql_rehearsed_applied
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-13 klar 2026-11-11:** [Kalenderns sammanfattning för beroende underlag](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-13-SUMMARY.md): `lasar_summary` och `POST /api/lasar/sammanfattning` ger för en skola och ett läsår den gällande och den föregående fastställda versionen med version, datum, skoldagar per termin och kontrollsumma. Skoldagarna räknas med samma funktion som tjänstefördelningens IM-behov (`tjanst_school_weeks`), och ett utkast ändrar inte svaret. Rektor och skoladministratör för skolan och huvudmannen får läsa; andra nekas (T-05.1.1-40). `web/lib/lasar-summary.ts` ger IM-texterna ordagrant enligt UI-SPEC, skillnaden före och efter för stale IM-rader och markeringens text (D-11); vyerna kopplas in i plan 14. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 159 PASS, verify-lasar-frames 42 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 1134 PASS, tsc, oxlint och build:protected gröna; tjänstefördelningens tolkar och SQL orörda. `20261112140000_lasar_summary.sql` (`29b6397a…1901`) och `20261112141000_lasar_summary_worker_access.sql` (`50801415…c486`) är registrerade men inte installerade; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-14.
 
 **05.1.1-12 klar 2026-11-11:** [Kalenderstatus i Läsårsöverblick och skollistan i vyn](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-12-SUMMARY.md): Läsårsöverblick visar direkt under sidhuvudet kalenderstatus per skola ur `/api/lasar/oversikt` (status, versionstext, *Ramen har ändrats*, *Ändring begärd*, ramen först i arbetssättet ram, det som väntar på den egna rollen först) och *Öppna kalendern* till rätt skola och läsår (D-09). Läsår & skoldagar med *Alla behöriga skolor* visar *Välj skola*, arbetssättskortet för huvudmannen och samma lista; ett byte av arbetssätt läser om listan och planeringsvalets ram. Extra (plan 10:s öppna punkter 1–3): *Ändra ramen* skapar nästa ramversion som utkast, avvikelser räknas mot den senast utgivna ramen så att behållna skillnader syns, och en skola utan ramversion får banderollen med val utan förkryssning. Simulerat mot mockat API med syntetiska data: lasar-ui 209 passed (11 skipped) i fyra projekt, named-planning 20 passed, demoregressionen 4 passed, tsc, oxlint och build:protected gröna; Läsårsöverblickens läsning, tolk och spec oförändrade. Inga migrationer, inget installerat. Designsystemets avsnitt Läsårskalendern är utökat för publicering. Nästa: 05.1.1-13.
 
