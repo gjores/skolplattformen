@@ -9,7 +9,8 @@
 --
 -- Bygger på 20261111100000_lasar_versions.sql och 20261111190000_lasar_worker_access.sql (installerade på det skyddade lokala
 -- målet och låsta) samt 20261112100000, 20261112110000 och 20261112120000. Funktionerna ändras här med create or replace. Inga
--- rättigheter ges i denna fil; nya tabeller och hjälpfunktioner är stängda för Worker och klientroller.
+-- rättigheter ges i denna fil; nya tabeller och hjälpfunktioner är stängda för Worker och klientroller. Workerns rätt att köra den
+-- nya ingången lasar_overview ges i 20261112131000_lasar_overview_worker_access.sql.
 -- phase5_planning_year_overview och dess tolk ändras inte (Pitfall 7).
 --
 -- SS 12000 (SIS OpenAPI 2.1.0, som anger SS12000:2020): kalendern, kopian och granskningsposterna saknar objekt i standarden och
@@ -387,6 +388,25 @@ language sql stable security definer set search_path = pg_catalog, public as $$
     where v.organizer_id = f.organizer_id and v.start_year = f.start_year and v.version <= f.version
     order by e.created_at desc, e.id desc limit 500) h
 $$;
+
+-- Som 20261112120000 plus läsningen av kalenderstatus per skola (lasar_overview).
+create or replace function public.lasar_audit(operation text, object_type text, object_id uuid, details jsonb default '{}') returns void
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare a public.access_assignments; s public.app_sessions; i public.identities;
+begin
+  if operation is null or operation not in ('lasar_read', 'lasar_command', 'lasar_decision', 'lasar_status', 'lasar_overview')
+     or object_type is null or object_type not in ('school_year', 'school_year_frame') or not coalesce(public.tjanst_audit_details(details), false) then
+    raise exception 'Ogiltig logg för läsårskalendern.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  a := public.phase3_actor(); s := public.phase5_programplan_session_check();
+  select * into i from public.identities where id = s.identity_id;
+  begin
+    insert into public.security_events (correlation_id, source, actor_identity_id, actor_issuer, actor_subject, session_id, membership_id, assignment_id,
+      customer_id, action, object_type, object_id, outcome, details)
+    values (nullif(current_setting('app.correlation_id', true), '')::uuid, 'db', i.id, i.issuer, i.subject, s.id, a.membership_id, a.id,
+      a.customer_id, operation, object_type, object_id, 'ok', details);
+  exception when others then raise exception 'Läsårskalenderns logg saknas.' using errcode = '55000'; end;
+end $$;
 
 -- Som 20261112120000 plus Kopiera förra läsåret i båda arbetssätten (D-04; i arbetssättet ram först när ramen är utgiven, D-14)
 -- och versionens granskningsposter.
@@ -839,11 +859,69 @@ begin
 end $$;
 
 -- ---------------------------------------------------------------------------
--- 4. Stängt: inga rättigheter för Worker eller klientroller
+-- 4. Kalenderstatus per skola (D-09)
+-- ---------------------------------------------------------------------------
+-- Läsvägen för Läsårsöverblick: per skola i aktörens aktuella enheter (mandate_units, samma huvudman) kalenderns status för
+-- läsåret (null om ingen kalender finns), versionerna med den gällande, frameChanged (skolan följer ramen och har inte tagit
+-- ställning till den senast utgivna ramversionen), changeRequested (öppen begäran om ändring) och waitingFor: huvudman för förslag
+-- och öppen begäran, rektor för återsänd kalender och ändrad ram. Sorteringen sätter det som väntar på aktuell roll först, sedan
+-- skolans namn. I arbetssättet ram står ramens status först (frame); rektor och skoladministratör ser bara utgivna ramversioner
+-- (T-05.1.1-34). En annan huvudmans eller kunds skolor kommer aldrig med (T-05.1.1-36). Skolans status följer läsningens val av
+-- version (lasar_detail): den öppna versionen före den gällande. phase5_planning_year_overview ändras inte (Pitfall 7).
+create function public.lasar_overview(input jsonb) returns jsonb
+language plpgsql volatile security definer set search_path = pg_catalog, public as $$
+declare a public.access_assignments; s public.app_sessions; v_year integer; v_mode text; v_latest public.school_year_frames; v_frame jsonb;
+  v_schools jsonb; v_role text;
+begin
+  a := public.lasar_actor(); s := public.phase5_programplan_session_check();
+  if input is null or octet_length(input::text) > 65536 then
+    raise exception 'Ogiltig läsning.' using errcode = '22023', hint = 'lasar_invalid';
+  end if;
+  perform public.lasar_shape(input, array['schoolYear']);
+  v_year := public.lasar_int(input -> 'schoolYear', 2000, 2100);
+  v_mode := public.lasar_mode(a.organizer_id, v_year);
+  v_latest := public.lasar_frame_latest(a.organizer_id, v_year);
+  v_role := case when a.function = 'huvudman' then 'huvudman' else 'rektor' end;
+  if v_mode = 'ram' then
+    if a.function = 'huvudman' then
+      select jsonb_build_object('status', f.status, 'version', f.version) into v_frame from public.school_year_frames f
+       where f.organizer_id = a.organizer_id and f.start_year = v_year order by f.version desc limit 1;
+    elsif v_latest.id is not null then
+      v_frame := jsonb_build_object('status', 'utgiven', 'version', v_latest.version);
+    end if;
+  end if;
+  select coalesce(jsonb_agg(x.entry order by x.waiting is distinct from v_role, x.name collate "C", x.id), '[]'::jsonb) into v_schools from (
+    select u.id, public.lasar_display_name(u.name) name, w.waiting,
+      jsonb_build_object('unitId', u.id, 'schoolName', public.lasar_display_name(u.name), 'status', y.status, 'versions', coalesce(v.versions, '[]'::jsonb),
+        'frameChanged', c.frame_changed, 'changeRequested', c.requested, 'waitingFor', w.waiting) entry
+    from public.school_units u
+    join public.mandate_units m on m.unit_id = u.id and m.assignment_id = a.id
+    join public.organizers g on g.id = u.organizer_id and g.customer_id = a.customer_id
+    left join lateral (select x.* from public.school_years x where x.unit_id = u.id and x.start_year = v_year and x.organizer_id = a.organizer_id
+      order by (x.status in ('utkast', 'forslag', 'atersand') and x.superseded_by is null) desc, (x.status = 'faststalld' and x.superseded_by is null) desc,
+        x.version desc limit 1) y on true
+    left join lateral (select jsonb_agg(jsonb_build_object('versionId', x.id, 'version', x.version, 'status', x.status, 'decidedOn', x.decided_on,
+      'current', x.status = 'faststalld' and x.superseded_by is null) order by x.version) versions
+      from public.school_years x where x.unit_id = u.id and x.start_year = v_year and x.organizer_id = a.organizer_id) v on true
+    cross join lateral (select exists (select 1 from public.school_year_change_requests r where r.unit_id = u.id and r.start_year = v_year and r.status = 'open') requested,
+      coalesce(y.id is not null and v_latest.id is not null and (v_mode = 'ram' or y.frame_id is not null or y.frame_ack_id is not null)
+        and v_latest.id is distinct from y.frame_ack_id, false) frame_changed) c
+    cross join lateral (select case when y.status = 'forslag' or c.requested then 'huvudman' when y.status = 'atersand' or c.frame_changed then 'rektor' end waiting) w
+    where u.organizer_id = a.organizer_id) x;
+  if jsonb_array_length(v_schools) > 1000 then
+    raise exception 'Fler skolor än överblicken rymmer.' using errcode = '54000';
+  end if;
+  perform public.lasar_audit('lasar_overview', 'school_year', null, jsonb_build_object('schoolYear', v_year, 'count', jsonb_array_length(v_schools)));
+  return jsonb_build_object('contractVersion', 'lasar_sql_v1', 'actor', jsonb_build_object('identityId', s.identity_id, 'assignmentId', a.id),
+    'result', jsonb_build_object('contractVersion', 'lasar_sql_v1', 'schoolYear', v_year, 'mode', v_mode, 'frame', v_frame, 'schools', v_schools));
+end $$;
+
+-- ---------------------------------------------------------------------------
+-- 5. Stängt: inga rättigheter för Worker eller klientroller (lasar_overview öppnas i 20261112131000_lasar_overview_worker_access.sql)
 -- ---------------------------------------------------------------------------
 revoke all on function public.lasar_review_guard(), public.lasar_copy_shift(date, integer), public.lasar_copy_easter(date),
   public.lasar_copy_check(jsonb, jsonb, boolean), public.lasar_review_insert(uuid, uuid, jsonb), public.lasar_review_json(uuid, uuid),
   public.lasar_copy_comment(integer, boolean), public.lasar_create_copy(public.access_assignments, uuid, integer, jsonb),
   public.lasar_frame_create_copy(public.access_assignments, integer, jsonb), public.lasar_resolve_review(public.access_assignments, uuid, uuid, jsonb),
-  public.lasar_review_require(uuid, uuid), public.lasar_review_count_text(uuid, uuid)
+  public.lasar_review_require(uuid, uuid), public.lasar_review_count_text(uuid, uuid), public.lasar_overview(jsonb)
   from public, anon, authenticated, service_role, skolplattform_worker;

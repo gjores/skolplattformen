@@ -23,13 +23,13 @@ const YEAR = 2027;
 /**
  * Funktioner som får nämna school_years (assumption_delta_decision): accessorn, lasar-ingångarna och deras hjälp,
  * triggervakten för dagar och det distinkta läsårsurvalet phase4_register_selection (fas 4, omdefinierat i 05.1; det läser
- * bara vilka läsår som finns). 05.1.1-11: skolans kopia av förra läsåret. 05.1.1-10: skolans start ur ramen, intaget av ramens ändringar och listan över skolor med påbörjade kalendrar vid byte av
+ * bara vilka läsår som finns). 05.1.1-11: skolans kopia av förra läsåret och kalenderstatus per skola. 05.1.1-10: skolans start ur ramen, intaget av ramens ändringar och listan över skolor med påbörjade kalendrar vid byte av
  * arbetssätt. En ny läsare som inte står här gör provet rött; den ska gå via lasar_current eller ange en
  * version uttryckligen.
  */
 export const SCHOOL_YEAR_READERS = Object.freeze([
   'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_copy', 'lasar_create_from_frame', 'lasar_create_proposal', 'lasar_current',
-  'lasar_detail', 'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_mode_affected', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules',
+  'lasar_detail', 'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_mode_affected', 'lasar_overview', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules',
   'lasar_school_days', 'lasar_set_term', 'lasar_take_frame_changes',
   'phase4_register_selection',
 ]);
@@ -1393,23 +1393,23 @@ async function overview(t, step, f) {
   const row = (o, unitId) => o.schools.find(x => x.unitId === unitId);
   const brief = o => o.schools.map(x => [x.unitId, x.status, x.waitingFor, x.frameChanged, x.changeRequested]);
   const dec = (unitId, action, text, versionId, rev) => lasarDecision({ unitId, schoolYear: YEAR, versionId, expectedRevision: rev, action, text });
-  /** Förslaget med en lovdag till (som i tracern), så att reglerna går igenom vid submit. */
-  const draft = async (name, unitId, types) => {
+  /** Förslaget med en ändring så att reglerna går igenom vid submit: för A en lovdag till som i tracern, för B (bara GR) en tidigare HT-start. */
+  const draft = async (name, unitId, types, op) => {
     const r = await send(name, await createCommand(unitId, YEAR, types));
     const sy = lasarSchoolYear(r.detail);
     let d = `${YEAR}-10-01`; while (dayInfo(sy, d).status !== 'skoldag') d = addDays(d, 1);
     return send(name, await lasarCommand({ unitId, schoolYear: YEAR, versionId: r.detail.calendar.versionId, expectedRevision: r.receipt.revision,
-      ops: [{ op: 'set_days', dates: [d], kind: 'lovdag', note: 'Syntetisk lovdag' }] }));
+      ops: [op === 'term' ? { op: 'set_term', term: 'ht', edge: 'start', date: `${YEAR}-08-16` } : { op: 'set_days', dates: [d], kind: 'lovdag', note: 'Syntetisk lovdag' }] }));
   };
   const s = {};
 
   await step(t, 'överblick: skola A fastställd med öppen begäran, skola B med förslag och skola C utan kalender (utgångsläge)', async () => {
-    let r = await draft('principalA', A, f.schoolTypes.A);
+    let r = await draft('principalA', A, f.schoolTypes.A, 'day');
     r = await decide('principalA', dec(A, 'submit', 'Syntetiskt förslag', r.detail.calendar.versionId, r.receipt.revision));
     r = await decide('hm', dec(A, 'approve', 'Syntetiskt beslut', r.detail.calendar.versionId, r.receipt.revision));
     s.a1 = r.detail.calendar.versionId; s.decided = r.detail.calendar.decidedOn;
     await decide('principalA', dec(A, 'request_change', 'Syntetisk orsak', s.a1, r.receipt.revision));
-    r = await draft('principalB', B, f.schoolTypes.B);
+    r = await draft('principalB', B, f.schoolTypes.B, 'term');
     s.b = await decide('principalB', dec(B, 'submit', 'Syntetiskt förslag', r.detail.calendar.versionId, r.receipt.revision));
   });
   await step(t, 'överblick: huvudmannen ser alla sina skolor, det som väntar på huvudmannen först, och skola C som inte påbörjad', async () => {

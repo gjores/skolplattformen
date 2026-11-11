@@ -54,7 +54,9 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   // 05.1.1-10: huvudmannens ram och arbetssättet per läsår (D-01, D-02, D-05, D-13–D-15); bygger på ändringsbegärans fil.
   ['supabase/migrations/20261112120000_lasar_frames.sql', '11bf09a0aebfe8f013031663e78ed6e1c1836541babe02b71d5b5bea777d8c62'],
   // 05.1.1-11: kopiering med granskningsposter och kalenderstatus per skola (D-04, D-09); bygger på ramens fil.
-  ['supabase/migrations/20261112130000_lasar_copy_overview.sql', '493beca632edfceb45a4074ef8d7ecf92bf7189c57594a9a9ec315a1ce18de35'],
+  ['supabase/migrations/20261112130000_lasar_copy_overview.sql', '7481a3924f8235028bcea9a62718e3af41c1a553eb9e2203730814d568b291d6'],
+  // 05.1.1-11: Workerns rätt att köra lasar_overview, i en egen grant-fil direkt efter kopieringsfilen.
+  ['supabase/migrations/20261112131000_lasar_overview_worker_access.sql', 'd110a94a77c14e423017632ba1e7f10646d58ddd61ea29109f54fe94fa829179'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;

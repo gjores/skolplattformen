@@ -1,9 +1,10 @@
 import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import {
   LASAR_REASONS, LasarContractError, parseLasarCommandReply, parseLasarDecisionReply, parseLasarDecisionRequest, parseLasarEnvelope,
-  lasarSchoolYear, parseLasarModePreviewReply, parseLasarReadReply, parseLasarReadRequest, parseLasarStatusRequest, verifyLasarCommandHash,
-  type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarModePreview, type LasarReadReply, type LasarReadRequest,
-  type LasarReason, type LasarStatusRequest, type LasarTarget,
+  lasarSchoolYear, parseLasarModePreviewReply, parseLasarOverviewReply, parseLasarOverviewRequest, parseLasarReadReply, parseLasarReadRequest,
+  parseLasarStatusRequest, verifyLasarCommandHash,
+  type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarModePreview, type LasarOverviewReply, type LasarOverviewRequest,
+  type LasarReadReply, type LasarReadRequest, type LasarReason, type LasarStatusRequest, type LasarTarget,
 } from '../lasar-contract.ts';
 import { copySchoolYear, type CopyReviewItem } from '../lasar-copy.ts';
 import { groupsFromRefs } from '../lasar-groups.ts';
@@ -299,4 +300,22 @@ export async function lasarStatus(tx: Tx, input: LasarCommandStatusRequest, auth
     return { body, event: { action: 'lasar_status', objectType: objectTypeOf(input.target), objectId: body.result?.detail.calendar?.versionId ?? null,
       details: { unitId: unitOf(input), schoolYear: input.schoolYear } } };
   } catch { throw new AuditUnavailable(); }
+}
+
+/**
+ * Kalenderstatus per skola (05.1.1-11, D-09): rutt → lasarOverview → public.lasar_overview(jsonb). Begäran har bara läsåret; SQL väljer
+ * skolorna ur aktörens aktuella uppdrag hos samma huvudman (T-05.1.1-36). Svaret tolkas av kontraktets overview-tolk utan extra fält,
+ * med exakt sessionens aktör i kuvertet. Ramens utkast når aldrig rektor eller skoladministratör (T-05.1.1-34). SS 12000: skolorna anges
+ * med school_units.id (Organisation, organisationType=Skolenhet); kalenderstatusen saknar objekt i standarden.
+ */
+export const parseLasarOverviewInput = (value: unknown): LasarOverviewRequest => parseLasarOverviewRequest(value);
+export async function lasarOverview(tx: Tx, input: LasarOverviewRequest, authority: LasarAuthority) {
+  role(authority, LASAR_FUNCTIONS);
+  const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_overview(${json(tx, input)}) as result`));
+  let body: LasarOverviewReply;
+  try {
+    body = parseLasarOverviewReply(envelope(raw, authority), input);
+    if (authority.accessFunction !== 'huvudman' && body.frame?.status === 'utkast') invalid();
+  } catch { throw new AuditUnavailable(); }
+  return { body, event: { action: 'lasar_overview', objectType: 'school_year', objectId: null, details: { unitId: null, schoolYear: input.schoolYear } } };
 }
