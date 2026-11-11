@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-13 klar 2026-11-11: kalenderns sammanfattning (gällande och föregående fastställda version) och texterna för IM och markeringen, prövat i ephemeral PostgreSQL och Node; inget installerat. Nästa: 05.1.1-14."
+stopped_at: "05.1.1-14 klar 2026-11-11: IM-raden i Timplaner följer kalenderns gällande version och Tjänstefördelning visar markeringen om ny kalenderversion (en rad i taget via raddialogen, användarbeslut a); simulerat UI, inget installerat. Nästa: 05.1.1-15."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "05.1.1-13: lasar_summary och POST /api/lasar/sammanfattning ger gällande och föregående fastställda version med skoldagar lika med tjanst_school_weeks; lasarImWeeklyText, lasarBasisChange och lasarBasisText som rena funktioner. Prövat i ephemeral PostgreSQL och Node med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-14: LasarImWeeklyNote i Timplaner och LasarBasisMarker i Tjänstefördelning ur /api/lasar/sammanfattning; Använd version {n} öppnar befintlig raddialog en rad i taget och markören skickar inga kommandon. Simulerat UI (lasar-ui 269, tjanst-ui 264, demo 4 passed); inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-14 klar 2026-11-11:** [IM-text i Timplaner och markering i Tjänstefördelning](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-14-SUMMARY.md): Timplaner visar för IM ”Veckoram. Läsårskalendern {läsår} är fastställd (version {n}, {skoldagar} skoldagar). Individuell fördelning visas inte här.” eller ”… är inte fastställd. Inga årstimmar beräknas.” ur kalenderns sammanfattning; läsfel visar text utan siffror (folded todo 2026-10-21 klar). Tjänstefördelning visar markeringen om ny kalenderversion när en IM-rad är inaktuell och en föregående version finns, med *Visa skillnaden* (skoldagar per termin före och efter, berörda rader) och *Använd version {n}*. Användarbeslut 2026-11-11 ”a) En rad i taget”: knappen öppnar den befintliga raddialogen för en rad i taget och sparar `save_row` först när raden sparas, eftersom massregistreringens kontrakt inte tar befintliga rader (Pitfall 7). Känd begränsning: en IM-rad som är inaktuell av annan orsak får också markeringen. Simulerat mot mockat API med syntetiska data: lasar-basis 60 passed, lasar-ui 269 passed (11 skipped), tjanst-ui 264 passed (196 skipped), demoregressionen 4 passed, tsc, oxlint, build:protected och hex-grep gröna; phase5-timplansviterna kräver levande Worker/databas och kördes inte. Tjänstefördelningens tolkar, SQL och migrationer orörda; inget installerat. Designsystemets avsnitt Läsårskalendern är utökat med IM-raden och markeringen för publicering. Nästa: 05.1.1-15.
 
 **05.1.1-13 klar 2026-11-11:** [Kalenderns sammanfattning för beroende underlag](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-13-SUMMARY.md): `lasar_summary` och `POST /api/lasar/sammanfattning` ger för en skola och ett läsår den gällande och den föregående fastställda versionen med version, datum, skoldagar per termin och kontrollsumma. Skoldagarna räknas med samma funktion som tjänstefördelningens IM-behov (`tjanst_school_weeks`), och ett utkast ändrar inte svaret. Rektor och skoladministratör för skolan och huvudmannen får läsa; andra nekas (T-05.1.1-40). `web/lib/lasar-summary.ts` ger IM-texterna ordagrant enligt UI-SPEC, skillnaden före och efter för stale IM-rader och markeringens text (D-11); vyerna kopplas in i plan 14. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 159 PASS, verify-lasar-frames 42 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 1134 PASS, tsc, oxlint och build:protected gröna; tjänstefördelningens tolkar och SQL orörda. `20261112140000_lasar_summary.sql` (`29b6397a…1901`) och `20261112141000_lasar_summary_worker_access.sql` (`50801415…c486`) är registrerade men inte installerade; 3012 har bara de två första kalenderfilerna. Nästa: 05.1.1-14.
 
