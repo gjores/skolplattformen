@@ -164,13 +164,15 @@ export function bindCandidateSources(revision,...manifests) {
 
 /** Kontrollerar att kandidaten är en ren checkout av en commit vars produktkällor är identiska med HEAD. */
 function candidateProof(originalBuild, mark) {
-  assert.equal(originalBuild, path.join(CANDIDATE, 'web/dist-protected'), 'Bara kandidaten i /private/tmp/tjanst-candidate är tillåten');
-  const revision = git(['rev-parse', 'HEAD'], CANDIDATE);
+  const candidatePath = path.resolve(originalBuild, '../..');
+  assert.ok([CANDIDATE, '/private/tmp/lasar-candidate'].includes(candidatePath), 'Bara den rena tjänste- eller läsårskandidaten är tillåten');
+  assert.equal(originalBuild, path.join(candidatePath, 'web/dist-protected'));
+  const revision = git(['rev-parse', 'HEAD'], candidatePath);
   assert.equal(revision, mark.revision, 'Byggets revision är inte kandidatens checkout');
-  assert.equal(git(['status', '--porcelain', '--untracked-files=no'], CANDIDATE), '', 'Kandidatens checkout har ändringar');
+  assert.equal(git(['status', '--porcelain', '--untracked-files=no'], candidatePath), '', 'Kandidatens checkout har ändringar');
   assert.equal(git(['diff', '--name-only', mark.revision, 'HEAD', '--', 'web/app', 'web/lib', 'web/components', 'web/hooks', 'web/scripts', 'web/package.json', 'web/package-lock.json', 'web/vite.config.ts', 'web/vinext.config.ts']), '',
     'Kandidatens produktkällor skiljer sig från aktuell commit');
-  return { path: CANDIDATE, revision, build: originalBuild, mark, rebuild: `git clone --no-hardlinks <repo> ${CANDIDATE} && git -C ${CANDIDATE} checkout ${revision} && cd ${CANDIDATE}/web && npm ci && npm run build:protected` };
+  return { path: candidatePath, revision, build: originalBuild, mark, rebuild: `git clone --no-hardlinks <repo> ${candidatePath} && git -C ${candidatePath} checkout ${revision} && cd ${candidatePath}/web && npm ci && npm run build:protected` };
 }
 
 export async function verifyTjanstActual({ build, out, projects = TJANST_ACTUAL_PROJECTS }) {

@@ -17,10 +17,11 @@ const docker=args=>execFileSync('docker',args,{encoding:'utf8',stdio:['ignore','
 async function available(port){const s=netServer();await new Promise((resolve,reject)=>{s.once('error',reject);s.listen(port,'127.0.0.1',resolve);});await new Promise(resolve=>s.close(resolve));}
 async function ready(url,child){for(let n=0;n<120;n++){if(child&&child.exitCode!==null)throw Error('Owned runtime exited before readiness');try{const r=await fetch(url,{signal:AbortSignal.timeout(1000)});if(r.ok)return await r.json();}catch{}await new Promise(resolve=>setTimeout(resolve,250));}throw Error('Owned runtime readiness timed out');}
 // Worker port defaults to the APL/named-timplan run (3014); tjänstefördelningen (05.1-09) uses its own Worker on 3015.
+// Läsårskalendern (05.1.1-15) uses 3016.
 // The isolated GoTrue stays on 56331/56332: the product only accepts that auth endpoint for a named_timplan_* schema copy
 // (isLocalMandateTarget), so the two runs share it and are serialized by the fixture lock.
 export async function createNamedTimplanRuntime({snapshot,buildRoot,evidenceDir,port=3014,prefix='named-timplan'}){
- assert.ok([3014,3015].includes(port),'Only the two owned Worker ports are allowed');const apiPort=56331,authPort=56332;
+ assert.ok([3014,3015,3016].includes(port),'Only the three owned Worker ports are allowed');const apiPort=56331,authPort=56332;
  assert.ok(path.resolve(evidenceDir).startsWith('/private/tmp/')&&(statSync(evidenceDir).mode&0o077)===0);
  assert.ok(path.resolve(buildRoot).startsWith(path.join(root,'work/pilot/targets/protected/runtime/')));
  const mark=JSON.parse(readFileSync(path.join(buildRoot,'build-mode.json'),'utf8'));assert.equal(mark.mode,'protected');
