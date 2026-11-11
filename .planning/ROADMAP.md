@@ -505,7 +505,7 @@ Plans:
 - [x] 05.1.1-12-PLAN.md — Kalenderstatus i Läsårsöverblick och skollistan i vyn (våg 11). Simulerat mot mockat API med syntetiska data: lasar-ui 209 passed (11 skipped) i fyra projekt inklusive 30 skolor och 200 % text, named-planning 20 passed, demoregressionen 4 passed, tsc, oxlint och build:protected gröna; Läsårsöverblickens läsning och tolk oförändrade; extra: Ändra ramen och avvikelser mot senaste ramen; inga migrationer, inget installerat; commits 92caa2c7, 942cac38, 116a0be6
 - [x] 05.1.1-13-PLAN.md — Kalenderns sammanfattning för beroende underlag (våg 11). Prövat i ephemeral PostgreSQL och Node med syntetiska data: verify-lasar 159 PASS, verify-lasar-frames 42 PASS, verify-lasar-groups 13 PASS, Node 1134 PASS, tsc, oxlint och build:protected gröna; inget installerat; commits 1f090cdc, 8d8ddbba, e0a19983, a6e3e8e8
 - [x] 05.1.1-14-PLAN.md — IM-text i Timplaner och markering i Tjänstefördelning (våg 12). Simulerat UI: lasar-ui 269 passed, tjanst-ui 264 passed, demo 4 passed, tsc, oxlint och build:protected gröna; Använd version {n} en rad i taget via raddialogen (användarbeslut a 2026-11-11); inget installerat; commits 75540fb2, 4db3a185
-- [ ] 05.1.1-15-PLAN.md — Faktiskt Worker/OIDC-prov och handbok (våg 13)
+- [ ] 05.1.1-15-PLAN.md — Faktiskt Worker/OIDC-prov och handbok (våg 13). **Pausad 2026-11-11 på användarbeslut:** automatiskt 36/36 PASS på 094860fb, men öppet manuellt 1280-fynd; tjänsteregression avbruten/städad och handboksbygge återstår. [Checkpoint](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-CHECKPOINT.md). Inget installerat; invänta fortsatt besked.
 - [ ] 05.1.1-16-PLAN.md — Lokal leverans efter användarens ja (våg 14)
 - [ ] 05.1.1-17-PLAN.md — Användarprov (våg 15)
 **UI hint**: yes

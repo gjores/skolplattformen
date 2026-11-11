@@ -1,29 +1,31 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: "05.2"
-current_phase_name: Valplaner, elevval och undervisningsgrupper
-current_plan: "VP-16 klar"
-status: executing
-stopped_at: "05.1.1-14 klar 2026-11-11: IM-raden i Timplaner följer kalenderns gällande version och Tjänstefördelning visar markeringen om ny kalenderversion (en rad i taget via raddialogen, användarbeslut a); simulerat UI, inget installerat. Nästa: 05.1.1-15."
+current_phase: "05.1.1"
+current_phase_name: Läsårskalender i skyddad drift
+current_plan: "15 – inväntar användarbeslut om 1280-layout"
+status: paused
+stopped_at: "05.1.1-15 pausad 2026-11-11 enligt användaren: dokumentera 1280-felet och invänta fortsatt beslut. Automatisk kalender 36/36 PASS; bildgranskning har öppet fel. Tjänsteregression avbruten och städad, handboksutkast ej byggt. Inget installerat."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "05.1.1-14: LasarImWeeklyNote i Timplaner och LasarBasisMarker i Tjänstefördelning ur /api/lasar/sammanfattning; Använd version {n} öppnar befintlig raddialog en rad i taget och markören skickar inga kommandon. Simulerat UI (lasar-ui 269, tjanst-ui 264, demo 4 passed); inget installerat."
-state_head: 494f951
+last_activity_desc: "Plan 15 inte klar: överlappande kalenderdagar vid 1280 px i appskalet. Användaren valde att dokumentera och invänta beslut. Se 05.1.1-15-CHECKPOINT.md."
+state_head: 8ad8460e
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 99
-verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
-verification_worker_status: code_only_install_health_401_schema_pass
-worker_status: valplan_series_installed_sql_rehearsed_applied
-worker_build_revision: 5157e2f74ca87aaf9f2135b75314fdb5bfcce33a
-verification_ui_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
-verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
+verification_worker_build_revision: 094860fb70b204f85bea0a562f4a6173a7b422d5
+verification_worker_status: calendar_actual_36_pass_visual_gap_regression_interrupted
+worker_status: calendar_early_trial_installed_through_20261111190000
+worker_build_revision: 261fc0db304172ea5f76016d3907521dc5e0f63d
+verification_ui_build_revision: 094860fb70b204f85bea0a562f4a6173a7b422d5
+verification_ui_status: calendar_automatic_pass_manual_1280_gap
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-15 pausad 2026-11-11:** [Checkpoint och fortsatt arbete](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-CHECKPOINT.md). Användaren valde ordagrant **”Dokumentera felet och invänta fortsatt beslut”**. Kandidat `094860fb` har faktiskt lokalt Worker/OIDC/PostgreSQL PASS **36/36** automatiska kalenderkontroller (12/12/6/6, Chromium/WebKit, 36 verifierade callbacks, 0 omprov, full städning och oförändrat mål), men manuell bildgranskning visar överlappande dagtexter i appskalets två kalenderkolumner vid **1280 px**. Ingen layoutändring är gjord eller godkänd. Tjänstefördelningens faktiska regression avbröts kontrollerat på användarbeslut efter 21/88 registrerade kontroller; full städning och oförändrat mål, inget regressions-PASS. Handboken är sparat utkast; docs:build återstår. Plan 15 är inte klar, ingen SUMMARY eller slutlig bildattest, inga nya kravgodkännanden. Plan 16 är preciserad för exakt sju återstående filer, kandidatbundna SQL-körbevis och kopierepetition enligt målets läsbegränsning; inga installationsskript byggda. 3012 behåller `261fc0db` och journal till `20261111190000`. **Nästa: invänta nytt uttryckligt besked om 1280-fyndet; fortsätt inte automatiskt.** Historiska huvudmilstolpsantal nedan är oförändrade.
 
 **05.1.1-14 klar 2026-11-11:** [IM-text i Timplaner och markering i Tjänstefördelning](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-14-SUMMARY.md): Timplaner visar för IM ”Veckoram. Läsårskalendern {läsår} är fastställd (version {n}, {skoldagar} skoldagar). Individuell fördelning visas inte här.” eller ”… är inte fastställd. Inga årstimmar beräknas.” ur kalenderns sammanfattning; läsfel visar text utan siffror (folded todo 2026-10-21 klar). Tjänstefördelning visar markeringen om ny kalenderversion när en IM-rad är inaktuell och en föregående version finns, med *Visa skillnaden* (skoldagar per termin före och efter, berörda rader) och *Använd version {n}*. Användarbeslut 2026-11-11 ”a) En rad i taget”: knappen öppnar den befintliga raddialogen för en rad i taget och sparar `save_row` först när raden sparas, eftersom massregistreringens kontrakt inte tar befintliga rader (Pitfall 7). Känd begränsning: en IM-rad som är inaktuell av annan orsak får också markeringen. Simulerat mot mockat API med syntetiska data: lasar-basis 60 passed, lasar-ui 269 passed (11 skipped), tjanst-ui 264 passed (196 skipped), demoregressionen 4 passed, tsc, oxlint, build:protected och hex-grep gröna; phase5-timplansviterna kräver levande Worker/databas och kördes inte. Tjänstefördelningens tolkar, SQL och migrationer orörda; inget installerat. Designsystemets avsnitt Läsårskalendern är utökat med IM-raden och markeringen för publicering. Nästa: 05.1.1-15.
 
@@ -766,11 +768,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-10-15
-**Stopped At:** CLASS-COHORT-10 funktionellt godkänd med UI-anmärkning;11/11 paketplaner avslutade.
-**Resume File:** [Klassorganisationens genomförandesteg](phases/05-bevarade-utbildnings-och-klassfloden/05-CLASS-COHORT-IMPLEMENTATION.md)
+**Last Date:** 2026-11-11
+**Stopped At:** 05.1.1-15 pausad på användarbeslut efter 1280-fynd; ingen fortsatt rättning eller installation beställd.
+**Resume File:** [Läsårskalenderns checkpoint](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-CHECKPOINT.md)
 
-**Planned Phase:** 5 — fortsatt avgränsning av kvarstående arbete; UI-förenkling fångad i befintlig todo. Inget upprepat klassprov beställt. Ingen omstart av godkända mänskliga prov eller äldre ersatta planer.
+**Planned Phase:** 05.1.1 — invänta besked om kalenderns 1280-layout innan plan 15 återupptas. Tidigare mänskliga godkännanden består; fullt kalenderanvändarprov i plan 17 återstår.
 
 ### Senaste användarfynd, 2026-10-02
 
