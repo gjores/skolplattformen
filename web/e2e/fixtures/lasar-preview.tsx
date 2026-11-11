@@ -30,11 +30,15 @@
 //             Öppna kalendern byter skola som planeringsvalet gör
 //   skolor=30   antal syntetiska skolor i överblicken (standard fyra med olika lägen)
 //   oversikt=tom|fel|vanta   inga skolor / första läsningen ger 500 / svaret väntar på window.__lasar.release()
+//   vy=im   IM-raden i Timplaner (05.1.1-14) ur /api/lasar/sammanfattning
+//   sammanfattning=faststalld|ny|tom|fel   version 1 gäller / version 2 gäller efter version 1 / ingen fastställd
+//                 version / läsningen ger 500 (standard faststalld)
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ProtectedLasarWorkspace from '../../app/protected-lasar-workspace';
 import ProtectedLasarOverview, { type LasarOpenTarget } from '../../app/protected-lasar-overview';
 import { ProtectedLasarModeCard } from '../../app/protected-lasar-start';
+import LasarImWeeklyNote from '../../app/lasar-im-weekly-note';
 import LasarView from '../../app/lasar-view';
 import {
   parseLasarCommandReply,
@@ -45,6 +49,8 @@ import {
   parseLasarOverviewRequest,
   parseLasarReadReply,
   parseLasarReadRequest,
+  parseLasarSummaryReply,
+  parseLasarSummaryRequest,
   verifyLasarCommandHash,
   LasarContractError,
   type LasarActorRole,
@@ -63,6 +69,7 @@ import { frameChangesWithoutBase } from '../../app/protected-lasar-frame';
 import { proposeSchoolYear, type Exception, type GroupException, type LasarState, type SchoolYear, type ShortWeek } from '../../lib/lasar-model';
 import { UnsavedChangesProvider } from '../../lib/unsaved-changes';
 import '../../app/globals.css';
+import '../../app/protected-timplan.css';
 
 const tid = (n: number) => `51a50000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const params = new URLSearchParams(location.search);
@@ -251,11 +258,21 @@ function overviewSchools(): LasarOverviewSchool[] {
   ];
 }
 let overviewFault = overviewParam === 'fel';
+
+// ---- Kalenderns sammanfattning för beroende underlag (05.1.1-13/14). Syntetiska skoldagar; serverns räkning efterliknas inte här.
+const summaryParam = params.get('sammanfattning') ?? 'faststalld';
+const stat = (version: number, decidedOn: string, htSchoolDays: number, vtSchoolDays: number) =>
+  ({ version, decidedOn, htSchoolDays, vtSchoolDays, contentHash: `sha256:${String(version).repeat(64)}` });
+function summaryOf(unitId: string, schoolYear: number) {
+  const v1 = stat(1, `${schoolYear}-06-10`, 80, 98), v2 = stat(2, `${schoolYear + 1}-06-01`, 85, 98);
+  const [current, previous] = summaryParam === 'tom' ? [null, null] : summaryParam === 'ny' ? [v2, v1] : [v1, null];
+  return { contractVersion: 'lasar_sql_v1', unitId, schoolYear, current, previous };
+}
 let releaseOverview: (() => void) | null = null;
 
 type Logged = { path: string; body: unknown };
 const control = {
-  commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], overviews: [] as Logged[], opened: [] as LasarOpenTarget[],
+  commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], overviews: [] as Logged[], summaries: [] as Logged[], opened: [] as LasarOpenTarget[],
   revision: () => latestOf(active)?.revision ?? 0, versions: () => active.versions.length,
   release: () => { releaseOverview?.(); releaseOverview = null; },
 };
@@ -281,6 +298,13 @@ async function route(path: string, body: unknown): Promise<Reply> {
       if (overviewFault) { overviewFault = false; return { status: 500, json: { code: 'internal_error' } }; }
       const frame = mode === 'ram' ? (role === 'huvudman' ? { status: 'utkast' as const, version: 3 } : { status: 'utgiven' as const, version: 2 }) : null;
       return { status: 200, json: parseLasarOverviewReply({ contractVersion: 'lasar_sql_v1', schoolYear: q.schoolYear, mode, frame, schools: overviewSchools() }, q) };
+    }
+    if (path === '/api/lasar/sammanfattning') {
+      const q = parseLasarSummaryRequest(body);
+      control.summaries.push({ path, body: structuredClone(body) });
+      if (role === 'lasare') return error(403, 'forbidden');
+      if (summaryParam === 'fel') return { status: 500, json: { code: 'internal_error' } };
+      return { status: 200, json: parseLasarSummaryReply(summaryOf(q.unitId, q.schoolYear), q) };
     }
     if (path === '/api/lasar/lasa') {
       const q = parseLasarReadRequest(body);
@@ -502,6 +526,10 @@ function Harness() {
         ? <Demo />
         : view === 'oversikt'
         ? <OverviewHarness />
+        : view === 'im'
+        ? <section className="protected-timplan" aria-label="Timplan för introduktionsprogram"><div className="pt-year-context" data-testid="other-year-binding">
+            <strong>{label(YEAR)} · Version 1</strong><p>Planeringsunderlag. Ingen verifierad klassbindning för året.</p>
+            <LasarImWeeklyNote unitId={UNIT} schoolYear={YEAR} /></div></section>
         : view === 'alla'
         ? <AllSchoolsHarness />
         : view === 'arbetssatt'

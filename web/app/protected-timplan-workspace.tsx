@@ -18,6 +18,7 @@ import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGrimClassTimplans from './protected-grim-class-timplans';
 import { TimplanGuidance, TimplanEditGuidance } from './timplan-guidance';
+import LasarImWeeklyNote from './lasar-im-weekly-note';
 import './protected-timplan.css';
 
 type CellDraft = {
@@ -330,7 +331,7 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
             <p>{annualRow?.application ? `${annualRow.classes.length ? 'Klassbunden årsreferens' : 'Äldre årsreferens utan verifierad klassrelation'}${annualRow.application.columnId ? ` · Åk ${annualRow.application.columnId.slice(2)}` : ''}`
               : 'Planeringsunderlag. Ingen verifierad klassbindning för året.'}</p>
             {annualRow?.classes.length ? <p>{annualRow.classes.length} verifierade klassreferenser till samma ram.</p> : null}
-            {weekly && <p>Veckoram. Kalender och individuell fördelning saknas; inga årstimmar beräknas.</p>}
+            {weekly && selection && <LasarImWeeklyNote unitId={plan.unitId} schoolYear={selection.schoolYear}/>}
           </div>}
         {positional && <output className="pt-alert" data-testid="other-column-map-unknown">Den historiska kolumnkartan är okänd. Hela timplanen visar lagrade positioner; dagens årskursordning används inte som historiskt bevis. Årets timmar och riktad årscellsändring är därför okända/spärrade.</output>}
         {['faststalld','ersatt'].includes(plan.status) && <ProtectedGrimClassTimplans key={`grim-classes-${plan.id}`} plan={plan}
