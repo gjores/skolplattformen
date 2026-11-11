@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "16 – installationsskript och repetition återstår; ingen installation beställd"
-status: ready
-stopped_at: "05.1.1-15 klar: 1280-layout rättad, kalender 36/36 och tjänsteregression 88/88 på kandidat 7dda9d75, 14 bildattester och byggd handbok. Inget installerat på 3012."
+current_plan: "16 – skript och repetition klara; installationsbeslut saknas"
+status: awaiting_approval
+stopped_at: "05.1.1-16 första uppgiften klar:447 kandidatbundna SQL-kontroller,83 Node och kopierepetition PASS. Inget installerat eller bytt på3012. Inväntar separat kandidat-/paketbundet installationsbeslut."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "Plan 15 klar, faktiskt lokalt provat med syntetiska data. Plan 16–17 och fasverifiering återstår. Installation på 3012 är inte beställd."
-state_head: 7dda9d75
+last_activity_desc: "apply-lasar.mjs byggt; mål bara läst och egen syntetisk kopierepetition återrullad/städad. Kandidat7dda9d75 och sju hashbundna migrationer redo för separat beslut."
+state_head: f1e72263
 progress:
   total_phases: 8
   completed_phases: 3
@@ -24,6 +24,8 @@ verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-16 förberedd 2026-11-11:** [Kandidat, sjufilslista med hash och kopierepetition](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md). `apply-lasar.mjs` och SQL-/schema-/beviskontroller är byggda. Fryst produktkandidat `7dda9d75` har nytt SQL-körmanifest **447 PASS** i sju originalsviter, **83 Node PASS** och egen syntetisk kopierepetition PASS (`committed=false`, rollback/städning kompletta). Målbasen lästes bara;3 kalendrar/1 fastställd,0 grupprader,0 förväntade basisHash-ändringar. Gamla parserns32 moduler är byteidentiska med kandidaten och accepterar repeterat lässvar. Extra äldre personalprovet är blockerat före sina fall; användaren valde uttryckligen planens sju sviter. **Inget installerat, ingen mål-DDL eller installationslåsning, inget stopp/byte av3012. Installationsgodkännande saknas.** Verktyg `f1e72263` binds separat. Nästa steg kräver användarens uttryckliga ja till exakt kandidat och listade sju filer; ingen godkännandefil har skapats och `--apply` har inte körts. Plan16 är ännu inte avslutad; plan17/fasverifiering återstår.
 
 **05.1.1-15 klar 2026-11-11:** [Faktiskt prov och handbok](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md). Terminer staplas när kalenderns egen innehållsbredd är högst 780 px (A-19). Ren kandidat `7dda9d75` har kalender **36/36** och tjänsteregression **88/88**, verklig lokal Worker/OIDC/PostgreSQL med syntetiska data, Chromium/WebKit, 0 omprov, full städning, oförändrat mål och bevarad artefakt. Alla 14 kalenderbilder är granskade; handboken är granskad och byggd men inte publicerad. Ingen installation eller runtimeändring på 3012; `261fc0db` och journal till `20261111190000` består. Plan 16–17 och formell fas-/kravverifiering återstår, liksom ordinarie användargodkännande. **Nästa enligt färdplanen: plan 16:s skript, kandidatbundna SQL-prov och kopierepetition. Installation är inte beställd och kräver uttryckligt ja till exakt kandidat och sju migrationer.** Historiska huvudmilstolpsantal är oförändrade.
 
@@ -260,7 +262,7 @@ Salsregister/salstabell är en uttryckligen önskad del av schemaläggningen. Re
 
 **APL-09 levererad2026-10-16:** Användaren godkände tre exakta APL-migrationer och3012-byte. Installation med65 originaltabellers/rättigheters bevarande, samma68cecb4/209 filer, verklig rektors-OIDC/MFA och71 verksamhetstabellers bevarande PASS. Extra startsidesprov och exakt egen återhämtning redovisas i [APL-09](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-09-SUMMARY.md). Senare främmande session/dataändringar bevarade. 10/11 paketplaner klara. [APL-användarprovet](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-USER-TRIAL.md) är awaiting_user; ingen mänsklig acceptans eller etapp2/3-leverans antas.
 
-**APL-08 klar2026-10-16:** [Redovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-08-SUMMARY.md) PASS34 faktiska kontroller, dator/telefon utan omprov,14 granskade bilder,19 callbacks och full cleanup. Samma68cecb4/209-fils kandidat,386 produktkällor/59 verifieringskällor oförändrade. Läsande installation/leveransförberedelse PASS och oberoende granskning utan blockerare. 9/11 paketplaner klara; [exakt release](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md) väntar på APL-09:s installationsbeslut. Aktiv databas och3012/a34dd19 är oförändrade. Mänsklig begriplighet i10, etapp2–3 och fulla pilotkrav kvarstår.
+**APL-08 klar 2026-10-16:** [Redovisning](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-08-SUMMARY.md) PASS34 faktiska kontroller, dator/telefon utan omprov,14 granskade bilder,19 callbacks och full cleanup. Samma68cecb4/209-fils kandidat,386 produktkällor/59 verifieringskällor oförändrade. Läsande installation/leveransförberedelse PASS och oberoende granskning utan blockerare. 9/11 paketplaner klara; [exakt release](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-RELEASE.md) väntar på APL-09:s installationsbeslut. Aktiv databas och3012/a34dd19 är oförändrade. Mänsklig begriplighet i10, etapp2–3 och fulla pilotkrav kvarstår.
 
 **APL våg5 verifierad2026-10-16:** [APL-07](phases/05-bevarade-utbildnings-och-klassfloden/05-APL-07-SUMMARY.md) PASS65 faktiska SQL-kontroller/12 observerade överlapp,65 originaltabeller/530 rader bevarade,99 aktuella källhashar och full cleanup. APL-05 UI44 är klar. 8 av11 paketplaner klara. Separat skyddad kandidat från467f9ea är byggd utan ändring av aktiv artefakt. APL-08 faktisk HTTP/OIDC återstår; ingen aktiv installation eller mänsklig acceptans.
 
@@ -773,10 +775,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-11-11
-**Stopped At:** 05.1.1-15 klar: 1280-rättning, kalender 36/36, tjänsteregression 88/88, 14 bildattester och handboksbygge. Ingen installation på 3012.
-**Resume File:** [Plan 15:s slutresultat](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md) och [plan 16](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-PLAN.md)
+**Stopped At:** 05.1.1-16:s skript och syntetiska kopierepetition klara; separat installationsbeslut saknas.3012 oförändrad.
+**Resume File:** [Plan16:s installationscheckpoint](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md)
 
-**Planned Phase:** 05.1.1 — plan 16:s installationsskript, kandidatbundna SQL-prov och repetition återstår. Ingen installation beställd. Tidigare mänskliga godkännanden består; fullt kalenderanvändarprov i plan 17 och fasverifiering återstår.
+**Planned Phase:** 05.1.1 — efter ett uttryckligt kandidat-/paketbundet ja återstår plan16:s installation, runtimebyte och efterlägesprov; sedan plan17 och fasverifiering. Inget installationsja är lämnat.
 
 ### Senaste användarfynd, 2026-10-02
 
