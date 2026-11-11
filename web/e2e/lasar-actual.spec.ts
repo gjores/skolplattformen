@@ -8,6 +8,9 @@ import {mkdirSync,readFileSync,writeFileSync,realpathSync,statSync} from 'node:f
 import path from 'node:path';
 import {assertTarget} from '../../work/pilot/verify-target.mjs';
 import {createLasarOidcFixture,seedLasarActual,lasarForeignFingerprint,LASAR_ACTUAL_CASES,LASAR_ACTUAL_ROLES} from '../../work/pilot/lasar-oidc-fixtures.mjs';
+import {captureTjanstPlanHttp} from '../../work/pilot/tjanst-oidc-fixtures.mjs';
+import {createYearPlanCommand} from '../lib/tjanst-year-contract';
+import {parseYearPlanReadReply,parsePlanCommandReply,type TjanstRow} from '../lib/tjanst-contract';
 import {lasarPayloadHash,parseLasarReadReply,parseLasarCommandReply,parseLasarSummaryReply,type LasarTarget,type LasarReadReply,type LasarAnyOp,type LasarDecision} from '../lib/lasar-contract';
 const postgres=createRequire(import.meta.url)('postgres');
 type Db=ReturnType<typeof postgres>;
@@ -64,6 +67,48 @@ async function capture(p:Page,name:string,source:string){
 }
 async function summary(role:string,year=seed.year){const q={unitId:seed.schools.A,schoolYear:year},r=await request(role,'/api/lasar/sammanfattning',q);expect(r.status,JSON.stringify(r.body)).toBe(200);return parseLasarSummaryReply(r.body,q);}
 
+async function tjanstRead(){
+ const scope={unitId:seed.schools.A,schoolYear:seed.year},r=await request('principalA','/api/tjanst/plan/lasa',scope);
+ expect(r.status,JSON.stringify(r.body)).toBe(200);return parseYearPlanReadReply(r.body,scope);
+}
+/** Capture exactly one real current basis, then create one vacant row with an explicit choice. */
+async function saveVacantImRow(p:Page):Promise<TjanstRow>{
+ const current=await tjanstRead(),cls=current.classes.find(c=>c.classId===seed.groups.classes.im),need=cls?.needs.find(n=>n.rowKey==='im-ma');expect(need).toBeTruthy();
+ const captured=await captureTjanstPlanHttp(fixture!,p,'principalA',{unitId:seed.schools.A,schoolYear:seed.year,action:'save_row',choice:'unassigned',
+  payload:{rowId:null,sourceKind:'class_timplan',sourceKey:need!.sourceKey,personId:null,teacherHt:60,teacherVt:60,comment:'Syntetiskt bevarade lärartider'}});
+ const q=await createYearPlanCommand({...captured,commandId:randomUUID()}),r=await request('principalA','/api/tjanst/plan/kommando',q);expect(r.status,JSON.stringify(r.body)).toBe(200);
+ const row=parsePlanCommandReply(r.body,q).detail.rows.find(row=>row.sourceKey===need!.sourceKey)!;expect(row).toBeTruthy();expect(row.stale).toBe(false);expect([row.teacherHt,row.teacherVt]).toEqual([60,60]);return row;
+}
+/** A calendar decision makes the row stale; only explicit row saving may accept the new basis. */
+async function verifyCalendarMarker(p:Page,saved:TjanstRow){
+ const before=await tjanstRead(),oldRow=before.rows.find(row=>row.id===saved.id)!;expect(oldRow).toBeTruthy();expect(oldRow.stale).toBe(true);
+ expect([oldRow.teacherHt,oldRow.teacherVt]).toEqual([saved.teacherHt,saved.teacherVt]);const sums=await summary('principalA');expect(sums.current!.version).toBe(2);expect(sums.previous!.version).toBe(1);
+ await p.bringToFront();await p.goto(baseURL+'/?vy=tjanst');
+ const year=p.getByLabel('Planeringsläsår',{exact:true}),unit=p.getByLabel('Planeringsskola',{exact:true});await expect(year).toBeVisible();
+ if(await unit.isEnabled()&&await unit.inputValue()!==seed.schools.A)await unit.selectOption(seed.schools.A);if(await year.inputValue()!==String(seed.year))await year.selectOption(String(seed.year));
+ const ws=p.locator('.tjanst');await expect(ws).toHaveAttribute('aria-busy','false');const marker=p.getByTestId('lasar-basis-marker');await expect(marker).toBeVisible();
+ await expect(marker).toContainText('Läsårskalendern har en ny fastställd version (2,');await expect(marker).toContainText('En rad räknar med den äldre versionen.');
+ const commandsBefore=network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length;
+ await marker.getByRole('button',{name:'Visa skillnaden',exact:true}).click();let dialog=p.getByRole('dialog',{name:'Skillnad mellan kalenderversionerna',exact:true});await expect(dialog).toBeVisible();
+ const diff=dialog.getByTestId('lasar-basis-diff');await expect(diff.getByRole('row').filter({has:p.getByRole('rowheader',{name:'HT',exact:true})}).getByRole('cell')).toHaveText([String(sums.previous!.htSchoolDays),String(sums.current!.htSchoolDays)]);
+ await expect(diff.getByRole('row').filter({has:p.getByRole('rowheader',{name:'VT',exact:true})}).getByRole('cell')).toHaveText([String(sums.previous!.vtSchoolDays),String(sums.current!.vtSchoolDays)]);
+ await expect(dialog.getByTestId('lasar-basis-rows').locator('li')).toHaveCount(1);await expect(dialog.getByTestId('lasar-basis-rows')).toContainText('SYNIM27');await dialog.getByRole('button',{name:'Stäng',exact:true}).click();await expect(dialog).toHaveCount(0);
+ if(phone()){
+  await expect(marker.getByRole('button',{name:/Använd version/})).toHaveCount(0);expect(network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length).toBe(commandsBefore);
+  expect((await tjanstRead()).rows.find(row=>row.id===saved.id)).toEqual(oldRow);
+  return {rowId:saved.id,teacherHt:60,teacherVt:60,calendarVersion:2,stale:true,diffRead:true,useButton:false,commands:0,rowUnchanged:true};
+ }
+ await marker.getByRole('button',{name:'Använd version 2',exact:true}).click();dialog=p.getByRole('dialog',{name:'Ändra tjänsteraden',exact:true});await expect(dialog).toBeVisible();
+ await expect(dialog.getByLabel('Lärartid HT (timmar)',{exact:true})).toHaveValue('1');await expect(dialog.getByLabel('Lärartid VT (timmar)',{exact:true})).toHaveValue('1');
+ expect(network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length).toBe(commandsBefore);expect((await tjanstRead()).rows.find(row=>row.id===saved.id)).toEqual(oldRow);
+ const done=p.waitForResponse(responseOf('/api/tjanst/plan/kommando'));await dialog.getByRole('button',{name:'Spara tjänsteraden',exact:true}).click();const response=await done;expect(response.status()).toBe(200);
+ const sent=response.request().postDataJSON();expect(sent.action).toBe('save_row');expect(sent.payload.rowId).toBe(saved.id);expect([sent.payload.teacherHt,sent.payload.teacherVt]).toEqual([saved.teacherHt,saved.teacherVt]);
+ parsePlanCommandReply(await response.json(),sent);await expect(dialog).toHaveCount(0);await expect(ws).toHaveAttribute('aria-busy','false');await expect(marker).toHaveCount(0);
+ const after=await tjanstRead(),row=after.rows.find(row=>row.id===saved.id)!;expect(row).toBeTruthy();expect(row.stale).toBe(false);expect([row.teacherHt,row.teacherVt]).toEqual([saved.teacherHt,saved.teacherVt]);expect(after.rows).toHaveLength(before.rows.length);
+ expect(network.principalA.filter(r=>r.path==='/api/tjanst/plan/kommando').length).toBe(commandsBefore+1);
+ return {rowId:row.id,teacherHt:row.teacherHt,teacherVt:row.teacherVt,calendarVersion:2,staleBefore:true,staleAfter:false,diffRead:true,openedWithoutCommand:true,explicitSave:true,sameRow:true,commands:1};
+}
+
 test.beforeAll(async({browser},info)=>{
  project=info.project.name;result.project=project;result.browser={name:browser.browserType().name(),version:browser.version(),viewport:info.project.use.viewport};
  assert.ok(manifestPath.startsWith('/private/tmp/')&&evidenceDir.startsWith('/private/tmp/'));assert.equal(realpathSync(manifestPath),manifestPath);assert.equal(statSync(manifestPath).mode&0o077,0);assert.equal(statSync(evidenceDir).mode&0o077,0);
@@ -115,8 +160,11 @@ test('läsårskalendern genom OIDC, Worker och PostgreSQL',async({browser},info)
   await p.getByRole('button',{name:'Markera flera',exact:true}).click();await p.locator(`button[title^="torsdag 7 oktober ${seed.year} ·"]`).tap();await expect(p.locator('.ly-marking')).toContainText('2 dagar markerade');expect(await p.locator('.ly-marking').evaluate(el=>getComputedStyle(el).position)).toBe('fixed');
   const apply=p.locator('.ly-marking').getByRole('button',{name:/Gör till lovdagar/});const done=p.waitForResponse(responseOf('/api/lasar/kommando'));await apply.click();expect((await done).status()).toBe(200);await ready(p);await capture(p,'phone-selection','actual Worker/OIDC/PostgreSQL');
   const buttons=await p.locator('.ly-tools button,.tp-workflow-actions button').evaluateAll(es=>es.filter(e=>e.getClientRects().length).map(e=>({label:e.textContent?.trim(),height:e.getBoundingClientRect().height})));for(const x of buttons)expect(x.height,x.label).toBeGreaterThanOrEqual(44);
-  pass('telefon: långtryck och Markera flera',{buttons});await uiDecision(p,'Skicka förslag');await open(h,seed.schools.A);await ready(h);await expect(h.getByRole('button',{name:'Fastställ',exact:true})).toBeVisible();pass('telefon: förslag och läsning');
-  await decision('hm',A,'approve');
+  pass('telefon: långtryck och Markera flera',{buttons});await uiDecision(p,'Skicka förslag');await open(h,seed.schools.A);await ready(h);await expect(h.getByRole('button',{name:'Fastställ',exact:true})).toBeVisible();
+  await decision('hm',A,'approve');const savedIm=await saveVacantImRow(p);await decision('hm',A,'reopen');
+  expect((await tjanstRead()).rows.find(row=>row.id===savedIm.id)).toEqual(savedIm);
+  await command('principalA',A,[{op:'set_days',dates:[`${seed.year}-10-07`],kind:'skoldag'}]);await decision('principalA',A,'submit');await decision('hm',A,'approve');
+  pass('telefon: förslag och läsning',{calendarMarker:await verifyCalendarMarker(p,savedIm)});
  }else{
   await open(h,seed.schools.A);await ready(h);await uiDecision(h,'Återsänd');await open(p,seed.schools.A);await ready(p);
   const d=(long:string)=>p.locator(`button[title^="${long} ·"]`);
@@ -133,15 +181,15 @@ test('läsårskalendern genom OIDC, Worker och PostgreSQL',async({browser},info)
   // Restore for a valid unmodified baseline before the decisions.
   await command('principalA',A,[{op:'reset_to_proposal'}]);await open(p,seed.schools.A);await ready(p);await p.getByRole('button',{name:'Lovdag',exact:true}).click();done=p.waitForResponse(responseOf('/api/lasar/kommando'));await d(`onsdag 6 oktober ${seed.year}`).click();expect((await done).status()).toBe(200);await p.locator('#ly-day-note').fill('Syntetisk anteckning');done=p.waitForResponse(responseOf('/api/lasar/kommando'));await p.locator('#ly-day-note').blur();expect((await done).status()).toBe(200);await ready(p);
   expect((await read('principalA',A)).calendar!.exceptions[`${seed.year}-10-06`].note).toBe('Syntetisk anteckning');await uiDecision(p,'Skicka förslag');await p.getByRole('button',{name:'Ta tillbaka',exact:true}).click();await expect(p.getByRole('button',{name:'Skicka förslag',exact:true})).toBeVisible();await uiDecision(p,'Skicka förslag');pass('eget förslag och dagverktyg');
-  await open(h,seed.schools.A);await ready(h);await uiDecision(h,'Fastställ');const before=await summary('principalA');expect(before.current!.version).toBe(1);
+  await open(h,seed.schools.A);await ready(h);await uiDecision(h,'Fastställ');const before=await summary('principalA');expect(before.current!.version).toBe(1);const savedIm=await saveVacantImRow(p);
   await open(p,seed.schools.A);await ready(p);await uiDecision(p,'Begär ändring','Skicka begäran');
   const over=await request('hm','/api/lasar/oversikt',{schoolYear:seed.year});expect(over.status).toBe(200);expect(over.body.schools.find((s:{unitId:string})=>s.unitId===seed.schools.A).changeRequested).toBe(true);
   await open(h,'all');const row=h.locator('.ly-overview-row').filter({hasText:'Syntetisk skola A'});await expect(row).toContainText('Ändring begärd');await row.getByRole('button',{name:'Öppna läsårskalendern för Syntetisk skola A',exact:true}).click();await ready(h);expect(await h.getByLabel('Planeringsskola',{exact:true}).inputValue()).toBe(seed.schools.A);await uiDecision(h,'Avslå begäran');expect((await read('principalA',A)).changeRequest!.status).toBe('declined');
-  await open(p,seed.schools.A);await uiDecision(p,'Begär ändring','Skicka begäran');await open(h,seed.schools.A);await uiDecision(h,'Öppna för ändring','Öppna');const opened=await read('principalA',A);expect(opened.calendar!.version).toBe(2);expect(opened.versions.find(v=>v.version===1)!.current).toBe(true);expect((await summary('principalA')).current).toEqual(before.current);pass('ändringsbegäran, avslag och överblick');
+  await open(p,seed.schools.A);await uiDecision(p,'Begär ändring','Skicka begäran');await open(h,seed.schools.A);await uiDecision(h,'Öppna för ändring','Öppna');const opened=await read('principalA',A);expect(opened.calendar!.version).toBe(2);expect(opened.versions.find(v=>v.version===1)!.current).toBe(true);expect((await summary('principalA')).current).toEqual(before.current);expect((await tjanstRead()).rows.find(row=>row.id===savedIm.id)).toEqual(savedIm);pass('ändringsbegäran, avslag och överblick');
   await open(p,seed.schools.A);await ready(p);await p.locator('.tp-versions button').first().click();await expect(p.locator('.tp-cover-side')).toContainText('Läsvy');await expect(p.locator('.tp-workflow-actions button')).toHaveCount(0);await p.locator('.tp-versions button').last().click();await ready(p);
   const staleRead=await read('principalA',A);await command('admin',A,[{op:'comment',text:'Syntetisk parallell ändring'}]);done=p.waitForResponse(responseOf('/api/lasar/kommando'));await p.getByRole('button',{name:'Lovdag',exact:true}).click();await d(`torsdag 7 oktober ${seed.year}`).click();expect((await done).status()).toBe(409);await expect(p.locator('.tp-inline-error')).toContainText('Kalendern ändrades av någon annan.');expect((await read('principalA',A)).calendar!.revision).toBeGreaterThan(staleRead.calendar!.revision);pass('konflikt mellan sessioner');
   await command('principalA',A,[{op:'set_days',dates:[`${seed.year}-10-07`],kind:'lovdag'}]);await decision('principalA',A,'submit');await decision('hm',A,'approve');expect((await summary('principalA')).current!.version).toBe(2);pass('återsänd, fastställ och ny version');
-  const plan=await request('principalA','/api/tjanst/plan/lasa',{unitId:seed.schools.A,schoolYear:seed.year});expect(plan.status,JSON.stringify(plan.body)).toBe(200);const im=plan.body.classes.find((c:{classId:string})=>c.classId===seed.groups.classes.im);expect(im).toBeTruthy();const need=im.needs.find((n:{rowKey:string})=>n.rowKey==='im-ma');const s=await summary('principalA');expect(need.needBasis).toBe('weekly_calendar');expect(need.needHt).toBe(s.current!.htSchoolDays*3*60/5);expect(need.needVt).toBe(s.current!.vtSchoolDays*3*60/5);pass('IM-behov och kalenderversion',{version:s.current!.version,needHt:need.needHt,needVt:need.needVt});
+  const plan=await request('principalA','/api/tjanst/plan/lasa',{unitId:seed.schools.A,schoolYear:seed.year});expect(plan.status,JSON.stringify(plan.body)).toBe(200);const im=plan.body.classes.find((c:{classId:string})=>c.classId===seed.groups.classes.im);expect(im).toBeTruthy();const need=im.needs.find((n:{rowKey:string})=>n.rowKey==='im-ma');const s=await summary('principalA');expect(need.needBasis).toBe('weekly_calendar');expect(need.needHt).toBe(s.current!.htSchoolDays*3*60/5);expect(need.needVt).toBe(s.current!.vtSchoolDays*3*60/5);pass('IM-behov och kalenderversion',{version:s.current!.version,needHt:need.needHt,needVt:need.needVt,calendarMarker:await verifyCalendarMarker(p,savedIm)});
   // A real current-year version, so the lock is based on server time rather than a browser clock.
   await decision('hm',A,'reopen',seed.currentYear);await open(p,seed.schools.A,seed.currentYear);await ready(p);const past=p.locator(`button[title^="onsdag 7 oktober ${seed.currentYear} ·"]`);await expect(past).toHaveAttribute('title',/passerad dag, låst/);await p.getByRole('button',{name:'Lovdag',exact:true}).click();await past.click();await expect(p.locator('.ly-marking')).toContainText('låst');await p.getByRole('button',{name:/^Vecka 41: markera/}).click();await expect(p.locator('.ly-marking')).toContainText('låsta');await past.click({button:'right'});await expect(p.locator('.ly-menu')).toContainText('Markerade dagar är låsta');await p.keyboard.press('Escape');await expect(p.locator('#ly-ht-start')).not.toHaveAttribute('type','date');
   const pc=await read('principalA',A,seed.currentYear),ops:LasarAnyOp[]=[{op:'set_days',dates:[`${seed.currentYear}-10-07`],kind:'lovdag'}],pq={commandId:randomUUID(),target:A,schoolYear:seed.currentYear,versionId:pc.calendar!.versionId,expectedRevision:pc.calendar!.revision,ops,payloadHash:await lasarPayloadHash(ops)};const locked=await request('principalA','/api/lasar/kommando',pq);expect(locked.status).toBe(409);expect(locked.body.code).toBe('conflict');expect(locked.body.details.reason).toBe('lasar_past_day');pass('passerade dagar låsta');
@@ -149,5 +197,5 @@ test('läsårskalendern genom OIDC, Worker och PostgreSQL',async({browser},info)
   const copyYear=seed.year+1;const preview=await decision('hm',frame,'preview_mode_change',copyYear,{mode:'ram'});await decision('hm',frame,'set_mode',copyYear,{mode:'ram',confirmAffected:preview.affected.map((s:{unitId:string})=>s.unitId)});await command('hm',frame,[{op:'create',source:'proposal'}],copyYear);await open(h,'ram',copyYear);await ready(h);await expect(h.locator('#ly-group')).toHaveCount(0);await expect(h.locator('.ly-shortweek')).toHaveCount(0);await h.getByRole('button',{name:'Ge ut ramen',exact:true}).click();const publish=h.waitForResponse(responseOf('/api/lasar/beslut'));await h.getByRole('dialog').getByRole('button',{name:'Ge ut ramen',exact:true}).click();expect((await publish).status()).toBe(200);
   await open(b,seed.schools.B,copyYear);await b.getByRole('button',{name:'Utgå från huvudmannens ram',exact:true}).click();await ready(b);await command('hm',frame,[{op:'create',source:'frame'}],copyYear);await command('hm',frame,[{op:'set_days',dates:[`${copyYear}-10-11`],kind:'lovdag'}],copyYear);await decision('hm',frame,'publish_frame',copyYear);await open(b,seed.schools.B,copyYear);await ready(b);await expect(b.locator('.ly-frame-banner')).toBeVisible();await b.getByRole('button',{name:'Ta in ramens ändringar',exact:true}).click();await b.getByRole('alertdialog').getByRole('button',{name:/^Ta in \d+ ändring/}).click();await expect(b.locator('.ly-frame-banner')).toHaveCount(0);expect((await read('principalB',B,copyYear)).calendar!.exceptions[`${copyYear}-10-11`].kind).toBe('lovdag');pass('huvudmannens ram och uppdatering');
  }
- await p.bringToFront();await p.goto(baseURL+'/?vy=timplaner');await p.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(seed.year));await p.getByRole('button',{name:'Grundskola och introduktionsprogram',exact:true}).click();await p.getByRole('combobox',{name:'Skolform',exact:true}).selectOption({label:'Introduktionsprogram'});await p.getByRole('row',{name:/Syntetiskt IM/}).getByRole('button',{name:/^Öppna /}).click();await expect(p.getByText(new RegExp(`^Veckoram\\. Läsårskalendern ${seed.year}/.* är fastställd \\(version ${phone()?1:2}, \\d+ skoldagar\\)\\. Individuell fördelning visas inte här\\.$`))).toBeVisible();pass('IM-text i Timplaner',{withoutCalendar:true,approvedVersion:phone()?1:2});
+ await p.bringToFront();await p.goto(baseURL+'/?vy=timplaner');await p.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(seed.year));await p.getByRole('button',{name:'Grundskola och introduktionsprogram',exact:true}).click();await p.getByRole('combobox',{name:'Skolform',exact:true}).selectOption({label:'Introduktionsprogram'});await p.getByRole('row',{name:/Syntetiskt IM/}).getByRole('button',{name:/^Öppna /}).click();await expect(p.getByText(new RegExp(`^Veckoram\\. Läsårskalendern ${seed.year}/.* är fastställd \\(version 2, \\d+ skoldagar\\)\\. Individuell fördelning visas inte här\\.$`))).toBeVisible();pass('IM-text i Timplaner',{withoutCalendar:true,approvedVersion:2});
 });
