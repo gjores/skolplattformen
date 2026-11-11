@@ -3,29 +3,31 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "15 – layout rättas, ny faktisk provserie"
-status: executing
-stopped_at: "05.1.1-15 återupptagen: rätta kalenderns egen responsiva bredd, prova ny kandidat och bygg handboken. Ingen installation på 3012."
+current_plan: "16 – installationsskript och repetition återstår; ingen installation beställd"
+status: ready
+stopped_at: "05.1.1-15 klar: 1280-layout rättad, kalender 36/36 och tjänsteregression 88/88 på kandidat 7dda9d75, 14 bildattester och byggd handbok. Inget installerat på 3012."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "Plan 15 inte klar: överlappande kalenderdagar vid 1280 px i appskalet. Användaren valde att dokumentera och invänta beslut. Se 05.1.1-15-CHECKPOINT.md."
-state_head: 8ad8460e
+last_activity_desc: "Plan 15 klar, faktiskt lokalt provat med syntetiska data. Plan 16–17 och fasverifiering återstår. Installation på 3012 är inte beställd."
+state_head: 7dda9d75
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
   completed_plans: 99
-verification_worker_build_revision: 094860fb70b204f85bea0a562f4a6173a7b422d5
-verification_worker_status: calendar_actual_36_pass_visual_gap_regression_interrupted
+verification_worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
+verification_worker_status: calendar_actual_36_pass_tjanst_regression_88_pass_cleanup_complete
 worker_status: calendar_early_trial_installed_through_20261111190000
 worker_build_revision: 261fc0db304172ea5f76016d3907521dc5e0f63d
-verification_ui_build_revision: 094860fb70b204f85bea0a562f4a6173a7b422d5
-verification_ui_status: calendar_automatic_pass_manual_1280_gap
+verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
+verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
 
-**05.1.1-15 återupptagen 2026-11-11:** Användaren beställer rättning utifrån kalenderns egen bredd och därefter nya prov och handboksbygge. Ingen installation på 3012. Tidigare paus och provstatus nedan är historik.
+**05.1.1-15 klar 2026-11-11:** [Faktiskt prov och handbok](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md). Terminer staplas när kalenderns egen innehållsbredd är högst 780 px (A-19). Ren kandidat `7dda9d75` har kalender **36/36** och tjänsteregression **88/88**, verklig lokal Worker/OIDC/PostgreSQL med syntetiska data, Chromium/WebKit, 0 omprov, full städning, oförändrat mål och bevarad artefakt. Alla 14 kalenderbilder är granskade; handboken är granskad och byggd men inte publicerad. Ingen installation eller runtimeändring på 3012; `261fc0db` och journal till `20261111190000` består. Plan 16–17 och formell fas-/kravverifiering återstår, liksom ordinarie användargodkännande. **Nästa enligt färdplanen: plan 16:s skript, kandidatbundna SQL-prov och kopierepetition. Installation är inte beställd och kräver uttryckligt ja till exakt kandidat och sju migrationer.** Historiska huvudmilstolpsantal är oförändrade.
+
+**Historik — återupptagen 2026-11-11:** Användaren beställer rättning utifrån kalenderns egen bredd och därefter nya prov och handboksbygge. Ingen installation på 3012. Tidigare paus och provstatus nedan är historik.
 
 **Historisk paus 2026-11-11:** [Checkpoint och fortsatt arbete](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-CHECKPOINT.md). Användaren valde ordagrant **”Dokumentera felet och invänta fortsatt beslut”**. Kandidat `094860fb` har faktiskt lokalt Worker/OIDC/PostgreSQL PASS **36/36** automatiska kalenderkontroller (12/12/6/6, Chromium/WebKit, 36 verifierade callbacks, 0 omprov, full städning och oförändrat mål), men manuell bildgranskning visar överlappande dagtexter i appskalets två kalenderkolumner vid **1280 px**. Ingen layoutändring är gjord eller godkänd. Tjänstefördelningens faktiska regression avbröts kontrollerat på användarbeslut efter 21/88 registrerade kontroller; full städning och oförändrat mål, inget regressions-PASS. Handboken är sparat utkast; docs:build återstår. Plan 15 är inte klar, ingen SUMMARY eller slutlig bildattest, inga nya kravgodkännanden. Plan 16 är preciserad för exakt sju återstående filer, kandidatbundna SQL-körbevis och kopierepetition enligt målets läsbegränsning; inga installationsskript byggda. 3012 behåller `261fc0db` och journal till `20261111190000`. **Nästa: invänta nytt uttryckligt besked om 1280-fyndet; fortsätt inte automatiskt.** Historiska huvudmilstolpsantal nedan är oförändrade.
 
@@ -771,10 +773,10 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 ## Session
 
 **Last Date:** 2026-11-11
-**Stopped At:** 05.1.1-15 pausad på användarbeslut efter 1280-fynd; ingen fortsatt rättning eller installation beställd.
-**Resume File:** [Läsårskalenderns checkpoint](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-CHECKPOINT.md)
+**Stopped At:** 05.1.1-15 klar: 1280-rättning, kalender 36/36, tjänsteregression 88/88, 14 bildattester och handboksbygge. Ingen installation på 3012.
+**Resume File:** [Plan 15:s slutresultat](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md) och [plan 16](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-PLAN.md)
 
-**Planned Phase:** 05.1.1 — invänta besked om kalenderns 1280-layout innan plan 15 återupptas. Tidigare mänskliga godkännanden består; fullt kalenderanvändarprov i plan 17 återstår.
+**Planned Phase:** 05.1.1 — plan 16:s installationsskript, kandidatbundna SQL-prov och repetition återstår. Ingen installation beställd. Tidigare mänskliga godkännanden består; fullt kalenderanvändarprov i plan 17 och fasverifiering återstår.
 
 ### Senaste användarfynd, 2026-10-02
 
