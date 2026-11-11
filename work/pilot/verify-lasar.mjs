@@ -31,7 +31,7 @@ const YEAR = 2027;
 export const SCHOOL_YEAR_READERS = Object.freeze([
   'guard_decided_school_year', 'guard_school_year_days', 'lasar_command', 'lasar_content_hash', 'lasar_create_copy', 'lasar_create_from_frame', 'lasar_create_proposal', 'lasar_current',
   'lasar_detail', 'lasar_group_ref_guard', 'lasar_history', 'lasar_lock_version', 'lasar_mode_affected', 'lasar_overview', 'lasar_reopen', 'lasar_reset_proposal', 'lasar_rules',
-  'lasar_school_days', 'lasar_set_term', 'lasar_summary', 'lasar_take_frame_changes',
+  'lasar_school_days', 'lasar_set_term', 'lasar_summary', 'lasar_summary_stat', 'lasar_take_frame_changes',
   'phase4_register_selection',
 ]);
 const FORBIDDEN_DEMO = ['sign' + 'InDemo', 'bootstrap_' + 'demo_profile'];
@@ -1530,8 +1530,8 @@ async function summaryRead(t, step, f) {
     const req = await decide('principalA', dec('request_change', 'Syntetisk orsak', s.v1, s.approved1.receipt.revision));
     const o = await decide('hm', dec('reopen', 'Syntetiskt skäl', s.v1, req.receipt.revision));
     s.v2 = o.detail.calendar.versionId;
-    const sy = lasarSchoolYear(o.detail), lov = [schoolDay(sy, `${YEAR}-11-08`)]; lov.push(schoolDay(sy, addDays(lov[0], 1)));
-    const r = await send('principalA', await cmd([{ op: 'set_days', dates: lov, kind: 'lovdag', note: 'Syntetisk lovdag' }], s.v2, o.receipt.revision));
+    // Höststarten en vecka tidigare ger fem skoldagar till i HT; VT är oförändrad.
+    const r = await send('principalA', await cmd([{ op: 'set_term', term: 'ht', edge: 'start', date: addDays(s.approved1.detail.calendar.terms.ht.start, -7) }], s.v2, o.receipt.revision));
     s.before = await look('hm');
     assert.equal(s.before.current.version, 1); assert.equal(s.before.previous, null);
     s.sub2 = await decide('principalA', dec('submit', 'Syntetisk ändring', s.v2, r.receipt.revision));
@@ -1543,7 +1543,7 @@ async function summaryRead(t, step, f) {
     assert.deepEqual(o.current, { ...stat(s.approved2.detail.calendar), htSchoolDays: weeks2.htSchoolDays, vtSchoolDays: weeks2.vtSchoolDays });
     assert.deepEqual(o.previous, { ...stat(s.approved1.detail.calendar), htSchoolDays: s.weeks1.htSchoolDays, vtSchoolDays: s.weeks1.vtSchoolDays });
     assert.deepEqual(await daysOf(s.v1), s.weeks1); assert.deepEqual(await daysOf(s.v2), weeks2);
-    assert.equal(o.current.htSchoolDays, o.previous.htSchoolDays - 2); assert.equal(o.current.vtSchoolDays, o.previous.vtSchoolDays);
+    assert.equal(o.current.htSchoolDays, o.previous.htSchoolDays + 5); assert.equal(o.current.vtSchoolDays, o.previous.vtSchoolDays);
     assert.notEqual(o.current.contentHash, o.previous.contentHash);
   });
   await step(t, 'sammanfattning: rektor och skoladministratör för skolan och huvudmannen får läsa; annan rektor, lärare och främmande huvudman nekas (T-05.1.1-40)', async () => {

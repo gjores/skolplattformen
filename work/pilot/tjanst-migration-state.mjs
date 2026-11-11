@@ -57,6 +57,10 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261112130000_lasar_copy_overview.sql', '7481a3924f8235028bcea9a62718e3af41c1a553eb9e2203730814d568b291d6'],
   // 05.1.1-11: Workerns rätt att köra lasar_overview, i en egen grant-fil direkt efter kopieringsfilen.
   ['supabase/migrations/20261112131000_lasar_overview_worker_access.sql', 'd110a94a77c14e423017632ba1e7f10646d58ddd61ea29109f54fe94fa829179'],
+  // 05.1.1-13: kalenderns sammanfattning för beroende underlag (D-11, LASAR-05); bygger på kopieringens och överblickens filer.
+  ['supabase/migrations/20261112140000_lasar_summary.sql', '29b6397a3ef7ff56e872e56a1abb3c45df1221999b0b3cbdcbe6829f35dc1901'],
+  // 05.1.1-13: Workerns rätt att köra lasar_summary, i en egen grant-fil direkt efter sammanfattningens fil.
+  ['supabase/migrations/20261112141000_lasar_summary_worker_access.sql', '50801415b79cae0eaf8443150e43557003dee0e54263a43cc0ec7cdf6e28c486'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;

@@ -27,12 +27,13 @@ export const tjanstJointTeacherMigrations = ['supabase/migrations/20261026100000
 export const tjanstClassAplMigrations = ['supabase/migrations/20261026110000_tjanst_class_apl.sql'];
 export const tjanstNeedSharingMigrations = ['supabase/migrations/20261028100000_tjanst_need_sharing.sql'];
 /** Läsårskalenderns versioner (05.1.1-06), stabila grupp-ID:n (05.1.1-08) och ändringsbegäran med ny version (05.1.1-09) och
- * huvudmannens ram (05.1.1-10): bygger om
+ * huvudmannens ram (05.1.1-10), kopiering och överblick (05.1.1-11) och sammanfattningen (05.1.1-13): bygger om
  * tjanst_school_weeks och tjanst_year_core och styr när en ny version gäller, därför i tjänstefördelningens kedja. */
 export const lasarMigrations = ['supabase/migrations/20261111100000_lasar_versions.sql', 'supabase/migrations/20261111190000_lasar_worker_access.sql',
   'supabase/migrations/20261112100000_lasar_groups.sql', 'supabase/migrations/20261112110000_lasar_change_requests.sql',
   'supabase/migrations/20261112120000_lasar_frames.sql', 'supabase/migrations/20261112130000_lasar_copy_overview.sql',
-  'supabase/migrations/20261112131000_lasar_overview_worker_access.sql'];
+  'supabase/migrations/20261112131000_lasar_overview_worker_access.sql', 'supabase/migrations/20261112140000_lasar_summary.sql',
+  'supabase/migrations/20261112141000_lasar_summary_worker_access.sql'];
 export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations, ...tjanstClassAplMigrations, ...tjanstNeedSharingMigrations, ...lasarMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };

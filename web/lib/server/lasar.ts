@@ -2,9 +2,9 @@ import { gymBoolean, gymInteger, gymShape, gymUuid } from '../gym-timplan.ts';
 import {
   LASAR_REASONS, LasarContractError, parseLasarCommandReply, parseLasarDecisionReply, parseLasarDecisionRequest, parseLasarEnvelope,
   lasarSchoolYear, parseLasarModePreviewReply, parseLasarOverviewReply, parseLasarOverviewRequest, parseLasarReadReply, parseLasarReadRequest,
-  parseLasarStatusRequest, verifyLasarCommandHash,
+  parseLasarStatusRequest, parseLasarSummaryReply, parseLasarSummaryRequest, verifyLasarCommandHash,
   type LasarCommandReply, type LasarCommandRequest, type LasarDecisionRequest, type LasarModePreview, type LasarOverviewReply, type LasarOverviewRequest,
-  type LasarReadReply, type LasarReadRequest, type LasarReason, type LasarStatusRequest, type LasarTarget,
+  type LasarReadReply, type LasarReadRequest, type LasarReason, type LasarStatusRequest, type LasarSummaryReply, type LasarSummaryRequest, type LasarTarget,
 } from '../lasar-contract.ts';
 import { copySchoolYear, type CopyReviewItem } from '../lasar-copy.ts';
 import { groupsFromRefs } from '../lasar-groups.ts';
@@ -318,4 +318,20 @@ export async function lasarOverview(tx: Tx, input: LasarOverviewRequest, authori
     if (authority.accessFunction !== 'huvudman' && body.frame?.status === 'utkast') invalid();
   } catch { throw new AuditUnavailable(); }
   return { body, event: { action: 'lasar_overview', objectType: 'school_year', objectId: null, details: { unitId: null, schoolYear: input.schoolYear } } };
+}
+
+/**
+ * Kalenderns sammanfattning för beroende underlag (05.1.1-13, D-11, LASAR-05): rutt → lasarSummary → public.lasar_summary(jsonb).
+ * Begäran har skolan och läsåret; SQL prövar mandatet som för kalendern (T-05.1.1-40) och ger den gällande och den föregående
+ * fastställda versionen med skoldagar per termin ur lasar_school_days, samma som tjanst_school_weeks (T-05.1.1-54). Svaret tolkas av
+ * kontraktets summary-tolk utan extra fält, för exakt samma skola och läsår och med sessionens aktör i kuvertet. Tjänstefördelningens
+ * tolkar ändras inte (Pitfall 7). SS 12000: skolan anges med school_units.id (Organisation, organisationType=Skolenhet).
+ */
+export const parseLasarSummaryInput = (value: unknown): LasarSummaryRequest => parseLasarSummaryRequest(value);
+export async function lasarSummary(tx: Tx, input: LasarSummaryRequest, authority: LasarAuthority) {
+  role(authority, LASAR_FUNCTIONS);
+  const raw = one(await operation(() => tx<{ result: unknown }[]>`select public.lasar_summary(${json(tx, input)}) as result`));
+  let body: LasarSummaryReply;
+  try { body = parseLasarSummaryReply(envelope(raw, authority), input); } catch { throw new AuditUnavailable(); }
+  return { body, event: { action: 'lasar_summary', objectType: 'school_year', objectId: null, details: { unitId: input.unitId, schoolYear: input.schoolYear } } };
 }
