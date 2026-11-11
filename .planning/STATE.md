@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "16 – uppdaterad målbas repeterad; inväntar beslut"
-status: awaiting_approval
-stopped_at: "Installation godkänd genom kör på, men apply01 avbröts före DDL på rättat typfel. Under omrepetition ändrades en kalenders revision/updated_at. Ny repetition08 PASS; inväntar beslut om uppdaterad målbas. Inget installerat; gamla3012 återstartad."
+current_plan: "17 – förbered användarprov"
+status: awaiting_user_verification
+stopped_at: "05.1.1-16 klar: godkänd 08-bas, exakt 7 migrationer installerade, journal 165 till 20261112141000,3012 på7dda9d75. Hälsa16/16 och efter-SQL159/159 PASS/full städning. Nästa plan 17:s användarprov; ingen användaracceptans ännu."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "85 Node PASS och repetition08 PASS på c1b6fb08. Produkt7dda9d75 och sju migrationshashar oförändrade. Faktisk metadataändring i målkalender kräver nytt basbeslut; originalgodkännandet bevarat."
+last_activity_desc: "Användaren godkände målbas 08; apply committedtrue med 168 tabellers gamla kolumner bevarade. Kandidat7dda9d75 installerad, tidigare runtime/ny privat backup bevarade. Plan 17 och fasverifiering återstår."
 state_head: c1b6fb08
 progress:
   total_phases: 8
@@ -17,15 +17,15 @@ progress:
   completed_plans: 99
 verification_worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_worker_status: calendar_actual_36_pass_tjanst_regression_88_pass_cleanup_complete
-worker_status: calendar_early_trial_installed_through_20261111190000
-worker_build_revision: 261fc0db304172ea5f76016d3907521dc5e0f63d
+worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_159_pass
+worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-user_trial_status: valplan_uat_passed_2026_11_10
+user_trial_status: lasar_pending_after_installation_2026_11_11
 milestone_name: milestone
 ---
 
-**05.1.1-16, uppdaterat beslutsunderlag 2026-11-11:** [Kandidat, sjufilslista och repetition08](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md). Användaren svarade **”kör på!”** på exakt kandidat/paket. Apply01 avbröts före installationslås/DDL/DML på drivrutinens Result/JSON-Array-jämförelse; rättat och **85 Node PASS**. Repetition06 PASS;07 FAIL när målkalenderns metadata faktiskt ändrades under körningen (en av tre rader, endast revision/updated_at). Schema/journal/övriga kalenderkolumner oförändrade. Ny egen kopierepetition08 **PASS**, rollback/städning/full målkonstans, verktyg `c1b6fb08`. Produkt `7dda9d75`,447 SQL och plan15:s actual-/bildbevis oförändrade. Originalgodkännandet och05-hashen bevaras; teknisk kedja får inte godta ändrad målbas. **Ingen migration installerad. Gamla3012 återstartad på261fc0db, health200; ny runtime-kopia förberedd men aldrig startad.** Privat backup finns (före metadataändringen). Nästa: användarens beslut om målbasen i repetition08; därefter upprepad förkontroll, installation/runtimebyte/hälsa/efterlägesprov. Plan16,17 och fasverifiering är inte klara.
+**05.1.1-16 installerad 2026-11-11:** [Slutredovisning](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-SUMMARY.md). Användaren godkände ordagrant **”Ja, installera mot målbasen i repetition 08”**. Apply PASS/`committed=true`, exakt 7 migrationer, journal 158→165 till `20261112141000`. 168 ursprungliga tabellers gamla kolumnvärden bevarade,3kalendrar/0grupprader/0hashfrysningar/6nya tomma tabeller och1egen installationshändelse.3012 kör fryst kandidat `7dda9d75`; artefakt 1426 filer exakt, hälsa 16/16 och efterlägesprov159/159 PASS i egen schemakopia/full städning. 85 Node och 447 kandidatbundna SQL PASS samt plan 15:s faktiska lokala kalender36/36 och tjänsteregression 88/88 gäller samma produkt. Ny privat backup efter stopp, tidigare runtime bevarad. Tidigare avbrott/metadataändring är dokumenterade och originalgodkännanden orörda. **Plan 16 klar; nästa plan 17/användarprov på dator/telefon och därefter fasverifiering.** Inget användargodkännande, verifierat standardutbyte eller verklig kommunanslutning. Historik nedan beskriver tidigare lägen.
 
 **05.1.1-15 klar 2026-11-11:** [Faktiskt prov och handbok](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-15-SUMMARY.md). Terminer staplas när kalenderns egen innehållsbredd är högst 780 px (A-19). Ren kandidat `7dda9d75` har kalender **36/36** och tjänsteregression **88/88**, verklig lokal Worker/OIDC/PostgreSQL med syntetiska data, Chromium/WebKit, 0 omprov, full städning, oförändrat mål och bevarad artefakt. Alla 14 kalenderbilder är granskade; handboken är granskad och byggd men inte publicerad. Ingen installation eller runtimeändring på 3012; `261fc0db` och journal till `20261111190000` består. Plan 16–17 och formell fas-/kravverifiering återstår, liksom ordinarie användargodkännande. **Nästa enligt färdplanen: plan 16:s skript, kandidatbundna SQL-prov och kopierepetition. Installation är inte beställd och kräver uttryckligt ja till exakt kandidat och sju migrationer.** Historiska huvudmilstolpsantal är oförändrade.
 
