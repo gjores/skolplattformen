@@ -242,7 +242,8 @@ export async function applyLasar(options){
    const originalRows=await preservedRows(snapshot.db,await preservedColumns(snapshot.db)),originalJournal=await readMigrationJournal(snapshot.db);
    try{await snapshot.db.begin(async tx=>{
     for(const row of baseline.journal)await tx`insert into supabase_migrations.schema_migrations(version,name,statements) values(${row.version},${row.name},${row.statements})`;
-    const fixture=await seedRehearsal(tx),basisBefore=await fixture.basis();
+    r.stage='seeding_synthetic_fixture';sink.save();const fixture=await seedRehearsal(tx),basisBefore=await fixture.basis();
+    r.stage='testing_locked_preflight';sink.save();
     const syntheticBaseline=(await preflightInTransaction(tx,target,sources)).state;
     // Exercise the actual under-lock gate with a row change, then roll the attempted change back.
     await assert.rejects(tx.savepoint(async probe=>{
@@ -277,6 +278,9 @@ export async function applyLasar(options){
   }
   await revalidate();r.status='PASS';delete r.failureCode;r.stage='verified';
  }catch(error){r.status='FAIL';r.failure={name:error.name==='AssertionError'?'AssertionError':'Error',messageSha256:sha(String(error.message??'')),
+   code:/^[A-Z0-9_]{1,40}$/u.test(error.code??'')?error.code:null,
+   constraint:/^[a-z_0-9]+$/u.test(error.constraint_name??'')?error.constraint_name:null,
+   location:String(error.stack??'').match(/apply-lasar\.mjs:\d+:\d+/u)?.[0]??null,
    reason:/^[a-z_]+$/u.test(error.message??'')?error.message:null};if(r.stage==='commit_pending'&&!r.committed){r.committed=null;r.commitOutcome='unknown';}}
  finally{
   if(snapshot)try{const cleanup=await snapshot.cleanup();r.snapshotCleanup={cleanup:cleanup.cleanup,database:cleanup.database};}catch{r.snapshotCleanup={cleanup:'failed'};r.status='FAIL';}
