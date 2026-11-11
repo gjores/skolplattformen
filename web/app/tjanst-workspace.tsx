@@ -13,6 +13,7 @@ import { createPlanCommand, parsePersonalCommand, parsePersonalCommandReply, par
   type TjanstPlanRead, type TjanstRow, type TjanstSpecial } from '@/lib/tjanst-contract.ts';
 import { parseYearReply, parseYearRequest, type TjanstYearRequest, type TjanstYearReply, type TjanstYearCatalogReply, type TjanstYearBasePayload as TjanstPlanPayload } from '@/lib/tjanst-year-contract.ts';
 import TjanstYearDialog, { type TjanstYearBatchDraft, type TjanstScopedMove } from './tjanst-year-dialog';
+import LasarBasisMarker from './lasar-basis-marker';
 import { loadTjanstJournal, persistTjanstJournal, removeTjanstJournal, TjanstJournalError, type TjanstJournal, type TjanstJournalScope } from '@/lib/tjanst-journal.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import type { ActiveContext } from './context-switch';
@@ -696,6 +697,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
         {readError.retry && <Button variant="outline" aria-label="Hämta tjänstefördelningen igen" onClick={refresh}>Hämta igen</Button>}</div>}
       {loading && <output aria-busy="true">Hämtar tjänstefördelningen…</output>}
     </div>
+    {data && !versionId && <LasarBasisMarker unitId={data.unitId} schoolYear={data.schoolYear} rows={data.rows} classes={data.classes}
+      onUse={can('save_row') ? (rows, from) => openBlockerTarget({ kind: 'row', rowId: rows[0].id, sourceKey: rows[0].sourceKey, label: '' }, from) : undefined}/>}
     {data && <div className="tjanst-content" inert={loading || quickBusy} aria-labelledby={headingId}>
       <h2 id={headingId} ref={viewHeading} tabIndex={-1} className="sr-only">{VIEWS.find(v => v.id === shownView)!.label}</h2>
       {empty && <p>{phone ? 'Inga uppdrag har ännu fördelats för läsåret. Här kan du läsa aktuellt underlag. Planeringen görs på dator.' : 'Välj ett behov i matrisen och välj lärare på raden. Inga lärarval är förifyllda.'}</p>}

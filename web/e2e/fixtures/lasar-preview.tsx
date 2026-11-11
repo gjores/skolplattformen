@@ -33,12 +33,16 @@
 //   vy=im   IM-raden i Timplaner (05.1.1-14) ur /api/lasar/sammanfattning
 //   sammanfattning=faststalld|ny|tom|fel   version 1 gäller / version 2 gäller efter version 1 / ingen fastställd
 //                 version / läsningen ger 500 (standard faststalld)
+//   vy=markering   markeringen om ny kalenderversion i Tjänstefördelning (05.1.1-14) med syntetiska rader;
+//                 rader=en|tva|ingen (inaktuella IM-rader), skriv=0 utan Använd version (läsläge)
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ProtectedLasarWorkspace from '../../app/protected-lasar-workspace';
 import ProtectedLasarOverview, { type LasarOpenTarget } from '../../app/protected-lasar-overview';
 import { ProtectedLasarModeCard } from '../../app/protected-lasar-start';
 import LasarImWeeklyNote from '../../app/lasar-im-weekly-note';
+import LasarBasisMarker from '../../app/lasar-basis-marker';
+import type { TjanstClass, TjanstRow } from '../../lib/tjanst-contract';
 import LasarView from '../../app/lasar-view';
 import {
   parseLasarCommandReply,
@@ -70,6 +74,7 @@ import { proposeSchoolYear, type Exception, type GroupException, type LasarState
 import { UnsavedChangesProvider } from '../../lib/unsaved-changes';
 import '../../app/globals.css';
 import '../../app/protected-timplan.css';
+import '../../app/tjanst.css';
 
 const tid = (n: number) => `51a50000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const params = new URLSearchParams(location.search);
@@ -272,7 +277,7 @@ let releaseOverview: (() => void) | null = null;
 
 type Logged = { path: string; body: unknown };
 const control = {
-  commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], overviews: [] as Logged[], summaries: [] as Logged[], opened: [] as LasarOpenTarget[],
+  commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], overviews: [] as Logged[], summaries: [] as Logged[], used: [] as string[][], opened: [] as LasarOpenTarget[],
   revision: () => latestOf(active)?.revision ?? 0, versions: () => active.versions.length,
   release: () => { releaseOverview?.(); releaseOverview = null; },
 };
@@ -487,6 +492,35 @@ function Demo() {
   );
 }
 
+// ---- Markeringen i Tjänstefördelning (05.1.1-14). Syntetiska klasser och rader utan personer.
+const markerRows = params.get('rader') ?? 'en';
+const tneed = (classId: string, rowKey: string, label: string, needBasis: 'terms' | 'weekly_calendar') =>
+  ({ sourceKind: 'class_timplan' as const, sourceKey: `class_timplan:${classId}:${YEAR}:${rowKey}`, rowKey, label, needHt: 3000, needVt: 3000, needBasis });
+const MIM = tid(801), MGY = tid(802);
+const markerClasses: TjanstClass[] = [
+  { classId: MIM, name: 'IMSPR', aplMinutes: null, link: null, needs: [tneed(MIM, 'SVASVA01', 'Svenska som andraspråk 1', 'weekly_calendar'), tneed(MIM, 'MATMAT01a', 'Matematik 1a', 'weekly_calendar'), tneed(MIM, 'ENGENG05', 'Engelska 5', 'weekly_calendar')] },
+  { classId: MGY, name: 'TE26A', aplMinutes: null, link: null, needs: [tneed(MGY, 'MATMAT01c', 'Matematik 1c', 'terms')] },
+];
+const trow = (n: number, cls: TjanstClass, index: number, stale: boolean): TjanstRow => {
+  const need = cls.needs[index];
+  return { id: tid(810 + n), lineageId: tid(830 + n), sourceKind: 'class_timplan', sourceKey: need.sourceKey, classId: cls.classId, rowKey: need.rowKey, personId: null,
+    teacherHt: 2000, teacherVt: 2000, needHt: 2900, needVt: 3000, needBasis: need.needBasis, stale, jointGroupId: null, comment: '' } as TjanstRow;
+};
+const markerData: TjanstRow[] = [
+  trow(1, markerClasses[0], 0, markerRows !== 'ingen'), trow(2, markerClasses[0], 1, markerRows === 'tva'), trow(3, markerClasses[0], 2, false),
+  trow(4, markerClasses[1], 0, true),
+];
+function MarkerHarness() {
+  const [used, setUsed] = useState<string[]>([]);
+  return (
+    <div className="admin-workspace protected-admin tjanst">
+      <LasarBasisMarker unitId={UNIT} schoolYear={YEAR} rows={markerData} classes={markerClasses}
+        onUse={params.get('skriv') === '0' ? undefined : (rows) => { const ids = rows.map((r) => r.id); control.used.push(ids); setUsed(ids); }} />
+      <output data-testid="marker-used">{used.join(',')}</output>
+    </div>
+  );
+}
+
 const actorRole: LasarActorRole | null = role === 'rektor' ? 'rektor' : role === 'huvudman' ? 'huvudman' : null;
 /** Läsårsöverblickens kalenderdel; Öppna kalendern visar Läsår & skoldagar för vald skola och läsår. */
 function OverviewHarness() {
@@ -526,6 +560,8 @@ function Harness() {
         ? <Demo />
         : view === 'oversikt'
         ? <OverviewHarness />
+        : view === 'markering'
+        ? <MarkerHarness />
         : view === 'im'
         ? <section className="protected-timplan" aria-label="Timplan för introduktionsprogram"><div className="pt-year-context" data-testid="other-year-binding">
             <strong>{label(YEAR)} · Version 1</strong><p>Planeringsunderlag. Ingen verifierad klassbindning för året.</p>

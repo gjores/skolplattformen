@@ -57,6 +57,8 @@ function standardUnit():Unit{
   }
  }
  if(params.get('hinder')==='rad'||params.get('hinder')==='flera')draft.rows.find(r=>r.id===tid(306))!.stale=true;
+ // 05.1.1-14: ?kalender=ny|samma|fel gör IM-raden inaktuell; /api/lasar/sammanfattning svarar med version 2 efter 1, bara version 1 eller 500.
+ if(params.has('kalender'))draft.rows.find(r=>r.id===tid(305))!.stale=true;
  if(params.get('hinder')==='flera')unit.blockers.push({code:'person_not_at_school',message:'En lärare saknar giltigt skoluppdrag på skolan för läsåret.'},{code:'unknown_rule',message:'Kontrollera planeringsunderlaget.'});
  if(params.get('hinder')==='blandad')unit.blockers=[{code:'joint_mixed_teachers',message:'Samläsningen har flera lärare.'}];
  if(params.get('hinder')==='okant')unit.blockers=[{code:'unknown_rule',message:'Kontrollera planeringsunderlaget.'}];
@@ -163,13 +165,13 @@ function read(u:Unit,versionId?:string):TjanstPlanRead{
 
 type Failure={status:number;code:string}|'lost'|'network';
 type Logged={path:string;body:any};
-type Control={commands:Logged[];reads:Logged[];fail:Record<string,Failure[]>;held:Record<string,number>;release:()=>void;mfaVerified:boolean;openedLinks:number;openedLinkForms:string[];
+type Control={commands:Logged[];reads:Logged[];summaries:Logged[];fail:Record<string,Failure[]>;held:Record<string,number>;release:()=>void;mfaVerified:boolean;openedLinks:number;openedLinkForms:string[];
  failNext:(route:string,failure:Failure)=>void;holdNext:(route:string)=>void;holdProduced:(route:string)=>void;produced:{id:number;route:string;body:unknown}[];releaseProduced:(id?:number)=>void;
  bump:(kind:'core'|'person'|'evidence',unitId?:string,year?:number,personId?:string)=>void;suggestionsUnavailable:(value:boolean,unitId?:string,year?:number)=>void;
  snapshotOf:(unitId?:string,year?:number)=>unknown;activeScope:{unitId:string|null;schoolYear:number;assignmentId:string;epoch:number}};
 declare global{interface Window{__tjanst:Control}}
 let releases:(()=>void)[]=[];const producedHolds:Record<string,number>={},producedReleases=new Map<number,()=>void>(),unavailable=new Set<string>();let sequence=0;
-const control:Control={commands:[],reads:[],fail:{},held:{},mfaVerified:false,openedLinks:0,openedLinkForms:[],produced:[],activeScope:{unitId:A,schoolYear:YEAR,assignmentId:tid(950),epoch:1},
+const control:Control={commands:[],reads:[],summaries:[],fail:{},held:{},mfaVerified:false,openedLinks:0,openedLinkForms:[],produced:[],activeScope:{unitId:A,schoolYear:YEAR,assignmentId:tid(950),epoch:1},
  release:()=>{const r=releases;releases=[];r.forEach(f=>f());},failNext:(route,failure)=>{(control.fail[route]??=[]).push(failure);},holdNext:route=>{control.held[route]=(control.held[route]??0)+1;},
  holdProduced:route=>{producedHolds[route]=(producedHolds[route]??0)+1;},releaseProduced:id=>{for(const [key,release]of producedReleases)if(id===undefined||id===key){producedReleases.delete(key);release();}},
  bump:(kind,unitId=control.activeScope.unitId??A,year=control.activeScope.schoolYear,personId=P.anna)=>{const u=units.get(scopeKey(unitId,year))!;if(kind==='person')people.find(p=>p.id===personId)!.revision++;else if(kind==='core')u.coreGeneration++;else u.evidenceGeneration++;},
@@ -352,9 +354,17 @@ async function route(path:string,body:any):Promise<Reply|'lost'|'network'>{
  if(producedHolds[name]){producedHolds[name]--;const id=++sequence;reply=clone(reply);control.produced.push({id,route:name,body:clone(body)});await new Promise<void>(resolve=>producedReleases.set(id,resolve));}
  return failure==='lost'?'lost':reply;
 }
+// Kalenderns sammanfattning (05.1.1-13/14). Syntetiska skoldagar; serverns räkning efterliknas inte.
+function lasarSummary(body:any):Reply{
+ const v1={version:1,decidedOn:'2026-06-10',htSchoolDays:80,vtSchoolDays:98,contentHash:`sha256:${'1'.repeat(64)}`},v2={version:2,decidedOn:'2027-01-15',htSchoolDays:85,vtSchoolDays:98,contentHash:`sha256:${'2'.repeat(64)}`};
+ const kalender=params.get('kalender');if(kalender==='fel')return error(500,'internal_error');
+ return{status:200,json:{contractVersion:'lasar_sql_v1',unitId:body.unitId,schoolYear:body.schoolYear,current:kalender==='ny'?v2:v1,previous:kalender==='ny'?v1:null}};
+}
 const realFetch=window.fetch.bind(window);setKnownEpoch(1);
 window.fetch=async(input:RequestInfo|URL,init?:RequestInit)=>{
- const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url,location.href);if(!url.pathname.startsWith('/api/tjanst/'))return realFetch(input,init);
+ const url=new URL(typeof input==='string'?input:input instanceof URL?input.href:input.url,location.href);
+ if(url.pathname==='/api/lasar/sammanfattning'){const body=JSON.parse(typeof init?.body==='string'?init.body:'{}');control.summaries.push({path:url.pathname,body:clone(body)});const r=lasarSummary(body);return new Response(JSON.stringify(r.json),{status:r.status,headers:{'Content-Type':'application/json','X-Context-Epoch':String(control.activeScope.epoch)}});}
+ if(!url.pathname.startsWith('/api/tjanst/'))return realFetch(input,init);
  const epoch=control.activeScope.epoch,raw=typeof init?.body==='string'?init.body:'{}';
  const result=new TextEncoder().encode(raw).length>65536?error(413,'payload_too_large'):await route(url.pathname,JSON.parse(raw));
  if(result==='lost'||result==='network')throw new TypeError('Failed to fetch');
