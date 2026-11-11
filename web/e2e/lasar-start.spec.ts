@@ -523,3 +523,50 @@ test('överblick med 30 skolor: hela listan utan sidledsrullning, 44px knappar o
  await page.screenshot({path:info.outputPath('overview-30.png'),fullPage:true});
  expect(errors).toEqual([]);
 });
+
+// ---------------------------------------------------------------- Alla behöriga skolor i Läsår & skoldagar (avsnitt 13)
+
+test('Alla behöriga skolor för rektor: Välj skola och listan, och Öppna kalendern ger rätt skola och läsår',async({page})=>{
+ const errors=await openPage(page,'?vy=alla&roll=rektor','.ly-overview-row');
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Alla behöriga skolor'})).toBeVisible();
+ await expect(page.getByRole('heading',{level:2,name:'Välj skola'})).toBeVisible();
+ await expect(page.locator('.ly-all-heading p')).toHaveText('Välj en skola i planeringsvalet eller i listan.');
+ await expect(page.locator('.ly-mode-card')).toHaveCount(0);
+ await expect(page.locator('.ly-overview-summary')).toHaveCount(0);
+ // Det som väntar på rektorn (återsänd) står först.
+ await expect(overviewRows(page).locator('.ly-overview-name')).toHaveText(['Syntetiska skolan Norr','Syntetiska grundskolan','Syntetiska gymnasiet','Syntetiska skolan Söder']);
+ expect(await decisions(page)).toEqual([]);
+ await page.getByRole('button',{name:'Öppna läsårskalendern för Syntetiska grundskolan'}).click();
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Syntetiska grundskolan'})).toBeVisible();
+ await expect(page.locator('.ly-calendar')).toBeVisible();
+ expect(await page.evaluate(()=>window.__lasar.opened)).toEqual([{unitId:tid(3),frame:false,schoolYear:2026}]);
+ expect((await reads(page)).map(r=>r.body)).toEqual([{target:{kind:'school',unitId:tid(3)},schoolYear:2026,versionId:null}]);
+ expect(errors).toEqual([]);
+});
+
+test('Alla behöriga skolor för huvudman: arbetssättskortet först, en primärknapp, och bytet läser om listan',async({page},info)=>{
+ const errors=await openPage(page,'?vy=alla&roll=huvudman','.ly-overview-row');
+ const view=page.locator('.ly-all-schools');
+ await expect(view.locator(':scope > .ly-mode-card')).toBeVisible();
+ // Ordningen: rubrik, arbetssättskortet och sedan listan.
+ expect(await view.evaluate(el=>[...el.children].map(c=>c.className.split(' ').find(n=>['ly-all-heading','ly-mode-card','ly-overview'].includes(n))))).toEqual(['ly-all-heading','ly-mode-card','ly-overview']);
+ await expect(page.locator('.ly-overview-summary')).toHaveText('2 väntar på ditt beslut');
+ await expect(page.getByText('Huvudmannens ram',{exact:true})).toHaveCount(1); // bara som val i kortet
+ expect(await view.locator('button').evaluateAll(list=>list.filter(b=>b.classList.contains('bg-primary')).length)).toBeLessThanOrEqual(1);
+ expect(await smallButtons(page,'.ly-all-schools')).toEqual([]);
+ expect(await noSideScroll(page)).toBe(true);
+ await page.screenshot({path:info.outputPath('alla-huvudman.png'),fullPage:true});
+
+ await page.locator('.ly-mode-option',{hasText:'Huvudmannens ram'}).click();
+ await page.getByRole('button',{name:'Spara arbetssätt'}).click();
+ await page.getByRole('alertdialog').getByRole('button',{name:'Byt arbetssätt'}).click();
+ await expect(page.locator('.ly-mode-card .admin-notice')).toContainText('Arbetssättet för 2026/27 är sparat: huvudmannens ram.');
+ // Listan läses om och ramen står först; planeringsvalet får signalen att läsa om posten Huvudmannens ram.
+ await expect(overviewRows(page).first().locator('.ly-overview-name')).toHaveText('Huvudmannens ram');
+ expect(await overviews(page)).toHaveLength(2);
+ await expect(page.getByTestId('mode-reloads')).toHaveText('1');
+ await overviewRows(page).first().getByRole('button',{name:'Öppna läsårskalendern för Huvudmannens ram'}).click();
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Huvudmannens ram'})).toBeVisible();
+ expect((await reads(page)).at(-1)!.body).toMatchObject({target:{kind:'frame'},schoolYear:2026});
+ expect(errors).toEqual([]);
+});

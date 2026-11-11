@@ -13,7 +13,8 @@ import './tjanst-planning-bar.css';
 /**
  * Planeringsvalet för Läsår & skoldagar (05.1.1-06, D-07). Samma läsning (/api/planering/urval), samma etiketter och
  * samma skol- och läsårsvärden som planeringsvalet för Tjänstefördelning (tjanst-planning-bar.tsx, som inte ändras här).
- * Ett val gäller en skola och ett läsår. Med Alla behöriga skolor visar vyn ”Välj skola”; listan per skola kommer i plan 12.
+ * Ett val gäller en skola och ett läsår. Med Alla behöriga skolor visar vyn ”Välj skola” och listan per skola (05.1.1-12), där
+ * Öppna kalendern byter valet med `choose` och ett byte av arbetssätt läser om ramens post med `reloadMode`.
  * Valet sparas bara som skolans ID och läsåret i fliken, nycklat på epok, kund och uppdrag; inga personuppgifter.
  *
  * Huvudmannens ram (05.1.1-10, D-08): med `frameChoice` (bara när sessionens uppdrag är huvudman) läser valet arbetssättet för
@@ -22,9 +23,15 @@ import './tjanst-planning-bar.css';
  * ändå att aktören är huvudman: rektor och skoladministratör får aldrig ramens mål, oavsett vad klienten väljer.
  */
 export type LasarPlanningSelection = { unitId: string | null; schoolYear: number; frame?: boolean };
+export type LasarPlanningActions = {
+  /** Byter planeringsvalet som om användaren valt i listrutan (frågar om osparad text, spärras under sparning). */
+  choose: (patch: Partial<LasarPlanningSelection>) => void;
+  /** Läser om arbetssättet, så att posten Huvudmannens ram följer ett byte direkt. */
+  reloadMode: () => void;
+};
 type Props = { contextKey: string; initial: Partial<LasarPlanningSelection> | null; frameChoice?: boolean;
   onChange: (selection: LasarPlanningSelection) => void; onSessionLost: () => void;
-  children: (selection: LasarPlanningSelection, schoolName: string | null) => ReactNode };
+  children: (selection: LasarPlanningSelection, schoolName: string | null, actions: LasarPlanningActions) => ReactNode };
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
 const STORE = 'lasar-planering:';
 function remembered(contextKey: string): Partial<LasarPlanningSelection> | null {
@@ -34,7 +41,8 @@ function remembered(contextKey: string): Partial<LasarPlanningSelection> | null 
       && (value.frame === undefined || typeof value.frame === 'boolean') ? value : null;
   } catch { return null; }
 }
-function remember(contextKey: string, selection: LasarPlanningSelection) {
+/** Sparar valet i fliken; skalet använder det när Läsårsöverblick öppnar en kalender (05.1.1-12). */
+export function rememberLasarPlanning(contextKey: string, selection: LasarPlanningSelection) {
   try { window.sessionStorage.setItem(STORE + contextKey, JSON.stringify({ unitId: selection.unitId, schoolYear: selection.schoolYear, frame: selection.frame === true })); } catch { /* Valet gäller ändå i vyn. */ }
 }
 
@@ -47,7 +55,7 @@ function Area({ contextKey, initial, frameChoice = false, onChange, onSessionLos
   const [setup, setSetup] = useState<PlanningSetup | null>(null), [selection, setSelection] = useState<LasarPlanningSelection | null>(null);
   const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [retry, setRetry] = useState(0);
   const navigationBlocked = useHasUnsaved('navigation-block:'), hasUnsaved = useHasUnsaved();
-  const [frameMode, setFrameMode] = useState<{ schoolYear: number; mode: LasarMode } | null>(null);
+  const [frameMode, setFrameMode] = useState<{ schoolYear: number; mode: LasarMode } | null>(null), [modeRead, setModeRead] = useState(0);
   const latest = useRef({ initial, onChange, onSessionLost });
   useLayoutEffect(() => { latest.current = { initial, onChange, onSessionLost }; });
   useEffect(() => {
@@ -67,7 +75,7 @@ function Area({ contextKey, initial, frameChoice = false, onChange, onSessionLos
     });
     return () => c.abort();
   }, [retry, contextKey]);
-  useEffect(() => { if (selection && contextKey) remember(contextKey, selection); }, [selection, contextKey]);
+  useEffect(() => { if (selection && contextKey) rememberLasarPlanning(contextKey, selection); }, [selection, contextKey]);
   // Arbetssättet för valt läsår, bara för huvudmannen. Fel ger ingen rampost (stängt läge); planeringsvalet fungerar ändå.
   const year = selection?.schoolYear ?? null;
   useEffect(() => {
@@ -81,13 +89,13 @@ function Area({ contextKey, initial, frameChoice = false, onChange, onSessionLos
       setFrameMode(null);
     });
     return () => c.abort();
-  }, [frameChoice, year]);
+  }, [frameChoice, year, modeRead]);
   async function change(patch: Partial<LasarPlanningSelection>) {
     if (!selection) return;
     if (navigationBlocked) { setNotice(WAIT); return; }
     if (hasUnsaved && !(await requestDiscard())) return;
     const next = { ...selection, ...patch };
-    setNotice(null); setSelection(next); latest.current.onChange({ unitId: next.frame ? null : next.unitId, schoolYear: next.schoolYear });
+    setNotice(null); setSelection(next); onChange({ unitId: next.frame ? null : next.unitId, schoolYear: next.schoolYear });
   }
   if (!setup || !selection) return <section className="planning-context" aria-label="Planeringsval" aria-busy={!error}>
     {!error && <output>Läser planeringsval…</output>}{error && <p role="alert">{error} <button type="button" onClick={() => { setError(null); setRetry(n => n + 1); }}>Försök igen</button></p>}
@@ -116,6 +124,6 @@ function Area({ contextKey, initial, frameChoice = false, onChange, onSessionLos
       </div>
       {notice && <output>{notice}</output>}
     </section>
-    {children({ ...selection, frame }, schoolName)}
+    {children({ ...selection, frame }, schoolName, { choose: patch => void change(patch), reloadMode: () => setModeRead(n => n + 1) })}
   </>;
 }

@@ -223,9 +223,10 @@ const isAbort = (caught: unknown) => caught instanceof DOMException && caught.na
 /**
  * Kortet ”Arbetssätt för läsåret {läsår}” när huvudmannen har valt Alla behöriga
  * skolor (avsnitt 11). Läser ramens mål för `mode`, `modeLocked` och `canSetMode`.
- * Plan 12 monterar kortet i vyn; här provas det i fixturen.
+ * Monteras i vyn när Alla behöriga skolor är valt (plan 12). `onChanged` anropas efter ett
+ * sparat byte, så att skollistan och planeringsvalets post Huvudmannens ram läses om.
  */
-export function ProtectedLasarModeCard({ schoolYear, onSessionLost }: { schoolYear: number; onSessionLost: () => void }) {
+export function ProtectedLasarModeCard({ schoolYear, onSessionLost, onChanged }: { schoolYear: number; onSessionLost: () => void; onChanged?: (mode: LasarMode) => void }) {
   const [phase, setPhase] = useState<'loading' | 'error' | 'ready'>('loading');
   const [read, setRead] = useState<LasarReadReply | null>(null);
   const [chosen, setChosen] = useState<LasarMode | null>(null);
@@ -298,6 +299,7 @@ export function ProtectedLasarModeCard({ schoolYear, onSessionLost }: { schoolYe
       setChosen(reply.detail.mode);
       setPreview(null);
       setNotice(`Arbetssättet för ${label} är sparat: ${MODE_TEXT[reply.detail.mode].label.toLocaleLowerCase('sv')}.`);
+      onChanged?.(reply.detail.mode);
     } catch (caught) {
       setPreview(null);
       fail(caught, 'set_mode');

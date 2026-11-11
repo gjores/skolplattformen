@@ -10,7 +10,9 @@
 // Avvikelser från demon: A-01–A-14, A-16 och A-18 (UI-SPEC). Startval och
 // granskning efter kopiering ligger i protected-lasar-start.tsx, huvudmannens
 // ram i protected-lasar-frame.tsx och undervisningspanelen i
-// protected-lasar-teaching.tsx.
+// protected-lasar-teaching.tsx. Med Alla behöriga skolor (unitId null) visar vyn
+// arbetssättskortet för huvudmannen och listan med kalenderstatus per skola
+// (protected-lasar-overview.tsx, plan 12).
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,7 +86,8 @@ import {
   type LasarAction,
 } from './lasar-parts.tsx';
 import MfaStepUpNotice from './mfa-step-up.tsx';
-import { LasarReviewCard, ProtectedLasarStart, reviewCandidates } from './protected-lasar-start.tsx';
+import { LasarReviewCard, ProtectedLasarModeCard, ProtectedLasarStart, reviewCandidates } from './protected-lasar-start.tsx';
+import ProtectedLasarOverview, { type LasarOpenTarget } from './protected-lasar-overview.tsx';
 import { ProtectedLasarTeaching } from './protected-lasar-teaching.tsx';
 import {
   changeCount,
@@ -102,7 +105,8 @@ import type { FrameChanges } from '@/lib/lasar-frame.ts';
 import './protected-lasar.css';
 
 export type ProtectedLasarWorkspaceProps = {
-  unitId: string;
+  /** Skolenheten; null betyder Alla behöriga skolor (avsnitt 13). Ramens mål anges med `target`. */
+  unitId: string | null;
   schoolName: string;
   schoolYear: number;
   schoolTypes: string[];
@@ -111,6 +115,10 @@ export type ProtectedLasarWorkspaceProps = {
   target?: LasarTarget;
   /** Sessionens uppdrag, bara för texter i tomläget (A-01). Knappar styrs av förmågorna. */
   actorRole?: LasarActorRole | null;
+  /** Alla behöriga skolor: Öppna kalendern byter planeringsvalet till skolan eller ramen och läsåret. */
+  onOpenCalendar?: (target: LasarOpenTarget) => void;
+  /** Alla behöriga skolor: arbetssättet har bytts, så planeringsvalets post Huvudmannens ram läses om. */
+  onModeChanged?: () => void;
 };
 
 type Phase = 'loading' | 'error' | 'ready';
@@ -136,7 +144,44 @@ function stateOf(read: LasarReadReply): LasarState {
   return { role: read.capabilities.canEdit ? 'rektor' : 'huvudman', years: sy ? [sy] : [] };
 }
 
-export default function ProtectedLasarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, onSessionLost, target: targetProp, actorRole = null }: ProtectedLasarWorkspaceProps) {
+export default function ProtectedLasarWorkspace(props: ProtectedLasarWorkspaceProps) {
+  if (props.unitId === null && props.target?.kind !== 'frame') return <ProtectedLasarAllSchools {...props} />;
+  return <LasarCalendarWorkspace {...props} unitId={props.unitId ?? 'ram'} />;
+}
+
+/**
+ * Alla behöriga skolor (avsnitt 13): rubriken ”Välj skola”, för huvudmannen arbetssättskortet
+ * (avsnitt 11) och sedan listan med kalenderstatus per skola. Kortets Spara arbetssätt är vyns
+ * enda primära knapp; listans knappar är outline.
+ */
+function ProtectedLasarAllSchools({ schoolYear, actorRole = null, onSessionLost, onOpenCalendar, onModeChanged }: ProtectedLasarWorkspaceProps) {
+  const [reload, setReload] = useState(0);
+  return (
+    <section className="admin-workspace timplan-workspace protected-lasar ly-all-schools" aria-labelledby="ly-all-heading">
+      <header className="ly-all-heading">
+        <h1 className="admin-kicker ly-page-title">Läsår och skoldagar · Alla behöriga skolor</h1>
+        <h2 id="ly-all-heading">Välj skola</h2>
+        <p>Välj en skola i planeringsvalet eller i listan.</p>
+      </header>
+      {actorRole === 'huvudman' && (
+        <ProtectedLasarModeCard schoolYear={schoolYear} onSessionLost={onSessionLost} onChanged={() => { setReload((n) => n + 1); onModeChanged?.(); }} />
+      )}
+      <ProtectedLasarOverview
+        schoolYear={schoolYear}
+        unitId={null}
+        reload={reload}
+        actorRole={actorRole}
+        onOpen={onOpenCalendar}
+        onSecurityFailure={(caught) => {
+          if (caught instanceof ApiError && (caught.status === 401 || caught.status === 403)) { onSessionLost(); return true; }
+          return false;
+        }}
+      />
+    </section>
+  );
+}
+
+function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, onSessionLost, target: targetProp, actorRole = null }: ProtectedLasarWorkspaceProps & { unitId: string }) {
   const [phase, setPhase] = useState<Phase>('loading');
   const [read, setRead] = useState<LasarReadReply | null>(null);
   const [state, setState] = useState<LasarState>({ role: 'huvudman', years: [] });

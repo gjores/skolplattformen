@@ -25,6 +25,8 @@
 //   klasser=1   klasser, årskurser och timplaner för panelen Undervisning (A-09)
 //   vy=oversikt   kalenderstatus per skola (D-09, avsnitt 14) ur /api/lasar/oversikt;
 //                 Öppna kalendern visar Läsår & skoldagar för vald skola
+//   vy=alla   Läsår & skoldagar med Alla behöriga skolor: arbetssättskortet (huvudman) och listan;
+//             Öppna kalendern byter skola som planeringsvalet gör
 //   skolor=30   antal syntetiska skolor i överblicken (standard fyra med olika lägen)
 //   oversikt=tom|fel|vanta   inga skolor / första läsningen ger 500 / svaret väntar på window.__lasar.release()
 import { useState } from 'react';
@@ -464,6 +466,20 @@ function OverviewHarness() {
     </section>
   );
 }
+/** Läsår & skoldagar med Alla behöriga skolor; Öppna kalendern byter valet som planeringsvalet gör. */
+function AllSchoolsHarness() {
+  const [selection, setSelection] = useState<LasarOpenTarget>({ unitId: null, frame: false, schoolYear: YEAR });
+  const [modeReloads, setModeReloads] = useState(0);
+  const name = selection.frame ? 'Huvudmannens ram' : overviewSchools().find((s) => s.unitId === selection.unitId)?.schoolName ?? 'Alla behöriga skolor';
+  return (
+    <>
+      <output data-testid="mode-reloads" hidden>{modeReloads}</output>
+      <ProtectedLasarWorkspace key={`${selection.frame ? 'ram' : selection.unitId ?? 'alla'}:${selection.schoolYear}`} unitId={selection.frame ? 'ram' : selection.unitId}
+        target={selection.frame ? { kind: 'frame' } : undefined} schoolName={name} schoolYear={selection.schoolYear} schoolTypes={TYPES} actorRole={actorRole}
+        onSessionLost={() => undefined} onOpenCalendar={(target) => { control.opened.push(target); setSelection(target); }} onModeChanged={() => setModeReloads((n) => n + 1)} />
+    </>
+  );
+}
 function Harness() {
   const view = params.get('vy');
   return (
@@ -472,6 +488,8 @@ function Harness() {
         ? <Demo />
         : view === 'oversikt'
         ? <OverviewHarness />
+        : view === 'alla'
+        ? <AllSchoolsHarness />
         : view === 'arbetssatt'
           ? <section className="admin-workspace timplan-workspace protected-lasar"><ProtectedLasarModeCard schoolYear={YEAR} onSessionLost={() => undefined} /></section>
           : <ProtectedLasarWorkspace unitId={UNIT} schoolName={frameView ? 'Huvudmannens ram' : params.get('skola') ?? SCHOOL} schoolYear={YEAR} schoolTypes={TYPES} onSessionLost={() => undefined}

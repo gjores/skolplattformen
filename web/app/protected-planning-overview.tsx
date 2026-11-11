@@ -6,6 +6,7 @@ import { parsePlanningOverview, parsePlanningSelection, type PlanningOverview, p
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { usePlanningContext } from './planning-context';
 import { PlanningFilterControls, planningMeasureText, planningRelationLabel, planningStatusLabel, planningRowKey } from './protected-plan-list';
+import ProtectedLasarOverview from './protected-lasar-overview';
 
 type Props = { onSecurityFailure: (error: unknown) => boolean;
   onChooseCollection: (view: PlanningSelection['view'], schoolform: PlanningSelection['schoolform']) => void;
@@ -54,6 +55,7 @@ export default function ProtectedPlanningOverview({ onSecurityFailure, onChooseC
         <p>Se årets kullar och deras timfördelningar. Öppna rätt plan för att arbeta med ämnen och klasser.</p></div>
       <button type="button" onClick={onShowPlans}>Visa och öppna planerna</button>
     </header>
+    <ProtectedLasarOverview schoolYear={selection.schoolYear} unitId={selection.unitId}/>
     <div className="planning-overview-kulls" aria-label="Välj planeringsunderlag">{collections.filter(c => setup.units.some(unit => c.view === 'programplan' ? unit.canRead.programplan : unit.canRead[c.schoolform]))
       .map(c => <button key={`${c.view}-${c.schoolform}`} type="button" aria-pressed={selection.view === c.view && selection.schoolform === c.schoolform}
         onClick={() => onChooseCollection(c.view, c.schoolform)}>{c.label}</button>)}</div>

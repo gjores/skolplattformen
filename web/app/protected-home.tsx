@@ -80,8 +80,9 @@ import MinTjanst from './min-tjanst';
 import PersonalWorkspace from './personal-workspace';
 import TjanstPlanningArea, { type TjanstPlanningSelection } from './tjanst-planning-bar';
 import TjanstWorkspace from './tjanst-workspace';
-import LasarPlanningArea from './lasar-planning-bar';
+import LasarPlanningArea, { rememberLasarPlanning } from './lasar-planning-bar';
 import ProtectedLasarWorkspace from './protected-lasar-workspace';
+import { LasarOverviewContext, type LasarOpenTarget } from './protected-lasar-overview';
 import type { LasarActorRole } from '@/lib/lasar-contract.ts';
 
 export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
@@ -771,6 +772,20 @@ function ProtectedShell() {
     const next:PlanLocation={...prior,planning:{...prior.planning,unitId:target.unitId,schoolYear:target.schoolYear,page:1,selectionRevision:null}};
     planningLocationRef.current=next;setPlanningLocation(next);setValplanIntent({key:contextKey,...target});setPlanNavigation(value=>value+1);void navigate('valplaner');
   }
+  function overviewSecurityFailure(error: unknown): boolean {
+    if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
+    return false;
+  }
+  // Läsårsöverblickens Öppna kalendern (05.1.1-12, D-09): Läsår & skoldagar med skolan (eller ramen) och läsåret.
+  async function goToLasar(target: LasarOpenTarget) {
+    if (!(await canNavigate())) return;
+    const unitId = target.frame ? null : target.unitId;
+    const prior = planningLocationRef.current ?? planningFor('timplaner');
+    const next: PlanLocation = { ...prior, planning: { ...prior.planning, unitId, schoolYear: target.schoolYear, page: 1, selectionRevision: null } };
+    planningLocationRef.current = next; setPlanningLocation(next);
+    rememberLasarPlanning(contextKey, { unitId, schoolYear: target.schoolYear, frame: target.frame });
+    void navigate('lasar');
+  }
   async function goToClassLinks(selection: TjanstPlanningSelection, schoolform: 'gymnasium' | 'grundskola') {
     if (!(await canNavigate())) return;
     const prior = planningFor('timplaner');
@@ -855,10 +870,9 @@ function ProtectedShell() {
             {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={year => { if (sessionScope(sessionRef.current) !== contextKey) return; setSchoolYear(year); rememberRegister(); locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state; }}
               onOpenPupil={(_id, selection) => { if (sessionScope(sessionRef.current) === contextKey) registerSelectionRef.current = { key: contextKey, selection }; }} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
             {isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function) && <PlanningArea location={planningLocation}>{(selection, setup) => <>
-              {overview && <ProtectedPlanningOverview onSecurityFailure={error => {
-                if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
-                return false;
-              }} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => void navigate(view)} onOpen={async row=>{if(!(await canNavigate()))return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>}
+              {overview && <LasarOverviewContext.Provider value={{ actorRole: LASAR_ROLE[session.context!.function] ?? null, onOpen: target => void goToLasar(target), onSecurityFailure: overviewSecurityFailure }}>
+                <ProtectedPlanningOverview onSecurityFailure={overviewSecurityFailure} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => void navigate(view)} onOpen={async row=>{if(!(await canNavigate()))return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>
+              </LasarOverviewContext.Provider>}
               {!overview && view === 'timplaner' && <>
                 {!aplProcess && <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={async () => {
                   if (!(await canNavigate())) return;
@@ -880,15 +894,17 @@ function ProtectedShell() {
             {view === 'min-tjanst' && isSelf(session) && <MinTjanst context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               currentSchoolYear={currentSchoolYear(session.today)} onSessionLost={clearSession}/>}
             {view === 'lasar' && !isSelf(session) && PLANNING_FUNCTIONS.includes(session.context!.function) && <LasarPlanningArea contextKey={contextKey} initial={tjanstPlanning()}
-              frameChoice={session.context!.function === 'huvudman'} onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{(selection, schoolName) => selection.frame
+              frameChoice={session.context!.function === 'huvudman'} onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{(selection, schoolName, lasarActions) => selection.frame
                 // Huvudmannens ram (D-08): samma vy med målet ramen; skolans ID används inte för ramen.
                 ? <ProtectedLasarWorkspace key={`${contextKey}:ram:${selection.schoolYear}`} unitId="ram" target={{ kind: 'frame' }} schoolName="Huvudmannens ram"
                   schoolYear={selection.schoolYear} schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession}/>
                 : selection.unitId && schoolName
                 ? <ProtectedLasarWorkspace key={`${contextKey}:${selection.unitId}:${selection.schoolYear}`} unitId={selection.unitId} schoolName={schoolName} schoolYear={selection.schoolYear}
                   schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession}/>
-                : <section className="empty-state" aria-label="Läsår och skoldagar"><h2>Välj skola</h2>
-                  <p>Läsår och skoldagar gäller en skolenhet. Välj skola i planeringsvalet.</p></section>}</LasarPlanningArea>}
+                // Alla behöriga skolor (avsnitt 13): arbetssättskortet för huvudmannen och listan med kalenderstatus per skola.
+                : <ProtectedLasarWorkspace key={`${contextKey}:alla:${selection.schoolYear}`} unitId={null} schoolName="Alla behöriga skolor" schoolYear={selection.schoolYear}
+                  schoolTypes={[]} actorRole={LASAR_ROLE[session.context!.function] ?? null} onSessionLost={clearSession} onModeChanged={lasarActions.reloadMode}
+                  onOpenCalendar={target => lasarActions.choose(target.frame ? { unitId: null, frame: true, schoolYear: target.schoolYear } : { unitId: target.unitId, frame: false, schoolYear: target.schoolYear })}/>}</LasarPlanningArea>}
             {view === 'tjanst' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <TjanstWorkspace context={session.context!} epoch={session.epoch} unitId={selection.unitId}
                 schoolYear={selection.schoolYear} identityKey={tjanstIdentityKey} onOpenElectiveBlocks={()=>void goToValplaner({unitId:selection.unitId!,schoolYear:selection.schoolYear,valplanId:null,row:null})} onOpenGroups={()=>void navigate('undervisningsgrupper')} onOpenClassLinks={schoolform => goToClassLinks(selection, schoolform)} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
