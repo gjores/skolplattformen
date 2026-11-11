@@ -4,6 +4,7 @@ module.exports = { handbok: [
     'exempelmiljo',
     'anvandning',
     'planering',
+    'lasar-och-skoldagar',
     'timplaner',
     'apl-planering',
     'tjanstefordelning',

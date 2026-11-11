@@ -44,7 +44,11 @@ Behovet räknas så här:
 
 - **Gymnasiet (Gy25):** timplanens skoltid för klassens årskurs per termin.
 - **Grundskolan:** årskursens årstimmar delas lika på HT och VT.
-- **Introduktionsprogram:** timmar per vecka gånger skolans skoldagar per termin enligt den fastställda läsårskalendern. Utan fastställd kalender är behovet okänt.
+- **Introduktionsprogram:** veckotimmar × skoldagar per termin ÷ 5, enligt den gällande fastställda [läsårskalendern](./lasar-och-skoldagar.md). Utan fastställd kalender är behovet okänt.
+
+När en ny kalenderversion har fastställts kan en sparad IM-rad markeras som inaktuell. Markeringen ovanför matrisen jämför den gällande med den närmast föregående fastställda kalenderversionen. **Visa skillnaden** visar skoldagar per termin och vilka rader som behöver granskas. En IM-rad kan också vara inaktuell av en annan orsak, till exempel en ändrad timplanskoppling; granska därför underlaget för varje rad. Jämförelsen fastställer inte vilken äldre kalenderversion varje rad ursprungligen räknades med.
+
+På dator öppnar **Använd version …** den befintliga raddialogen för **en rad i taget**, med radens sparade lärartider och kommentar. Knappen sparar inget. Granska raden och välj **Spara tjänsteraden** för att uppdatera dess underlag. Lärartiderna bevaras om du inte ändrar dem. Markeringen står kvar om fler rader behöver granskas. På telefon och i läsvy kan du läsa texten och **Visa skillnaden**; uppdateringen görs på dator. Inga sparade lärartider räknas om automatiskt när kalendern fastställs.
 
 Samläsning, delningsform och **Ny lärare** visas med små textmärken. Färger kompletterar texten.
 

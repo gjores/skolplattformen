@@ -4,7 +4,7 @@ title: Exempelläget
 
 Exempelläget visar hela planeringsarbetet med fiktiva skolor och elever. Det kräver ingen inloggning och har ingen databasanslutning: allt du ändrar ligger i webbläsarens minne och försvinner när du laddar om sidan. Sidhuvudet skriver ut **Provmiljö** och texten *Fiktiva skolor och elever*.
 
-**Status:** Verifierat. Flödena nedan prövades på dator och telefon i september 2026.
+Exempelläget är till för att prova arbetsgångar. Rollväxlingen och besluten där är exempel; de ger inga uppdrag eller beslut i den inloggade arbetsytan.
 
 ## Välja skola och roll
 
@@ -23,6 +23,12 @@ Rollväxlaren i sidfoten (*Prova som*) byter arbetsyta mellan huvudman, rektor, 
 **Timplaner.** Fördelningen av undervisningstid per utbildning. Rektorn redigerar utkast och skickar förslag; huvudmannen fastställer med dokumenterat beslut eller återsänder med skäl. Historiken behålls och skillnaden mot gällande version visas cell för cell. En fastställd timplan kan kopplas till en klass; kopplingen följer inte automatiskt med till en ny version.
 
 **Läsår och skoldagar.** Årskalender där varje dag sätts till skoldag, lovdag eller studiedag. Ett förslag räknas fram ur helgdagar och vanliga lov. Kontrollen prövar gränserna i skolförordningen och gymnasieförordningen och varnar för ojämn fördelning över veckodagarna. Helger, allmänna helgdagar och dagarna mellan terminerna kan inte göras till skoldagar. Avvikande lärotider kan läggas per årskurs och klass med angiven orsak.
+
+### Kalendern i den inloggade arbetsytan
+
+[Läsår och skoldagar](./lasar-och-skoldagar.md) använder samma kalenderuppställning i den inloggade arbetsytan. Där avgör ditt aktuella uppdrag vilka skolor och åtgärder du får använda. Förslag, beslut och historik sparas och finns kvar efter omladdning. En fastställd version gäller tills nästa version fastställs; ett utkast ersätter inte den.
+
+Huvudmannens ram, skolans begäran om ändring och kalenderns påverkan på sparade tjänsterader beskrivs i kalenderns handbokssida. Ett beslut i exempelläget ändrar inte denna planering.
 
 ## Administrationens vyer
 

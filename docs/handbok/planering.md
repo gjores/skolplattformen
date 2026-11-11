@@ -13,7 +13,7 @@ Planeringsåret hjälper dig att se vilket underlag som gäller under ett läså
 
 ## Hitta rätt underlag
 
-I menyn finns **Läsårsöverblick**, **Programplaner**, **Timplaner** och **APL-planering**. Arbeta först med ämnen och poäng i programplanen, sedan med skolans timmar och årsramen för APL i timplanen. APL-perioder planeras i den separata arbetsytan när timplanen är godkänd. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
+I menyn finns **Läsår & skoldagar**, **Läsårsöverblick**, **Programplaner**, **Timplaner** och **APL-planering**. I [Läsår och skoldagar](./lasar-och-skoldagar.md) förbereder skolan terminer och dagar, och huvudmannen fastställer kalendern. Arbeta först med ämnen och poäng i programplanen, sedan med skolans timmar och årsramen för APL i timplanen. APL-perioder planeras i den separata arbetsytan när timplanen är godkänd. Utbildningarnas programplaner öppnas under **Programplaner**; där finns också **Ny programplan** för den som får skapa en utbildning.
 
 Listan visar skolans utbildningar och underlaget för det valda året. Sök på namn, lokal kod, program eller inriktning. I timplaner visas även skolform direkt. Välj **Fler filter** för årskurs, planstatus, elevkull och arkiv. Raden **Visar** beskriver urvalet även när filterpanelen är stängd; antalet på knappen visar hur många extra filter som avviker från grundurvalet. **Rensa filter** återställer sökning och extra filter men behåller skola och läsår. Du kan ändra sortering och gå mellan sidor. Sökningen gäller hela urvalet, även rader efter första sidan.
 
@@ -36,6 +36,8 @@ För grundskolan behövs en faktisk årsbindning till rätt timplansversion och 
 Introduktionsprogrammets timmar visas per vecka. De räknas inte om till årstimmar eller nästa årskurs genom ett årsbyte. Även här väljer du aktuell utkastmatris uttryckligt innan du ändrar celler.
 
 ## Överblick, saknat och noll
+
+Kalenderstatus per skola visar status, version och markeringarna **Ändring begärd** eller **Ramen har ändrats** när de gäller. **Öppna kalendern** leder till rätt skola och läsår. Med **Alla behöriga skolor** i **Läsår & skoldagar** kan du också välja skola från kalenderlistan. Ett kalenderutkast ersätter inte den gällande fastställda versionen.
 
 Överblicken grupperar utbildning, elevkull, skola och årets årskurs. Varje namngiven timplansversion visas separat med status, timmar och antal kopplade klasser för året. **Öppna timplan** leder till just den versionen; där finns ämnenas timmar och klassernas namn. **Källa och underlag** visar bakgrundsuppgifter. Saknade klasskopplingar och prognos visas uttryckligt.
 
