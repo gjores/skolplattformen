@@ -38,8 +38,10 @@ function keyLabel(key: FrameKey): string {
 }
 
 export type FrameComparison = {
-  /** Ramversionen skolan följer (`frame.current`), annars den senaste. */
-  base: LasarFrameRef;
+  /** Ramversionen som skolans avvikelser räknas mot (D-06): den senast utgivna, annars skolans bas. */
+  reference: LasarFrameRef;
+  /** Ramversionen skolan utgick från eller senast tog in (`frame.current`); bas för ramens ändringar (D-05). */
+  base: LasarFrameRef | null;
   latest: LasarFrameRef | null;
   deviation: FrameDeviation[];
   days: Map<ISODate, FrameDeviation>;
@@ -49,21 +51,39 @@ export type FrameComparison = {
   changes: FrameChanges | null;
 };
 
-/** D-05, D-06: skolans avvikelser från ramen och, om ramen har ändrats, vad som kan tas in. */
+/**
+ * Skola utan ramversion (D-15: började i eget förslag, eller kopierade förra läsåret i arbetssättet ram).
+ * Utan bas går det inte att skilja ramens ändringar från skolans egna, så varje skillnad är ett val
+ * som rektorn kryssar i; inget tas in utan uttryckligt val (samma regel som servern, plan 10).
+ */
+export function frameChangesWithoutBase(theirs: LasarFrameRef, ours: SchoolYear): FrameChanges {
+  return { apply: [], conflicts: frameDeviation(ours, theirs).map((d) => ({ key: d.key, base: d.school, theirs: d.frame, ours: d.school })), own: [] };
+}
+
+/**
+ * D-05, D-06: skolans avvikelser från ramen och, om ramen har ändrats, vad som kan tas in.
+ * Avvikelserna räknas mot den senast utgivna ramen, så att skillnader som skolan behöll med
+ * *Behåll skolans kalender* står kvar som avvikelser. Ramens ändringar räknas mot skolans bas
+ * (`frame.current`), som servern bara flyttar när ändringar tas in; kvitteringen flyttar bara
+ * `acknowledgedVersionId`.
+ */
 export function compareWithFrame(sy: SchoolYear, frame: LasarFrameState | null): FrameComparison | null {
-  const base = frame?.current ?? frame?.latest ?? null;
-  if (!frame || !base) return null;
-  const deviation = frameDeviation(sy, base);
+  if (!frame) return null;
+  const base = frame.current;
   const latest = frame.latest;
-  const pending = Boolean(latest && latest.versionId !== frame.acknowledgedVersionId && latest.version > base.version);
+  const reference = latest ?? base;
+  if (!reference) return null;
+  const deviation = frameDeviation(sy, reference);
+  const pending = Boolean(latest && latest.versionId !== frame.acknowledgedVersionId && (!base || latest.version > base.version));
   return {
+    reference,
     base,
     latest,
     deviation,
     days: new Map(deviation.filter((d) => !isTerm(d.key)).map((d) => [dateOf(d.key), d])),
     terms: new Map(deviation.filter((d) => isTerm(d.key)).map((d) => [d.key, d])),
     pending,
-    changes: pending && latest ? frameChanges(base, latest, sy) : null,
+    changes: pending && latest ? (base ? frameChanges(base, latest, sy) : frameChangesWithoutBase(latest, sy)) : null,
   };
 }
 export const changeCount = (changes: FrameChanges | null) => (changes ? changes.apply.length + changes.conflicts.length : 0);
@@ -84,7 +104,7 @@ export function LasarFrameCard({ comparison, showNotTaken, onShowDay }: {
   showNotTaken: boolean;
   onShowDay: (date: ISODate) => void;
 }) {
-  const { base, terms, days } = comparison;
+  const { reference, terms, days } = comparison;
   const termText = terms.size
     ? [...terms.values()].map((d) => `${TERM_LABEL[d.key]} ${frameValueText(d.school)} · ramen ${frameValueText(d.frame)}`).join('; ')
     : 'Samma som ramen';
@@ -94,7 +114,7 @@ export function LasarFrameCard({ comparison, showNotTaken, onShowDay }: {
         <h3 id="ly-frame-card-heading">Jämfört med huvudmannens ram</h3>
         <span className={comparison.deviation.length ? 'a-status amber' : 'a-status'}><span />{comparison.deviation.length ? 'Skiljer sig' : 'Samma som ramen'}</span>
       </div>
-      <p className="ly-frame-version">Ramens version {base.version}, utgiven {formatDate(base.publishedOn, true)}</p>
+      <p className="ly-frame-version">Ramens version {reference.version}, utgiven {formatDate(reference.publishedOn, true)}</p>
       {showNotTaken && comparison.pending && (
         <p className="ly-frame-pending"><AlertTriangle size={14} aria-hidden="true" /> Ramen har ändrats sedan skolan började. Rektorn har inte tagit in ändringen.</p>
       )}

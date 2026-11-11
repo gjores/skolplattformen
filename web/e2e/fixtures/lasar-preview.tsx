@@ -19,7 +19,8 @@
 //   tom=1   ingen kalender ännu (startval, avsnitt 10)
 //   forra=0   ingen kalender förra läsåret att kopiera
 //   arbetssatt=ram|eget   huvudmannens arbetssätt (standard eget)
-//   ram=saknas|utgiven|andrad   ramens läge för skolan i arbetssättet ram
+//   ram=saknas|utgiven|andrad|utanbas   ramens läge för skolan i arbetssättet ram; utanbas: skolan började
+//                 utan ramversion (D-15) och har en egen studiedag, ramen version 1 är utgiven men inte kvitterad
 //   mal=ram   huvudmannens ram i stället för skolan (D-08)
 //   last=1   arbetssättet är låst (läsåret har börjat)
 //   klasser=1   klasser, årskurser och timplaner för panelen Undervisning (A-09)
@@ -58,6 +59,7 @@ import {
 import { copySchoolYear } from '../../lib/lasar-copy';
 import { applyFrameChanges, frameChanges, type FrameYear } from '../../lib/lasar-frame';
 import { groupsFromRefs, type LasarGroupRef } from '../../lib/lasar-groups';
+import { frameChangesWithoutBase } from '../../app/protected-lasar-frame';
 import { proposeSchoolYear, type Exception, type GroupException, type LasarState, type SchoolYear, type ShortWeek } from '../../lib/lasar-model';
 import { UnsavedChangesProvider } from '../../lib/unsaved-changes';
 import '../../app/globals.css';
@@ -116,8 +118,9 @@ const frameV2: FrameYear & { publishedOn: string } = {
   exceptions: { ...structuredClone(proposal.exceptions), [FRAME_DAY]: { kind: 'studiedag', note: 'Gemensam studiedag' }, [CONFLICT_DAY]: { kind: 'lovdag', note: 'Gemensam lovdag' } },
 };
 const frames = mode === 'ram' && frameParam !== 'saknas' ? (frameParam === 'andrad' ? [frameV1, frameV2] : [frameV1]) : [];
-let frameAck: string | null = frames.length ? frameV1.versionId : null;
-let frameBase: typeof frameV1 | null = frames.length ? frameV1 : null;
+const withoutBase = frameParam === 'utanbas';
+let frameAck: string | null = frames.length && !withoutBase ? frameV1.versionId : null;
+let frameBase: typeof frameV1 | null = frames.length && !withoutBase ? frameV1 : null;
 
 // ---- Klasser och timplaner för panelen Undervisning (A-09). Inga elevuppgifter (A-18).
 const GR = tid(11), IM = tid(12), C7A = tid(21), C8B = tid(22), CIM = tid(23), T1 = tid(31), T2 = tid(32);
@@ -148,10 +151,12 @@ function schoolFromFrame(base: FrameYear): Content {
 }
 function initialSchool(): Version[] {
   if (empty) return [];
-  const from = mode === 'ram' && frameBase ? schoolFromFrame(frameBase) : undefined;
+  const from = mode === 'ram' && frameBase ? schoolFromFrame(frameBase)
+    : withoutBase ? { terms: { ht: { ...proposal.ht }, vt: { ...proposal.vt } }, exceptions: { ...structuredClone(proposal.exceptions), [OWN_DAY]: { kind: 'studiedag' as const, note: 'Skolans fortbildning' } } }
+      : undefined;
   const list = params.get('version') === '2' ? [makeVersion(1, 'faststalld', from), makeVersion(2, startStatus, from)] : [makeVersion(1, startStatus, from)];
   for (const v of list) {
-    if (from) v.frameVersionId = frameV1.versionId;
+    if (from && !withoutBase) v.frameVersionId = frameV1.versionId;
     if (withClasses) v.groupDays = { [`klass:${C8B}`]: { [iso(YEAR, 11, 5)]: { cause: 'nationellt prov' } } };
   }
   return list;
@@ -174,7 +179,8 @@ function capabilities(s: Store, v: Version | undefined) {
   const frame = s.target.kind === 'frame';
   const editable = v !== undefined && last && (frame ? h && v.status === 'utkast' : r && (v.status === 'utkast' || v.status === 'atersand'));
   const fixed = !frame && last && v?.status === 'faststalld', open = changeRequest?.status === 'open';
-  const canCreate = v !== undefined ? []
+  // En utgiven ram ändras i nästa version (create med källan frame, plan 10).
+  const canCreate = v !== undefined ? (frame && h && last && v.status === 'faststalld' ? ['frame'] : [])
     : frame ? (h ? ['proposal', 'copy'] : [])
       : r ? (mode === 'ram' ? (frames.length ? ['frame', 'copy'] : []) : ['proposal', 'copy']) : [];
   return {
@@ -298,6 +304,10 @@ async function route(path: string, body: unknown): Promise<Reply> {
           v = makeVersion(1, 'utkast', { terms: { ht: draft.ht, vt: draft.vt }, exceptions: draft.exceptions }, false);
           s.review = review.map((item) => ({ ...item, resolved: false }));
           entry(v, who(), `Kopierat från ${label(YEAR - 1)}`, `${review.length} dagar att granska.`);
+        } else if (op.source === 'frame' && s.target.kind === 'frame') {
+          const previous = latestOf(s)!;
+          v = makeVersion(previous.version + 1, 'utkast', previous, false);
+          entry(v, who(), 'Ny version av ramen', `Utkast ur version ${previous.version}.`);
         } else if (op.source === 'frame') {
           const base = frames.at(-1)!;
           v = makeVersion(1, 'utkast', { terms: base.terms, exceptions: base.exceptions }, false);
@@ -351,14 +361,18 @@ async function route(path: string, body: unknown): Promise<Reply> {
         }
         else if (op.op === 'take_frame_changes' || op.op === 'keep_school_calendar') {
           const latest = frames.at(-1);
-          if (!latest || !frameBase || op.frameVersionId !== latest.versionId) return error(409, 'conflict', 'lasar_frame_stale');
+          if (!latest || op.frameVersionId !== latest.versionId || frameAck === latest.versionId) return error(409, 'conflict', 'lasar_frame_stale');
           if (op.op === 'take_frame_changes') {
-            // Samma prövning som servern ska göra (plan 10): bara godkända nycklar under apply eller conflicts.
-            const next = applyFrameChanges(modelOf(v), frameChanges(frameBase, latest, modelOf(v)), op.accepted);
+            // Samma prövning som servern (plan 10): bara godkända nycklar under apply eller conflicts; utan bas är allt val.
+            const changes = frameBase ? frameChanges(frameBase, latest, modelOf(v)) : frameChangesWithoutBase(latest, modelOf(v));
+            const next = applyFrameChanges(modelOf(v), changes, op.accepted);
             v.terms = { ht: next.ht, vt: next.vt }; v.exceptions = next.exceptions;
             entry(v, who(), 'Ramens ändringar intagna', `${op.accepted.length} ändringar från ramens version ${latest.version}.`);
+            // Som servern: intaget flyttar både basen (frame_id) och kvitteringen.
+            v.frameVersionId = latest.versionId; frameBase = latest;
           } else entry(v, who(), 'Skolans kalender behållen', `Ramens version ${latest.version} är kvitterad.`);
-          v.frameVersionId = latest.versionId; frameBase = latest; frameAck = latest.versionId;
+          // Som servern: kvitteringen flyttar bara frame_ack_id; vid Behåll står basen kvar.
+          frameAck = latest.versionId;
         }
         else return error(400, 'bad_request');
       }

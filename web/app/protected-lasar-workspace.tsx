@@ -406,9 +406,13 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
     return enqueue([op], message);
   }
 
-  /** Startval (avsnitt 10): skapar kalendern; servern räknar fram innehållet ur källan. */
+  /**
+   * Startval (avsnitt 10): skapar kalendern; servern räknar fram innehållet ur källan. För ramen skapar
+   * källan frame också nästa version ur den senast utgivna (plan 10), så då finns redan en version.
+   */
   async function create(source: LasarCreateSource) {
-    if (busy || basis.current) return;
+    const nextFrameVersion = frameTarget && source === 'frame';
+    if (busy || (basis.current && !nextFrameVersion)) return;
     const gen = generation.current;
     setBusy(true);
     setError('');
@@ -422,6 +426,8 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
       const label = yearLabel(schoolYear);
       setNotice(source === 'copy'
         ? `Dagarna från ${yearLabel(schoolYear - 1)} är kopierade. Granska de dagar som inte kunde flyttas innan du skickar förslaget.`
+        : nextFrameVersion
+          ? `Version ${reply.detail.calendar?.version ?? ''} av ramen är ett utkast. Skolorna ser den först när du ger ut den.`
         : source === 'frame'
           ? `Läsåret ${label} utgår från huvudmannens ram.`
           : frameTarget ? `Ett utkast till ramen för ${label} är skapat.` : `Ett förslag för läsåret ${label} är skapat.`);
@@ -724,6 +730,13 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
                 {frameTarget && caps?.canPublishFrame && (
                   <Button disabled={busy || errors.length > 0} onClick={() => { setDialog({ error: '', list: [], mfa: false }); setPublishing(true); }}>
                     <Send size={15} /> Ge ut ramen
+                  </Button>
+                )}
+                {frameTarget && caps?.canCreate.includes('frame') && sy.status === 'fastställd' && !olderSelected && (
+                  // Plan 10 öppen punkt 1 (D-13): en utgiven ram ändras i nästa version som utkast. Skolorna ser den först när
+                  // den ges ut, så inget behöver bekräftas. Outline; Ge ut ramen är ramens primära knapp.
+                  <Button variant="outline" disabled={busy} onClick={() => void create('frame')}>
+                    <Unlock size={15} /> Ändra ramen
                   </Button>
                 )}
                 {!frameTarget && caps?.canEdit && (
