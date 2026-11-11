@@ -3,7 +3,7 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "17 – förbered användarprov"
+current_plan: "17 – provguide klar; användarprov återstår"
 status: awaiting_user_verification
 stopped_at: "05.1.1-16 klar: godkänd 08-bas, exakt 7 migrationer installerade, journal 165 till 20261112141000,3012 på7dda9d75. Hälsa16/16 och efter-SQL159/159 PASS/full städning. Nästa plan 17:s användarprov; ingen användaracceptans ännu."
 last_updated: "2026-11-11"
@@ -24,6 +24,8 @@ verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 user_trial_status: lasar_pending_after_installation_2026_11_11
 milestone_name: milestone
 ---
+
+**05.1.1-17, provguide klar 2026-11-11:** [Åtta uppgifter och utfallstabell](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-USER-TRIAL.md) är förberedda för inloggat användarprov på 3012, dator/telefon och jämförelse med demon vid samma bredder inklusive1280px. Alla utfall är **Ej provat**. Villkor för passerade dagar, kopiegranskning och IM-underlag är uttryckliga; inga nya målfixturer har skapats. **Inväntar användarens faktiska prov och ordagranna svar per steg. Plan 17 är inte klar och ingen fas-/kravacceptans har lämnats.**
 
 **05.1.1-16 installerad 2026-11-11:** [Slutredovisning](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-SUMMARY.md). Användaren godkände ordagrant **”Ja, installera mot målbasen i repetition 08”**. Apply PASS/`committed=true`, exakt 7 migrationer, journal 158→165 till `20261112141000`. 168 ursprungliga tabellers gamla kolumnvärden bevarade,3kalendrar/0grupprader/0hashfrysningar/6nya tomma tabeller och1egen installationshändelse.3012 kör fryst kandidat `7dda9d75`; artefakt 1426 filer exakt, hälsa 16/16 och efterlägesprov159/159 PASS i egen schemakopia/full städning. 85 Node och 447 kandidatbundna SQL PASS samt plan 15:s faktiska lokala kalender36/36 och tjänsteregression 88/88 gäller samma produkt. Ny privat backup efter stopp, tidigare runtime bevarad. Tidigare avbrott/metadataändring är dokumenterade och originalgodkännanden orörda. **Plan 16 klar; nästa plan 17/användarprov på dator/telefon och därefter fasverifiering.** Inget användargodkännande, verifierat standardutbyte eller verklig kommunanslutning. Historik nedan beskriver tidigare lägen.
 
