@@ -18,7 +18,7 @@ import {validateLasarReleaseEvidence,assertEvidenceFilesUnchanged} from './lasar
 import {EXPECTED_DELTA,assertLasarTransition,assertLasarPrivileges} from './lasar-install-schema.mjs';
 import {createLasarFixture} from './lasar-fixtures.mjs';
 import {proposeSchoolYear,addDays,dayInfo} from '../../web/lib/lasar-model.ts';
-import {parseLasarReadReply} from '../../web/lib/lasar-contract.ts';
+import {parseLasarReadReply,parseLasarEnvelope} from '../../web/lib/lasar-contract.ts';
 
 const root=fileURLToPath(new URL('../../',import.meta.url)),prefix='supabase/migrations/';
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
@@ -258,8 +258,10 @@ export async function applyLasar(options){
     const request={target:{kind:'school',unitId:fixture.f.schools.A},schoolYear:fixture.year,versionId:fixture.versionId};
     r.stage='rehearsing';sink.save();r.rehearsal=await installPackage(tx,{sources,release:r.release,runId:r.runId,revalidate,beforeFingerprint:r.preflight.schemaFingerprint,originalJournal:baseline.journal,target,expectedPreflight:syntheticBaseline});
     checked('exact_schema_acl_journal_and_original_row_preservation');
+    r.stage='checking_synthetic_contract';sink.save();
     assert.deepEqual(await fixture.basis(),basisBefore,'synthetic_basis_changed');
-    parseLasarReadReply((await tx`select public.lasar_read(${tx.json(request)}) value`)[0].value,request);
+    const raw=(await tx`select public.lasar_read(${tx.json(request)}) value`)[0].value;
+    parseLasarReadReply(parseLasarEnvelope(raw,{identityId:fixture.f.identity('principalA'),assignmentId:fixture.f.roles.principalA}),request);
     r.syntheticProof={basisUnchanged:true,basisSha256:sha(basisBefore),calendarParserAccepted:true,changedRowsRefusedBeforeDdl:true,scope:'owned schema-only copy; synthetic rows only'};
     checked('synthetic_basis_and_calendar_contract_unchanged');
     r.stage='rollback_pending';sink.save();throw rollback;
