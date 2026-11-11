@@ -105,11 +105,12 @@ async function structure(t, step) {
     const cons = (await u`select pg_get_constraintdef(oid) d from pg_constraint where conrelid='public.school_year_frames'::regclass and contype='u' order by 1`).map(r => r.d);
     assert.deepEqual(cons, ['UNIQUE (id, organizer_id, start_year)', 'UNIQUE (organizer_id, start_year, version)']);
   });
-  await step(t, 'Workern får fortfarande bara execute på lasar_read, lasar_command och lasar_status (ingen ny ingång, ingen grant-fil)', async u => {
+  // 05.1.1-11: överblicken (lasar_overview) har en egen grant-fil efter kopieringsfilen; ramen ger fortfarande ingen ny ingång.
+  await step(t, 'Workern får bara execute på lasar_read, lasar_command, lasar_status och lasar_overview (ramen ger ingen ny ingång)', async u => {
     const rows = await u`select p.oid::regprocedure::text s, has_function_privilege('skolplattform_worker',p.oid,'EXECUTE') w,
       has_function_privilege('anon',p.oid,'EXECUTE') or has_function_privilege('authenticated',p.oid,'EXECUTE') or has_function_privilege('service_role',p.oid,'EXECUTE') c
       from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'lasar\\_%' order by 1`;
-    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_read(jsonb)', 'lasar_status(jsonb)']);
+    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_overview(jsonb)', 'lasar_read(jsonb)', 'lasar_status(jsonb)']);
     assert.deepEqual(rows.filter(r => r.c).map(r => r.s), []);
   });
 }
