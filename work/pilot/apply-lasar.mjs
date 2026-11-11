@@ -169,8 +169,10 @@ async function seedRehearsal(tx){
    values(${f.id(2)},${unit},${year},${version},${sy.ht.start},${sy.ht.end},${sy.vt.start},${sy.vt.end},'utkast') returning id`;
   for(const[day,e]of Object.entries(sy.exceptions))await tx`insert into public.school_year_days(school_year_id,day,kind,note) values(${y.id},${day},${e.kind},${e.note??null})`;
   if(groups){await tx`insert into public.school_year_group_days(school_year_id,group_key,day,cause,note) values
-    (${y.id},${f.offerings.gr+':ak1'},${days[5]},'friluftsdag','Syntetisk dag'),(${y.id},'klass:SYN1A',${days[6]},'annat','Syntetisk dag')`;
-   await tx`insert into public.school_year_short_weeks(school_year_id,group_key,column_id,weekday,reason) values(${y.id},${'klass:'+f.groups.classes.im},'vecka',4,'Syntetiska skäl')`;}
+    (${y.id},${f.offerings.gr+':ak1'},${days[5]},'friluftsdag','Syntetisk dag'),(${y.id},'klass:SYN1A',${days[6]},'annat','Syntetisk dag'),
+    (${y.id},${'klass:'+f.groups.classes.im},${days[7]},'apl','Syntetisk IM-dag')`;
+   // The installed historical short-week constraint permits ar/ak columns, not IM's vecka.
+   await tx`insert into public.school_year_short_weeks(school_year_id,group_key,column_id,weekday,reason) values(${y.id},${'klass:'+f.groups.classes.ak1},'ak1',4,'Syntetiska skäl')`;}
   if(decided)await tx`update public.school_years set status='faststalld',decided_on='2027-05-01',content_hash=${stored?tx`public.lasar_content_hash(id)`:null} where id=${y.id}`;
   return y.id;
  };
