@@ -1,9 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { LASAR_SQL_SUITES, assertSqlSuiteReport, assertLasarActualProof, assertLasarSqlManifest,
-  parseLasarSqlArgs, runSqlSuiteSequence } from './verify-lasar-package-sql.mjs';
+  parseLasarSqlArgs, runSqlSuiteSequence, sqlInputResources, verifyLasarPackageSql } from './verify-lasar-package-sql.mjs';
 import { LASAR_ACTUAL_CASES } from './lasar-oidc-fixtures.mjs';
 
 const cleanup = { status: 'complete', tempDirectoryEmpty: true, remainingEntries: 0,
@@ -127,4 +127,46 @@ test('installer validation refuses replaced report bytes, another candidate, cha
     const retro = clone(manifest); retro.suites[0].startedAt = '2099-01-01T00:00:00.000Z'; assert.throws(() => assertLasarSqlManifest(retro, options));
     assert.throws(() => assertLasarSqlManifest(manifest, { ...options, read: f => { const r = reader(f); r.value.startedAt = '2000-01-01T00:00:00.000Z'; return r; } }));
   } finally { rmSync(r.directory, { recursive: true }); }
+});
+
+test('resource closure binds actual fixture inputs, not historical reports or private environment files', () => {
+  const candidate = tmp();
+  const put = (file, text) => { const p = path.join(candidate, file); mkdirSync(path.dirname(p), { recursive: true, mode: 0o700 }); writeFileSync(p, text, { mode: 0o600 }); };
+  try {
+    for (const f of ['work/pilot/ephemeral-supabase-stubs.sql', 'web/package.json', 'web/package-lock.json', 'package.json']) put(f, '{}');
+    for (const f of ['direct.json', 'relative.test.sql', 'selected.test.sql']) put('supabase/tests/' + f, 'original input');
+    put('src/module.mjs', `
+      const direct = 'supabase/tests/direct.json';
+      const relative = new URL('../supabase/tests/relative.test.sql', import.meta.url);
+      const directory = 'supabase/tests', selected = 'selected.test.sql';
+      const output = 'work/pilot/results/historical.json';
+      const privateConfig = 'work/pilot/targets/protected/manifest.json';
+      // supabase/tests/comment-only.json must not become an input.
+    `);
+    put('work/pilot/results/historical.json', 'old report');
+    const sources = { 'src/module.mjs': 'source-is-bound-independently' };
+    const before = sqlInputResources(candidate, sources);
+    assert.deepEqual(Object.keys(before), ['package.json', 'supabase/tests/direct.json', 'supabase/tests/relative.test.sql',
+      'supabase/tests/selected.test.sql', 'web/package-lock.json', 'web/package.json', 'work/pilot/ephemeral-supabase-stubs.sql']);
+    put('work/pilot/results/historical.json', 'changed report');
+    assert.deepEqual(sqlInputResources(candidate, sources), before);
+    put('supabase/tests/selected.test.sql', 'changed actual fixture');
+    assert.notDeepEqual(sqlInputResources(candidate, sources), before);
+  } finally { rmSync(candidate, { recursive: true }); }
+});
+
+test('source preflight failure leaves a private FAIL manifest before any SQL suite starts', async () => {
+  const directory = tmp(), actual = path.join(directory, 'actual.json'), out = path.join(directory, 'attempt.json');
+  writeFileSync(actual, JSON.stringify(actualFixture()), { mode: 0o600 });
+  let suiteCalls = 0;
+  try {
+    const report = await verifyLasarPackageSql({ candidate: '/private/tmp/lasar-candidate', actual, out }, {
+      sourceProof: () => { const error = Error('synthetic resource-binding failure'); error.code = 'ENOBUFS'; throw error; },
+      runSequence: () => { suiteCalls++; assert.fail('No SQL may start after failed preflight'); },
+    });
+    assert.equal(report.status, 'FAIL'); assert.equal(report.stage, 'preflight'); assert.equal(suiteCalls, 0);
+    assert.deepEqual(report.suites, []); assert.equal(report.failure.code, 'SQL_PACKAGE_PREFLIGHT_REFUSED');
+    assert.equal(report.failure.detailCode, 'ENOBUFS'); assert.ok(report.finishedAt);
+    assert.equal(statSync(out).mode & 0o077, 0); assert.deepEqual(JSON.parse(readFileSync(out, 'utf8')), report);
+  } finally { rmSync(directory, { recursive: true }); }
 });

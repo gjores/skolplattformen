@@ -7,6 +7,7 @@ import { closeSync, existsSync, fsyncSync, ftruncateSync, lstatSync, mkdirSync, 
 import path from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
 import { verificationSources, bindCandidateSources } from './verify-lasar-actual.mjs';
 import { TJANST_MIGRATION_REGISTRY, TJANST_PHASE_START, classifyTjanstMigrations } from './tjanst-migration-state.mjs';
 import { LASAR_ACTUAL_CASES } from './lasar-oidc-fixtures.mjs';
@@ -25,6 +26,7 @@ const sha = bytes => createHash('sha256').update(bytes).digest('hex');
 const git = (args, cwd = ROOT) => execFileSync('git', args, { cwd, encoding: 'utf8', maxBuffer: 128 * 1024 * 1024 }).trim();
 const equal = (a, b, reason) => assert.deepEqual(a, b, reason);
 const stamp = () => new Date().toISOString();
+const ts = createRequire(path.join(ROOT, 'web/package.json'))('typescript');
 
 function privateFile(file) {
   assert.equal(typeof file, 'string'); assert.ok(file.startsWith('/private/tmp/') && file.endsWith('.json'));
@@ -66,6 +68,42 @@ function toolProof(toolRevision = git(['rev-parse', 'HEAD'])) {
   return { toolRevision, sources, binding: bindCandidateSources(toolRevision, sources), node: process.version };
 }
 
+/** Non-module inputs from the reviewed original-suite import closure. Historical result reports and
+ * private target configuration are outputs/environment, never candidate source inputs. Migration
+ * bytes and JSON imports are already bound independently by sourceProof. */
+export function sqlInputResources(candidate, suiteSources) {
+  const resources = new Set(['work/pilot/ephemeral-supabase-stubs.sql', 'web/package.json', 'web/package-lock.json', 'package.json']);
+  for (const file of Object.keys(suiteSources)) {
+    if (!/\.(?:mjs|js|ts|tsx)$/u.test(file)) continue;
+    const absolute = path.join(candidate, file);
+    const syntax = ts.createSourceFile(file, readFileSync(absolute, 'utf8'), ts.ScriptTarget.Latest, true);
+    const visit = node => {
+      if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+        const value = node.text;
+        let input = null;
+        if (value.startsWith('supabase/tests/') && /\.(?:sql|json)$/u.test(value)) input = value;
+        else if (value.startsWith('.') && value.includes('supabase/tests/') && /\.(?:sql|json)$/u.test(value))
+          input = path.relative(candidate, path.resolve(path.dirname(absolute), value));
+        // verify-class-cohort selects its fixture from literal basenames and resolves it in supabase/tests.
+        else if (/^[a-zA-Z0-9_.-]+\.(?:sql|json)$/u.test(value) && existsSync(path.join(candidate, 'supabase/tests', value)))
+          input = 'supabase/tests/' + value;
+        if (input !== null) {
+          assert.ok(!path.isAbsolute(input) && !input.split('/').includes('..') && input.startsWith('supabase/tests/'), 'Fixture input escaped candidate');
+          resources.add(input);
+        }
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(syntax);
+  }
+  return Object.fromEntries([...resources].sort().map(file => {
+    const absolute = path.join(candidate, file);
+    assert.equal(realpathSync(absolute), absolute, 'Fixture resource symlinks refused');
+    assert.ok(lstatSync(absolute).isFile(), 'Fixture resource must be a regular file');
+    return [file, sha(readFileSync(absolute))];
+  }));
+}
+
 /** All migration bytes, including pre-phase files, plus resources read by the original suites. */
 async function sourceProof(candidate, actual) {
   assert.equal(path.resolve(candidate), LASAR_SQL_CANDIDATE, 'Only the isolated candidate directory is accepted');
@@ -81,10 +119,7 @@ async function sourceProof(candidate, actual) {
   classifyTjanstMigrations({ sourceHashes: phaseHashes, journal: TJANST_MIGRATION_REGISTRY.map(m => m.version) });
   equal(phaseHashes, actual.migrationSources, 'Actual report migration bytes differ');
   const suiteSources = candidateVerifier.verificationSources({ entrypoints: LASAR_SQL_SUITES.map(s => s.file) });
-  const resources = git(['ls-files', '-z', '--', 'work/pilot', 'supabase/tests', 'web/package.json', 'web/package-lock.json', 'package.json'], candidate)
-    .split('\0').filter(f => f && (/\.(?:sql|json)$/u.test(f)))
-    .sort();
-  const resourceSources = Object.fromEntries(resources.map(f => [f, sha(readFileSync(path.join(candidate, f)))]));
+  const resourceSources = sqlInputResources(candidate, suiteSources);
   const sources = productSources(); equal(sources, actual.sources, 'Actual report product bytes differ');
   const binding = candidateVerifier.bindCandidateSources(revision, sources, suiteSources, resourceSources, migrations);
   const artifact = artifactManifest(path.join(candidate, 'web/dist-protected'));
@@ -169,31 +204,36 @@ export async function runSqlSuiteSequence({ candidate, directory, before, captur
   return results;
 }
 
-export async function verifyLasarPackageSql({ candidate, actual, out }) {
-  assert.equal(path.resolve(candidate), LASAR_SQL_CANDIDATE);
+export async function verifyLasarPackageSql({ candidate, actual, out }, dependencies = {}) {
   assert.ok(out.startsWith('/private/tmp/') && out.endsWith('.json')); assert.equal(path.resolve(out), out);
   assert.equal(realpathSync(path.dirname(out)), path.dirname(out), 'Output parent must be canonical');
   assert.ok(!existsSync(out), 'Choose a new SQL package output');
-  const actualProof = privateFile(actual); assertLasarActualProof(actualProof.value);
-  const before = await sourceProof(candidate, actualProof.value), tool = toolProof(); noBrowserTests();
-  const directory = `${out.slice(0, -5)}-evidence`; assert.ok(!existsSync(directory)); mkdirSync(directory, { mode: 0o700 });
+  const directory = `${out.slice(0, -5)}-evidence`;
   const fd = openSync(out, 'wx', 0o600), interrupted = { value: false };
   const report = { kind: 'lasar-package-sql', schemaVersion: 1, status: 'FAIL', startedAt: stamp(), candidate,
-    candidateRevision: before.revision, actual: { file: actualProof.file, sha256: actualProof.sha256 },
-    tool, before, suites: [], directory, limits: ['Original SQL suites run sequentially in their own ephemeral PostgreSQL',
+    stage: 'preflight', suites: [], directory, limits: ['Original SQL suites run sequentially in their own ephemeral PostgreSQL',
       'Only synthetic data; no target writes, Worker, OIDC, installation or municipality connection',
       'Cleanup is verified by original exit/report and emptiness of a separate private TMPDIR per suite'] };
   const save = () => { ftruncateSync(fd, 0); writeSync(fd, JSON.stringify(report, null, 2) + '\n', 0, 'utf8'); fsyncSync(fd); };
   try {
     save();
-    await runSqlSuiteSequence({ candidate, directory, before, capture: () => sourceProof(candidate, actualProof.value),
+    assert.equal(path.resolve(candidate), LASAR_SQL_CANDIDATE);
+    assert.ok(!existsSync(directory)); mkdirSync(directory, { mode: 0o700 });
+    const actualProof = privateFile(actual); assertLasarActualProof(actualProof.value);
+    report.actual = { file: actualProof.file, sha256: actualProof.sha256 }; save();
+    const capture = () => (dependencies.sourceProof ?? sourceProof)(candidate, actualProof.value);
+    const before = await capture(), tool = (dependencies.toolProof ?? toolProof)();
+    (dependencies.assertIdle ?? noBrowserTests)();
+    Object.assign(report, { candidateRevision: before.revision, tool, before, stage: 'suites' }); save();
+    await (dependencies.runSequence ?? runSqlSuiteSequence)({ candidate, directory, before, capture,
       interrupted, persist: rows => { report.suites = rows; save(); } });
-    report.after = await sourceProof(candidate, actualProof.value); equal(report.after, before);
-    report.finalTool = toolProof(); equal(report.finalTool, tool);
+    report.after = await capture(); equal(report.after, before);
+    report.finalTool = (dependencies.toolProof ?? toolProof)(); equal(report.finalTool, tool);
     equal(privateFile(actual).sha256, actualProof.sha256, 'Actual report bytes changed');
     for (const row of report.suites) equal(privateFile(row.reportFile).sha256, row.reportSha256, 'SQL report bytes changed');
-    assert.ok(!interrupted.value); report.status = 'PASS';
-  } catch { report.failure = { code: interrupted.value ? 'INTERRUPTED' : 'SQL_PACKAGE_REFUSED', incomplete: true }; }
+    assert.ok(!interrupted.value); report.status = 'PASS'; report.stage = 'verified';
+  } catch (error) { report.failure = { code: interrupted.value ? 'INTERRUPTED' : report.stage === 'preflight' ? 'SQL_PACKAGE_PREFLIGHT_REFUSED' : 'SQL_PACKAGE_REFUSED',
+    detailCode: /^[A-Z0-9_]{1,40}$/u.test(error.code ?? '') ? error.code : null, incomplete: true }; }
   finally { report.finishedAt = stamp(); save(); closeSync(fd); }
   return report;
 }
