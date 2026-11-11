@@ -10,7 +10,7 @@ if(baseURL!=='http://127.0.0.1:3016'||!manifest?.startsWith('/private/tmp/')||!e
 const common={baseURL,locale:'sv-SE',timezoneId:'Europe/Stockholm',trace:'off' as const,video:'off' as const,screenshot:'off' as const,actionTimeout:25000,navigationTimeout:45000};
 export default defineConfig({
   testDir:'./e2e',testMatch:/lasar-actual\.spec\.ts$/,outputDir:path.join(evidence,'playwright-output'),
-  timeout:1800000,expect:{timeout:25000},fullyParallel:false,workers:1,retries:0,
+  timeout:1800000,expect:{timeout:25000},fullyParallel:false,workers:1,retries:0,maxFailures:1,
   reporter:[['list'],['json',{outputFile:path.join(evidence,'playwright-actual.json')}]],
   use:common,
   webServer:{command:'npx vite --config vite.mandate-test.config.ts --host 127.0.0.1 --port 3017 --strictPort',url:'http://127.0.0.1:3017/e2e/fixtures/lasar-preview.html',reuseExistingServer:false,timeout:60000},
