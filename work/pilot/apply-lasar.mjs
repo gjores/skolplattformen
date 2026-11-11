@@ -57,9 +57,10 @@ export function validateLasarJournal(rows,sources,{after=false}={}){
 
 export function parseLasarArgs(args){
  assert.ok(['--rehearse','--apply'].includes(args[0]),'explicit_mode_required');const result={mode:args[0]==='--apply'?'apply':'rehearsal'};
- const keys={'--candidate':'candidate','--actual':'actual','--tjanst-actual':'tjanstActual','--visual-review':'visualReview','--sql-evidence':'sqlEvidence','--rehearsal':'rehearsal','--approval':'approval','--out':'out'};
+ const keys={'--candidate':'candidate','--actual':'actual','--tjanst-actual':'tjanstActual','--visual-review':'visualReview','--sql-evidence':'sqlEvidence','--rehearsal':'rehearsal','--approval':'approval','--approval-revalidation':'approvalRevalidation','--out':'out'};
  for(let i=1;i<args.length;i+=2){const k=keys[args[i]];assert.ok(k&&args[i+1]&&!Object.hasOwn(result,k),'unknown_or_duplicate_argument');result[k]=k==='candidate'?resolve(args[i+1]):privatePath(args[i+1]);}
  const required=result.mode==='rehearsal'?['candidate','actual','tjanstActual','visualReview','sqlEvidence','out']:['rehearsal','approval','out'];
+ if(result.mode==='apply'&&result.approvalRevalidation)required.push('approvalRevalidation');
  assert.deepEqual(Object.keys(result).filter(k=>k!=='mode').sort(),required.sort(),'required_mode_arguments');
  assert.notEqual(result.out,result.rehearsal);assert.notEqual(result.out,result.approval);return result;
 }
@@ -67,10 +68,28 @@ export function assertLasarApproval(value,prior,priorSha256){
  assert.equal(value.kind,'lasar-installation-approval');assert.equal(value.decision,'ja, installera och byt 3012');
  assert.equal(value.candidateRevision,prior.release.candidateRevision);assert.equal(value.rehearsalSha256,priorSha256);
  assert.deepEqual(value.migrations,prior.package);assert.ok(Number.isFinite(Date.parse(value.approvedAt)),'approval_date_required');
- assert.equal(prior.kind,'lasar-migration-evidence');assert.ok(Date.parse(value.approvedAt)>=Date.parse(prior.finishedAt),'approval_must_follow_rehearsal');
+ assert.ok(Date.parse(value.approvedAt)>=Date.parse(prior.finishedAt),'approval_must_follow_rehearsal');
+ assertLasarRehearsal(prior);return true;
+}
+function assertLasarRehearsal(prior){
+ assert.equal(prior.kind,'lasar-migration-evidence');
  assert.equal(prior.status,'PASS');assert.equal(prior.mode,'rehearsal');assert.equal(prior.committed,false);
  assert.equal(prior.rollbackRestored,true);assert.equal(prior.snapshotCleanup?.cleanup,'complete');assert.equal(prior.targetUnchanged,true);
  assert.equal(prior.databaseClosed,true);assert.ok(prior.checks?.length&&prior.checks.every(c=>c.ok===true),'rehearsal_checks_required');
+ return true;
+}
+/** A technical rerun is not a new user decision. Keep the original approval and
+ * its approved rehearsal intact; only accept an identical product, package,
+ * release evidence and source preflight after this scoped installer correction. */
+export function assertLasarApprovalRevalidation({approval,original,current,chain,approvalProof,originalProof,currentProof}){
+ assertLasarApproval(approval,original,originalProof.sha256);assertLasarRehearsal(current);
+ assert.equal(chain.kind,'lasar-approval-revalidation');assert.equal(chain.reason,'postgres_result_json_roundtrip');
+ assert.deepEqual(chain.originalApproval,approvalProof);assert.deepEqual(chain.originalRehearsal,originalProof);assert.deepEqual(chain.revalidatedRehearsal,currentProof);
+ assert.notEqual(originalProof.path,currentProof.path);assert.notEqual(originalProof.sha256,currentProof.sha256);
+ assert.ok(Number.isFinite(Date.parse(chain.revalidatedAt))&&Date.parse(chain.revalidatedAt)>=Date.parse(current.finishedAt),'revalidation_must_follow_rehearsal');
+ for(const key of ['package','release','inputs','sqlSourceHashes','expectedDelta','preflight','legacyParser'])assert.deepEqual(current[key],original[key],'approved_scope_changed:'+key);
+ assert.equal(current.rehearsal.fingerprint,original.rehearsal.fingerprint,'approved_schema_changed');
+ assert.deepEqual(chain.toolRevisions,{original:original.tool.revision,revalidated:current.tool.revision});
  return true;
 }
 export function assertApprovedPackage(value,prior,currentPackage,priorSha256){
@@ -221,9 +240,15 @@ async function installPackage(tx,{sources,release,runId,revalidate,beforeFingerp
 export async function applyLasar(options){
  assert.ok(['rehearsal','apply'].includes(options.mode),'explicit_mode_required');
  const out=privatePath(options.out);assert.equal(realpathSync(dirname(out)),dirname(out));
- let prior=null,approval=null;
+ let prior=null,approval=null,revalidation=null,originalApprovalRehearsal=null;
  if(options.mode==='apply'){
-  prior=evidence(options.rehearsal);approval=evidence(options.approval);assertLasarApproval(approval.value,prior.value,prior.sha256);
+  prior=evidence(options.rehearsal);approval=evidence(options.approval);
+  if(options.approvalRevalidation){
+   revalidation=evidence(options.approvalRevalidation);originalApprovalRehearsal=evidence(privatePath(revalidation.value.originalRehearsal.path));
+   const proof=e=>({path:e.path,sha256:e.sha256});
+   assertLasarApprovalRevalidation({approval:approval.value,original:originalApprovalRehearsal.value,current:prior.value,chain:revalidation.value,
+    approvalProof:proof(approval),originalProof:proof(originalApprovalRehearsal),currentProof:proof(prior)});
+  }else assertLasarApproval(approval.value,prior.value,prior.sha256);
   try{const port=execFileSync('lsof',['-ti','tcp:3012','-sTCP:LISTEN'],{encoding:'utf8'});assert.equal(port.trim(),'','stop_3012_parent_first');}catch(e){if(e.status!==1)throw e;}
  }
  const inputs=prior?prior.value.inputs:Object.fromEntries(['candidate','actual','tjanstActual','visualReview','sqlEvidence'].map(k=>[k,options[k]]));
@@ -234,12 +259,14 @@ export async function applyLasar(options){
   const sources=lasarSourceSnapshot();r.sqlSourceHashes=sourceHashes(sources);r.tool=installerSources(prior?.value.tool.revision);r.release=await validateLasarReleaseEvidence(inputs);
   r.migrationBinding=bindCandidateSources(r.release.candidateRevision,r.sqlSourceHashes);checked('candidate_actual_sql_visual_and_installer_sources_bound');
   r.package=LASAR_MIGRATIONS.map(file=>({file,sha256:sources[file].sha256}));r.expectedDelta=EXPECTED_DELTA;
-  if(prior){assertApprovedPackage(approval.value,prior.value,r.package,prior.sha256);assert.deepEqual(prior.value.sqlSourceHashes,r.sqlSourceHashes,'migration_sources_changed');assert.deepEqual(prior.value.release,r.release,'release_evidence_changed');assert.deepEqual(prior.value.tool,r.tool,'installer_changed');r.rehearsalEvidence={path:prior.path,sha256:prior.sha256};r.approvalEvidence={path:approval.path,sha256:approval.sha256};}
+  if(prior){const approved=originalApprovalRehearsal??prior;assertApprovedPackage(approval.value,approved.value,r.package,approved.sha256);assert.deepEqual(prior.value.sqlSourceHashes,r.sqlSourceHashes,'migration_sources_changed');assert.deepEqual(prior.value.release,r.release,'release_evidence_changed');assert.deepEqual(prior.value.tool,r.tool,'installer_changed');r.rehearsalEvidence={path:prior.path,sha256:prior.sha256};r.approvalEvidence={path:approval.path,sha256:approval.sha256};
+   if(revalidation){r.approvalRevalidationEvidence={path:revalidation.path,sha256:revalidation.sha256};r.originalApprovedRehearsalEvidence={path:approved.path,sha256:approved.sha256};}}
   const target=await assertTarget('protected');db=connect(target);const baseline=await preflight(db,target,sources);r.preflight=baseline.state;r.targetAccess='repeatable-read-read-only';
   assert.equal(baseline.state.schemaFingerprint,r.release.targetFingerprint,'source_schema_differs_from_actual_evidence');
   assert.equal(baseline.state.journal.sha256,r.release.targetJournal.fingerprint.sha256,'source_journal_differs_from_actual_evidence');checked('source_preflight_read_only_and_matches_actual_baseline');
   if(prior)assert.deepEqual(baseline.state,prior.value.preflight,'target_changed_since_rehearsal');
-  const revalidate=async()=>{assert.equal(abort,false,'interrupted');assert.deepEqual(sourceHashes(lasarSourceSnapshot()),r.sqlSourceHashes);assert.deepEqual(installerSources(r.tool.revision),r.tool);assertEvidenceFilesUnchanged(r.release);if(prior){assert.equal(evidence(options.rehearsal).sha256,prior.sha256);assert.equal(evidence(options.approval).sha256,approval.sha256);}};
+  const revalidate=async()=>{assert.equal(abort,false,'interrupted');assert.deepEqual(sourceHashes(lasarSourceSnapshot()),r.sqlSourceHashes);assert.deepEqual(installerSources(r.tool.revision),r.tool);assertEvidenceFilesUnchanged(r.release);if(prior){assert.equal(evidence(options.rehearsal).sha256,prior.sha256);assert.equal(evidence(options.approval).sha256,approval.sha256);
+   if(revalidation){assert.equal(evidence(options.approvalRevalidation).sha256,revalidation.sha256);assert.equal(evidence(originalApprovalRehearsal.path).sha256,originalApprovalRehearsal.sha256);}}};
   if(options.mode==='rehearsal'){
    snapshot=await createNamedTimplanSnapshot();assertOwnedRehearsal(snapshot.provenance.database,baseline.sourceDatabase);
    assert.equal(snapshot.provenance.sourceFingerprint,baseline.state.schemaFingerprint,'snapshot_source_changed');

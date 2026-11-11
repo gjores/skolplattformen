@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LASAR_MIGRATIONS,INSTALLED,lasarSourceSnapshot,validateLasarJournal,parseLasarArgs,assertLasarApproval,
- assertOwnedRehearsal,groupResolutionSql,validateGroupResolution,assertCalendarRowPreserved,assertApprovedPackage,applyLasar,lasarPreflightValue} from './apply-lasar.mjs';
+ assertOwnedRehearsal,groupResolutionSql,validateGroupResolution,assertCalendarRowPreserved,assertApprovedPackage,applyLasar,lasarPreflightValue,assertLasarApprovalRevalidation} from './apply-lasar.mjs';
 import {createRequire} from 'node:module';
 import {pathToFileURL} from 'node:url';
 // npm dependencies are bound by the package lock, separately from repo sources.
@@ -45,6 +45,22 @@ test('installation approval is bound to exact candidate, package and rollback ev
 });
 test('exported entry point refuses invalid mode before touching paths or connecting',async()=>{
  await assert.rejects(applyLasar({mode:'other',out:'/does-not-exist'}),/explicit_mode_required/);
+});
+test('technical revalidation keeps original user decision and rejects any changed approved scope or broken evidence chain',()=>{
+ const original={kind:'lasar-migration-evidence',status:'PASS',mode:'rehearsal',committed:false,rollbackRestored:true,targetUnchanged:true,databaseClosed:true,finishedAt:'2026-11-11T09:00:00Z',checks:[{ok:true}],snapshotCleanup:{cleanup:'complete'},
+  release:{candidateRevision:'a'.repeat(40),artifact:'same'},package:[{file:'locked.sql',sha256:'b'.repeat(64)}],inputs:{actual:'same'},sqlSourceHashes:{sql:'same'},expectedDelta:{tables:6},preflight:{rows:'same'},legacyParser:{revision:'same'},rehearsal:{fingerprint:'same'},tool:{revision:'old'}};
+ const current={...structuredClone(original),finishedAt:'2026-11-11T11:00:00Z',tool:{revision:'fixed'}};
+ const approval={kind:'lasar-installation-approval',decision:'ja, installera och byt 3012',userReply:'kör på!',candidateRevision:original.release.candidateRevision,rehearsalSha256:'c'.repeat(64),migrations:original.package,approvedAt:'2026-11-11T10:00:00Z'};
+ const approvalProof={path:'/private/tmp/approval.json',sha256:'d'.repeat(64)},originalProof={path:'/private/tmp/old.json',sha256:approval.rehearsalSha256},currentProof={path:'/private/tmp/new.json',sha256:'e'.repeat(64)};
+ const chain={kind:'lasar-approval-revalidation',reason:'postgres_result_json_roundtrip',originalApproval:approvalProof,originalRehearsal:originalProof,revalidatedRehearsal:currentProof,revalidatedAt:'2026-11-11T12:00:00Z',toolRevisions:{original:'old',revalidated:'fixed'}};
+ const args={approval,original,current,chain,approvalProof,originalProof,currentProof};
+ assert.equal(assertLasarApprovalRevalidation(args),true);assert.equal(approval.approvedAt,'2026-11-11T10:00:00Z');assert.equal(approval.userReply,'kör på!');
+ for(const key of ['package','release','inputs','sqlSourceHashes','expectedDelta','preflight','legacyParser']){const changed=structuredClone(args);changed.current[key]={changed:true};assert.throws(()=>assertLasarApprovalRevalidation(changed));}
+ for(const change of [a=>a.chain.originalApproval.sha256='x',a=>a.chain.originalRehearsal.sha256='x',a=>a.chain.revalidatedRehearsal.sha256='x',a=>a.chain.revalidatedAt='2026-11-11T10:59:00Z',a=>a.current.snapshotCleanup.cleanup='failed',a=>a.current.rehearsal.fingerprint='other',a=>a.chain.toolRevisions.revalidated='other',a=>a.approval.approvedAt='2026-11-11T08:00:00Z']){
+  // Proof arguments are independent read-file observations, not aliases of the chain's JSON.
+  const changed={...structuredClone(args),approvalProof:{...approvalProof},originalProof:{...originalProof},currentProof:{...currentProof}};change(changed);assert.throws(()=>assertLasarApprovalRevalidation(changed));
+ }
+ assert.equal(parseLasarArgs(['--apply','--rehearsal',currentProof.path,'--approval',approvalProof.path,'--approval-revalidation','/private/tmp/chain.json','--out','/private/tmp/apply.json']).approvalRevalidation,'/private/tmp/chain.json');
 });
 test('rehearsal cannot point at the source database or an unowned database',()=>{
  const own='named_timplan_'+'a'.repeat(32);assert.doesNotThrow(()=>assertOwnedRehearsal(own,'postgres'));assert.throws(()=>assertOwnedRehearsal('postgres','postgres'));assert.throws(()=>assertOwnedRehearsal(own,own));
