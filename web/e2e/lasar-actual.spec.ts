@@ -121,7 +121,13 @@ test('läsårskalendern genom OIDC, Worker och PostgreSQL',async({browser},info)
   await open(h,seed.schools.A);await ready(h);await uiDecision(h,'Återsänd');await open(p,seed.schools.A);await ready(p);
   const d=(long:string)=>p.locator(`button[title^="${long} ·"]`);
   await p.getByRole('button',{name:'Lovdag',exact:true}).click();let done=p.waitForResponse(responseOf('/api/lasar/kommando'));await d(`onsdag 6 oktober ${seed.year}`).click();expect((await done).status()).toBe(200);await ready(p);
-  done=p.waitForResponse(responseOf('/api/lasar/kommando'));await d(`fredag 8 oktober ${seed.year}`).click({modifiers:['Shift']});expect((await done).status()).toBe(200);await ready(p);
+  // Shift selects the interval; only the explicit action below writes it.
+  const beforeRange=await read('principalA',A),commandsBeforeRange=network.principalA.filter(r=>r.path==='/api/lasar/kommando').length;
+  await d(`fredag 8 oktober ${seed.year}`).click({modifiers:['Shift']});await expect(p.locator('.ly-marking')).toContainText('3 dagar markerade');
+  for(const date of [`onsdag 6 oktober ${seed.year}`,`torsdag 7 oktober ${seed.year}`,`fredag 8 oktober ${seed.year}`])await expect(d(date)).toHaveAttribute('aria-pressed','true');
+  expect(network.principalA.filter(r=>r.path==='/api/lasar/kommando').length).toBe(commandsBeforeRange);expect((await read('principalA',A)).calendar!.revision).toBe(beforeRange.calendar!.revision);
+  done=p.waitForResponse(responseOf('/api/lasar/kommando'));await p.locator('.ly-marking').getByRole('button',{name:'Gör till lovdagar (3)',exact:true}).click();expect((await done).status()).toBe(200);await ready(p);
+  const range=await read('principalA',A);for(const date of [`${seed.year}-10-06`,`${seed.year}-10-07`,`${seed.year}-10-08`])expect(range.calendar!.exceptions[date].kind).toBe('lovdag');
   await d(`måndag 11 oktober ${seed.year}`).click({modifiers:['ControlOrMeta']});await expect(d(`måndag 11 oktober ${seed.year}`)).toHaveAttribute('aria-pressed','true');await d(`måndag 11 oktober ${seed.year}`).click({button:'right'});await expect(p.locator('.ly-menu')).toBeVisible();await p.keyboard.press('Escape');
   done=p.waitForResponse(responseOf('/api/lasar/kommando'));await p.getByRole('button',{name:/^Vecka 42: sätt måndag–fredag som lovdag/}).click();expect((await done).status()).toBe(200);await ready(p);
   // Restore for a valid unmodified baseline before the decisions.
