@@ -106,11 +106,12 @@ async function structure(t, step) {
     assert.deepEqual(cons, ['UNIQUE (id, organizer_id, start_year)', 'UNIQUE (organizer_id, start_year, version)']);
   });
   // 05.1.1-11: överblicken (lasar_overview) har en egen grant-fil efter kopieringsfilen; ramen ger fortfarande ingen ny ingång.
-  await step(t, 'Workern får bara execute på lasar_read, lasar_command, lasar_status och lasar_overview (ramen ger ingen ny ingång)', async u => {
+  // 05.1.1-13: sammanfattningen (lasar_summary) har en egen grant-fil efter sammanfattningens fil.
+  await step(t, 'Workern får bara execute på lasar_read, lasar_command, lasar_status, lasar_overview och lasar_summary (ramen ger ingen ny ingång)', async u => {
     const rows = await u`select p.oid::regprocedure::text s, has_function_privilege('skolplattform_worker',p.oid,'EXECUTE') w,
       has_function_privilege('anon',p.oid,'EXECUTE') or has_function_privilege('authenticated',p.oid,'EXECUTE') or has_function_privilege('service_role',p.oid,'EXECUTE') c
       from pg_proc p where p.pronamespace='public'::regnamespace and p.proname like 'lasar\\_%' order by 1`;
-    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_overview(jsonb)', 'lasar_read(jsonb)', 'lasar_status(jsonb)']);
+    assert.deepEqual(rows.filter(r => r.w).map(r => r.s), ['lasar_command(jsonb)', 'lasar_overview(jsonb)', 'lasar_read(jsonb)', 'lasar_status(jsonb)', 'lasar_summary(jsonb)']);
     assert.deepEqual(rows.filter(r => r.c).map(r => r.s), []);
   });
 }

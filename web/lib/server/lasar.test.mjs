@@ -678,3 +678,67 @@ test('överblick: SQL:s nekande blir 403 med lasar_forbidden', async () => {
   const response = await overviewPost({ schoolYear: year });
   assert.equal(response.status, 403); assert.deepEqual((await response.json()).details, { reason: 'lasar_forbidden' });
 });
+
+// 05.1.1-13 (D-11, LASAR-05, T-05.1.1-40): kalenderns sammanfattning för beroende underlag. Rutten tar skolan och läsåret; SQL prövar
+// mandatet. Svaret tolkas av kontraktets summary-tolk utan extra fält och med exakt sessionens aktör i kuvertet.
+async function summaryPost(body, origin = 'http://localhost') {
+  const { POST } = await import('../../app/api/lasar/sammanfattning/route.ts');
+  return POST(new Request('http://localhost/api/lasar/sammanfattning', { method: 'POST', headers: { Origin: origin, 'Content-Type': 'application/json', 'X-Context-Epoch': '1' },
+    body: typeof body === 'string' ? body : JSON.stringify(body) }));
+}
+const summaryStat = (over = {}) => ({ version: 2, decidedOn: '2027-06-01', htSchoolDays: 83, vtSchoolDays: 95, contentHash: hash('d'), ...over });
+const summary = (over = {}) => ({ contractVersion: 'lasar_sql_v1', unitId: unit, schoolYear: year, current: summaryStat(),
+  previous: summaryStat({ version: 1, decidedOn: '2027-05-01', htSchoolDays: 85, contentHash: hash('e') }), ...over });
+
+test('sammanfattning: rutten skickar skolan och läsåret till lasar_summary, svaret tolkas och läsningen loggas', async () => {
+  for (const fn of ['huvudman', 'rektor', 'administrator']) {
+    reset(fn, { lasar_summary: wrap(summary()) });
+    const response = await summaryPost({ unitId: unit, schoolYear: year });
+    assert.equal(response.status, 200, fn);
+    assert.deepEqual(await response.json(), summary());
+    assert.match(state.calls[0].sql, /select public\.lasar_summary\(\?\) as result/u);
+    assert.deepEqual(state.calls.map(c => c.values), [[{ unitId: unit, schoolYear: year }]]);
+    assert.deepEqual(state.events.filter(e => e.outcome === 'ok').map(e => [e.action, e.objectType, e.details.unitId, e.details.schoolYear]),
+      [['lasar_summary', 'school_year', unit, year]]);
+  }
+});
+
+test('sammanfattning: utan fastställd version är current och previous null', async () => {
+  reset('rektor', { lasar_summary: wrap(summary({ current: null, previous: null })) });
+  const response = await summaryPost({ unitId: unit, schoolYear: year });
+  assert.equal(response.status, 200);
+  const body = await response.json();
+  assert.equal(body.current, null); assert.equal(body.previous, null);
+});
+
+test('sammanfattning: extra fält, saknad skola, annat ursprung och fel funktion nekas utan SQL-anrop', async () => {
+  reset('rektor', { lasar_summary: wrap(summary()) });
+  assert.equal((await summaryPost({ unitId: unit, schoolYear: year, versionId: version })).status, 400);
+  assert.equal((await summaryPost({ schoolYear: year })).status, 400);
+  assert.equal((await summaryPost({ unitId: unit, schoolYear: year }, 'http://evil.example')).status, 403);
+  reset('larare', { lasar_summary: wrap(summary()) });
+  assert.equal((await summaryPost({ unitId: unit, schoolYear: year })).status, 403);
+  assert.deepEqual(state.calls, []);
+});
+
+test('sammanfattning: ett svar med extra fält, annan skola, fel läsår, fel versionsordning eller fel aktör lämnar inte servern', async () => {
+  for (const reply of [wrap(summary({ current: { ...summaryStat(), pupils: 3 } })), wrap(summary({ unitId: uid(77) })), wrap(summary({ schoolYear: year + 1 })),
+    wrap(summary({ previous: summaryStat() })), wrap(summary(), { identityId: uid(90), assignmentId }), wrap({ ...summary(), extra: true })]) {
+    reset('huvudman', { lasar_summary: reply });
+    const response = await summaryPost({ unitId: unit, schoolYear: year });
+    assert.equal(response.status, 500);
+    assert.ok(!JSON.stringify(await response.json()).includes('sha256'));
+  }
+});
+
+test('sammanfattning: SQL:s nekande blir 403 med lasar_forbidden', async () => {
+  reset('rektor'); state.replies.lasar_summary = wrap(summary());
+  state.sqlError = Object.assign(new Error('sql'), { code: '42501' }); state.sqlErrorAt = 'lasar_summary';
+  const response = await summaryPost({ unitId: unit, schoolYear: year });
+  assert.equal(response.status, 403); assert.deepEqual((await response.json()).details, { reason: 'lasar_forbidden' });
+});
+
+test('sammanfattning: tjänstefördelningens tolkar och SQL är orörda (Pitfall 7)', () => {
+  const source = readFileSync(new URL('./lasar.ts', import.meta.url), 'utf8');
+  assert.ok(!/tjanst-contract|tjanst-year-contract/u.test(source));
+});

@@ -76,8 +76,11 @@ const FRAMES = 'supabase/migrations/20261112120000_lasar_frames.sql';
 const COPY = 'supabase/migrations/20261112130000_lasar_copy_overview.sql';
 // 05.1.1-11: överblickens Worker-ingång i en egen grant-fil direkt efter kopieringsfilen (den installerade grant-filen ändras inte).
 const OVERVIEW_GRANT = 'supabase/migrations/20261112131000_lasar_overview_worker_access.sql';
+// 05.1.1-13: kalenderns sammanfattning för beroende underlag och dess Worker-ingång i en egen grant-fil direkt efter.
+const SUMMARY = 'supabase/migrations/20261112140000_lasar_summary.sql';
+const SUMMARY_GRANT = 'supabase/migrations/20261112141000_lasar_summary_worker_access.sql';
 /** Kalenderns filer som inte är installerade på 3012, i registrets ordning. */
-const PENDING_3012 = [GROUPS, CHANGES, FRAMES, COPY, OVERVIEW_GRANT];
+const PENDING_3012 = [GROUPS, CHANGES, FRAMES, COPY, OVERVIEW_GRANT, SUMMARY, SUMMARY_GRANT];
 const INSTALLED_3012 = { 'supabase/migrations/20261111100000_lasar_versions.sql': '10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66',
   'supabase/migrations/20261111190000_lasar_worker_access.sql': '3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c' };
 test('kalenderns migrationer är registrerade sist och i versionsordning', () => {
@@ -117,12 +120,21 @@ test('ramens fil (05.1.1-10) är registrerad direkt efter ändringsbegärans fil
   assert.equal(registry[at + 1]?.file, FRAMES);
   assert.match(registry[at + 1].sha256, /^[0-9a-f]{64}$/u);
 });
-test('kopieringens och överblickens fil (05.1.1-11) är registrerad direkt efter ramens fil, och grant-filen direkt efter den och sist', () => {
+test('kopieringens och överblickens fil (05.1.1-11) är registrerad direkt efter ramens fil, och grant-filen direkt efter den', () => {
   const at = registry.findIndex(m => m.file === FRAMES);
   assert.equal(registry[at + 1]?.file, COPY);
   assert.equal(registry[at + 2]?.file, OVERVIEW_GRANT);
-  assert.equal(registry.at(-1).file, OVERVIEW_GRANT);
   assert.match(registry[at + 1].sha256, /^[0-9a-f]{64}$/u); assert.match(registry[at + 2].sha256, /^[0-9a-f]{64}$/u);
+});
+test('sammanfattningens fil (05.1.1-13) är registrerad direkt efter överblickens grant-fil, och dess grant-fil direkt efter den och sist', () => {
+  const at = registry.findIndex(m => m.file === OVERVIEW_GRANT);
+  assert.equal(registry[at + 1]?.file, SUMMARY);
+  assert.equal(registry[at + 2]?.file, SUMMARY_GRANT);
+  assert.equal(registry.at(-1).file, SUMMARY_GRANT);
+  for (const file of [SUMMARY, SUMMARY_GRANT]) {
+    const entry = registry.find(m => m.file === file);
+    assert.equal(entry.sha256, createHash('sha256').update(readFileSync(new URL('../../' + file, import.meta.url))).digest('hex'), file);
+  }
 });
 test('de installerade kalenderfilernas hashar står fast', () => {
   for (const [file, sha256] of Object.entries(INSTALLED_3012)) assert.equal(registry.find(m => m.file === file)?.sha256, sha256, file);
