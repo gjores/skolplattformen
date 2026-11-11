@@ -150,7 +150,7 @@ async function assertRowsPreserved(tx,before,auditId){
  assert.equal(afterRows['public.school_years'].count,before.rows['public.school_years'].count);delete afterRows['public.school_years'];
  const {['public.school_years']:calendarRows,...otherBefore}=before.rows;assert.deepEqual(afterRows,otherBefore,'original_rows_changed');
  const afterGroups=[...await tx`select 'group_days' tbl,school_year_id,group_key,day,scope,offering_id,column_id,class_id,group_ref from public.school_year_group_days`,
-  ...await tx`select 'short_weeks' tbl,school_year_id,group_key,null::date day,scope,offering_id,column_id,class_id,group_ref from public.school_year_short_weeks`];
+  ...await tx`select 'short_weeks' tbl,school_year_id,group_key,null::date as day,scope,offering_id,column_id,class_id,group_ref from public.school_year_short_weeks`];
  assert.equal(afterGroups.length,before.groups.length,'group_count_changed');
  for(const b of before.groups){const a=afterGroups.find(g=>g.tbl===b.tbl&&g.school_year_id===b.school_year_id&&g.group_key===b.group_key&&String(g.day)===String(b.day));assert.ok(a,'group_missing');
   assert.equal(a.scope,b.form);assert.equal(a.offering_id,b.offering_id);assert.equal(a.class_id,b.class_id);
@@ -283,7 +283,7 @@ export async function applyLasar(options){
    code:/^[A-Z0-9_]{1,40}$/u.test(error.code??'')?error.code:null,
    constraint:/^[a-z_0-9]+$/u.test(error.constraint_name??'')?error.constraint_name:null,
    location:String(error.stack??'').match(/apply-lasar\.mjs:\d+:\d+/u)?.[0]??null,
-   reason:/^[a-z_]+$/u.test(error.message??'')?error.message:null};if(r.stage==='commit_pending'&&!r.committed){r.committed=null;r.commitOutcome='unknown';}}
+   reason:/^[a-z_]+$/u.test(String(error.message??'').split('\n')[0])?String(error.message).split('\n')[0]:null};if(r.stage==='commit_pending'&&!r.committed){r.committed=null;r.commitOutcome='unknown';}}
  finally{
   if(snapshot)try{const cleanup=await snapshot.cleanup();r.snapshotCleanup={cleanup:cleanup.cleanup,database:cleanup.database};}catch{r.snapshotCleanup={cleanup:'failed'};r.status='FAIL';}
   if(db){try{if(options.mode==='rehearsal'){const final=await preflight(db,await assertTarget('protected'),lasarSourceSnapshot());assert.deepEqual(final.state,r.preflight,'target_changed_during_rehearsal');r.targetUnchanged=true;}await db.end({timeout:5});r.databaseClosed=true;}catch{r.status='FAIL';r.targetUnchanged=false;r.databaseClosed=false;try{await db.end({timeout:5});r.databaseClosed=true;}catch{}}}
