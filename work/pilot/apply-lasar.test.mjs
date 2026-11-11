@@ -1,9 +1,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {LASAR_MIGRATIONS,INSTALLED,lasarSourceSnapshot,validateLasarJournal,parseLasarArgs,assertLasarApproval,
- assertOwnedRehearsal,groupResolutionSql,validateGroupResolution,assertCalendarRowPreserved,assertApprovedPackage,applyLasar} from './apply-lasar.mjs';
+ assertOwnedRehearsal,groupResolutionSql,validateGroupResolution,assertCalendarRowPreserved,assertApprovedPackage,applyLasar,lasarPreflightValue} from './apply-lasar.mjs';
+import {createRequire} from 'node:module';
+import {pathToFileURL} from 'node:url';
+// npm dependencies are bound by the package lock, separately from repo sources.
+const require=createRequire(new URL('../../web/package.json',import.meta.url));
+const {default:Result}=await import(new URL('./result.js',pathToFileURL(require.resolve('postgres'))));
 const version=f=>f.split('/').at(-1).slice(0,14),name=f=>f.split('/').at(-1).slice(15,-4);
 function journal(){const sources=lasarSourceSnapshot();return{sources,rows:INSTALLED.map(f=>({version:version(f),name:name(f),statements:[sources[f].sql]}))};}
+test('live postgres preflight matches persisted evidence while changed counts and hashes remain refused',()=>{
+ const rows=new Result();rows.push({versions:1,scopes:3});
+ const live={calendars:{perSchoolYear:rows},relevantRows:{'public.school_years':{count:3,sha256:'old'}}};
+ const saved=JSON.parse(JSON.stringify(live));
+ assert.throws(()=>assert.deepEqual(live,saved));
+ assert.deepEqual(lasarPreflightValue(live),saved);
+ rows[0].scopes=4;assert.throws(()=>assert.deepEqual(lasarPreflightValue(live),saved));rows[0].scopes=3;
+ live.relevantRows['public.school_years'].sha256='changed';assert.throws(()=>assert.deepEqual(lasarPreflightValue(live),saved));
+});
 test('exact installed prefix accepts the three immutable early files and seven pending files',()=>{
  const{rows,sources}=journal(),r=validateLasarJournal(rows,sources);assert.equal(rows.at(-1).version,'20261111190000');assert.deepEqual(r.pending,LASAR_MIGRATIONS);
 });

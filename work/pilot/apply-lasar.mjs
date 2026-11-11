@@ -24,6 +24,9 @@ const root=fileURLToPath(new URL('../../',import.meta.url)),prefix='supabase/mig
 const version=p=>p.split('/').at(-1).slice(0,14),name=p=>p.split('/').at(-1).slice(15,-4);
 const ident=s=>'"'+s.replaceAll('"','""')+'"';
 const signature=s=>s.replaceAll('public.','').replaceAll(', ',',');
+// Compare the same JSON value before and after evidence persistence. postgres
+// returns Result extends Array, whose prototype must not masquerade as a row change.
+export const lasarPreflightValue=state=>JSON.parse(JSON.stringify(state));
 const rollback=Error('expected_lasar_rehearsal_rollback');
 export const LASAR_BASE_VERSION='20261111190000';
 export const LASAR_MIGRATIONS=['20261112100000_lasar_groups.sql','20261112110000_lasar_change_requests.sql','20261112120000_lasar_frames.sql',
@@ -117,7 +120,7 @@ async function preflightInTransaction(tx,target,sources){
     freezeEligible:calendars.filter(c=>c.data.status==='faststalld'&&c.data.content_hash===null&&c.has_groups).length,payloadSha256:sha(calendars)},
    reserveStarts:{offerings:reserves.length,nonNull:reserves.filter(r=>r.starts_on!==null).length,sha256:sha(reserves)},planningCounts:planning[0],relevantRows:await preservedRows(tx,selected),
    basisImpact:{predictedChangedPlans:0,derived:true,reason:'D-19 readers already installed; package preserves effective calendar hash, school days, current version and source rows. Synthetic basis is compared before/after rehearsal.'}};
-  return{state,journal,sourceDatabase:identity.database};
+  return{state:lasarPreflightValue(state),journal,sourceDatabase:identity.database};
 }
 const preflight=(connection,target,sources)=>connection.begin('isolation level repeatable read read only',tx=>preflightInTransaction(tx,target,sources));
 
@@ -247,6 +250,7 @@ export async function applyLasar(options){
     r.stage='seeding_synthetic_fixture';sink.save();const fixture=await seedRehearsal(tx),basisBefore=await fixture.basis();
     r.stage='testing_locked_preflight';sink.save();
     const syntheticBaseline=(await preflightInTransaction(tx,target,sources)).state;
+    assert.deepEqual(syntheticBaseline,JSON.parse(JSON.stringify(syntheticBaseline)),'preflight_evidence_roundtrip_changed');
     // Exercise the actual under-lock gate with a row change, then roll the attempted change back.
     await assert.rejects(tx.savepoint(async probe=>{
      await probe`update public.school_years set revision=revision+1 where id=${fixture.versionId}`;
