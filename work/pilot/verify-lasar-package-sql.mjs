@@ -3,7 +3,7 @@
 // Wrapper/tool sources may be newer; product and original-suite sources must remain candidate bytes.
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { closeSync, existsSync, fsyncSync, ftruncateSync, lstatSync, mkdirSync, openSync, readFileSync, readdirSync, realpathSync, writeSync } from 'node:fs';
+import { chmodSync, closeSync, existsSync, fsyncSync, ftruncateSync, lstatSync, mkdirSync, mkdtempSync, openSync, readFileSync, readdirSync, realpathSync, writeSync } from 'node:fs';
 import path from 'node:path';
 import { execFileSync, spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -149,8 +149,20 @@ function noBrowserTests() {
   assert.ok(!rows.split('\n').some(line => /(?:node|npm).*?(?:node_modules\/(?:\.bin\/playwright|playwright(?:-core)?\/cli\.js)|verify-(?:lasar|tjanst)-actual\.mjs)(?:\s|$)/u.test(line)), 'Browser verification is running; SQL must run separately');
 }
 
-function cleanupTemp(tmp) {
+export function assertSqlTempDirectory(tmp) {
+  assert.match(tmp, /^\/private\/tmp\/lpg-[A-Za-z0-9]{6}$/u, 'SQL TMPDIR must be an owned short private root');
   assert.equal(realpathSync(tmp), tmp);
+  const stat = lstatSync(tmp); assert.ok(stat.isDirectory() && (stat.mode & 0o077) === 0, 'SQL TMPDIR must be a private directory');
+}
+
+export function reserveSqlTempDirectory() {
+  // The original helper appends skolplattform-ephemeral-pg-XXXXXX and /.s.PGSQL.5432.
+  // A long evidence/output name must never become part of that Unix socket path.
+  const tmp = mkdtempSync('/private/tmp/lpg-'); chmodSync(tmp, 0o700); assertSqlTempDirectory(tmp); return tmp;
+}
+
+function cleanupTemp(tmp) {
+  assertSqlTempDirectory(tmp);
   const remaining = readdirSync(tmp);
   // A successful original suite removes its own cluster. Never attest an abandoned cluster as cleaned.
   return { status: remaining.length ? 'incomplete' : 'complete', tempDirectoryEmpty: remaining.length === 0,
@@ -181,7 +193,7 @@ export async function runSqlSuiteSequence({ candidate, directory, before, captur
   for (const suite of LASAR_SQL_SUITES) {
     assertIdle(); equal(await capture(), before, 'Bound sources or candidate changed before SQL suite');
     const suiteDir = path.join(directory, suite.name); mkdirSync(suiteDir, { mode: 0o700 });
-    const tempDirectory = path.join(suiteDir, 'pg-temp'); mkdirSync(tempDirectory, { mode: 0o700 });
+    const tempDirectory = reserveSqlTempDirectory();
     const reportFile = path.join(suiteDir, 'report.json'), logFile = path.join(suiteDir, 'process.log');
     const row = { name: suite.name, file: suite.file, kind: suite.kind, startedAt: stamp(), status: 'FAIL', beforeBinding: before.binding, reportFile, logFile, tempDirectory };
     results.push(row); persist(results);
@@ -253,9 +265,11 @@ export function assertLasarSqlManifest(manifest, { candidate, actualProof, curre
   assert.equal(manifest.candidateRevision, current.revision); equal(manifest.before, current); equal(manifest.after, current);
   equal(manifest.tool, manifest.finalTool); equal(tool, manifest.tool, 'SQL tool bytes differ from its committed revision');
   equal(manifest.suites.map(s => s.name), LASAR_SQL_SUITES.map(s => s.name));
+  assert.equal(new Set(manifest.suites.map(s => s.tempDirectory)).size, LASAR_SQL_SUITES.length, 'Each SQL suite needs its own TMPDIR');
   assert.ok(Date.parse(manifest.startedAt) <= Date.parse(manifest.finishedAt));
   for (const [index, row] of manifest.suites.entries()) {
     const suite = LASAR_SQL_SUITES[index]; assert.equal(row.status, 'PASS'); assert.equal(row.file, suite.file); assert.equal(row.kind, suite.kind);
+    assertSqlTempDirectory(row.tempDirectory);
     equal(row.args, [suite.file, '--ephemeral', '--out', row.reportFile]);
     assert.equal(path.dirname(row.reportFile), path.join(manifest.directory, suite.name));
     equal(row.beforeBinding, current.binding); equal(row.afterBinding, current.binding);

@@ -3,7 +3,8 @@ import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { LASAR_SQL_SUITES, assertSqlSuiteReport, assertLasarActualProof, assertLasarSqlManifest,
-  parseLasarSqlArgs, runSqlSuiteSequence, sqlInputResources, verifyLasarPackageSql } from './verify-lasar-package-sql.mjs';
+  parseLasarSqlArgs, runSqlSuiteSequence, sqlInputResources, verifyLasarPackageSql,
+  reserveSqlTempDirectory, assertSqlTempDirectory } from './verify-lasar-package-sql.mjs';
 import { LASAR_ACTUAL_CASES } from './lasar-oidc-fixtures.mjs';
 
 const cleanup = { status: 'complete', tempDirectoryEmpty: true, remainingEntries: 0,
@@ -17,6 +18,10 @@ const current = { revision: 'a'.repeat(40), binding: { matched: true, manifestSh
   migrations: { 'supabase/migrations/old.sql': 'bound-old' }, suiteSources: { original: 'bound-original' } };
 const tmp = () => mkdtempSync('/private/tmp/lasar-package-unit-');
 const reader = file => ({ file, sha256: 'unchanged-report', value: JSON.parse(readFileSync(file, 'utf8')) });
+const removeSequence = r => {
+  for (const row of r.rows ?? []) if (/^\/private\/tmp\/lpg-[A-Za-z0-9]{6}$/u.test(row.tempDirectory ?? '')) rmSync(row.tempDirectory, { recursive: true });
+  rmSync(r.directory, { recursive: true });
+};
 
 function actualFixture() {
   const same = { sha256: 'unchanged' }, revision = 'a'.repeat(40);
@@ -60,6 +65,15 @@ function validationFixture(rows, directory) {
   return { manifest, options };
 }
 
+test('short private TMPDIR leaves room for the original PostgreSQL Unix socket name', () => {
+  const directory = reserveSqlTempDirectory();
+  try {
+    assertSqlTempDirectory(directory); assert.equal(statSync(directory).mode & 0o777, 0o700);
+    const socket = path.join(directory, 'skolplattform-ephemeral-pg-XXXXXX', '.s.PGSQL.5432');
+    assert.ok(Buffer.byteLength(socket, 'utf8') <= 100, 'Original helper socket path must fit conservative Unix socket limit');
+    assert.throws(() => assertSqlTempDirectory(path.join(directory, 'deep-evidence-root')));
+  } finally { rmSync(directory, { recursive: true }); }
+});
 test('CLI admits only explicit candidate, actual, and new output arguments', () => {
   assert.deepEqual(parseLasarSqlArgs(['--candidate', 'c', '--actual', 'a', '--out', 'o']), { candidate: 'c', actual: 'a', out: 'o' });
   for (const args of [[], ['--candidate', 'c', '--out', 'o'], ['--candidate', 'c', '--actual', 'a', '--apply', 'o']])
@@ -95,14 +109,14 @@ test('all eight original suites run sequentially with distinct private reports a
     assert.deepEqual(r.rows.map(row => row.name), LASAR_SQL_SUITES.map(s => s.name));
     assert.equal(new Set(r.rows.map(row => row.reportFile)).size, 8);
     for (const row of r.rows) { assert.equal(row.status, 'PASS'); assert.equal(statSync(row.reportFile).mode & 0o077, 0); }
-  } finally { rmSync(r.directory, { recursive: true }); }
+  } finally { removeSequence(r); }
 });
 test('changed source or pre-phase migration after a suite stops execution before the next suite', async () => {
   for (const mutate of [s => { s.revision = 'c'.repeat(40); }, s => { s.migrations['supabase/migrations/old.sql'] = 'changed'; },
     s => { s.suiteSources.original = 'changed'; }]) {
     const r = await fakeSequence({ mutate });
     try { assert.ok(r.error); assert.equal(r.history.length, 1); assert.equal(r.rows[0].status, 'FAIL'); }
-    finally { rmSync(r.directory, { recursive: true }); }
+    finally { removeSequence(r); }
   }
 });
 test('crash with no report and interruption never consume an earlier report or run the next suite', async () => {
@@ -111,7 +125,7 @@ test('crash with no report and interruption never consume an earlier report or r
     calls++; return { ...outcome, code: 130, signal: 'SIGINT', args: [suite.file, '--ephemeral', '--out', reportFile] };
   } });
   try { assert.ok(r.error); assert.equal(calls, 1); assert.equal(r.rows[0].status, 'FAIL'); assert.equal(r.rows[0].exitCode, 130); }
-  finally { rmSync(r.directory, { recursive: true }); }
+  finally { removeSequence(r); }
 });
 test('installer validation refuses replaced report bytes, another candidate, changed tools and incomplete cleanup', async () => {
   const r = await fakeSequence();
@@ -126,7 +140,7 @@ test('installer validation refuses replaced report bytes, another candidate, cha
     const aborted = clone(manifest); aborted.status = 'FAIL'; assert.throws(() => assertLasarSqlManifest(aborted, options));
     const retro = clone(manifest); retro.suites[0].startedAt = '2099-01-01T00:00:00.000Z'; assert.throws(() => assertLasarSqlManifest(retro, options));
     assert.throws(() => assertLasarSqlManifest(manifest, { ...options, read: f => { const r = reader(f); r.value.startedAt = '2000-01-01T00:00:00.000Z'; return r; } }));
-  } finally { rmSync(r.directory, { recursive: true }); }
+  } finally { removeSequence(r); }
 });
 
 test('resource closure binds actual fixture inputs, not historical reports or private environment files', () => {
