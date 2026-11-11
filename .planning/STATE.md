@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.1.1"
 current_phase_name: Läsårskalender i skyddad drift
-current_plan: "fasverifiering – plan 01–17 klara"
-status: verifying
-stopped_at: "Plan17 klar: användaren svarade alla funkade påU1–U8 den2026-11-12. Samlat godkännande registrerat; separat fasverifiering pågår. Installerad kandidat7dda9d75 oförändrad."
+current_plan: "fasverifiering klar – plan 01–17 avslutade"
+status: complete
+stopped_at: "Fas05.1.1 avslutad2026-11-12. Plan01–17 klara, U1–U8 samlat godkända, fasverifiering passed och LASAR-01–06 uppfyllda inom beslutad omfattning.3012 kvar på kandidat7dda9d75."
 last_updated: "2026-11-12"
 last_activity: 2026-11-12
-last_activity_desc: "Användarprovet godkänt genom samlat besked. Inga enheter/bredder/delomdömen särredovisade. Plan01–17 klara, kravstatus avgörs genom pågående kod-/bevisgranskning."
-state_head: c1b6fb08
+last_activity_desc: "Ordagrant användarsvar alla funkade registrerat. Oberoende kod-/bevisgranskning passed; nya1085 Node, typ/lint och handboksbygge gröna. Ingen ny installation eller verksamhetsskrivning."
+state_head: 326dac0f
 progress:
   total_phases: 8
   completed_phases: 3
@@ -25,7 +25,9 @@ user_trial_status: lasar_accepted_aggregate_response_2026_11_12
 milestone_name: milestone
 ---
 
-**05.1.1-17 godkänd 2026-11-12:** Användaren svarade ordagrant **”alla funkade”** efter [U1–U8](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-USER-TRIAL.md). Samtliga åtta uppgifter registreras som fungerande genom samlat besked; enheter, bredder och handboksomdömen är inte särredovisade. Inga fynd rapporterades. [Plan17-SUMMARY](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-17-SUMMARY.md). **Plan01–17 klara; separat fasverifiering pågår och inga LASAR-krav slutmarkeras före den.** Kandidat och installation är oförändrade; ingen ny målskrivning eller installation genomförs för att registrera svaret.
+**05.1.1 avslutad 2026-11-12:** [Fasverifiering](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) **passed**, LASAR-01–06 uppfyllda inom beslutad omfattning, 17/17 planområden granskade. Användaren godkände U1–U8 samlat med **”alla funkade”**; inga enheter/bredder/delomdömen är påhittade. Nya kontroller:1085 Node/typ/lint/handboksbygge gröna,123 releasebevis och båda1426filsartefakterna återvaliderade, aktuell installerad journal165/rätt runtime/hälsa skrivskyddat verifierade. Lokalt installerad kandidat `7dda9d75` består. Inga nya SQL-/Playwright-serier, ingen ny installation, publicering eller verksamhetsskrivning. Äldre uppskjutna prov och ej styrkt historisk Nyquist-frekvens/latens redovisas som gränser; inget påstått SS12000-utbyte eller verklig kommunanslutning. Nästa fas startas inte automatiskt.
+
+**05.1.1-17 godkänd 2026-11-12:** Användaren svarade ordagrant **”alla funkade”** efter [U1–U8](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-USER-TRIAL.md). Samtliga åtta uppgifter registreras som fungerande genom samlat besked; enheter, bredder och handboksomdömen är inte särredovisade. Inga fynd rapporterades. [Plan17-SUMMARY](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-17-SUMMARY.md). **Plan01–17 klara; efterföljande fasverifiering är passed enligt rapporten ovan.** Kandidat och installation är oförändrade; ingen ny målskrivning eller installation genomförs för att registrera svaret.
 
 **05.1.1-16 installerad 2026-11-11:** [Slutredovisning](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-SUMMARY.md). Användaren godkände ordagrant **”Ja, installera mot målbasen i repetition 08”**. Apply PASS/`committed=true`, exakt 7 migrationer, journal 158→165 till `20261112141000`. 168 ursprungliga tabellers gamla kolumnvärden bevarade,3kalendrar/0grupprader/0hashfrysningar/6nya tomma tabeller och1egen installationshändelse.3012 kör fryst kandidat `7dda9d75`; artefakt 1426 filer exakt, hälsa 16/16 och efterlägesprov159/159 PASS i egen schemakopia/full städning. 85 Node och 447 kandidatbundna SQL PASS samt plan 15:s faktiska lokala kalender36/36 och tjänsteregression 88/88 gäller samma produkt. Ny privat backup efter stopp, tidigare runtime bevarad. Tidigare avbrott/metadataändring är dokumenterade och originalgodkännanden orörda. **Plan 16 klar; nästa plan 17/användarprov på dator/telefon och därefter fasverifiering.** Inget användargodkännande, verifierat standardutbyte eller verklig kommunanslutning. Historik nedan beskriver tidigare lägen.
 
@@ -395,9 +397,11 @@ Salsregister/salstabell är en uttryckligen önskad del av schemaläggningen. Re
 See: .planning/PROJECT.md (updated 2026-10-15)
 
 **Core value:** Rätt person ska enkelt kunna utföra skolans administration med korrekta uppgifter och åtkomst begränsad till sitt aktuella uppdrag.
-**Current focus (2026-10-19):** Fas 05.1 Tjänstefördelning (etapp 1 planerad, genomförande nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
+**Historiskt fokus (2026-10-19):** Fas 05.1 Tjänstefördelning (etapp 1 planerad, genomförande nästa). Fas 5:s kvarstående mänskliga prov, bland annat begriplighet för APL:s centrala innehåll, består. Tidigare fokus: klassorganisation i CLASS-COHORT (2026-10-15). Tidigare användargodkännanden och separata integritets-/prestandagränser består.
 
 ## Current Position
+
+Aktuellt2026-11-12: fas05.1.1 är avslutad med plan01–17 klara, samlat användargodkännande och fasverifiering passed.3012 kör kandidat7dda9d75 med kalenderpaketet till20261112141000. Färdplanens nästa förberedande klassunderlag i05.3 är inte påbörjat här. Följande äldre lägesbilder är bevarad historik; aktuell status står överst.
 
 Senaste ändring är44: ämnesnamn en gång och kod under rubriken.3012 kör982444b efter UI28/typ/lint/bygge/hälsa PASS. Tidigare leveranser nedan är historik.
 
@@ -776,11 +780,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-11-11
-**Stopped At:** 05.1.1-16:s skript och syntetiska kopierepetition klara; separat installationsbeslut saknas.3012 oförändrad.
-**Resume File:** [Plan16:s installationscheckpoint](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-16-CHECKPOINT.md)
+**Last Date:** 2026-11-12
+**Stopped At:** Fas05.1.1 avslutad. Plan01–17 klara; användaren svarade ”alla funkade” och separat verifiering av LASAR-01–06 är passed. Ingen ny installation eller verksamhetsskrivning.
+**Resume File:** [Avslutad fasverifiering](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md)
 
-**Planned Phase:** 05.1.1 — efter ett uttryckligt kandidat-/paketbundet ja återstår plan16:s installation, runtimebyte och efterlägesprov; sedan plan17 och fasverifiering. Inget installationsja är lämnat.
+**Planned Phase:** Nästa enligt prioriteringen är förberedande klassunderlag i05.3 före schemamotorn i05.2; inget nytt fasarbete startat i detta avslut. Befintliga separata öppna gränser i05.1/05.3/05.2 ändras inte av kalenderns godkännande.
 
 ### Senaste användarfynd, 2026-10-02
 

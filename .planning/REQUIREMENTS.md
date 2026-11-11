@@ -235,14 +235,14 @@ Källa: [todon](todos/pending/2026-10-07-tjanstefordelning-ersatter-plan-digital
 
 ### Läsårskalender (fas 05.1.1)
 
-Användarbeslut 2026-10-30: demovyn *Läsår & skoldagar* ska föras in i skyddad drift, med en frontend som så långt som möjligt liknar den, som ett steg mot schemaläggningen. Kraven är registrerade men inte planerade, genomförda eller verifierade.
+Användarbeslut 2026-10-30: demovyn *Läsår & skoldagar* ska föras in i skyddad drift, med en frontend som så långt som möjligt liknar den, som ett steg mot schemaläggningen. Fasens 17 planer är genomförda och LASAR-01–06 är verifierade 2026-11-12 enligt [fasrapporten](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md). Användaren godkände U1–U8 samlat med ”alla funkade”. CONTEXT:s avgränsning gäller: här levereras versionsbundet kalenderunderlag och befintliga konsumenter; framtida schemaberäkning och schemakoppling verifieras i05.2. Lokal syntetisk miljö är ingen verklig kommunanslutning.
 
-- [ ] **LASAR-01**: Den skyddade läsårsvyn har demovyns arbetssätt och utseende (veckorader per termin, färgad dagstatus, flerval med högerklicksmeny, sammanfattning mot gränserna, begreppsförklaringar, kommentarer och historik) på dator och telefon. Avvikelser från demovyn redovisas och motiveras.
-- [ ] **LASAR-02**: Rektor föreslår för sina aktuella skolenheter och huvudmannen återsänder eller fastställer. Fastställd kalender är skrivskyddad tills den öppnas igen med orsak. Servern kontrollerar kund, mandat och skolenhet vid varje läsning och skrivning.
-- [ ] **LASAR-03**: Skoldagar, lovdagar, studiedagar, helgdagar, terminsgränser, gymnasiets 40 veckor och långa perioder utan lov kontrolleras i modell och på server vid förslag och fastställande. Fel hindrar och varningar visas.
-- [ ] **LASAR-04**: Avvikande dagar och korta veckor för årskurs eller klass knyts till stabila ID:n för utbildning och klass i stället för textnyckeln `group_key`, med avstämd överföring och bevarade beslut.
-- [ ] **LASAR-05**: Fastställd kalender är versionsbunden med kontrollsumma och läses exakt av tjänstefördelning, timplanens veckotid och schemaläggningen. Ändring efter fastställande ger spårbar avvikelse utan tyst omräkning.
-- [ ] **LASAR-06**: SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data samt uppdaterad och byggd handbokssida verifierar flödet.
+- [x] **LASAR-01**: Den skyddade läsårsvyn har demovyns arbetssätt och utseende (veckorader per termin, färgad dagstatus, flerval med högerklicksmeny, sammanfattning mot gränserna, begreppsförklaringar, kommentarer och historik) på dator och telefon. Avvikelser från demovyn redovisas och motiveras.
+- [x] **LASAR-02**: Rektor föreslår för sina aktuella skolenheter och huvudmannen återsänder eller fastställer. Fastställd kalender är skrivskyddad tills den öppnas igen med orsak. Servern kontrollerar kund, mandat och skolenhet vid varje läsning och skrivning.
+- [x] **LASAR-03**: Skoldagar, lovdagar, studiedagar, helgdagar, terminsgränser, gymnasiets 40 veckor och långa perioder utan lov kontrolleras i modell och på server vid förslag och fastställande. Fel hindrar och varningar visas.
+- [x] **LASAR-04**: Avvikande dagar och korta veckor för årskurs eller klass knyts till stabila ID:n för utbildning och klass i stället för textnyckeln `group_key`, med avstämd överföring och bevarade beslut.
+- [x] **LASAR-05**: Fastställd kalender är versionsbunden med kontrollsumma och läses exakt av tjänstefördelning, timplanens veckotid och schemaläggningen. Ändring efter fastställande ger spårbar avvikelse utan tyst omräkning.
+- [x] **LASAR-06**: SQL-, Worker/OIDC-, dator- och telefonprov mot syntetiska data samt uppdaterad och byggd handbokssida verifierar flödet.
 
 ### Klassorganisation (fas 05.3)
 
@@ -359,12 +359,12 @@ Fastställd av användaren 2026-10-19 tillsammans med faslistan. Varje krav har 
 | TJANST-05 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10). CR-01 (Egen tjänst på flera skolor) rättad, provad mot syntetiska data (SQL 44/44, Worker/OIDC 46 kontroller på 7d31489) och installerad lokalt 2026-10-22 (05.1-13; 3012 kör 7d31489). Omverifierad 2026-10-22. Användarprov rapporterat klart 2026-10-23; enskilda delsteg/enheter och gränsfall inte särredovisade |
 | TJANST-06 | Phase 05.1 | Implementerad genom 14–21 enligt D-25–D-27 med säkra rad-/batchkommandon och bevarad historik. [22](phases/05.1-tjanstefordelning/05.1-22-SUMMARY.md): faktiskt Worker/OIDC/PostgreSQL-prov 83/83 på 1eb5467. [25](phases/05.1-tjanstefordelning/05.1-25-SUMMARY.md): godkänd lokal installation och efterprov. Senare UX/rättelser 26–40 är levererade; [40](phases/05.1-tjanstefordelning/05.1-40-SUMMARY.md) är senaste avslutade lokala leverans 8f6a586 med UI254/domän15, inte en ny faktisk körning. Positiv sammanfattande UX-återkoppling 2026-10-30. Kravrutan är fortsatt öppen för samlad formell bedömning |
 | TJANST-07 | Phase 05.1 | Implementerad, provad mot syntetiska data (SQL, Worker/OIDC PASS 40/40) och installerad lokalt 2026-10-21 i etapp 1 (05.1-10; 3012 kör d1cd981). Användarprov rapporterat klart 2026-10-23; enskilda delsteg/enheter och gränsfall inte särredovisade |
-| LASAR-01 | Phase 05.1.1 | Pending |
-| LASAR-02 | Phase 05.1.1 | Pending |
-| LASAR-03 | Phase 05.1.1 | Pending |
-| LASAR-04 | Phase 05.1.1 | Pending |
-| LASAR-05 | Phase 05.1.1 | Pending |
-| LASAR-06 | Phase 05.1.1 | Pending |
+| LASAR-01 | Phase 05.1.1 | Uppfyllt2026-11-12: gemensam kalender, namngivna dator-/telefonprov, granskade bilder/A-01–A-19 och samlat användargodkännande U1–U8. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
+| LASAR-02 | Phase 05.1.1 | Uppfyllt2026-11-12: strikta server-/SQL-mandat och faktisk lokal Worker/OIDC/PostgreSQL-kedja; inga klientroller används som behörighetsbevis. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
+| LASAR-03 | Phase 05.1.1 | Uppfyllt2026-11-12: modell-/serverregler och namngiven TS/SQL-paritet i kandidatbundet kalenderprov159/159. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
+| LASAR-04 | Phase 05.1.1 | Uppfyllt2026-11-12: stabila referenser,13 syntetiska konverteringsfall och radkontroll vid installation. Målet hade0 grupprader; faktisk överföring av målgrupper påstås inte. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
+| LASAR-05 | Phase 05.1.1 | Uppfyllt inom beslutad05.1.1-omfattning2026-11-12: gällande version/hash, befintliga konsumenter och enradssparning utan tyst omräkning. Framtida schemakonsument verifieras i05.2 enligtCONTEXT. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
+| LASAR-06 | Phase 05.1.1 | Uppfyllt2026-11-12: kandidatbunden SQL447, faktisk lokal kalender36/tjänst88, installerad hälsa16/efter-SQL159, byggd handbok och samlat användargodkännande. Ingen verklig kommunanslutning. [Bevis](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md) |
 | SCHEMA-01 | Phase 05.2 | Pending |
 | SCHEMA-02 | Phase 05.2 | Pending |
 | SCHEMA-03 | Phase 05.2 | Pending |
