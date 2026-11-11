@@ -5,16 +5,16 @@ current_phase: "05.2"
 current_phase_name: Valplaner, elevval och undervisningsgrupper
 current_plan: "VP-16 klar"
 status: executing
-stopped_at: "05.1.1-10 klar 2026-11-11: huvudmannens ram och arbetssätt prövade i ephemeral PostgreSQL; 20261112120000_lasar_frames.sql registrerad, inte installerad. Nästa: 05.1.1-11."
+stopped_at: "05.1.1-11 klar 2026-11-11: kopiera förra läsåret med granskningsposter och kalenderstatus per skola prövade i ephemeral PostgreSQL; 20261112130000 och 20261112131000 registrerade, inte installerade. Nästa: 05.1.1-12."
 last_updated: "2026-11-11"
 last_activity: 2026-11-11
-last_activity_desc: "05.1.1-10: arbetssätt per läsår, huvudmannens ram med utgivning och egna versioner, skolans start ur ramen, intag eller kvittering av ramens ändringar och Huvudmannens ram i planeringsvalet (D-01, D-02, D-05, D-06, D-08, D-13–D-15). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
+last_activity_desc: "05.1.1-11: Kopiera förra läsåret för skola och ram med granskningsposter som servern sparar och som spärrar förslag och utgivning (D-04), och läsvägen för kalenderstatus per skola inom aktörens mandat (D-09). Prövat i ephemeral PostgreSQL med syntetiska data; inget installerat."
 state_head: 494f951
 progress:
   total_phases: 8
   completed_phases: 3
   total_plans: 100
-  completed_plans: 97
+  completed_plans: 98
 verification_worker_build_revision: cc750d868ff7e9e5df4e9f90046ff9609ac580de
 verification_worker_status: code_only_install_health_401_schema_pass
 worker_status: valplan_series_installed_sql_rehearsed_applied
@@ -24,6 +24,8 @@ verification_ui_status: elective_component26_and_anonymous_install_smoke_pass
 user_trial_status: valplan_uat_passed_2026_11_10
 milestone_name: milestone
 ---
+
+**05.1.1-11 klar 2026-11-11:** [Kopiera förra läsåret och kalenderstatus per skola](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-11-SUMMARY.md): rektor och skoladministratör kopierar förra läsåret och huvudmannen förra årets ram på servern. Servern läser själv källan (gällande fastställd version eller senast utgivna ram för föregående läsår) och räknar kopian med `copySchoolYear`. SQL prövar källan och att varje dag kommer ur den. Dagar som inte kan flyttas entydigt (påsk, vecka 53, helgdag, klassdagar, korta veckor) sparas som granskningsposter, och förslaget skickas eller ramen ges ut först när alla är lösta (`lasar_review_open`, D-04). `POST /api/lasar/oversikt` ger status per skola i aktörens aktuella uppdrag med ramens status först i arbetssättet ram och det som väntar på rollen först (D-09); vyn byggs i plan 12. Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar 150 PASS, verify-lasar-frames 42 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 1121 PASS, tsc, oxlint och build:protected gröna. `20261112130000_lasar_copy_overview.sql` (`7481a392…91d6`) och `20261112131000_lasar_overview_worker_access.sql` (`d110a94a…9179`) är registrerade men inte installerade; 3012 har bara de två första kalenderfilerna. Öppet till plan 12: HT-slut på julafton efter ett år med 53 veckor ger ingen granskningspost. Nästa: 05.1.1-12.
 
 **05.1.1-10 klar 2026-11-11:** [Huvudmannens ram och arbetssätt](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-10-SUMMARY.md): huvudmannen väljer arbetssätt per läsår för alla skolenheter; ett byte visar först skolor med påbörjade kalendrar och sparas bara med den bekräftade listan, och påbörjade kalendrar ändras inte (D-01, D-15). Från 1 augusti är arbetssättet låst (användarbeslut 2026-11-10, alternativ a). Huvudmannen lägger ramen i ett utkast och ger ut den som en oföränderlig version; rektor ser ramen först efter utgivning och kan i arbetssättet ram bara börja ur den (D-02, D-13, D-14). En ny utgivning ger skolan en markering; rektor tar in valda punkter eller behåller skolans kalender, och en fastställd kalender kräver en ny version (D-05, D-10, D-12). Huvudmannens ram står först i planeringsvalet för huvudman i arbetssättet ram (D-08). Prövat i ephemeral PostgreSQL med syntetiska data: verify-lasar-frames 42 PASS, verify-lasar 126 PASS, verify-lasar-groups 13 PASS, tjänstefördelningens plan- och årsunderlagsprov PASS, Node 59 PASS, tsc, oxlint, lasar-ui (simulerat), demoregressionen och build:protected gröna. `20261112120000_lasar_frames.sql` (`11bf09a0…8c62`) är registrerad men inte installerad; 3012 har bara de två första kalenderfilerna. Öppet till plan 12: knapp för ny ramversion och avvikelse mot senaste ram efter kvittering. Nästa: 05.1.1-11.
 
