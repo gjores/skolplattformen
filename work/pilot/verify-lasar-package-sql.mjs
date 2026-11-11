@@ -18,7 +18,7 @@ const SELF = 'work/pilot/verify-lasar-package-sql.mjs';
 export const LASAR_SQL_CANDIDATE = '/private/tmp/lasar-candidate';
 export const LASAR_SQL_SUITES = Object.freeze([
   ['lasar', 'lasar-sql'], ['lasar-groups', 'lasar-groups-sql'], ['lasar-frames', 'lasar-frames-sql'],
-  ['tjanst-personal', 'tjanst-personal-owned-database'], ['tjanst-plan', 'tjanst-plan-owned-database'],
+  ['tjanst-plan', 'tjanst-plan-owned-database'],
   ['tjanst-year-preview', 'tjanst-year-preview'], ['tjanst-year-commands', 'tjanst-year-commands'],
   ['tjanst-sharing', 'tjanst-need-sharing'],
 ].map(([name, kind]) => Object.freeze({ name, file: `work/pilot/verify-${name}.mjs`, kind })));

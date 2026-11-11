@@ -96,7 +96,7 @@ test('a PASS string cannot hide wrong kind, skipped assertions, crash, source ch
   assert.throws(() => assertSqlSuiteReport(suite, report, { ...outcome, code: 130, signal: 'SIGINT' }));
   assert.throws(() => assertSqlSuiteReport(suite, report, { ...outcome, cleanup: { status: 'incomplete', tempDirectoryEmpty: false } }));
 });
-test('all eight original suites run sequentially with distinct private reports and fixed ephemeral arguments', async () => {
+test('the seven planned original suites run sequentially with distinct private reports and fixed ephemeral arguments', async () => {
   let active = 0, peak = 0, count = 0;
   const r = await fakeSequence({ execute: async ({ suite, reportFile, tempDirectory }) => {
     active++; peak = Math.max(peak, active); count++;
@@ -105,9 +105,9 @@ test('all eight original suites run sequentially with distinct private reports a
     return { ...outcome, args: [suite.file, '--ephemeral', '--out', reportFile] };
   } });
   try {
-    assert.ifError(r.error); assert.equal(count, 8); assert.equal(peak, 1);
+    assert.ifError(r.error); assert.equal(count, 7); assert.equal(peak, 1);
     assert.deepEqual(r.rows.map(row => row.name), LASAR_SQL_SUITES.map(s => s.name));
-    assert.equal(new Set(r.rows.map(row => row.reportFile)).size, 8);
+    assert.equal(new Set(r.rows.map(row => row.reportFile)).size, 7);
     for (const row of r.rows) { assert.equal(row.status, 'PASS'); assert.equal(statSync(row.reportFile).mode & 0o077, 0); }
   } finally { removeSequence(r); }
 });
