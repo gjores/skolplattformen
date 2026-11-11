@@ -10,6 +10,7 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { assertTarget } from './verify-target.mjs';
+import { freshOidcCode } from './fresh-oidc-code.mjs';
 import { verifyClassCohortCallbackProof } from './phase5-class-cohort-oidc-fixtures.mjs';
 import { createTjanstFixture, grantSelf, planRead, seedGy25Class, staffWithDuties } from './tjanst-fixtures.mjs';
 
@@ -508,7 +509,11 @@ export async function createTjanstOidcFixture({ db, provenance, baseURL, evidenc
       return { role, identityId: a.identityId, issuer: target.idp.issuer, subject: a.subject, sessionId: s.id, epoch: v.epoch, mfa: v.mfa.proof };
     };
     const audits = async role => Array.from(await db`select id::text,source,action,outcome,actor_identity_id::text,actor_issuer,actor_subject,session_id::text,details from public.security_events where actor_identity_id=${actors[role].identityId} and action='login' order by id`);
-    const code = async a => { for (let n = 0; n < 130; n++) { const token = new OTP.TOTP({ algorithm: 'SHA1', digits: 6, period: 30, secret: OTP.Secret.fromBase32(a.secret) }).generate(); if (token !== a.lastCode) { a.lastCode = token; save(); return token; } await new Promise(resolve => setTimeout(resolve, 250)); } throw Error('Fresh OTP unavailable'); };
+    const code = async a => {
+      const token = await freshOidcCode({ lastCode: a.lastCode,
+        generate: timestamp => new OTP.TOTP({ algorithm: 'SHA1', digits: 6, period: 30, secret: OTP.Secret.fromBase32(a.secret) }).generate({ timestamp }) });
+      a.lastCode = token; save(); return token;
+    };
     const fill = async (page, a) => {
       const username = page.getByLabel(/Användarnamn|Username/i), password = page.getByRole('textbox', { name: /Lösenord|Password/i }), otp = page.getByLabel(/Engångskod|Engångslösenord|One-time code/i);
       await password.waitFor({ state: 'visible', timeout: 15000 }); if (await username.isVisible()) await username.fill(a.username); await password.fill(a.password); await page.getByRole('button', { name: /Logga in|Sign In/i }).click();
