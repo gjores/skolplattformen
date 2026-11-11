@@ -421,3 +421,151 @@
     white-space: normal;
   }
 }
+
+/*
+ * D-09, avsnitt 13–14: kalenderstatus per skola i Läsårsöverblick och i Läsår & skoldagar
+ * med Alla behöriga skolor. Sektionen kan ligga utanför .protected-lasar, så reglerna är
+ * nycklade på .ly-overview. Samma radmönster som planning-year-variants, men knappen är
+ * alltid outline: vyns primära knapp ligger utanför listan.
+ */
+.ly-overview {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.ly-overview-heading h2 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+  font-weight: 500;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.ly-overview-heading p,
+.ly-overview-empty,
+.ly-overview-state {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+}
+.ly-overview-heading .ly-overview-summary {
+  margin-top: 8px;
+  color: var(--foreground);
+  font-weight: 500;
+}
+.ly-overview-state {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ly-overview-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--warning-foreground) 35%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--warning-foreground) 8%, var(--card));
+  font-size: 0.875rem;
+  color: var(--warning-foreground);
+}
+.ly-overview-error p {
+  flex: 1 1 16rem;
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ly-overview-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ly-overview-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 16px;
+  padding: 12px 0;
+}
+.ly-overview-row + .ly-overview-row {
+  border-top: 1px solid var(--border);
+}
+.ly-overview-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+.ly-overview .ly-overview-name {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.ly-overview-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  min-width: 0;
+  font-size: 0.75rem;
+  line-height: 1.5;
+}
+.ly-overview-version {
+  color: var(--muted-foreground);
+  overflow-wrap: anywhere;
+}
+/* Statusbrickan och markörerna bryts vid stor textstorlek (200 %) i stället för att trycka ut sidan. */
+.ly-overview .tp-status,
+.ly-overview .a-status {
+  max-width: 100%;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.ly-overview .a-status.amber {
+  color: var(--warning-foreground);
+}
+.ly-overview .a-status.amber > span {
+  background: var(--warning-foreground);
+}
+.ly-overview .ly-overview-open {
+  min-height: var(--control-height);
+  height: auto;
+  max-width: 100%;
+  white-space: normal;
+}
+
+/* Alla behöriga skolor i Läsår & skoldagar: rubrik, arbetssättskortet (huvudman) och listan. */
+.protected-lasar.ly-all-schools {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+.ly-all-schools .ly-all-heading h2 {
+  margin: 4px 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.ly-all-schools .ly-all-heading p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--muted-foreground);
+}
+
+/* Telefon: namn och status överst, knappen på hela raden och minst 44px. */
+@media (max-width: 700px) {
+  .ly-overview {
+    padding: 12px;
+  }
+  .ly-overview-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .ly-overview .ly-overview-open {
+    width: 100%;
+  }
+}

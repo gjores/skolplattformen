@@ -23,9 +23,14 @@
 //   mal=ram   huvudmannens ram i stället för skolan (D-08)
 //   last=1   arbetssättet är låst (läsåret har börjat)
 //   klasser=1   klasser, årskurser och timplaner för panelen Undervisning (A-09)
+//   vy=oversikt   kalenderstatus per skola (D-09, avsnitt 14) ur /api/lasar/oversikt;
+//                 Öppna kalendern visar Läsår & skoldagar för vald skola
+//   skolor=30   antal syntetiska skolor i överblicken (standard fyra med olika lägen)
+//   oversikt=tom|fel|vanta   inga skolor / första läsningen ger 500 / svaret väntar på window.__lasar.release()
 import { useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import ProtectedLasarWorkspace from '../../app/protected-lasar-workspace';
+import ProtectedLasarOverview, { type LasarOpenTarget } from '../../app/protected-lasar-overview';
 import { ProtectedLasarModeCard } from '../../app/protected-lasar-start';
 import LasarView from '../../app/lasar-view';
 import {
@@ -33,6 +38,8 @@ import {
   parseLasarDecisionReply,
   parseLasarDecisionRequest,
   parseLasarModePreviewReply,
+  parseLasarOverviewReply,
+  parseLasarOverviewRequest,
   parseLasarReadReply,
   parseLasarReadRequest,
   verifyLasarCommandHash,
@@ -41,6 +48,7 @@ import {
   type LasarChangeRequest,
   type LasarDbStatus,
   type LasarMode,
+  type LasarOverviewSchool,
   type LasarReadReply,
   type LasarReviewItem,
   type LasarTarget,
@@ -209,8 +217,40 @@ const AFFECTED = [
   { unitId: tid(5), schoolName: 'Syntetiska skolan Norr', status: 'forslag' as const },
 ];
 
+// ---- Kalenderstatus per skola (D-09). Syntetiska skolor; inga elevantal (A-18).
+const overviewParam = params.get('oversikt');
+const schoolCount = Number(params.get('skolor') ?? 0);
+const ref = (n: number, status: LasarDbStatus, current = false, decidedOn: string | null = null) => ({ versionId: tid(400 + n), version: n, status, decidedOn, current });
+function overviewSchools(): LasarOverviewSchool[] {
+  if (overviewParam === 'tom') return [];
+  if (schoolCount > 0) {
+    const statuses: (LasarDbStatus | null)[] = ['forslag', 'faststalld', 'atersand', 'utkast', null];
+    return Array.from({ length: schoolCount }, (_, i) => {
+      const status = statuses[i % statuses.length];
+      return {
+        unitId: tid(1000 + i), schoolName: `Syntetiska skolan nummer ${String(i + 1).padStart(2, '0')} med ett långt namn som behöver brytas`,
+        status, versions: status ? [ref(1, status, status === 'faststalld', status === 'faststalld' ? '2026-06-10' : null)] : [],
+        frameChanged: i % 7 === 2, changeRequested: status === 'faststalld' && i % 2 === 1,
+        waitingFor: status === 'forslag' || (status === 'faststalld' && i % 2 === 1) ? 'huvudman' : status === 'atersand' ? 'rektor' : null,
+      };
+    });
+  }
+  return [
+    { unitId: tid(6), schoolName: 'Syntetiska skolan Söder', status: null, versions: [], frameChanged: false, changeRequested: false, waitingFor: null },
+    { unitId: tid(5), schoolName: 'Syntetiska skolan Norr', status: 'atersand', versions: [ref(1, 'faststalld', true, '2026-06-10'), ref(2, 'atersand')], frameChanged: mode === 'ram', changeRequested: false, waitingFor: 'rektor' },
+    { unitId: tid(4), schoolName: 'Syntetiska gymnasiet', status: 'faststalld', versions: [ref(1, 'faststalld', true, '2026-06-10')], frameChanged: false, changeRequested: true, waitingFor: 'huvudman' },
+    { unitId: UNIT, schoolName: SCHOOL, status: 'forslag', versions: [ref(1, 'forslag')], frameChanged: false, changeRequested: false, waitingFor: 'huvudman' },
+  ];
+}
+let overviewFault = overviewParam === 'fel';
+let releaseOverview: (() => void) | null = null;
+
 type Logged = { path: string; body: unknown };
-const control = { commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], revision: () => latestOf(active)?.revision ?? 0, versions: () => active.versions.length };
+const control = {
+  commands: [] as Logged[], decisions: [] as Logged[], reads: [] as Logged[], overviews: [] as Logged[], opened: [] as LasarOpenTarget[],
+  revision: () => latestOf(active)?.revision ?? 0, versions: () => active.versions.length,
+  release: () => { releaseOverview?.(); releaseOverview = null; },
+};
 declare global { interface Window { __lasar: typeof control } }
 window.__lasar = control;
 
@@ -225,6 +265,15 @@ function takeFault(kinds: string[]): string | null {
 
 async function route(path: string, body: unknown): Promise<Reply> {
   try {
+    if (path === '/api/lasar/oversikt') {
+      const q = parseLasarOverviewRequest(body);
+      control.overviews.push({ path, body: structuredClone(body) });
+      if (role !== 'rektor' && role !== 'huvudman') return error(403, 'forbidden');
+      if (overviewParam === 'vanta' && control.overviews.length === 1) await new Promise<void>((done) => { releaseOverview = done; });
+      if (overviewFault) { overviewFault = false; return { status: 500, json: { code: 'internal_error' } }; }
+      const frame = mode === 'ram' ? (role === 'huvudman' ? { status: 'utkast' as const, version: 3 } : { status: 'utgiven' as const, version: 2 }) : null;
+      return { status: 200, json: parseLasarOverviewReply({ contractVersion: 'lasar_sql_v1', schoolYear: q.schoolYear, mode, frame, schools: overviewSchools() }, q) };
+    }
     if (path === '/api/lasar/lasa') {
       const q = parseLasarReadRequest(body);
       control.reads.push({ path, body: structuredClone(body) });
@@ -399,12 +448,30 @@ function Demo() {
 }
 
 const actorRole: LasarActorRole | null = role === 'rektor' ? 'rektor' : role === 'huvudman' ? 'huvudman' : null;
+/** Läsårsöverblickens kalenderdel; Öppna kalendern visar Läsår & skoldagar för vald skola och läsår. */
+function OverviewHarness() {
+  const [opened, setOpened] = useState<LasarOpenTarget | null>(null);
+  if (opened) {
+    const name = opened.frame ? 'Huvudmannens ram' : overviewSchools().find((s) => s.unitId === opened.unitId)?.schoolName ?? SCHOOL;
+    return <ProtectedLasarWorkspace key={`${opened.unitId}:${opened.schoolYear}`} unitId={opened.unitId ?? 'ram'} schoolName={name} schoolYear={opened.schoolYear} schoolTypes={TYPES}
+      onSessionLost={() => undefined} target={opened.frame ? { kind: 'frame' } : undefined} actorRole={actorRole} />;
+  }
+  return (
+    <section className="planning-overview" aria-label="Läsårsöverblick">
+      <h1>Läsårsöverblick {label(YEAR)}</h1>
+      <ProtectedLasarOverview schoolYear={YEAR} unitId={null} actorRole={actorRole} onSecurityFailure={() => false}
+        onOpen={(target) => { control.opened.push(target); setOpened(target); }} />
+    </section>
+  );
+}
 function Harness() {
   const view = params.get('vy');
   return (
     <main id="workspace" lang="sv" className="workspace is-admin">
       {view === 'demo'
         ? <Demo />
+        : view === 'oversikt'
+        ? <OverviewHarness />
         : view === 'arbetssatt'
           ? <section className="admin-workspace timplan-workspace protected-lasar"><ProtectedLasarModeCard schoolYear={YEAR} onSessionLost={() => undefined} /></section>
           : <ProtectedLasarWorkspace unitId={UNIT} schoolName={frameView ? 'Huvudmannens ram' : params.get('skola') ?? SCHOOL} schoolYear={YEAR} schoolTypes={TYPES} onSessionLost={() => undefined}

@@ -404,3 +404,122 @@ test('telefon: startval och granskningskort utan sidledsrullning med 44px knappa
  expect(await noSideScroll(page)).toBe(true);
  expect(errors).toEqual([]);
 });
+
+// ---------------------------------------------------------------- kalenderstatus per skola (D-09, avsnitt 14, avsnitt 16 fall 11)
+
+const overviewRows=(page:Page)=>page.locator('.ly-overview-row');
+const overviews=(page:Page)=>page.evaluate(()=>window.__lasar.overviews) as Promise<Logged[]>;
+const reads=(page:Page)=>page.evaluate(()=>window.__lasar.reads) as Promise<Logged[]>;
+
+test('överblick (fall 11): status, versionstext och markörer per skola, huvudmannens beslut först',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman','.ly-overview-row');
+ const section=page.getByRole('region',{name:'Läsårskalender 2026/27'});
+ await expect(section.getByRole('heading',{level:2})).toHaveText('Läsårskalender 2026/27');
+ await expect(section).toContainText('Status för varje skolas kalender. Öppna en skola för att arbeta med dagarna.');
+ await expect(section.locator('.ly-overview-summary')).toHaveText('2 väntar på ditt beslut');
+ const rows=overviewRows(page);
+ await expect(rows.locator('.ly-overview-name')).toHaveText(['Syntetiska grundskolan','Syntetiska gymnasiet','Syntetiska skolan Norr','Syntetiska skolan Söder']);
+ await expect(rows.locator('.tp-status')).toHaveText(['Förslag','Fastställd','Återsänd','Inte påbörjad']);
+ await expect(rows.nth(0).locator('.tp-status')).toHaveClass(/tp-status-förslag/);
+ await expect(rows.nth(3).locator('.tp-status')).toHaveClass(/tp-status-none/);
+ await expect(rows.nth(1).locator('.ly-overview-version')).toHaveText('Version 1 · fastställd 10 juni 2026');
+ await expect(rows.nth(2).locator('.ly-overview-version')).toHaveText('Version 2 pågår · version 1 gäller');
+ await expect(rows.nth(3).locator('.ly-overview-version')).toHaveCount(0);
+ await expect(rows.nth(1).locator('.a-status.amber')).toHaveText('Ändring begärd');
+ await expect(page.locator('.ly-overview .a-status.amber')).toHaveCount(1);
+ // I arbetssättet eget finns ingen rad för ramen.
+ await expect(page.getByText('Huvudmannens ram')).toHaveCount(0);
+ // Skolplattan: knapparna är outline, ingen primärknapp i listan.
+ expect(await page.locator('.ly-overview button').evaluateAll(list=>list.filter(b=>b.classList.contains('bg-primary')).length)).toBe(0);
+ expect((await overviews(page)).map(o=>o.body)).toEqual([{schoolYear:2026}]);
+
+ await page.getByRole('button',{name:'Öppna läsårskalendern för Syntetiska grundskolan'}).click();
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Syntetiska grundskolan'})).toBeVisible();
+ await expect(page.locator('.ly-calendar')).toBeVisible();
+ expect(await page.evaluate(()=>window.__lasar.opened)).toEqual([{unitId:tid(3),frame:false,schoolYear:2026}]);
+ expect((await reads(page)).at(-1)!.body).toMatchObject({target:{kind:'school',unitId:tid(3)},schoolYear:2026});
+ expect(errors).toEqual([]);
+});
+
+test('överblick för rektor i arbetssättet ram: ramen först utan knapp, sedan det som väntar på rektorn',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=rektor&arbetssatt=ram','.ly-overview-row');
+ const rows=overviewRows(page);
+ await expect(rows.locator('.ly-overview-name')).toHaveText(['Huvudmannens ram','Syntetiska skolan Norr','Syntetiska grundskolan','Syntetiska gymnasiet','Syntetiska skolan Söder']);
+ await expect(rows.nth(0).locator('.tp-status')).toHaveText('Utgiven');
+ await expect(rows.nth(0).locator('.ly-overview-version')).toHaveText('Version 2');
+ await expect(rows.nth(0).getByRole('button')).toHaveCount(0);
+ await expect(rows.nth(1).locator('.a-status.amber')).toHaveText('Ramen har ändrats');
+ await expect(page.locator('.ly-overview-summary')).toHaveCount(0);
+ await expect(rows.getByRole('button',{name:/^Öppna läsårskalendern för /})).toHaveCount(4);
+ expect(errors).toEqual([]);
+});
+
+test('överblick för huvudman i arbetssättet ram: Öppna kalendern på ramen öppnar huvudmannens ram',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman&arbetssatt=ram','.ly-overview-row');
+ const frame=overviewRows(page).first();
+ await expect(frame.locator('.ly-overview-name')).toHaveText('Huvudmannens ram');
+ await expect(frame.locator('.tp-status')).toHaveText('Utkast');
+ await frame.getByRole('button',{name:'Öppna läsårskalendern för Huvudmannens ram'}).click();
+ await expect(page.getByRole('heading',{level:1,name:'Läsår och skoldagar · Huvudmannens ram'})).toBeVisible();
+ expect(await page.evaluate(()=>window.__lasar.opened)).toEqual([{unitId:null,frame:true,schoolYear:2026}]);
+ expect((await reads(page)).at(-1)!.body).toMatchObject({target:{kind:'frame'},schoolYear:2026});
+ expect(errors).toEqual([]);
+});
+
+test('överblick: laddning visas tills svaret kommer',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman&oversikt=vanta','.ly-overview');
+ const section=page.locator('.ly-overview');
+ await expect(section).toHaveAttribute('aria-busy','true');
+ await expect(section.locator('.ly-overview-state')).toHaveText('Läser kalenderstatus…');
+ await expect(overviewRows(page)).toHaveCount(0);
+ await page.evaluate(()=>window.__lasar.release());
+ await expect(overviewRows(page)).toHaveCount(4);
+ await expect(section).toHaveAttribute('aria-busy','false');
+ await expect(section.locator('.ly-overview-state')).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+test('överblick: fel visar texten och Läs om läser igen',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman&oversikt=fel','.ly-overview-error');
+ await expect(page.locator('.ly-overview-error')).toHaveAttribute('role','alert');
+ await expect(page.locator('.ly-overview-error p')).toHaveText('Kalenderstatus kunde inte läsas. Försök igen.');
+ await expect(overviewRows(page)).toHaveCount(0);
+ await page.getByRole('button',{name:'Läs om'}).click();
+ await expect(overviewRows(page)).toHaveCount(4);
+ await expect(page.locator('.ly-overview-error')).toHaveCount(0);
+ expect(await overviews(page)).toHaveLength(2);
+ expect(errors).toEqual([]);
+});
+
+test('överblick: tomt urval visar texten ordagrant',async({page})=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman&oversikt=tom','.ly-overview-empty');
+ await expect(page.locator('.ly-overview-empty')).toHaveText('Ingen skola i urvalet har en läsårskalender för 2026/27.');
+ await expect(page.locator('.ly-overview-summary')).toHaveText('Inga kalendrar väntar på beslut.');
+ await expect(overviewRows(page)).toHaveCount(0);
+ expect(errors).toEqual([]);
+});
+
+// Planantagande (UI-SPEC unresolved): behöriga skolor ryms i en lista utan sidindelning. Prövas med 30 skolor.
+test('överblick med 30 skolor: hela listan utan sidledsrullning, 44px knappar och 200 % text',async({page},info)=>{
+ const errors=await openPage(page,'?vy=oversikt&roll=huvudman&skolor=30','.ly-overview-row');
+ const rows=overviewRows(page);
+ await expect(rows).toHaveCount(30);
+ await expect(page.getByRole('button',{name:/^Öppna läsårskalendern för /})).toHaveCount(30);
+ // Det som väntar på huvudmannen står först: förslag och begärda ändringar.
+ const waiting=await rows.evaluateAll(list=>list.map(li=>li.querySelector('.tp-status')?.textContent));
+ const firstOther=waiting.findIndex(s=>s!=='Förslag'&&s!=='Fastställd');
+ expect(waiting.slice(firstOther).every(s=>s!=='Förslag')).toBe(true);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
+ expect(await smallButtons(page,'.ly-overview')).toEqual([]);
+ if(phone(info.project.name)){
+  // Telefon: knappen ligger under namn och status och fyller raden.
+  const box=(await rows.first().getByRole('button').boundingBox())!,row=(await rows.first().boundingBox())!;
+  expect(box.width).toBeGreaterThanOrEqual(row.width-1);
+  expect(box.y).toBeGreaterThan((await rows.first().locator('.tp-status').boundingBox())!.y);
+ }
+ await page.evaluate(()=>{document.documentElement.style.fontSize='32px';});
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
+ expect(await page.evaluate(width=>[...document.querySelectorAll('.ly-overview *')].filter(e=>e.getBoundingClientRect().right>width+.5).map(e=>e.className),page.viewportSize()!.width)).toEqual([]);
+ await page.screenshot({path:info.outputPath('overview-30.png'),fullPage:true});
+ expect(errors).toEqual([]);
+});
