@@ -34,7 +34,7 @@ Skift-klick markerar ett intervall. Kommando- eller ctrl-klick lägger till elle
 
 En anteckning på en markerad lov- eller studiedag sparas när du lämnar anteckningsfältet eller trycker **Enter**. Ange vad personalen gör på en studiedag. Invänta **Sparat** innan du lämnar kalendern.
 
-**Återställ förslaget** kräver en bekräftelse och ersätter utkastets innehåll med det framräknade förslaget. Om någon annan har ändrat kalendern samtidigt läses den om och din senaste ändring sparas inte. Granska det aktuella innehållet innan du gör om ändringen.
+**Återställ förslaget** kräver en bekräftelse och återställer terminer, lovdagar och studiedagar till det framräknade förslaget. Gruppernas avvikande dagar ligger kvar. Om någon annan har ändrat kalendern samtidigt läses den om och din senaste ändring sparas inte. Granska det aktuella innehållet innan du gör om ändringen.
 
 ## Kopiera och granska
 

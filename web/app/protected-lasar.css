@@ -4,6 +4,19 @@
  * Designsystemet Skolplattan: inga hexvärden, färg bara via variabler.
  */
 
+/* A-19: appskalets sidomeny och sidopanel får inte pressa ihop dagkolumnerna.
+ * 780px rymmer två veckotabeller (82 + 26 + 7×28 + 30px), gap och utfyllnad.
+ * Fönstrets befintliga brytpunkter och telefonmåtten gäller fortfarande. */
+.protected-lasar .ly-canvas {
+  container: lasar-canvas / inline-size;
+}
+@container lasar-canvas (max-width: 780px) {
+  .protected-lasar .ly-calendar {
+    grid-template-columns: 1fr;
+    gap: 26px;
+  }
+}
+
 /* A-02: sidans h1 är omslagets kickerrad. Versalerna kommer från CSS så att skärmläsare läser texten rätt. */
 .protected-lasar .ly-page-title {
   margin: 0;

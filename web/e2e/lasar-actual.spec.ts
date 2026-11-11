@@ -65,6 +65,25 @@ async function capture(p:Page,name:string,source:string){
  expect(geometry.scrollWidth,name).toBeLessThanOrEqual(geometry.width+1);const file=`${project}-${name}.png`,filePath=path.join(evidenceDir,file);await p.screenshot({path:filePath,fullPage:true});
  result.screenshots.push({file,sha256:createHash('sha256').update(readFileSync(filePath)).digest('hex'),geometry:{...geometry,source}});save();
 }
+/** Check rendered day bounds, not just page overflow: the old 1280px layout passed overflow checks. */
+async function calendarLayout(p:Page){
+ await p.evaluate(()=>document.fonts.ready);await p.evaluate(()=>new Promise<void>(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>resolve()))));
+ const geometry=await p.locator('.ly-calendar').evaluate(calendar=>{
+  const rect=(el:Element)=>{const r=el.getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width};};
+  const halves=Array.from(calendar.querySelectorAll('.ly-half')).map(rect);
+  const days=Array.from(calendar.querySelectorAll('td.ly-day')).map(cell=>({cell:rect(cell),day:rect(cell.firstElementChild!)}));
+  return {viewport:innerWidth,canvasWidth:calendar.closest('.ly-canvas')!.getBoundingClientRect().width,halves,
+   dayCount:days.length,minDayWidth:Math.min(...days.map(d=>d.day.width)),
+   overflowingDays:days.filter(d=>d.day.left<d.cell.left-1||d.day.right>d.cell.right+1).length,
+   scrollWidth:document.documentElement.scrollWidth,pageWidth:document.documentElement.clientWidth};
+ });
+ expect(geometry.halves).toHaveLength(2);expect(geometry.dayCount).toBeGreaterThan(300);
+ expect(geometry.minDayWidth).toBeGreaterThanOrEqual(26);expect(geometry.overflowingDays,'Dagarnas innehåll ska rymmas i sina kolumner').toBe(0);
+ expect(geometry.scrollWidth).toBeLessThanOrEqual(geometry.pageWidth+1);
+ if(geometry.canvasWidth<=780||geometry.viewport<=1250)expect(geometry.halves[1].top).toBeGreaterThanOrEqual(geometry.halves[0].bottom);
+ else expect(Math.abs(geometry.halves[1].top-geometry.halves[0].top)).toBeLessThan(1);
+ return geometry;
+}
 async function summary(role:string,year=seed.year){const q={unitId:seed.schools.A,schoolYear:year},r=await request(role,'/api/lasar/sammanfattning',q);expect(r.status,JSON.stringify(r.body)).toBe(200);return parseLasarSummaryReply(r.body,q);}
 
 async function tjanstRead(){
@@ -140,8 +159,15 @@ test('läsårskalendern genom OIDC, Worker och PostgreSQL',async({browser},info)
  const demo=await contexts.principalB.newPage();await demo.goto(`http://127.0.0.1:3017/e2e/fixtures/lasar-preview.html?vy=demo&ar=${seed.currentYear}`);await expect(demo.locator('.ly-calendar')).toBeVisible();
  const calendar=(q:Page)=>q.locator('.ly-grid').evaluateAll(tables=>tables.map(table=>Array.from(table.querySelectorAll('tr')).map(row=>Array.from(row.querySelectorAll('td,th')).map(cell=>({text:cell.textContent?.replace(/\s+/g,' ').trim(),kind:(cell.className??'').replace(/ ly-(?:past|selected|anchor)/g,'')})))));
  expect(await calendar(b)).toEqual(await calendar(demo));expect(await b.locator('.ly-counters').first().innerText()).toBe(await demo.locator('.ly-counters').first().innerText());
- const width=project==='desktop-small'?1280:info.project.use.viewport!.width;await b.setViewportSize({width,height:info.project.use.viewport!.height});await demo.setViewportSize({width,height:info.project.use.viewport!.height});await capture(b,'protected-calendar','actual Worker/OIDC/PostgreSQL');await capture(demo,'demo-calendar','simulated demo reference');await demo.close();await b.setViewportSize(info.project.use.viewport!);
- pass('demo och skyddad kalender',{sameGridAndCounters:true,width});
+ const layouts=[];
+ if(project==='desktop-small'){
+  for(const width of [1024,1280,1440,1920]){await b.setViewportSize({width,height:info.project.use.viewport!.height});layouts.push(await calendarLayout(b));}
+  // Same wide window, narrower calendar: prove that its own area drives the stack.
+  await b.locator('.ly-canvas').evaluate(el=>(el as HTMLElement).style.maxWidth='600px');layouts.push(await calendarLayout(b));
+  await b.locator('.ly-canvas').evaluate(el=>(el as HTMLElement).style.removeProperty('max-width'));
+ }
+ const width=project==='desktop-small'?1280:info.project.use.viewport!.width;await b.setViewportSize({width,height:info.project.use.viewport!.height});await demo.setViewportSize({width,height:info.project.use.viewport!.height});layouts.push(await calendarLayout(b));await capture(b,'protected-calendar','actual Worker/OIDC/PostgreSQL');await capture(demo,'demo-calendar','simulated demo reference');await demo.close();await b.setViewportSize(info.project.use.viewport!);
+ pass('demo och skyddad kalender',{sameGridAndCounters:true,width,layouts});
  // IM text is exercised in the real Timplaner, before and after an actual decision.
  await p.bringToFront();await p.goto(baseURL+'/?vy=timplaner');await p.getByLabel('Planeringsläsår',{exact:true}).selectOption(String(seed.year));await p.getByRole('button',{name:'Grundskola och introduktionsprogram',exact:true}).click();await p.getByRole('combobox',{name:'Skolform',exact:true}).selectOption({label:'Introduktionsprogram'});
  await p.getByRole('row',{name:/Syntetiskt IM/}).getByRole('button',{name:/^Öppna /}).click();await expect(p.getByText(`Veckoram. Läsårskalendern för ${seed.year}/${String(seed.year+1).slice(2)} är inte fastställd. Inga årstimmar beräknas.`,{exact:true})).toBeVisible();
