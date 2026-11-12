@@ -1,11 +1,11 @@
 /**
- * Schemamotorns kontrakt v1 sett från appen (05.2-SM-KOPPLING). Typerna speglar `schemamotor/crates/model`;
+ * Schemamotorns kontrakt v1 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER). Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
 export const SCHEMA_CONTRACT_VERSION = 1 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
-export const SCHEMA_LIMITS = { weeksMin: 1, weeksMax: 30, lessons: 20000, diagnoses: 500, message: 2000 } as const;
+export const SCHEMA_LIMITS = { lessons: 20000, diagnoses: 500, message: 2000 } as const;
 export const SCHEMA_STATUSES = ['complete', 'time_limit', 'infeasible', 'input_missing', 'cancelled'] as const;
 export type SchemaStatus = typeof SCHEMA_STATUSES[number];
 
@@ -26,13 +26,25 @@ export type SchemaDiagnosis = { code: string; message: string; proof: boolean };
 export type SchemaSolution = { status: SchemaStatus; placements: SchemaPlacement[]; unplaced: string[]; diagnoses: SchemaDiagnosis[];
   metrics: { studentGapMin: number; teacherGapMin: number }; elapsedMs: number };
 
-export type SchemaForslagRequest = { unitId: string; schoolYear: number; term: SchemaTerm; weeks: number };
+export type SchemaForslagRequest = { unitId: string; schoolYear: number; term: SchemaTerm };
+/** Elever och gruppmedlemskap som underlag för elevkluster. Stannar på servern; motorn får bara klustrens storlek. */
+export type SchemaMembers = { pupils: { id: string; classIds: string[] }[]; memberships: { groupId: string; pupilId: string; startsOn: string; endsOn: string | null }[] };
+/**
+ * Terminens tid: skoldagar per veckodag (måndag–fredag) för skolan och per klass med egna lärotider.
+ * `forval` betyder att läsårskalender saknas och att ett fast antal veckor har antagits.
+ */
+export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null; status: string | null; current: boolean;
+  term: { start: string; end: string } | null; perWeekday: number[]; classes: Record<string, number[]> };
 export type SchemaForslagLesson = { id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
   day: number | null; startMin: number | null };
-export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' };
+export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' | 'no_days' };
 /** Namnsatt förslag till klienten. Id:n är löpnummer för den här körningen, aldrig appens eller en källas ID. */
+export type SchemaForslagTeaching = { title: string; classes: string[]; needMin: number; weeklyMin: number; plannedMin: number; unplaced: number };
 export type SchemaForslag = {
-  contractVersion: typeof SCHEMA_CONTRACT_VERSION; unitId: string; schoolYear: number; term: SchemaTerm; weeks: number; schoolName: string;
+  contractVersion: typeof SCHEMA_CONTRACT_VERSION; unitId: string; schoolYear: number; term: SchemaTerm; schoolName: string;
+  time: { source: SchemaTime['source']; version: number | null; status: string | null; current: boolean; schoolDays: number; weeks: number };
+  members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[] };
+  teachings: SchemaForslagTeaching[];
   basis: { versionNo: number; status: string } | null;
   status: SchemaStatus; days: { startMin: number; endMin: number }[];
   classes: { id: string; name: string }[]; teachers: { id: string; name: string }[];
@@ -63,11 +75,11 @@ function text(value: unknown, maximum: number): string {
 
 export function parseSchemaForslagRequest(value: unknown): SchemaForslagRequest {
   const r = record(value);
-  if (Object.keys(r).length !== 4) bad();
+  if (Object.keys(r).length !== 3) bad();
   const unitId = text(r.unitId, 36).toLowerCase();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(unitId)) bad();
   if (r.term !== 'ht' && r.term !== 'vt') bad();
-  return { unitId, schoolYear: int(r.schoolYear, 2000, 2100), term: r.term, weeks: int(r.weeks, SCHEMA_LIMITS.weeksMin, SCHEMA_LIMITS.weeksMax) };
+  return { unitId, schoolYear: int(r.schoolYear, 2000, 2100), term: r.term };
 }
 
 /**
@@ -108,9 +120,14 @@ export function parseSchemaSolution(value: unknown, problem: SchemaProblem): Sch
 export function parseSchemaForslag(value: unknown, expected: SchemaForslagRequest): SchemaForslag {
   const f = record(value) as SchemaForslag;
   if (f.contractVersion !== SCHEMA_CONTRACT_VERSION || f.unitId !== expected.unitId || f.schoolYear !== expected.schoolYear
-    || f.term !== expected.term || f.weeks !== expected.weeks || !SCHEMA_STATUSES.includes(f.status)) bad();
-  for (const key of ['days', 'classes', 'teachers', 'lessons', 'omitted', 'diagnoses'] as const) list(f[key], SCHEMA_LIMITS.lessons);
+    || f.term !== expected.term || !SCHEMA_STATUSES.includes(f.status)) bad();
+  for (const key of ['days', 'classes', 'teachers', 'lessons', 'omitted', 'diagnoses', 'teachings'] as const) list(f[key], SCHEMA_LIMITS.lessons);
   record(f.metrics); text(f.schoolName, 500);
+  const time = record(f.time), members = record(f.members);
+  if (time.source !== 'kalender' && time.source !== 'forval' || typeof time.weeks !== 'number' || !(time.weeks > 0)) bad();
+  int(time.schoolDays, 0, 366); int(members.pupils, 0, 1_000_000);
+  for (const key of ['groupsWithoutMembers', 'classesWithoutPupils', 'withoutChoice'] as const) list(members[key], SCHEMA_LIMITS.lessons);
+  for (const t of f.teachings) { text(t.title, 2000); list(t.classes, 2000); int(t.needMin, 0, 10_000_000); int(t.plannedMin, 0, 10_000_000); int(t.weeklyMin, 0, 10_080); int(t.unplaced, 0, 1000); }
   for (const l of f.lessons) {
     text(l.id, 100); text(l.title, 2000); list(l.classIds, 2000); list(l.teacherIds, 2000); int(l.durationMin, 1, 1440);
     if (l.day !== null) { int(l.day, 0, f.days.length - 1); int(l.startMin, 0, 1440); }

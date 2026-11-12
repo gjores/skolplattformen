@@ -1,5 +1,5 @@
 /* Schemaförslag (05.2-SM-KOPPLING). Bara designsystemets variabler; veckorutnätet är ett nytt mönster som redovisas i planen. */
-.schema-workspace .schema-controls { display: grid; grid-template-columns: minmax(0, 12rem) minmax(0, 12rem) auto; gap: 1rem; align-items: end; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-workspace .schema-controls { display: grid; grid-template-columns: minmax(0, 12rem) auto; justify-content: start; gap: 1rem; align-items: end; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-workspace .schema-controls label, .schema-workspace .schema-filter label { display: grid; gap: .375rem; font-size: .875rem; color: var(--muted-foreground); }
 .schema-workspace .schema-controls button, .schema-workspace .schema-filter button { min-height: var(--control-height); height: auto; max-width: 100%; white-space: normal; }
 .schema-workspace .schema-note { color: var(--muted-foreground); font-size: .875rem; }
@@ -16,7 +16,7 @@
 .schema-day h3 { height: 2rem; font-size: .875rem; font-weight: 600; }
 .schema-day ol { position: relative; height: calc(var(--span) * var(--minute)); margin: 0; padding: 0; list-style: none; border-radius: var(--radius-sm);
   background: repeating-linear-gradient(to bottom, var(--border) 0, var(--border) 1px, transparent 1px, transparent calc(60 * var(--minute))) 0 calc(var(--first-hour) * var(--minute)) / 100% 100% no-repeat, var(--background); }
-.schema-lesson { position: absolute; inset-inline: 2px; top: calc(var(--start) * var(--minute)); height: calc(var(--length) * var(--minute) - 2px); overflow: hidden; padding: .125rem .375rem;
+.schema-lesson { position: absolute; left: calc(2px + (100% - 4px) * var(--lane, 0) / var(--lanes, 1)); width: calc((100% - 4px) / var(--lanes, 1)); top: calc(var(--start) * var(--minute)); height: calc(var(--length) * var(--minute) - 2px); overflow: hidden; padding: .125rem .375rem;
   border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); border-radius: var(--radius-sm); background: var(--accent); color: var(--foreground); font-size: .75rem; line-height: 1.3; }
 .schema-lesson.vacant { border-style: dashed; border-color: var(--warning-foreground); background: color-mix(in srgb, var(--warning-foreground) 10%, var(--card)); }
 .schema-lesson strong { font-weight: 600; }
@@ -28,6 +28,10 @@
 .schema-workspace .schema-list h2 { font-size: 1rem; font-weight: 600; }
 .schema-workspace .schema-list ul { margin: 0; padding-left: 1.25rem; font-size: .875rem; }
 .schema-workspace .schema-list li + li { margin-top: .25rem; }
+.schema-workspace .schema-list { grid-template-columns: minmax(0, 1fr); }
+.schema-workspace .schema-list td:first-child { white-space: normal; min-width: 9rem; }
+.schema-workspace details.schema-list summary { display: flex; flex-wrap: wrap; gap: .25rem 1rem; align-items: baseline; cursor: pointer; }
+.schema-workspace details.schema-list[open] summary { margin-bottom: .5rem; }
 
 /* Smal yta: dagarna staplas och passen blir en lista i tidsordning. */
 .schema-workspace { container-type: inline-size; }
@@ -36,7 +40,7 @@
   .schema-week { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
   .schema-hours { display: none; }
   .schema-day ol { height: auto; display: grid; gap: .375rem; background: none; }
-  .schema-lesson { position: static; height: auto; padding: .5rem .75rem; font-size: .875rem; }
+  .schema-lesson { position: static; width: auto; height: auto; padding: .5rem .75rem; font-size: .875rem; }
   .schema-day .schema-free { display: block; }
   .schema-workspace .schema-filter, .schema-workspace .schema-filter label { width: 100%; }
 }

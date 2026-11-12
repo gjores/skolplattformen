@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, schemaForslag, weeklyLessons } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, schemaForslag, weeklyLessons } from './schema-underlag.ts';
+import { schemaTime } from './schema-kalender.ts';
 import { parseSchemaForslag, parseSchemaForslagRequest, parseSchemaSolution } from './schema-contract.ts';
 
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -24,13 +25,16 @@ function plan(extra = {}) {
       row(33, classKey(11, 'ma'), null)],
     groups: [], specials: [], joints: [], actions: [], blockers: [], capabilities: { canEdit: true, canPublish: false, canReadHistory: true }, sharing: [], ...extra };
 }
-const request = { unitId: uid(1), schoolYear: 2026, term: 'ht', weeks: 18 };
+const request = { unitId: uid(1), schoolYear: 2026, term: 'ht' };
 
 test('veckotiden delas i lika pass om högst 80 min; under 20 min i veckan ger inget pass', () => {
   assert.deepEqual(weeklyLessons(h(54), 18), [60, 60, 60]);
   assert.deepEqual(weeklyLessons(h(27), 18), [45, 45]);
   assert.deepEqual(weeklyLessons(h(24), 18), [80]);
   assert.deepEqual(weeklyLessons(h(4), 18), []);
+  // Veckotid som inte går jämnt ut: resten läggs på de första passen, så att summan är veckotiden.
+  assert.deepEqual(weeklyLessons(170 * 17.4, 17.4), [60, 55, 55]);
+  assert.deepEqual(weeklyLessons(h(54), 0), []);
 });
 
 test('underlaget bär bara löpnummer: inga namn och inga av appens ID:n når motorn', () => {
@@ -63,7 +67,7 @@ test('samtidig delning sätter alla lärare på varje pass; okänt behov tar lä
   assert.equal(omitted.length, 1);
 });
 
-test('valbart block blir ett gemensamt pass för blockets klasser och lärare; samläsning likaså', () => {
+test('valbart block utan lästa elever blir ett gemensamt pass för blockets klasser och lärare; samläsning likaså', () => {
   const groups = [group(40, 'Spanska', uid(60), [uid(10), uid(11)]), group(41, 'Tyska', uid(60), [uid(10), uid(11)]), group(42, 'Läxhjälp', uid(61), [])];
   const g = (id, n, personId) => row(id, `teaching_group:${uid(n)}`, personId, { sourceKind: 'teaching_group', classId: null, groupId: uid(n), classIds: [], sourceRefs: [], groupRevision: 1 });
   const rows = [...plan().rows.slice(0, 1), g(35, 40, uid(21)), g(36, 41, uid(22)),
@@ -77,6 +81,99 @@ test('valbart block blir ett gemensamt pass för blockets klasser och lärare; s
   // Gruppen utan klasser får ett eget elevkluster.
   assert.deepEqual(labels.lessons.filter(l => l.title === 'Läxhjälp').map(l => l.classIds), Array(2).fill(['grupp-3']));
   assert.deepEqual(problem.groups.at(-1), { id: 'grupp-3', clusters: ['kluster-3'] });
+});
+
+const gRow = (id, n, personId) => row(id, `teaching_group:${uid(n)}`, personId, { sourceKind: 'teaching_group', classId: null, groupId: uid(n), classIds: [], sourceRefs: [], groupRevision: 1 });
+const HT = { start: '2026-08-17', end: '2026-12-18' };
+/** Sex syntetiska elever: tre i varje klass. Två har valt Spanska, två Tyska, två har inget val; ingen har valt Franska. */
+function chosen() {
+  const both = [uid(10), uid(11)];
+  const groups = [group(40, 'Spanska', uid(60), both), group(41, 'Tyska', uid(60), both), group(43, 'Franska', uid(60), both)];
+  const rows = [...plan().rows, gRow(35, 40, uid(21)), gRow(36, 41, uid(22)), gRow(39, 43, uid(23))];
+  const pupils = [1, 2, 3, 4, 5, 6].map(n => ({ id: uid(900 + n), classIds: [uid(n <= 3 ? 10 : 11)] }));
+  const m = (g, p, startsOn = '2026-08-17', endsOn = null) => ({ groupId: uid(g), pupilId: uid(900 + p), startsOn, endsOn });
+  const memberships = [m(40, 1), m(40, 4), m(41, 2), m(41, 5),
+    m(41, 3, '2025-08-18', '2026-06-12'), m(43, 6, '2027-01-11'), m(40, 99), { ...m(40, 3), groupId: uid(77) }];
+  return { data: plan({ groups, rows }), basis: { members: { pupils, memberships }, time: { ...defaultSchemaTime('ht'), term: HT } } };
+}
+
+test('elevernas grupper avgör krockarna: blockets alternativ läggs var för sig och delar bara kluster med sina elever', () => {
+  const { data, basis } = chosen(), { problem, labels, members } = buildSchemaUnderlag(data, request, basis);
+  // Medlemskap utanför terminen, för okänd elev och för okänd grupp räknas inte.
+  assert.deepEqual(problem.clusters, [1, 1, 1, 1, 1, 1].map((size, i) => ({ id: `kluster-${i + 1}`, size })).concat({ id: 'kluster-7', size: 1 }));
+  assert.deepEqual(problem.groups, [
+    { id: 'grupp-1', clusters: ['kluster-1', 'kluster-2', 'kluster-3'] }, { id: 'grupp-2', clusters: ['kluster-4', 'kluster-5', 'kluster-6'] },
+    { id: 'grupp-3', clusters: ['kluster-2', 'kluster-5'] }, { id: 'grupp-4', clusters: ['kluster-3', 'kluster-6'] }, { id: 'grupp-5', clusters: ['kluster-7'] }]);
+  const of = title => problem.lessons.filter((_, i) => labels.lessons[i].title === title);
+  assert.deepEqual(of('Spanska').map(l => [l.groups, l.teachers, l.duration_min]), Array(2).fill([['grupp-3'], ['larare-2'], 60]));
+  assert.deepEqual(of('Tyska').map(l => l.groups), Array(2).fill(['grupp-4']));
+  // Alternativet utan elever får ett eget kluster och krockar inte med någon elev.
+  assert.deepEqual(of('Franska').map(l => l.groups), Array(2).fill(['grupp-5']));
+  assert.ok(!labels.lessons.some(l => l.title.startsWith('Valbart block')));
+  // Passen visas i de klasser som gruppens elever går i; gruppen utan elever visas för sig.
+  assert.deepEqual(labels.lessons.find(l => l.title === 'Spanska').classIds, ['grupp-1', 'grupp-2']);
+  assert.deepEqual(labels.lessons.find(l => l.title === 'Franska').classIds, ['grupp-5']);
+  assert.deepEqual(labels.classes.at(-1), { id: 'grupp-5', name: 'Franska' });
+  assert.deepEqual(members, { pupils: 6, groupsWithoutMembers: ['Franska'], classesWithoutPupils: [], withoutChoice: [{ title: 'Spanska, Tyska, Franska', count: 2 }] });
+  assert.equal(labels.names['kluster-2'], '1A: Spanska');
+  const sent = JSON.stringify(problem);
+  assert.ok(!sent.includes('52a10000') && !sent.includes('Spanska') && !sent.includes('1A'));
+  assert.deepEqual(buildSchemaUnderlag(data, request, basis), buildSchemaUnderlag(data, request, basis));
+});
+
+test('klass utan elever i registret räknas som odelad; grupp utan elever utanför block upptar sina klasser', () => {
+  const { data, basis } = chosen();
+  const groups = [...data.groups, { ...group(44, 'Stödgrupp', null, [uid(11)]), sourceKind: 'study_group', sourceKey: `study_group:${uid(44)}` }];
+  const pupils = basis.members.pupils.slice(0, 3);
+  const { problem, labels, members } = buildSchemaUnderlag({ ...data, groups }, request, { ...basis, members: { ...basis.members, pupils } });
+  assert.deepEqual(problem.clusters.at(3), { id: 'kluster-4', size: 25 });
+  assert.deepEqual(problem.groups[1], { id: 'grupp-2', clusters: ['kluster-4'] });
+  assert.deepEqual(members.classesWithoutPupils, ['1B']);
+  assert.deepEqual(members.groupsWithoutMembers, ['Franska', 'Stödgrupp']);
+  assert.deepEqual(problem.lessons.filter((_, i) => labels.lessons[i].title === 'Stödgrupp').map(l => l.groups), Array(2).fill(['grupp-2']));
+});
+
+test('elever och medlemskap slås ihop ur flera läsningar; utan läsning finns inget elevunderlag', () => {
+  const a = { pupils: [{ id: 'e1', name: 'Syntetisk Elev', classIds: ['k1'] }], memberships: [{ groupId: 'g1', pupilId: 'e1', startsOn: '2026-08-17', endsOn: null, extra: 1 }] };
+  const b = { pupils: [{ id: 'e1', classIds: ['k2'] }, { id: 'e2', classIds: [] }], memberships: [] };
+  assert.deepEqual(mergeSchemaMembers([a, { pupils: null, memberships: null }, b]), {
+    pupils: [{ id: 'e1', classIds: ['k1', 'k2'] }, { id: 'e2', classIds: [] }], memberships: [{ groupId: 'g1', pupilId: 'e1', startsOn: '2026-08-17', endsOn: null }] });
+  assert.equal(mergeSchemaMembers([{ pupils: null, memberships: [] }, { pupils: [], memberships: null }]), null);
+});
+
+/** Syntetisk läsårskalender: HT 18 hela veckor med en lovdag (måndag) och en studiedag (onsdag); klass 1B har en egen dag utan undervisning (torsdag). */
+function lasar(extra = {}) {
+  const calendar = { versionId: uid(80), version: 2, status: 'faststalld', revision: 1, terms: { ht: HT, vt: { start: '2027-01-11', end: '2027-06-11' } },
+    exceptions: { '2026-10-26': { kind: 'lovdag', note: 'Höstlov' }, '2026-11-11': { kind: 'studiedag' } },
+    groupDays: { [`klass:${uid(11)}`]: { '2026-11-12': { cause: 'friluftsdag' } } }, shortWeeks: {}, frameVersionId: null, contentHash: 'x', decidedOn: '2026-03-18', history: [] };
+  return { contractVersion: 'lasar_sql_v1', target: { kind: 'school', unitId: uid(1) }, schoolYear: 2026, schoolName: 'Provskolan', schoolTypes: ['GY'], mode: 'eget', modeLocked: false,
+    versions: [{ versionId: uid(80), version: 2, status: 'faststalld', decidedOn: '2026-03-18', current: true }], calendar,
+    groups: [10, 11].map(n => ({ scope: 'klass', classId: uid(n), offeringId: uid(90), columnId: null, label: `1${n === 10 ? 'A' : 'B'}`, educationName: 'Provutbildning', kind: 'gy' })), ...extra };
+}
+
+test('terminens tid räknas ur läsårskalenderns skoldagar per veckodag, för skolan och för klassen', () => {
+  const time = schemaTime(lasar(), 'ht', [uid(10), uid(11), uid(12)]);
+  assert.deepEqual(time, { source: 'kalender', version: 2, status: 'faststalld', current: true, term: HT, perWeekday: [17, 18, 17, 18, 18],
+    classes: { [uid(10)]: [17, 18, 17, 18, 18], [uid(11)]: [17, 18, 17, 17, 18] } });
+  assert.equal(schemaTime(lasar({ versions: [] }), 'ht', []).current, false);
+  assert.deepEqual(schemaTime(null, 'vt', [uid(10)]), defaultSchemaTime('vt'));
+  assert.deepEqual(schemaTime(lasar({ calendar: null }), 'ht', []), defaultSchemaTime('ht'));
+  assert.deepEqual(defaultSchemaTime('vt').perWeekday, [20, 20, 20, 20, 20]);
+});
+
+test('utlagd tid är passens längd gånger skoldagarna på passets veckodag; klass utan skoldagar får inga pass', () => {
+  const only = extra => plan({ classes: [{ classId: uid(11), name: '1B', link: null, aplMinutes: null, needs: [need(11, 'ma', 'Matematik')] }], rows: [], ...extra });
+  const time = { source: 'kalender', version: 2, status: 'utkast', current: false, term: HT, perWeekday: [17, 18, 17, 18, 18], classes: { [uid(11)]: [17, 18, 17, 17, 0] } };
+  const data = only(), underlag = buildSchemaUnderlag(data, request, { members: null, time });
+  // 54 h på 69 skoldagar = 13,8 veckor: 235 min i veckan.
+  assert.deepEqual(underlag.problem.lessons.map(l => l.duration_min), [80, 80, 75]);
+  const forslag = schemaForslag(data, request, underlag, parseSchemaSolution(solved(underlag.problem), underlag.problem));
+  // pass-1 är olagt, pass-2 ligger på tisdag (18 skoldagar) och pass-3 på onsdag (17).
+  assert.deepEqual(forslag.teachings, [{ title: 'Matematik', classes: ['1B'], needMin: h(54), weeklyMin: 235, plannedMin: 80 * 18 + 75 * 17, unplaced: 1 }]);
+  assert.deepEqual(forslag.time, { source: 'kalender', version: 2, status: 'utkast', current: false, schoolDays: 88, weeks: 17.6 });
+  assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request), forslag);
+  const none = buildSchemaUnderlag(data, request, { members: null, time: { ...time, classes: { [uid(11)]: [0, 0, 0, 0, 0] } } });
+  assert.deepEqual([none.problem.lessons.length, none.omitted], [0, [{ title: 'Matematik', classes: ['1B'], reason: 'no_days' }]]);
 });
 
 function solved(problem, extra = {}) {
@@ -93,6 +190,9 @@ test('motorns svar tolkas strikt och förslaget får namn i stället för löpnu
   assert.deepEqual([forslag.metrics.placed, forslag.metrics.unplaced, forslag.lessons[0].day, forslag.lessons[1].startMin], [underlag.problem.lessons.length - 1, 1, null, 480]);
   assert.deepEqual(forslag.teachers.map(t => t.name), ['Lärare 20', 'Lärare 21', 'Lärare 22']);
   assert.deepEqual(forslag.basis, { versionNo: 4, status: 'draft' });
+  assert.deepEqual(forslag.time, { source: 'forval', version: null, status: null, current: false, schoolDays: 90, weeks: 18 });
+  assert.deepEqual(forslag.members, { pupils: 0, groupsWithoutMembers: [], classesWithoutPupils: ['1A', '1B'], withoutChoice: [] });
+  assert.equal(forslag.teachings.find(t => t.title === 'Svenska').needMin, h(54));
   assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request), forslag);
   assert.throws(() => parseSchemaForslag(forslag, { ...request, term: 'vt' }));
 
@@ -107,8 +207,8 @@ test('motorns svar tolkas strikt och förslaget får namn i stället för löpnu
   ]) assert.throws(() => parseSchemaSolution(solved(p, broken), p), JSON.stringify(Object.keys(broken)));
 });
 
-test('begäran: skola, läsår, termin och veckor prövas', () => {
+test('begäran: skola, läsår och termin prövas', () => {
   assert.deepEqual(parseSchemaForslagRequest(request), request);
-  for (const broken of [{ ...request, weeks: 0 }, { ...request, weeks: 31 }, { ...request, term: 'ar' }, { ...request, unitId: 'x' }, { ...request, extra: 1 }, null])
+  for (const broken of [{ ...request, weeks: 18 }, { ...request, term: 'ar' }, { ...request, unitId: 'x' }, { ...request, extra: 1 }, null])
     assert.throws(() => parseSchemaForslagRequest(broken));
 });
