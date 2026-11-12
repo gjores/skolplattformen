@@ -6,7 +6,7 @@
  * hur mycket tid och vilken termin kommer ur timplanen via tjänstefördelningens behov (05.2-SM-LASAR-VILLKOR).
  */
 import type { TjanstPlanRead, TjanstRow } from './tjanst-contract.ts';
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, defaultSchemaVillkor, schemaTerms, type SchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, defaultSchemaVillkor, schemaTerms, type SchemaInterval, type SchemaRegel, type SchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
   type SchemaSolution, type SchemaTerm, type SchemaTime } from './schema-contract.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
@@ -18,14 +18,20 @@ type Teaching = { title: string; parts: Part[]; termMinutes: number;
   teachers: { personId: string; minutes: number }[]; together: boolean; vacant: boolean };
 export type SchemaLabels = {
   classes: { id: string; name: string }[]; teachers: { id: string; name: string }[];
+  /** Salarnas löpnummer och namn (R6). */
+  rooms: { id: string; name: string }[];
   /** Namn på elevkluster och elevgrupper, för motorns klartext. */
   names: Record<string, string>;
   /** `days`: skoldagar per veckodag för undervisningens klasser, per termin i perioden. */
-  activities: { id: string; title: string; classes: string[]; needMin: number; weeklyMin: number; days: Partial<Record<SchemaTerm, number[]>> }[];
-  lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean; term: SchemaTerm | null }[];
+  /** `terms`: timplanens tid per termin. `weeklyOff`: veckans pass summerar inte till timplanens veckotid någon termin (T1). */
+  activities: { id: string; title: string; classes: string[]; needMin: number; weeklyMin: number; days: Partial<Record<SchemaTerm, number[]>>;
+    terms: { term: SchemaTerm; needMin: number }[]; weeklyOff: boolean }[];
+  /** `durationMin` är undervisningstiden; motorns pass är `marginMin` längre (R4). */
+  lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; roomIds: string[]; vacant: boolean; term: SchemaTerm | null }[];
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime };
-export type SchemaUnderlag = { period: SchemaForslagRequest['period']; terms: SchemaTerm[]; villkor: SchemaVillkor; problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string };
+export type SchemaUnderlag = { period: SchemaForslagRequest['period']; terms: SchemaTerm[]; villkor: SchemaVillkor; problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string;
+  resurser: SchemaForslag['resurser']; egnaUtanTraff: number[] };
 
 /** Utan läsårskalender: ett fast antal lika veckor (förval). */
 export function defaultSchemaTime(): SchemaTime {
@@ -68,9 +74,14 @@ const unique = <T,>(values: T[]) => [...new Set(values)];
  * Veckans pass: högst `maxLessonMin` långa och så lika som 5-minutersrutnätet tillåter; summan är veckotiden avrundad till 5 min.
  * Tom lista: för lite tid för ett pass i veckan.
  */
-export function weeklyLessons(termMinutes: number, weeks: number, d: Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin'> = defaultSchemaVillkor()): number[] {
+export function weeklyLessons(termMinutes: number, weeks: number, d: Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin'> = defaultSchemaVillkor(), fixed?: number): number[] {
   const weekly = weeks > 0 ? round5(termMinutes / weeks) : 0;
   if (weekly < d.minLessonMin) return [];
+  if (fixed !== undefined) {
+    // Bestämt antal pass (R5): samma veckotid, så lika pass som rutnätet tillåter. Antalet hålls inom 10–180 minuter per pass.
+    const n = Math.max(Math.ceil(weekly / 180), Math.min(fixed, Math.max(1, Math.floor(weekly / 10)))), short = Math.floor(weekly / n / 5) * 5;
+    return Array.from({ length: n }, (_, i) => short + (i < (weekly - short * n) / 5 ? 5 : 0));
+  }
   const count = Math.min(SCHEMA_DEFAULTS.maxLessonsPerWeek, Math.ceil(weekly / d.maxLessonMin));
   const base = Math.min(d.maxLessonMin, Math.floor(weekly / count / 5) * 5), longer = Math.min(count, Math.max(0, (weekly - base * count) / 5));
   return Array.from({ length: count }, (_, i) => Math.max(d.minLessonMin, base + (i < longer ? 5 : 0)));
@@ -83,6 +94,22 @@ function shareLessons(count: number, teachers: Teaching['teachers']): string[] {
   let left = count - parts.reduce((sum, p) => sum + p.n, 0);
   for (const p of [...parts].sort((a, b) => b.rest - a.rest || a.index - b.index)) { if (left <= 0) break; p.n += 1; left -= 1; }
   return parts.flatMap(p => Array.from({ length: p.n }, () => p.id));
+}
+
+type Span = [number, number];
+const cut = (spans: Span[], [from, to]: Span): Span[] => spans.flatMap(([a, b]): Span[] => [[a, Math.min(b, from)], [Math.max(a, to), b]]).filter(([a, b]) => a < b);
+const within = (spans: Span[], others: Span[]): Span[] => spans.flatMap(([a, b]) => others.map(([c, e]): Span => [Math.max(a, c), Math.min(b, e)])).filter(([a, b]) => a < b);
+type Tid = Extract<SchemaRegel, { typ: 'sparrad' | 'tillaten' }>;
+/**
+ * Tiderna som blir kvar en dag (R3): varje resurs med tillåten tid begränsar till sina tillåtna tider (flera läggs ihop),
+ * och all spärrad tid tas bort.
+ */
+function openSpans(rules: Tid[], day: number, whole: Span): Span[] {
+  let spans: Span[] = [whole];
+  for (const key of unique(rules.filter(r => r.typ === 'tillaten').map(r => `${r.slag}|${r.ref}`)))
+    spans = within(spans, rules.filter(r => r.typ === 'tillaten' && `${r.slag}|${r.ref}` === key && r.days.includes(day)).map(r => [r.startMin, r.endMin]));
+  for (const r of rules) if (r.typ === 'sparrad' && r.days.includes(day)) spans = cut(spans, [r.startMin, r.endMin]);
+  return spans;
 }
 
 function teachings(plan: TjanstPlanRead, term: SchemaTerm, hasMembers: (groupId: string) => boolean): Teaching[] {
@@ -150,13 +177,27 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   const planGroups = plan.groups ?? [], groupIndex = new Map(planGroups.map((g, i) => [g.groupId, i]));
   const labels: SchemaLabels = {
     classes: plan.classes.map(c => ({ id: classNo.get(c.classId)!, name: c.name })),
-    teachers: plan.teachers.map(t => ({ id: teacherNo.get(t.personId)!, name: t.displayName })), names: {}, activities: [], lessons: [] };
+    teachers: plan.teachers.map(t => ({ id: teacherNo.get(t.personId)!, name: t.displayName })), rooms: v.salar.map((name, i) => ({ id: `sal-${i + 1}`, name })), names: {}, activities: [], lessons: [] };
+  const tid = (r: SchemaRegel): r is Tid => r.typ === 'sparrad' || r.typ === 'tillaten';
+  // Egna villkor som träffar något i underlaget. Villkor för en sal träffar alltid: salen finns bland salarna.
+  const hit = new Set<number>(v.egna.flatMap((r, i) => r.slag === 'sal' ? [i] : []));
   const problem: SchemaProblem = {
     version: SCHEMA_CONTRACT_VERSION, id: `forslag-${request.period}`,
     time: { step_min: d.stepMin, start_grid_min: v.startGridMin, days: v.days.map(day => ({ start_min: day.startMin, end_min: day.endMin })) },
     // Läsår: terminerna är motorns perioder, så att pass i olika terminer kan dela tid (L2).
     ...(terms.length > 1 ? { periods: terms.map(id => ({ id })) } : {}),
-    teachers: labels.teachers.map(t => ({ id: t.id, ...(v.teacherMaxMinPerDay === null ? {} : { max_min_per_day: v.teacherMaxMinPerDay }) })), clusters: [], groups: [], activities: [], lessons: [],
+    teachers: labels.teachers.map(t => ({ id: t.id, ...(v.teacherMaxMinPerDay === null ? {} : { max_min_per_day: v.teacherMaxMinPerDay }) })),
+    // Salens spärrade tid, och all tid utanför dess tillåtna, är tid då salen inte kan användas (R3).
+    ...(labels.rooms.length ? { rooms: labels.rooms.map(room => {
+      const rules = v.egna.filter((r): r is Tid => r.slag === 'sal' && r.ref === room.name && tid(r));
+      const unavailable = v.days.flatMap((_, day) => {
+        let closed: Span[] = [[0, 1440]];
+        for (const open of openSpans(rules, day, [0, 1440])) closed = cut(closed, open);
+        return closed.map(([a, b]): SchemaInterval => ({ day, start_min: a, end_min: b }));
+      });
+      return { id: room.id, ...(unavailable.length ? { unavailable } : {}) };
+    }) } : {}),
+    clusters: [], groups: [], activities: [], lessons: [],
     rules: { ...(v.studentMaxMinPerDay === null ? {} : { student_max_min_per_day: v.studentMaxMinPerDay }), break_min: v.breakMin,
       lunch: v.lunch && { window_start_min: v.lunch.startMin, window_end_min: v.lunch.endMin, length_min: v.lunch.lengthMin, teachers: v.lunch.teachers }, same_day: v.sameDay },
     weights: { late_after_min: v.lateAfterMin },
@@ -218,6 +259,13 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     // Klasserna som berörs: passet visas i deras scheman och deras skoldagar avgör terminens tid.
     const classes = unique(t.parts.flatMap(p => p.groupId !== null && groupClusters.has(p.groupId) ? [...groupClasses.get(p.groupId)!] : p.alone ? [] : p.classIds).filter(id => classNo.has(id)));
     const names = classes.map(id => className.get(id)!);
+    // Egna villkor för undervisningen: klassens, gruppens och ämnets gäller alla dess pass, lärarens de pass läraren har.
+    const egna = (persons: string[]) => v.egna.flatMap((r, i) => {
+      const own = r.slag === 'klass' ? classes.includes(r.ref) : r.slag === 'grupp' ? t.parts.some(p => p.groupId === r.ref) : r.slag === 'amne' ? r.ref === t.title : r.slag === 'larare' && persons.includes(r.ref);
+      if (own) hit.add(i);
+      return own ? [r] : [];
+    });
+    const shared = egna([]);
     const info = terms.map((term, i) => {
       const own = time.terms[term], variant = perTerm[i][index];
       const perWeekday = classes.reduce<number[]>((least, id) => least.map((n, day) => Math.min(n, (own.classes[id] ?? own.perWeekday)[day] ?? 0)), [...own.perWeekday]);
@@ -232,9 +280,14 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     const known = t.teachers.filter(x => teacherNo.has(x.personId)), takesTurns = !t.together && known.length > 1;
     const staff = (x: typeof info[number]) => takesTurns ? x.teachers.filter(p => p.minutes > 0).map(p => p.personId).join() : '';
     const weekly = (x: typeof info[number]) => x.minutes / (x.days / 5);
-    const even = active.length > 1 && staff(active[0]) === staff(active[1]) && (v.termDiffPct === null || Math.abs(weekly(active[0]) - weekly(active[1])) * 100 <= v.termDiffPct * Math.max(weekly(active[0]), weekly(active[1])));
+    // Förvalet 0 (T2): samma veckoschema bara när timplanens veckotid är lika båda terminerna på 5-minutersrutnätet.
+    const even = active.length > 1 && staff(active[0]) === staff(active[1]) && (v.termDiffPct === null || round5(weekly(active[0])) === round5(weekly(active[1]))
+      || Math.abs(weekly(active[0]) - weekly(active[1])) * 100 <= v.termDiffPct * Math.max(weekly(active[0]), weekly(active[1])));
+    // Uppdelning (R5): antal pass går före längsta pass; det kortaste längsta passet gäller. Veckotiden är alltid timplanens.
+    const antal = shared.find(r => r.typ === 'antal')?.count, langd = Math.min(...shared.flatMap(r => r.typ === 'langd' ? [r.maxMin] : []));
+    const split = Number.isFinite(langd) ? { maxLessonMin: langd, minLessonMin: Math.min(v.minLessonMin, langd) } : v;
     const segments = (even ? [active] : active.map(x => [x])).map(parts => ({ parts, days: total(parts.map(x => x.days)),
-      lengths: weeklyLessons(total(parts.map(x => x.minutes)), total(parts.map(x => x.days)) / 5, v) }));
+      lengths: weeklyLessons(total(parts.map(x => x.minutes)), total(parts.map(x => x.days)) / 5, split, antal) }));
     if (segments.every(s => !s.lengths.length)) { omitted.push({ title: t.title, classes: names, reason: 'too_short' }); return; }
     const activity = `behov-${problem.activities.length + 1}`;
     const groups = unique(t.parts.flatMap(p => {
@@ -254,21 +307,39 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     const laid = segments.filter(s => s.lengths.length);
     problem.activities.push({ id: activity });
     labels.activities.push({ id: activity, title: t.title, classes: names, needMin: Math.round(total(info.map(x => Math.max(0, x.minutes)))),
-      weeklyMin: Math.round(total(laid.map(s => total(s.lengths) * s.days)) / total(laid.map(s => s.days))), days: Object.fromEntries(info.map(x => [x.term, x.perWeekday])) });
+      weeklyMin: Math.round(total(laid.map(s => total(s.lengths) * s.days)) / total(laid.map(s => s.days))), days: Object.fromEntries(info.map(x => [x.term, x.perWeekday])),
+      terms: info.map(x => ({ term: x.term, needMin: Math.round(Math.max(0, x.minutes)) })),
+      // Timplanen är ram (T1): veckans pass ska summera till terminens veckotid i timplanen.
+      weeklyOff: info.some(x => x.minutes > 0 && (x.days <= 0 || total(segments.find(s => s.parts.includes(x))?.lengths ?? []) !== round5(x.minutes / (x.days / 5)))) });
     for (const s of segments) {
       const term = s.parts.length === terms.length ? null : s.parts[0].term;
       if (!s.lengths.length) { omitted.push({ title: t.title + suffix(s.parts[0].term), classes: names, reason: 'too_short' }); continue; }
       const turn = takesTurns ? shareLessons(s.lengths.length, known.map(k => ({ personId: k.personId, minutes: total(s.parts.map(x => x.teachers.find(p => p.personId === k.personId)?.minutes ?? 0)) }))) : null;
       s.lengths.forEach((durationMin, i) => {
         const id = `pass-${problem.lessons.length + 1}`;
-        const teacherIds = (turn ? [turn[i]] : known.map(x => x.personId)).map(personId => teacherNo.get(personId)!);
-        problem.lessons.push({ id, activity, duration_min: durationMin, teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }) });
-        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, vacant: t.vacant, term });
+        const persons = turn ? [turn[i]] : known.map(x => x.personId), teacherIds = persons.map(personId => teacherNo.get(personId)!);
+        const rules = egna(persons);
+        // Marginal till nästa lektion (R4): passet upptar lärare och elever den del av marginalen som rasten inte täcker.
+        const marginMin = Math.max(0, Math.max(0, ...rules.flatMap(r => r.typ === 'marginal' ? [r.minutes] : [])) - v.breakMin), length = durationMin + marginMin;
+        // Tillåtna fönster (R3). Marginalen får gå utanför fönstret. Utan något fönster där passet får plats: ett fönster för kort för passet, så att motorn redovisar det som utan tid.
+        const times = rules.filter(tid);
+        const allowed = !times.length ? null : problem.time.days.flatMap((frame, day) => openSpans(times, day, [frame.start_min, frame.end_min])
+          .map(([a, b]): SchemaInterval => ({ day, start_min: a, end_min: Math.min(frame.end_min, b + marginMin) })).filter(w => w.end_min - w.start_min >= length));
+        // Sal (R6): ämnets salar går före gruppens, lärarens och klassens.
+        const wanted = (['amne', 'grupp', 'larare', 'klass'] as const).map(slag => rules.flatMap(r => r.slag === slag && r.typ === 'sal' ? r.rooms : [])).find(rooms => rooms.length) ?? [];
+        const roomIds = labels.rooms.filter(room => wanted.includes(room.name)).map(room => room.id);
+        problem.lessons.push({ id, activity, duration_min: length, teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
+          ...(allowed === null ? {} : { allowed: allowed.length ? allowed : [{ day: 0, start_min: problem.time.days[0].start_min, end_min: problem.time.days[0].start_min + d.stepMin }] }),
+          ...(roomIds.length ? { rooms: { count: 1 as const, allowed: roomIds } } : {}) });
+        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin, roomIds, vacant: t.vacant, term });
       });
     }
   });
   const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
-  return { period: request.period, terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels) };
+  const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),
+    amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: plan.teachers.map(t => ({ ref: t.personId, name: t.displayName })) };
+  return { period: request.period, terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
+    resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
 }
 
 /** Motorns klartext bär löpnummer; här byts de mot namn innan texten visas. */
@@ -276,16 +347,20 @@ function named(message: string, labels: SchemaLabels, withClasses = false): stri
   const className = new Map(labels.classes.map(c => [c.id, c.name]));
   const lesson = (l: SchemaLabels['lessons'][number]) => withClasses && l.classIds.length ? `${l.title} (${l.classIds.map(id => className.get(id) ?? id).join(', ')})` : l.title;
   const name = new Map<string, string>([...Object.entries(labels.names), ...labels.classes.map(c => [c.id, c.name] as const),
-    ...labels.teachers.map(t => [t.id, t.name] as const), ...labels.lessons.map(l => [l.id, lesson(l)] as const), ...labels.lessons.map(l => [l.activity, l.title] as const)]);
-  return message.replace(/\b(?:grupp|kluster|larare|pass|behov)-\d+\b/giu, id => name.get(id.toLowerCase()) ?? id);
+    ...labels.teachers.map(t => [t.id, t.name] as const), ...labels.rooms.map(r => [r.id, r.name] as const), ...labels.lessons.map(l => [l.id, lesson(l)] as const), ...labels.lessons.map(l => [l.activity, l.title] as const)]);
+  return message.replace(/\b(?:grupp|kluster|larare|pass|behov|sal)-\d+\b/giu, id => name.get(id.toLowerCase()) ?? id);
 }
 
 /** Utlagd tid per undervisning: passens längd gånger skoldagarna på passets veckodag i de terminer passet går (L4). */
 function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacement>): SchemaForslag['teachings'] {
   return underlag.labels.activities.map(a => {
     const own = underlag.labels.lessons.filter(l => l.activity === a.id).map(l => ({ durationMin: l.durationMin, day: at.get(l.id)?.day ?? null, terms: l.term ? [l.term] : underlag.terms }));
-    return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced: own.filter(l => l.day === null).length,
-      plannedMin: own.reduce((sum, l) => sum + (l.day === null ? 0 : l.durationMin * l.terms.reduce((days, term) => days + (a.days[term]?.[l.day!] ?? 0), 0)), 0) };
+    const unplaced = own.filter(l => l.day === null).length;
+    const terms = a.terms.map(x => ({ ...x, plannedMin: own.reduce((sum, l) => sum + (l.day === null || !l.terms.includes(x.term) ? 0 : l.durationMin * (a.days[x.term]?.[l.day] ?? 0)), 0) }));
+    // Avrundningen till 5 minuter ger högst 2,5 minuter per vecka; mer än så beror på att veckodagarna har olika många skoldagar.
+    const calendar = terms.some(x => Math.abs(x.plannedMin - x.needMin) > 2.5 * (a.days[x.term] ?? []).reduce((sum, n) => sum + n, 0) / 5 + 1);
+    return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced, plannedMin: terms.reduce((sum, x) => sum + x.plannedMin, 0),
+      terms, deviation: unplaced > 0 ? 'unplaced' as const : a.weeklyOff ? 'weekly' as const : calendar ? 'calendar' as const : null };
   });
 }
 
@@ -305,12 +380,13 @@ export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlace
   }
   return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, violations: violations.slice(0, SCHEMA_LIMITS.shownViolations), total: violations.length,
     teachings: plannedTeachings(underlag, new Map(placements.map(p => [p.lesson, p]))),
-    metrics: { lessons: total, placed: placements.length, unplaced: total - placements.length, ...weeklyGaps(check.metrics, underlag) } };
+    metrics: { lessons: total, placed: placements.length, unplaced: total - placements.length, ...weeklyGaps(check.metrics, underlag) },
+    rooms: Object.fromEntries(placements.flatMap(p => p.room ? [[p.lesson, p.room]] : [])) };
 }
 
 export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagRequest, underlag: SchemaUnderlag, solution: SchemaSolution): SchemaForslag {
   const at = new Map(solution.placements.map(p => [p.lesson, p]));
-  const lessons = underlag.labels.lessons.map(({ activity: _activity, ...l }) => ({ ...l, day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null }));
+  const lessons = underlag.labels.lessons.map(({ activity: _activity, ...l }) => ({ ...l, day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null, roomId: at.get(l.id)?.room ?? null }));
   const termDays = underlag.terms.map(term => ({ term, schoolDays: underlag.time.terms[term].perWeekday.reduce((sum, n) => sum + n, 0) }));
   const days = termDays.reduce((sum, t) => sum + t.schoolDays, 0);
   const teachings = plannedTeachings(underlag, at);
@@ -319,7 +395,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, period: underlag.period, schoolName: plan.schoolName, villkor: underlag.villkor,
     fingerprint: underlag.fingerprint, startGridMin: underlag.problem.time.start_grid_min,
     time: { source: underlag.time.source, version: underlag.time.version, status: underlag.time.status, current: underlag.time.current, schoolDays: days, weeks: days / 5, terms: termDays },
-    members: underlag.members, teachings,
+    members: underlag.members, teachings, resurser: underlag.resurser, rooms: underlag.labels.rooms, egnaUtanTraff: underlag.egnaUtanTraff,
     basis: plan.version ? { versionNo: plan.version.versionNo, status: plan.version.status } : null,
     status: solution.status, days: underlag.problem.time.days.map(day => ({ startMin: day.start_min, endMin: day.end_min })),
     classes: underlag.labels.classes.filter(c => usedClasses.has(c.id)), teachers: underlag.labels.teachers.filter(t => usedTeachers.has(t.id)),

@@ -18,7 +18,7 @@ async function mock(page: Page, reply: (body: Record<string, unknown>) => { stat
 }
 const DAYS = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 const clean = { ...kontroll.clash, violations: [], total: 0 };
-type Placement = { lesson: string; day: number; startMin: number };
+type Placement = { lesson: string; day: number; startMin: number; room: string | null };
 /** Kontrollens svar följer placeringarna: flyttat pass ger avvikelserna, borttagen tid ett olagt pass, annars inga avvikelser. */
 async function mockKontroll(page: Page, status?: number) {
   const bodies: { fingerprint: string; placements: Placement[] }[] = [];
@@ -55,6 +55,13 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByText(`Hela läsåret. ${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   await expect(page.getByText('Tid: 181 skoldagar (HT 88, VT 93) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
   await expect(page.getByText('Underlag: tjänstefördelning version 1 (utkast).')).toBeVisible();
+  // Timplanen är ram: veckotiden följer den, och skillnad som beror på veckodagarnas skoldagar redovisas för sig.
+  await expect(page.locator('.status-badge', { hasText: 'Veckotiden följer timplanen' })).toBeVisible();
+  const byCalendar = forslag.teachings.filter(t => t.deviation === 'calendar').length;
+  expect(byCalendar).toBeGreaterThan(0);
+  await expect(page.getByText(`${byCalendar} undervisningar får annan tid över terminen än timplanens`)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(page.getByText('Inga pass på viloytan.')).toBeVisible();
 
   const monday = page.getByRole('region', { name: 'Måndag' });
   await expect(monday.getByRole('listitem').first()).toContainText(/\d{2}:\d{2}–\d{2}:\d{2}/u);
@@ -82,6 +89,8 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await page.getByRole('heading', { name: `Tid över läsåret (${forslag.teachings.length})` }).click();
   await expect(page.getByRole('columnheader', { name: 'Utlagt' })).toBeVisible();
   await expect(page.getByRole('row').nth(1)).toContainText(/[+−]?\d+(,\d)? h/u);
+  await expect(page.getByRole('row').nth(1)).toContainText('Nej: veckodagarnas skoldagar');
+  await expect(page.getByRole('row').last()).toContainText('Ja');
 
   await page.getByRole('button', { name: 'Vårterminen' }).click();
   await expect(page.locator('.schema-lesson')).toHaveCount(ofClass.filter(inTerm('vt')).length);
@@ -108,7 +117,8 @@ test('olagda pass, förklaring och utelämnade behov redovisas i text', async ({
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Förslag · Räknetiden tog slut')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
+  await expect(page.getByText('Pass på viloytan räknas som avvikelse från timplanen.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
   await expect(page.getByText(`Pass ${first.title} fick ingen plats.`)).toBeVisible();
   await expect(page.getByText('Liten kurs · Klass 1: mindre än 20 min i veckan')).toBeVisible();
   await expect(page.getByText('Praktik · Klass 2: inga skoldagar')).toBeVisible();
@@ -185,7 +195,7 @@ test('ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan �
   expect(bodies).toHaveLength(1);
   expect(bodies[0].fingerprint).toBe(forslag.fingerprint);
   expect(bodies[0].placements).toHaveLength(forslag.lessons.length);
-  expect(bodies[0].placements).toContainEqual(kontroll.move);
+  expect(bodies[0].placements).toContainEqual({ ...kontroll.move, room: null });
   // Passet står på den nya dagen, är märkt i text och har fått fokus tillbaka.
   await expect(page.getByRole('region', { name: DAYS[kontroll.move.day] }).locator(`[data-lesson="${kontroll.move.lesson}"]`)).toContainText('Regelavvikelse');
   await expect(lesson).toBeFocused();
@@ -200,7 +210,7 @@ test('ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan �
 
   await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
   await expect(page.getByText('Inga regler bryts av schemat som det ligger nu.')).toBeVisible();
-  expect(bodies[1].placements).toContainEqual({ lesson: before.id, day: before.day, startMin: before.startMin });
+  expect(bodies[1].placements).toContainEqual({ lesson: before.id, day: before.day, startMin: before.startMin, room: null });
   await expect(page.getByText('Ändrat för hand')).toHaveCount(0);
   await expect(page.locator('.schema-lesson.deviation')).toHaveCount(0);
   await expect(page.getByRole('region', { name: DAYS[before.day!] }).locator(`[data-lesson="${before.id}"]`)).toBeVisible();
@@ -220,23 +230,140 @@ test('ändrat underlag nekar flytten och passet står kvar', async ({ page }) =>
   await expect(page.getByRole('heading', { name: /Regelavvikelser/u })).toHaveCount(0);
 });
 
-test('ett pass utan tid läggs ut för hand och kan tas tillbaka', async ({ page }) => {
+test('ett pass på viloytan läggs ut för hand och kan tas tillbaka', async ({ page }) => {
   const id = kontroll.move.lesson;
   await mock(page, () => ({ json: { ...forslag, status: 'time_limit', lessons: forslag.lessons.map(l => l.id === id ? { ...l, day: null, startMin: null } : l),
     teachings: kontroll.lifted.teachings, metrics: kontroll.lifted.metrics } }));
   const bodies = await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
   await page.getByRole('button', { name: /^Lägg ut / }).click();
   const panel = page.getByRole('form', { name: 'Flytta pass' });
-  await expect(panel).toContainText('Har ingen tid.');
+  await expect(panel).toContainText('Ligger på viloytan.');
+  await expect(panel.getByRole('button', { name: 'Lägg på viloytan' })).toHaveCount(0);
   await panel.getByLabel('Dag').selectOption({ label: 'Onsdag' });
   await panel.getByRole('button', { name: 'Flytta hit' }).click();
-  await expect(page.getByRole('heading', { name: /Pass utan tid/u })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
   await expect(page.getByText(`${forslag.metrics.lessons} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   expect(bodies[0].placements).toHaveLength(forslag.lessons.length);
   await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
-  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
   expect(bodies[1].placements).toHaveLength(forslag.lessons.length - 1);
+});
+
+test('pass dras till viloytan och tillbaka ut i veckan; på telefon används flyttpanelen', async ({ page }, info) => {
+  await mock(page, () => ({ json: forslag }));
+  const bodies = await mockKontroll(page);
+  const id = kontroll.move.lesson, before = forslag.lessons.find(l => l.id === id)!;
+  await page.goto(URL);
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  const lesson = page.locator(`[data-lesson="${id}"]`), rest = page.locator('.schema-rest');
+  if (info.project.name === 'phone') {
+    await lesson.click();
+    await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Lägg på viloytan' }).click();
+    await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: `${before.title} ligger nu på viloytan` })).toBeVisible();
+    expect(bodies[0].placements).toHaveLength(forslag.lessons.length - 1);
+    return;
+  }
+  // Hela veckan och viloytan ska rymmas i fönstret medan passet dras.
+  await page.setViewportSize({ width: 1440, height: 2200 });
+  const center = async (target: typeof lesson) => { const b = (await target.boundingBox())!; return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
+  const from = await center(lesson), to = await center(rest);
+  await page.mouse.move(from.x, from.y);
+  await page.mouse.down();
+  await page.mouse.move(from.x + 20, from.y + 20, { steps: 3 });
+  await page.mouse.move(to.x, to.y, { steps: 8 });
+  await expect(rest).toHaveClass(/over/u);
+  await expect(page.locator('.schema-lesson.dragging')).toHaveCount(1);
+  await page.mouse.up();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.locator('.status-badge', { hasText: 'Avviker från timplanen' })).toBeVisible();
+  // Släppet räknas inte som ett klick: flyttpanelen öppnas inte.
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toHaveCount(0);
+  expect(bodies[0].placements).toHaveLength(forslag.lessons.length - 1);
+
+  // Från viloytan ut på onsdagen: släppmarkeringen visar tiden och passet hamnar på startrutnätet.
+  const item = rest.getByRole('listitem').first(), column = page.getByRole('region', { name: 'Onsdag' }).locator('ol');
+  const start = await center(item), box = (await column.boundingBox())!;
+  await page.mouse.move(start.x - 40, start.y);
+  await page.mouse.down();
+  await page.mouse.move(start.x - 40, start.y - 20, { steps: 3 });
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2, { steps: 8 });
+  await expect(column.locator('.schema-drop')).toContainText(/\d{2}:\d{2}–\d{2}:\d{2}/u);
+  if (shots) await page.screenshot({ path: `${shots}/schema-dra-${info.project.name}.png`, fullPage: true });
+  await page.mouse.up();
+  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  const dropped = bodies[1].placements.find(p => p.lesson === id)!;
+  expect([dropped.day, dropped.startMin % forslag.villkor.startGridMin, dropped.room]).toEqual([2, 0, null]);
+  await expect(column.locator(`[data-lesson="${id}"]`)).toBeVisible();
+  await expect(page.locator('.schema-drop')).toHaveCount(0);
+  await expect(page.getByText('Ändrat för hand · 2 flyttar')).toBeVisible();
+  // Ett kort klick utan drag öppnar fortfarande flyttpanelen.
+  await column.locator(`[data-lesson="${id}"]`).click();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toBeVisible();
+});
+
+test('salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget', async ({ page }, info) => {
+  const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, rooms: (body.villkor as typeof forslag.villkor).salar.map((name, i) => ({ id: `sal-${i + 1}`, name })) } }));
+  await page.goto(URL);
+  await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
+  await expect(page.getByText('Ta fram ett första förslag för att kunna välja klass, grupp, ämne och lärare.')).toBeVisible();
+  await expect(page.locator('.schema-egna-form')).toHaveCount(0);
+  // Enter i salens fält lägger till salen och skickar inte formuläret.
+  await page.getByLabel('Salens namn').fill('Idrottshallen');
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('list', { name: 'Salar' })).toContainText('Idrottshallen');
+  expect(bodies).toHaveLength(0);
+  await page.getByLabel('Salens namn').fill('idrottshallen');
+  await expect(page.getByRole('button', { name: 'Lägg till sal' })).toBeDisabled();
+  await page.getByLabel('Salens namn').fill('');
+  const form = page.locator('.schema-egna-form'), rules = page.getByRole('list', { name: 'Egna villkor' });
+  // Före första förslaget går bara salen att välja: spärra hallen på fredagar.
+  await expect(form.getByLabel(/^Gäller/u)).toHaveValue('sal');
+  for (const day of ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag']) await form.getByLabel(day, { exact: true }).uncheck();
+  await form.getByRole('button', { name: 'Lägg till villkor' }).click();
+  await expect(rules).toContainText('Sal Idrottshallen: spärrad fredag 08:00–12:00');
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  const sparr = { slag: 'sal', ref: 'Idrottshallen', typ: 'sparrad', days: [4], startMin: 480, endMin: 720 };
+  expect(bodies[0].villkor).toEqual({ ...forslag.villkor, salar: ['Idrottshallen'], egna: [sparr] });
+
+  // När ett förslag finns går klass, grupp, ämne och lärare att välja.
+  await form.getByLabel(/^Gäller/u).selectOption('amne');
+  await form.getByLabel(/^Ämne/u).selectOption('Idrott och hälsa');
+  await form.getByLabel(/^Villkor/u).selectOption('sal');
+  await form.getByLabel('Idrottshallen').check();
+  await form.getByRole('button', { name: 'Lägg till villkor' }).click();
+  await form.getByLabel(/^Gäller/u).selectOption('klass');
+  await form.getByLabel(/^Klass/u).selectOption({ label: 'Klass 1' });
+  await form.getByLabel(/^Villkor/u).selectOption('marginal');
+  await form.getByLabel(/^Marginal/u).selectOption('20');
+  await form.getByRole('button', { name: 'Lägg till villkor' }).click();
+  await form.getByLabel(/^Gäller/u).selectOption('larare');
+  await form.getByLabel(/^Villkor/u).selectOption('tillaten');
+  // Formuläret minns dagarna från förra villkoret; läraren ska gälla alla dagar.
+  for (const day of ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag']) await form.getByLabel(day, { exact: true }).check();
+  await form.getByLabel('Till', { exact: true }).fill('15:00');
+  await form.getByRole('button', { name: 'Lägg till villkor' }).click();
+  await expect(rules.getByRole('listitem')).toHaveText([/^Sal Idrottshallen: spärrad fredag 08:00–12:00/u, /^Ämne Idrott och hälsa: sal Idrottshallen/u, /^Klass Klass 1: 20 min marginal till nästa lektion/u,
+    new RegExp(`^Lärare ${forslag.resurser.larare[0].name}: bara alla dagar 08:00–15:00`, 'u')]);
+  // Lärare kan inte få villkor för uppdelning eller sal; det avgörs av ämne, grupp och klass.
+  await expect(form.getByLabel(/^Villkor/u).locator('option')).toHaveText(['Spärrad tid', 'Tillåten tid', 'Marginal till nästa lektion', 'Sal']);
+  await expect(page.locator('.schema-villkor summary')).toContainText('4 egna villkor');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  if (shots) await page.screenshot({ path: `${shots}/schema-egna-${info.project.name}.png`, fullPage: true });
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect.poll(() => bodies.length).toBe(2);
+  const sent = bodies[1].villkor as typeof forslag.villkor & { egna: Record<string, unknown>[] };
+  expect(sent.egna).toEqual([sparr, { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] }, { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'marginal', minutes: 20 },
+    { slag: 'larare', ref: forslag.resurser.larare[0].ref, typ: 'tillaten', days: [0, 1, 2, 3, 4], startMin: 480, endMin: 900 }]);
+  await expect(page.getByText('Eget villkor: Klass Klass 1: 20 min marginal till nästa lektion.')).toBeVisible();
+  await expect(page.getByText('Salar: Idrottshallen. Bara pass med ett salsvillkor får en sal.')).toBeVisible();
+  // En sal som tas bort tar sina villkor med sig; övriga villkor står kvar.
+  await page.getByRole('button', { name: 'Ta bort sal Idrottshallen' }).click();
+  await expect(rules.getByRole('listitem')).toHaveCount(2);
+  await rules.getByRole('button', { name: /^Ta bort villkoret Klass Klass 1/u }).click();
+  await expect(rules.getByRole('listitem')).toHaveCount(1);
 });

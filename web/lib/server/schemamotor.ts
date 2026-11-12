@@ -44,6 +44,6 @@ export function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
 
 /** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. */
 export function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
-  return call('/v1/validate', { problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin })) }, 0,
+  return call('/v1/validate', { problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }, 0,
     value => parseSchemaCheck(value, problem));
 }

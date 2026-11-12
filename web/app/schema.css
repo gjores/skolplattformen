@@ -62,6 +62,21 @@
 .schema-workspace .schema-list .schema-unplaced { padding-left: 0; list-style: none; }
 .schema-workspace .schema-unplaced li { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; }
 
+/* Dra och släpp, viloyta och egna villkor (05.2-SM-VILLKOR-PER-RESURS): nya mönster, bara designsystemets variabler. */
+.schema-lesson button { user-select: none; -webkit-user-select: none; }
+.schema-lesson.dragging, .schema-workspace .schema-unplaced li.dragging { opacity: .45; }
+.schema-lesson.schema-drop { left: 2px; width: calc(100% - 4px); z-index: 1; padding: .125rem .375rem; pointer-events: none; border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--card)); }
+.schema-workspace .schema-rest { border-style: dashed; }
+.schema-workspace .schema-rest.over { border-color: var(--primary); background: var(--accent); }
+.schema-workspace .schema-rest .schema-unplaced li { padding: .375rem .5rem; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--background); user-select: none; -webkit-user-select: none; }
+.schema-workspace .schema-list .schema-egna { display: grid; gap: .375rem; padding-left: 0; list-style: none; }
+.schema-workspace .schema-egna li { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; margin: 0; }
+.schema-workspace .schema-egna button, .schema-workspace .schema-egna-form button { min-height: var(--control-height); height: auto; white-space: normal; }
+.schema-workspace .schema-egna-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 11rem), 1fr)); gap: .625rem; align-items: end; }
+.schema-workspace .schema-villkor label { display: grid; gap: .375rem; font-size: .875rem; color: var(--muted-foreground); min-width: 0; }
+.schema-workspace .schema-villkor input[type="text"] { min-width: 0; width: 100%; }
+.schema-workspace .schema-villkor fieldset.schema-days { display: flex; flex-wrap: wrap; gap: 0 1rem; padding: 0; border: 0; }
+
 /* Smal yta: dagarna staplas och passen blir en lista i tidsordning. */
 .schema-workspace { container-type: inline-size; }
 @container (max-width: 760px) {

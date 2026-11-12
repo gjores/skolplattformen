@@ -1,12 +1,12 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type PointerEvent as ReactPointerEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
-import { SCHEMA_VILLKOR_LIMITS, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, parseSchemaVillkor, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
-  type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaStatus, type SchemaTerm, type SchemaVillkor } from '@/lib/schema-contract.ts';
+import { SCHEMA_REGEL_SLAG, SCHEMA_REGEL_TYPER, SCHEMA_VILLKOR_LIMITS, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, parseSchemaVillkor, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
+  type SchemaRegel, type SchemaRegelSlag, type SchemaRegelTyp, type SchemaTimplanDeviation, type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaStatus, type SchemaTerm, type SchemaVillkor } from '@/lib/schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '@/lib/schema-underlag.ts';
 import './valplaner.css';
 import './schema.css';
@@ -75,10 +75,27 @@ function daysText(days: SchemaVillkor['days']): string {
   if (days.every(x => x.startMin === days[0].startMin && x.endMin === days[0].endMin)) return `${clock(days[0].startMin)}–${clock(days[0].endMin)} måndag–fredag`;
   return days.map((x, i) => `${DAYS[i].toLowerCase()} ${clock(x.startMin)}–${clock(x.endMin)}`).join(', ');
 }
-/** Senast använda villkor för skolan, i den här webbläsaren. Inget annat lagras och inga personuppgifter ingår. */
+const SLAG: Record<SchemaRegelSlag, string> = { klass: 'Klass', grupp: 'Grupp', amne: 'Ämne', larare: 'Lärare', sal: 'Sal' };
+const REGEL: Record<SchemaRegelTyp, string> = { sparrad: 'Spärrad tid', tillaten: 'Tillåten tid', marginal: 'Marginal till nästa lektion', langd: 'Uppdelning: längsta pass', antal: 'Uppdelning: antal pass per vecka', sal: 'Sal' };
+const TIMPLAN: Record<SchemaTimplanDeviation, string> = { unplaced: 'Pass utan tid', weekly: 'Annan veckotid', calendar: 'Veckodagarnas skoldagar' };
+type Resurser = SchemaForslag['resurser'];
+/** Ett eget villkor i klartext. Namn på klass, grupp och lärare finns först när ett förslag har tagits fram. */
+function ruleText(r: SchemaRegel, resurser: Resurser | null): string {
+  const name = r.slag === 'sal' || r.slag === 'amne' ? r.ref : resurser === null ? '(namnet visas när ett förslag finns)' : resurser[r.slag].find(x => x.ref === r.ref)?.name ?? '(finns inte i underlaget)';
+  const when = (x: { days: number[]; startMin: number; endMin: number }) => `${x.days.length === 5 ? 'alla dagar' : [...x.days].sort((a, b) => a - b).map(i => DAYS[i].toLowerCase()).join(', ')} ${clock(x.startMin)}–${clock(x.endMin)}`;
+  const what = r.typ === 'sparrad' ? `spärrad ${when(r)}` : r.typ === 'tillaten' ? `bara ${when(r)}` : r.typ === 'marginal' ? `${r.minutes} min marginal till nästa lektion`
+    : r.typ === 'langd' ? `pass om högst ${r.maxMin} min` : r.typ === 'antal' ? `${r.count} pass per vecka` : 'rooms' in r ? `sal ${r.rooms.join(' eller ')}` : '';
+  return `${SLAG[r.slag]} ${name}: ${what}`;
+}
+/** Senast använda villkor för skolan, i den här webbläsaren. Egna villkor bär appens ID för klass, grupp och lärare, aldrig namn; ämnen och salar står med namn. Inget annat lagras. */
 const villkorKey = (unitId: string) => `schema-villkor:${unitId}`;
 function storedVillkor(unitId: string): SchemaVillkor | null {
-  try { const raw = window.localStorage.getItem(villkorKey(unitId)); return raw === null ? null : parseSchemaVillkor(JSON.parse(raw)); } catch { return null; }
+  try {
+    const raw = window.localStorage.getItem(villkorKey(unitId)), value = raw === null ? null : JSON.parse(raw) as Record<string, unknown> | null;
+    if (value === null || typeof value !== 'object') return null;
+    // Villkor sparade före egna villkor: tomma listor, och det gamla förvalet 15 % blir det nya förvalet (T2).
+    return parseSchemaVillkor('egna' in value ? value : { ...value, salar: [], egna: [], termDiffPct: value.termDiffPct === 15 ? 0 : value.termDiffPct });
+  } catch { return null; }
 }
 function rememberVillkor(unitId: string, villkor: SchemaVillkor): void {
   try { window.localStorage.setItem(villkorKey(unitId), JSON.stringify(villkor)); } catch { /* utan lagring gäller villkoren bara tills sidan lämnas */ }
@@ -98,11 +115,13 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [forslag, setForslag] = useState<SchemaForslag | null>(null);
   const [by, setBy] = useState<'class' | 'teacher'>('class'), [chosen, setChosen] = useState('');
   // Flytt för hand (05.2-SM-FLYTT): en flytt görs först när motorns kontrollant har svarat, och inget sparas.
-  const [picked, setPicked] = useState<string | null>(null), [target, setTarget] = useState({ day: 0, startMin: 0 });
-  const [history, setHistory] = useState<{ lesson: string; day: number | null; startMin: number | null }[]>([]);
+  const [picked, setPicked] = useState<string | null>(null), [target, setTarget] = useState<{ day: number; startMin: number; room: string | null }>({ day: 0, startMin: 0, room: null });
+  const [history, setHistory] = useState<{ lesson: string; day: number | null; startMin: number | null; room: string | null }[]>([]);
+  // Dra och släpp (D1): passet som dras och var det hamnar om det släpps.
+  const [drop, setDrop] = useState<{ lesson: string; to: { day: number | null; startMin: number | null } | null } | null>(null);
   const [kontroll, setKontroll] = useState<SchemaKontroll | null>(null), [checking, setChecking] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null), [moved, setMoved] = useState('');
-  const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null);
+  const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   useEffect(() => () => running.current?.abort(), []);
   useEffect(() => { if (picked) dayField.current?.focus(); }, [picked]);
   // Efter flytt eller avbrott går fokus tillbaka till passet, så att tangentbordet inte tappar sin plats.
@@ -131,30 +150,67 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
 
   function pick(l: SchemaForslagLesson) {
     if (!forslag || checking) return;
-    const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin);
-    setTarget({ day, startMin: l.startMin !== null && starts.includes(l.startMin) ? l.startMin : starts[0] ?? forslag.days[day].startMin });
+    if (skipClick.current) return;
+    const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin + l.marginMin);
+    setTarget({ day, startMin: l.startMin !== null && starts.includes(l.startMin) ? l.startMin : starts[0] ?? forslag.days[day].startMin, room: l.roomId });
     setPicked(l.id); setMoveError(null);
   }
-  /** Flyttar ett pass, eller tar bort dess tid när `day` är null (ångra en utläggning). Hela schemat kontrolleras om. */
-  async function place(lessonId: string, day: number | null, startMin: number | null, undo: boolean) {
+  /** Flyttar ett pass, eller lägger det på viloytan när `day` är null. Passet behåller sin sal om ingen annan anges; utan sal väljer servern en ledig. Hela schemat kontrolleras om. */
+  async function place(lessonId: string, day: number | null, startMin: number | null, undo: boolean, room?: string | null) {
     const before = forslag?.lessons.find(l => l.id === lessonId);
     if (!forslag || !before || checking || busy) return;
-    const lessons = forslag.lessons.map(l => l.id === lessonId ? { ...l, day, startMin } : l), controller = new AbortController();
+    const lessons = forslag.lessons.map(l => l.id === lessonId ? { ...l, day, startMin, roomId: day === null ? null : room === undefined ? l.roomId : room } : l), controller = new AbortController();
     const request: SchemaKontrollRequest = { unitId, schoolYear, period: forslag.period, villkor: forslag.villkor, fingerprint: forslag.fingerprint,
-      placements: lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin }]) };
+      placements: lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) };
     running.current = controller;
     setChecking(true); setMoveError(null); setMoved('');
     try {
       const reply = parseSchemaKontroll(await api.post<unknown>('/api/schema/kontroll', request, controller.signal), forslag.fingerprint);
-      setForslag({ ...forslag, lessons, teachings: reply.teachings, metrics: reply.metrics });
+      setForslag({ ...forslag, lessons: lessons.map(l => ({ ...l, roomId: l.day === null ? null : reply.rooms[l.id] ?? null })), teachings: reply.teachings, metrics: reply.metrics });
       focus.current = lessonId; setKontroll(reply); setPicked(null);
-      setHistory(undo ? history.slice(0, -1) : [...history, { lesson: lessonId, day: before.day, startMin: before.startMin }]);
-      setMoved(`${before.title} ${day === null || startMin === null ? 'har ingen tid längre' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
+      setHistory(undo ? history.slice(0, -1) : [...history, { lesson: lessonId, day: before.day, startMin: before.startMin, room: before.roomId }]);
+      setMoved(`${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
       setMoveError(moveMessage(caught));
     } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
+  }
+  /** Dra ett pass med mus eller penna till en ny tid eller till viloytan. Pekskärm och staplad vy använder flyttpanelen. */
+  function grab(e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson) {
+    const grid = week.current, f = forslag;
+    if (!f || !grid || checking || busy || e.pointerType === 'touch' || e.button !== 0 || !grid.querySelector<HTMLElement>('.schema-hours')?.offsetParent) return;
+    const columns = [...grid.querySelectorAll<HTMLElement>('ol[data-day]')], span = end - start, own = e.currentTarget.closest('ol[data-day]')?.getBoundingClientRect();
+    // Var i passet pekaren håller, i minuter från passets början.
+    const held = own ? (e.clientY - e.currentTarget.getBoundingClientRect().top) * span / own.height : Math.min(15, l.durationMin / 2);
+    const at = (x: number, y: number) => {
+      const r = rest.current?.getBoundingClientRect();
+      if (r && x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) return { day: null, startMin: null };
+      for (const column of columns) {
+        const box = column.getBoundingClientRect(), day = Number(column.dataset.day);
+        if (x < box.left || x > box.right || y < box.top - 24 || y > box.bottom + 24) continue;
+        const starts = startTimes(f, day, l.durationMin + l.marginMin), wanted = start + (y - box.top) * span / box.height - held;
+        return starts.length ? { day, startMin: starts.reduce((best, m) => Math.abs(m - wanted) < Math.abs(best - wanted) ? m : best) } : null;
+      }
+      return null;
+    };
+    const origin = { x: e.clientX, y: e.clientY };
+    let active = false;
+    const move = (ev: PointerEvent) => {
+      if (!active && Math.hypot(ev.clientX - origin.x, ev.clientY - origin.y) < 6) return;
+      active = true; ev.preventDefault();
+      setDrop({ lesson: l.id, to: at(ev.clientX, ev.clientY) });
+    };
+    const done = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', done); window.removeEventListener('pointercancel', done);
+      setDrop(null);
+      if (!active) return;
+      // Släppet ska inte också räknas som ett klick på passet.
+      skipClick.current = true; window.setTimeout(() => { skipClick.current = false; }, 0);
+      const to = ev.type === 'pointerup' ? at(ev.clientX, ev.clientY) : null;
+      if (to && (to.day !== l.day || to.startMin !== l.startMin)) void place(l.id, to.day, to.startMin, false);
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', done); window.addEventListener('pointercancel', done);
   }
   const last = history.at(-1), pickedLesson = forslag?.lessons.find(l => l.id === picked) ?? null;
   const flagged = new Set(kontroll?.violations.flatMap(v => v.lessons));
@@ -163,12 +219,18 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const selected = options.some(o => o.id === chosen) ? chosen : options[0]?.id ?? '';
   const byTerm = forslag?.lessons.some(l => l.term !== null) ?? false, termTag = (l: SchemaForslagLesson) => l.term ? ` · ${l.term.toUpperCase()}` : '';
   const mine = (l: SchemaForslagLesson) => (l.term === null || l.term === shownTerm) && (by === 'class' ? l.classIds : l.teacherIds).includes(selected);
-  const detail = (l: SchemaForslagLesson) => forslag ? (by === 'class' ? (l.vacant && l.teacherIds.length === 0 ? 'Ingen lärare' : names(l.teacherIds, forslag.teachers)) : names(l.classIds, forslag.classes)) : '';
+  const roomName = (id: string | null) => forslag?.rooms.find(r => r.id === id)?.name ?? '';
+  const detail = (l: SchemaForslagLesson) => forslag ? [by === 'class' ? (l.vacant && l.teacherIds.length === 0 ? 'Ingen lärare' : names(l.teacherIds, forslag.teachers)) : names(l.classIds, forslag.classes), roomName(l.roomId)].filter(Boolean).join(' · ') : '';
+  const dragged = drop ? forslag?.lessons.find(l => l.id === drop.lesson) ?? null : null;
   const unplaced = forslag?.lessons.filter(l => l.day === null) ?? [];
   const start = forslag ? Math.min(...forslag.days.map(d => d.startMin)) : 0, end = forslag ? Math.max(...forslag.days.map(d => d.endMin)) : 0;
   const hours = forslag ? Array.from({ length: Math.floor(end / 60) - Math.ceil(start / 60) + 1 }, (_, i) => (Math.ceil(start / 60) + i) * 60) : [];
   const d = SCHEMA_DEFAULTS;
-  const deviating = forslag ? [...forslag.teachings].sort((a, b) => Math.abs(b.plannedMin - b.needMin) - Math.abs(a.plannedMin - a.needMin)) : [];
+  const order = (t: SchemaForslag['teachings'][number]) => t.deviation === null ? 3 : t.deviation === 'calendar' ? 2 : t.deviation === 'weekly' ? 1 : 0;
+  const deviating = forslag ? [...forslag.teachings].sort((a, b) => order(a) - order(b) || Math.abs(b.plannedMin - b.needMin) - Math.abs(a.plannedMin - a.needMin)) : [];
+  // Timplanen är ram (T1): pass utan tid, annan veckotid och utelämnad undervisning är avvikelser; skillnad som beror på veckodagarnas skoldagar redovisas för sig.
+  const off = forslag ? forslag.teachings.filter(t => t.deviation === 'unplaced' || t.deviation === 'weekly').length + forslag.omitted.filter(o => o.reason !== 'no_time').length : 0;
+  const byCalendar = forslag?.teachings.filter(t => t.deviation === 'calendar').length ?? 0;
 
   return <section className="valplan-workspace schema-workspace">
     <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>Läsår {planningYearLabel(schoolYear)}. Förslaget räknas ur skolans tjänstefördelning. Det sparas inte och publiceras inte.</p></div></div>
@@ -177,7 +239,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
       <Button type="submit" disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>
       <p className="schema-note schema-wide">Hur mycket tid ett ämne har och vilken termin kommer ur timplanen, via tjänstefördelningens behov. Tiden räknas på läsårskalenderns skoldagar. Vilka pass som får gå samtidigt avgörs av elevernas klasser och grupper.</p>
-      <Villkor value={villkor} disabled={busy} issues={issues} onChange={setVillkor}/>
+      <Villkor value={villkor} disabled={busy} issues={issues} resurser={forslag?.resurser ?? null} onChange={setVillkor}/>
     </form>
     <output aria-live="polite" className="schema-note">{busy ? `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
@@ -187,6 +249,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
         <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>
+        <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Veckotiden följer timplanen'}</span>
         {history.length > 0 && <span className="status-badge warning">Ändrat för hand · {history.length} {history.length === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
         <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
@@ -194,10 +257,11 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           {forslag.time.source === 'kalender'
             ? ` Tid: ${forslag.time.schoolDays} skoldagar${forslag.time.terms.length > 1 ? ` (${forslag.time.terms.map(t => `${t.term.toUpperCase()} ${t.schoolDays}`).join(', ')})` : ''} enligt läsårskalendern version ${forslag.time.version} (${CALENDAR[forslag.time.status ?? ''] ?? forslag.time.status}${forslag.time.current ? ', gällande' : ''}).`
             : ` Läsårskalender saknas för läsåret: ${forslag.time.weeks} lika veckor har antagits.`}
+          {byCalendar > 0 && ` ${byCalendar} ${byCalendar === 1 ? 'undervisning får' : 'undervisningar får'} annan tid över terminen än timplanens, eftersom veckodagarna har olika många skoldagar.`}
           {forslag.metrics.placed > 0 && ` Håltid per vecka: elever ${forslag.metrics.studentGapMin} min, lärare ${forslag.metrics.teacherGapMin} min.`}</p>
       </div>
 
-      {forslag.metrics.placed > 0 && <>
+      {forslag.lessons.length > 0 && <>
         <div className="schema-filter">
           <fieldset><legend className="sr-only">Visa schema för</legend>
             <Button type="button" variant={by === 'class' ? 'secondary' : 'outline'} aria-pressed={by === 'class'} onClick={() => setBy('class')}>Klass</Button>
@@ -208,8 +272,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         {byTerm && <div className="schema-filter"><fieldset><legend className="schema-note">Vissa pass går bara en termin. Visa veckan under</legend>
           {forslag.time.terms.map(t => <Button key={t.term} type="button" variant={shownTerm === t.term ? 'secondary' : 'outline'} aria-pressed={shownTerm === t.term} onClick={() => setShownTerm(t.term)}>{TERM[t.term]}</Button>)}</fieldset></div>}
         <div className="schema-moves">
-          <p className="schema-note">Välj ett pass i schemat för att flytta det. Varje flytt kontrolleras mot reglerna. Flyttar sparas inte: de försvinner när du lämnar sidan eller tar fram ett nytt förslag.</p>
-          <Button type="button" variant="outline" disabled={!last || checking} onClick={() => { if (last) void place(last.lesson, last.day, last.startMin, true); }}>Ångra senaste flytt</Button>
+          <p className="schema-note">Dra ett pass till en ny tid eller till viloytan, eller välj passet för att flytta det med flyttpanelen. Varje flytt kontrolleras mot reglerna. Flyttar sparas inte: de försvinner när du lämnar sidan eller tar fram ett nytt förslag.</p>
+          <Button type="button" variant="outline" disabled={!last || checking} onClick={() => { if (last) void place(last.lesson, last.day, last.startMin, true, last.room); }}>Ångra senaste flytt</Button>
         </div>
         <div ref={week} className="schema-week" style={{ '--days': forslag.days.length, '--span': end - start, '--first-hour': (hours[0] ?? start) - start } as CSSProperties}>
           <div className="schema-hours" aria-hidden="true">{hours.map(h => <span key={h} style={{ '--at': h - start } as CSSProperties}>{clock(h)}</span>)}</div>
@@ -218,23 +282,33 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
             const lane = lanes(lessons);
             return <section className="schema-day" key={day} aria-label={DAYS[day] ?? `Dag ${day + 1}`}>
               <h3>{DAYS[day] ?? `Dag ${day + 1}`}</h3>
-              <ol>{lessons.map(l => <li key={l.id} className={`schema-lesson${l.vacant ? ' vacant' : ''}${flagged.has(l.id) ? ' deviation' : ''}${picked === l.id ? ' picked' : ''}`} style={{ '--start': l.startMin! - start, '--length': l.durationMin, '--lane': lane.get(l.id)!.lane, '--lanes': lane.get(l.id)!.lanes } as CSSProperties}>
-                <button type="button" data-lesson={l.id} aria-pressed={picked === l.id} disabled={checking} title="Flytta passet" onClick={() => pick(l)}>
+              <ol data-day={day}>{lessons.map(l => <li key={l.id} className={`schema-lesson${l.vacant ? ' vacant' : ''}${flagged.has(l.id) ? ' deviation' : ''}${picked === l.id ? ' picked' : ''}${drop?.lesson === l.id ? ' dragging' : ''}`} style={{ '--start': l.startMin! - start, '--length': l.durationMin, '--lane': lane.get(l.id)!.lane, '--lanes': lane.get(l.id)!.lanes } as CSSProperties}>
+                <button type="button" data-lesson={l.id} aria-pressed={picked === l.id} disabled={checking} title="Flytta passet" onPointerDown={e => grab(e, l)} onClick={() => pick(l)}>
                   <time>{clock(l.startMin!)}–{clock(l.startMin! + l.durationMin)}</time><strong>{l.title}</strong>{flagged.has(l.id) && <em>Regelavvikelse</em>}<span>{detail(l)}{termTag(l)}</span></button></li>)}
+                {dragged && drop?.to?.day === day && drop.to.startMin !== null && <li className="schema-lesson schema-drop" aria-hidden="true" style={{ '--start': drop.to.startMin - start, '--length': dragged.durationMin } as CSSProperties}>
+                  <time>{clock(drop.to.startMin)}–{clock(drop.to.startMin + dragged.durationMin)}</time></li>}
                 {lessons.length === 0 && <li className="schema-free">Inga pass</li>}</ol>
             </section>;
           })}
         </div>
+        <div ref={rest} className={`schema-list schema-rest${drop?.to && drop.to.day === null ? ' over' : ''}`}><h2>Viloyta ({unplaced.length})</h2>
+          <p className="schema-note">Pass utan tid ligger här. Dra ett pass hit för att ta det ur veckan, och härifrån ut i veckan för att lägga det. Pass på viloytan räknas som avvikelse från timplanen.</p>
+          {unplaced.length === 0 ? <p className="schema-note">Inga pass på viloytan.</p>
+            : <ul className="schema-unplaced">{unplaced.map(l => <li key={l.id} className={drop?.lesson === l.id ? 'dragging' : undefined} onPointerDown={e => grab(e, l)}><span>{l.title}, {l.durationMin} min{termTag(l)} · {names(l.classIds, forslag.classes)}{l.teacherIds.length > 0 && ` · ${names(l.teacherIds, forslag.teachers)}`}</span>
+              <Button type="button" variant="outline" size="sm" disabled={checking} aria-label={`Lägg ut ${l.title}, ${names(l.classIds, forslag.classes)}`} onClick={() => pick(l)}>Lägg ut</Button></li>)}</ul>}</div>
       </>}
 
-      {pickedLesson && <form className="schema-move" aria-label="Flytta pass" onSubmit={e => { e.preventDefault(); void place(pickedLesson.id, target.day, target.startMin, false); }}>
-        <p><strong>{pickedLesson.title}</strong>, {pickedLesson.durationMin} min{termTag(pickedLesson)} · {names(pickedLesson.classIds, forslag.classes)}{pickedLesson.teacherIds.length > 0 && ` · ${names(pickedLesson.teacherIds, forslag.teachers)}`}
-          <span className="schema-note"> {pickedLesson.day === null || pickedLesson.startMin === null ? 'Har ingen tid.' : `Ligger nu ${DAYS[pickedLesson.day].toLowerCase()} ${clock(pickedLesson.startMin)}.`}</span></p>
-        <label>Dag<select ref={dayField} value={target.day} disabled={checking} onChange={e => { const day = Number(e.target.value), starts = startTimes(forslag, day, pickedLesson.durationMin); setTarget({ day, startMin: starts.includes(target.startMin) ? target.startMin : starts[0] ?? target.startMin }); }}>
+      {pickedLesson && <form className="schema-move" aria-label="Flytta pass" onSubmit={e => { e.preventDefault(); void place(pickedLesson.id, target.day, target.startMin, false, target.room); }}>
+        <p><strong>{pickedLesson.title}</strong>, {pickedLesson.durationMin} min{pickedLesson.marginMin > 0 && ` och ${pickedLesson.marginMin} min marginal`}{termTag(pickedLesson)} · {names(pickedLesson.classIds, forslag.classes)}{pickedLesson.teacherIds.length > 0 && ` · ${names(pickedLesson.teacherIds, forslag.teachers)}`}
+          <span className="schema-note"> {pickedLesson.day === null || pickedLesson.startMin === null ? 'Ligger på viloytan.' : `Ligger nu ${DAYS[pickedLesson.day].toLowerCase()} ${clock(pickedLesson.startMin)}${pickedLesson.roomId ? ` i ${roomName(pickedLesson.roomId)}` : ''}.`}</span></p>
+        <label>Dag<select ref={dayField} value={target.day} disabled={checking} onChange={e => { const day = Number(e.target.value), starts = startTimes(forslag, day, pickedLesson.durationMin + pickedLesson.marginMin); setTarget({ ...target, day, startMin: starts.includes(target.startMin) ? target.startMin : starts[0] ?? target.startMin }); }}>
           {forslag.days.map((_, day) => <option key={day} value={day}>{DAYS[day] ?? `Dag ${day + 1}`}</option>)}</select></label>
         <label>Starttid<select value={target.startMin} disabled={checking} onChange={e => setTarget({ ...target, startMin: Number(e.target.value) })}>
-          {startTimes(forslag, target.day, pickedLesson.durationMin).map(m => <option key={m} value={m}>{clock(m)}–{clock(m + pickedLesson.durationMin)}</option>)}</select></label>
-        <Button type="submit" disabled={checking || target.day === pickedLesson.day && target.startMin === pickedLesson.startMin}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
+          {startTimes(forslag, target.day, pickedLesson.durationMin + pickedLesson.marginMin).map(m => <option key={m} value={m}>{clock(m)}–{clock(m + pickedLesson.durationMin)}</option>)}</select></label>
+        {pickedLesson.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} disabled={checking} onChange={e => setTarget({ ...target, room: e.target.value || null })}>
+          <option value="">Första lediga</option>{pickedLesson.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
+        <Button type="submit" disabled={checking || target.day === pickedLesson.day && target.startMin === pickedLesson.startMin && target.room === pickedLesson.roomId}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
+        {pickedLesson.day !== null && <Button type="button" variant="outline" disabled={checking} onClick={() => void place(pickedLesson.id, null, null, false)}>Lägg på viloytan</Button>}
         <Button type="button" variant="outline" disabled={checking} onClick={() => { focus.current = pickedLesson.id; setPicked(null); }}>Avbryt</Button>
       </form>}
       <output aria-live="polite" className="schema-note">{checking ? 'Flytten kontrolleras mot reglerna.' : moved}</output>
@@ -245,18 +319,16 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <ul>{kontroll.violations.map((v, i) => <li key={i}>{v.message}</li>)}</ul>
           {kontroll.total > kontroll.violations.length && <p className="schema-note">Visar {kontroll.violations.length} av {kontroll.total}.</p>}</>}</div>}
 
-      {unplaced.length > 0 && <div className="schema-list"><h2>Pass utan tid ({unplaced.length})</h2>
-        <ul className="schema-unplaced">{unplaced.map(l => <li key={l.id}><span>{l.title}, {l.durationMin} min{termTag(l)} · {names(l.classIds, forslag.classes)}{l.teacherIds.length > 0 && ` · ${names(l.teacherIds, forslag.teachers)}`}</span>
-          <Button type="button" variant="outline" size="sm" disabled={checking} aria-label={`Lägg ut ${l.title}, ${names(l.classIds, forslag.classes)}`} onClick={() => pick(l)}>Lägg ut</Button></li>)}</ul></div>}
       {forslag.diagnoses.length > 0 && <div className="schema-list"><h2>Schemamotorns förklaring</h2>
         <ul>{forslag.diagnoses.map((x, i) => <li key={i}>{x.message}{x.proof && ' (Bevisat: det går inte med det här underlaget.)'}</li>)}</ul></div>}
       {deviating.length > 0 && <details className="schema-list"><summary><h2>Tid över {forslag.period === 'lasar' ? 'läsåret' : 'terminen'} ({deviating.length})</h2>
-        <span className="schema-note">Störst skillnad mot behovet: {hoursText(Math.abs(deviating[0].plannedMin - deviating[0].needMin))} ({deviating[0].title}).</span></summary>
-        <p className="schema-note">Utlagd tid är passens längd gånger antalet skoldagar på passets veckodag under den tid passet går. Behovet är timplanens tid enligt tjänstefördelningen. Störst skillnad står först.</p>
-        <Table><TableHeader><TableRow><TableHead>Undervisning</TableHead><TableHead>Klass</TableHead><TableHead>Behov</TableHead><TableHead>Utlagt</TableHead><TableHead>Skillnad</TableHead></TableRow></TableHeader>
+        <span className="schema-note">{off + byCalendar === 0 ? 'All undervisning följer timplanen.' : `${off + byCalendar} av ${deviating.length} skiljer sig från timplanen.`}</span></summary>
+        <p className="schema-note">Timplanen bestämmer hur mycket undervisning som läggs; villkor och flytt ändrar bara när och var. Utlagd tid är passens längd gånger antalet skoldagar på passets veckodag under den tid passet går. Avvikelser står först. Skillnad som beror på veckodagarnas skoldagar går inte att rätta i ett veckoschema; den kräver perioder med avvikande schema, som inte finns än.</p>
+        <Table><TableHeader><TableRow><TableHead>Undervisning</TableHead><TableHead>Klass</TableHead><TableHead>Timplan</TableHead><TableHead>Utlagt</TableHead><TableHead>Skillnad</TableHead><TableHead>Följer timplanen</TableHead></TableRow></TableHeader>
           <TableBody>{deviating.map((t, i) => <TableRow key={i}><TableCell>{t.title}</TableCell><TableCell>{t.classes.join(', ') || '–'}</TableCell><TableCell>{hoursText(t.needMin)}</TableCell>
             <TableCell>{hoursText(t.plannedMin)}{t.unplaced > 0 && ` (${t.unplaced} pass utan tid)`}</TableCell>
-            <TableCell>{t.plannedMin > t.needMin ? '+' : t.plannedMin < t.needMin ? '−' : ''}{hoursText(Math.abs(t.plannedMin - t.needMin))}</TableCell></TableRow>)}</TableBody></Table></details>}
+            <TableCell>{t.plannedMin > t.needMin ? '+' : t.plannedMin < t.needMin ? '−' : ''}{hoursText(Math.abs(t.plannedMin - t.needMin))}</TableCell>
+            <TableCell>{t.deviation ? `Nej: ${TIMPLAN[t.deviation].toLowerCase()}` : 'Ja'}</TableCell></TableRow>)}</TableBody></Table></details>}
       <div className="schema-list"><h2>Elever och grupper</h2>
         {forslag.members.pupils === 0
           ? <p>Inga elever med klass eller grupp kunde läsas för läsåret. Ett valbart block läggs då som ett gemensamt pass och en grupp upptar hela sina klasser.</p>
@@ -275,8 +347,10 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <li>Pass om högst {forslag.villkor.maxLessonMin} min. Samma ämne samma dag: {SAME_DAY[forslag.villkor.sameDay].toLowerCase()}.{forslag.villkor.lateAfterMin !== null && ` Pass efter ${clock(forslag.villkor.lateAfterMin)} undviks.`}</li>
           {(forslag.villkor.studentMaxMinPerDay !== null || forslag.villkor.teacherMaxMinPerDay !== null) && <li>Högsta undervisningstid per dag:{forslag.villkor.studentMaxMinPerDay !== null && ` elever ${hoursText(forslag.villkor.studentMaxMinPerDay)}`}{forslag.villkor.studentMaxMinPerDay !== null && forslag.villkor.teacherMaxMinPerDay !== null && ','}{forslag.villkor.teacherMaxMinPerDay !== null && ` lärare ${hoursText(forslag.villkor.teacherMaxMinPerDay)}`}.</li>}
           <li>Timplanens tid per termin delas på terminens skoldagar räknade som femdagarsveckor. {forslag.period !== 'lasar' ? 'Samma veckoschema antas gälla hela terminen'
-            : forslag.villkor.termDiffPct === null ? 'Undervisning båda terminerna läggs jämnt över läsåret med samma veckoschema' : `Undervisning får samma veckoschema hela läsåret när veckotiden skiljer högst ${forslag.villkor.termDiffPct} % mellan terminerna och samma lärare har den; annars egna pass per termin`}; därför kan utlagd tid skilja sig från behovet.</li>
-          <li>Salar, lärares tillgänglighet och önskemål ingår inte än.</li>
+            : forslag.villkor.termDiffPct === null ? 'Undervisning båda terminerna läggs jämnt över läsåret med samma veckoschema' : `Undervisning får samma veckoschema hela läsåret när veckotiden skiljer högst ${forslag.villkor.termDiffPct} % mellan terminerna och samma lärare har den; annars egna pass per termin`}{forslag.villkor.termDiffPct !== 0 && '; därför kan utlagd tid skilja sig från timplanen'}.</li>
+          {forslag.villkor.egna.map((r, i) => <li key={i}>Eget villkor: {ruleText(r, forslag.resurser)}.{forslag.egnaUtanTraff.includes(i) && ' Träffade inget i underlaget och användes inte.'}</li>)}
+          {forslag.villkor.egna.some(r => r.typ === 'marginal') && <li>Marginal till nästa lektion gäller passets lärare och elever. Den räknas in i dagens undervisningstid, och passet måste sluta marginalen före skoldagens slut.</li>}
+          <li>{forslag.rooms.length > 0 ? `Salar: ${forslag.rooms.map(r => r.name).join(', ')}. Bara pass med ett salsvillkor får en sal.` : 'Inga salar är angivna; passen läggs utan sal.'}</li>
           <li>Flytt för hand kontrolleras mot samma regler som förslaget. En flytt som bryter en regel görs ändå och visas som regelavvikelse.</li>
           <li>Pass med streckad kant saknar lärare i tjänstefördelningen.</li>
         </ul></div>
@@ -285,7 +359,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
 }
 
 /** Villkoren för schemat (05.2-SM-LASAR-VILLKOR, V2). Värdena prövas här och igen på servern. */
-function Villkor({ value: v, disabled, issues, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; onChange: (next: SchemaVillkor) => void }) {
+function Villkor({ value: v, disabled, issues, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS, set = (patch: Partial<SchemaVillkor>) => onChange({ ...v, ...patch });
   const time = (label: string, minutes: number, change: (minutes: number) => void, hidden = false) => <label className={hidden ? 'schema-time bare' : 'schema-time'}><span className={hidden ? 'sr-only' : undefined}>{label}</span>
     <input type="time" step={300} required disabled={disabled} value={clock(minutes)} onChange={e => { const next = minutesOf(e.target.value); if (next !== null) change(next); }}/></label>;
@@ -296,7 +370,7 @@ function Villkor({ value: v, disabled, issues, onChange }: { value: SchemaVillko
   const lunch = v.lunch ?? defaultSchemaVillkor().lunch!, late = v.lateAfterMin ?? defaultSchemaVillkor().lateAfterMin!;
   const changed = JSON.stringify(v) !== JSON.stringify(defaultSchemaVillkor());
   return <details className="schema-list schema-villkor schema-wide">
-    <summary><h2>Villkor för schemat</h2><span className="schema-note">{changed ? 'Ändrade' : 'Förval'}: skoldag {daysText(v.days)}, pass högst {v.maxLessonMin} min, {v.lunch ? `lunch ${v.lunch.lengthMin} min` : 'ingen lunch'}.</span></summary>
+    <summary><h2>Villkor för schemat</h2><span className="schema-note">{changed ? 'Ändrade' : 'Förval'}: skoldag {daysText(v.days)}, pass högst {v.maxLessonMin} min, {v.lunch ? `lunch ${v.lunch.lengthMin} min` : 'ingen lunch'}{v.egna.length > 0 && `, ${v.egna.length} egna villkor`}.</span></summary>
     <p className="schema-note">Villkoren gäller nästa förslag. De sparas inte i systemet; den här webbläsaren minns dem för skolan när ett förslag har tagits fram.</p>
     {issues.length > 0 && <div className="valplan-alert" role="alert"><p>Rätta villkoren för att kunna ta fram ett förslag:</p><ul>{issues.map(x => <li key={x}>{x}</li>)}</ul></div>}
     <div className="schema-villkor-groups">
@@ -331,7 +405,66 @@ function Villkor({ value: v, disabled, issues, onChange }: { value: SchemaVillko
         {choice('Egna pass per termin', v.termDiffPct, steps(0, 50, 5, v.termDiffPct), n => set({ termDiffPct: n }), n => n === 0 ? 'vid minsta skillnad i veckotid' : `när veckotiden skiljer mer än ${n} %`, 'aldrig – jämnt över läsåret')}
         <p className="schema-note">Timplanen anger tiden per termin. Undervisning som bara har tid en termin läggs alltid bara den terminen.</p>
       </fieldset>
+      <Egna value={v} disabled={disabled} resurser={resurser} onChange={onChange}/>
     </div>
     <div><Button type="button" variant="outline" disabled={disabled || !changed} onClick={() => onChange(defaultSchemaVillkor())}>Återställ förval</Button></div>
   </details>;
+}
+
+/** Salar och egna villkor per klass, grupp, ämne, lärare och sal (05.2-SM-VILLKOR-PER-RESURS, R1–R6). */
+function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
+  const L = SCHEMA_VILLKOR_LIMITS;
+  const [sal, setSal] = useState('');
+  const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as SchemaRegelTyp, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, minutes: 15, maxMin: 60, count: 2, rooms: [] as string[] });
+  const name = sal.trim(), canAddSal = name.length > 0 && name.length <= L.salNamn && v.salar.length < L.salar && !v.salar.some(x => x.toLowerCase() === name.toLowerCase());
+  const addSal = () => { if (canAddSal) { onChange({ ...v, salar: [...v.salar, name] }); setSal(''); } };
+  // En sal som tas bort tas också bort ur villkoren.
+  const removeSal = (room: string) => onChange({ ...v, salar: v.salar.filter(x => x !== room),
+    egna: v.egna.flatMap((r): SchemaRegel[] => r.slag === 'sal' && r.ref === room ? [] : !('rooms' in r) ? [r] : r.rooms.some(x => x !== room) ? [{ slag: r.slag, ref: r.ref, typ: 'sal', rooms: r.rooms.filter(x => x !== room) }] : []) });
+  // Före första förslaget är bara salarna kända.
+  const slagen = SCHEMA_REGEL_SLAG.filter(x => x === 'sal' ? v.salar.length > 0 : resurser !== null && resurser[x].length > 0);
+  const slag = slagen.includes(draft.slag) ? draft.slag : slagen[0] ?? null;
+  const choices = slag === null ? [] : slag === 'sal' ? v.salar.map(x => ({ ref: x, name: x })) : resurser?.[slag] ?? [];
+  const ref = choices.some(c => c.ref === draft.ref) ? draft.ref : choices[0]?.ref ?? '';
+  const types = slag === null ? [] : SCHEMA_REGEL_TYPER[slag].filter(t => t !== 'sal' || v.salar.length > 0), typ = types.includes(draft.typ) ? draft.typ : types[0];
+  const rooms = draft.rooms.filter(x => v.salar.includes(x));
+  const rule: SchemaRegel | null = slag === null || !ref || !typ ? null
+    : typ === 'sparrad' || typ === 'tillaten' ? (draft.days.length > 0 && draft.startMin < draft.endMin ? { slag, ref, typ, days: [...draft.days].sort((a, b) => a - b), startMin: draft.startMin, endMin: draft.endMin } : null)
+    : typ === 'marginal' ? { slag, ref, typ, minutes: draft.minutes } : typ === 'langd' ? { slag, ref, typ, maxMin: draft.maxMin } : typ === 'antal' ? { slag, ref, typ, count: draft.count }
+    : rooms.length > 0 ? { slag, ref, typ, rooms } : null;
+  const range = (from: number, to: number, step: number) => Array.from({ length: Math.floor((to - from) / step) + 1 }, (_, i) => from + i * step);
+  const time = (label: string, minutes: number, change: (minutes: number) => void) => <label className="schema-time">{label}
+    <input type="time" step={300} required value={clock(minutes)} onChange={e => { const next = minutesOf(e.target.value); if (next !== null) change(next); }}/></label>;
+  const number = (label: string, current: number, options: number[], change: (n: number) => void, text: (n: number) => string) => <label>{label}
+    <select value={current} onChange={e => change(Number(e.target.value))}>{options.map(n => <option key={n} value={n}>{text(n)}</option>)}</select></label>;
+  return <>
+    <fieldset disabled={disabled}><legend>Salar</legend>
+      <p className="schema-note">Ange de salar som villkor ska kunna gälla, till exempel idrottshallen eller en labbsal. Pass utan salsvillkor läggs utan sal.</p>
+      <label>Salens namn<input type="text" maxLength={L.salNamn} value={sal} onChange={e => setSal(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSal(); } }}/></label>
+      <div><Button type="button" variant="outline" size="sm" disabled={disabled || !canAddSal} onClick={addSal}>Lägg till sal</Button></div>
+      {v.salar.length > 0 && <ul className="schema-egna" aria-label="Salar">{v.salar.map(x => <li key={x}><span>{x}</span>
+        <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort sal ${x}`} onClick={() => removeSal(x)}>Ta bort</Button></li>)}</ul>}
+    </fieldset>
+    <fieldset disabled={disabled} className="schema-wide"><legend>Egna villkor</legend>
+      <p className="schema-note">Ett eget villkor gäller en klass, en grupp, ett ämne, en lärare eller en sal. Villkoren styr när och var passen läggs och hur veckotiden delas i pass. Hur mycket undervisning som läggs bestäms alltid av timplanen.</p>
+      {resurser === null && <p className="schema-note">Ta fram ett första förslag för att kunna välja klass, grupp, ämne och lärare.</p>}
+      {slag !== null && <div className="schema-egna-form">
+        <label>Gäller<select value={slag} onChange={e => setDraft({ ...draft, slag: e.target.value as SchemaRegelSlag, ref: '' })}>{slagen.map(x => <option key={x} value={x}>{SLAG[x]}</option>)}</select></label>
+        <label>{SLAG[slag]}<select value={ref} onChange={e => setDraft({ ...draft, ref: e.target.value })}>{choices.map(c => <option key={c.ref} value={c.ref}>{c.name}</option>)}</select></label>
+        <label>Villkor<select value={typ} onChange={e => setDraft({ ...draft, typ: e.target.value as SchemaRegelTyp })}>{types.map(t => <option key={t} value={t}>{REGEL[t]}</option>)}</select></label>
+        {(typ === 'sparrad' || typ === 'tillaten') && <>
+          <fieldset className="schema-days schema-wide"><legend className="sr-only">Veckodagar</legend>{DAYS.slice(0, 5).map((d, i) => <label key={d} className="schema-check">
+            <input type="checkbox" checked={draft.days.includes(i)} onChange={e => setDraft({ ...draft, days: e.target.checked ? [...draft.days, i] : draft.days.filter(x => x !== i) })}/>{d}</label>)}</fieldset>
+          {time('Från', draft.startMin, startMin => setDraft({ ...draft, startMin }))}{time('Till', draft.endMin, endMin => setDraft({ ...draft, endMin }))}</>}
+        {typ === 'marginal' && number('Marginal', draft.minutes, range(L.marginal[0], L.marginal[1], 5), minutes => setDraft({ ...draft, minutes }), n => `${n} min`)}
+        {typ === 'langd' && number('Längsta pass', draft.maxMin, range(L.maxLesson[0], L.maxLesson[1], 5), maxMin => setDraft({ ...draft, maxMin }), n => `${n} min`)}
+        {typ === 'antal' && number('Pass per vecka', draft.count, range(L.antal[0], L.antal[1], 1), count => setDraft({ ...draft, count }), n => String(n))}
+        {typ === 'sal' && <fieldset className="schema-days schema-wide"><legend className="sr-only">Salar för villkoret</legend>{v.salar.map(x => <label key={x} className="schema-check">
+          <input type="checkbox" checked={rooms.includes(x)} onChange={e => setDraft({ ...draft, rooms: e.target.checked ? [...rooms, x] : rooms.filter(y => y !== x) })}/>{x}</label>)}</fieldset>}
+        <div><Button type="button" variant="outline" disabled={disabled || rule === null || v.egna.length >= L.egna} onClick={() => { if (rule) onChange({ ...v, egna: [...v.egna, rule] }); }}>Lägg till villkor</Button></div>
+      </div>}
+      {v.egna.length > 0 && <ul className="schema-egna" aria-label="Egna villkor">{v.egna.map((r, i) => <li key={i}><span>{ruleText(r, resurser)}</span>
+        <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort villkoret ${ruleText(r, resurser)}`} onClick={() => onChange({ ...v, egna: v.egna.filter((_, at) => at !== i) })}>Ta bort</Button></li>)}</ul>}
+    </fieldset>
+  </>;
 }
