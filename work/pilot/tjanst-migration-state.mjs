@@ -61,6 +61,8 @@ export const TJANST_MIGRATION_REGISTRY = Object.freeze([
   ['supabase/migrations/20261112140000_lasar_summary.sql', '29b6397a3ef7ff56e872e56a1abb3c45df1221999b0b3cbdcbe6829f35dc1901'],
   // 05.1.1-13: Workerns rätt att köra lasar_summary, i en egen grant-fil direkt efter sammanfattningens fil.
   ['supabase/migrations/20261112141000_lasar_summary_worker_access.sql', '50801415b79cae0eaf8443150e43557003dee0e54263a43cc0ec7cdf6e28c486'],
+  // Prestanda: radens behov slås upp i de redan räknade behoven (tjanst_need_in); bygger om tjanst_year_core och tjanst_plan_blockers.
+  ['supabase/migrations/20261112150000_tjanst_need_once.sql', '96bd7c660afc8891b9f03e90a5a89c327a1705625a8b9e72a4758023956c5ff5'],
 ].map(([file, sha256]) => Object.freeze({ file, version: file.split('/').at(-1).slice(0, 14), sha256 })));
 export const TJANST_BASELINE_LENGTH = 7;
 export const TJANST_GAP_LENGTH = 8;

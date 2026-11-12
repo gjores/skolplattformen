@@ -34,7 +34,9 @@ export const lasarMigrations = ['supabase/migrations/20261111100000_lasar_versio
   'supabase/migrations/20261112120000_lasar_frames.sql', 'supabase/migrations/20261112130000_lasar_copy_overview.sql',
   'supabase/migrations/20261112131000_lasar_overview_worker_access.sql', 'supabase/migrations/20261112140000_lasar_summary.sql',
   'supabase/migrations/20261112141000_lasar_summary_worker_access.sql'];
-export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations, ...tjanstClassAplMigrations, ...tjanstNeedSharingMigrations, ...lasarMigrations];
+/** Radens behov slås upp i de redan räknade behoven (prestanda); bygger om tjanst_year_core efter kalenderns filer. */
+export const tjanstNeedOnceMigrations = ['supabase/migrations/20261112150000_tjanst_need_once.sql'];
+export const tjanstMigrations = [...tjanstEtapp1Migrations, ...tjanstGapMigrations, ...tjanstPublishScopeMigrations, ...tjanstYearPreviewMigrations, ...tjanstYearCommandMigrations, ...tjanstYearAccessMigrations, ...tjanstJointTeacherMigrations, ...tjanstClassAplMigrations, ...tjanstNeedSharingMigrations, ...lasarMigrations, ...tjanstNeedOnceMigrations];
 
 const ROLE_NUMBERS = { hm: 10, principalA: 11, principalB: 12, principalAB: 13, teacherGroup: 14, teacherSelf: 15, teacherSelf2: 16, admin: 17, foreignHm: 18, teacherSelf3: 19 };
 
