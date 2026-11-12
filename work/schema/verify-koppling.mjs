@@ -1,14 +1,15 @@
-// Kedjeprov för 05.2-SM-KOPPLING och -ELEVER-KALENDER med syntetiska uppgifter: tjänstefördelning, elevernas grupper och terminens skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER och -FLYTT med syntetiska uppgifter: tjänstefördelning, elevernas grupper och terminens skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { mkdtempSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, schemaForslag } from '../../web/lib/schema-underlag.ts';
-import { parseSchemaForslag, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
+import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../../web/lib/schema-underlag.ts';
+import { checkSchemaPlacements, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`, h = n => n * 60;
@@ -75,7 +76,36 @@ try {
   console.log(JSON.stringify({ status: forslag.status, ...forslag.metrics, elapsedMs: forslag.elapsedMs, classes: forslag.classes.length, teachers: forslag.teachers.length,
     validatorExit: check.status, validator: (check.stdout + check.stderr).trim().split('\n').slice(-3) }, null, 1));
   assert.equal(check.status, 0, 'kontrollanten godkände inte resultatet');
-  // Valfritt: spara det namnsatta förslaget som syntetiskt underlag för vyns prov.
-  if (process.env.SCHEMA_FORSLAG_OUT) writeFileSync(process.env.SCHEMA_FORSLAG_OUT, JSON.stringify(forslag));
+  // Flytt för hand (05.2-SM-FLYTT): samma steg som appens kontrollrutt, mot tjänstens /v1/validate.
+  const kontroll = async lessons => {
+    const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin }]), underlag.problem);
+    const reply = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ problem: underlag.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin })) }) });
+    assert.equal(reply.status, 200);
+    return parseSchemaKontroll(JSON.parse(JSON.stringify(schemaKontroll(underlag, placements, parseSchemaCheck(await reply.json(), underlag.problem)))), forslag.fingerprint);
+  };
+  assert.equal((await fetch(`${url}/v1/validate`, { method: 'POST', body: JSON.stringify({ problem: underlag.problem, placements: [] }) })).status, 401);
+  assert.equal((await kontroll(forslag.lessons)).total, 0, 'förslaget som det räknades ska vara utan avvikelser');
+  // Ett pass i klass 1 flyttas till en tid där klassen redan har ett annat pass: samma elever på två ställen.
+  const own = forslag.lessons.filter(l => l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.day !== null && !l.vacant);
+  const a = own[0], b = own.find(l => l.id !== a.id && l.day !== a.day && l.startMin + a.durationMin <= forslag.days[l.day].endMin);
+  const move = { lesson: a.id, day: b.day, startMin: b.startMin }, movedLessons = forslag.lessons.map(l => l.id === a.id ? { ...l, day: move.day, startMin: move.startMin } : l);
+  const clash = await kontroll(movedLessons);
+  assert.ok(clash.violations.some(v => v.code === 'student_clash' && v.lessons.includes(a.id) && v.lessons.includes(b.id) && v.message.includes('Klass 1')), 'elevkrocken redovisas inte');
+  assert.ok(clash.violations.every(v => !/\b(?:pass|grupp|kluster|larare|behov)-\d/u.test(v.message)), 'löpnummer i avvikelsetext');
+  assert.equal((await kontroll(forslag.lessons)).total, 0, 'ångrad flytt ska ge ett schema utan avvikelser');
+  const lifted = await kontroll(forslag.lessons.map(l => l.id === a.id ? { ...l, day: null, startMin: null } : l));
+  assert.deepEqual([lifted.total, lifted.metrics.unplaced, lifted.teachings.reduce((n, t) => n + t.unplaced, 0)], [0, 1, 1]);
+  assert.throws(() => checkSchemaPlacements([{ lesson: a.id, day: 0, startMin: forslag.days[0].endMin }], underlag.problem), 'tid utanför skoldagen ska nekas före motorn');
+  // Ändrat underlag (en lärare byts) ger ett annat fingeravtryck: kontrollrutten nekar då flytten.
+  const other = { ...plan, rows: plan.rows.map((r, i) => i === 0 ? { ...r, personId: uid(200 + TEACHERS - 1) } : r) };
+  assert.notEqual(buildSchemaUnderlag(other, request, basis).fingerprint, underlag.fingerprint);
+  assert.equal(buildSchemaUnderlag(plan, request, basis).fingerprint, underlag.fingerprint);
+  console.log(JSON.stringify({ flytt: { violations: clash.total, codes: [...new Set(clash.violations.map(v => v.code))], first: clash.violations[0].message } }));
+  // Valfritt: spara det namnsatta förslaget och en kontrollerad flytt som syntetiskt underlag för vyns prov.
+  if (process.env.SCHEMA_FORSLAG_OUT) {
+    writeFileSync(process.env.SCHEMA_FORSLAG_OUT, JSON.stringify(forslag));
+    writeFileSync(join(dirname(process.env.SCHEMA_FORSLAG_OUT), 'schema-kontroll.json'), JSON.stringify({ move, clash, lifted }));
+  }
   assert.equal(forslag.status, 'complete');
 } finally { service.kill(); }

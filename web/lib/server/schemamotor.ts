@@ -4,7 +4,7 @@
  * Varken underlag, svar eller token loggas.
  */
 import { env as bindings } from 'cloudflare:workers';
-import { parseSchemaSolution, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
+import { parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
 
 const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
@@ -21,18 +21,28 @@ function config(): { url: string; token: string } {
   return { url, token };
 }
 
-export async function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
+async function call<T>(path: string, body: unknown, timeMs: number, parse: (value: unknown) => T): Promise<T> {
   const { url, token } = config();
   let response: Response, text: string;
   try {
-    response = await fetch(`${url}/v1/solve?time_ms=${SCHEMA_ENGINE_TIME_MS}`, { method: 'POST', redirect: 'error',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(problem),
-      signal: AbortSignal.timeout(SCHEMA_ENGINE_TIME_MS + MARGIN_MS) });
+    response = await fetch(`${url}${path}`, { method: 'POST', redirect: 'error',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      signal: AbortSignal.timeout(timeMs + MARGIN_MS) });
     text = await response.text();
   } catch { throw new SchemaEngineError('schema_engine_unreachable'); }
   if (response.status === 429) throw new SchemaEngineError('schema_engine_busy');
   // 401 betyder fel token i konfigurationen: motorn är då inte ansluten på ett användbart sätt.
   if (response.status === 401) throw new SchemaEngineError('schema_engine_unconfigured');
   if (!response.ok || text.length > REPLY_BYTES) throw new SchemaEngineError('schema_engine_bad_reply');
-  try { return parseSchemaSolution(JSON.parse(text), problem); } catch { throw new SchemaEngineError('schema_engine_bad_reply'); }
+  try { return parse(JSON.parse(text)); } catch { throw new SchemaEngineError('schema_engine_bad_reply'); }
+}
+
+export function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
+  return call(`/v1/solve?time_ms=${SCHEMA_ENGINE_TIME_MS}`, problem, SCHEMA_ENGINE_TIME_MS, value => parseSchemaSolution(value, problem));
+}
+
+/** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. */
+export function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
+  return call('/v1/validate', { problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin })) }, 0,
+    value => parseSchemaCheck(value, problem));
 }

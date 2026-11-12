@@ -5,8 +5,8 @@
  * skoldagar (05.2-SM-ELEVER-KALENDER, E1–E6). Skoldagens ramar (K7) är antaganden tills skolans egna uppgifter finns.
  */
 import type { TjanstPlanRead, TjanstRow } from './tjanst-contract.ts';
-import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaForslagRequest, type SchemaMembers, type SchemaOmission, type SchemaProblem, type SchemaSolution,
-  type SchemaTerm, type SchemaTime } from './schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
+  type SchemaSolution, type SchemaTerm, type SchemaTime } from './schema-contract.ts';
 
 export const SCHEMA_DEFAULTS = { dayStartMin: 8 * 60, dayEndMin: 16 * 60 + 30, days: 5, stepMin: 5, startGridMin: 10, breakMin: 10,
   lunch: { window_start_min: 10 * 60 + 30, window_end_min: 13 * 60 + 30, length_min: 40, teachers: true }, lateAfterMin: 15 * 60 + 30,
@@ -24,7 +24,7 @@ export type SchemaLabels = {
   lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean }[];
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime };
-export type SchemaUnderlag = { problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members'] };
+export type SchemaUnderlag = { problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string };
 
 /** Utan läsårskalender: ett fast antal lika veckor (förval). */
 export function defaultSchemaTime(term: SchemaTerm): SchemaTime {
@@ -41,6 +41,22 @@ export function mergeSchemaMembers(sources: { pupils: { id: string; classIds: st
     for (const m of source.memberships) memberships.push({ groupId: m.groupId, pupilId: m.pupilId, startsOn: m.startsOn, endsOn: m.endsOn });
   }
   return known ? { pupils: [...pupils].map(([id, classIds]) => ({ id, classIds: [...classIds] })), memberships } : null;
+}
+
+/**
+ * Fingeravtryck av underlaget (05.2-SM-FLYTT, F2): samma underlag ger samma värde, och en ändring av pass, lärare, grupper, tider eller namn ger ett annat.
+ * Det upptäcker ändringar och skyddar ingenting; servern bygger alltid underlaget själv ur sin egen läsning.
+ */
+export function schemaFingerprint(problem: SchemaProblem, labels: SchemaLabels): string {
+  const text = JSON.stringify([problem, labels]);
+  const part = (seed: number) => {
+    let a = 0xdeadbeef ^ seed, b = 0x41c6ce57 ^ seed;
+    for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i); a = Math.imul(a ^ c, 2654435761); b = Math.imul(b ^ c, 1597334677); }
+    a = Math.imul(a ^ (a >>> 16), 2246822507) ^ Math.imul(b ^ (b >>> 13), 3266489909);
+    b = Math.imul(b ^ (b >>> 16), 2246822507) ^ Math.imul(a ^ (a >>> 13), 3266489909);
+    return (4294967296 * (2097151 & b) + (a >>> 0)).toString(16).padStart(14, '0');
+  };
+  return part(1) + part(2);
 }
 
 const round5 = (minutes: number) => Math.round(minutes / 5) * 5;
@@ -224,28 +240,51 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     });
   }
   const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
-  return { problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice } };
+  return { problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels) };
 }
 
 /** Motorns klartext bär löpnummer; här byts de mot namn innan texten visas. */
-function named(message: string, labels: SchemaLabels): string {
+function named(message: string, labels: SchemaLabels, withClasses = false): string {
+  const className = new Map(labels.classes.map(c => [c.id, c.name]));
+  const lesson = (l: SchemaLabels['lessons'][number]) => withClasses && l.classIds.length ? `${l.title} (${l.classIds.map(id => className.get(id) ?? id).join(', ')})` : l.title;
   const name = new Map<string, string>([...Object.entries(labels.names), ...labels.classes.map(c => [c.id, c.name] as const),
-    ...labels.teachers.map(t => [t.id, t.name] as const), ...labels.lessons.map(l => [l.id, l.title] as const), ...labels.lessons.map(l => [l.activity, l.title] as const)]);
+    ...labels.teachers.map(t => [t.id, t.name] as const), ...labels.lessons.map(l => [l.id, lesson(l)] as const), ...labels.lessons.map(l => [l.activity, l.title] as const)]);
   return message.replace(/\b(?:grupp|kluster|larare|pass|behov)-\d+\b/giu, id => name.get(id.toLowerCase()) ?? id);
+}
+
+/** Utlagd tid per undervisning: passens längd gånger skoldagarna på passets veckodag. */
+function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacement>): SchemaForslag['teachings'] {
+  return underlag.labels.activities.map(a => {
+    const own = underlag.labels.lessons.filter(l => l.activity === a.id).map(l => ({ durationMin: l.durationMin, day: at.get(l.id)?.day ?? null }));
+    return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced: own.filter(l => l.day === null).length,
+      plannedMin: own.reduce((sum, l) => sum + (l.day === null ? 0 : l.durationMin * (a.perWeekday[l.day] ?? 0)), 0) };
+  });
+}
+
+const WEEKDAYS = ['måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag', 'söndag'];
+/** Kontrollantens regelbrott med namn i stället för löpnummer och veckodag i stället för dagnummer. Lika rader slås ihop. */
+export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlacement[], check: SchemaCheck): SchemaKontroll {
+  const seen = new Set<string>(), violations: SchemaKontroll['violations'] = [], total = underlag.labels.lessons.length;
+  for (const v of check.violations) {
+    const message = named(v.message, underlag.labels, true).replace(/\bdag (\d+)\b/gu, (all, n: string) => WEEKDAYS[Number(n)] ?? all);
+    const key = `${v.code}|${message}|${v.lessons.join(',')}`;
+    if (seen.has(key)) continue;
+    seen.add(key); violations.push({ code: v.code, message, lessons: v.lessons });
+  }
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, violations: violations.slice(0, SCHEMA_LIMITS.shownViolations), total: violations.length,
+    teachings: plannedTeachings(underlag, new Map(placements.map(p => [p.lesson, p]))),
+    metrics: { lessons: total, placed: placements.length, unplaced: total - placements.length, ...check.metrics } };
 }
 
 export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagRequest, underlag: SchemaUnderlag, solution: SchemaSolution): SchemaForslag {
   const at = new Map(solution.placements.map(p => [p.lesson, p]));
   const lessons = underlag.labels.lessons.map(({ activity: _activity, ...l }) => ({ ...l, day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null }));
   const days = underlag.time.perWeekday.reduce((sum, n) => sum + n, 0);
-  const teachings = underlag.labels.activities.map(a => {
-    const own = lessons.filter(l => underlag.labels.lessons.find(x => x.id === l.id)!.activity === a.id);
-    return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced: own.filter(l => l.day === null).length,
-      plannedMin: own.reduce((sum, l) => sum + (l.day === null ? 0 : l.durationMin * (a.perWeekday[l.day] ?? 0)), 0) };
-  });
+  const teachings = plannedTeachings(underlag, at);
   const usedTeachers = new Set(lessons.flatMap(l => l.teacherIds)), usedClasses = new Set(lessons.flatMap(l => l.classIds));
   return {
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, term: request.term, schoolName: plan.schoolName,
+    fingerprint: underlag.fingerprint, startGridMin: underlag.problem.time.start_grid_min,
     time: { source: underlag.time.source, version: underlag.time.version, status: underlag.time.status, current: underlag.time.current, schoolDays: days, weeks: days / 5 },
     members: underlag.members, teachings,
     basis: plan.version ? { versionNo: plan.version.versionNo, status: plan.version.status } : null,

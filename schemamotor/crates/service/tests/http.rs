@@ -86,3 +86,29 @@ fn busy_service_answers_429_and_time_is_capped() {
     assert!(started.elapsed().as_millis() < 5000);
     assert_eq!(call(&addr, "POST", "/v1/solve?time_ms=200", Some(TOKEN), &problem(2)).0, 200);
 }
+
+#[test]
+fn validate_reports_violations_without_changing_anything() {
+    let addr = start(Config::new(TOKEN.into()));
+    let problem: serde_json::Value = serde_json::from_str(&problem(2)).unwrap();
+    let body = |b_start: u32| serde_json::json!({"problem": problem, "placements": [
+        {"lesson": "pass-0", "day": 0, "start_min": 480}, {"lesson": "pass-1", "day": 0, "start_min": b_start}]})
+    .to_string();
+    assert_eq!(call(&addr, "POST", "/v1/validate", None, &body(480)).0, 401);
+    assert_eq!(call(&addr, "POST", "/v1/validate?time_ms=5", Some(TOKEN), &body(480)).0, 400);
+    assert_eq!(call(&addr, "POST", "/v1/validate", Some(TOKEN), "{\"problem\":1}").0, 400);
+
+    let (status, out) = call(&addr, "POST", "/v1/validate", Some(TOKEN), &body(500));
+    assert_eq!(status, 200);
+    let clash: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(clash["problem_id"], "prov");
+    let violations = clash["violations"].as_array().unwrap();
+    assert!(!violations.is_empty());
+    assert!(violations.iter().all(|v| v["lessons"].as_array().unwrap().len() == 2 && v["message"].as_str().is_some()));
+
+    let (status, out) = call(&addr, "POST", "/v1/validate", Some(TOKEN), &body(600));
+    assert_eq!(status, 200);
+    let fine: serde_json::Value = serde_json::from_str(&out).unwrap();
+    assert_eq!(fine["violations"].as_array().unwrap().len(), 0);
+    assert_eq!(fine["metrics"]["placed_lessons"], 2);
+}

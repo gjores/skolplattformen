@@ -3,10 +3,14 @@
 //! `POST /v1/solve` tar ett underlag och svarar med resultatet. Tjänsten läser
 //! ingen databas, sparar inget och loggar aldrig innehåll. Varje anrop kräver
 //! bärartoken. Storlek, räknetid och antal samtidiga körningar är begränsade.
+//! `POST /v1/validate` tar underlag och placeringar och svarar med kontrollantens
+//! regelbrott; inget räknas om och inget rättas.
 //! Kö, jobbstatus och avbryt återstår.
 
-use schemamotor_model::{Problem, CONTRACT_VERSION};
+use schemamotor_model::{Placement, Problem, CONTRACT_VERSION};
 use schemamotor_solve::{solve, Options};
+use schemamotor_validate::validate;
+use serde::Deserialize;
 use std::io::Read;
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
@@ -60,6 +64,13 @@ fn time_ms(url: &str, cfg: &Config) -> Result<u64, ()> {
     Ok(out.min(cfg.max_time_ms))
 }
 
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+struct Check {
+    problem: Problem,
+    placements: Vec<Placement>,
+}
+
 struct Running<'a>(&'a AtomicUsize);
 impl Drop for Running<'_> {
     fn drop(&mut self) {
@@ -72,7 +83,8 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     if path == "/v1/health" && *request.method() == Method::Get {
         return reply(request, 200, format!("{{\"contract_version\":{CONTRACT_VERSION}}}"));
     }
-    if path != "/v1/solve" {
+    let check = path == "/v1/validate";
+    if path != "/v1/solve" && !check {
         return error(request, 404, "not_found");
     }
     if *request.method() != Method::Post {
@@ -84,6 +96,9 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return error(request, 401, "unauthorized");
     }
     let Ok(limit) = time_ms(request.url(), cfg) else { return error(request, 400, "bad_request") };
+    if check && request.url().contains('?') {
+        return error(request, 400, "bad_request");
+    }
     if request.body_length().is_some_and(|n| n > cfg.max_body_bytes) {
         return error(request, 413, "too_large");
     }
@@ -93,6 +108,22 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     }
     if body.len() > cfg.max_body_bytes {
         return error(request, 413, "too_large");
+    }
+    if check {
+        let Ok(input) = serde_json::from_slice::<Check>(&body) else { return error(request, 400, "bad_problem") };
+        if running.fetch_add(1, Ordering::SeqCst) >= cfg.max_concurrent {
+            running.fetch_sub(1, Ordering::SeqCst);
+            return error(request, 429, "busy");
+        }
+        let _guard = Running(running);
+        let report = validate(&input.problem, &input.placements);
+        let violations: Vec<_> = report
+            .violations
+            .iter()
+            .map(|v| serde_json::json!({"code": v.code, "message": v.message, "lessons": v.lessons, "resources": v.resources}))
+            .collect();
+        let out = serde_json::json!({"version": CONTRACT_VERSION, "problem_id": input.problem.id, "violations": violations, "metrics": report.metrics});
+        return reply(request, 200, out.to_string());
     }
     let Ok(problem) = serde_json::from_slice::<Problem>(&body) else { return error(request, 400, "bad_problem") };
     if running.fetch_add(1, Ordering::SeqCst) >= cfg.max_concurrent {

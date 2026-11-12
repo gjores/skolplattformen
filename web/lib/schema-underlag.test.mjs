@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, schemaForslag, weeklyLessons } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, schemaForslag, schemaKontroll, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
-import { parseSchemaForslag, parseSchemaForslagRequest, parseSchemaSolution } from './schema-contract.ts';
+import { checkSchemaPlacements, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution } from './schema-contract.ts';
 
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -211,4 +211,42 @@ test('begäran: skola, läsår och termin prövas', () => {
   assert.deepEqual(parseSchemaForslagRequest(request), request);
   for (const broken of [{ ...request, weeks: 18 }, { ...request, term: 'ar' }, { ...request, unitId: 'x' }, { ...request, extra: 1 }, null])
     assert.throws(() => parseSchemaForslagRequest(broken));
+});
+
+test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolkas strikt', () => {
+  const underlag = buildSchemaUnderlag(plan(), request), p = underlag.problem;
+  assert.match(underlag.fingerprint, /^[0-9a-f]{28}$/u);
+  assert.equal(buildSchemaUnderlag(plan(), request).fingerprint, underlag.fingerprint);
+  // Ändrad lärare, ändrat behov eller ändrat namn ger ett annat underlag.
+  const changed = [plan({ rows: [row(30, classKey(10, 'ma'), uid(23))] }), plan({ teachers: [20, 21, 22, 23].map(n => ({ personId: uid(n), displayName: `Ny ${n}`, draft: false, shareHere: 100 })) })];
+  for (const other of changed) assert.notEqual(buildSchemaUnderlag(other, request).fingerprint, underlag.fingerprint);
+  assert.notEqual(buildSchemaUnderlag(plan(), { ...request, term: 'vt' }).fingerprint, underlag.fingerprint);
+  assert.equal(schemaForslag(plan(), request, underlag, parseSchemaSolution(solved(p), p)).fingerprint, underlag.fingerprint);
+
+  const placements = [{ lesson: 'pass-1', day: 0, startMin: 480 }, { lesson: 'pass-2', day: 4, startMin: 930 }];
+  const body = { ...request, fingerprint: underlag.fingerprint, placements };
+  assert.deepEqual(parseSchemaKontrollRequest(body), body);
+  for (const broken of [{ ...body, fingerprint: 'x' }, { ...body, extra: 1 }, { ...body, placements: [{ ...placements[0], rooms: [] }] }, { ...body, placements: [{ ...placements[0], day: 1.5 }] }, { ...request, placements }])
+    assert.throws(() => parseSchemaKontrollRequest(broken));
+  assert.deepEqual(checkSchemaPlacements(placements, p), placements);
+  // Okänt pass, samma pass två gånger, dag som inte finns och tid utanför skoldagen stoppas innan motorn anropas.
+  for (const broken of [[{ ...placements[0], lesson: 'pass-999' }], [placements[0], placements[0]], [{ ...placements[0], day: 5 }], [{ ...placements[0], startMin: 475 }], [{ ...placements[0], startMin: 16 * 60 + 30 - 55 }]])
+    assert.throws(() => checkSchemaPlacements(broken, p));
+
+  const reply = { version: 1, problem_id: p.id, violations: [
+    { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
+    { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
+    { code: 'teacher_no_lunch', message: 'Lärare larare-1 saknar lunch dag 2.', lessons: [], resources: ['larare-1'] }],
+    metrics: { student_gap_min: 30, teacher_gap_min: 0 } };
+  const check = parseSchemaCheck(reply, p), kontroll = schemaKontroll(underlag, placements, check);
+  assert.deepEqual(kontroll.violations, [
+    { code: 'student_clash', message: 'Pass Matematik (1A) och Svenska (1A) krockar för elever i 1A.', lessons: ['pass-1', 'pass-4'] },
+    { code: 'teacher_no_lunch', message: 'Lärare Lärare 20 saknar lunch onsdag.', lessons: [] }]);
+  assert.deepEqual([kontroll.total, kontroll.metrics], [2, { lessons: p.lessons.length, placed: 2, unplaced: p.lessons.length - 2, studentGapMin: 30, teacherGapMin: 0 }]);
+  // Två av matematikens tre pass har en tid: 60 min gånger måndagens och fredagens 18 skoldagar.
+  assert.deepEqual(kontroll.teachings.find(t => t.title === 'Matematik' && t.classes[0] === '1A'), { title: 'Matematik', classes: ['1A'], needMin: h(54), weeklyMin: 180, plannedMin: 2 * 60 * 18, unplaced: 1 });
+  assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.fingerprint), kontroll);
+  assert.throws(() => parseSchemaKontroll(kontroll, '0'.repeat(28)));
+  for (const broken of [{ ...reply, problem_id: 'annat' }, { ...reply, version: 2 }, { ...reply, violations: [{ ...reply.violations[0], lessons: ['pass-999'] }] }, { ...reply, metrics: {} }])
+    assert.throws(() => parseSchemaCheck(broken, p));
 });
