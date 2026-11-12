@@ -1,4 +1,4 @@
-/* Schemaförslag (05.2-SM-KOPPLING). Bara designsystemets variabler; veckorutnätet är ett nytt mönster som redovisas i planen. */
+/* Schemaförslag (05.2-SM-KOPPLING). Bara designsystemets variabler; veckorutnätet och villkorsformuläret är nya mönster som redovisas i planerna. */
 .schema-workspace .schema-controls { display: grid; grid-template-columns: minmax(0, 12rem) auto; justify-content: start; gap: 1rem; align-items: end; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-workspace .schema-controls label, .schema-workspace .schema-filter label { display: grid; gap: .375rem; font-size: .875rem; color: var(--muted-foreground); }
 .schema-workspace .schema-controls button, .schema-workspace .schema-filter button { min-height: var(--control-height); height: auto; max-width: 100%; white-space: normal; }
@@ -9,6 +9,19 @@
 .schema-workspace .schema-filter { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
 .schema-workspace .schema-filter fieldset { display: flex; gap: .5rem; margin: 0; padding: 0; border: 0; min-width: 0; }
 .schema-workspace .schema-filter select { min-width: 12rem; }
+
+/* Villkorsformulär (05.2-SM-LASAR-VILLKOR): fältgrupper i en utfällbar ruta. */
+.schema-workspace .schema-wide { grid-column: 1 / -1; }
+.schema-workspace .schema-villkor-groups { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 22rem), 1fr)); gap: 1rem; margin-bottom: .75rem; }
+.schema-workspace .schema-villkor fieldset { display: grid; gap: .625rem; align-content: start; min-width: 0; margin: 0; padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.schema-workspace .schema-villkor legend { padding: 0 .25rem; font-size: .875rem; font-weight: 600; color: var(--foreground); }
+.schema-workspace .schema-villkor-day { display: grid; grid-template-columns: 4.5rem repeat(2, minmax(0, 1fr)); gap: .5rem; align-items: center; font-size: .875rem; }
+.schema-workspace .schema-villkor .schema-time, .schema-workspace .schema-villkor input[type="time"] { min-width: 0; width: 100%; }
+.schema-workspace .schema-villkor-day input[type="time"] { padding-inline: .5rem; }
+.schema-workspace .schema-villkor .schema-check { display: flex; gap: .5rem; align-items: center; min-height: var(--control-height); color: var(--foreground); }
+.schema-workspace .schema-villkor .schema-check input { width: 1rem; height: 1rem; accent-color: var(--primary); }
+.schema-workspace .schema-villkor .valplan-alert ul { color: var(--destructive); }
+.schema-workspace .schema-filter legend { float: left; margin-right: .5rem; align-self: center; }
 
 .schema-week { --minute: 1.4px; display: grid; grid-template-columns: 3rem repeat(var(--days), minmax(0, 1fr)); gap: 0 .5rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-hours { position: relative; margin-top: 2rem; height: calc(var(--span) * var(--minute)); color: var(--muted-foreground); font-size: .75rem; }

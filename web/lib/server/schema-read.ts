@@ -23,6 +23,6 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   if (current && lasar.body.calendar?.versionId !== current.versionId) lasar = await lasarRead(tx, { target, schoolYear: input.schoolYear, versionId: current.versionId }, ctx);
   for (const extra of [elective.event, study.event, lasar.event]) await logEvent(tx, { ...ctx, request }, { ...extra, outcome: 'ok' });
   const basis: SchemaBasis = { members: mergeSchemaMembers([{ pupils: elective.body.pupils, memberships: elective.body.placements }, { pupils: study.body.pupils, memberships: study.body.memberships }]),
-    time: schemaTime(lasar.body, input.term, result.body.classes.map(c => c.classId)) };
+    time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)) };
   return { plan: result.body, basis, event: result.event };
 }

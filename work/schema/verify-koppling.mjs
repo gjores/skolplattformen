@@ -1,4 +1,4 @@
-// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER och -FLYTT med syntetiska uppgifter: tjänstefördelning, elevernas grupper och terminens skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT och -LASAR-VILLKOR med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
@@ -10,20 +10,22 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../../web/lib/schema-underlag.ts';
-import { checkSchemaPlacements, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
+import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`, h = n => n * 60;
 const SUBJECTS = [['sv', 'Svenska', 54], ['ma', 'Matematik', 54], ['en', 'Engelska', 45], ['idh', 'Idrott och hälsa', 36], ['hi', 'Historia', 36], ['sh', 'Samhällskunskap', 36],
-  ['nk', 'Naturkunskap', 36], ['re', 'Religionskunskap', 27], ['pr', 'Programämne', 108]];
+  ['nk', 'Naturkunskap', 36], ['pr', 'Programämne', 108],
+  // Timplanen lägger religionskunskapen på höstterminen och psykologin på vårterminen, med samma lärare: de kan dela tid i veckan.
+  ['re', 'Religionskunskap', 27, 0], ['ps', 'Psykologi', 0, 27]];
 const CLASSES = 12, TEACHERS = 24;
 const classKey = (c, row) => `class_timplan:${uid(100 + c)}:2026:${row}`;
 const classes = [], rows = [];
 for (let c = 0; c < CLASSES; c++) {
   classes.push({ classId: uid(100 + c), name: `Klass ${c + 1}`, link: null, aplMinutes: null,
-    needs: SUBJECTS.map(([row, label, hours]) => ({ sourceKind: 'class_timplan', sourceKey: classKey(c, row), rowKey: row, label, needHt: h(hours), needVt: h(hours), needBasis: 'terms' })) });
-  SUBJECTS.forEach(([row, , hours], s) => rows.push({ id: uid(1000 + rows.length), lineageId: uid(5000 + rows.length), sourceKind: 'class_timplan', sourceKey: classKey(c, row), classId: uid(100 + c), rowKey: row,
-    personId: s === 3 && c === 0 ? null : uid(200 + (s * 3 + c) % TEACHERS), teacherHt: h(hours), teacherVt: h(hours), needHt: h(hours), needVt: h(hours), needBasis: 'terms', stale: false, jointGroupId: null, comment: '' }));
+    needs: SUBJECTS.map(([row, label, ht, vt = ht]) => ({ sourceKind: 'class_timplan', sourceKey: classKey(c, row), rowKey: row, label, needHt: h(ht), needVt: h(vt), needBasis: 'terms' })) });
+  SUBJECTS.forEach(([row, , ht, vt = ht], n) => { const s = Math.min(n, 8); rows.push({ id: uid(1000 + rows.length), lineageId: uid(5000 + rows.length), sourceKind: 'class_timplan', sourceKey: classKey(c, row), classId: uid(100 + c), rowKey: row,
+    personId: s === 3 && c === 0 ? null : uid(200 + (s * 3 + c) % TEACHERS), teacherHt: h(ht), teacherVt: h(vt), needHt: h(ht), needVt: h(vt), needBasis: 'terms', stale: false, jointGroupId: null, comment: '' }); });
 }
 // Ett valbart block för klass 1 och 2: två alternativ med elever och ett utan. 25 syntetiska elever per klass.
 const BLOCK = [['Spanska', 0], ['Tyska', 1], ['Franska', 2]];
@@ -33,14 +35,16 @@ for (const [, i] of BLOCK) rows.push({ id: uid(1000 + rows.length), lineageId: u
   groupId: uid(300 + i), classIds: [], sourceRefs: [], groupRevision: 1, personId: uid(200 + i), teacherHt: h(36), teacherVt: h(36), needHt: h(36), needVt: h(36), needBasis: 'terms', stale: false, jointGroupId: null, comment: '' });
 const pupils = Array.from({ length: CLASSES * 25 }, (_, i) => ({ id: uid(10000 + i), classIds: [uid(100 + Math.floor(i / 25))] }));
 const memberships = pupils.slice(0, 50).flatMap((p, i) => i % 5 === 4 ? [] : [{ groupId: uid(300 + i % 2), pupilId: p.id, startsOn: '2026-08-17', endsOn: null }]);
-// Terminens tid som läsårskalendern ger den: 88 skoldagar, och klass 12 med en egen dag utan undervisning.
-const time = { source: 'kalender', version: 1, status: 'faststalld', current: true, term: { start: '2026-08-17', end: '2026-12-18' }, perWeekday: [17, 18, 17, 18, 18], classes: { [uid(111)]: [17, 18, 17, 17, 18] } };
+// Läsårets tid som läsårskalendern ger den: 88 skoldagar HT och 93 VT, och klass 12 med en egen dag utan undervisning på hösten.
+const time = { source: 'kalender', version: 1, status: 'faststalld', current: true, terms: {
+  ht: { span: { start: '2026-08-17', end: '2026-12-18' }, perWeekday: [17, 18, 17, 18, 18], classes: { [uid(111)]: [17, 18, 17, 17, 18] } },
+  vt: { span: { start: '2027-01-11', end: '2027-06-11' }, perWeekday: [18, 19, 19, 18, 19], classes: {} } } };
 const basis = { members: { pupils, memberships }, time };
 const plan = { contractVersion: 1, unitId: uid(1), schoolName: 'Provskolan', schoolYear: 2026, revision: 1,
   version: { id: uid(2), versionNo: 1, status: 'draft', contentHash: 'x', basedOnVersionId: null, publishedByName: null, publishedAt: null }, versions: [],
   teachers: Array.from({ length: TEACHERS }, (_, i) => ({ personId: uid(200 + i), displayName: `Provlärare ${i + 1}`, draft: false, shareHere: 100 })),
   classes, rows, groups, specials: [], joints: [], actions: [], blockers: [], capabilities: { canEdit: true, canPublish: false, canReadHistory: true }, sharing: [] };
-const request = { unitId: uid(1), schoolYear: 2026, term: 'ht' };
+const request = { unitId: uid(1), schoolYear: 2026, period: 'lasar', villkor: defaultSchemaVillkor() };
 
 const token = randomBytes(24).toString('hex'), port = 20000 + Math.floor(Math.random() * 20000), url = `http://127.0.0.1:${port}`;
 const service = spawn(join(bin, 'schemamotor-tjanst'), [], { env: { SCHEMAMOTOR_TOKEN: token, SCHEMAMOTOR_ADDR: `127.0.0.1:${port}` }, stdio: 'ignore' });
@@ -64,15 +68,20 @@ try {
   assert.deepEqual(forslag.members, { pupils: 300, groupsWithoutMembers: ['Franska'], classesWithoutPupils: [], withoutChoice: [{ title: 'Spanska, Tyska, Franska', count: 10 }] });
   // Samma elever får aldrig två pass samtidigt, prövat här ur appens egna uppgifter oberoende av motorn.
   const cluster = new Map(underlag.problem.groups.map(g => [g.id, g.clusters])), placed = underlag.problem.lessons.map(l => ({ ...l, at: solution.placements.find(p => p.lesson === l.id) })).filter(l => l.at);
-  let parallel = 0;
+  let parallel = 0, sharedByTerm = 0;
   for (const [i, a] of placed.entries()) for (const b of placed.slice(i + 1)) {
     if (a.at.day !== b.at.day || a.at.startMin >= b.at.startMin + b.duration_min || b.at.startMin >= a.at.startMin + a.duration_min) continue;
+    // Pass i olika terminer möts aldrig: de får ligga på samma tid i veckan.
+    if (a.periods && b.periods && a.periods[0] !== b.periods[0]) { if (a.groups.some(g => b.groups.includes(g))) sharedByTerm += 1; continue; }
     const mine = new Set(a.groups.flatMap(g => cluster.get(g)));
     assert.ok(!b.groups.flatMap(g => cluster.get(g)).some(c => mine.has(c)), `${a.id} och ${b.id} delar elever och ligger samtidigt`);
     if (a.activity !== b.activity && [a, b].every(l => l.groups.some(g => Number(g.slice(6)) > CLASSES))) parallel += 1;
   }
+  const byTerm = t => forslag.lessons.filter(l => l.term === t).length;
+  assert.deepEqual([byTerm('ht'), byTerm('vt')], [2 * CLASSES, 2 * CLASSES], 'terminsbunden undervisning ska ligga i sin termin');
+  assert.ok(sharedByTerm > 0, 'ingen HT- och VT-undervisning delar tid i veckan');
   const planned = forslag.teachings.reduce((sum, t) => sum + t.plannedMin, 0), needed = forslag.teachings.reduce((sum, t) => sum + t.needMin, 0);
-  console.log(JSON.stringify({ time: forslag.time, parallelBlockLessons: parallel, plannedHours: Math.round(planned / 60), neededHours: Math.round(needed / 60),
+  console.log(JSON.stringify({ period: forslag.period, time: forslag.time, parallelBlockLessons: parallel, termBoundLessons: byTerm('ht') + byTerm('vt'), sharedByTerm, plannedHours: Math.round(planned / 60), neededHours: Math.round(needed / 60),
     largestDeviationMin: Math.max(...forslag.teachings.map(t => Math.abs(t.plannedMin - t.needMin))) }));
   console.log(JSON.stringify({ status: forslag.status, ...forslag.metrics, elapsedMs: forslag.elapsedMs, classes: forslag.classes.length, teachers: forslag.teachers.length,
     validatorExit: check.status, validator: (check.stdout + check.stderr).trim().split('\n').slice(-3) }, null, 1));
@@ -88,7 +97,7 @@ try {
   assert.equal((await fetch(`${url}/v1/validate`, { method: 'POST', body: JSON.stringify({ problem: underlag.problem, placements: [] }) })).status, 401);
   assert.equal((await kontroll(forslag.lessons)).total, 0, 'förslaget som det räknades ska vara utan avvikelser');
   // Ett pass i klass 1 flyttas till en tid där klassen redan har ett annat pass: samma elever på två ställen.
-  const own = forslag.lessons.filter(l => l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.day !== null && !l.vacant);
+  const own = forslag.lessons.filter(l => l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.day !== null && !l.vacant && l.term === null);
   const a = own[0], b = own.find(l => l.id !== a.id && l.day !== a.day && l.startMin + a.durationMin <= forslag.days[l.day].endMin);
   const move = { lesson: a.id, day: b.day, startMin: b.startMin }, movedLessons = forslag.lessons.map(l => l.id === a.id ? { ...l, day: move.day, startMin: move.startMin } : l);
   const clash = await kontroll(movedLessons);
