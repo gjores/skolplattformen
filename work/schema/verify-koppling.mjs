@@ -3,6 +3,7 @@
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
+import { createRequire } from 'node:module';
 import { mkdtempSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { tmpdir } from 'node:os';
@@ -108,4 +109,17 @@ try {
     writeFileSync(join(dirname(process.env.SCHEMA_FORSLAG_OUT), 'schema-kontroll.json'), JSON.stringify({ move, clash, lifted }));
   }
   assert.equal(forslag.status, 'complete');
+  // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
+  const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
+  const entry = `import { solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};
+    export default { async fetch(request) { try { const problem = await request.json(), solved = await solveSchema(problem), check = await validateSchema(problem, solved.placements);
+      return Response.json({ status: solved.status, placed: solved.placements.length, violations: check.violations.length }); } catch (error) { return Response.json({ error: error.reason ?? String(error) }); } } };`;
+  const built = await fromWeb('esbuild').build({ stdin: { contents: entry, resolveDir: dir, loader: 'ts' }, bundle: true, format: 'esm', external: ['cloudflare:workers'], write: false, logLevel: 'silent' });
+  const worker = new Miniflare(convertV4MiniflareOptions({ workers: [{ modules: true, script: built.outputFiles[0].text, compatibilityDate: '2025-09-01', compatibilityFlags: ['nodejs_compat'],
+    bindings: { SCHEMAMOTOR_URL: url, SCHEMAMOTOR_TOKEN: token } }] }));
+  try {
+    const viaWorker = await (await worker.dispatchFetch('http://app.invalid/', { method: 'POST', body })).json();
+    assert.deepEqual(viaWorker, { status: 'complete', placed: solution.placements.length, violations: 0 }, 'appens motoranrop fungerar inte i workerd');
+    console.log(JSON.stringify({ workerd: viaWorker }));
+  } finally { await worker.dispose(); }
 } finally { service.kill(); }

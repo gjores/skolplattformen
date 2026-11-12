@@ -25,7 +25,8 @@ async function call<T>(path: string, body: unknown, timeMs: number, parse: (valu
   const { url, token } = config();
   let response: Response, text: string;
   try {
-    response = await fetch(`${url}${path}`, { method: 'POST', redirect: 'error',
+    // Workers-miljön godtar bara 'follow' och 'manual'; en omdirigering blir då ett svar som inte är ok och nekas nedan.
+    response = await fetch(`${url}${path}`, { method: 'POST', redirect: 'manual',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
       signal: AbortSignal.timeout(timeMs + MARGIN_MS) });
     text = await response.text();
