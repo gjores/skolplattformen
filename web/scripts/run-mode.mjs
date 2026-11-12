@@ -147,8 +147,19 @@ function devVarsFor(manifest, { hostname, port: serverPort }) {
     `MFA_MAX_AGE_SECONDS=${manifest.mfa.maxAgeSeconds}`,
     'SESSION_IDLE_SECONDS=900',
     'SESSION_ABSOLUTE_SECONDS=28800',
+    ...schemaEngineVars(),
     '',
   ].join('\n');
+}
+
+/** Schemamotorn är valfri: ansluts bara när startmiljön anger en lokal adress och en token (05.2-SM-KOPPLING, K1). */
+function schemaEngineVars() {
+  const { SCHEMAMOTOR_URL: url, SCHEMAMOTOR_TOKEN: token } = process.env;
+  if (!url && !token) return [];
+  if (!/^http:\/\/127\.0\.0\.1:\d{4,5}$/u.test(url ?? '') || !/^[0-9a-f]{32,128}$/u.test(token ?? '')) {
+    fail('REFUSED: SCHEMAMOTOR_URL ska vara http://127.0.0.1:<port> och SCHEMAMOTOR_TOKEN en hexsträng.', 1);
+  }
+  return [`SCHEMAMOTOR_URL=${url}`, `SCHEMAMOTOR_TOKEN=${token}`];
 }
 
 /** Tar ett exklusivt lås så parallella servrar aldrig delar eller raderar filen. */
