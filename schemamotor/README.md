@@ -16,6 +16,13 @@ cargo run --release -- bench --time 10000 --seeds 3 --out bench/out
 - `crates/solve` – lösaren. Besked: `complete`, `time_limit`, `infeasible` (med bevis), `input_missing`, `cancelled`.
 - `crates/validate` – fristående granskning som räknar i minuter och inte delar kod med lösaren. Bygger även för `wasm32-unknown-unknown`.
 - `crates/cli` – kommandorad, syntetiska skolor och mätning.
+- `crates/service` – `schemamotor-tjanst`, HTTP-tjänst för appens server: `GET /v1/health`, `POST /v1/solve[?time_ms=N]` med `Authorization: Bearer`. Gränser för storlek, räknetid och samtidiga körningar; innehåll loggas inte.
+
+```sh
+SCHEMAMOTOR_TOKEN=<minst 16 tecken> cargo run --release -p schemamotor-tjanst   # lyssnar på 127.0.0.1:8787
+```
+
+Övriga miljövariabler: `SCHEMAMOTOR_ADDR`, `SCHEMAMOTOR_MAX_TIME_MS`, `SCHEMAMOTOR_MAX_CONCURRENT`, `SCHEMAMOTOR_THREADS`. Appen läser `SCHEMAMOTOR_URL` och `SCHEMAMOTOR_TOKEN`.
 
 ## Regler
 

@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import ProtectedValplaner from './protected-valplaner';
 import ProtectedStudyGroups from './protected-study-groups';
+import SchemaWorkspace from './schema-workspace';
 import Link from 'next/link';
 import {
   BriefcaseBusiness,
   CalendarCheck,
   CalendarClock,
+  CalendarDays,
   ClipboardList,
   GraduationCap,
   IdCard,
@@ -86,7 +88,7 @@ import { LasarOverviewContext, type LasarOpenTarget } from './protected-lasar-ov
 import type { LasarActorRole } from '@/lib/lasar-contract.ts';
 
 export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
-  | 'lasar' | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
+  | 'lasar' | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'schema' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
 
@@ -139,7 +141,7 @@ function sessionScope(value: SessionResponse | null | 'loading'): string {
 function shellView(search: string, value: SessionResponse): ProtectedView {
   const role = value.context?.function ?? '', requested = new URLSearchParams(search).get('vy');
   if (isSelf(value)) return 'min-tjanst';
-  if ((requested === 'tjanst' || requested === 'valplaner' || requested === 'undervisningsgrupper') && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
+  if ((requested === 'tjanst' || requested === 'valplaner' || requested === 'undervisningsgrupper' || requested === 'schema') && TJANST_FUNCTIONS.includes(role) || (requested === 'personal' || requested === 'bemanning') && role === 'huvudman') return requested;
   if ((requested === 'start' || requested === 'lasar') && PLANNING_FUNCTIONS.includes(role)) return requested === 'lasar' ? 'lasar' : 'start';
   if (requested === 'skolor' && role === 'huvudman' || requested === 'kund' && role === 'kundadmin' || requested === 'logg' && role === 'granskare'
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
@@ -296,6 +298,7 @@ function ProtectedNavigation({
               </SidebarMenuSubItem></SidebarMenuSub>
             </SidebarMenuItem>}
             {TJANST_FUNCTIONS.includes(fn) && item('tjanst', 'Tjänstefördelning', <BriefcaseBusiness size={19}/>)}
+            {TJANST_FUNCTIONS.includes(fn) && item('schema', 'Schema', <CalendarDays size={19}/>)}
             {fn === 'huvudman' && item('bemanning', 'Bemanning', <ClipboardList size={19}/>)}
           </SidebarMenu>
         </>}
@@ -763,7 +766,7 @@ function ProtectedShell() {
     if (sessionScope(sessionRef.current) !== contextKey) return;
     const prior = planningLocationRef.current ?? planningFor('timplaner');
     const next: PlanLocation = { ...prior, planning: { ...prior.planning, schoolYear: selection.schoolYear,
-      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper' || viewRef.current === 'lasar') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
+      ...((viewRef.current === 'tjanst' || viewRef.current === 'valplaner' || viewRef.current === 'undervisningsgrupper' || viewRef.current === 'schema' || viewRef.current === 'lasar') ? { unitId: selection.unitId } : {}), page: 1, selectionRevision: null } };
     planningLocationRef.current = next; setPlanningLocation(next);
   }
   async function goToValplaner(target:{unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null}) {
@@ -826,7 +829,7 @@ function ProtectedShell() {
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
   const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
     : view === 'lasar' ? 'Läsår & skoldagar'
-    : view === 'valplaner' ? 'Valbara block' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
+    : view === 'valplaner' ? 'Valbara block' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'schema' ? 'Schema' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
   return (
     <PlanDecisionProvider key={contextKey} scopeKey={contextKey} active={!!validContext && PLANNING_FUNCTIONS.includes(session.context!.function)} onSessionLost={clearSession}>
@@ -914,6 +917,8 @@ function ProtectedShell() {
                 initialRow={valplanIntent?.key===contextKey&&valplanIntent.unitId===selection.unitId&&valplanIntent.schoolYear===selection.schoolYear?valplanIntent.row:null} onInitialUsed={()=>setValplanIntent(null)} onOpenGroups={()=>void navigate('undervisningsgrupper')} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'undervisningsgrupper' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedStudyGroups unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+            {view === 'schema' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <SchemaWorkspace unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               today={session.today} onSessionLost={clearSession}/>}
             {view === 'bemanning' && session.context!.function === 'huvudman' && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice={false}

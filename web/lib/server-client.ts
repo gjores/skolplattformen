@@ -129,7 +129,7 @@ async function request<T>(
       const details = !unexpectedEpoch && code === 'conflict' && response.status === 409
         ? parseConflictDetails(error.details) : null;
       const reason = !unexpectedEpoch && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
-        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group|lasar)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
+        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group|lasar|schema)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
         ? (error.details as { reason: string }).reason : null;
       throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason);
     }

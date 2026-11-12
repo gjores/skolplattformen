@@ -1,0 +1,38 @@
+/**
+ * Anrop till schemamotorns tjänst (05.2-SM-KOPPLING, K1). Bara appens server når tjänsten; webbläsaren gör det aldrig.
+ * Adress och token är valfri serverkonfiguration: saknas de är motorn inte ansluten i miljön och inget anrop görs.
+ * Varken underlag, svar eller token loggas.
+ */
+import { env as bindings } from 'cloudflare:workers';
+import { parseSchemaSolution, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
+import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
+
+const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
+export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply';
+export class SchemaEngineError extends Error {
+  public reason: SchemaEngineFailure;
+  constructor(reason: SchemaEngineFailure) { super(reason); this.name = 'SchemaEngineError'; this.reason = reason; }
+}
+
+function config(): { url: string; token: string } {
+  const worker = bindings as Record<string, string | undefined>;
+  const url = worker.SCHEMAMOTOR_URL ?? process.env.SCHEMAMOTOR_URL, token = worker.SCHEMAMOTOR_TOKEN ?? process.env.SCHEMAMOTOR_TOKEN;
+  if (!url || !token || !/^https?:\/\/[^\s/?#]+$/u.test(url)) throw new SchemaEngineError('schema_engine_unconfigured');
+  return { url, token };
+}
+
+export async function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
+  const { url, token } = config();
+  let response: Response, text: string;
+  try {
+    response = await fetch(`${url}/v1/solve?time_ms=${SCHEMA_ENGINE_TIME_MS}`, { method: 'POST', redirect: 'error',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, body: JSON.stringify(problem),
+      signal: AbortSignal.timeout(SCHEMA_ENGINE_TIME_MS + MARGIN_MS) });
+    text = await response.text();
+  } catch { throw new SchemaEngineError('schema_engine_unreachable'); }
+  if (response.status === 429) throw new SchemaEngineError('schema_engine_busy');
+  // 401 betyder fel token i konfigurationen: motorn är då inte ansluten på ett användbart sätt.
+  if (response.status === 401) throw new SchemaEngineError('schema_engine_unconfigured');
+  if (!response.ok || text.length > REPLY_BYTES) throw new SchemaEngineError('schema_engine_bad_reply');
+  try { return parseSchemaSolution(JSON.parse(text), problem); } catch { throw new SchemaEngineError('schema_engine_bad_reply'); }
+}
