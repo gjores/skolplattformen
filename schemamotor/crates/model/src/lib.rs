@@ -145,6 +145,31 @@ pub struct Activity {
     /// Ersätter `rules.same_day` för den här aktiviteten.
     #[serde(default)]
     pub same_day: Option<SameDay>,
+    /// Hård regel: aktivitetens tid per period. Tom lista: ingen regel.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub time: Vec<ActivityTime>,
+}
+
+/// Aktivitetens tid i en period: summan av passens längd gånger antalet
+/// skoldagar på passets veckodag i perioden ska ligga inom `min_min..=max_min`.
+/// Räknas på de pass i aktiviteten som går i perioden.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct ActivityTime {
+    /// Perioden. Utan värde: alla pass, oavsett period.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub period: Option<String>,
+    /// Skoldagar per veckodag i perioden, en post per dag i `time.days`.
+    pub weekday_days: Vec<u32>,
+    pub min_min: u64,
+    pub max_min: u64,
+}
+
+impl ActivityTime {
+    /// Passens tid i perioden när de ligger på dessa dagar.
+    pub fn minutes(&self, lessons: impl Iterator<Item = (u32, u32)>) -> u64 {
+        lessons.map(|(duration, day)| duration as u64 * self.weekday_days.get(day as usize).copied().unwrap_or(0) as u64).sum()
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -169,6 +194,16 @@ pub struct Lesson {
     /// Låst placering. Hård.
     #[serde(default)]
     pub locked: Option<Slot>,
+    /// Minuter som räknas i aktivitetens tid (`ActivityTime`) när passet
+    /// upptar mer tid än undervisningen, t.ex. med marginal. Utan värde: `duration_min`.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub counted_min: Option<u32>,
+}
+
+impl Lesson {
+    pub fn counted(&self) -> u32 {
+        self.counted_min.unwrap_or(self.duration_min)
+    }
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -509,6 +544,21 @@ impl Problem {
         let groups: HashSet<&str> = self.groups.iter().map(|g| g.id.as_str()).collect();
         let rooms: HashSet<&str> = self.rooms.iter().map(|r| r.id.as_str()).collect();
         let activities: HashSet<&str> = self.activities.iter().map(|a| a.id.as_str()).collect();
+        for a in &self.activities {
+            for t in &a.time {
+                if t.weekday_days.len() != days as usize {
+                    err("activity_time", format!("Aktivitet {} har skoldagar för {} veckodagar men underlaget har {days}.", a.id, t.weekday_days.len()), vec![], vec![a.id.clone()]);
+                }
+                if t.min_min > t.max_min {
+                    err("activity_time", format!("Aktivitet {} har lägsta tid över högsta tid.", a.id), vec![], vec![a.id.clone()]);
+                }
+                if let Some(p) = &t.period {
+                    if !periods.contains(p.as_str()) {
+                        err("unknown_ref", format!("Aktivitet {} hänvisar till okänd period {p}.", a.id), vec![], vec![a.id.clone(), p.clone()]);
+                    }
+                }
+            }
+        }
         for g in &self.groups {
             if g.unavailable.iter().any(|iv| !check_iv(iv)) {
                 err("interval", format!("Grupp {} har en otillgänglig tid som är ogiltig eller inte följer tidssteget.", g.id), vec![], vec![g.id.clone()]);
@@ -524,6 +574,9 @@ impl Problem {
             let id = || vec![l.id.clone()];
             if l.duration_min == 0 || l.duration_min % step != 0 {
                 err("duration", format!("Pass {} har längden {} min, som inte följer tidssteget {step} min.", l.id, l.duration_min), id(), vec![]);
+            }
+            if l.counted_min.is_some_and(|c| c > l.duration_min) {
+                err("duration", format!("Pass {} räknar fler minuter än det varar.", l.id), id(), vec![]);
             }
             if l.teachers.is_empty() && l.groups.is_empty() {
                 err("empty_lesson", format!("Pass {} har varken lärare eller grupp.", l.id), id(), vec![]);

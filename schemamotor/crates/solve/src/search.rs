@@ -143,6 +143,34 @@ impl<'a, 'b> Search<'a, 'b> {
         (s < 128 && unit.dom[d] >> s & 1 == 1).then_some((d, s))
     }
 
+    /// Ett drag som rättar en aktivitets tid: ett av dess pass till en veckodag
+    /// med fler skoldagar när tiden är för kort, eller färre när den är för lång.
+    fn time_slot(&mut self) -> Option<(usize, usize, u32)> {
+        let inst = self.inst;
+        let n = inst.times.len();
+        if n == 0 || self.st.time_dev == 0 {
+            return None;
+        }
+        let first = self.rng.below(n);
+        let r = (0..n).map(|i| (first + i) % n).find(|&r| inst.times[r].dev(self.st.time_of(r)) > 0)?;
+        let rule = &inst.times[r];
+        let units = &inst.time_units[r];
+        let u = units[self.rng.below(units.len())] as usize;
+        let unit = &inst.units[u];
+        if unit.locked || unit.self_conflict.is_some() {
+            return None;
+        }
+        let (now, _) = self.st.pos[u]?;
+        let (here, up) = (rule.days[now as usize], self.st.time_of(r) < rule.min);
+        let days: Vec<usize> = (0..inst.days).filter(|&d| unit.dom[d] != 0 && if up { rule.days[d] > here } else { rule.days[d] < here }).collect();
+        if days.is_empty() {
+            return None;
+        }
+        let d = days[self.rng.below(days.len())];
+        let m = unit.dom[d];
+        Some((u, d, nth_bit(m, self.rng.below(m.count_ones() as usize) as u32)))
+    }
+
     /// Bästa lediga plats för `u` bland alla, eller bland `sample` slumpade.
     fn best_free(&mut self, u: usize, sample: Option<usize>) -> Option<(usize, u32, Vec<u16>)> {
         let inst = self.inst;
@@ -299,6 +327,11 @@ impl<'a, 'b> Search<'a, 'b> {
     /// Ett drag: ställ `u` på en ny plats, kasta ut det som står i vägen och
     /// sätt tillbaka det på bästa lediga plats. Falskt om draget inte gick.
     fn try_move(&mut self, u: usize, d: usize, s: u32) -> bool {
+        self.try_move_ejecting(u, d, s, 3)
+    }
+
+    /// Som `try_move`, med högst `most` utkastade enheter.
+    fn try_move_ejecting(&mut self, u: usize, d: usize, s: u32, most: usize) -> bool {
         let old = self.st.pos[u];
         if old == Some((d as u8, s as u8)) {
             return false;
@@ -307,7 +340,7 @@ impl<'a, 'b> Search<'a, 'b> {
             self.st.unplace(u);
         }
         let mut plan = std::mem::take(&mut self.plan);
-        let ok = self.st.plan(u, d, s, true, &mut plan) && plan.eject.len() <= 3;
+        let ok = self.st.plan(u, d, s, true, &mut plan) && plan.eject.len() <= most;
         if ok {
             self.st.execute(u, d, s, &plan);
         }
@@ -357,7 +390,8 @@ impl<'a, 'b> Search<'a, 'b> {
             let before = self.st.obj();
             if self.try_move(u, d, s) {
                 let delta = self.st.obj() - before;
-                if delta > 0 && delta < BIG {
+                // Bara önskemål: brott mot aktiviteternas tid ska inte höja temperaturen.
+                if delta > 0 && delta < TIME {
                     sum += delta as f64;
                     cnt += 1;
                 }
@@ -376,10 +410,18 @@ impl<'a, 'b> Search<'a, 'b> {
                 let frac = ((self.progress() - from) / (1.0 - from).max(1e-9)).clamp(0.0, 1.0);
                 temp = t0 * (t1 / t0).powf(frac);
             }
-            let u = movable[self.rng.below(movable.len())];
-            // Vartannat drag siktar på en plats intill befintlig undervisning.
-            let near = if self.rng.below(2) == 0 { self.adjacent_slot(u) } else { None };
-            let Some((d, s)) = near.or_else(|| self.random_slot(u, self.st.pos[u])) else { continue };
+            // Bryter en aktivitet sin tid tar vart fjärde drag sikte på den.
+            let fix = if self.st.time_dev > 0 && self.rng.below(4) == 0 { self.time_slot() } else { None };
+            let (u, d, s) = match fix {
+                Some(x) => x,
+                None => {
+                    let u = movable[self.rng.below(movable.len())];
+                    // Vartannat drag siktar på en plats intill befintlig undervisning.
+                    let near = if self.rng.below(2) == 0 { self.adjacent_slot(u) } else { None };
+                    let Some((d, s)) = near.or_else(|| self.random_slot(u, self.st.pos[u])) else { continue };
+                    (u, d, s)
+                }
+            };
             let mark = self.st.mark();
             let before = self.st.obj();
             let moved = self.try_move(u, d, s);
@@ -404,6 +446,60 @@ impl<'a, 'b> Search<'a, 'b> {
         }
         self.st.commit();
     }
+
+    /// Efter sökningen: pröva varje pass i en aktivitet med fel tid på varje
+    /// starttid en veckodag som ändrar tiden åt rätt håll. Bara förbättringar behålls.
+    fn repair_time(&mut self) {
+        let inst = self.inst;
+        if inst.times.is_empty() || self.best_obj == i64::MAX {
+            return;
+        }
+        let best = std::mem::take(&mut self.best);
+        self.st.restore(&best);
+        self.best = best;
+        for _ in 0..4 {
+            if self.st.time_dev == 0 || self.ctl.cancel.load(Ordering::Relaxed) {
+                break;
+            }
+            let mut improved = false;
+            'rule: for r in 0..inst.times.len() {
+                let rule = &inst.times[r];
+                if rule.dev(self.st.time_of(r)) == 0 {
+                    continue;
+                }
+                let up = self.st.time_of(r) < rule.min;
+                for &u in &inst.time_units[r] {
+                    let u = u as usize;
+                    let unit = &inst.units[u];
+                    let Some((now, _)) = self.st.pos[u] else { continue };
+                    if unit.locked || unit.self_conflict.is_some() {
+                        continue;
+                    }
+                    let here = rule.days[now as usize];
+                    for d in (0..inst.days).filter(|&d| if up { rule.days[d] > here } else { rule.days[d] < here }) {
+                        let mut m = unit.dom[d];
+                        while m != 0 {
+                            let s = m.trailing_zeros();
+                            m &= m - 1;
+                            let mark = self.st.mark();
+                            let before = self.st.obj();
+                            if self.try_move_ejecting(u, d, s, 8) && self.st.obj() < before {
+                                self.st.commit();
+                                self.keep_best();
+                                improved = true;
+                                continue 'rule;
+                            }
+                            self.st.rollback(mark);
+                        }
+                    }
+                }
+            }
+            if !improved {
+                break;
+            }
+        }
+        self.st.commit();
+    }
 }
 
 pub fn run(inst: &Inst, ctl: &Ctl, seed: u64) -> Outcome {
@@ -416,5 +512,6 @@ pub fn run(inst: &Inst, ctl: &Ctl, seed: u64) -> Outcome {
     }
     search.construct();
     search.anneal();
+    search.repair_time();
     Outcome { snap: search.best, obj: search.best_obj, iterations: search.it }
 }

@@ -163,6 +163,32 @@ pub fn presolve(p: &Problem, inst: &Inst) -> Vec<Diagnosis> {
             break;
         }
     }
+    // Aktiviteternas tid: med passens längd och de veckodagar de kan ligga på
+    // går tiden bara att få mellan `lo` och `hi`.
+    for (r, rule) in inst.times.iter().enumerate() {
+        let (mut lo, mut hi) = (0i64, 0i64);
+        let mut lessons = Vec::new();
+        for (u, unit) in inst.units.iter().enumerate() {
+            let Some(&(_, m)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
+            let days: Vec<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| rule.days[d]).collect();
+            if days.is_empty() {
+                continue;
+            }
+            lo += m * days.iter().min().unwrap();
+            hi += m * days.iter().max().unwrap();
+            lessons.extend(inst.unit_lessons(p, u));
+        }
+        if lessons.is_empty() {
+            continue;
+        }
+        let act = &p.activities[rule.act].id;
+        let period = rule.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+        if hi < rule.min {
+            out.push(diag("activity_time", format!("Aktivitet {act} kan få högst {hi} min{period} men ska ha minst {} min.", rule.min), lessons, vec![act.clone()], true));
+        } else if lo > rule.max {
+            out.push(diag("activity_time", format!("Aktivitet {act} får minst {lo} min{period} men ska ha högst {} min.", rule.max), lessons, vec![act.clone()], true));
+        }
+    }
     out
 }
 

@@ -244,3 +244,66 @@ fn cancel_stops_the_search() {
     assert!(s.stats.elapsed_ms < 5_000);
     assert!(validate_solution(&p, &s).ok());
 }
+
+/// Två perioder där veckodagarna har olika många skoldagar. Två pass på 60 min:
+/// på tisdag–torsdag ger varje pass 18 dagar, på måndag och fredag 17.
+fn timed(min: u64, max: u64, allowed: Option<Value>) -> Problem {
+    let mut lessons: Vec<Value> = (0..2).map(|k| { let mut l = lesson(&format!("sv-{k}"), 60, "t", "7A"); l["activity"] = json!("sv"); l["periods"] = json!(["ht"]); l }).collect();
+    if let Some(a) = allowed {
+        for l in &mut lessons {
+            l["allowed"] = a.clone();
+        }
+    }
+    problem(json!({
+        "periods": [{ "id": "ht" }, { "id": "vt" }],
+        "teachers": [{ "id": "t" }],
+        "groups": [{ "id": "7A", "size": 20 }],
+        "activities": [{ "id": "sv", "same_day": "forbid", "time": [{ "period": "ht", "weekday_days": [17, 18, 18, 18, 17], "min_min": min, "max_min": max }] }],
+        "lessons": lessons,
+        // Håltid för en lärare som också undervisar måndag och fredag drar mot fel dagar.
+        "rules": { "break_min": 0, "same_day": "avoid" }
+    }))
+}
+
+#[test]
+fn activity_time_picks_weekdays_that_give_the_timetable_time() {
+    // 2 × 60 × 18 = 2160 är den enda summan inom 2150–2160.
+    let p = timed(2150, 2160, None);
+    let s = run(&p);
+    assert_eq!(s.status, Status::Complete);
+    let days: Vec<u32> = s.placements.iter().map(|x| x.day).collect();
+    assert!(days.iter().all(|d| (1..=3).contains(d)), "passen ska ligga tisdag–torsdag: {days:?}");
+}
+
+#[test]
+fn unreachable_activity_time_is_proved() {
+    // Kontrollanten underkänner delschemat, så motorn körs direkt.
+    let go = |p: &Problem| solve(p, &Options { time_limit_ms: None, max_iters: Some(30_000), threads: 1, seed: 7 }, &AtomicBool::new(false));
+    // Högst 2 × 60 × 18 = 2160.
+    let s = go(&timed(2200, 2300, None));
+    assert_eq!(s.status, Status::Infeasible);
+    assert!(proof(&s, "activity_time"));
+    // Bara måndag och fredag tillåtna: 2 × 60 × 17 = 2040.
+    let edges = json!([{ "day": 0, "start_min": 480, "end_min": 960 }, { "day": 4, "start_min": 480, "end_min": 960 }]);
+    let s = go(&timed(2100, 2160, Some(edges)));
+    assert_eq!(s.status, Status::Infeasible);
+    assert!(proof(&s, "activity_time"));
+}
+
+#[test]
+fn the_validator_reports_activity_time() {
+    let p = timed(2150, 2160, None);
+    let at = |day: u32| [0u32, 1].map(|k| Placement { lesson: format!("sv-{k}"), day: day + k, start_min: 480, rooms: vec![] });
+    assert!(validate(&p, &at(1)).violations.iter().all(|v| v.code != "activity_time"));
+    let bad = validate(&p, &at(0));
+    assert!(bad.violations.iter().any(|v| v.code == "activity_time" && v.message.contains("2100")), "{:?}", bad.violations);
+    // Inget brott så länge ett pass saknas: det syns som oplacerat.
+    assert!(validate(&p, &at(0)[..1]).violations.iter().all(|v| v.code != "activity_time"));
+}
+
+#[test]
+fn activity_time_must_match_the_days() {
+    let mut p = timed(0, 10, None);
+    p.activities[0].time[0].weekday_days.pop();
+    assert!(p.check().iter().any(|d| d.code == "activity_time"));
+}

@@ -55,11 +55,10 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByText(`Hela läsåret. ${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   await expect(page.getByText('Tid: 181 skoldagar (HT 88, VT 93) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
   await expect(page.getByText('Underlag: tjänstefördelning version 1 (utkast).')).toBeVisible();
-  // Timplanen är ram: veckotiden följer den, och skillnad som beror på veckodagarnas skoldagar redovisas för sig.
-  await expect(page.locator('.status-badge', { hasText: 'Veckotiden följer timplanen' })).toBeVisible();
-  const byCalendar = forslag.teachings.filter(t => t.deviation === 'calendar').length;
-  expect(byCalendar).toBeGreaterThan(0);
-  await expect(page.getByText(`${byCalendar} undervisningar får annan tid över terminen än timplanens`)).toBeVisible();
+  // Timplanen läggs alltid ut: varje termin minst timplanens tid och högst avrundningen uppåt (05.2-SM-TIMPLAN-EXAKT).
+  await expect(page.locator('.status-badge', { hasText: 'Tiden följer timplanen' })).toBeVisible();
+  expect(forslag.teachings.every(t => t.deviation === null && t.terms.every(x => x.plannedMin >= x.needMin && x.plannedMin <= x.maxMin))).toBe(true);
+  await expect(page.getByText('annan tid över terminen')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
   await expect(page.getByText('Inga pass på viloytan.')).toBeVisible();
 
@@ -89,7 +88,9 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await page.getByRole('heading', { name: `Tid över läsåret (${forslag.teachings.length})` }).click();
   await expect(page.getByRole('columnheader', { name: 'Utlagt' })).toBeVisible();
   await expect(page.getByRole('row').nth(1)).toContainText(/[+−]?\d+(,\d)? h/u);
-  await expect(page.getByRole('row').nth(1)).toContainText('Nej: veckodagarnas skoldagar');
+  await expect(page.getByText('All undervisning följer timplanen.')).toBeVisible();
+  await expect(page.getByText('Den ska vara minst timplanens tid och får bara vara mer genom avrundning uppåt till hela 5 minuter per vecka.')).toBeVisible();
+  await expect(page.getByRole('row').nth(1)).toContainText('Ja');
   await expect(page.getByRole('row').last()).toContainText('Ja');
 
   await page.getByRole('button', { name: 'Vårterminen' }).click();
@@ -142,6 +143,15 @@ test('svar för en annan period än den begärda visas inte', async ({ page }) =
   await expect(page.getByRole('alert')).toHaveText('Schemaförslaget kunde inte tas fram. Försök igen.');
 });
 
+test('villkor sparade med det gamla terminsvalet läses in utan valet', async ({ page }) => {
+  await mock(page, () => ({ json: forslag }));
+  await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`, JSON.stringify({ ...forslag.villkor, breakMin: 5, termDiffPct: 15 })] as const);
+  await page.goto(URL);
+  await expect(page.locator('.schema-villkor summary')).toContainText('Ändrade:');
+  await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
+  await expect(page.getByLabel('Rast mellan pass')).toHaveValue('5');
+});
+
 test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan', async ({ page }, info) => {
   const bodies = await mock(page, body => ({ json: { ...forslag, period: body.period, villkor: body.villkor } }));
   await page.goto(URL);
@@ -162,14 +172,15 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   await page.getByLabel('Lägg in lunch varje dag').uncheck();
   await expect(page.getByLabel('Lunchens längd')).toHaveCount(0);
   await page.getByLabel('Högst undervisning per dag, elever').selectOption('360');
-  await page.getByLabel('Egna pass per termin').selectOption('');
+  // Valet av egna pass per termin finns inte längre: timplanen avgör.
+  await expect(page.getByLabel('Egna pass per termin')).toHaveCount(0);
   await expect(page.locator('.schema-villkor summary')).toContainText('Ändrade: skoldag');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-villkor-${info.project.name}.png`, fullPage: true });
   await page.getByLabel('Schemat gäller').selectOption('ht');
   await submit.click();
   await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
-  const villkor = { ...forslag.villkor, days: forslag.villkor.days.map((d, i) => i === 4 ? { ...d, endMin: 840 } : d), maxLessonMin: 60, lunch: null, studentMaxMinPerDay: 360, termDiffPct: null };
+  const villkor = { ...forslag.villkor, days: forslag.villkor.days.map((d, i) => i === 4 ? { ...d, endMin: 840 } : d), maxLessonMin: 60, lunch: null, studentMaxMinPerDay: 360 };
   expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor }]);
   await expect(page.getByText('Höstterminen. ')).toBeVisible();
   await expect(page.getByRole('heading', { name: `Tid över terminen (${forslag.teachings.length})` })).toBeVisible();

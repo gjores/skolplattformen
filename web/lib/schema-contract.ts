@@ -22,8 +22,10 @@ export type SchemaProblem = {
   rooms?: { id: string; unavailable?: SchemaInterval[] }[];
   clusters: { id: string; size: number }[];
   groups: { id: string; clusters: string[] }[];
-  activities: { id: string }[];
-  lessons: { id: string; activity: string; duration_min: number; teachers: string[]; groups: string[]; periods?: string[];
+  /** `time`: undervisningens tid per termin ska ligga inom timplanens minuter och avrundningen uppåt (05.2-SM-TIMPLAN-EXAKT, E2–E3). */
+  activities: { id: string; time?: { period?: string; weekday_days: number[]; min_min: number; max_min: number }[] }[];
+  /** `counted_min`: minuter som räknas som undervisning när passet upptar mer tid (marginal). */
+  lessons: { id: string; activity: string; duration_min: number; counted_min?: number; teachers: string[]; groups: string[]; periods?: string[];
     /** Tillåtna fönster: passet ska ligga helt inom ett av dem. Saknas fältet gäller hela skoldagen. */
     allowed?: SchemaInterval[]; rooms?: { count: 1; allowed: string[] } }[];
   rules: { student_max_min_per_day?: number; break_min: number; lunch: { window_start_min: number; window_end_min: number; length_min: number; teachers: boolean } | null; same_day: 'forbid' | 'avoid' | 'allow' };
@@ -46,8 +48,6 @@ export type SchemaVillkor = {
   lunch: { startMin: number; endMin: number; lengthMin: number; teachers: boolean } | null;
   maxLessonMin: number; minLessonMin: number; sameDay: 'forbid' | 'avoid' | 'allow';
   lateAfterMin: number | null; studentMaxMinPerDay: number | null; teacherMaxMinPerDay: number | null;
-  /** Egna pass per termin när timplanens veckotid skiljer mer än så mellan terminerna; `null`: alltid jämnt över läsåret. */
-  termDiffPct: number | null;
   /** Skolans salar, som namn. Motorn får dem som löpnummer i listans ordning. */
   salar: string[];
   /** Egna villkor för en klass, en grupp, ett ämne, en lärare eller en sal. */
@@ -71,12 +71,12 @@ export const SCHEMA_REGEL_TYPER: Record<SchemaRegelSlag, SchemaRegelTyp[]> = {
   klass: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], grupp: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'],
   amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal'], sal: ['sparrad', 'tillaten'] };
 export const SCHEMA_VILLKOR_LIMITS = { dayFrom: 6 * 60, dayTo: 20 * 60, daySpan: [60, 600], breakMin: [0, 30], startGrid: [5, 10, 15, 20, 30], lunchLength: [20, 90],
-  maxLesson: [30, 180], minLesson: 10, perDay: [120, 600], termDiff: [0, 50],
+  maxLesson: [30, 180], minLesson: 10, perDay: [120, 600],
   salar: 100, salNamn: 60, egna: 200, ref: 2000, marginal: [5, 60], antal: [1, 10] } as const;
 export function defaultSchemaVillkor(): SchemaVillkor {
   return { days: Array.from({ length: 5 }, () => ({ startMin: 8 * 60, endMin: 16 * 60 + 30 })), breakMin: 10, startGridMin: 10,
     lunch: { startMin: 10 * 60 + 30, endMin: 13 * 60 + 30, lengthMin: 40, teachers: true }, maxLessonMin: 80, minLessonMin: 20, sameDay: 'avoid',
-    lateAfterMin: 15 * 60 + 30, studentMaxMinPerDay: null, teacherMaxMinPerDay: null, termDiffPct: 0, salar: [], egna: [] };
+    lateAfterMin: 15 * 60 + 30, studentMaxMinPerDay: null, teacherMaxMinPerDay: null, salar: [], egna: [] };
 }
 const WEEKDAY_NAMES = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 /** Villkorens gränser i klartext. Tom lista: villkoren kan användas. Samma prövning görs i vyn och på servern. */
@@ -101,7 +101,6 @@ export function checkSchemaVillkor(v: SchemaVillkor): string[] {
   if (v.lateAfterMin !== null && !whole(v.lateAfterMin, L.dayFrom, L.dayTo)) issues.push('Klockslaget för sen dag ska ligga mellan 06:00 och 20:00, på hela fem minuter.');
   for (const [value, who] of [[v.studentMaxMinPerDay, 'elever'], [v.teacherMaxMinPerDay, 'lärare']] as const)
     if (value !== null && !whole(value, L.perDay[0], L.perDay[1])) issues.push(`Högsta undervisningstid per dag för ${who} ska vara 2–10 timmar, i steg om fem minuter.`);
-  if (v.termDiffPct !== null && !whole(v.termDiffPct, L.termDiff[0], L.termDiff[1])) issues.push('Skillnaden mellan terminerna ska vara 0–50 procent, i steg om fem.');
   const names = (value: unknown, limit: number): value is string[] => Array.isArray(value) && value.length <= limit
     && value.every(x => typeof x === 'string' && x.length > 0 && x.length <= L.salNamn && x === x.trim()) && new Set(value.map(x => (x as string).toLowerCase())).size === value.length;
   if (!names(v.salar, L.salar)) return [...issues, `Salar ska ha olika namn om högst ${L.salNamn} tecken, och vara högst ${L.salar}.`];
@@ -149,12 +148,13 @@ export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; 
   rooms: Record<string, string> };
 export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' | 'no_days' };
 /**
- * Timplanen är ram (T1): `deviation` säger om och varför utlagd tid inte är timplanens. `unplaced`: pass utan tid. `weekly`: veckotiden är inte timplanens
- * (terminerna utjämnade, eller passlängder som inte går ihop). `calendar`: veckodagarna har olika många skoldagar, så summan över terminen skiljer.
+ * Timplanen är ram (T1): `deviation` säger om och varför utlagd tid inte är timplanens. Tillåten tid per termin är `needMin` till och med `maxMin`:
+ * timplanens minuter och avrundning uppåt under 5 minuter per vecka (05.2-SM-TIMPLAN-EXAKT, E2). `unplaced`: pass utan tid. `weekly`: passlängderna
+ * kan inte ge den tiden på några veckodagar. `calendar`: passen ligger så att tiden blir under timplanen eller över avrundningen.
  */
 export type SchemaTimplanDeviation = 'unplaced' | 'weekly' | 'calendar';
 export type SchemaForslagTeaching = { title: string; classes: string[]; needMin: number; weeklyMin: number; plannedMin: number; unplaced: number;
-  terms: { term: SchemaTerm; needMin: number; plannedMin: number }[]; deviation: SchemaTimplanDeviation | null };
+  terms: { term: SchemaTerm; needMin: number; maxMin: number; plannedMin: number }[]; deviation: SchemaTimplanDeviation | null };
 /** Det egna villkor kan ställas för. `ref` är det villkoret bär; namnet visas. */
 export type SchemaResurs = { ref: string; name: string };
 export type SchemaForslag = {
@@ -226,7 +226,7 @@ export function parseSchemaVillkor(value: unknown): SchemaVillkor {
     lunch = { startMin: int(l.startMin, 0, 1440), endMin: int(l.endMin, 0, 1440), lengthMin: int(l.lengthMin, 0, 1440), teachers: l.teachers };
   }
   const villkor: SchemaVillkor = { days, breakMin: int(r.breakMin, 0, 1440), startGridMin: int(r.startGridMin, 1, 1440), lunch, maxLessonMin: int(r.maxLessonMin, 0, 1440), minLessonMin: int(r.minLessonMin, 0, 1440),
-    sameDay: r.sameDay as SchemaVillkor['sameDay'], lateAfterMin: minutes(r.lateAfterMin), studentMaxMinPerDay: minutes(r.studentMaxMinPerDay), teacherMaxMinPerDay: minutes(r.teacherMaxMinPerDay), termDiffPct: minutes(r.termDiffPct),
+    sameDay: r.sameDay as SchemaVillkor['sameDay'], lateAfterMin: minutes(r.lateAfterMin), studentMaxMinPerDay: minutes(r.studentMaxMinPerDay), teacherMaxMinPerDay: minutes(r.teacherMaxMinPerDay),
     salar: list(r.salar, SCHEMA_VILLKOR_LIMITS.salar).map(x => text(x, SCHEMA_VILLKOR_LIMITS.salNamn)), egna: list(r.egna, SCHEMA_VILLKOR_LIMITS.egna).map(regel) };
   if (checkSchemaVillkor(villkor).length) bad();
   return villkor;
@@ -243,7 +243,7 @@ export function parseSchemaForslagRequest(value: unknown, keys = 4): SchemaForsl
 function teaching(t: SchemaForslagTeaching): void {
   text(t.title, 2000); list(t.classes, 2000); int(t.needMin, 0, 10_000_000); int(t.plannedMin, 0, 10_000_000); int(t.weeklyMin, 0, 10_080); int(t.unplaced, 0, 1000);
   if (t.deviation !== null && t.deviation !== 'unplaced' && t.deviation !== 'weekly' && t.deviation !== 'calendar') bad();
-  for (const x of list(t.terms, 2) as SchemaForslagTeaching['terms']) { if (!SCHEMA_TERMS.includes(record(x).term as SchemaTerm)) bad(); int(x.needMin, 0, 10_000_000); int(x.plannedMin, 0, 10_000_000); }
+  for (const x of list(t.terms, 2) as SchemaForslagTeaching['terms']) { if (!SCHEMA_TERMS.includes(record(x).term as SchemaTerm)) bad(); int(x.needMin, 0, 10_000_000); int(x.maxMin, 0, 10_000_000); int(x.plannedMin, 0, 10_000_000); }
 }
 const ROOM = /^sal-\d{1,3}$/u;
 /** Placeringarnas form. Att passen finns, ligger en gång och inom skoldagen prövas mot underlaget med `checkSchemaPlacements`. */

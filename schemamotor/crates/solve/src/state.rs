@@ -6,6 +6,11 @@ use schemamotor_model::SameDay;
 
 /// Kostnad per oplacerad minut. Större än varje rimlig summa av önskemål.
 pub const BIG: i64 = 1_000_000_000;
+/// Kostnad per minut utanför en aktivitets tid (hård regel). Större än
+/// önskemålen men mindre än ett oplacerat pass: en minut av ett pass ger
+/// högst en minut per skoldag, viktad högst fyra gånger, och ingen veckodag
+/// har 25 skoldagar i en period.
+pub const TIME: i64 = BIG / 100;
 
 pub type Pos = (u8, u8);
 
@@ -23,6 +28,9 @@ pub struct State<'a> {
     placed_on: Vec<Vec<u32>>,
     ent_cost: Vec<i64>,
     act_cnt: Vec<u16>,
+    time_sum: Vec<i64>,
+    /// Minuter utanför aktiviteternas tid, viktade enligt `TimeRule::cost`.
+    pub time_dev: i64,
     pub soft: i64,
     pub unplaced_min: i64,
     pub unplaced: usize,
@@ -51,6 +59,8 @@ impl<'a> State<'a> {
             placed_on: vec![Vec::new(); inst.n_res],
             ent_cost: vec![0; inst.n_ents * cells],
             act_cnt: vec![0; inst.act_rule.len() * cells],
+            time_sum: vec![0; inst.times.len()],
+            time_dev: inst.times.iter().map(|t| t.cost(0)).sum(),
             soft: 0,
             unplaced_min: inst.units.iter().map(|u| u.dur_min as i64).sum(),
             unplaced: inst.units.len(),
@@ -64,7 +74,7 @@ impl<'a> State<'a> {
     }
 
     pub fn obj(&self) -> i64 {
-        self.unplaced_min * BIG + self.soft
+        self.unplaced_min * BIG + self.time_dev * TIME + self.soft
     }
 
     pub fn occ_of(&self, res: usize, p: usize, d: usize) -> u128 {
@@ -460,6 +470,13 @@ impl<'a> State<'a> {
                 }
             }
         }
+        for &(r, m) in &unit.time {
+            let rule = &inst.times[r as usize];
+            let i = r as usize;
+            let old = rule.cost(self.time_sum[i]);
+            self.time_sum[i] += if add { m * rule.days[du] } else { -m * rule.days[du] };
+            self.time_dev += rule.cost(self.time_sum[i]) - old;
+        }
         let moved = self.moved_cost(u, d, s, &self.rooms[u]);
         let dur = unit.dur_min as i64;
         if add {
@@ -486,6 +503,11 @@ impl<'a> State<'a> {
         self.journal.push((u as u32, Some((d, s)), self.rooms[u].clone()));
         self.apply(u, d, s, false);
         self.pos[u] = None;
+    }
+
+    /// Aktivitetens tid enligt regel `r` som schemat ligger nu.
+    pub fn time_of(&self, r: usize) -> i64 {
+        self.time_sum[r]
     }
 
     pub fn mark(&self) -> usize {

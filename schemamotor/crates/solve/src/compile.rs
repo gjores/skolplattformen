@@ -39,8 +39,33 @@ pub struct Unit {
     pub locked: bool,
     pub dur_min: u32,
     pub nrooms: usize,
+    /// Tidsregler som enheten bidrar till, med enhetens minuter i aktiviteten.
+    pub time: Vec<(u32, i64)>,
     /// Enheten bryter mot en regel i sig själv (text för diagnos).
     pub self_conflict: Option<String>,
+}
+
+/// En aktivitets tid i en eller flera perioder (`ActivityTime`).
+pub struct TimeRule {
+    pub act: usize,
+    pub period: Option<String>,
+    pub days: Vec<i64>,
+    pub min: i64,
+    pub max: i64,
+}
+
+impl TimeRule {
+    /// Minuter utanför det tillåtna intervallet.
+    pub fn dev(&self, sum: i64) -> i64 {
+        (self.min - sum).max(0) + (sum - self.max).max(0)
+    }
+
+    /// Avvikelsen i sökningens kostnad: en minut under timplanen väger som
+    /// fyra minuter över, så att ett schema som inte når intervallet hellre
+    /// ger för mycket tid än för lite.
+    pub fn cost(&self, sum: i64) -> i64 {
+        4 * (self.min - sum).max(0) + (sum - self.max).max(0)
+    }
 }
 
 pub struct Inst {
@@ -72,6 +97,9 @@ pub struct Inst {
     /// Enheter per resurs (lärare, kluster, virtuella; inte salar).
     pub res_units: Vec<Vec<u32>>,
     pub act_units: Vec<Vec<u32>>,
+    pub times: Vec<TimeRule>,
+    /// Enheter per tidsregel.
+    pub time_units: Vec<Vec<u32>>,
     pub w: Weights,
 }
 
@@ -328,7 +356,40 @@ pub fn compile(p: &Problem) -> Inst {
         if acts.iter().any(|&(a, n)| n > 1 && p.activities[a as usize].same_day.unwrap_or(p.rules.same_day) == SameDay::Forbid) {
             self_conflict = Some("passen ska gå samtidigt men hör till samma aktivitet, som bara får ha ett pass per dag".into());
         }
-        units.push(Unit { parts, pm, ents, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, self_conflict });
+        units.push(Unit { parts, pm, ents, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, time: Vec::new(), self_conflict });
+    }
+
+    // Tidsregler: varje enhet bidrar med sina pass i aktiviteten, i de perioder den går.
+    let mut times: Vec<TimeRule> = Vec::new();
+    let mut act_times: Vec<Vec<(usize, u32)>> = vec![Vec::new(); p.activities.len()];
+    for (a, act) in p.activities.iter().enumerate() {
+        for t in &act.time {
+            let pm = t.period.as_ref().map_or(all_periods, |x| 1 << period_ix[x.as_str()]);
+            act_times[a].push((times.len(), pm));
+            times.push(TimeRule { act: a, period: t.period.clone(), days: t.weekday_days.iter().map(|&n| n as i64).collect(), min: t.min_min as i64, max: t.max_min as i64 });
+        }
+    }
+    for unit in units.iter_mut() {
+        for part in &unit.parts {
+            let Some(a) = p.lessons[part.lesson].activity.as_ref().map(|a| act_ix[a.as_str()]) else { continue };
+            for &(r, pm) in &act_times[a] {
+                if unit.pm & pm == 0 {
+                    continue;
+                }
+                let dur = p.lessons[part.lesson].counted() as i64;
+                match unit.time.iter_mut().find(|x| x.0 == r as u32) {
+                    Some(x) => x.1 += dur,
+                    None => unit.time.push((r as u32, dur)),
+                }
+            }
+        }
+    }
+
+    let mut time_units: Vec<Vec<u32>> = vec![Vec::new(); times.len()];
+    for (u, unit) in units.iter().enumerate() {
+        for &(r, _) in &unit.time {
+            time_units[r as usize].push(u as u32);
+        }
     }
 
     let mut res_units: Vec<Vec<u32>> = vec![Vec::new(); n_res];
@@ -371,6 +432,8 @@ pub fn compile(p: &Problem) -> Inst {
         act_rule: p.activities.iter().map(|a| a.same_day.unwrap_or(p.rules.same_day)).collect(),
         res_units,
         act_units,
+        times,
+        time_units,
         w: p.weights.clone(),
     }
 }

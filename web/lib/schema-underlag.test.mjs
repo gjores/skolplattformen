@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, schemaForslag, schemaKontroll, weeklyLessons } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaKontroll, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
 import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution } from './schema-contract.ts';
 
@@ -30,13 +30,15 @@ const lasarRequest = { ...request, period: 'lasar' };
 /** Tid utan läsårskalender, med terminens spann för HT. */
 const timeWith = (ht = {}, vt = {}) => { const t = defaultSchemaTime(); return { ...t, terms: { ht: { ...t.terms.ht, ...ht }, vt: { ...t.terms.vt, ...vt } } }; };
 
-test('veckotiden delas i lika pass om högst 80 min; under 20 min i veckan ger inget pass', () => {
+test('veckotiden avrundas uppåt och delas i lika pass om högst 80 min; under 20 min i veckan ger inget pass', () => {
   assert.deepEqual(weeklyLessons(h(54), 18), [60, 60, 60]);
   assert.deepEqual(weeklyLessons(h(27), 18), [45, 45]);
   assert.deepEqual(weeklyLessons(h(24), 18), [80]);
   assert.deepEqual(weeklyLessons(h(4), 18), []);
   // Veckotid som inte går jämnt ut: resten läggs på de första passen, så att summan är veckotiden.
   assert.deepEqual(weeklyLessons(170 * 17.4, 17.4), [60, 55, 55]);
+  // Aldrig nedåt (E1): 171 min i veckan blir 175, inte 170.
+  assert.deepEqual(weeklyLessons(171 * 18, 18), [60, 60, 55]);
   assert.deepEqual(weeklyLessons(h(54), 0), []);
 });
 
@@ -187,12 +189,14 @@ test('utlagd tid är passens längd gånger skoldagarna på passets veckodag; kl
   const only = extra => plan({ classes: [{ classId: uid(11), name: '1B', link: null, aplMinutes: null, needs: [need(11, 'ma', 'Matematik')] }], rows: [], ...extra });
   const time = { ...timeWith({ span: HT, perWeekday: [17, 18, 17, 18, 18], classes: { [uid(11)]: [17, 18, 17, 17, 0] } }), source: 'kalender', version: 2, status: 'utkast' };
   const data = only(), underlag = buildSchemaUnderlag(data, request, { members: null, time });
-  // 54 h på 69 skoldagar = 13,8 veckor: 235 min i veckan.
-  assert.deepEqual(underlag.problem.lessons.map(l => l.duration_min), [80, 80, 75]);
+  // 54 h på 69 skoldagar fördelade på fyra veckodagar = 17,25 veckor: 187,8 min i veckan, uppåt till 190 (E1).
+  assert.deepEqual(underlag.problem.lessons.map(l => l.duration_min), [65, 65, 60]);
+  // Tillåten tid (E2): 3240 min till och med 3240 + 5 min × 17,25 veckor, under 3327.
+  assert.deepEqual(underlag.problem.activities[0].time, [{ weekday_days: [17, 18, 17, 17, 0], min_min: 3240, max_min: 3326 }]);
   const forslag = schemaForslag(data, request, underlag, parseSchemaSolution(solved(underlag.problem), underlag.problem));
   // pass-1 är olagt, pass-2 ligger på tisdag (18 skoldagar) och pass-3 på onsdag (17).
-  assert.deepEqual(forslag.teachings, [{ title: 'Matematik', classes: ['1B'], needMin: h(54), weeklyMin: 235, plannedMin: 80 * 18 + 75 * 17, unplaced: 1,
-    terms: [{ term: 'ht', needMin: h(54), plannedMin: 80 * 18 + 75 * 17 }], deviation: 'unplaced' }]);
+  assert.deepEqual(forslag.teachings, [{ title: 'Matematik', classes: ['1B'], needMin: h(54), weeklyMin: 190, plannedMin: 65 * 18 + 60 * 17, unplaced: 1,
+    terms: [{ term: 'ht', needMin: h(54), maxMin: 3326, plannedMin: 65 * 18 + 60 * 17 }], deviation: 'unplaced' }]);
   assert.deepEqual(forslag.time, { source: 'kalender', version: 2, status: 'utkast', current: false, schoolDays: 88, weeks: 17.6, terms: [{ term: 'ht', schoolDays: 88 }] });
   assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request), forslag);
   const none = buildSchemaUnderlag(data, request, { members: null, time: timeWith({ span: HT, classes: { [uid(11)]: [0, 0, 0, 0, 0] } }) });
@@ -271,7 +275,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.deepEqual([kontroll.total, kontroll.metrics], [2, { lessons: p.lessons.length, placed: 2, unplaced: p.lessons.length - 2, studentGapMin: 30, teacherGapMin: 0 }]);
   // Två av matematikens tre pass har en tid: 60 min gånger måndagens och fredagens 18 skoldagar.
   assert.deepEqual(kontroll.teachings.find(t => t.title === 'Matematik' && t.classes[0] === '1A'), { title: 'Matematik', classes: ['1A'], needMin: h(54), weeklyMin: 180, plannedMin: 2 * 60 * 18, unplaced: 1,
-    terms: [{ term: 'ht', needMin: h(54), plannedMin: 2 * 60 * 18 }], deviation: 'unplaced' });
+    terms: [{ term: 'ht', needMin: h(54), maxMin: h(54) + 89, plannedMin: 2 * 60 * 18 }], deviation: 'unplaced' });
   assert.deepEqual(kontroll.rooms, {});
   assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.fingerprint), kontroll);
   assert.throws(() => parseSchemaKontroll(kontroll, '0'.repeat(28)));
@@ -283,14 +287,14 @@ const one = (needHt, needVt, rows = []) => plan({ classes: [{ classId: uid(10), 
 const lessonsOf = u => u.problem.lessons.map((l, i) => [l.duration_min, l.periods ?? null, u.labels.lessons[i].term]);
 
 test('läsårsschema: terminerna är motorns perioder och timplanens tid per termin avgör när undervisningen läggs', () => {
-  const u = buildSchemaUnderlag(plan(), { ...lasarRequest, villkor: { ...defaultSchemaVillkor(), termDiffPct: 15 } });
+  const u = buildSchemaUnderlag(plan(), lasarRequest);
   assert.deepEqual([u.problem.id, u.problem.periods, u.terms], ['forslag-lasar', [{ id: 'ht' }, { id: 'vt' }], ['ht', 'vt']]);
   assert.equal(buildSchemaUnderlag(plan(), request).problem.periods, undefined);
-  // Förvalet (T2): 54 h per termin på 18 och 20 veckor är 180 och 160 min i veckan, alltså egna pass per termin så att varje termin följer timplanen.
-  assert.equal(lessonsOf(buildSchemaUnderlag(plan(), lasarRequest)).filter(l => l[1] === null).length, 0);
-  assert.equal(defaultSchemaVillkor().termDiffPct, 0);
-  // Med gränsen 15 %: skillnaden är 10 %, samma veckoschema hela läsåret, 108 h på 38 veckor.
-  assert.deepEqual(lessonsOf(u).slice(0, 3), [[60, null, null], [55, null, null], [55, null, null]]);
+  // 54 h per termin på 18 och 20 veckor är 180 och 162 min i veckan, uppåt 180 och 165: egna pass per termin, och varje termin har sin tid (E2, E5).
+  assert.equal(lessonsOf(u).filter(l => l[1] === null).length, 0);
+  assert.ok(!('termDiffPct' in defaultSchemaVillkor()));
+  assert.deepEqual(u.problem.activities[0].time, [{ period: 'ht', weekday_days: [18, 18, 18, 18, 18], min_min: h(54), max_min: h(54) + 89 },
+    { period: 'vt', weekday_days: [20, 20, 20, 20, 20], min_min: h(54), max_min: h(54) + 99 }]);
   assert.equal(u.labels.activities[0].needMin, h(108));
   // Tid bara en termin: passen går bara den terminen, så att en HT-kurs och en VT-kurs kan dela tid.
   assert.deepEqual(lessonsOf(buildSchemaUnderlag(one(h(54), 0), lasarRequest)), Array(3).fill([60, ['ht'], 'ht']));
@@ -300,13 +304,12 @@ test('läsårsschema: terminerna är motorns perioder och timplanens tid per ter
   assert.deepEqual(buildSchemaUnderlag(one(h(54), 0), { ...request, period: 'vt' }).omitted, [{ title: 'Matematik', classes: ['1A'], reason: 'no_time' }]);
 });
 
-test('olika veckotid i timplanen ger egna pass per termin; villkoret avgör gränsen', () => {
-  const data = one(h(54), h(30)), villkor = n => ({ ...lasarRequest, villkor: { ...defaultSchemaVillkor(), termDiffPct: n } });
+test('olika veckotid i timplanen ger egna pass per termin', () => {
+  const data = one(h(54), h(30));
   // HT 180 min i veckan, VT 90: skillnaden är avsedd i timplanen.
   assert.deepEqual(lessonsOf(buildSchemaUnderlag(data, lasarRequest)), [[60, ['ht'], 'ht'], [60, ['ht'], 'ht'], [60, ['ht'], 'ht'], [45, ['vt'], 'vt'], [45, ['vt'], 'vt']]);
-  assert.deepEqual(lessonsOf(buildSchemaUnderlag(data, villkor(50))), [[70, null, null], [65, null, null]]);
-  assert.deepEqual(lessonsOf(buildSchemaUnderlag(data, villkor(null))), [[70, null, null], [65, null, null]]);
-  assert.equal(lessonsOf(buildSchemaUnderlag(plan(), villkor(0))).filter(l => l[1] === null).length, 0);
+  // Ett sparat terminsval från tidigare versioner nekas av servern.
+  assert.throws(() => parseSchemaVillkor({ ...defaultSchemaVillkor(), termDiffPct: 15 }));
   // För lite tid ena terminen: den terminen redovisas som utelämnad, den andra läggs.
   const short = buildSchemaUnderlag(one(h(54), h(4)), lasarRequest);
   assert.deepEqual([lessonsOf(short).length, short.omitted], [3, [{ title: 'Matematik (VT)', classes: ['1A'], reason: 'too_short' }]]);
@@ -314,7 +317,7 @@ test('olika veckotid i timplanen ger egna pass per termin; villkoret avgör grä
 
 test('lärarbyte mellan terminerna ger egna pass per termin med terminens lärare', () => {
   const rows = [row(30, classKey(10, 'ma'), uid(20), { teacherVt: 0 }), row(31, classKey(10, 'ma'), uid(21), { teacherHt: 0 })];
-  const u = buildSchemaUnderlag(one(h(54), h(60), rows), { ...lasarRequest, villkor: { ...defaultSchemaVillkor(), termDiffPct: null } });
+  const u = buildSchemaUnderlag(one(h(54), h(60), rows), lasarRequest);
   assert.deepEqual(u.labels.lessons.map(l => [l.term, l.teacherIds]), [...Array(3).fill(['ht', ['larare-1']]), ...Array(3).fill(['vt', ['larare-2']])]);
 });
 
@@ -324,7 +327,7 @@ test('utlagd tid räknas över passets terminer och håltid redovisas som snitt 
   const forslag = schemaForslag(data, lasarRequest, u, parseSchemaSolution(solved(u.problem), u.problem));
   // Två lagda pass om 60 min, vart och ett 18 skoldagar HT och 20 VT.
   assert.deepEqual(forslag.teachings, [{ title: 'Matematik', classes: ['1A'], needMin: h(114), weeklyMin: 180, plannedMin: 2 * 60 * 38, unplaced: 1,
-    terms: [{ term: 'ht', needMin: h(54), plannedMin: 2 * 60 * 18 }, { term: 'vt', needMin: h(60), plannedMin: 2 * 60 * 20 }], deviation: 'unplaced' }]);
+    terms: [{ term: 'ht', needMin: h(54), maxMin: h(54) + 89, plannedMin: 2 * 60 * 18 }, { term: 'vt', needMin: h(60), maxMin: h(60) + 99, plannedMin: 2 * 60 * 20 }], deviation: 'unplaced' }]);
   assert.deepEqual(forslag.time.terms, [{ term: 'ht', schoolDays: 90 }, { term: 'vt', schoolDays: 100 }]);
   assert.deepEqual([forslag.period, forslag.metrics.studentGapMin, forslag.metrics.teacherGapMin], ['lasar', 25, 5]);
   assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), lasarRequest), forslag);
@@ -338,7 +341,7 @@ test('villkoren prövas och når motorn', () => {
   assert.deepEqual(checkSchemaVillkor(d), []);
   assert.deepEqual(parseSchemaVillkor(JSON.parse(JSON.stringify(d))), d);
   const broken = [{ breakMin: 7 }, { breakMin: 35 }, { startGridMin: 25 }, { maxLessonMin: 200 }, { minLessonMin: 45 }, { sameDay: 'ibland' }, { lateAfterMin: 5 * 60 },
-    { studentMaxMinPerDay: 60 }, { teacherMaxMinPerDay: 601 }, { termDiffPct: -5 }, { termDiffPct: 55 }, { lunch: { ...d.lunch, startMin: 13 * 60, endMin: 13 * 60 + 30 } }, { lunch: { ...d.lunch, lengthMin: 15 } },
+    { studentMaxMinPerDay: 60 }, { teacherMaxMinPerDay: 601 }, { lunch: { ...d.lunch, startMin: 13 * 60, endMin: 13 * 60 + 30 } }, { lunch: { ...d.lunch, lengthMin: 15 } },
     { days: d.days.slice(0, 4) }, { days: d.days.map((x, i) => i === 2 ? { startMin: 8 * 60, endMin: 8 * 60 + 30 } : x) }, { days: d.days.map((x, i) => i === 0 ? { ...x, startMin: 5 * 60 } : x) }];
   for (const change of broken) {
     assert.ok(checkSchemaVillkor({ ...d, ...change }).length > 0, JSON.stringify(change));
@@ -444,15 +447,34 @@ test('timplanen är ram: tillåten tid som inte rymmer passet ger ett pass utan 
   assert.deepEqual(u.egnaUtanTraff, []);
 });
 
-test('veckotid som inte är timplanens redovisas som avvikelse', () => {
-  // 54 h HT och 30 h VT med gränsen 50 %: ett veckoschema om 135 min, mot timplanens 180 och 90.
-  const data = one(h(54), h(30)), req = { ...lasarRequest, villkor: { ...defaultSchemaVillkor(), termDiffPct: 50 } }, u = buildSchemaUnderlag(data, req), p = u.problem;
-  const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: i, start_min: 480, rooms: [] }));
-  const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
-  const t = schemaForslag(data, req, u, parseSchemaSolution(raw, p)).teachings[0];
-  assert.deepEqual([t.deviation, t.terms], ['weekly', [{ term: 'ht', needMin: h(54), plannedMin: 135 * 18 }, { term: 'vt', needMin: h(30), plannedMin: 135 * 20 }]]);
-  // Med förvalet följer varje termin timplanen.
-  const own = buildSchemaUnderlag(data, lasarRequest), ownSlots = own.problem.lessons.map((l, i) => ({ lesson: l.id, day: i % 5, start_min: 480, rooms: [] }));
-  const exact = schemaForslag(data, lasarRequest, own, parseSchemaSolution({ ...raw, problem_id: own.problem.id, placements: ownSlots, metrics: { ...raw.metrics, lessons: ownSlots.length } }, own.problem)).teachings[0];
-  assert.deepEqual([exact.deviation, exact.terms.map(x => x.plannedMin)], [null, [h(54), h(30)]]);
+test('tiden ska vara timplanens, uppåt bara till hela 5 minuter i veckan; annars avvikelse', () => {
+  // HT 90 skoldagar, veckodagarna 17, 18, 18, 18 och 19 gånger. 54 h ger 180 min i veckan: tre pass om 60 min, tillåtet 3240–3329 min.
+  const data = one(h(54), 0), time = timeWith({ span: HT, perWeekday: [17, 18, 18, 18, 19] }), u = buildSchemaUnderlag(data, request, { members: null, time }), p = u.problem;
+  assert.deepEqual(p.lessons.map(l => l.duration_min), [60, 60, 60]);
+  assert.deepEqual(p.activities[0].time, [{ weekday_days: [17, 18, 18, 18, 19], min_min: 3240, max_min: 3329 }]);
+  const at = days => {
+    const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
+    const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
+    const t = schemaForslag(data, request, u, parseSchemaSolution(raw, p)).teachings[0];
+    return [t.deviation, t.plannedMin];
+  };
+  // Måndag–onsdag ger 3180 min: under timplanen. Tisdag–torsdag 3240 och onsdag–fredag 3300: inom avrundningen.
+  assert.deepEqual([at([0, 1, 2]), at([1, 2, 3]), at([2, 3, 4])], [['calendar', 3180], [null, 3240], [null, 3300]]);
+});
+
+test('passlängderna väljs så att timplanens tid går att nå med någon fördelning på veckodagar', () => {
+  const r = (perWeekday, min, max) => ({ perWeekday, min, max });
+  assert.equal(reachable([60, 60], [r([17, 18, 18, 18, 17], 2150, 2160)]), true);
+  assert.equal(reachable([60, 60], [r([17, 18, 18, 18, 17], 2170, 2200)]), false);
+  // Veckodag utan skoldagar ger ingen tid och räknas inte.
+  assert.equal(reachable([60], [r([0, 0, 0, 0, 18], 0, 2000)]), true);
+  assert.equal(reachable([60], [r([0, 0, 0, 0, 0], 0, 2000)]), false);
+  // Båda terminerna på en gång för pass som går hela läsåret.
+  assert.equal(reachable([60], [r([18, 18, 18, 18, 18], 1080, 1080), r([20, 19, 20, 20, 20], 1140, 1140)]), true);
+  assert.equal(reachable([60], [r([18, 18, 18, 18, 18], 1080, 1080), r([20, 19, 20, 20, 20], 1170, 1170)]), false);
+  // En enda lång vecka: 120 min på 17 eller 18 dagar ger 2040 eller 2160, inte 2050–2137; två pass om 60 min ger 2100.
+  const v = { ...defaultSchemaVillkor(), maxLessonMin: 120, minLessonMin: 20 };
+  const data = one(2050, 0), time = timeWith({ span: HT, perWeekday: [17, 18, 18, 17, 18] }), u = buildSchemaUnderlag(data, { ...request, villkor: v }, { members: null, time });
+  assert.equal(reachable([120], [r([17, 18, 18, 17, 18], 2050, 2136)]), false);
+  assert.deepEqual([u.problem.lessons.map(l => l.duration_min), u.labels.activities[0].weeklyOff], [[60, 60], false]);
 });

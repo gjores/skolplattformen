@@ -122,9 +122,29 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
         let more = proof::explain_unplaced(p, &inst, &st, &diagnoses);
         diagnoses.extend(more);
     }
+    // Aktiviteternas tid är en hård regel: ett schema som bryter den är inte komplett.
+    let mut time_broken = false;
+    for (r, rule) in inst.times.iter().enumerate() {
+        let sum = st.time_of(r);
+        let all = inst.units.iter().enumerate().all(|(u, unit)| st.pos[u].is_some() || !unit.time.iter().any(|x| x.0 == r as u32));
+        if !all || rule.dev(sum) == 0 {
+            continue;
+        }
+        time_broken = true;
+        let act = &p.activities[rule.act].id;
+        let period = rule.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+        let lessons = p.lessons.iter().filter(|l| l.activity.as_deref() == Some(act.as_str())).map(|l| l.id.clone()).collect();
+        diagnoses.push(Diagnosis {
+            code: "activity_time".into(),
+            message: format!("Aktivitet {act} får {sum} min{period} men ska ha {}–{} min.", rule.min, rule.max),
+            lessons,
+            resources: vec![act.clone()],
+            proof: false,
+        });
+    }
     let status = if diagnoses.iter().any(|d| d.proof) {
         Status::Infeasible
-    } else if unplaced.is_empty() {
+    } else if unplaced.is_empty() && !time_broken {
         Status::Complete
     } else if cancel.load(Ordering::Relaxed) {
         Status::Cancelled

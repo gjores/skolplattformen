@@ -338,6 +338,25 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
             }
         }
     }
+    // Aktiviteternas tid, när alla deras pass i perioden är placerade.
+    for a in &problem.activities {
+        for t in &a.time {
+            let own: Vec<&Lesson> = problem.lessons.iter().filter(|l| l.activity.as_deref() == Some(a.id.as_str()) && in_period(l, t.period.as_deref())).collect();
+            if own.is_empty() || own.iter().any(|l| !placed.contains_key(l.id.as_str())) {
+                continue;
+            }
+            let sum = t.minutes(own.iter().map(|l| (l.counted(), placed[l.id.as_str()].day)));
+            if sum < t.min_min || sum > t.max_min {
+                let period = t.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+                v.push(Violation {
+                    code: "activity_time",
+                    message: format!("Aktivitet {} får {sum} min{period} men ska ha {}–{} min.", a.id, t.min_min, t.max_min),
+                    lessons: own.iter().map(|l| l.id.clone()).collect(),
+                    resources: vec![a.id.clone()],
+                });
+            }
+        }
+    }
     // Samma brott kan upptäckas i flera perioder.
     let mut seen = BTreeSet::new();
     v.retain(|x| seen.insert((x.code, x.message.clone())));
@@ -380,6 +399,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
 /// underlaget, och att dess besked och utfall stämmer med kontrollens egna.
 pub fn validate_solution(problem: &Problem, solution: &Solution) -> Report {
     let mut report = validate(problem, &solution.placements);
+    let time_broken = report.violations.iter().any(|x| x.code == "activity_time");
     let mut push = |code: &'static str, message: String| report.violations.push(Violation { code, message, lessons: vec![], resources: vec![] });
     if solution.problem_hash != problem.hash() {
         push("stale", "Resultatet är beräknat på ett annat underlag.".into());
@@ -389,6 +409,9 @@ pub fn validate_solution(problem: &Problem, solution: &Solution) -> Report {
     }
     if solution.status == Status::Complete && report.metrics.unplaced_lessons > 0 {
         push("status_mismatch", "Resultatet anges som komplett men har oplacerade pass.".into());
+    }
+    if solution.status == Status::Complete && time_broken {
+        push("status_mismatch", "Resultatet anges som komplett men en aktivitet får fel tid.".into());
     }
     let placed: BTreeSet<&str> = solution.placements.iter().map(|p| p.lesson.as_str()).collect();
     let unplaced: BTreeSet<&str> = solution.unplaced.iter().map(|s| s.as_str()).collect();

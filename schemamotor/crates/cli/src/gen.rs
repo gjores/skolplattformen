@@ -134,7 +134,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
             for &(subject, count, len, feature) in subjects {
                 let teacher = teacher_for(&mut p, &mut rng, subject, count * len);
                 let activity = format!("{class}-{subject}");
-                p.activities.push(Activity { id: activity.clone(), same_day: None });
+                p.activities.push(Activity { id: activity.clone(), same_day: None, time: vec![] });
                 match room_need.iter_mut().find(|x| x.0 == feature) {
                     Some(x) => x.1 += count * len,
                     None => room_need.push((feature, count * len)),
@@ -151,6 +151,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         rooms: Some(RoomRequirement { count: 1, features: vec![feature.into()], min_capacity: None, allowed: vec![] }),
                         allowed: vec![],
                         locked: None,
+                        counted_min: None,
                     });
                 }
             }
@@ -165,7 +166,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                 let halves = (kind.per_grade as usize).div_ceil(4);
                 let teachers: Vec<String> = (0..halves).map(|h| teacher_for(&mut p, &mut rng, &format!("val{year}b{b}o{o}h{h}x"), block_n * block_len)).collect();
                 let activity = format!("{group}-kurs");
-                p.activities.push(Activity { id: activity.clone(), same_day: None });
+                p.activities.push(Activity { id: activity.clone(), same_day: None, time: vec![] });
                 per_option.push((group, teachers, activity, halves as u32));
             }
             for _ in 0..block_n {
@@ -187,6 +188,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         rooms: Some(RoomRequirement { count: *halves, features: vec!["klassrum".into()], min_capacity: None, allowed: vec![] }),
                         allowed: vec![],
                         locked: None,
+                        counted_min: None,
                     });
                 }
                 p.links.push(Link { kind: LinkKind::Simultaneous, lessons: ids });

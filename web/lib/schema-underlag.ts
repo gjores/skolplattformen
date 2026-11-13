@@ -23,9 +23,9 @@ export type SchemaLabels = {
   /** Namn på elevkluster och elevgrupper, för motorns klartext. */
   names: Record<string, string>;
   /** `days`: skoldagar per veckodag för undervisningens klasser, per termin i perioden. */
-  /** `terms`: timplanens tid per termin. `weeklyOff`: veckans pass summerar inte till timplanens veckotid någon termin (T1). */
+  /** `terms`: timplanens tid per termin och högsta tillåtna tid efter avrundning (E2). `weeklyOff`: passlängderna kan inte ge den tiden någon termin (E4). */
   activities: { id: string; title: string; classes: string[]; needMin: number; weeklyMin: number; days: Partial<Record<SchemaTerm, number[]>>;
-    terms: { term: SchemaTerm; needMin: number }[]; weeklyOff: boolean }[];
+    terms: { term: SchemaTerm; needMin: number; maxMin: number }[]; weeklyOff: boolean }[];
   /** `durationMin` är undervisningstiden; motorns pass är `marginMin` längre (R4). */
   lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; roomIds: string[]; vacant: boolean; term: SchemaTerm | null }[];
 };
@@ -67,15 +67,16 @@ export function schemaFingerprint(problem: SchemaProblem, labels: SchemaLabels):
   return part(1) + part(2);
 }
 
-const round5 = (minutes: number) => Math.round(minutes / 5) * 5;
+/** Avrundning uppåt till hela 5 minuter (E1); små flyttalsfel avrundas inte upp. */
+const ceil5 = (minutes: number) => Math.ceil(minutes / 5 - 1e-9) * 5;
 const unique = <T,>(values: T[]) => [...new Set(values)];
 
 /**
- * Veckans pass: högst `maxLessonMin` långa och så lika som 5-minutersrutnätet tillåter; summan är veckotiden avrundad till 5 min.
+ * Veckans pass: högst `maxLessonMin` långa och så lika som 5-minutersrutnätet tillåter; summan är veckotiden avrundad uppåt till 5 min (E1).
  * Tom lista: för lite tid för ett pass i veckan.
  */
 export function weeklyLessons(termMinutes: number, weeks: number, d: Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin'> = defaultSchemaVillkor(), fixed?: number): number[] {
-  const weekly = weeks > 0 ? round5(termMinutes / weeks) : 0;
+  const weekly = weeks > 0 ? ceil5(termMinutes / weeks) : 0;
   if (weekly < d.minLessonMin) return [];
   if (fixed !== undefined) {
     // Bestämt antal pass (R5): samma veckotid, så lika pass som rutnätet tillåter. Antalet hålls inom 10–180 minuter per pass.
@@ -85,6 +86,26 @@ export function weeklyLessons(termMinutes: number, weeks: number, d: Pick<Schema
   const count = Math.min(SCHEMA_DEFAULTS.maxLessonsPerWeek, Math.ceil(weekly / d.maxLessonMin));
   const base = Math.min(d.maxLessonMin, Math.floor(weekly / count / 5) * 5), longer = Math.min(count, Math.max(0, (weekly - base * count) / 5));
   return Array.from({ length: count }, (_, i) => Math.max(d.minLessonMin, base + (i < longer ? 5 : 0)));
+}
+
+/** Tillåten tid för en undervisning en termin (E2): timplanens minuter till och med avrundningen uppåt, under 5 minuter per vecka. */
+type TimeRange = { perWeekday: number[]; min: number; max: number };
+
+/** Finns veckodagar för passen som ger varje termin tid inom sitt intervall (E4)? Övriga regler räknas inte. */
+export function reachable(lengths: number[], ranges: TimeRange[]): boolean {
+  if (!lengths.length || !ranges.length) return false;
+  let sums = new Map([[ranges.map(() => 0).join(), ranges.map(() => 0)]]);
+  for (const len of lengths) {
+    const next = new Map<string, number[]>();
+    for (const now of sums.values()) for (let day = 0; day < ranges[0].perWeekday.length; day++) {
+      // En veckodag utan skoldagar ger passet ingen tid; där läggs inget.
+      if (ranges.every(r => !r.perWeekday[day])) continue;
+      const s = now.map((n, i) => n + len * (ranges[i].perWeekday[day] ?? 0));
+      if (s.every((n, i) => n <= ranges[i].max)) next.set(s.join(), s);
+    }
+    sums = next;
+  }
+  return [...sums.values()].some(s => s.every((n, i) => n >= ranges[i].min));
 }
 
 /** Passen fördelas mellan lärare som undervisar en i taget, efter deras tid (största rest). */
@@ -276,18 +297,26 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     const active = info.filter(x => x.minutes > 0 && x.days > 0);
     if (!active.length) { omitted.push({ title: t.title, classes: names, reason: 'no_days' }); return; }
     for (const x of info) if (x.minutes > 0 && x.days <= 0) omitted.push({ title: t.title + suffix(x.term), classes: names, reason: 'no_days' });
-    // Samma veckoschema hela läsåret när timplanens veckotid är nära lika och samma lärare har undervisningen båda terminerna; annars egna pass per termin (L3).
+    // Samma veckoschema hela läsåret när timplanens veckotid avrundad uppåt är lika och samma lärare har undervisningen båda terminerna; annars egna pass per termin (E5).
     const known = t.teachers.filter(x => teacherNo.has(x.personId)), takesTurns = !t.together && known.length > 1;
     const staff = (x: typeof info[number]) => takesTurns ? x.teachers.filter(p => p.minutes > 0).map(p => p.personId).join() : '';
-    const weekly = (x: typeof info[number]) => x.minutes / (x.days / 5);
-    // Förvalet 0 (T2): samma veckoschema bara när timplanens veckotid är lika båda terminerna på 5-minutersrutnätet.
-    const even = active.length > 1 && staff(active[0]) === staff(active[1]) && (v.termDiffPct === null || round5(weekly(active[0])) === round5(weekly(active[1]))
-      || Math.abs(weekly(active[0]) - weekly(active[1])) * 100 <= v.termDiffPct * Math.max(weekly(active[0]), weekly(active[1])));
+    // Veckor: skoldagarna delade på de veckodagar som har skoldagar, så att en klass utan fredagar får sin veckotid på fyra dagar.
+    const weeksOf = (x: typeof info[number]) => x.days / Math.max(1, x.perWeekday.filter(n => n > 0).length);
+    const weekly = (x: typeof info[number]) => x.minutes / weeksOf(x);
+    const even = active.length > 1 && staff(active[0]) === staff(active[1]) && ceil5(weekly(active[0])) === ceil5(weekly(active[1]));
     // Uppdelning (R5): antal pass går före längsta pass; det kortaste längsta passet gäller. Veckotiden är alltid timplanens.
     const antal = shared.find(r => r.typ === 'antal')?.count, langd = Math.min(...shared.flatMap(r => r.typ === 'langd' ? [r.maxMin] : []));
     const split = Number.isFinite(langd) ? { maxLessonMin: langd, minLessonMin: Math.min(v.minLessonMin, langd) } : v;
-    const segments = (even ? [active] : active.map(x => [x])).map(parts => ({ parts, days: total(parts.map(x => x.days)),
-      lengths: weeklyLessons(total(parts.map(x => x.minutes)), total(parts.map(x => x.days)) / 5, split, antal) }));
+    // Tillåten tid per termin (E2) och passlängder som kan ge den (E4): först de vanliga, sedan fler pass eller 5–15 minuter mer i veckan.
+    const range = (x: typeof info[number]): TimeRange => ({ perWeekday: x.perWeekday, min: Math.ceil(x.minutes - 1e-9), max: Math.ceil(x.minutes - 1e-9) + Math.ceil(5 * weeksOf(x) - 1e-9) - 1 });
+    const segments = (even ? [active] : active.map(x => [x])).map(parts => {
+      const minutes = total(parts.map(x => x.minutes)), weeks = total(parts.map(weeksOf)), ranges = parts.map(range);
+      const first = weeklyLessons(minutes, weeks, split, antal);
+      const tries = [0, 5, 10, 15].flatMap(extra => [undefined, ...(antal === undefined && first.length ? [first.length + 1, first.length + 2] : [])]
+        .map(count => weeklyLessons(minutes + extra * weeks, weeks, split, count ?? antal)));
+      const lengths = tries.find(l => reachable(l, ranges)) ?? first;
+      return { parts, days: total(parts.map(x => x.days)), ranges, lengths, ok: reachable(lengths, ranges) };
+    });
     if (segments.every(s => !s.lengths.length)) { omitted.push({ title: t.title, classes: names, reason: 'too_short' }); return; }
     const activity = `behov-${problem.activities.length + 1}`;
     const groups = unique(t.parts.flatMap(p => {
@@ -305,12 +334,13 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     const shown = classes.length ? classes.map(id => classNo.get(id)!) : groups;
     for (const id of shown) if (!labels.classes.some(c => c.id === id)) labels.classes.push({ id, name: labels.names[id] ?? t.title });
     const laid = segments.filter(s => s.lengths.length);
-    problem.activities.push({ id: activity });
+    problem.activities.push({ id: activity, time: laid.flatMap(s => s.parts.map((x, i) => ({ ...(terms.length > 1 ? { period: x.term } : {}),
+      weekday_days: x.perWeekday, min_min: s.ranges[i].min, max_min: s.ranges[i].max }))) });
     labels.activities.push({ id: activity, title: t.title, classes: names, needMin: Math.round(total(info.map(x => Math.max(0, x.minutes)))),
       weeklyMin: Math.round(total(laid.map(s => total(s.lengths) * s.days)) / total(laid.map(s => s.days))), days: Object.fromEntries(info.map(x => [x.term, x.perWeekday])),
-      terms: info.map(x => ({ term: x.term, needMin: Math.round(Math.max(0, x.minutes)) })),
-      // Timplanen är ram (T1): veckans pass ska summera till terminens veckotid i timplanen.
-      weeklyOff: info.some(x => x.minutes > 0 && (x.days <= 0 || total(segments.find(s => s.parts.includes(x))?.lengths ?? []) !== round5(x.minutes / (x.days / 5)))) });
+      terms: info.map(x => ({ term: x.term, needMin: Math.ceil(Math.max(0, x.minutes) - 1e-9), maxMin: x.minutes > 0 && x.days > 0 ? range(x).max : 0 })),
+      // Timplanen är ram (T1): passen ska kunna ge terminens tid (E4).
+      weeklyOff: info.some(x => x.minutes > 0 && (x.days <= 0 || !segments.find(s => s.parts.includes(x))?.ok)) });
     for (const s of segments) {
       const term = s.parts.length === terms.length ? null : s.parts[0].term;
       if (!s.lengths.length) { omitted.push({ title: t.title + suffix(s.parts[0].term), classes: names, reason: 'too_short' }); continue; }
@@ -328,7 +358,8 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
         // Sal (R6): ämnets salar går före gruppens, lärarens och klassens.
         const wanted = (['amne', 'grupp', 'larare', 'klass'] as const).map(slag => rules.flatMap(r => r.slag === slag && r.typ === 'sal' ? r.rooms : [])).find(rooms => rooms.length) ?? [];
         const roomIds = labels.rooms.filter(room => wanted.includes(room.name)).map(room => room.id);
-        problem.lessons.push({ id, activity, duration_min: length, teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
+        // Marginalen räknas inte som undervisningstid (E3).
+        problem.lessons.push({ id, activity, duration_min: length, ...(marginMin ? { counted_min: durationMin } : {}), teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
           ...(allowed === null ? {} : { allowed: allowed.length ? allowed : [{ day: 0, start_min: problem.time.days[0].start_min, end_min: problem.time.days[0].start_min + d.stepMin }] }),
           ...(roomIds.length ? { rooms: { count: 1 as const, allowed: roomIds } } : {}) });
         labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin, roomIds, vacant: t.vacant, term });
@@ -357,8 +388,8 @@ function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacem
     const own = underlag.labels.lessons.filter(l => l.activity === a.id).map(l => ({ durationMin: l.durationMin, day: at.get(l.id)?.day ?? null, terms: l.term ? [l.term] : underlag.terms }));
     const unplaced = own.filter(l => l.day === null).length;
     const terms = a.terms.map(x => ({ ...x, plannedMin: own.reduce((sum, l) => sum + (l.day === null || !l.terms.includes(x.term) ? 0 : l.durationMin * (a.days[x.term]?.[l.day] ?? 0)), 0) }));
-    // Avrundningen till 5 minuter ger högst 2,5 minuter per vecka; mer än så beror på att veckodagarna har olika många skoldagar.
-    const calendar = terms.some(x => Math.abs(x.plannedMin - x.needMin) > 2.5 * (a.days[x.term] ?? []).reduce((sum, n) => sum + n, 0) / 5 + 1);
+    // Under timplanen eller över avrundningen uppåt (E2).
+    const calendar = terms.some(x => x.needMin > 0 && (x.plannedMin < x.needMin || x.plannedMin > x.maxMin));
     return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced, plannedMin: terms.reduce((sum, x) => sum + x.plannedMin, 0),
       terms, deviation: unplaced > 0 ? 'unplaced' as const : a.weeklyOff ? 'weekly' as const : calendar ? 'calendar' as const : null };
   });

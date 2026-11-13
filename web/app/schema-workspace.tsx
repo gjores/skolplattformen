@@ -77,7 +77,7 @@ function daysText(days: SchemaVillkor['days']): string {
 }
 const SLAG: Record<SchemaRegelSlag, string> = { klass: 'Klass', grupp: 'Grupp', amne: 'Ämne', larare: 'Lärare', sal: 'Sal' };
 const REGEL: Record<SchemaRegelTyp, string> = { sparrad: 'Spärrad tid', tillaten: 'Tillåten tid', marginal: 'Marginal till nästa lektion', langd: 'Uppdelning: längsta pass', antal: 'Uppdelning: antal pass per vecka', sal: 'Sal' };
-const TIMPLAN: Record<SchemaTimplanDeviation, string> = { unplaced: 'Pass utan tid', weekly: 'Annan veckotid', calendar: 'Veckodagarnas skoldagar' };
+const TIMPLAN: Record<SchemaTimplanDeviation, string> = { unplaced: 'Pass utan tid', weekly: 'Passen kan inte ge timplanens tid', calendar: 'Passens veckodagar ger annan tid' };
 type Resurser = SchemaForslag['resurser'];
 /** Ett eget villkor i klartext. Namn på klass, grupp och lärare finns först när ett förslag har tagits fram. */
 function ruleText(r: SchemaRegel, resurser: Resurser | null): string {
@@ -93,8 +93,9 @@ function storedVillkor(unitId: string): SchemaVillkor | null {
   try {
     const raw = window.localStorage.getItem(villkorKey(unitId)), value = raw === null ? null : JSON.parse(raw) as Record<string, unknown> | null;
     if (value === null || typeof value !== 'object') return null;
-    // Villkor sparade före egna villkor: tomma listor, och det gamla förvalet 15 % blir det nya förvalet (T2).
-    return parseSchemaVillkor('egna' in value ? value : { ...value, salar: [], egna: [], termDiffPct: value.termDiffPct === 15 ? 0 : value.termDiffPct });
+    // Villkor sparade före egna villkor får tomma listor. Valet av egna pass per termin finns inte längre (05.2-SM-TIMPLAN-EXAKT, E5).
+    const rest = Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'termDiffPct'));
+    return parseSchemaVillkor('egna' in rest ? rest : { ...rest, salar: [], egna: [] });
   } catch { return null; }
 }
 function rememberVillkor(unitId: string, villkor: SchemaVillkor): void {
@@ -228,9 +229,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const d = SCHEMA_DEFAULTS;
   const order = (t: SchemaForslag['teachings'][number]) => t.deviation === null ? 3 : t.deviation === 'calendar' ? 2 : t.deviation === 'weekly' ? 1 : 0;
   const deviating = forslag ? [...forslag.teachings].sort((a, b) => order(a) - order(b) || Math.abs(b.plannedMin - b.needMin) - Math.abs(a.plannedMin - a.needMin)) : [];
-  // Timplanen är ram (T1): pass utan tid, annan veckotid och utelämnad undervisning är avvikelser; skillnad som beror på veckodagarnas skoldagar redovisas för sig.
-  const off = forslag ? forslag.teachings.filter(t => t.deviation === 'unplaced' || t.deviation === 'weekly').length + forslag.omitted.filter(o => o.reason !== 'no_time').length : 0;
-  const byCalendar = forslag?.teachings.filter(t => t.deviation === 'calendar').length ?? 0;
+  // Timplanen är ram (T1): tid under timplanen eller över avrundningen uppåt, pass utan tid och utelämnad undervisning är avvikelser (05.2-SM-TIMPLAN-EXAKT).
+  const off = forslag ? forslag.teachings.filter(t => t.deviation !== null).length + forslag.omitted.filter(o => o.reason !== 'no_time').length : 0;
 
   return <section className="valplan-workspace schema-workspace">
     <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>Läsår {planningYearLabel(schoolYear)}. Förslaget räknas ur skolans tjänstefördelning. Det sparas inte och publiceras inte.</p></div></div>
@@ -249,7 +249,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
         <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>
-        <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Veckotiden följer timplanen'}</span>
+        <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Tiden följer timplanen'}</span>
         {history.length > 0 && <span className="status-badge warning">Ändrat för hand · {history.length} {history.length === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
         <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
@@ -257,7 +257,6 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           {forslag.time.source === 'kalender'
             ? ` Tid: ${forslag.time.schoolDays} skoldagar${forslag.time.terms.length > 1 ? ` (${forslag.time.terms.map(t => `${t.term.toUpperCase()} ${t.schoolDays}`).join(', ')})` : ''} enligt läsårskalendern version ${forslag.time.version} (${CALENDAR[forslag.time.status ?? ''] ?? forslag.time.status}${forslag.time.current ? ', gällande' : ''}).`
             : ` Läsårskalender saknas för läsåret: ${forslag.time.weeks} lika veckor har antagits.`}
-          {byCalendar > 0 && ` ${byCalendar} ${byCalendar === 1 ? 'undervisning får' : 'undervisningar får'} annan tid över terminen än timplanens, eftersom veckodagarna har olika många skoldagar.`}
           {forslag.metrics.placed > 0 && ` Håltid per vecka: elever ${forslag.metrics.studentGapMin} min, lärare ${forslag.metrics.teacherGapMin} min.`}</p>
       </div>
 
@@ -322,8 +321,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       {forslag.diagnoses.length > 0 && <div className="schema-list"><h2>Schemamotorns förklaring</h2>
         <ul>{forslag.diagnoses.map((x, i) => <li key={i}>{x.message}{x.proof && ' (Bevisat: det går inte med det här underlaget.)'}</li>)}</ul></div>}
       {deviating.length > 0 && <details className="schema-list"><summary><h2>Tid över {forslag.period === 'lasar' ? 'läsåret' : 'terminen'} ({deviating.length})</h2>
-        <span className="schema-note">{off + byCalendar === 0 ? 'All undervisning följer timplanen.' : `${off + byCalendar} av ${deviating.length} skiljer sig från timplanen.`}</span></summary>
-        <p className="schema-note">Timplanen bestämmer hur mycket undervisning som läggs; villkor och flytt ändrar bara när och var. Utlagd tid är passens längd gånger antalet skoldagar på passets veckodag under den tid passet går. Avvikelser står först. Skillnad som beror på veckodagarnas skoldagar går inte att rätta i ett veckoschema; den kräver perioder med avvikande schema, som inte finns än.</p>
+        <span className="schema-note">{off === 0 ? 'All undervisning följer timplanen.' : `${off} av ${deviating.length} skiljer sig från timplanen.`}</span></summary>
+        <p className="schema-note">Timplanen bestämmer hur mycket undervisning som läggs; villkor och flytt ändrar bara när och var. Utlagd tid är passens längd gånger antalet skoldagar på passets veckodag under den tid passet går. Den ska vara minst timplanens tid och får bara vara mer genom avrundning uppåt till hela 5 minuter per vecka. Avvikelser står först.</p>
         <Table><TableHeader><TableRow><TableHead>Undervisning</TableHead><TableHead>Klass</TableHead><TableHead>Timplan</TableHead><TableHead>Utlagt</TableHead><TableHead>Skillnad</TableHead><TableHead>Följer timplanen</TableHead></TableRow></TableHeader>
           <TableBody>{deviating.map((t, i) => <TableRow key={i}><TableCell>{t.title}</TableCell><TableCell>{t.classes.join(', ') || '–'}</TableCell><TableCell>{hoursText(t.needMin)}</TableCell>
             <TableCell>{hoursText(t.plannedMin)}{t.unplaced > 0 && ` (${t.unplaced} pass utan tid)`}</TableCell>
@@ -346,8 +345,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <li>{forslag.villkor.lunch ? `Lunch ${forslag.villkor.lunch.lengthMin} min mellan ${clock(forslag.villkor.lunch.startMin)} och ${clock(forslag.villkor.lunch.endMin)} för elever${forslag.villkor.lunch.teachers ? ' och lärare' : ''}.` : 'Ingen lunch läggs in.'}</li>
           <li>Pass om högst {forslag.villkor.maxLessonMin} min. Samma ämne samma dag: {SAME_DAY[forslag.villkor.sameDay].toLowerCase()}.{forslag.villkor.lateAfterMin !== null && ` Pass efter ${clock(forslag.villkor.lateAfterMin)} undviks.`}</li>
           {(forslag.villkor.studentMaxMinPerDay !== null || forslag.villkor.teacherMaxMinPerDay !== null) && <li>Högsta undervisningstid per dag:{forslag.villkor.studentMaxMinPerDay !== null && ` elever ${hoursText(forslag.villkor.studentMaxMinPerDay)}`}{forslag.villkor.studentMaxMinPerDay !== null && forslag.villkor.teacherMaxMinPerDay !== null && ','}{forslag.villkor.teacherMaxMinPerDay !== null && ` lärare ${hoursText(forslag.villkor.teacherMaxMinPerDay)}`}.</li>}
-          <li>Timplanens tid per termin delas på terminens skoldagar räknade som femdagarsveckor. {forslag.period !== 'lasar' ? 'Samma veckoschema antas gälla hela terminen'
-            : forslag.villkor.termDiffPct === null ? 'Undervisning båda terminerna läggs jämnt över läsåret med samma veckoschema' : `Undervisning får samma veckoschema hela läsåret när veckotiden skiljer högst ${forslag.villkor.termDiffPct} % mellan terminerna och samma lärare har den; annars egna pass per termin`}{forslag.villkor.termDiffPct !== 0 && '; därför kan utlagd tid skilja sig från timplanen'}.</li>
+          <li>Timplanens tid läggs alltid ut: varje termin minst timplanens minuter och högst så mycket mer som avrundning uppåt till hela 5 minuter per vecka ger. Motorn väljer veckodagar efter hur många skoldagar varje veckodag har. {forslag.period === 'lasar' ? 'Undervisning med samma veckotid båda terminerna och samma lärare får samma pass hela läsåret; annars egna pass per termin.' : 'Samma veckoschema gäller hela terminen.'}</li>
           {forslag.villkor.egna.map((r, i) => <li key={i}>Eget villkor: {ruleText(r, forslag.resurser)}.{forslag.egnaUtanTraff.includes(i) && ' Träffade inget i underlaget och användes inte.'}</li>)}
           {forslag.villkor.egna.some(r => r.typ === 'marginal') && <li>Marginal till nästa lektion gäller passets lärare och elever. Den räknas in i dagens undervisningstid, och passet måste sluta marginalen före skoldagens slut.</li>}
           <li>{forslag.rooms.length > 0 ? `Salar: ${forslag.rooms.map(r => r.name).join(', ')}. Bara pass med ett salsvillkor får en sal.` : 'Inga salar är angivna; passen läggs utan sal.'}</li>
@@ -400,10 +398,6 @@ function Villkor({ value: v, disabled, issues, resurser, onChange }: { value: Sc
         {v.lateAfterMin !== null && time('Sent räknas efter', late, lateAfterMin => set({ lateAfterMin }))}
         {choice('Högst undervisning per dag, elever', v.studentMaxMinPerDay, steps(L.perDay[0], L.perDay[1], 30, v.studentMaxMinPerDay), n => set({ studentMaxMinPerDay: n }), hoursText, 'Ingen gräns')}
         {choice('Högst undervisning per dag, lärare', v.teacherMaxMinPerDay, steps(L.perDay[0], L.perDay[1], 30, v.teacherMaxMinPerDay), n => set({ teacherMaxMinPerDay: n }), hoursText, 'Ingen gräns')}
-      </fieldset>
-      <fieldset disabled={disabled}><legend>Terminerna i ett läsårsschema</legend>
-        {choice('Egna pass per termin', v.termDiffPct, steps(0, 50, 5, v.termDiffPct), n => set({ termDiffPct: n }), n => n === 0 ? 'vid minsta skillnad i veckotid' : `när veckotiden skiljer mer än ${n} %`, 'aldrig – jämnt över läsåret')}
-        <p className="schema-note">Timplanen anger tiden per termin. Undervisning som bara har tid en termin läggs alltid bara den terminen.</p>
       </fieldset>
       <Egna value={v} disabled={disabled} resurser={resurser} onChange={onChange}/>
     </div>
