@@ -77,6 +77,33 @@
 .schema-workspace .schema-villkor input[type="text"] { min-width: 0; width: 100%; }
 .schema-workspace .schema-villkor fieldset.schema-days { display: flex; flex-wrap: wrap; gap: 0 1rem; padding: 0; border: 0; }
 
+/* Lager i veckan och teckenförklaring (05.2-SM-YTA). Varje fälttyp har ett mönster eller en kant, inte bara en färg; samma klasser används i teckenförklaringen. */
+.schema-workspace .schema-undo { display: flex; flex-wrap: wrap; gap: .5rem; }
+.schema-falt { position: absolute; left: 0; right: 0; top: calc(var(--start) * var(--minute)); height: calc(var(--length) * var(--minute)); overflow: hidden; pointer-events: none;
+  padding: .125rem .375rem; font-size: .6875rem; line-height: 1.3; color: var(--muted-foreground); }
+.schema-band { position: absolute; z-index: 1; left: calc(2px + (100% - 4px) * var(--lane, 0) / var(--lanes, 1)); width: calc((100% - 4px) / var(--lanes, 1)); top: calc(var(--start) * var(--minute)); height: calc(var(--length) * var(--minute));
+  overflow: hidden; padding: 0 .375rem; border-radius: var(--radius-sm); font-size: .625rem; line-height: 1.2; white-space: nowrap; pointer-events: none; }
+.falt-sparrad { background: repeating-linear-gradient(135deg, var(--schema-hatch) 0, var(--schema-hatch) 6px, var(--schema-hatch-line) 6px, var(--schema-hatch-line) 8px); border: 1px dashed var(--schema-hatch-border); border-radius: var(--radius-sm); }
+.falt-tillaten-ute { background: repeating-linear-gradient(135deg, transparent 0, transparent 9px, var(--schema-hatch-line) 9px, var(--schema-hatch-line) 10px), color-mix(in srgb, var(--schema-hatch) 70%, transparent); }
+.falt-lunch { background: color-mix(in srgb, var(--info-surface) 70%, transparent); color: var(--info-foreground); text-align: right; }
+.falt-marginal { background: var(--secondary); color: var(--secondary-foreground); border: 1px dotted var(--schema-hatch-border); }
+.falt-restid { background: var(--warning-surface); color: var(--warning-foreground); border: 1px dashed color-mix(in srgb, var(--warning-foreground) 55%, var(--card)); }
+.falt-aktivitet { background: color-mix(in srgb, var(--secondary-foreground) 6%, var(--secondary)); color: var(--foreground); border: 1px solid var(--secondary-foreground); border-radius: var(--radius-sm); }
+.falt-installt { background: var(--card); color: var(--muted-foreground); border: 1px dashed var(--schema-hatch-border); border-radius: var(--radius-sm); text-decoration: line-through; }
+.falt-fri { background: var(--success-surface); color: var(--success-foreground); border: 1px solid color-mix(in srgb, var(--success-foreground) 40%, var(--success-surface)); border-radius: var(--radius-sm); }
+.falt-onskemal { background: var(--warning-surface); color: var(--warning-foreground); border: 1px dotted var(--warning-foreground); border-radius: var(--radius-sm); }
+.falt-byte { background: repeating-linear-gradient(45deg, var(--info-surface) 0, var(--info-surface) 4px, color-mix(in srgb, var(--info-foreground) 22%, var(--info-surface)) 4px, color-mix(in srgb, var(--info-foreground) 22%, var(--info-surface)) 6px);
+  color: var(--info-foreground); border: 1px solid color-mix(in srgb, var(--info-foreground) 55%, var(--info-surface)); border-radius: var(--radius-sm); }
+.falt-brott { background: repeating-linear-gradient(0deg, var(--destructive-surface) 0, var(--destructive-surface) 4px, color-mix(in srgb, var(--destructive) 22%, var(--destructive-surface)) 4px, color-mix(in srgb, var(--destructive) 22%, var(--destructive-surface)) 6px);
+  color: var(--destructive); border: 1px solid var(--destructive); border-radius: var(--radius-sm); }
+.schema-legend { display: flex; flex-wrap: wrap; gap: .75rem 1.75rem; margin: 0; padding: .75rem 1rem; list-style: none; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-legend li { display: inline-flex; align-items: center; gap: .5rem; font-size: .8125rem; color: var(--foreground); }
+.schema-sw { display: inline-block; flex: none; width: 22px; height: 14px; border-radius: var(--radius-sm); }
+.schema-sw-pass { border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--accent); }
+.schema-sw-pass.vacant { border-style: dashed; border-color: var(--warning-foreground); background: color-mix(in srgb, var(--warning-foreground) 10%, var(--card)); }
+.schema-sw-pass.deviation { border: 2px solid var(--destructive); }
+.schema-sw-pass.picked { border: 2px solid var(--primary); background: var(--card); }
+
 /* Smal yta: dagarna staplas och passen blir en lista i tidsordning. */
 .schema-workspace { container-type: inline-size; }
 @container (max-width: 760px) {
@@ -88,6 +115,7 @@
   .schema-lesson button { padding: .5rem .75rem; }
   .schema-workspace .schema-move label { flex: 1 1 8rem; }
   .schema-day .schema-free { display: block; }
+  .schema-falt, .schema-band { display: none; }
   .schema-workspace .schema-filter, .schema-workspace .schema-filter label { width: 100%; }
 }
 

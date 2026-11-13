@@ -410,3 +410,102 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await rules.getByRole('button', { name: /^Ta bort villkoret Klass Klass 1/u }).click();
   await expect(rules.getByRole('listitem')).toHaveCount(1);
 });
+
+// Arbetsytans grund (05.2-SM-YTA): ångra och gör om i flera steg, lager i veckan och teckenförklaring. Arbetsytan prövas bara på dator (beslut 2026-11-13).
+test('flera flyttar ångras i omvänd ordning och görs om', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await mock(page, () => ({ json: forslag }));
+  const bodies = await mockKontroll(page);
+  await page.goto(URL);
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  const undo = page.getByRole('button', { name: 'Ångra senaste flytt' }), redo = page.getByRole('button', { name: 'Gör om' });
+  await expect(undo).toBeDisabled();
+  await expect(redo).toBeDisabled();
+  // Utan lager visar teckenförklaringen bara det som syns: här pass utan lärare.
+  await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare']);
+  const before = forslag.lessons.find(l => l.id === kontroll.move.lesson)!, at = (day: number) => page.getByRole('region', { name: DAYS[day] }).locator(`[data-lesson="${before.id}"]`);
+  const lesson = await move(page);
+  await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
+  // Steg två: samma pass till viloytan.
+  await lesson.click();
+  await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Lägg på viloytan' }).click();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByText('Ändrat för hand · 2 flyttar')).toBeVisible();
+  await expect(redo).toBeDisabled();
+
+  await undo.click();
+  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(at(kontroll.move.day)).toContainText('Regelavvikelse');
+  await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
+  await expect(redo).toBeEnabled();
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' })).toContainText('Regelavvikelse');
+  await undo.click();
+  await expect(at(before.day!)).toBeVisible();
+  await expect(page.getByText('Ändrat för hand')).toHaveCount(0);
+  await expect(undo).toBeDisabled();
+  expect(bodies[2].placements).toContainEqual({ ...kontroll.move, room: null });
+  expect(bodies[3].placements).toContainEqual({ lesson: before.id, day: before.day, startMin: before.startMin, room: null });
+
+  await redo.click();
+  await expect(at(kontroll.move.day)).toContainText('Regelavvikelse');
+  await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
+  await expect(page.getByRole('status').filter({ hasText: `${before.title} ligger nu ${DAYS[kontroll.move.day].toLowerCase()}` })).toBeVisible();
+  await redo.click();
+  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByText('Ändrat för hand · 2 flyttar')).toBeVisible();
+  await expect(redo).toBeDisabled();
+  expect(bodies).toHaveLength(6);
+  expect(bodies[5].placements).toHaveLength(forslag.lessons.length - 1);
+  // Ett nytt förslag tömmer historiken.
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(undo).toBeDisabled();
+  await expect(redo).toBeDisabled();
+  if (shots) await page.screenshot({ path: `${shots}/schema-yta-1280.png`, fullPage: true });
+  if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-yta-1600.png`, fullPage: true }); }
+});
+
+test('veckan ritar fält, nedtoning och band under och intill passen, med teckenförklaring', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await page.setViewportSize({ width: 1280, height: 1100 });
+  await page.goto('/e2e/fixtures/schema-vecka-preview.html');
+  const monday = page.getByRole('region', { name: 'Måndag' }), tuesday = page.getByRole('region', { name: 'Tisdag' }), friday = page.getByRole('region', { name: 'Fredag' });
+  // Fält: synlig etikett och skärmläsartext med typ och tid.
+  const sparr = monday.locator('.schema-falt.falt-sparrad');
+  await expect(sparr).toHaveText('Spärrad tid: Spärrad · Klass 1 · 08:00–12:00, 08:00–12:00');
+  await expect(sparr.getByText('Spärrad · Klass 1 · 08:00–12:00')).toBeVisible();
+  await expect(page.locator('.schema-falt.falt-lunch')).toHaveCount(5);
+  await expect(friday.locator('.schema-falt.falt-tillaten-ute')).toHaveText('Utanför tillåten tid, 15:00–16:30');
+  // Mönster, inte bara färg: spärrad tid har skuggning och streckad kant.
+  expect(await sparr.evaluate(el => { const s = getComputedStyle(el); return [s.backgroundImage.includes('repeating-linear-gradient'), s.borderTopStyle]; })).toEqual([true, 'dashed']);
+  // Fältet ligger över hela dagens bredd och under passen.
+  const column = (await monday.locator('ol').boundingBox())!, field = (await sparr.boundingBox())!;
+  expect(Math.abs(field.width - column.width)).toBeLessThan(2);
+  const first = monday.locator('[data-lesson="pass-36"]'), box = (await first.boundingBox())!;
+  expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
+  // Band intill passet: omklädning före, dusch efter, med text för skärmläsare.
+  const idrott = (await tuesday.locator('[data-lesson="pass-19"]').boundingBox())!;
+  const fore = tuesday.locator('.schema-band', { hasText: 'Omklädning 10 min' }), efter = tuesday.locator('.schema-band', { hasText: 'Dusch 15 min' });
+  await expect(fore).toHaveText('Före Idrott och hälsa: Omklädning 10 min');
+  await expect(efter).toHaveText('Efter Idrott och hälsa: Dusch 15 min');
+  const f = (await fore.boundingBox())!, e = (await efter.boundingBox())!;
+  expect(Math.abs(f.y + f.height - idrott.y)).toBeLessThan(3);
+  expect(Math.abs(e.y - (idrott.y + idrott.height))).toBeLessThan(4);
+  expect(await fore.evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('dotted');
+  expect(await tuesday.locator('.schema-band.falt-restid').evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('dashed');
+  // Teckenförklaringen bygger på samma klasser och visar bara det som syns.
+  const legend = page.getByRole('list', { name: 'Teckenförklaring' });
+  await expect(legend.getByRole('listitem')).toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Omklädning och dusch', 'Restid mellan platser', 'Pass utan lärare', 'Regelavvikelse', 'Markerat pass']);
+  expect(await legend.locator('.schema-sw.falt-sparrad').evaluate(el => getComputedStyle(el).borderTopStyle)).toBe('dashed');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  if (shots) await page.screenshot({ path: `${shots}/schema-vecka-lager-1280.png`, fullPage: true });
+  if (shots) { await page.setViewportSize({ width: 1600, height: 1100 }); await page.screenshot({ path: `${shots}/schema-vecka-lager-1600.png`, fullPage: true }); }
+
+  // Utan lager ritas inget extra.
+  await page.goto('/e2e/fixtures/schema-vecka-preview.html?lager=nej');
+  await expect(page.locator('.schema-day').first()).toBeVisible();
+  await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare', 'Regelavvikelse', 'Markerat pass']);
+});

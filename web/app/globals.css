@@ -73,6 +73,18 @@
   --input: #cbd2df;
   --ring: #4469ee;
   --warning-foreground: #86601f;
+  /* Skolplattan: ytor för status och små rubriker (05.2-SM-YTA). Samma värden som statusetiketterna. */
+  --heading-accent: #4f688b;
+  --info-surface: #eaf0fe;
+  --info-foreground: #4463a4;
+  --success-surface: #e4f3e9;
+  --success-foreground: #29704c;
+  --warning-surface: #f6efe2;
+  --destructive-surface: #fbeeee;
+  /* Skolplattan: spärrad tid i schemat, diagonal skuggning med streckad kant (05.2-SM-YTA). */
+  --schema-hatch: #eef1f5;
+  --schema-hatch-line: #d7dde7;
+  --schema-hatch-border: #8a95a8;
   /* Skolplattan: minsta pekyta för knappar och menyval. */
   --control-height: 44px;
   --radius: 0.65rem;
