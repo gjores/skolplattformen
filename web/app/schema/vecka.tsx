@@ -1,7 +1,7 @@
 'use client';
 // Veckorutnätet (05.2-SM-YTA): tidsaxel, dagar, pass och lager. Lagren ritas under passen (fält, nedtoning) och intill dem (band).
 // Utan lager ritas inget extra och veckan ser ut som före uppdelningen.
-import type { CSSProperties, PointerEvent as ReactPointerEvent, Ref } from 'react';
+import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
 import { SCHEMA_FALT, type SchemaBand, type SchemaDimmed, type SchemaFaltTyp, type SchemaOverlay } from '@/lib/schema-utkast.ts';
 import { clock, dayName } from './delat.ts';
@@ -55,11 +55,22 @@ export type VeckaProps = {
   bands?: SchemaBand[];
   dimmed?: SchemaDimmed[];
   gridRef?: Ref<HTMLDivElement>;
+  /** Fler rader i passrutan: justerad längd, kortning vissa veckor, salskrav (05.2-SM-VILLKOR-SYNS). */
+  extra?: (l: SchemaForslagLesson) => string[];
+  /** Låsta pass (lås kommer i SM-BYT). */
+  locked?: (l: SchemaForslagLesson) => boolean;
+  /**
+   * Gör ett fält med källa valbart: får fältets text och dess namn för skärmläsare och lägger den i en knapp som visar villkoret (05.2-SM-VILLKOR-SYNS).
+   * Utan värde, eller när fältet saknar källa, är fältet bara en markering.
+   */
+  falt?: (o: SchemaOverlay, label: string, content: ReactNode) => ReactNode;
+  /** Egna namn på fälttyper och band, i teckenförklaringen och för skärmläsare. Nyckel: fälttyp eller `band-marginal`/`band-restid`. */
+  namn?: Partial<Record<string, string>>;
 };
 
 const at = (from: number, to: number, origin: number) => ({ '--start': from - origin, '--length': to - from }) as CSSProperties;
 
-export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef }: VeckaProps) {
+export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {} }: VeckaProps) {
   const { start, end, hours } = veckansSpann(days);
   const clip = <T extends { startMin: number; endMin: number }>(x: T) => ({ ...x, startMin: Math.max(start, x.startMin), endMin: Math.min(end, x.endMin) });
   return <div ref={gridRef} className="schema-week" style={{ '--days': days.length, '--span': end - start, '--first-hour': (hours[0] ?? start) - start } as CSSProperties}>
@@ -71,15 +82,13 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
       const fields = overlays.filter(o => o.day === day).map(clip).filter(o => o.startMin < o.endMin).sort((a, b) => Number(b.kind === 'lunch') - Number(a.kind === 'lunch'));
       const dim = dimmed.filter(x => x.day === day).map(clip).filter(x => x.startMin < x.endMin);
       const beside = bands.flatMap(b => { const l = lessons.find(x => x.id === b.lesson); return l && b.minutes > 0 ? [{ b, l }] : []; });
+      const typ = (kind: SchemaFaltTyp) => namn[kind] ?? FALT[kind];
+      // Passen står först i dagen, så att tangentbordet når dem före fälten; fälten ritas ändå under passen (z-index i schema.css).
       return <section className="schema-day" key={day} aria-label={dayName(day)}>
         <h3>{dayName(day)}</h3>
         <ol data-day={day}>
-          {dim.map((x, i) => <li key={`d${i}`} className="schema-falt falt-tillaten-ute" style={at(x.startMin, x.endMin, start)}>
-            <span className="sr-only">{FALT['tillaten-ute']}, {clock(x.startMin)}–{clock(x.endMin)}</span></li>)}
-          {fields.map((o, i) => <li key={`f${i}`} className={`schema-falt falt-${o.kind}`} style={at(o.startMin, o.endMin, start)} data-source={o.sourceId}>
-            <span className="sr-only">{FALT[o.kind]}: </span><span>{o.label}</span><span className="sr-only">, {clock(o.startMin)}–{clock(o.endMin)}</span></li>)}
           {lessons.map(l => <Pass key={l.id} lesson={l} origin={start} length={length(l)} lane={lane.get(l.id)!} picked={picked === l.id} flagged={flagged.has(l.id)}
-            dragging={drop?.lesson === l.id} disabled={disabled} detail={detail(l)} onGrab={onGrab} onPick={onPick}/>)}
+            dragging={drop?.lesson === l.id} disabled={disabled} detail={detail(l)} rader={extra?.(l)} locked={locked?.(l)} onGrab={onGrab} onPick={onPick}/>)}
           {beside.map(({ b, l }, i) => {
             const from = b.side === 'fore' ? l.startMin! - b.minutes : l.startMin! + length(l), place = lane.get(l.id)!;
             return <li key={`b${i}`} className={`schema-band falt-${b.kind ?? 'marginal'}`} style={{ ...at(from, from + b.minutes, start), '--lane': place.lane, '--lanes': place.lanes } as CSSProperties}>
@@ -87,6 +96,13 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
           })}
           {drop && drop.to?.day === day && drop.to.startMin !== null && <li className="schema-lesson schema-drop" aria-hidden="true" style={{ '--start': drop.to.startMin - start, '--length': drop.length } as CSSProperties}>
             <time>{clock(drop.to.startMin)}–{clock(drop.to.startMin + drop.length)}</time></li>}
+          {dim.map((x, i) => <li key={`d${i}`} className="schema-falt falt-tillaten-ute" style={at(x.startMin, x.endMin, start)}>
+            <span className="sr-only">{typ('tillaten-ute')}, {clock(x.startMin)}–{clock(x.endMin)}</span></li>)}
+          {fields.map((o, i) => {
+            const content = <><span className="sr-only">{typ(o.kind)}: </span><span>{o.label}</span><span className="sr-only">, {clock(o.startMin)}–{clock(o.endMin)}</span></>;
+            const interactive = falt && o.sourceId ? falt(o, `${typ(o.kind)}: ${o.label}, ${clock(o.startMin)}–${clock(o.endMin)}`, content) : null;
+            return <li key={`f${i}`} className={`schema-falt falt-${o.kind}${interactive ? ' kalla' : ''}`} style={at(o.startMin, o.endMin, start)} data-source={o.sourceId}>{interactive ?? content}</li>;
+          })}
           {lessons.length === 0 && <li className="schema-free">Inga pass</li>}</ol>
       </section>;
     })}
@@ -94,13 +110,13 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
 }
 
 /** Teckenförklaring under veckan (Main), byggd av samma klasser som fälten och passen. Visar bara det som syns i veckan. */
-export function Teckenforklaring({ lessons, picked, flagged, overlays = [], bands = [], dimmed = [] }: Pick<VeckaProps, 'lessons' | 'picked' | 'flagged' | 'overlays' | 'bands' | 'dimmed'>) {
+export function Teckenforklaring({ lessons, picked, flagged, overlays = [], bands = [], dimmed = [], namn = {} }: Pick<VeckaProps, 'lessons' | 'picked' | 'flagged' | 'overlays' | 'bands' | 'dimmed' | 'namn'>) {
   const kinds = new Set<SchemaFaltTyp>(overlays.map(o => o.kind));
   if (dimmed.length) kinds.add('tillaten-ute');
   const bandKinds = new Set(bands.map(b => b.kind ?? 'marginal'));
   const items: { key: string; swatch: string; text: string }[] = [
-    ...SCHEMA_FALT.filter(k => kinds.has(k)).map(k => ({ key: k, swatch: `falt-${k}`, text: FALT[k] })),
-    ...(['marginal', 'restid'] as const).filter(k => bandKinds.has(k)).map(k => ({ key: `band-${k}`, swatch: `falt-${k}`, text: BAND[k] })),
+    ...SCHEMA_FALT.filter(k => kinds.has(k)).map(k => ({ key: k, swatch: `falt-${k}`, text: namn[k] ?? FALT[k] })),
+    ...(['marginal', 'restid'] as const).filter(k => bandKinds.has(k)).map(k => ({ key: `band-${k}`, swatch: `falt-${k}`, text: namn[`band-${k}`] ?? BAND[k] })),
     ...lessons.some(l => l.vacant) ? [{ key: 'vacant', swatch: 'schema-sw-pass vacant', text: 'Pass utan lärare' }] : [],
     ...lessons.some(l => flagged.has(l.id)) ? [{ key: 'deviation', swatch: 'schema-sw-pass deviation', text: 'Regelavvikelse' }] : [],
     ...picked !== null && lessons.some(l => l.id === picked) ? [{ key: 'picked', swatch: 'schema-sw-pass picked', text: 'Markerat pass' }] : [],
