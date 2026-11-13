@@ -188,7 +188,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     setChecking(true); setMoveError(null); setMoved('');
     try {
       const reply = parseSchemaKontroll(await api.post<unknown>('/api/schema/kontroll', request, controller.signal), forslag.fingerprint);
-      setForslag({ ...forslag, lessons: lessons.map(l => ({ ...l, roomId: l.day === null ? null : reply.rooms[l.id] ?? null })), teachings: reply.teachings, metrics: reply.metrics });
+      setForslag({ ...forslag, lessons: lessons.map(l => ({ ...l, roomId: l.day === null ? null : reply.rooms[l.id] ?? null })), teachings: reply.teachings, trims: reply.trims, metrics: reply.metrics });
       focus.current = lessonId; setKontroll(reply); setPicked(null);
       setHistory(undo ? history.slice(0, -1) : [...history, { lesson: lessonId, day: before.day, startMin: before.startMin, room: before.roomId }]);
       setMoved(`${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
@@ -241,6 +241,11 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const selected = options.some(o => o.id === chosen) ? chosen : options[0]?.id ?? '';
   const byTerm = forslag?.lessons.some(l => l.term !== null) ?? false, termTag = (l: SchemaForslagLesson) => l.term ? ` · ${l.term.toUpperCase()}` : '';
   const mine = (l: SchemaForslagLesson) => (l.term === null || l.term === shownTerm) && (by === 'class' ? l.classIds : l.teacherIds).includes(selected);
+  // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): det passet kortas alla veckor i den termin som visas syns i veckan; kortning vissa veckor står i text.
+  const viewTerm: SchemaTerm = !forslag || forslag.period === 'lasar' ? shownTerm : forslag.period;
+  const trimOf = (l: SchemaForslagLesson) => forslag?.trims.find(x => x.lesson === l.id && x.term === (l.term ?? viewTerm)) ?? null;
+  const shownMin = (l: SchemaForslagLesson) => l.durationMin - (trimOf(l)?.fixedMin ?? 0);
+  const someWeeks = (l: SchemaForslagLesson) => { const n = trimOf(l)?.extraCount ?? 0; return n ? ` · kortare ${n === 1 ? 'en vecka' : `${n} veckor`}` : ''; };
   const roomName = (id: string | null) => forslag?.rooms.find(r => r.id === id)?.name ?? '';
   const detail = (l: SchemaForslagLesson) => forslag ? [by === 'class' ? (l.vacant && l.teacherIds.length === 0 ? 'Ingen lärare' : names(l.teacherIds, forslag.teachers)) : names(l.classIds, forslag.classes), roomName(l.roomId)].filter(Boolean).join(' · ') : '';
   const dragged = drop ? forslag?.lessons.find(l => l.id === drop.lesson) ?? null : null;
@@ -302,9 +307,9 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
             const lane = lanes(lessons);
             return <section className="schema-day" key={day} aria-label={DAYS[day] ?? `Dag ${day + 1}`}>
               <h3>{DAYS[day] ?? `Dag ${day + 1}`}</h3>
-              <ol data-day={day}>{lessons.map(l => <li key={l.id} className={`schema-lesson${l.vacant ? ' vacant' : ''}${flagged.has(l.id) ? ' deviation' : ''}${picked === l.id ? ' picked' : ''}${drop?.lesson === l.id ? ' dragging' : ''}`} style={{ '--start': l.startMin! - start, '--length': l.durationMin, '--lane': lane.get(l.id)!.lane, '--lanes': lane.get(l.id)!.lanes } as CSSProperties}>
+              <ol data-day={day}>{lessons.map(l => <li key={l.id} className={`schema-lesson${l.vacant ? ' vacant' : ''}${flagged.has(l.id) ? ' deviation' : ''}${picked === l.id ? ' picked' : ''}${drop?.lesson === l.id ? ' dragging' : ''}`} style={{ '--start': l.startMin! - start, '--length': shownMin(l), '--lane': lane.get(l.id)!.lane, '--lanes': lane.get(l.id)!.lanes } as CSSProperties}>
                 <button type="button" data-lesson={l.id} aria-pressed={picked === l.id} disabled={checking} title="Flytta passet" onPointerDown={e => grab(e, l)} onClick={() => pick(l)}>
-                  <time>{clock(l.startMin!)}–{clock(l.startMin! + l.durationMin)}</time><strong>{l.title}</strong>{flagged.has(l.id) && <em>Regelavvikelse</em>}<span>{detail(l)}{termTag(l)}</span></button></li>)}
+                  <time>{clock(l.startMin!)}–{clock(l.startMin! + shownMin(l))}</time><strong>{l.title}</strong>{flagged.has(l.id) && <em>Regelavvikelse</em>}<span>{detail(l)}{termTag(l)}{someWeeks(l)}</span></button></li>)}
                 {dragged && drop?.to?.day === day && drop.to.startMin !== null && <li className="schema-lesson schema-drop" aria-hidden="true" style={{ '--start': drop.to.startMin - start, '--length': dragged.durationMin } as CSSProperties}>
                   <time>{clock(drop.to.startMin)}–{clock(drop.to.startMin + dragged.durationMin)}</time></li>}
                 {lessons.length === 0 && <li className="schema-free">Inga pass</li>}</ol>
@@ -319,7 +324,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       </>}
 
       {pickedLesson && <form className="schema-move" aria-label="Flytta pass" onSubmit={e => { e.preventDefault(); void place(pickedLesson.id, target.day, target.startMin, false, target.room); }}>
-        <p><strong>{pickedLesson.title}</strong>, {pickedLesson.durationMin} min{pickedLesson.marginMin > 0 && ` och ${pickedLesson.marginMin} min marginal`}{termTag(pickedLesson)} · {names(pickedLesson.classIds, forslag.classes)}{pickedLesson.teacherIds.length > 0 && ` · ${names(pickedLesson.teacherIds, forslag.teachers)}`}
+        <p><strong>{pickedLesson.title}</strong>, {shownMin(pickedLesson)} min{shownMin(pickedLesson) !== pickedLesson.durationMin && ` (${pickedLesson.durationMin} min i grundschemat)`}{someWeeks(pickedLesson)}{pickedLesson.marginMin > 0 && ` och ${pickedLesson.marginMin} min marginal`}{termTag(pickedLesson)} · {names(pickedLesson.classIds, forslag.classes)}{pickedLesson.teacherIds.length > 0 && ` · ${names(pickedLesson.teacherIds, forslag.teachers)}`}
           <span className="schema-note"> {pickedLesson.day === null || pickedLesson.startMin === null ? 'Ligger på viloytan.' : `Ligger nu ${DAYS[pickedLesson.day].toLowerCase()} ${clock(pickedLesson.startMin)}${pickedLesson.roomId ? ` i ${roomName(pickedLesson.roomId)}` : ''}.`}</span></p>
         <label>Dag<select ref={dayField} value={target.day} disabled={checking} onChange={e => { const day = Number(e.target.value), starts = startTimes(forslag, day, pickedLesson.durationMin + pickedLesson.marginMin); setTarget({ ...target, day, startMin: starts.includes(target.startMin) ? target.startMin : starts[0] ?? target.startMin }); }}>
           {forslag.days.map((_, day) => <option key={day} value={day}>{DAYS[day] ?? `Dag ${day + 1}`}</option>)}</select></label>
@@ -368,7 +373,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <li>{forslag.villkor.lunch ? `Lunch ${forslag.villkor.lunch.lengthMin} min mellan ${clock(forslag.villkor.lunch.startMin)} och ${clock(forslag.villkor.lunch.endMin)} för elever${forslag.villkor.lunch.teachers ? ' och lärare' : ''}.` : 'Ingen lunch läggs in.'}</li>
           <li>Pass om högst {forslag.villkor.maxLessonMin} min. Samma ämne samma dag: {SAME_DAY[forslag.villkor.sameDay].toLowerCase()}.{forslag.villkor.lateAfterMin !== null && ` Pass efter ${clock(forslag.villkor.lateAfterMin)} undviks.`}</li>
           {(forslag.villkor.studentMaxMinPerDay !== null || forslag.villkor.teacherMaxMinPerDay !== null) && <li>Högsta undervisningstid per dag:{forslag.villkor.studentMaxMinPerDay !== null && ` elever ${hoursText(forslag.villkor.studentMaxMinPerDay)}`}{forslag.villkor.studentMaxMinPerDay !== null && forslag.villkor.teacherMaxMinPerDay !== null && ','}{forslag.villkor.teacherMaxMinPerDay !== null && ` lärare ${hoursText(forslag.villkor.teacherMaxMinPerDay)}`}.</li>}
-          <li>Timplanens tid läggs alltid ut: varje termin minst timplanens minuter och högst så mycket mer som avrundning uppåt till hela 5 minuter per vecka ger. Motorn väljer veckodagar efter hur många skoldagar varje veckodag har. {forslag.period === 'lasar' ? 'Undervisning med samma veckotid båda terminerna och samma lärare får samma pass hela läsåret; annars egna pass per termin.' : 'Samma veckoschema gäller hela terminen.'}</li>
+          <li>Timplanens tid läggs alltid ut, räknad på läsårskalenderns faktiska skoldagar: varje undervisning får timplanens tid avrundad uppåt till hela 5 minuter, varje termin. Grundschemat ger minst den tiden; det som blir över tas bort genom att pass slutar tidigare, hela pass först. Veckan visar passens justerade längd. {forslag.period === 'lasar' ? 'Undervisning med samma veckotid båda terminerna och samma lärare får samma pass hela läsåret; annars egna pass per termin.' : 'Samma veckoschema gäller hela terminen.'}</li>
           {forslag.villkor.egna.map((r, i) => <li key={i}>Eget villkor: {ruleText(r, forslag.resurser)}.{forslag.egnaUtanTraff.includes(i) && ' Träffade inget i underlaget och användes inte.'}</li>)}
           {forslag.villkor.egna.some(r => r.typ === 'marginal') && <li>Marginal till nästa lektion gäller passets lärare och elever. Den räknas in i dagens undervisningstid, och passet måste sluta marginalen före skoldagens slut.</li>}
           <li>{forslag.rooms.length > 0 ? `Salar: ${forslag.rooms.map(r => r.name).join(', ')}. Bara pass med ett salsvillkor får en sal.` : 'Inga salar är angivna; passen läggs utan sal.'}</li>

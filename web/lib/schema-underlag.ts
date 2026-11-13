@@ -413,13 +413,13 @@ export function schemaWeekLabels(underlag: SchemaUnderlag): string[] {
  * Utlagd tid per undervisning räknad på faktiska tillfällen (05.2-SM-TIMPLAN-VECKA, W1): ett pass ger ett tillfälle varje skoldag på sin veckodag
  * i de terminer det går. Det grundmönstret ger utöver timplanens tid avrundad uppåt till 5 minuter tas bort genom att tillfällen slutar tidigare,
  * aldrig under kortaste passlängd (W3): först kortas hela pass i steg om 5 minuter varje vecka i terminen, så att veckorna blir lika, och det som
- * återstår, mindre än ett pass i alla veckor, sprids jämnt över veckorna. Räknas om efter varje flytt (W5).
+ * återstår, mindre än ett pass i alla veckor, läggs på ett pass i taget jämnt över dess veckor. Räknas om efter varje flytt (W5).
  */
-function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacement>): SchemaForslag['teachings'] {
-  const floor = underlag.villkor.minLessonMin, size = schemaWeekLabels(underlag).length;
+function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacement>): Pick<SchemaForslag, 'teachings' | 'trims'> {
+  const floor = underlag.villkor.minLessonMin, size = schemaWeekLabels(underlag).length, trims: SchemaForslag['trims'] = [];
   const offset = Object.fromEntries(underlag.terms.map((term, i) => [term, underlag.terms.slice(0, i).reduce((n, t) => n + underlag.time.terms[t].weeks.length, 0)]));
-  return underlag.labels.activities.map(a => {
-    const own = underlag.labels.lessons.filter(l => l.activity === a.id).map(l => ({ durationMin: l.durationMin, day: at.get(l.id)?.day ?? null, terms: l.term ? [l.term] : underlag.terms }));
+  const teachings = underlag.labels.activities.map(a => {
+    const own = underlag.labels.lessons.filter(l => l.activity === a.id).map(l => ({ id: l.id, durationMin: l.durationMin, day: at.get(l.id)?.day ?? null, terms: l.term ? [l.term] : underlag.terms }));
     const unplaced = own.filter(l => l.day === null).length;
     const perWeek = Array.from({ length: size }, () => 0), trimPerWeek = Array.from({ length: size }, () => 0);
     const terms = a.terms.map(x => {
@@ -438,14 +438,23 @@ function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacem
           changed = true;
         }
       }
+      // Resten på ett pass i taget, det med flest tillfällen kvar att korta, jämnt över dess veckor: så få pass som möjligt varierar mellan veckorna.
       while (left > 0) {
-        const open = occasions.flatMap((o, i) => o.durationMin - cut[i] - 5 >= Math.min(floor, o.durationMin) ? [i] : []);
-        if (!open.length) break;
-        const take = Math.min(left, open.length);
+        const room = occasions.flatMap((o, i) => o.durationMin - cut[i] - 5 >= Math.min(floor, o.durationMin) ? [i] : []);
+        if (!room.length) break;
+        const counts = own.map((_, lesson) => room.filter(i => occasions[i].lesson === lesson).length), lesson = counts.indexOf(Math.max(...counts));
+        const open = room.filter(i => occasions[i].lesson === lesson), take = Math.min(left, open.length);
         for (let k = 0; k < take; k++) cut[open[Math.floor((k + 0.5) * open.length / take)]] += 5;
         left -= take;
       }
       occasions.forEach((o, i) => { perWeek[offset[x.term] + o.week] += o.durationMin - cut[i]; trimPerWeek[offset[x.term] + o.week] += cut[i]; });
+      // Per pass: det som gäller alla veckor och det som bara gäller vissa tillfällen, för veckoschemat.
+      own.forEach((l, lesson) => {
+        const mine = occasions.flatMap((o, i) => o.lesson === lesson ? [cut[i]] : []);
+        if (!mine.length || mine.every(n => n === 0)) return;
+        const fixedMin = Math.min(...mine), extra = mine.filter(n => n > fixedMin);
+        trims.push({ lesson: l.id, term: x.term, fixedMin, extraCount: extra.length, extraMin: extra.reduce((sum, n) => sum + n - fixedMin, 0) });
+      });
       const trimmedMin = cut.reduce((sum, n) => sum + n, 0);
       return { ...x, baseMin, plannedMin: baseMin - trimmedMin, trimmedMin, trimmedCount: cut.filter(n => n > 0).length };
     });
@@ -454,6 +463,7 @@ function plannedTeachings(underlag: SchemaUnderlag, at: Map<string, SchemaPlacem
     return { title: a.title, classes: a.classes, needMin: a.needMin, weeklyMin: a.weeklyMin, unplaced, plannedMin: terms.reduce((sum, x) => sum + x.plannedMin, 0),
       terms, perWeek, trimPerWeek, deviation: unplaced > 0 ? 'unplaced' as const : a.weeklyOff ? 'weekly' as const : calendar ? 'calendar' as const : null };
   });
+  return { teachings, trims };
 }
 
 /** Motorn summerar håltid över perioderna; här redovisas snittet per vecka. */
@@ -471,7 +481,7 @@ export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlace
     seen.add(key); violations.push({ code: v.code, message, lessons: v.lessons });
   }
   return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, violations: violations.slice(0, SCHEMA_LIMITS.shownViolations), total: violations.length,
-    teachings: plannedTeachings(underlag, new Map(placements.map(p => [p.lesson, p]))),
+    ...plannedTeachings(underlag, new Map(placements.map(p => [p.lesson, p]))),
     metrics: { lessons: total, placed: placements.length, unplaced: total - placements.length, ...weeklyGaps(check.metrics, underlag) },
     rooms: Object.fromEntries(placements.flatMap(p => p.room ? [[p.lesson, p.room]] : [])) };
 }
@@ -481,13 +491,13 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
   const lessons = underlag.labels.lessons.map(({ activity: _activity, ...l }) => ({ ...l, day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null, roomId: at.get(l.id)?.room ?? null }));
   const termDays = underlag.terms.map(term => ({ term, schoolDays: underlag.time.terms[term].perWeekday.reduce((sum, n) => sum + n, 0) }));
   const days = termDays.reduce((sum, t) => sum + t.schoolDays, 0);
-  const teachings = plannedTeachings(underlag, at);
+  const { teachings, trims } = plannedTeachings(underlag, at);
   const usedTeachers = new Set(lessons.flatMap(l => l.teacherIds)), usedClasses = new Set(lessons.flatMap(l => l.classIds));
   return {
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, period: underlag.period, schoolName: plan.schoolName, villkor: underlag.villkor,
     fingerprint: underlag.fingerprint, startGridMin: underlag.problem.time.start_grid_min,
     time: { source: underlag.time.source, version: underlag.time.version, status: underlag.time.status, current: underlag.time.current, schoolDays: days, weeks: days / 5, terms: termDays, weekLabels: schemaWeekLabels(underlag) },
-    members: underlag.members, teachings, resurser: underlag.resurser, rooms: underlag.labels.rooms, egnaUtanTraff: underlag.egnaUtanTraff,
+    members: underlag.members, teachings, trims, resurser: underlag.resurser, rooms: underlag.labels.rooms, egnaUtanTraff: underlag.egnaUtanTraff,
     basis: plan.version ? { versionNo: plan.version.versionNo, status: plan.version.status } : null,
     status: solution.status, days: underlag.problem.time.days.map(day => ({ startMin: day.start_min, endMin: day.end_min })),
     classes: underlag.labels.classes.filter(c => usedClasses.has(c.id)), teachers: underlag.labels.teachers.filter(t => usedTeachers.has(t.id)),

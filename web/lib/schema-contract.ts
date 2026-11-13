@@ -145,9 +145,14 @@ export type SchemaViolation = { code: string; message: string; lessons: string[]
 /** Regelbrott i hela schemat efter en flytt. `total` kan vara större än antalet som visas. */
 export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] };
 export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; fingerprint: string; violations: SchemaViolation[]; total: number;
-  teachings: SchemaForslagTeaching[]; metrics: SchemaForslag['metrics'];
+  teachings: SchemaForslagTeaching[]; trims: SchemaTrim[]; metrics: SchemaForslag['metrics'];
   /** Salen för varje lagt pass som ska ha en sal. */
   rooms: Record<string, string> };
+/**
+ * Justerad längd för ett lagt pass en termin (05.2-SM-TIMPLAN-VECKA, W3): passet slutar `fixedMin` minuter tidigare alla veckor, och dessutom
+ * sammanlagt `extraMin` minuter tidigare vid `extraCount` tillfällen. Bara pass som justeras finns med.
+ */
+export type SchemaTrim = { lesson: string; term: SchemaTerm; fixedMin: number; extraCount: number; extraMin: number };
 export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' | 'no_days' };
 /**
  * Timplanen är ram (T1): `deviation` säger om och varför utlagd tid inte är timplanens. Tillåten tid per termin är `needMin` till och med `maxMin`:
@@ -179,7 +184,7 @@ export type SchemaForslag = {
   time: { source: SchemaTime['source']; version: number | null; status: string | null; current: boolean; schoolDays: number; weeks: number;
     terms: { term: SchemaTerm; schoolDays: number }[]; weekLabels: string[] };
   members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[] };
-  teachings: SchemaForslagTeaching[];
+  teachings: SchemaForslagTeaching[]; trims: SchemaTrim[];
   basis: { versionNo: number; status: string } | null;
   status: SchemaStatus; days: { startMin: number; endMin: number }[];
   classes: { id: string; name: string }[]; teachers: { id: string; name: string }[];
@@ -247,6 +252,15 @@ export function parseSchemaForslagRequest(value: unknown, keys = 4): SchemaForsl
   return { unitId, schoolYear: int(r.schoolYear, 2000, 2100), period, villkor: parseSchemaVillkor(r.villkor) };
 }
 
+function trims(value: unknown, lessons: Set<string> | null): SchemaTrim[] {
+  return list(value, SCHEMA_LIMITS.lessons * 2).map(raw => {
+    const x = record(raw);
+    if (Object.keys(x).length !== 5 || !SCHEMA_TERMS.includes(x.term as SchemaTerm)) bad();
+    const lesson = text(x.lesson, 100);
+    if (lessons && !lessons.has(lesson)) bad();
+    return { lesson, term: x.term as SchemaTerm, fixedMin: int(x.fixedMin, 0, 1440), extraCount: int(x.extraCount, 0, 100_000), extraMin: int(x.extraMin, 0, 10_000_000) };
+  });
+}
 function teaching(t: SchemaForslagTeaching): void {
   text(t.title, 2000); list(t.classes, 2000); int(t.needMin, 0, 10_000_000); int(t.plannedMin, 0, 10_000_000); int(t.weeklyMin, 0, 10_080); int(t.unplaced, 0, 1000);
   if (t.deviation !== null && t.deviation !== 'unplaced' && t.deviation !== 'weekly' && t.deviation !== 'calendar') bad();
@@ -310,7 +324,7 @@ export function parseSchemaKontroll(value: unknown, fingerprint: string): Schema
   for (const room of Object.values(rooms)) if (!ROOM.test(text(room, 10))) bad();
   for (const t of teachings) teaching(record(t) as SchemaForslagTeaching);
   for (const key of ['lessons', 'placed', 'unplaced', 'studentGapMin', 'teacherGapMin'] as const) int(m[key], 0, Number.MAX_SAFE_INTEGER);
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, metrics: m, rooms };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, trims: trims(k.trims, null), metrics: m, rooms };
 }
 
 /**
@@ -369,6 +383,7 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   for (const key of ['groupsWithoutMembers', 'classesWithoutPupils', 'withoutChoice'] as const) list(members[key], SCHEMA_LIMITS.lessons);
   for (const t of f.teachings) teaching(t);
   if (f.teachings.some(t => t.perWeek.length !== (time.weekLabels as string[]).length)) bad();
+  f.trims = trims(f.trims, new Set(f.lessons.map(l => record(l).id as string)));
   for (const l of f.lessons) {
     text(l.id, 100); text(l.title, 2000); list(l.classIds, 2000); list(l.teacherIds, 2000); int(l.durationMin, 1, 1440); int(l.marginMin, 0, 60);
     const rooms = list(l.roomIds, SCHEMA_VILLKOR_LIMITS.salar);

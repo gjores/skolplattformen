@@ -76,6 +76,17 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.locator('.schema-lesson')).toHaveCount(mine.length);
   await expect(page.locator('.schema-lesson', { hasText: 'Religionskunskap' })).not.toHaveCount(0);
   await expect(page.locator('.schema-lesson', { hasText: 'Psykologi' })).toHaveCount(0);
+  // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): ett pass som kortas alla veckor visas med sin kortare sluttid; kortning vissa veckor står i text.
+  const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+  const trimOf = (l: typeof mine[number]) => forslag.trims.find(x => x.lesson === l.id && x.term === 'ht');
+  const fixed = mine.find(l => (trimOf(l)?.fixedMin ?? 0) > 0)!, varied = mine.find(l => (trimOf(l)?.extraCount ?? 0) > 0)!;
+  expect(fixed && varied).toBeTruthy();
+  await expect(page.locator(`[data-lesson="${fixed.id}"] time`)).toHaveText(`${hhmm(fixed.startMin!)}–${hhmm(fixed.startMin! + fixed.durationMin - trimOf(fixed)!.fixedMin)}`);
+  const n = trimOf(varied)!.extraCount;
+  await expect(page.locator(`[data-lesson="${varied.id}"]`)).toContainText(`kortare ${n === 1 ? 'en vecka' : `${n} veckor`}`);
+  await page.locator(`[data-lesson="${fixed.id}"]`).click();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toContainText(`${fixed.durationMin - trimOf(fixed)!.fixedMin} min (${fixed.durationMin} min i grundschemat)`);
+  await page.locator(`[data-lesson="${fixed.id}"]`).click();
   // Blockets alternativ går samtidigt för olika elever i klassen: passen ska stå bredvid varandra, aldrig ovanpå.
   expect(mine.some(a => mine.some(b => a.id < b.id && a.day === b.day && a.startMin! < b.startMin! + b.durationMin && b.startMin! < a.startMin! + a.durationMin))).toBe(true);
   for (const day of await page.locator('.schema-day').all()) {

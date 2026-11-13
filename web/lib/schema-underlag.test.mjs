@@ -484,6 +484,17 @@ test('överskottet justeras tillfälle för tillfälle till timplanens tid', () 
   // Måndag–onsdag ger 3445: måndagens och tisdagens pass kortas hela terminen och de sista 30 min sprids, så veckorna får 180 eller 185 min.
   // Onsdag–fredag ger 3575: alla tre kortas och 60 min sprids.
   assert.deepEqual([at([0, 1, 2]), at([1, 2, 3]), at([2, 3, 4])], [[null, 3240, 35, 18, 2], [null, 3240, 54, 18, 1], [null, 3240, 55, 19, 2]]);
+  // Per pass för veckoschemat: tisdag–torsdag kortas alla tre 5 minuter alla veckor; måndag–onsdag kortas måndag och tisdag hela terminen
+  // och de sista 30 minuterna fördelas på enskilda tillfällen.
+  const trimsAt = days => {
+    const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
+    const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
+    return schemaForslag(data, request, u, parseSchemaSolution(raw, p)).trims;
+  };
+  assert.deepEqual(trimsAt([1, 2, 3]), p.lessons.map(l => ({ lesson: l.id, term: 'ht', fixedMin: 5, extraCount: 0, extraMin: 0 })));
+  const mixed = trimsAt([0, 1, 2]);
+  assert.deepEqual(mixed.map(x => [x.lesson, x.fixedMin]), [[p.lessons[0].id, 5], [p.lessons[1].id, 5]]);
+  assert.equal(mixed.reduce((n, x) => n + x.extraMin, 0), 30);
 });
 
 test('passlängderna ska kunna ge minst timplanens tid med någon fördelning på veckodagar', () => {
