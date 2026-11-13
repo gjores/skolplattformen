@@ -53,11 +53,12 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
   expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'lasar', villkor: forslag.villkor }]);
   await expect(page.getByText(`Hela läsåret. ${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
-  await expect(page.getByText('Tid: 181 skoldagar (HT 88, VT 93) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
+  await expect(page.getByText('Tid: 182 skoldagar (HT 84, VT 98) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
   await expect(page.getByText('Underlag: tjänstefördelning version 1 (utkast).')).toBeVisible();
   // Timplanen läggs alltid ut: varje termin minst timplanens tid och högst avrundningen uppåt (05.2-SM-TIMPLAN-EXAKT).
   await expect(page.locator('.status-badge', { hasText: 'Tiden följer timplanen' })).toBeVisible();
   expect(forslag.teachings.every(t => t.deviation === null && t.terms.every(x => x.plannedMin >= x.needMin && x.plannedMin <= x.maxMin))).toBe(true);
+  expect(forslag.teachings.every(t => t.terms.every(x => x.plannedMin === Math.ceil(x.needMin / 5) * 5))).toBe(true);
   await expect(page.getByText('annan tid över terminen')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
   await expect(page.getByText('Inga pass på viloytan.')).toBeVisible();
@@ -89,8 +90,28 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByRole('columnheader', { name: 'Utlagt' })).toBeVisible();
   await expect(page.getByRole('row').nth(1)).toContainText(/[+−]?\d+(,\d)? h/u);
   await expect(page.getByText('All undervisning följer timplanen.')).toBeVisible();
-  await expect(page.getByText('Den ska vara minst timplanens tid och får bara vara mer genom avrundning uppåt till hela 5 minuter per vecka.')).toBeVisible();
+  await expect(page.getByText('Utlagd tid räknas på faktiska lektionstillfällen', { exact: false })).toBeVisible();
   await expect(page.getByRole('row').nth(1)).toContainText('Ja');
+  // Justeringen per tillfälle står i tabellen (05.2-SM-TIMPLAN-VECKA, W3).
+  const trimmed = forslag.teachings.find(t => t.terms.some(x => x.trimmedCount > 0))!;
+  expect(trimmed).toBeTruthy();
+  await expect(page.getByRole('columnheader', { name: 'Justering' })).toBeVisible();
+  await expect(page.getByRole('cell', { name: /tillfällen kortare, \d+ min/u }).first()).toBeVisible();
+
+  // Vecka för vecka (W4): veckorna i ordning, tiden per vecka och justerade veckor utmärkta.
+  await page.getByRole('heading', { name: 'Vecka för vecka' }).click();
+  const perWeek = page.locator('details', { has: page.getByRole('heading', { name: 'Vecka för vecka' }) }).getByLabel('Undervisning');
+  const index = (await perWeek.locator('option').allTextContents()).findIndex(o => o.startsWith(trimmed.title) && o.includes(trimmed.classes.join(', ')));
+  await perWeek.selectOption(String(index));
+  const weeks = page.locator('.schema-weeks li');
+  await expect(weeks).toHaveCount(forslag.time.weekLabels.length);
+  await expect(weeks.first()).toContainText(forslag.time.weekLabels[0]);
+  const w = trimmed.trimPerWeek.findIndex(n => n > 0);
+  await expect(weeks.nth(w)).toHaveClass(/trimmed/u);
+  await expect(weeks.nth(w)).toContainText(`${trimmed.perWeek[w]} min`);
+  await expect(weeks.nth(w)).toContainText(`${trimmed.trimPerWeek[w]} min kortare`);
+  await expect(page.getByText(`HT ${trimmed.terms[0].plannedMin} min av timplanens ${trimmed.terms[0].needMin}`)).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   await expect(page.getByRole('row').last()).toContainText('Ja');
 
   await page.getByRole('button', { name: 'Vårterminen' }).click();
@@ -99,7 +120,7 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.locator('.schema-lesson', { hasText: 'Religionskunskap' })).toHaveCount(0);
   await page.getByRole('button', { name: 'Lärare', exact: true }).click();
   await expect(page.getByRole('button', { name: 'Lärare', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('.schema-filter select').selectOption({ label: forslag.teachers[1].name });
+  await page.locator('.schema-filter select').first().selectOption({ label: forslag.teachers[1].name });
   await expect(page.locator('.schema-lesson')).toHaveCount(forslag.lessons.filter(l => l.teacherIds.includes(forslag.teachers[1].id)).filter(inTerm('vt')).length);
   await expect(page.locator('.schema-lesson').first()).toContainText('Klass');
   await expect(page.getByRole('heading', { name: 'Villkor och antaganden i förslaget' })).toBeVisible();
@@ -112,7 +133,7 @@ test('olagda pass, förklaring och utelämnade behov redovisas i text', async ({
   await mock(page, () => ({ json: { ...forslag, status: 'time_limit', lessons: [{ ...first, day: null, startMin: null }, ...forslag.lessons.slice(1)],
     diagnoses: [{ message: `Pass ${first.title} fick ingen plats.`, proof: false }],
     omitted: [{ title: 'Liten kurs', classes: ['Klass 1'], reason: 'too_short' }, { title: 'Praktik', classes: ['Klass 2'], reason: 'no_days' }],
-    time: { source: 'forval', version: null, status: null, current: false, schoolDays: 190, weeks: 38, terms: [{ term: 'ht', schoolDays: 90 }, { term: 'vt', schoolDays: 100 }] },
+    time: { source: 'forval', version: null, status: null, current: false, schoolDays: 190, weeks: 38, terms: [{ term: 'ht', schoolDays: 90 }, { term: 'vt', schoolDays: 100 }], weekLabels: forslag.time.weekLabels },
     members: { pupils: 0, groupsWithoutMembers: [], classesWithoutPupils: [], withoutChoice: [] },
     metrics: { ...forslag.metrics, placed: forslag.metrics.lessons - 1, unplaced: 1 } } }));
   await page.goto(URL);

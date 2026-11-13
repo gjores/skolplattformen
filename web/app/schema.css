@@ -90,3 +90,9 @@
   .schema-day .schema-free { display: block; }
   .schema-workspace .schema-filter, .schema-workspace .schema-filter label { width: 100%; }
 }
+
+/* Vecka för vecka (05.2-SM-TIMPLAN-VECKA): ny lista, bara designsystemets variabler. */
+.schema-workspace .schema-list .schema-weeks { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr)); gap: .25rem 1rem; padding-left: 0; list-style: none; }
+.schema-workspace .schema-weeks li { display: grid; grid-template-columns: 3.5rem 4.5rem 1fr; gap: .5rem; margin: 0; padding: .125rem .375rem; border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; }
+.schema-workspace .schema-weeks li.trimmed { background: var(--accent); }
+.schema-workspace .schema-weeks li span:last-child { color: var(--muted-foreground); }

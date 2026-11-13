@@ -127,7 +127,9 @@ export type SchemaMembers = { pupils: { id: string; classIds: string[] }[]; memb
  * Läsårets tid per termin: skoldagar per veckodag (måndag–fredag) för skolan och per klass med egna lärotider.
  * `forval` betyder att läsårskalender saknas och att ett fast antal veckor har antagits.
  */
-export type SchemaTermTime = { span: { start: string; end: string } | null; perWeekday: number[]; classes: Record<string, number[]> };
+export type SchemaTermTime = { span: { start: string; end: string } | null; perWeekday: number[]; classes: Record<string, number[]>;
+  /** Terminens veckor i ordning med skoldagar per veckodag, för skolan och per klass (05.2-SM-TIMPLAN-VECKA, W1). `monday` saknas utan kalender. */
+  weeks: { monday: string | null; label: string; perWeekday: number[]; classes: Record<string, number[]> }[] };
 export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null; status: string | null; current: boolean; terms: Record<SchemaTerm, SchemaTermTime> };
 export type SchemaForslagLesson = { id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
   /** Tid efter passet som lärare och elever är upptagna, utöver rasten (marginal till nästa lektion, R4). */
@@ -153,8 +155,13 @@ export type SchemaOmission = { title: string; classes: string[]; reason: 'no_tim
  * kan inte ge den tiden på några veckodagar. `calendar`: passen ligger så att tiden blir under timplanen eller över avrundningen.
  */
 export type SchemaTimplanDeviation = 'unplaced' | 'weekly' | 'calendar';
+/**
+ * Tid räknad på faktiska tillfällen (05.2-SM-TIMPLAN-VECKA): `baseMin` är grundmönstrets tid, `plannedMin` tiden efter att `trimmedCount` tillfällen
+ * slutar tidigare (sammanlagt `trimmedMin`). `perWeek` och `trimPerWeek` följer `time.weekLabels`.
+ */
 export type SchemaForslagTeaching = { title: string; classes: string[]; needMin: number; weeklyMin: number; plannedMin: number; unplaced: number;
-  terms: { term: SchemaTerm; needMin: number; maxMin: number; plannedMin: number }[]; deviation: SchemaTimplanDeviation | null };
+  terms: { term: SchemaTerm; needMin: number; maxMin: number; baseMin: number; plannedMin: number; trimmedMin: number; trimmedCount: number }[];
+  perWeek: number[]; trimPerWeek: number[]; deviation: SchemaTimplanDeviation | null };
 /** Det egna villkor kan ställas för. `ref` är det villkoret bär; namnet visas. */
 export type SchemaResurs = { ref: string; name: string };
 export type SchemaForslag = {
@@ -170,7 +177,7 @@ export type SchemaForslag = {
   /** Underlagets fingeravtryck: ändras underlaget gäller inte förslaget längre för flytt. Ingen säkerhetsfunktion; servern bygger alltid underlaget själv. */
   fingerprint: string; startGridMin: number;
   time: { source: SchemaTime['source']; version: number | null; status: string | null; current: boolean; schoolDays: number; weeks: number;
-    terms: { term: SchemaTerm; schoolDays: number }[] };
+    terms: { term: SchemaTerm; schoolDays: number }[]; weekLabels: string[] };
   members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[] };
   teachings: SchemaForslagTeaching[];
   basis: { versionNo: number; status: string } | null;
@@ -243,7 +250,10 @@ export function parseSchemaForslagRequest(value: unknown, keys = 4): SchemaForsl
 function teaching(t: SchemaForslagTeaching): void {
   text(t.title, 2000); list(t.classes, 2000); int(t.needMin, 0, 10_000_000); int(t.plannedMin, 0, 10_000_000); int(t.weeklyMin, 0, 10_080); int(t.unplaced, 0, 1000);
   if (t.deviation !== null && t.deviation !== 'unplaced' && t.deviation !== 'weekly' && t.deviation !== 'calendar') bad();
-  for (const x of list(t.terms, 2) as SchemaForslagTeaching['terms']) { if (!SCHEMA_TERMS.includes(record(x).term as SchemaTerm)) bad(); int(x.needMin, 0, 10_000_000); int(x.maxMin, 0, 10_000_000); int(x.plannedMin, 0, 10_000_000); }
+  for (const x of list(t.terms, 2) as SchemaForslagTeaching['terms']) { if (!SCHEMA_TERMS.includes(record(x).term as SchemaTerm)) bad(); int(x.needMin, 0, 10_000_000); int(x.maxMin, 0, 10_000_000); int(x.plannedMin, 0, 10_000_000);
+    int(x.baseMin, 0, 10_000_000); int(x.trimmedMin, 0, 10_000_000); int(x.trimmedCount, 0, 100_000); }
+  for (const w of [...list(t.perWeek, 60), ...list(t.trimPerWeek, 60)]) int(w, 0, 100_000);
+  if (t.perWeek.length !== t.trimPerWeek.length) bad();
 }
 const ROOM = /^sal-\d{1,3}$/u;
 /** Placeringarnas form. Att passen finns, ligger en gång och inom skoldagen prövas mot underlaget med `checkSchemaPlacements`. */
@@ -355,8 +365,10 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   const time = record(f.time), members = record(f.members);
   if (time.source !== 'kalender' && time.source !== 'forval' || typeof time.weeks !== 'number' || !(time.weeks > 0)) bad();
   int(time.schoolDays, 0, 366); list(time.terms, 2); int(members.pupils, 0, 1_000_000);
+  for (const label of list(time.weekLabels, 60)) text(label, 20);
   for (const key of ['groupsWithoutMembers', 'classesWithoutPupils', 'withoutChoice'] as const) list(members[key], SCHEMA_LIMITS.lessons);
   for (const t of f.teachings) teaching(t);
+  if (f.teachings.some(t => t.perWeek.length !== (time.weekLabels as string[]).length)) bad();
   for (const l of f.lessons) {
     text(l.id, 100); text(l.title, 2000); list(l.classIds, 2000); list(l.teacherIds, 2000); int(l.durationMin, 1, 1440); int(l.marginMin, 0, 60);
     const rooms = list(l.roomIds, SCHEMA_VILLKOR_LIMITS.salar);

@@ -10,6 +10,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../../web/lib/schema-underlag.ts';
+import { schemaTime } from '../../web/lib/schema-kalender.ts';
 import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
@@ -35,10 +36,17 @@ for (const [, i] of BLOCK) rows.push({ id: uid(1000 + rows.length), lineageId: u
   groupId: uid(300 + i), classIds: [], sourceRefs: [], groupRevision: 1, personId: uid(200 + i), teacherHt: h(36), teacherVt: h(36), needHt: h(36), needVt: h(36), needBasis: 'terms', stale: false, jointGroupId: null, comment: '' });
 const pupils = Array.from({ length: CLASSES * 25 }, (_, i) => ({ id: uid(10000 + i), classIds: [uid(100 + Math.floor(i / 25))] }));
 const memberships = pupils.slice(0, 50).flatMap((p, i) => i % 5 === 4 ? [] : [{ groupId: uid(300 + i % 2), pupilId: p.id, startsOn: '2026-08-17', endsOn: null }]);
-// Läsårets tid som läsårskalendern ger den: 88 skoldagar HT och 93 VT, och klass 12 med en egen dag utan undervisning på hösten.
-const time = { source: 'kalender', version: 1, status: 'faststalld', current: true, terms: {
-  ht: { span: { start: '2026-08-17', end: '2026-12-18' }, perWeekday: [17, 18, 17, 18, 18], classes: { [uid(111)]: [17, 18, 17, 17, 18] } },
-  vt: { span: { start: '2027-01-11', end: '2027-06-11' }, perWeekday: [18, 19, 19, 18, 19], classes: {} } } };
+// Läsårets tid ur en syntetisk läsårskalender, dag för dag (05.2-SM-TIMPLAN-VECKA, W1): höstlov, studiedag, sportlov och påsklov utöver röda dagar,
+// och klass 12 med en egen friluftsdag på hösten.
+const lov = (from, n) => Object.fromEntries(Array.from({ length: n }, (_, i) => { const d = new Date(`${from}T00:00:00Z`); d.setUTCDate(d.getUTCDate() + i); return [d.toISOString().slice(0, 10), { kind: 'lovdag' }]; }));
+const calendar = { versionId: uid(80), version: 1, status: 'faststalld', revision: 1, terms: { ht: { start: '2026-08-17', end: '2026-12-18' }, vt: { start: '2027-01-11', end: '2027-06-11' } },
+  exceptions: { ...lov('2026-10-26', 5), '2026-11-11': { kind: 'studiedag' }, ...lov('2027-02-22', 5), ...lov('2027-03-29', 5) },
+  groupDays: { [`klass:${uid(111)}`]: { '2026-11-12': { cause: 'friluftsdag' } } }, shortWeeks: {}, frameVersionId: null, contentHash: 'x', decidedOn: '2026-03-18', history: [] };
+const time = schemaTime({ contractVersion: 'lasar_sql_v1', target: { kind: 'school', unitId: uid(1) }, schoolYear: 2026, schoolName: 'Provskolan', schoolTypes: ['GY'], mode: 'eget', modeLocked: false,
+  versions: [{ versionId: uid(80), version: 1, status: 'faststalld', decidedOn: '2026-03-18', current: true }], calendar,
+  groups: Array.from({ length: CLASSES }, (_, i) => ({ scope: 'klass', classId: uid(100 + i), offeringId: uid(90), columnId: null, label: `Klass ${i + 1}`, educationName: 'Provutbildning', kind: 'gy' })) },
+  Array.from({ length: CLASSES }, (_, i) => uid(100 + i)));
+assert.equal(time.source, 'kalender');
 const basis = { members: { pupils, memberships }, time };
 const plan = { contractVersion: 1, unitId: uid(1), schoolName: 'Provskolan', schoolYear: 2026, revision: 1,
   version: { id: uid(2), versionNo: 1, status: 'draft', contentHash: 'x', basedOnVersionId: null, publishedByName: null, publishedAt: null }, versions: [],
@@ -88,7 +96,8 @@ try {
   console.log(JSON.stringify({ status: forslag.status, ...forslag.metrics, elapsedMs: forslag.elapsedMs, classes: forslag.classes.length, teachers: forslag.teachers.length,
     validatorExit: check.status, validator: (check.stdout + check.stderr).trim().split('\n').slice(-3) }, null, 1));
   assert.equal(check.status, 0, 'kontrollanten godkände inte resultatet');
-  // Timplanen läggs alltid ut (05.2-SM-TIMPLAN-EXAKT): varje termin minst timplanens tid och högst avrundningen uppåt till hela 5 minuter i veckan.
+  // Timplanen läggs alltid ut (05.2-SM-TIMPLAN-VECKA): räknat på kalenderns faktiska tillfällen blir varje termin exakt timplanens tid avrundad uppåt
+  // till hela 5 minuter, efter att enskilda tillfällen kortats.
   const inRange = f => f.teachings.flatMap(t => t.terms.filter(x => x.needMin > 0 && (x.plannedMin < x.needMin || x.plannedMin > x.maxMin)).map(x => `${t.title} ${t.classes.join()} ${x.term}: ${x.plannedMin} av ${x.needMin}–${x.maxMin}`));
   assert.deepEqual(inRange(forslag), []);
   assert.ok(forslag.teachings.every(t => t.deviation === null), 'en undervisning avviker från timplanen');
@@ -145,18 +154,15 @@ try {
   const u2 = buildSchemaUnderlag(plan, egnaRequest, basis), sent2 = JSON.stringify(u2.problem);
   assert.ok(!sent2.includes('52a10000') && !sent2.includes('Idrott') && !sent2.includes('Sal A'), 'namn eller ID nådde motorn');
   const s2 = await solve(u2), f2 = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, egnaRequest, u2, s2))), egnaRequest);
-  // Klass 1 är spärrad måndag förmiddag, och måndag och onsdag har 17 skoldagar på hösten mot 18 de andra dagarna. Klassens pass behöver
-  // minst 610 min på de två dagarna för att varje undervisning ska få sin tid, och dagarna rymmer knappt det. Når motorn inte intervallet ska det
-  // redovisas som regelbrott, och tiden får aldrig bli mindre än timplanen (05.2-SM-TIMPLAN-EXAKT).
-  const over = inRange(f2);
-  console.log(JSON.stringify({ egnaTid: { status: f2.status, utanforIntervallet: over, forklaring: f2.diagnoses.map(d => d.message) } }));
-  assert.equal(f2.metrics.unplaced, 0);
-  assert.ok(f2.status === 'complete' ? over.length === 0 : over.length > 0 && f2.diagnoses.length === over.length, 'avvikelse från timplanen redovisas inte');
-  assert.ok(f2.teachings.every(t => t.terms.every(x => x.plannedMin >= x.needMin)), 'en undervisning fick mindre tid än timplanen');
+  // Klass 1 är spärrad måndag förmiddag, och måndag och onsdag har 17 skoldagar på hösten. Med bara en undre gräns i motorn och justering
+  // per tillfälle får även klass 1 exakt timplanens tid (05.2-SM-TIMPLAN-VECKA, W2–W3).
+  assert.equal(f2.status, 'complete', JSON.stringify(f2.diagnoses.map(d => d.message)));
+  assert.deepEqual(inRange(f2), []);
+  const trims = f => f.teachings.reduce((n, t) => n + t.terms.reduce((m, x) => m + x.trimmedCount, 0), 0);
+  console.log(JSON.stringify({ justering: { grund: trims(forslag), egna: trims(f2), undervisningar: forslag.teachings.length,
+    storstaMin: Math.max(...forslag.teachings.flatMap(t => t.terms.map(x => x.trimmedMin))) } }));
   assert.deepEqual(f2.egnaUtanTraff, [7], 'villkoret för en grupp som inte finns ska redovisas som utan träff');
-  // Kontrollanten ser samma sak som motorn: bara tidsbrotten ovan.
-  const k2 = await kontroll(f2.lessons, u2, f2);
-  assert.deepEqual(k2.violations.map(v => v.code), over.map(() => 'activity_time'), 'förslaget med egna villkor ska bara ha de redovisade tidsbrotten');
+  assert.equal((await kontroll(f2.lessons, u2, f2)).total, 0, 'förslaget med egna villkor ska vara utan avvikelser');
   const end = l => l.startMin + l.durationMin, meet = (a, b) => a.day === b.day && (a.term === null || b.term === null || a.term === b.term);
   const klass1 = f2.lessons.filter(l => l.classIds.includes(f2.classes[0].id)), idrott = f2.lessons.filter(l => l.title === 'Idrott och hälsa');
   assert.ok(klass1.every(l => l.day !== 0 || l.startMin >= 720), 'klass 1 har pass på spärrad tid');
@@ -169,7 +175,7 @@ try {
   assert.ok(f2.lessons.filter(l => l.title === 'Engelska' && l.classIds[0] === f2.classes[0].id && l.term === 'ht').length === 3, 'engelskan ska ha tre pass i veckan');
   assert.ok(f2.lessons.filter(l => l.title === 'Programämne').every(l => l.durationMin <= 90), 'programämnet har pass längre än 90 minuter');
   // Uppdelning och marginal ändrar inte hur mycket tid som läggs (T1).
-  assert.ok(f2.teachings.every(t => t.deviation === null || t.deviation === 'calendar'), 'egna villkor ändrade veckotiden');
+  assert.ok(f2.teachings.every(t => t.deviation === null), 'egna villkor ändrade tiden');
   assert.deepEqual(f2.teachings.map(t => t.weeklyMin), forslag.teachings.map(t => t.weeklyMin));
   // Flytt för hand mot egna villkor: idrott till fredag (salen spärrad) och klass 1 till måndag morgon (klassen spärrad).
   const gympa = idrott[0], fredag = await kontroll(f2.lessons.map(l => l.id === gympa.id ? { ...l, day: 4, startMin: 480 } : l), u2, f2);
