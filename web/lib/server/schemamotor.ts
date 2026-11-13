@@ -6,6 +6,7 @@
 import { env as bindings } from 'cloudflare:workers';
 import { parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
+import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
 
 const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
 export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply';
@@ -43,7 +44,12 @@ export function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
 }
 
 /** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. */
+const engineAt = (placements: SchemaPlacement[]) => placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] }));
 export function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
-  return call('/v1/validate', { problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }, 0,
-    value => parseSchemaCheck(value, problem));
+  return call('/v1/validate', { problem, placements: engineAt(placements) }, 0, value => parseSchemaCheck(value, problem));
+}
+
+/** Läget för varje starttid för ett pass (05.2-SM-LAGEN). `pupil` är ett elevkluster ur underlaget, aldrig ett elev-ID. */
+export function positionsSchema(problem: SchemaProblem, placements: SchemaPlacement[], lesson: string, pupil: string | null): Promise<SchemaPositions> {
+  return call('/v1/positions', { problem, placements: engineAt(placements), lesson, ...(pupil === null ? {} : { pupil }) }, 0, value => parseSchemaPositions(value, problem, lesson));
 }
