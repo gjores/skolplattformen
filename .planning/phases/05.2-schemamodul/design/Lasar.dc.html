@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Läsåret med nationella prov</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,input{font-family:inherit}
+.ck{display:flex;align-items:center;gap:8px;font-size:13px;color:#202b3b}
+.ck input{width:18px;height:18px;accent-color:#365ce6}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:28px;padding:0 10px;border-radius:999px;background:#edf1ff;color:#2d4cc1;font-size:12px}
+th,td{padding:9px 10px;text-align:left;font-size:13px;border-bottom:1px solid #e3e7ee;vertical-align:top}
+th{font-weight:600;color:#4f688b;font-size:12px}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+.sw{width:18px;height:14px;border-radius:3px;display:inline-block;box-sizing:border-box}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.115em; color: #4f688b;">LÄSÅRSPLANERING · NATIONELLA PROV · SKISS</div>
+    <h2 style="margin: 0; font-size: 1.6rem; font-weight: 550; letter-spacing: -0.04em;">Läsåret 2026/27 med nationella prov</h2>
+    <p style="margin: 0; font-size: 15px; color: #657185; max-width: 1040px;">Skolverkets provdatum tas in i läsårsplaneringen. Skolan väljer vilka prov den kör och vilka klasser som deltar. För varje klass skapas en bokning automatiskt, och bokningen blockerar schemat den tiden.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+    <section aria-labelledby="kal" style="flex: 1 1 560px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;">
+        <h3 id="kal" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Läsårskalendern</h3>
+        <span style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: #e4f3e9; color: #29704c;">Version 2 · fastställd</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px;">
+        <sc-for list="{{months}}" as="m" hint-placeholder-count="11">
+          <div style="display: flex; flex-direction: column; gap: 4px;">
+            <div style="font-size: 13px; font-weight: 600;">{{m.name}}</div>
+            <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 2px; font-size: 10px; color: #657185; text-align: center;">
+              <span>M</span><span>T</span><span>O</span><span>T</span><span>F</span>
+              <sc-for list="{{m.cells}}" as="c" hint-placeholder-count="22">
+                <span style="{{c.style}}" title="{{c.title}}">{{c.n}}</span>
+              </sc-for>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 20px; padding-top: 6px; border-top: 1px solid #e3e7ee;">
+        <span class="lg"><span class="sw" style="background: #fff; border: 1px solid #cbd2df;"></span>Skoldag</span>
+        <span class="lg"><span class="sw" style="background: repeating-linear-gradient(135deg,#eef1f5 0,#eef1f5 3px,#d7dde7 3px,#d7dde7 5px);"></span>Lov</span>
+        <span class="lg"><span class="sw" style="background: #eaf0fe; border: 1px solid #8ea6e6;"></span>Studiedag</span>
+        <span class="lg"><span class="sw" style="background: #fbeeee; border: 1px solid #d08b8b;"></span>Röd dag</span>
+        <span class="lg"><span class="sw" style="background: #25334a;"></span>Nationellt prov</span>
+      </div>
+    </section>
+
+    <section aria-labelledby="np" style="flex: 1 1 620px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;">
+        <h3 id="np" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Nationella prov 2026/27</h3>
+        <button type="button" style="min-height: 44px; padding: 0 16px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px; font-weight: 500;">Hämta Skolverkets provdatum</button>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185;">Underlag: Skolverkets provdatum för läsåret, hämtat 12 nov 2026. Proven, datumen och tiderna här är exempel, inte Skolverkets faktiska uppgifter.</p>
+      <div style="overflow-x: auto;">
+        <table style="border-collapse: collapse; min-width: 600px; width: 100%;">
+          <thead><tr><th scope="col">Kör</th><th scope="col">Prov</th><th scope="col">När</th><th scope="col">Klasser</th></tr></thead>
+          <tbody>
+            <tr><td><input type="checkbox" checked aria-label="Kör Engelska nivå 2, muntligt" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Engelska nivå 2<br><small style="color: #657185;">Muntligt delprov</small></td><td>Inom 30 nov–11 dec<br><small style="color: #657185;">skolan väljer dag: ons 2 dec</small></td><td><span class="tag">Klass 3 ✓</span> <span class="tag">Klass 4 ✓</span></td></tr>
+            <tr><td><input type="checkbox" checked aria-label="Kör Svenska nivå 1, delprov B" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Svenska nivå 1<br><small style="color: #657185;">Delprov B, skriftligt</small></td><td>Tis 16 mars<br><small style="color: #657185;">08:30–12:00</small></td><td><span class="tag">Klass 1 ✓</span> <span class="tag">Klass 2 ✓</span></td></tr>
+            <tr><td><input type="checkbox" checked aria-label="Kör Engelska nivå 2, skriftligt" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Engelska nivå 2<br><small style="color: #657185;">Skriftligt</small></td><td>Tor 18 mars<br><small style="color: #657185;">08:30–11:30</small></td><td><span class="tag">Klass 3 ✓</span> <span class="tag">Klass 4 ✓</span></td></tr>
+            <tr><td><input type="checkbox" checked aria-label="Kör Matematik nivå 1" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Matematik nivå 1<br><small style="color: #657185;">Skriftligt</small></td><td>Tis 13 april<br><small style="color: #657185;">08:30–12:30</small></td><td><span class="tag">Ma-grupp A ✓</span> <span class="tag">Ma-grupp B ✓</span> <span class="tag" style="background: #fff; border: 1px dashed #8a95a8; color: #4f5b6e;">Klass 4 ?</span></td></tr>
+            <tr><td><input type="checkbox" checked aria-label="Kör Svenska nivå 1, delprov C" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Svenska nivå 1<br><small style="color: #657185;">Delprov C, skriftligt</small></td><td>Tis 4 maj<br><small style="color: #657185;">08:30–12:00</small></td><td><span class="tag">Klass 1 ✓</span> <span class="tag">Klass 2 ✓</span></td></tr>
+            <tr style="color: #657185;"><td><input type="checkbox" aria-label="Kör Svenska nivå 3" style="width: 18px; height: 18px; accent-color: #365ce6;"></td><td>Svenska nivå 3</td><td>Ons 21 april</td><td>Ingen klass läser Svenska nivå 3 i år</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">Klasserna föreslås utifrån vilka ämnen och nivåer de läser enligt timplanen och grupperna. ✓ = föreslagen och vald. Streckad = osäker: Klass 4 läser Matematik nivå 1 i en annan kurskombination; välj själv.</p>
+    </section>
+  </div>
+
+  <section aria-labelledby="bok" style="box-sizing: border-box; display: flex; flex-direction: column; gap: 12px; padding: 20px 24px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;">
+      <h3 id="bok" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Bokningar som skapas automatiskt (10)</h3>
+      <span style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: #eaf0fe; color: #4463a4;">Blockerar schemat</span>
+    </div>
+    <div style="overflow-x: auto;">
+      <table style="border-collapse: collapse; min-width: 900px; width: 100%;">
+        <thead><tr><th scope="col">Klass eller grupp</th><th scope="col">Prov</th><th scope="col">Tid</th><th scope="col">Sal</th><th scope="col">Provvakter</th><th scope="col">I schemat</th></tr></thead>
+        <tbody>
+          <tr><td>Klass 3</td><td>Engelska nivå 2, muntligt</td><td>Ons 2 dec, 08:30–16:00</td><td>Grupprum 1–3 (förslag)</td><td>Ämneslärarna</td><td>Ställer in 5 pass · förslag på kompensation</td></tr>
+          <tr><td>Klass 4</td><td>Engelska nivå 2, muntligt</td><td>Ons 2 dec, 08:30–16:00</td><td>Grupprum 4–6 (förslag)</td><td>Ämneslärarna</td><td>Ställer in 5 pass · förslag på kompensation</td></tr>
+          <tr><td>Klass 1</td><td>Svenska nivå 1, delprov B</td><td>Tis 16 mars, 08:30–12:00</td><td>Aulan (förslag)</td><td style="color: #86601f;">Att tilldela (2)</td><td>Ställer in 3 pass · förslag på kompensation</td></tr>
+          <tr><td>Klass 2</td><td>Svenska nivå 1, delprov B</td><td>Tis 16 mars, 08:30–12:00</td><td>Aulan (förslag)</td><td style="color: #86601f;">Att tilldela (2)</td><td>Ställer in 3 pass · förslag på kompensation</td></tr>
+          <tr><td colspan="6" style="color: #657185;">+ 6 bokningar till: Engelska nivå 2 skriftligt (Klass 3, 4), Matematik nivå 1 (Ma-grupp A, B), Svenska nivå 1 delprov C (Klass 1, 2)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">En bokning per klass eller grupp skapas när provet och klassen är valda. Den ligger i läsårsplaneringen, blockerar schemat för klassen den tiden och tar provtiden från ordinarie undervisning; motorn föreslår vad som ställs in och hur tiden tas igen. Ändrar Skolverket ett datum visas skillnaden, och bokningen flyttas först när någon godkänner det.</p>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
+class Component extends DCLogic {
+  renderVals() {
+    const iso = (d) => d.toISOString().slice(0, 10);
+    const inRange = (s, a, b) => s >= a && s <= b;
+    const lov = [['2026-10-26', '2026-10-30'], ['2026-12-21', '2027-01-08'], ['2027-02-22', '2027-02-26'], ['2027-03-29', '2027-04-02']];
+    const red = ['2026-12-24', '2026-12-25', '2026-12-31', '2027-01-01', '2027-01-06', '2027-03-26', '2027-05-13'];
+    const studie = ['2026-11-11', '2027-01-11'];
+    const np = { '2026-12-02': 'Engelska nivå 2, muntligt', '2027-03-16': 'Svenska nivå 1, delprov B', '2027-03-18': 'Engelska nivå 2', '2027-04-13': 'Matematik nivå 1', '2027-05-04': 'Svenska nivå 1, delprov C' };
+    const names = ['Januari', 'Februari', 'Mars', 'April', 'Maj', 'Juni', 'Juli', 'Augusti', 'September', 'Oktober', 'November', 'December'];
+    const base = 'height: 18px; line-height: 18px; border-radius: 3px; box-sizing: border-box;';
+    const months = [];
+    for (let k = 0; k < 11; k++) {
+      const y = 2026 + Math.floor((7 + k) / 12), mo = (7 + k) % 12;
+      const cells = [];
+      const first = new Date(Date.UTC(y, mo, 1));
+      const lead = (first.getUTCDay() + 6) % 7;
+      // Börjar månaden på en helg börjar veckan med måndagen därpå.
+      for (let i = 0; i < (lead > 4 ? 0 : lead); i++) cells.push({ n: '', style: base, title: '' });
+      for (let d = 1; d <= 31; d++) {
+        const dt = new Date(Date.UTC(y, mo, d));
+        if (dt.getUTCMonth() !== mo) break;
+        const wd = (dt.getUTCDay() + 6) % 7;
+        if (wd > 4) continue;
+        const s = iso(dt);
+        let style = base + ' background: #fff; border: 1px solid #e3e7ee; color: #202b3b;', title = 'Skoldag';
+        if (s < '2026-08-17' || inRange(s, '2026-12-19', '2027-01-10') || s > '2027-06-11') { style = base + ' color: #a3acba;'; title = 'Utanför terminerna'; }
+        if (lov.some(([a, b]) => inRange(s, a, b))) { style = base + ' background: repeating-linear-gradient(135deg,#eef1f5 0,#eef1f5 3px,#d7dde7 3px,#d7dde7 5px); color: #4f5b6e;'; title = 'Lov'; }
+        if (red.includes(s)) { style = base + ' background: #fbeeee; border: 1px solid #d08b8b; color: #8a2a2a;'; title = 'Röd dag'; }
+        if (studie.includes(s)) { style = base + ' background: #eaf0fe; border: 1px solid #8ea6e6; color: #4463a4;'; title = 'Studiedag'; }
+        if (np[s]) { style = base + ' background: #25334a; color: #fff; font-weight: 600;'; title = 'Nationellt prov: ' + np[s]; }
+        cells.push({ n: String(d), style, title });
+      }
+      months.push({ name: names[mo] + ' ' + y, cells });
+    }
+    return { months };
+  }
+}
+</script>
+</body>
+</html>

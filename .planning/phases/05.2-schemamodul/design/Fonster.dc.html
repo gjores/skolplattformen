@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Flera fönster som uppdateras live</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+button{font-family:inherit}
+.win{display:flex;flex-direction:column;box-sizing:border-box;border:1px solid #cbd2df;border-radius:12px;background:#fff;overflow:hidden;box-shadow:0 4px 16px #284ab509}
+.bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid #e3e7ee;background:#f7f8fa;font-size:13px}
+.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;padding:2px 8px;border-radius:5px;background:#e4f3e9;color:#29704c}
+.dot{width:8px;height:8px;border-radius:999px;background:#29704c;display:inline-block}
+.wk{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;padding:10px;flex-grow:1}
+.d{position:relative;border-radius:5px;background:#f7f8fa;min-height:250px}
+.p{position:absolute;left:2px;right:2px;border:1px solid #c3cff5;background:#edf1ff;border-radius:4px;font-size:10px;padding:1px 4px;overflow:hidden;white-space:nowrap;box-sizing:border-box}
+.sel{border:2px solid #365ce6;background:#fff}
+.mi{display:flex;width:100%;min-height:34px;align-items:center;padding:0 10px;border:0;background:transparent;font-size:13px;color:#202b3b;text-align:left;border-radius:5px}
+.cap{font-size:13px;color:#657185;line-height:1.45}
+</style>
+</helmet>
+<div style="width: 1600px; height: 960px; box-sizing: border-box; padding: 40px 48px; display: flex; flex-direction: column; gap: 20px; background: #f7f8fa; color: #202b3b; font-family: Geist, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.115em; color: #4f688b;">SCHEMA · FLERA FÖNSTER · SKISS</div>
+    <h2 style="margin: 0; font-size: 1.6rem; font-weight: 550; letter-spacing: -0.04em;">Flera fönster som uppdateras live</h2>
+    <p class="cap" style="margin: 0; font-size: 15px; max-width: 1100px;">Varje vy kan lyftas ut i ett eget fönster, på samma eller en annan skärm. Alla fönster arbetar mot samma utkast: en flytt i ett fönster syns direkt i de andra, och det markerade passet markeras överallt.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.25fr 1fr 1fr; gap: 24px; flex-grow: 1; min-height: 0;">
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; color: #4f688b;">SKÄRM 1</div>
+      <div class="win" style="flex-grow: 1; position: relative;">
+        <div class="bar"><b style="font-weight: 600;">Schema · Klass 1 · v. 47</b><span class="live"><span class="dot"></span>Live</span><span style="flex-grow: 1;"></span><span style="color: #657185;">Fönster 1 av 4</span>
+          <button type="button" style="min-height: 32px; padding: 0 10px; border: 1px solid #cbd2df; border-radius: 8px; background: #fff; font-size: 13px;" aria-expanded="true">Fönster ▾</button></div>
+        <div class="wk">
+          <div class="d"><div class="p" style="top: 120px; height: 30px;">Matematik</div><div class="p" style="top: 160px; height: 32px;">Historia</div></div>
+          <div class="d"><div class="p" style="top: 0; height: 30px;">Historia</div><div class="p" style="top: 40px; height: 30px;">Naturkunskap</div><div class="p" style="top: 115px; height: 28px;">Idrott</div></div>
+          <div class="d"><div class="p" style="top: 15px; height: 32px;">Naturkunskap</div><div class="p sel" style="top: 140px; height: 30px;">Programämne</div><div class="p" style="top: 180px; height: 26px;">Engelska</div></div>
+          <div class="d"><div class="p" style="top: 25px; height: 26px;">Engelska</div><div class="p" style="top: 60px; height: 30px;">Programämne</div><div class="p" style="top: 135px; height: 30px;">Svenska</div></div>
+          <div class="d"><div class="p" style="top: 50px; height: 30px;">Matematik</div><div class="p" style="top: 100px; height: 30px;">Programämne</div></div>
+        </div>
+        <div role="menu" aria-label="Öppna i nytt fönster" style="position: absolute; top: 44px; right: 12px; width: 280px; box-sizing: border-box; padding: 6px; border: 1px solid #e3e7ee; border-radius: 10px; background: #fff; box-shadow: 0 8px 24px #13284922;">
+          <div style="padding: 4px 10px 6px; font-size: 12px; color: #657185;">Öppna i nytt fönster</div>
+          <button type="button" role="menuitem" class="mi" style="background: #edf1ff; color: #2d4cc1;">Följ passet (följer markeringen)</button>
+          <button type="button" role="menuitem" class="mi">Lärarens schema…</button>
+          <button type="button" role="menuitem" class="mi">Salens schema…</button>
+          <button type="button" role="menuitem" class="mi">Elevens schema…</button>
+          <button type="button" role="menuitem" class="mi">Regelavvikelser</button>
+          <button type="button" role="menuitem" class="mi">Tid över läsåret</button>
+          <button type="button" role="menuitem" class="mi">Viloytan</button>
+          <div style="height: 1px; background: #e3e7ee; margin: 4px 0;"></div>
+          <button type="button" role="menuitem" class="mi">Spara fönstren som arbetsvy…</button>
+        </div>
+      </div>
+      <p class="cap" style="margin: 0;">Programämne onsdag är markerat här. Flyttas det, syns flytten i alla fönster.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; color: #4f688b;">SKÄRM 2</div>
+      <div class="win" style="flex-grow: 1;">
+        <div class="bar"><b style="font-weight: 600;">Följ passet · Programämne</b><span class="live"><span class="dot"></span>Live</span><span style="flex-grow: 1;"></span><span style="color: #657185;">2 av 4</span></div>
+        <div style="padding: 12px; display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+          <div style="display: flex; gap: 8px; align-items: center;"><span style="color: #657185;">Följer:</span><span style="padding: 2px 8px; border-radius: 5px; background: #edf1ff; color: #2d4cc1;">markeringen i fönster 1</span><button type="button" style="min-height: 32px; padding: 0 10px; border: 1px solid #cbd2df; border-radius: 8px; background: #fff; font-size: 12px;">Lås till detta pass</button></div>
+          <div style="display: grid; grid-template-columns: 90px minmax(0, 1fr); gap: 6px; align-items: center;">
+            <span>Möjligt</span><div style="height: 22px; border-radius: 4px; background: linear-gradient(to right, #e4f3e9 0 30%, #fbeeee 30% 45%, #eaf0fe 45% 60%, #e4f3e9 60% 85%, #f6efe2 85%); border: 1px solid #e3e7ee;"></div>
+            <span>Klass 1</span><div style="height: 22px; border-radius: 4px; background: #f7f8fa; border: 1px solid #e3e7ee; position: relative;"><div class="p sel" style="top: 2px; bottom: 2px; left: 55%; width: 12%;"></div></div>
+            <span>Provlärare 22</span><div style="height: 22px; border-radius: 4px; background: #f7f8fa; border: 1px solid #e3e7ee; position: relative;"><div class="p sel" style="top: 2px; bottom: 2px; left: 55%; width: 12%;"></div><div class="p" style="top: 2px; bottom: 2px; left: 20%; width: 12%;"></div></div>
+            <span>Sal 112</span><div style="height: 22px; border-radius: 4px; background: #f7f8fa; border: 1px solid #e3e7ee; position: relative;"><div class="p sel" style="top: 2px; bottom: 2px; left: 55%; width: 12%;"></div></div>
+            <span>Provelev 7</span><div style="height: 22px; border-radius: 4px; background: #f7f8fa; border: 1px solid #e3e7ee; position: relative;"><div class="p sel" style="top: 2px; bottom: 2px; left: 55%; width: 12%;"></div><div class="p" style="top: 2px; bottom: 2px; left: 75%; width: 10%;"></div></div>
+          </div>
+          <p class="cap" style="margin: 0; font-size: 12px;">Byter man markering i fönster 1 byter det här fönstret pass, om det inte är låst.</p>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px;">
+      <div style="font-size: 12px; font-weight: 600; color: #4f688b;">SKÄRM 3</div>
+      <div class="win" style="flex: 1 1 0;">
+        <div class="bar"><b style="font-weight: 600;">Regelavvikelser (1)</b><span class="live"><span class="dot"></span>Live</span><span style="flex-grow: 1;"></span><span style="color: #657185;">3 av 4</span></div>
+        <div style="padding: 12px; font-size: 13px; display: flex; flex-direction: column; gap: 8px;">
+          <div style="padding: 8px 10px; border-radius: 8px; background: #fbeeee; color: #8a2a2a;">Samhällskunskap torsdag 14:10 ligger på spärrad tid för Klass 1.</div>
+          <button type="button" style="align-self: flex-start; min-height: 32px; padding: 0 10px; border: 1px solid #cbd2df; border-radius: 8px; background: #fff; font-size: 12px;">Visa i fönster 1</button>
+        </div>
+      </div>
+      <div class="win" style="flex: 1 1 0;">
+        <div class="bar"><b style="font-weight: 600;">Provlärare 22 · v. 47</b><span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 2px 8px; border-radius: 5px; background: #f6efe2; color: #86601f;">Inte uppdaterat sedan 10:42</span><span style="flex-grow: 1;"></span><button type="button" style="min-height: 32px; padding: 0 10px; border: 1px solid #cbd2df; border-radius: 8px; background: #fff; font-size: 12px;">Läs om</button></div>
+        <div class="wk" style="opacity: 0.6;">
+          <div class="d" style="min-height: 120px;"><div class="p" style="top: 20px; height: 22px;">Pr K2</div></div>
+          <div class="d" style="min-height: 120px;"><div class="p" style="top: 60px; height: 22px;">Pr K1</div></div>
+          <div class="d" style="min-height: 120px;"><div class="p sel" style="top: 70px; height: 22px;">Pr K1</div></div>
+          <div class="d" style="min-height: 120px;"><div class="p" style="top: 30px; height: 22px;">Pr K1</div></div>
+          <div class="d" style="min-height: 120px;"><div class="p" style="top: 50px; height: 22px;">Pr K1</div></div>
+        </div>
+      </div>
+      <p class="cap" style="margin: 0;">Ett fönster som tappat kontakten säger det och kan läsas om.</p>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 8px 28px; padding: 12px 16px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; font-size: 13px;">
+    <span><b style="font-weight: 600;">Ett utkast</b> · alla fönster visar samma läge och ångra gäller utkastet</span>
+    <span><b style="font-weight: 600;">Samma markering</b> · ett markerat pass markeras i alla fönster</span>
+    <span><b style="font-weight: 600;">Sparas</b> · fönstren och vad de visar ingår i arbetsvyn</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1600,"height":960}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

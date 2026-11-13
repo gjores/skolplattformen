@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Marginaler för pass</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button,select,input{font-family:inherit}
+.f{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#657185;min-width:0}
+.f select,.f input{min-height:44px;box-sizing:border-box;padding:0 12px;border:1px solid #cbd2df;border-radius:10px;background:#fff;font-size:14px;color:#202b3b;width:100%}
+.ck{display:flex;align-items:center;gap:8px;min-height:44px;font-size:14px;color:#202b3b}
+.ck input{width:18px;height:18px;accent-color:#365ce6}
+.seg{display:inline-flex;border:1px solid #cbd2df;border-radius:10px;overflow:hidden}
+.seg button{min-height:44px;padding:0 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;color:#202b3b}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:#edf0f6;color:#25334a;font-weight:500}
+.lane{position:relative;height:40px;border-radius:7px;background:#f7f8fa;border:1px solid #e3e7ee}
+.p{position:absolute;top:4px;bottom:4px;box-sizing:border-box;border:1px solid #c3cff5;background:#edf1ff;border-radius:5px;font-size:12px;padding:0 6px;display:flex;align-items:center;white-space:nowrap;overflow:hidden}
+.m{position:absolute;top:4px;bottom:4px;box-sizing:border-box;background:#edf0f6;border:1px dotted #8a95a8;border-radius:5px;font-size:11px;color:#25334a;display:flex;align-items:center;justify-content:center;white-space:nowrap;overflow:hidden}
+.sp{position:absolute;top:4px;bottom:4px;box-sizing:border-box;border-radius:5px;background:repeating-linear-gradient(135deg,#eef1f5 0,#eef1f5 6px,#d7dde7 6px,#d7dde7 8px);border:1px dashed #8a95a8;font-size:11px;color:#4f5b6e;display:flex;align-items:center;justify-content:center}
+th,td{padding:10px 12px;text-align:left;font-size:14px;border-bottom:1px solid #e3e7ee;vertical-align:top}
+th{font-weight:600;color:#4f688b;font-size:13px}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.115em; color: #4f688b;">VILLKOR FÖR SCHEMAT · SKISS</div>
+    <h2 style="margin: 0; font-size: 1.6rem; font-weight: 550; letter-spacing: -0.04em;">Marginaler för pass</h2>
+    <p style="margin: 0; font-size: 15px; color: #657185; max-width: 980px;">En marginal är tid före eller efter ett pass som följer passet när det flyttas: omklädning, dusch, restid, städning eller en lugn övergång. Spärrad tid ligger fast i veckan. Båda syns i schemat, och ingen av dem räknas som undervisningstid.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+    <section aria-labelledby="ny-marginal" style="flex: 1 1 560px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <h3 id="ny-marginal" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Ny marginal</h3>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px;">
+        <label class="f">Gäller<select><option>Ämne</option><option>Grupp</option><option>Klass</option><option>Lärare</option><option>Sal</option><option>Ett pass</option></select></label>
+        <label class="f">Ämne<select><option>Idrott och hälsa</option></select></label>
+        <label class="f">Före passet<select><option>10 min</option></select></label>
+        <label class="f">Efter passet<select><option>15 min</option></select></label>
+        <label class="f">Etikett i schemat<select><option>Omklädning före, dusch efter</option><option>Restid</option><option>Städning</option><option>Övergång</option><option>Egen text…</option></select></label>
+        <div class="f">När
+          <div class="seg" role="group" aria-label="När marginalen gäller">
+            <button type="button" aria-pressed="true">Alltid</button>
+            <button type="button" aria-pressed="false">Vid byte av plats</button>
+          </div>
+        </div>
+      </div>
+      <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 0 24px;">
+        <legend style="font-size: 14px; color: #657185; margin-bottom: 4px;">Upptar, så att inget annat kan ligga där</legend>
+        <label class="ck"><input type="checkbox" checked>Eleverna</label>
+        <label class="ck"><input type="checkbox">Läraren</label>
+        <label class="ck"><input type="checkbox">Salen</label>
+      </fieldset>
+      <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 0 24px;">
+        <legend style="font-size: 14px; color: #657185; margin-bottom: 4px;">Visas i schemat för</legend>
+        <label class="ck"><input type="checkbox" checked disabled>Schemaläggaren</label>
+        <label class="ck"><input type="checkbox" checked>Eleverna</label>
+        <label class="ck"><input type="checkbox">Lärarna</label>
+      </fieldset>
+
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <div style="font-size: 13px; font-weight: 600; color: #4f688b;">Så blir det, tisdag 11:50–13:35</div>
+        <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 13px;">
+          <span>Klass 1</span>
+          <div class="lane"><div class="m" style="left: 10%; width: 9.5%;">Omklädning</div><div class="p" style="left: 19.5%; width: 57%;"><b style="font-weight: 600;">Idrott och hälsa</b></div><div class="m" style="left: 76.5%; width: 14.3%;">Dusch</div></div>
+          <span>Provlärare 9</span>
+          <div class="lane"><div class="p" style="left: 19.5%; width: 57%;">Idrott och hälsa</div></div>
+          <span>Idrottshallen</span>
+          <div class="lane"><div class="p" style="left: 0; width: 18%; background: #fff;">Klass 2</div><div class="p" style="left: 19.5%; width: 57%;">Klass 1</div><div class="p" style="left: 78%; width: 22%; background: #fff;">Klass 3</div></div>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">Eleverna är upptagna under omklädning och dusch. Läraren och idrottshallen är lediga: Klass 3 kan börja i hallen medan Klass 1 duschar.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #365ce6; color: #fff; font-size: 14px; font-weight: 500;">Lägg till marginal</button>
+      </div>
+    </section>
+
+    <section aria-labelledby="marginaler" style="flex: 1 1 560px; min-width: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 16px; padding: 24px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <h3 id="marginaler" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Marginaler (5)</h3>
+      <div style="overflow-x: auto;">
+        <table style="border-collapse: collapse; min-width: 560px; width: 100%;">
+          <thead><tr><th scope="col">Gäller</th><th scope="col">Före · efter</th><th scope="col">Upptar</th><th scope="col">När</th><th scope="col"><span style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);">Åtgärd</span></th></tr></thead>
+          <tbody>
+            <tr><td>Ämne Idrott och hälsa<br><small style="color: #657185;">Omklädning, dusch</small></td><td>10 · 15 min</td><td>Elever</td><td>Alltid</td><td><button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px;">Ändra</button></td></tr>
+            <tr><td>Sal Idrottshallen<br><small style="color: #657185;">Restid</small></td><td>10 · 10 min</td><td>Elever, lärare</td><td>Vid byte av plats</td><td><button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px;">Ändra</button></td></tr>
+            <tr><td>Ämne Kemi<br><small style="color: #657185;">Städning</small></td><td>– · 10 min</td><td>Lärare, sal</td><td>Alltid</td><td><button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px;">Ändra</button></td></tr>
+            <tr><td>Grupp Stödgrupp<br><small style="color: #657185;">Övergång</small></td><td>5 · 5 min</td><td>Elever</td><td>Alltid</td><td><button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px;">Ändra</button></td></tr>
+            <tr><td>Lärare Provlärare 12<br><small style="color: #657185;">Restid mellan skolor</small></td><td>15 · 15 min</td><td>Lärare</td><td>Vid byte av plats</td><td><button type="button" style="min-height: 44px; padding: 0 12px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px;">Ändra</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="height: 1px; background: #e3e7ee;"></div>
+      <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Marginal eller spärrad tid?</h3>
+      <div style="display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 8px; align-items: center; font-size: 13px;">
+        <span>Marginal</span>
+        <div class="lane"><div class="m" style="left: 18%; width: 10%;">Restid</div><div class="p" style="left: 28%; width: 44%;">Pass</div><div class="m" style="left: 72%; width: 10%;">Restid</div></div>
+        <span>Spärrad tid</span>
+        <div class="lane"><div class="sp" style="left: 40%; width: 40%;">Spärrad 12:00–14:00</div></div>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">Marginalen flyttar med passet. Spärrad tid står kvar oavsett var passen hamnar. "Vid byte av plats" betyder att marginalen bara tas när eleverna eller läraren kommer från eller går till en annan plats; två idrottspass i rad behöver ingen restid. Platser kräver salsregister; utan register räknas byte av sal.</p>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

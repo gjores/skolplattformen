@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Schema – veckan med villkor</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button{font-family:inherit}
+.col{position:relative;height:612px;border-radius:7px;background:#fff repeating-linear-gradient(to bottom,#e3e7ee 0,#e3e7ee 1px,transparent 1px,transparent 72px)}
+.l{position:absolute;left:3px;right:3px;box-sizing:border-box;border:1px solid #c3cff5;background:#edf1ff;border-radius:7px;padding:3px 7px;font-size:12px;line-height:1.3;overflow:hidden;z-index:2}
+.l b{font-weight:600}.l small{display:block;color:#4f5b6e;font-size:11px}
+.t{color:#4f5b6e;margin-right:4px}
+.block{position:absolute;left:0;right:0;z-index:1;box-sizing:border-box;border-radius:7px;font-size:11px;padding:3px 6px;color:#4f5b6e}
+.hatch{background:repeating-linear-gradient(135deg,#eef1f5 0,#eef1f5 6px,#e1e6ee 6px,#e1e6ee 8px);border:1px dashed #8a95a8}
+.band{position:absolute;left:3px;right:3px;z-index:2;box-sizing:border-box;font-size:10px;line-height:1;padding:1px 6px;border-radius:4px;overflow:hidden;white-space:nowrap}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border:1px solid #cbd2df;border-radius:999px;background:#fff;font-size:13px;color:#202b3b;cursor:pointer}
+.chip[aria-pressed="true"]{background:#edf1ff;border-color:#4469ee;color:#2d4cc1}
+.tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.tool[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+.mi{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:36px;padding:0 12px;border:0;background:transparent;font-size:13px;color:#202b3b;text-align:left;cursor:pointer;border-radius:5px}
+.mi kbd{font-family:inherit;font-size:11px;color:#657185;border:1px solid #e3e7ee;border-radius:5px;padding:1px 5px}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:#202b3b}
+.sw{width:22px;height:14px;border-radius:4px;display:inline-block}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.115em; color: #4f688b;">SCHEMA · SKISS, INTE BYGGT</div>
+    <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Schema<span style="color: #365ce6;">.</span></h1>
+    <p style="margin: 0; font-size: 15px; color: #657185;">Läsår 2026/27. Villkoren syns där de verkar; högerklicka eller välj ett verktyg för att ändra.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;">
+    <span style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: #e4f3e9; color: #29704c;">Förslag · Alla pass lagda</span>
+    <span style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: #e4f3e9; color: #29704c;">Tiden följer timplanen</span>
+    <span style="font-size: 12px; padding: 4px 10px; border-radius: 5px; background: #eaf0fe; color: #4463a4;">3 egna villkor syns i veckan</span>
+    <div style="flex-grow: 1;"></div>
+    <div style="display: flex; gap: 8px; align-items: center;">
+      <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 0; background: #edf0f6; color: #25334a; font-size: 14px; font-weight: 500;" aria-pressed="true">Klass</button>
+      <button type="button" style="min-height: 44px; padding: 0 16px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; font-weight: 500;" aria-pressed="false">Lärare</button>
+      <label style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #657185;">Klass eller grupp
+        <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; font-family: inherit;"><option>Klass 1</option></select></label>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; padding: 12px 16px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <span id="visa-period" style="font-size: 14px; color: #657185;">Visa</span>
+      <div role="group" aria-labelledby="visa-period" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+        <button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 0; border-right: 1px solid #e3e7ee; background: #fff; font-size: 14px; font-weight: 500;">Grundschema</button>
+        <button type="button" aria-pressed="true" style="min-height: 44px; padding: 0 14px; border: 0; border-right: 1px solid #e3e7ee; background: #edf0f6; color: #25334a; font-size: 14px; font-weight: 500;">Vecka</button>
+        <button type="button" aria-pressed="false" style="min-height: 44px; padding: 0 14px; border: 0; background: #fff; font-size: 14px; font-weight: 500;">Datumintervall</button>
+      </div>
+    </div>
+    <div style="display: flex; gap: 6px; align-items: flex-end;">
+      <button type="button" aria-label="Föregående vecka" style="min-height: 44px; min-width: 44px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 16px;">‹</button>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Vecka
+        <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; font-family: inherit; color: #202b3b;"><option>v. 47 · 16–20 nov 2026 (HT)</option><option>v. 44 · 26–30 okt 2026 · höstlov</option></select></label>
+      <button type="button" aria-label="Nästa vecka" style="min-height: 44px; min-width: 44px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 16px;">›</button>
+    </div>
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Från
+      <input type="date" value="2026-11-16" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; font-family: inherit; color: #202b3b;"></label>
+    <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Till
+      <input type="date" value="2026-11-20" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; font-family: inherit; color: #202b3b;"></label>
+    <p style="flex: 1 1 320px; margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">En vecka eller ett datumintervall visar de faktiska tillfällena: lov och studiedagar, pass som är kortare just då och ändringar som gäller från ett datum. Grundschemat visar mönstret som upprepas varje vecka i terminen.</p>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; padding: 12px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+    <div role="toolbar" aria-label="Verktyg i schemat" style="display: flex; flex-wrap: wrap; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+      <button type="button" class="tool" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 4l7 17 2.5-7.5L21 11z"></path></svg>Markera</button>
+      <button type="button" class="tool" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M5.6 5.6l12.8 12.8"></path></svg>Spärra</button>
+      <button type="button" class="tool" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>Tillåt bara</button>
+      <button type="button" class="tool" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Lås</button>
+      <button type="button" class="tool" aria-pressed="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 13h5l2 3h4l2-3h5"></path><path d="M5 5h14l2 8v6H3v-6z"></path></svg>Viloyta</button>
+      <button type="button" class="tool" aria-pressed="false" style="border-right: 0;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M7 4L3 8l4 4"></path><path d="M3 8h14"></path><path d="M17 20l4-4-4-4"></path><path d="M21 16H7"></path></svg>Byt</button>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+      <span style="font-size: 13px; color: #657185;">Visa i veckan:</span>
+      <button type="button" class="chip" aria-pressed="true">Spärrad tid</button>
+      <button type="button" class="chip" aria-pressed="true">Tillåten tid</button>
+      <button type="button" class="chip" aria-pressed="true">Lunch</button>
+      <button type="button" class="chip" aria-pressed="true">Omklädning och restid</button>
+      <button type="button" class="chip" aria-pressed="true">Salar</button>
+      <button type="button" class="chip" aria-pressed="false">Sena pass</button>
+    </div>
+  </div>
+
+  <div style="overflow-x: auto; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; padding: 16px;">
+    <div style="min-width: 980px; display: grid; grid-template-columns: 52px repeat(5, minmax(0, 1fr)); gap: 0 10px;">
+      <div></div>
+      <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Måndag <span style="font-weight: 400; color: #657185;">16 nov</span></div>
+      <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Tisdag <span style="font-weight: 400; color: #657185;">17 nov</span></div>
+      <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Onsdag <span style="font-weight: 400; color: #657185;">18 nov</span></div>
+      <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Torsdag <span style="font-weight: 400; color: #657185;">19 nov</span></div>
+      <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Fredag <span style="font-weight: 400; color: #657185;">20 nov</span></div>
+
+      <div style="position: relative; height: 612px; font-size: 12px; color: #657185;">
+        <span style="position: absolute; top: 0;">08:00</span><span style="position: absolute; top: 72px;">09:00</span><span style="position: absolute; top: 144px;">10:00</span><span style="position: absolute; top: 216px;">11:00</span><span style="position: absolute; top: 288px;">12:00</span><span style="position: absolute; top: 360px;">13:00</span><span style="position: absolute; top: 432px;">14:00</span><span style="position: absolute; top: 504px;">15:00</span><span style="position: absolute; top: 576px;">16:00</span>
+      </div>
+
+      <div class="col">
+        <div class="block" style="top: 180px; height: 216px; background: #eaf0fe; opacity: 0.7; border-radius: 0;"><span style="position: absolute; right: 6px; top: 2px; color: #4463a4;">Lunch</span></div>
+        <div class="block hatch" style="top: 0; height: 288px; z-index: 2;"><b style="color: #202b3b; font-weight: 600;">Spärrad</b><br>Klass 1 · 08:00–12:00</div>
+        <div class="l" style="top: 336px; height: 72px;"><span class="t">12:40–13:40</span><b>Matematik</b><small>Provlärare 4 · Sal 204</small><small>60 min · 65 i grundschemat</small></div>
+        <div class="l" style="top: 420px; height: 78px;"><span class="t">13:50–14:55</span><b>Historia</b> <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#202b3b" stroke-width="2.4" role="img" aria-label="Låst"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg><small>Provlärare 13 · Låst</small></div>
+        <div class="l" style="top: 510px; height: 78px;"><span class="t">15:05–16:10</span><b>Samhällskunskap</b><small>Provlärare 16</small></div>
+        <div role="tooltip" style="position: absolute; z-index: 6; top: 110px; left: 46%; width: 270px; box-sizing: border-box; padding: 12px 14px; border-radius: 10px; background: #202b3b; color: #fff; font-size: 12px; line-height: 1.45; box-shadow: 0 4px 16px #284ab526;">
+          <div style="font-weight: 600; font-size: 13px;">Spärrad tid för Klass 1</div>
+          <div>Måndag 08:00–12:00 · eget villkor 2</div>
+          <div style="color: #c8d1df;">Berör 0 pass just nu. Lades till av schemaläggaren.</div>
+          <div style="display: flex; gap: 12px; margin-top: 8px;"><a href="#" style="color: #99afff;">Ändra</a><a href="#" style="color: #99afff;">Ta bort</a></div>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="block" style="top: 180px; height: 216px; background: #eaf0fe; opacity: 0.7; border-radius: 0;"></div>
+        <div class="l" style="top: 0; height: 78px;"><span class="t">08:00–09:05</span><b>Historia</b><small>Provlärare 13</small></div>
+        <div class="l" style="top: 96px; height: 78px;"><span class="t">09:20–10:25</span><b>Naturkunskap</b><small>Provlärare 19 · kortare 13 veckor</small></div>
+        <div class="l" style="top: 192px; height: 66px;"><span class="t">10:40–11:35</span><b>Engelska</b><small>Provlärare 7</small></div>
+        <div class="band" style="top: 276px; height: 12px; background: #f6efe2; color: #86601f; border: 1px dashed #c7a463;">Restid 10 min</div>
+        <div class="band" style="top: 289px; height: 12px; background: #edf0f6; color: #25334a; border: 1px dotted #8a95a8;">Omklädning 10 min</div>
+        <div class="l" style="top: 302px; height: 72px;"><span class="t">12:10–13:10</span><b>Idrott och hälsa</b><small>Provlärare 9 · Idrottshallen</small></div>
+        <div class="band" style="top: 375px; height: 18px; background: #edf0f6; color: #25334a; border: 1px dotted #8a95a8; line-height: 14px;">Dusch 15 min</div>
+        <div class="band" style="top: 394px; height: 12px; background: #f6efe2; color: #86601f; border: 1px dashed #c7a463;">Restid 10 min</div>
+        <div class="l" style="top: 426px; height: 72px;"><span class="t">13:45–14:45</span><b>Programämne</b><small>Provlärare 22</small></div>
+        <div class="l" style="top: 528px; height: 78px;"><span class="t">15:20–16:25</span><b>Tyska</b><small>Provlärare 2</small></div>
+      </div>
+
+      <div class="col" style="z-index: 3;">
+        <div class="block" style="top: 180px; height: 216px; background: #eaf0fe; opacity: 0.7; border-radius: 0;"></div>
+        <div class="l" style="top: 36px; height: 84px;"><span class="t">08:30–09:40</span><b>Naturkunskap</b><small>Provlärare 19</small></div>
+        <div class="l" style="top: 132px; height: 84px;"><span class="t">09:50–11:00</span><b>Svenska</b><small>Provlärare 1</small></div>
+        <div class="l" style="top: 360px; height: 78px; border: 2px solid #365ce6; background: #fff;"><span class="t">13:00–14:05</span><b>Programämne</b><small>Provlärare 22 · markerat</small></div>
+        <div class="l" style="top: 456px; height: 66px;"><span class="t">14:20–15:15</span><b>Engelska</b><small>Provlärare 7</small></div>
+        <div role="menu" aria-label="Programämne, onsdag 13:00" style="position: absolute; z-index: 7; top: 384px; left: 62%; width: 280px; box-sizing: border-box; padding: 6px; border: 1px solid #e3e7ee; border-radius: 10px; background: #fff; box-shadow: 0 8px 24px #13284922;">
+          <div style="padding: 6px 12px 8px; font-size: 12px; color: #657185;">Programämne · onsdag 13:00–14:05</div>
+          <button type="button" role="menuitem" class="mi" style="background: #edf1ff; color: #2d4cc1;">Flytta…<kbd>Enter</kbd></button>
+          <a href="Samlingsvy.dc.html" role="menuitem" class="mi" style="box-sizing: border-box; text-decoration: none; font-weight: 600;">Följ passet: klass, lärare, sal, elever<kbd>F</kbd></a>
+          <button type="button" role="menuitem" class="mi">Lås här<kbd>L</kbd></button>
+          <button type="button" role="menuitem" class="mi">Lägg på viloytan<kbd>P</kbd></button>
+          <button type="button" role="menuitem" class="mi">Byt med ett annat pass…<kbd>B</kbd></button>
+          <div style="height: 1px; background: #e3e7ee; margin: 4px 0;"></div>
+          <button type="button" role="menuitem" class="mi">Varför inte här?</button>
+          <button type="button" role="menuitem" class="mi">Föreslå placering</button>
+          <button type="button" role="menuitem" class="mi">Lägg aldrig här</button>
+          <div style="height: 1px; background: #e3e7ee; margin: 4px 0;"></div>
+          <button type="button" role="menuitem" class="mi">Villkor för Programämne…</button>
+          <button type="button" role="menuitem" class="mi">Vecka för vecka</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <div class="block" style="top: 180px; height: 216px; background: #eaf0fe; opacity: 0.7; border-radius: 0;"></div>
+        <div class="l" style="top: 60px; height: 66px;"><span class="t">08:50–09:45</span><b>Engelska</b><small>Provlärare 7</small></div>
+        <div class="l" style="top: 144px; height: 78px;"><span class="t">10:00–11:05</span><b>Programämne</b><small>Provlärare 22</small></div>
+        <div class="l" style="top: 240px; height: 60px;"><span class="t">11:20–12:10</span><b>Religionskunskap</b><small>Provlärare 1</small></div>
+        <div class="l" style="top: 348px; height: 78px;"><span class="t">12:50–13:55</span><b>Svenska</b><small>Provlärare 1</small></div>
+        <div class="l" style="top: 468px; height: 78px;"><span class="t">14:10–15:15</span><b>Samhällskunskap</b><small>Provlärare 16</small></div>
+      </div>
+
+      <div class="col">
+        <div class="block hatch" style="top: 0; height: 612px; opacity: 0.55;"></div>
+        <div style="position: absolute; z-index: 3; top: 6px; left: 6px; right: 6px; font-size: 11px; color: #202b3b; background: #fff; border: 1px dashed #8a95a8; border-radius: 5px; padding: 3px 6px;">Idrottshallen spärrad hela dagen</div>
+        <div class="l" style="top: 120px; height: 78px;"><span class="t">09:40–10:45</span><b>Matematik</b><small>Provlärare 4 · Sal 204</small></div>
+        <div class="l" style="top: 252px; height: 78px;"><span class="t">11:30–12:35</span><b>Programämne</b><small>Provlärare 22</small></div>
+        <div class="l" style="top: 468px; height: 60px;"><span class="t">14:10–15:00</span><b>Religionskunskap</b><small>kortare 16 veckor</small></div>
+        <div class="l" style="top: 528px; height: 78px; right: 52%;"><span class="t">15:20–16:25</span><b>Spanska</b></div>
+        <div class="l" style="top: 528px; height: 78px; left: 50%;"><span class="t">15:20–16:25</span><b>Tyska</b></div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 12px 28px; padding: 12px 16px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+    <span class="lg"><span class="sw hatch"></span>Spärrad tid</span>
+    <span class="lg"><span class="sw" style="background: #eaf0fe;"></span>Lunchfönster</span>
+    <span class="lg"><span class="sw" style="background: #edf0f6; border: 1px dotted #8a95a8;"></span>Omklädning och dusch</span>
+    <span class="lg"><span class="sw" style="background: #f6efe2; border: 1px dashed #c7a463;"></span>Restid mellan platser</span>
+    <span class="lg"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#202b3b" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V8a4 4 0 0 1 8 0v3"></path></svg>Låst pass</span>
+    <span class="lg"><span class="sw" style="background: #fff; border: 2px solid #365ce6;"></span>Markerat pass</span>
+    <span class="lg" style="color: #657185;">Peka på ett fält för att se villkoret · högerklick eller Skift+F10 öppnar menyn</span>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

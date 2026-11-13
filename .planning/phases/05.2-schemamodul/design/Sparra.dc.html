@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Spärra en tid</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.col{position:relative;height:612px;border-radius:7px;background:#fff repeating-linear-gradient(to bottom,#e3e7ee 0,#e3e7ee 1px,transparent 1px,transparent 72px)}
+.l{position:absolute;left:3px;right:3px;box-sizing:border-box;border:1px solid #c3cff5;background:#edf1ff;border-radius:7px;padding:3px 7px;font-size:12px;line-height:1.3;overflow:hidden;z-index:2}
+.l b{font-weight:600}.l small{display:block;color:#4f5b6e;font-size:11px}
+.t{color:#4f5b6e;margin-right:4px}
+.mi{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:36px;padding:0 12px;border:0;background:transparent;font-size:13px;color:#202b3b;text-align:left;cursor:pointer;border-radius:5px}
+.tool{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.tool[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 20px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.115em; color: #4f688b;">SCHEMA · SPÄRRA EN TID · SKISS</div>
+    <h2 style="margin: 0; font-size: 1.6rem; font-weight: 550; letter-spacing: -0.04em;">Spärra en tid direkt i schemat</h2>
+    <p style="margin: 0; font-size: 15px; color: #657185; max-width: 900px;">Dra över tid i veckan med verktyget Spärra, eller högerklicka på en tom plats. Spärren blir ett vanligt eget villkor och kontrolleras direkt mot passen som redan ligger där.</p>
+  </div>
+  <div role="toolbar" aria-label="Verktyg i schemat" style="display: flex; flex-wrap: wrap; align-self: flex-start; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden; background: #fff;">
+    <button type="button" class="tool" aria-pressed="false">Markera</button>
+    <button type="button" class="tool" aria-pressed="true">Spärra</button>
+    <button type="button" class="tool" aria-pressed="false">Tillåt bara</button>
+    <button type="button" class="tool" aria-pressed="false">Lås</button>
+    <button type="button" class="tool" aria-pressed="false">Viloyta</button>
+    <button type="button" class="tool" aria-pressed="false" style="border-right: 0;">Byt</button>
+  </div>
+
+  <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start;">
+    <div style="flex: 999 1 640px; min-width: 0; overflow-x: auto; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff; padding: 16px;">
+      <div style="min-width: 760px; display: grid; grid-template-columns: 52px repeat(5, minmax(0, 1fr)); gap: 0 10px;">
+        <div></div>
+        <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Måndag</div>
+        <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Tisdag</div>
+        <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Onsdag</div>
+        <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Torsdag</div>
+        <div style="font-size: 14px; font-weight: 600; padding-bottom: 8px;">Fredag</div>
+        <div style="position: relative; height: 612px; font-size: 12px; color: #657185;">
+          <span style="position: absolute; top: 0;">08:00</span><span style="position: absolute; top: 72px;">09:00</span><span style="position: absolute; top: 144px;">10:00</span><span style="position: absolute; top: 216px;">11:00</span><span style="position: absolute; top: 288px;">12:00</span><span style="position: absolute; top: 360px;">13:00</span><span style="position: absolute; top: 432px;">14:00</span><span style="position: absolute; top: 504px;">15:00</span><span style="position: absolute; top: 576px;">16:00</span>
+        </div>
+        <div class="col">
+          <div class="l" style="top: 336px; height: 72px;"><span class="t">12:40–13:40</span><b>Matematik</b></div>
+          <div class="l" style="top: 420px; height: 78px;"><span class="t">13:50–14:55</span><b>Historia</b></div>
+        </div>
+        <div class="col">
+          <div class="l" style="top: 0; height: 78px;"><span class="t">08:00–09:05</span><b>Historia</b></div>
+          <div class="l" style="top: 302px; height: 72px;"><span class="t">12:10–13:10</span><b>Idrott och hälsa</b></div>
+        </div>
+        <div class="col">
+          <div class="l" style="top: 132px; height: 84px;"><span class="t">09:50–11:00</span><b>Svenska</b></div>
+          <div class="l" style="top: 456px; height: 66px;"><span class="t">14:20–15:15</span><b>Engelska</b></div>
+        </div>
+        <div class="col" style="z-index: 3;">
+          <div class="l" style="top: 144px; height: 78px;"><span class="t">10:00–11:05</span><b>Programämne</b></div>
+          <div class="l" style="top: 468px; height: 78px; border: 2px solid #b83737; background: #fbeeee;"><span class="t">14:10–15:15</span><b>Samhällskunskap</b><small style="color: #b83737; font-weight: 600;">Ligger på ny spärr</small></div>
+          <div aria-label="Markerad tid torsdag 14:00–16:30" style="position: absolute; z-index: 4; top: 432px; left: 0; right: 0; height: 180px; border: 2px dashed #365ce6; border-radius: 7px; background: #365ce61a;">
+            <span style="position: absolute; left: 6px; bottom: 6px; font-size: 12px; font-weight: 600; color: #2d4cc1; background: #fff; padding: 2px 6px; border-radius: 5px;">14:00–16:30</span>
+          </div>
+          <div role="menu" aria-label="Torsdag 14:00–16:30" style="position: absolute; z-index: 7; top: 300px; left: 55%; width: 290px; box-sizing: border-box; padding: 6px; border: 1px solid #e3e7ee; border-radius: 10px; background: #fff; box-shadow: 0 8px 24px #13284922;">
+            <div style="padding: 6px 12px 8px; font-size: 12px; color: #657185;">Torsdag 14:00–16:30</div>
+            <button type="button" role="menuitem" class="mi" style="background: #edf1ff; color: #2d4cc1;" aria-haspopup="menu" aria-expanded="true">Spärra för<span aria-hidden="true">›</span></button>
+            <button type="button" role="menuitem" class="mi" aria-haspopup="menu">Tillåt bara här för<span aria-hidden="true">›</span></button>
+            <button type="button" role="menuitem" class="mi">Lägg ut pass från viloytan här…</button>
+            <button type="button" role="menuitem" class="mi">Visa gemensam ledig tid</button>
+          </div>
+          <div role="menu" aria-label="Spärra för" style="position: absolute; z-index: 8; top: 334px; left: calc(55% + 280px); width: 250px; box-sizing: border-box; padding: 6px; border: 1px solid #e3e7ee; border-radius: 10px; background: #fff; box-shadow: 0 8px 24px #13284922;">
+            <button type="button" role="menuitemradio" aria-checked="true" class="mi" style="background: #edf1ff; color: #2d4cc1;">Klass 1</button>
+            <button type="button" role="menuitemradio" aria-checked="false" class="mi">Provlärare 16 (Samhällskunskap)</button>
+            <button type="button" role="menuitemradio" aria-checked="false" class="mi">Sal 204</button>
+            <button type="button" role="menuitemradio" aria-checked="false" class="mi">Ämnet Samhällskunskap</button>
+            <button type="button" role="menuitemradio" aria-checked="false" class="mi">Gruppen…</button>
+          </div>
+        </div>
+        <div class="col">
+          <div class="l" style="top: 120px; height: 78px;"><span class="t">09:40–10:45</span><b>Matematik</b></div>
+        </div>
+      </div>
+    </div>
+
+    <section aria-labelledby="ny-sparr" style="flex: 1 1 340px; box-sizing: border-box; display: flex; flex-direction: column; gap: 14px; padding: 20px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <h3 id="ny-sparr" style="margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -0.025em;">Ny spärr</h3>
+      <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: 14px;">
+        <dt style="color: #657185;">Gäller</dt><dd style="margin: 0;">Klass 1</dd>
+        <dt style="color: #657185;">Tid</dt><dd style="margin: 0;">Torsdag 14:00–16:30</dd>
+        <dt style="color: #657185;">Termin</dt><dd style="margin: 0;">Hela läsåret</dd>
+      </dl>
+      <div style="padding: 12px 14px; border-radius: 10px; background: #f6efe2; color: #5c4214; font-size: 13px; line-height: 1.45;">
+        <b style="font-weight: 600;">Berör 1 pass som ligger där nu:</b> Samhällskunskap torsdag 14:10–15:15. Det märks som regelavvikelse tills du flyttar det eller räknar om förslaget.
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">Spärren blir eget villkor 4 och syns i Villkor för schemat. Den skickas med nästa förslag och kan ångras.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" style="min-height: 44px; padding: 0 18px; border: 0; border-radius: 10px; background: #365ce6; color: #fff; font-size: 14px; font-weight: 500;">Lägg till spärr</button>
+        <button type="button" style="min-height: 44px; padding: 0 18px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; font-size: 14px; font-weight: 500;">Avbryt</button>
+      </div>
+      <div style="height: 1px; background: #e3e7ee;"></div>
+      <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Med tangentbord</h3>
+      <p style="margin: 0; font-size: 13px; color: #657185; line-height: 1.45;">Välj en tid med piltangenterna, Skift+pil utökar markeringen, Skift+F10 eller menytangenten öppnar samma meny. Esc stänger.</p>
+    </section>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1000}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
