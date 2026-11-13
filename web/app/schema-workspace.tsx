@@ -1,15 +1,17 @@
 'use client';
 // Arbetsytan i Schema. Sätter ihop modulerna under ./schema/ och äger hämtning av förslag och kontroll av ändringar (05.2-SM-YTA).
 // Var passen ligger för hand hålls i utkastet (lib/schema-utkast.ts) med ångra och gör om i flera steg; en ändring görs först när kontrollen har svarat.
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import { useEffect, useId, useMemo, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
-  type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaStatus, type SchemaTerm } from '@/lib/schema-contract.ts';
+  type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm } from '@/lib/schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '@/lib/schema-underlag.ts';
-import { medUtkast, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
-import { DAYS, PERIOD, TERM, clock, names, startTimes } from './schema/delat.ts';
+import { medUtkast, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, type SchemaOverlay, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
+import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
+import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
+import { FaltKalla, Lagerval, rememberLager, storedLager, visaVillkor } from './schema/lager.tsx';
 import { Vecka, Teckenforklaring, veckansSpann } from './schema/vecka.tsx';
 import { Viloyta } from './schema/viloyta.tsx';
 import { Villkor, rememberVillkor, storedVillkor } from './schema/villkor.tsx';
@@ -64,7 +66,10 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const issues = checkSchemaVillkor(villkor);
   // Förslaget som motorn räknade fram; tid och mått uppdateras efter varje kontroll. Var passen ligger står i utkastet.
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
-  const [utkast, dispatch] = useReducer(schemaUtkast, undefined, tomtUtkast);
+  // Lagren i veckan (05.2-SM-VILLKOR-SYNS) ligger i utkastet och minns i webbläsaren.
+  const [utkast, dispatch] = useReducer(schemaUtkast, undefined, () => ({ ...tomtUtkast(), layers: storedLager() }));
+  // Ett eget villkor som togs bort från ett fält i veckan, så att det kan ångras.
+  const [borttaget, setBorttaget] = useState<{ rule: SchemaRegel; index: number } | null>(null), angraVillkor = useRef<HTMLButtonElement | null>(null), aterFalt = useRef<string | null>(null);
   const forslag = useMemo(() => base && { ...base, lessons: medUtkast(base.lessons, utkast.placements) }, [base, utkast.placements]);
   const [by, setBy] = useState<'class' | 'teacher'>('class'), [chosen, setChosen] = useState('');
   // Flytt för hand (05.2-SM-FLYTT): en flytt görs först när motorns kontrollant har svarat, och inget sparas.
@@ -76,6 +81,12 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   useEffect(() => () => running.current?.abort(), []);
   useEffect(() => { if (picked) dayField.current?.focus(); }, [picked]);
+  // Efter Ta bort står fokus på Ångra; efter Ångra på fältet igen.
+  useEffect(() => {
+    if (borttaget) { angraVillkor.current?.focus(); return; }
+    if (aterFalt.current) week.current?.querySelector<HTMLElement>(`[data-source="${aterFalt.current}"] button`)?.focus();
+    aterFalt.current = null;
+  }, [borttaget]);
   // Efter flytt eller avbrott går fokus tillbaka till passet, så att tangentbordet inte tappar sin plats.
   useEffect(() => {
     if (!focus.current || picked) return;
@@ -153,12 +164,37 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const shownMin = (l: SchemaForslagLesson) => l.durationMin - (trimOf(l)?.fixedMin ?? 0);
   const someWeeks = (l: SchemaForslagLesson) => { const n = trimOf(l)?.extraCount ?? 0; return n ? ` · kortare ${n === 1 ? 'en vecka' : `${n} veckor`}` : ''; };
   const roomName = (id: string | null) => forslag?.rooms.find(r => r.id === id)?.name ?? '';
+  // Passets egna villkor med text (05.2-SM-VILLKOR-SYNS): justerad längd mot grundschemat (W6), kortning vissa veckor och salskrav.
+  const passRader = (l: SchemaForslagLesson) => {
+    const trim = trimOf(l), n = trim?.extraCount ?? 0, rooms = l.roomIds.map(roomName).filter(Boolean);
+    return [trim?.fixedMin ? `${shownMin(l)} min · ${l.durationMin} i grundschemat` : '', n ? `kortare ${n === 1 ? 'en vecka' : `${n} veckor`}` : '',
+      rooms.length && (l.roomId === null || rooms.length > 1) ? `Salskrav: ${rooms.join(' eller ')}` : ''].filter(Boolean);
+  };
   const detail = (l: SchemaForslagLesson) => forslag ? [by === 'class' ? (l.vacant && l.teacherIds.length === 0 ? 'Ingen lärare' : names(l.teacherIds, forslag.teachers)) : names(l.classIds, forslag.classes), roomName(l.roomId)].filter(Boolean).join(' · ') : '';
   const dragged = drop ? forslag?.lessons.find(l => l.id === drop.lesson) ?? null : null;
   const unplaced = forslag?.lessons.filter(l => l.day === null) ?? [];
   const shown = forslag?.lessons.filter(l => l.day !== null && l.startMin !== null && mine(l)) ?? [];
   const d = SCHEMA_DEFAULTS;
   const { deviating, off } = tidAvvikelser(forslag);
+  // Villkoren som lager för den klass eller lärare som visas. Lagren följer villkoren i formuläret, så att en ändring syns direkt.
+  const lager = forslag ? schemaLager(villkor, forslag, { slag: by === 'class' ? 'klass' : 'larare', ref: selected }, { lessons: shown, alla: forslag.lessons.filter(l => l.term === null || l.term === shownTerm), layers: utkast.layers }) : null;
+  const egnaSyns = lager ? Object.values(lager.kallor).filter(k => k.typ === 'egen').length : 0;
+  const villkorAndrade = forslag !== null && JSON.stringify(villkor) !== JSON.stringify(forslag.villkor);
+  const NAMN = { onskemal: 'Sena pass (undviks)', 'band-marginal': 'Marginal efter pass' };
+  function taBort(k: Extract<SchemaKalla, { typ: 'egen' }>) {
+    const rule = villkor.egna[k.index];
+    if (!rule) return;
+    setVillkor({ ...villkor, egna: villkor.egna.filter((_, i) => i !== k.index) }); setBorttaget({ rule, index: k.index });
+  }
+  function angra() {
+    if (!borttaget) return;
+    setVillkor({ ...villkor, egna: [...villkor.egna.slice(0, borttaget.index), borttaget.rule, ...villkor.egna.slice(borttaget.index)] });
+    aterFalt.current = `egna:${borttaget.index}`; setBorttaget(null);
+  }
+  const falt = (o: SchemaOverlay, label: string, content: ReactNode) => {
+    const k = o.sourceId ? lager?.kallor[o.sourceId] : undefined;
+    return k && forslag ? <FaltKalla label={label} kalla={k} villkor={villkor} resurser={forslag.resurser} onAndra={visaVillkor} onTaBort={taBort}>{content}</FaltKalla> : null;
+  };
 
   return <section className="valplan-workspace schema-workspace">
     <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>Läsår {planningYearLabel(schoolYear)}. Förslaget räknas ur skolans tjänstefördelning. Det sparas inte och publiceras inte.</p></div></div>
@@ -180,6 +216,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Tiden följer timplanen'}</span>
         {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
+        {egnaSyns > 0 && <span className="status-badge">{egnaSyns} {egnaSyns === 1 ? 'eget villkor syns' : 'egna villkor syns'} i veckan</span>}
         <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
         <p className="schema-note">{forslag.basis ? `Underlag: tjänstefördelning version ${forslag.basis.versionNo} (${BASIS[forslag.basis.status] ?? forslag.basis.status}).` : 'Skolan har ingen tjänstefördelning för läsåret; bara behoven är underlag.'}
           {forslag.time.source === 'kalender'
@@ -205,9 +242,14 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
             <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => void andra({ type: 'redo' })}>Gör om</Button>
           </div>
         </div>
+        {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
+          <Button ref={angraVillkor} type="button" variant="outline" onClick={angra}>Ångra borttagningen</Button></output>}
+        {villkorAndrade && <p className="schema-note">Villkoren har ändrats sedan förslaget togs fram. Veckan visar de ändrade villkoren; passen och kontrollen följer förslagets villkor tills du tar fram ett nytt förslag.</p>}
+        <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/>
         <Vecka gridRef={week} days={forslag.days} lessons={shown} picked={picked} drop={drop && dragged ? { ...drop, length: dragged.durationMin } : null} flagged={flagged} disabled={checking}
-          length={shownMin} detail={l => `${detail(l)}${termTag(l)}${someWeeks(l)}`} onGrab={grab} onPick={pick}/>
-        <Teckenforklaring lessons={shown} picked={picked} flagged={flagged}/>
+          length={shownMin} detail={l => `${detail(l)}${termTag(l)}`} extra={passRader} onGrab={grab} onPick={pick}
+          overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN}/>
+        <Teckenforklaring lessons={shown} picked={picked} flagged={flagged} overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
         <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={drop?.to?.day === null} dragging={drop?.lesson ?? null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick}/>
       </>}
 

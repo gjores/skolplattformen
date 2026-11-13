@@ -422,9 +422,8 @@ test('flera flyttar ångras i omvänd ordning och görs om', async ({ page }, in
   const undo = page.getByRole('button', { name: 'Ångra senaste flytt' }), redo = page.getByRole('button', { name: 'Gör om' });
   await expect(undo).toBeDisabled();
   await expect(redo).toBeDisabled();
-  // Utan lager visar teckenförklaringen bara det som syns: här pass utan lärare.
-  await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
-  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare']);
+  // Teckenförklaringen visar bara det som syns: de förvalda lagren (05.2-SM-VILLKOR-SYNS) och pass utan lärare.
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Lunchfönster', 'Sena pass (undviks)', 'Pass utan lärare']);
   const before = forslag.lessons.find(l => l.id === kontroll.move.lesson)!, at = (day: number) => page.getByRole('region', { name: DAYS[day] }).locator(`[data-lesson="${before.id}"]`);
   const lesson = await move(page);
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
@@ -508,4 +507,124 @@ test('veckan ritar fält, nedtoning och band under och intill passen, med tecken
   await expect(page.locator('.schema-day').first()).toBeVisible();
   await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare', 'Regelavvikelse', 'Markerat pass']);
+});
+
+// Villkoren syns där de verkar (05.2-SM-VILLKOR-SYNS). Arbetsytan prövas bara på dator (beslut 2026-11-13).
+const egnaProv = [
+  { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'sparrad', days: [0], startMin: 480, endMin: 600 },
+  { slag: 'amne', ref: 'Svenska', typ: 'tillaten', days: [0, 1, 2, 3, 4], startMin: 480, endMin: 900 },
+];
+async function medVillkor(page: Page) {
+  await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`, JSON.stringify({ ...forslag.villkor, egna: egnaProv })] as const);
+  // Programämnet måndag 08:00 har 10 min marginal till nästa lektion (R4) i förslaget.
+  await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, lessons: forslag.lessons.map(l => l.id === 'pass-36' ? { ...l, marginMin: 10 } : l) } }));
+  await page.goto(URL);
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+}
+const chip = (page: Page, name: string) => page.getByRole('group', { name: 'Visa i veckan:' }).getByRole('button', { name, exact: true });
+
+test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await medVillkor(page);
+  const monday = page.getByRole('region', { name: 'Måndag' }), sparr = monday.locator('.schema-falt.falt-sparrad');
+  await expect(page.locator('.status-badge', { hasText: '2 egna villkor syns i veckan' })).toBeVisible();
+  // Fälten säger vilket villkor de är, synligt och för skärmläsare.
+  await expect(sparr).toHaveText('Spärrad tid: Spärrad · Klass 1 · 08:00–10:00, 08:00–10:00');
+  await expect(sparr.getByText('Spärrad · Klass 1 · 08:00–10:00')).toBeVisible();
+  await expect(page.locator('.schema-falt.falt-tillaten-ute', { hasText: 'Utanför tillåten tid · Svenska' })).toHaveCount(5);
+  await expect(page.locator('.schema-falt.falt-lunch')).toHaveCount(5);
+  await expect(page.locator('.schema-falt.falt-onskemal', { hasText: 'Sena pass · efter 15:30' })).toHaveCount(5);
+  await expect(monday.locator('.schema-band.falt-marginal')).toHaveText('Efter Programämne: Marginal 10 min');
+  // Passen ligger över fälten.
+  const first = monday.locator('[data-lesson="pass-36"]'), box = (await first.boundingBox())!;
+  expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem'))
+    .toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Sena pass (undviks)', 'Marginal efter pass', 'Pass utan lärare']);
+  // Passrutan visar justerad längd mot grundschemat och kortning vissa veckor med text.
+  await expect(page.locator('[data-lesson="pass-1"]')).toContainText('65 min · 70 i grundschemat');
+  await expect(page.locator('[data-lesson="pass-1"]')).toContainText('kortare 2 veckor');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  if (shots) await page.screenshot({ path: `${shots}/schema-villkor-1280.png`, fullPage: true });
+  if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-villkor-1600.png`, fullPage: true }); await page.setViewportSize({ width: 1280, height: 1000 }); }
+
+  // Tab: passen först, sedan dagens fält. Enter visar villkoret, Esc stänger och lämnar fokus på fältet.
+  const field = sparr.getByRole('button', { name: /^Spärrad tid: Spärrad · Klass 1 · 08:00–10:00/u });
+  await monday.locator('[data-lesson]').last().focus();
+  for (let i = 0; i < 12 && !(await field.evaluate(el => el === document.activeElement)); i++) await page.keyboard.press('Tab');
+  await expect(field).toBeFocused();
+  await page.keyboard.press('Enter');
+  const kalla = page.getByRole('dialog', { name: 'Spärrad tid för Klass 1' });
+  await expect(kalla).toBeVisible();
+  await expect(kalla).toContainText('Klass Klass 1: spärrad måndag 08:00–10:00.');
+  // Programämnet 08:00–09:10 och 09:20–10:25 ligger på spärren.
+  await expect(kalla).toContainText('Eget villkor 1. Berör 2 pass just nu.');
+  if (shots) await page.screenshot({ path: `${shots}/schema-villkor-kalla-1280.png` });
+  await page.keyboard.press('Escape');
+  await expect(kalla).toBeHidden();
+  await expect(field).toBeFocused();
+  // Ändra öppnar villkoret i villkorsformuläret.
+  await page.keyboard.press('Enter');
+  await kalla.getByRole('button', { name: 'Ändra' }).click();
+  await expect(page.locator('details.schema-villkor')).toHaveAttribute('open', '');
+  await expect(page.getByRole('list', { name: 'Egna villkor' }).getByRole('listitem').first()).toBeFocused();
+  // Ta bort med tangentbord, sedan ångra.
+  await field.focus();
+  await page.keyboard.press('Enter');
+  await kalla.getByRole('button', { name: 'Ta bort' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(sparr).toHaveCount(0);
+  const undo = page.getByRole('button', { name: 'Ångra borttagningen' });
+  await expect(undo).toBeFocused();
+  await expect(page.getByText('Villkoret är borttaget: Klass Klass 1: spärrad måndag 08:00–10:00.')).toBeVisible();
+  await expect(page.locator('.status-badge', { hasText: '1 eget villkor syns i veckan' })).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Egna villkor' }).getByRole('listitem')).toHaveCount(1);
+  await page.keyboard.press('Enter');
+  await expect(sparr).toHaveCount(1);
+  await expect(field).toBeFocused();
+  await expect(page.getByRole('list', { name: 'Egna villkor' }).getByRole('listitem').first()).toHaveText(/^Klass Klass 1: spärrad måndag 08:00–10:00/u);
+});
+
+test('lagren visas och döljs med chipsen, valet minns och utan lager ser veckan ut som förut', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await medVillkor(page);
+  const sparr = page.getByRole('region', { name: 'Måndag' }).locator('.schema-falt.falt-sparrad');
+  // Förval: alla på utom Salar.
+  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginal efter pass', 'Sena pass']) await expect(chip(page, name)).toHaveAttribute('aria-pressed', 'true');
+  await expect(chip(page, 'Salar')).toHaveAttribute('aria-pressed', 'false');
+  await chip(page, 'Spärrad tid').click();
+  await expect(sparr).toHaveCount(0);
+  await expect(page.locator('.schema-falt.falt-lunch')).toHaveCount(5);
+  await chip(page, 'Spärrad tid').click();
+  await expect(sparr).toHaveCount(1);
+  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginal efter pass', 'Sena pass']) await chip(page, name).click();
+  await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
+  await expect(page.locator('.status-badge', { hasText: 'syns i veckan' })).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare']);
+  // Valet minns i webbläsaren.
+  await page.reload();
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(chip(page, 'Lunch')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
+});
+
+test('veckan med villkor vid 200 % textstorlek', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await medVillkor(page);
+  await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+  const sparr = page.getByRole('region', { name: 'Måndag' }).locator('.schema-falt.falt-sparrad');
+  await expect(sparr.getByText('Spärrad · Klass 1 · 08:00–10:00')).toBeVisible();
+  await expect(chip(page, 'Marginal efter pass')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  // Rutnätet växer med texten.
+  expect((await page.getByRole('region', { name: 'Måndag' }).locator('ol').boundingBox())!.height).toBeGreaterThan(1000);
+  await sparr.getByRole('button').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Spärrad tid för Klass 1' })).toBeVisible();
+  if (shots) await page.screenshot({ path: `${shots}/schema-villkor-200-1280.png`, fullPage: true });
+  if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-villkor-200-1600.png`, fullPage: true }); }
 });
