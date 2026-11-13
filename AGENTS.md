@@ -32,7 +32,7 @@ Användaren godkände de 42 detaljkraven och färdplanens åtta faser 2026-09-11
 
 Paketrot är `web/`; projekt- och GSD-rot är katalogen ovanför. React/TypeScript med Vinext/Vite används för appen. Domänmodeller ligger i `web/lib/*-model.ts`, datalager i `*-store.ts`, vyer i `web/app/` och databasmigrationer i `supabase/migrations/`.
 
-Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noEmit`, `npx oxlint app lib` och `npm run build`. Anpassa kontroller till ändringen; en dokumentändring kräver inte en ny appbyggnad. Vid UI-ändring prövas berört användarflöde på dator och telefon. Tidigare passerade tester är historik, inte bevis för nya ändringar.
+Kör relevanta kontroller i `web/`: `node --test lib/*.test.mjs`, `npx tsc --noEmit`, `npx oxlint app lib` och `npm run build`. Anpassa kontroller till ändringen; en dokumentändring kräver inte en ny appbyggnad. Vid UI-ändring prövas berört användarflöde på dator och telefon. Undantag enligt användarbeslut 2026-11-13: schemaläggningens arbetsyta (att ta fram, flytta och reglera schema) görs för dator med stor skärm och prövas inte på telefon; visning av schemat för elever, vårdnadshavare och lärare ska fortfarande fungera på telefon. Tidigare passerade tester är historik, inte bevis för nya ändringar.
 
 ## SS 12000 som genomgående grundregel
 
