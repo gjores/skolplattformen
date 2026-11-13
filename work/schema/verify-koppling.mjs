@@ -1,4 +1,4 @@
-// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT och -LASAR-VILLKOR med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR och -LAGEN med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
 import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
+import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`, h = n => n * 60;
@@ -191,17 +192,52 @@ try {
   assert.ok(f3.metrics.unplaced === f3.lessons.filter(l => l.title === 'Historia').length && f3.lessons.every(l => (l.day === null) === (l.title === 'Historia')), 'bara historian ska sakna tid');
   assert.ok(f3.teachings.filter(t => t.title === 'Historia').every(t => t.deviation === 'unplaced'));
   console.log(JSON.stringify({ trang: { status: f3.status, ...f3.metrics, diagnoses: f3.diagnoses.slice(0, 1) } }));
+  // Möjliga starttider (05.2-SM-LAGEN): samma steg som appens lägesrutt, mot tjänstens /v1/positions, för ett pass i klass 1.
+  const lagen = async (lesson, pupil = null, lessons = forslag.lessons) => {
+    const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId ?? null }]), underlag.problem);
+    const started = performance.now();
+    const reply = await fetch(`${url}/v1/positions`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ problem: underlag.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })), lesson, ...(pupil ? { pupil } : {}) }) });
+    const text = await reply.text(), ms = Math.round(performance.now() - started);
+    assert.equal(reply.status, 200, text.slice(0, 200));
+    return { ms, placements, svar: parseSchemaLagen(JSON.parse(JSON.stringify(schemaLagen(underlag, parseSchemaPositions(JSON.parse(text), underlag.problem, lesson), pupil !== null))), underlag.fingerprint, lesson) };
+  };
+  assert.equal((await fetch(`${url}/v1/positions`, { method: 'POST', body: JSON.stringify({ problem: underlag.problem, placements: [], lesson: a.id }) })).status, 401, 'lägen utan token ska nekas');
+  const { ms, svar, placements: lagda } = await lagen(a.id);
+  const count = state => svar.positions.filter(x => x.state === state).length, kontext = { ...forslag, placements: lagda };
+  const nu = svar.positions.find(x => x.day === a.day && x.startMin === a.startMin), krock = svar.positions.find(x => x.day === b.day && x.startMin === b.startMin);
+  assert.equal(nu.state, 'fri', 'passets nuvarande plats ska vara fri');
+  assert.ok(['brott', 'byte'].includes(krock.state) && krock.reasons.some(r => r.code === 'student_clash' && r.lessons.includes(b.id)), 'klassens andra pass redovisas inte som hinder');
+  const rader = varfor(a.id, krock, kontext);
+  assert.ok(rader[1].startsWith(`Klass 1 har ${b.title} `), rader.join(' | '));
+  assert.ok(svar.positions.every(x => x.reasons.every(r => r.name === null || !/\b(?:grupp|kluster|larare|behov)-\d/u.test(r.name))), 'löpnummer i lägenas namn');
+  // Elevnivå: elevens kluster, aldrig elev-ID. En elev som läsningen inte gav (ingen behörighet) har inget kluster och nekas; motorn nekar ett kluster utan passet.
+  const elev = schemaElevKluster(plan, request, basis, underlag, pupils[0].id), utan = { ...basis, members: { ...basis.members, pupils: pupils.slice(1) } };
+  assert.ok(elev && schemaPassKluster(underlag.problem, a.id).includes(elev), 'elevens kluster saknas');
+  assert.equal(schemaElevKluster(plan, request, utan, buildSchemaUnderlag(plan, request, utan), pupils[0].id), null, 'elev utan behörighet ska nekas');
+  const annan = underlag.problem.clusters.find(c => !schemaPassKluster(underlag.problem, a.id).includes(c.id)).id;
+  const nekad = await fetch(`${url}/v1/positions`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ problem: underlag.problem, placements: [], lesson: a.id, pupil: annan }) });
+  assert.deepEqual([nekad.status, await nekad.json()], [400, { error: 'bad_pupil' }]);
+  const enElev = await lagen(a.id, elev);
+  assert.ok(enElev.svar.elev && enElev.svar.positions.filter(x => x.state === 'brott').length <= count('brott'), 'elevnivå ska inte ge fler regelbrott än klassnivå');
+  assert.ok(!JSON.stringify(enElev.svar).includes('52a10000'), 'elev-ID i svaret');
+  // Svarstid: varje pass i klass 1 en gång.
+  const tider = [];
+  for (const l of own.slice(0, 8)) tider.push((await lagen(l.id)).ms);
+  console.log(JSON.stringify({ lagen: { lessons: underlag.problem.lessons.length, positions: svar.positions.length, fri: count('fri'), onskemal: count('onskemal'), byte: count('byte'), brott: count('brott'), sparrad: count('sparrad'),
+    ms, msMax: Math.max(...tider), elevBrott: enElev.svar.positions.filter(x => x.state === 'brott').length, varfor: rader } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
-  const entry = `import { solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};
+  const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};
     export default { async fetch(request) { try { const problem = await request.json(), solved = await solveSchema(problem), check = await validateSchema(problem, solved.placements);
-      return Response.json({ status: solved.status, placed: solved.placements.length, violations: check.violations.length }); } catch (error) { return Response.json({ error: error.reason ?? String(error) }); } } };`;
+      const lagen = await positionsSchema(problem, solved.placements, solved.placements[0].lesson, null);
+      return Response.json({ status: solved.status, placed: solved.placements.length, violations: check.violations.length, free: lagen.positions.some(p => p.state === 'fri') }); } catch (error) { return Response.json({ error: error.reason ?? String(error) }); } } };`;
   const built = await fromWeb('esbuild').build({ stdin: { contents: entry, resolveDir: dir, loader: 'ts' }, bundle: true, format: 'esm', external: ['cloudflare:workers'], write: false, logLevel: 'silent' });
   const worker = new Miniflare(convertV4MiniflareOptions({ workers: [{ modules: true, script: built.outputFiles[0].text, compatibilityDate: '2025-09-01', compatibilityFlags: ['nodejs_compat'],
     bindings: { SCHEMAMOTOR_URL: url, SCHEMAMOTOR_TOKEN: token } }] }));
   try {
     const viaWorker = await (await worker.dispatchFetch('http://app.invalid/', { method: 'POST', body })).json();
-    assert.deepEqual(viaWorker, { status: 'complete', placed: solution.placements.length, violations: 0 }, 'appens motoranrop fungerar inte i workerd');
+    assert.deepEqual(viaWorker, { status: 'complete', placed: solution.placements.length, violations: 0, free: true }, 'appens motoranrop fungerar inte i workerd');
     console.log(JSON.stringify({ workerd: viaWorker }));
   } finally { await worker.dispose(); }
 } finally { service.kill(); }
