@@ -72,7 +72,7 @@ export const SCHEMA_REGEL_TYPER: Record<SchemaRegelSlag, SchemaRegelTyp[]> = {
   amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal'], sal: ['sparrad', 'tillaten'] };
 export const SCHEMA_VILLKOR_LIMITS = { dayFrom: 6 * 60, dayTo: 20 * 60, daySpan: [60, 600], breakMin: [0, 30], startGrid: [5, 10, 15, 20, 30], lunchLength: [20, 90],
   maxLesson: [30, 180], minLesson: 10, perDay: [120, 600], termDiff: [0, 50],
-  salar: 100, salNamn: 60, egna: 200, ref: 200, marginal: [5, 60], antal: [1, 10] } as const;
+  salar: 100, salNamn: 60, egna: 200, ref: 2000, marginal: [5, 60], antal: [1, 10] } as const;
 export function defaultSchemaVillkor(): SchemaVillkor {
   return { days: Array.from({ length: 5 }, () => ({ startMin: 8 * 60, endMin: 16 * 60 + 30 })), breakMin: 10, startGridMin: 10,
     lunch: { startMin: 10 * 60 + 30, endMin: 13 * 60 + 30, lengthMin: 40, teachers: true }, maxLessonMin: 80, minLessonMin: 20, sameDay: 'avoid',

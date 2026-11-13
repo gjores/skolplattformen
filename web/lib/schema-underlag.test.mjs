@@ -87,6 +87,22 @@ test('valbart block utan lästa elever blir ett gemensamt pass för blockets kla
 });
 
 const gRow = (id, n, personId) => row(id, `teaching_group:${uid(n)}`, personId, { sourceKind: 'teaching_group', classId: null, groupId: uid(n), classIds: [], sourceRefs: [], groupRevision: 1 });
+test('ett valbart block med långa alternativnamn är ett ämne som förslaget och egna villkor godtar', () => {
+  const names = ['Spanska · Moderna språk – fortsättning – Nivå 1 1', 'Franska · Moderna språk – fördjupning – Nivå 1 1', 'Tyska · Moderna språk – fortsättning – Nivå 2 1', 'Spanska · Moderna språk – fortsättning – Nivå 2 1'];
+  const groups = names.map((name, i) => group(40 + i, name, uid(60), [uid(10), uid(11)]));
+  const data = plan({ groups, rows: [...plan().rows.slice(0, 1), ...names.map((_, i) => gRow(35 + i, 40 + i, uid(20 + i)))] });
+  const title = `Valbart block: ${names.join(', ')}`;
+  assert.ok(title.length > 200);
+  const req = { ...request, villkor: { ...defaultSchemaVillkor(), egna: [{ slag: 'amne', ref: title, typ: 'langd', maxMin: 45 }] } };
+  assert.deepEqual(parseSchemaForslagRequest(JSON.parse(JSON.stringify(req))), req);
+  const underlag = buildSchemaUnderlag(data, req);
+  assert.ok(underlag.resurser.amne.some(r => r.ref === title));
+  assert.deepEqual(underlag.egnaUtanTraff, []);
+  assert.ok(underlag.labels.lessons.filter(l => l.title === title).every(l => l.durationMin <= 45));
+  const forslag = schemaForslag(data, req, underlag, parseSchemaSolution(solved(underlag.problem), underlag.problem));
+  assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), req), forslag);
+});
+
 const HT = { start: '2026-08-17', end: '2026-12-18' };
 /** Sex syntetiska elever: tre i varje klass. Två har valt Spanska, två Tyska, två har inget val; ingen har valt Franska. */
 function chosen() {
