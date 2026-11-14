@@ -216,7 +216,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   }
   // Verktygsfält, snabbmeny, spärrar och tangentbord i veckan (05.2-SM-MENY).
   const meny = useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla: allaITerminen, visad: selected, unplaced, kallor: lager?.kallor ?? {}, length: shownMin, checking, week,
-    andra: action => void andra(action), pick, taBort });
+    andra: action => void andra(action), pick, taBort, folj: foljPass });
   const markerade = new Set([...flagged, ...meny.brott.keys()]);
   const falt = (o: SchemaOverlay, label: string, content: ReactNode) => {
     const k = o.sourceId ? lager?.kallor[o.sourceId] : undefined;

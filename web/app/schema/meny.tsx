@@ -24,6 +24,8 @@ const PILAR: Record<string, SchemaPil> = { ArrowUp: 'upp', ArrowDown: 'ner', Arr
 
 export type MenyVal = {
   forslag: SchemaForslag | null;
+  /** Öppnar Följ passet för ett pass (05.2-SM-FOLJ); utan den finns ingen menypunkt. */
+  folj?: (lesson: string) => void;
   utkast: SchemaUtkast;
   dispatch: (action: SchemaUtkastAtgard) => void;
   villkor: SchemaVillkor;
@@ -58,7 +60,7 @@ function visaVillkorFor(title: string): void {
   target.focus({ preventScroll: true });
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, andra, pick, taBort }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, andra, pick, taBort, folj }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -213,6 +215,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     {pass && pass.day !== null && pass.startMin !== null && <>
       <ContextMenuGroup><ContextMenuLabel>{pass.title} · {text(pass).slice(pass.title.length + 1)}</ContextMenuLabel></ContextMenuGroup>
       <ContextMenuItem onClick={flyttarFokus(() => pick(pass))}>Flytta…<ContextMenuShortcut><Kbd>Enter</Kbd></ContextMenuShortcut></ContextMenuItem>
+      {folj && <ContextMenuItem onClick={flyttarFokus(() => folj(pass.id))}>Följ passet<ContextMenuShortcut><Kbd>F</Kbd></ContextMenuShortcut></ContextMenuItem>}
       <ContextMenuItem onClick={() => andra({ type: 'park', lesson: pass.id })}>Lägg på viloytan<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
       <ContextMenuSeparator/>
       <ContextMenuItem onClick={() => laggAldrig(pass)}>Lägg aldrig här</ContextMenuItem>

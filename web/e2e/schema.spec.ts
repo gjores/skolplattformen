@@ -878,8 +878,8 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await pass.click({ button: 'right' });
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Programämne · torsdag 10:00–11:05');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…']);
-  for (const senare of ['Följ passet', 'Lås här', 'Byt med', 'Varför inte här', 'Föreslå placering']) await expect(menu.getByText(senare)).toHaveCount(0);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…']);
+  for (const senare of ['Lås här', 'Byt med', 'Varför inte här', 'Föreslå placering']) await expect(menu.getByText(senare)).toHaveCount(0);
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
   await expect(menu).toBeHidden();
@@ -1160,4 +1160,23 @@ test('Följ passet vid 200 % textstorlek', async ({ page }, info) => {
     if (shots) { await panel.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shots}/schema-folj-200-${width}.png`, fullPage: true }); }
     await page.unrouteAll({ behavior: 'ignoreErrors' });
   }
+});
+
+// Följ passet i passmenyn (sammanslagningen av 05.2-SM-MENY och -FOLJ): högerklick och Skift+F10 når samma panel som tangenten F.
+test('Följ passet nås från passmenyn med högerklick och med Skift+F10', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await foljStart(page, 1280);
+  await mockFolj(page);
+  const pass = page.locator(`[data-lesson="${folj.lesson}"]`), rubrik = page.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' });
+  await pass.click({ button: 'right' });
+  await page.getByRole('menu').getByRole('menuitem', { name: /^Följ passet/u }).click();
+  await expect(rubrik).toBeFocused();
+  await page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' }).getByRole('button', { name: 'Stäng', exact: true }).click();
+  await expect(rubrik).toHaveCount(0);
+  await pass.focus();
+  await page.keyboard.press('Shift+F10');
+  await expect(page.getByRole('menu').getByRole('menuitem', { name: /^Följ passet/u })).toBeVisible();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect(rubrik).toBeFocused();
 });
