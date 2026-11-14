@@ -167,3 +167,47 @@
 .schema-workspace .schema-bana-del.bana-pass { justify-content: flex-start; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--accent); color: var(--foreground); font-weight: 600; }
 .schema-workspace .schema-bana-del.bana-annat { justify-content: flex-start; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--card); color: var(--foreground); }
 .schema-workspace .schema-bana-del.bana-sparrad { color: var(--muted-foreground); }
+
+/* Verktygsfält, snabbmeny, markerad tid och panelen Ny spärr (05.2-SM-MENY, Main och Sparra). Bara designsystemets variabler.
+   Verktygen och chipsraden delar ett kort som i Main. Med Spärra och Tillåt bara går draget igenom fälten (de nås ändå med tangentbordet). */
+.schema-workspace .schema-verktygsrad { display: flex; flex-wrap: wrap; gap: .75rem 1.5rem; align-items: center; padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-workspace .schema-verktygsrad .schema-lagerval { padding: 0; border: 0; background: none; }
+.schema-workspace .schema-verktyg { display: grid; gap: .375rem; min-width: 0; }
+.schema-workspace .schema-verktyg .schema-note { font-size: .8125rem; max-width: 46rem; }
+.schema-workspace .schema-verktyg-grupp { flex-wrap: wrap; border: 1px solid var(--input); border-radius: var(--radius); overflow: hidden; background: var(--card); }
+.schema-workspace .schema-verktyg-knapp { min-height: var(--control-height); height: auto; padding: 0 .875rem; border: 0; border-right: 1px solid var(--border); border-radius: 0; background: var(--card); color: var(--foreground); font-size: .875rem; font-weight: 500; white-space: normal; }
+.schema-workspace .schema-verktyg-knapp:last-child { border-right: 0; }
+.schema-workspace .schema-verktyg-knapp[aria-pressed="true"] { background: var(--secondary); color: var(--secondary-foreground); }
+.schema-workspace .schema-verktyg-knapp:focus-visible { outline: 3px solid var(--ring); outline-offset: -3px; }
+.schema-workspace .schema-vecka-rad { display: flex; flex-wrap: wrap; gap: 1.25rem; align-items: flex-start; }
+.schema-workspace .schema-meny-yta { flex: 999 1 40rem; min-width: 0; }
+.schema-week.verktyg-sparra ol, .schema-week.verktyg-tillat ol { cursor: crosshair; }
+.schema-week.verktyg-sparra .schema-falt.kalla, .schema-week.verktyg-tillat .schema-falt.kalla { pointer-events: none; }
+.schema-markering { position: absolute; z-index: 4; left: 0; right: 0; top: calc(var(--start) * var(--minute)); height: calc(var(--length) * var(--minute)); pointer-events: none;
+  border: 2px dashed var(--primary); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+.schema-markering button { all: unset; box-sizing: border-box; display: block; width: 100%; height: 100%; }
+.schema-markering button:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.schema-markering span { position: absolute; left: .375rem; bottom: .375rem; padding: .125rem .375rem; border-radius: var(--radius-sm); background: var(--card); color: var(--accent-foreground); font-size: .75rem; font-weight: 600; }
+.schema-markering.tom { opacity: 0; }
+.schema-markering.tom:focus-within { opacity: 1; }
+.schema-meny { min-width: 17rem; }
+.schema-meny [role="menuitem"] { min-height: 2.25rem; padding-inline: .75rem; font-size: .8125rem; }
+.schema-meny [data-slot="context-menu-label"] { padding: .375rem .75rem .5rem; font-weight: 400; }
+.schema-meny [data-slot="context-menu-shortcut"] { margin-left: auto; }
+.schema-workspace .schema-sparr { flex: 1 1 20rem; display: grid; gap: .875rem; min-width: 0; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-workspace .schema-sparr h2 { font-size: 1rem; font-weight: 600; letter-spacing: -.025em; }
+.schema-workspace .schema-sparr h3 { font-size: .875rem; font-weight: 600; }
+.schema-workspace .schema-sparr dl { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: .375rem 1rem; align-items: center; margin: 0; font-size: .875rem; }
+.schema-workspace .schema-sparr dt { color: var(--muted-foreground); }
+.schema-workspace .schema-sparr dd { margin: 0; min-width: 0; }
+.schema-workspace .schema-sparr select { width: 100%; min-height: var(--control-height); }
+.schema-workspace .schema-sparr .schema-note { font-size: .8125rem; line-height: 1.45; }
+.schema-workspace .schema-sparr-berorda { padding: .75rem .875rem; border-radius: var(--radius); background: var(--warning-surface); color: var(--warning-foreground); font-size: .8125rem; line-height: 1.45; }
+.schema-workspace .schema-sparr-berorda strong { font-weight: 600; }
+.schema-workspace .schema-sparr-knappar { display: flex; flex-wrap: wrap; gap: .5rem; }
+.schema-workspace .schema-sparr-knappar button { min-height: var(--control-height); height: auto; white-space: normal; }
+.schema-workspace .schema-sparr hr { margin: 0; border: 0; border-top: 1px solid var(--border); }
+/* Telefonen får inga menyer eller verktyg (beslut 2026-11-13). Markeringen tar inga klick: passen under den nås med musen, markeringen med tangentbordet. */
+@container (max-width: 760px) {
+  .schema-workspace .schema-verktygsrad, .schema-markering, .schema-workspace .schema-sparr { display: none; }
+}

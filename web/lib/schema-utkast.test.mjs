@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCHEMA_UTKAST_STEG, medUtkast, schemaUtkast, tomtUtkast, utkastEfter, utkastPlaceringar, utkastSteg } from './schema-utkast.ts';
+import { SCHEMA_UTKAST_STEG, flyttaMarkering, laggAldrigHar, markeringMellan, markeringVid, medUtkast, nyaVillkorBrott, passPaVillkor, schemaUtkast, sparrRegel, sparrResurser,
+  stegMal, tomtUtkast, utkastEfter, utkastPlaceringar, utkastSteg, villkorSteg } from './schema-utkast.ts';
 
 /** Syntetiskt förslag: tre pass på måndag, ett på viloytan. */
 const forslag = { lessons: [
@@ -84,4 +85,105 @@ test('utkastet är serialiserbart och historiken har ett tak', () => {
   assert.deepEqual(JSON.parse(JSON.stringify(s)), s);
   const lessons = medUtkast([{ id: 'a', title: 'Matematik', day: 0, startMin: 480, roomId: null }, { id: 'z', title: 'Okänd', day: 1, startMin: 500, roomId: null }], s.placements);
   assert.deepEqual(lessons.map(l => [l.title, l.day, l.startMin]), [['Matematik', s.placements.a.day, s.placements.a.startMin], ['Okänd', 1, 500]]);
+});
+
+// 05.2-SM-MENY: spärrar, lägg aldrig här, piltangenter och markerad tid. Syntetiskt underlag: skoldag 08:00–16:30, startrutnät 10 min.
+const days = Array.from({ length: 5 }, () => ({ startMin: 480, endMin: 990 }));
+const underlag = {
+  days, startGridMin: 10,
+  classes: [{ id: 'grupp-1', name: 'Klass 1' }, { id: 'grupp-2', name: 'Spanska' }],
+  teachers: [{ id: 'larare-1', name: 'Provlärare 1' }, { id: 'larare-2', name: 'Provlärare 2' }],
+  rooms: [{ id: 'sal-1', name: 'Sal 204' }],
+  resurser: { klass: [{ ref: 'k1', name: 'Klass 1' }], grupp: [{ ref: 'g1', name: 'Spanska' }], amne: [], larare: [{ ref: 't1', name: 'Provlärare 1' }, { ref: 't2', name: 'Provlärare 2' }] },
+};
+const pass = (id, title, day, startMin, durationMin, extra = {}) => ({ id, title, day, startMin, durationMin, marginMin: 0, classIds: ['grupp-1'], teacherIds: ['larare-1'], roomId: null, ...extra });
+const vecka = [
+  pass('p1', 'Samhällskunskap', 3, 850, 65, { teacherIds: ['larare-2'], roomId: 'sal-1' }),
+  pass('p2', 'Svenska', 3, 770, 65),
+  pass('p3', 'Spanska', 3, 920, 60, { classIds: ['grupp-1', 'grupp-2'] }),
+  pass('p4', 'Svenska', 0, 480, 60),
+];
+
+test('en spärr läggs till och ångras och görs om i utkastet, utan att något pass flyttas', () => {
+  const m = markeringMellan(days, 3, 840, 990), regel = sparrRegel('sparrad', { slag: 'klass', ref: 'k1' }, m);
+  assert.deepEqual(regel, { slag: 'klass', ref: 'k1', typ: 'sparrad', days: [3], startMin: 840, endMin: 990 });
+  const s0 = start(), s1 = run(s0, { type: 'villkor', fore: [], efter: [regel], text: 'Spärrad · Klass 1' });
+  assert.equal(s1.placements, s0.placements);
+  assert.equal(villkorSteg(s1.undo.at(-1)), true);
+  assert.deepEqual(s1.undo.at(-1), { villkor: [], efter: [regel], text: 'Spärrad · Klass 1' });
+  // Ett villkorssteg prövas inte av kontrollen: inga placeringar och inget pass.
+  assert.equal(utkastEfter(s1, { type: 'undo' }), null);
+  assert.equal(utkastSteg(s1, 'undo'), null);
+  const u = run(s1, { type: 'undo' });
+  assert.deepEqual([u.undo.length, u.redo.length], [0, 1]);
+  assert.deepEqual(u.redo.at(-1), s1.undo.at(-1));
+  assert.deepEqual(run(u, { type: 'redo' }), s1);
+  // Flytt och spärr ångras i omvänd ordning.
+  const s2 = run(s1, { type: 'move', lesson: 'a', day: 2, startMin: 660 });
+  assert.equal(utkastSteg(s2, 'undo'), 'a');
+  const u2 = run(s2, { type: 'undo' });
+  assert.deepEqual(u2.placements, s0.placements);
+  assert.equal(villkorSteg(u2.undo.at(-1)), true);
+  // Passet som ligger på spärren märks; ångrad spärr märker inget.
+  assert.deepEqual([...nyaVillkorBrott(underlag, [regel], [], vecka)], [['p1', 'sparrad'], ['p3', 'sparrad']]);
+  assert.deepEqual([...nyaVillkorBrott(underlag, [regel], [regel], vecka)], [], 'villkor som förslaget redan räknade med märks av kontrollen');
+  assert.deepEqual([...nyaVillkorBrott(underlag, [], [], vecka)], []);
+});
+
+test('det en spärr kan gälla är den som visas och lärare, sal, ämne och grupper för passen som ligger där', () => {
+  const m = markeringMellan(days, 3, 840, 990);
+  assert.deepEqual(sparrResurser(underlag, 'grupp-1', vecka, m).map(r => [r.slag, r.ref, r.namn]), [
+    ['klass', 'k1', 'Klass 1'], ['larare', 't2', 'Provlärare 2 (Samhällskunskap)'], ['larare', 't1', 'Provlärare 1 (Spanska)'],
+    ['sal', 'Sal 204', 'Sal 204'], ['amne', 'Samhällskunskap', 'Ämnet Samhällskunskap'], ['amne', 'Spanska', 'Ämnet Spanska'], ['grupp', 'g1', 'Spanska']]);
+  // En lärare som visas: läraren först. Tom tid: bara den som visas.
+  assert.deepEqual(sparrResurser(underlag, 'larare-1', vecka, markeringMellan(days, 1, 480, 540)).map(r => r.namn), ['Provlärare 1']);
+  // Tillåten tid: allt utanför de tillåtna tiderna för samma resurs ligger fel, även andra dagar.
+  const tillat = sparrRegel('tillaten', { slag: 'amne', ref: 'Svenska' }, m);
+  assert.deepEqual(passPaVillkor(underlag, [tillat], 0, vecka).map(l => l.id), ['p2', 'p4']);
+  assert.deepEqual(passPaVillkor(underlag, [tillat, sparrRegel('tillaten', { slag: 'amne', ref: 'Svenska' }, { day: 0, startMin: 480, endMin: 600 }),
+    sparrRegel('tillaten', { slag: 'amne', ref: 'Svenska' }, { day: 3, startMin: 700, endMin: 840 })], 0, vecka).map(l => l.id), []);
+  assert.deepEqual(passPaVillkor(underlag, [{ slag: 'sal', ref: 'Sal 204', typ: 'sparrad', days: [3], startMin: 900, endMin: 990 }], 0, vecka).map(l => l.id), ['p1']);
+});
+
+test('lägg aldrig här ger spärrad tid för passets ämne på passets dag och tid', () => {
+  assert.deepEqual(laggAldrigHar({ title: 'Programämne', day: 2, startMin: 780, durationMin: 65 }),
+    { slag: 'amne', ref: 'Programämne', typ: 'sparrad', days: [2], startMin: 780, endMin: 845 });
+  assert.equal(laggAldrigHar({ title: 'Programämne', day: null, startMin: null, durationMin: 65 }), null, 'ett pass på viloytan har ingen plats');
+  const regel = laggAldrigHar(vecka[0]);
+  assert.deepEqual(passPaVillkor(underlag, [regel], 0, vecka).map(l => l.id), ['p1'], 'passet självt ligger på spärren tills det flyttas');
+  assert.deepEqual(passPaVillkor(underlag, [regel], 0, [{ ...vecka[0], startMin: 480 }]).map(l => l.id), []);
+});
+
+test('piltangenterna flyttar ett pass ett startsteg eller en dag och stannar vid dagens gräns', () => {
+  const f = { days, startGridMin: 10 };
+  assert.deepEqual(stegMal(f, pass('x', 'A', 2, 600, 60), 'ner'), { day: 2, startMin: 610 });
+  assert.deepEqual(stegMal(f, pass('x', 'A', 2, 600, 60), 'upp'), { day: 2, startMin: 590 });
+  assert.deepEqual(stegMal(f, pass('x', 'A', 2, 600, 60), 'hoger'), { day: 3, startMin: 600 });
+  assert.deepEqual(stegMal(f, pass('x', 'A', 2, 600, 60), 'vanster'), { day: 1, startMin: 600 });
+  // Dagens början och slut (passet med marginal ska rymmas), veckans första och sista dag.
+  assert.equal(stegMal(f, pass('x', 'A', 2, 480, 60), 'upp'), null);
+  assert.equal(stegMal(f, pass('x', 'A', 2, 930, 60), 'ner'), null);
+  assert.equal(stegMal(f, { ...pass('x', 'A', 2, 920, 60), marginMin: 10 }, 'ner'), null);
+  assert.equal(stegMal(f, pass('x', 'A', 0, 600, 60), 'vanster'), null);
+  assert.equal(stegMal(f, pass('x', 'A', 4, 600, 60), 'hoger'), null);
+  assert.equal(stegMal({ days: [...days.slice(0, 3), { startMin: 480, endMin: 900 }, days[4]], startGridMin: 10 }, pass('x', 'A', 2, 860, 60), 'hoger'), null, 'tiden ryms inte nästa dag');
+  assert.equal(stegMal(f, pass('x', 'A', null, null, 60), 'ner'), null);
+});
+
+test('markerad tid följer 5-minutersrutnätet och skoldagen; pilar flyttar och Skift+pil utökar', () => {
+  assert.deepEqual(markeringMellan(days, 3, 1002, 838), { day: 3, startMin: 840, endMin: 990 });
+  assert.deepEqual(markeringMellan(days, 3, 600, 601), { day: 3, startMin: 600, endMin: 605 });
+  assert.deepEqual(markeringVid(days, 1, 603), { day: 1, startMin: 600, endMin: 660 });
+  assert.deepEqual(markeringVid(days, 1, 960), { day: 1, startMin: 960, endMin: 990 });
+  let m = markeringVid(days, 0, 480);
+  for (let i = 0; i < 3; i++) m = flyttaMarkering(days, m, 'hoger');
+  for (let i = 0; i < 24; i++) m = flyttaMarkering(days, m, 'ner');
+  assert.deepEqual(m, { day: 3, startMin: 840, endMin: 900 });
+  for (let i = 0; i < 6; i++) m = flyttaMarkering(days, m, 'ner', true);
+  assert.deepEqual(m, { day: 3, startMin: 840, endMin: 990 });
+  assert.deepEqual(flyttaMarkering(days, m, 'ner', true), m, 'utökas inte förbi dagens slut');
+  assert.deepEqual(flyttaMarkering(days, m, 'ner'), m, 'flyttas inte förbi dagens slut');
+  assert.deepEqual(flyttaMarkering(days, m, 'hoger'), { day: 4, startMin: 840, endMin: 990 });
+  assert.deepEqual(flyttaMarkering(days, { day: 4, startMin: 840, endMin: 990 }, 'hoger'), { day: 4, startMin: 840, endMin: 990 });
+  assert.deepEqual(flyttaMarkering(days, { day: 0, startMin: 480, endMin: 495 }, 'upp', true), { day: 0, startMin: 480, endMin: 485 }, 'minst 5 minuter');
 });
