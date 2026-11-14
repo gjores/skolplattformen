@@ -2,7 +2,8 @@
 // Snabbmenyn, verktygen och tangentbordet i veckan (05.2-SM-MENY, Main och Sparra). Allt som går att göra med ett pass eller en tid
 // nås på tre likvärdiga vägar: högerklick, verktygsfält och tangentbord. En spärr blir ett vanligt eget villkor, via utkastet så att den kan ångras.
 // Spärren är ett tidsvillkor: arbetsytan låter kontrollen pröva den direkt, och passen märks ur kontrollens svar (05.2-SM-VILLKOR-DIREKT).
-// Menypunkter för funktioner som kommer i senare planer (Följ passet, Varför inte här, Föreslå placering, Lås, Byt, Gemensam ledig tid) finns inte än.
+// Menypunkter för funktioner som kommer i senare planer (Varför inte här, Föreslå placering, Lås, Byt, Gemensam ledig tid) finns inte än.
+// Passets punkter står i `PassMenypunkter`, som passtabellen också använder (05.2-SM-PASSTABELL).
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub,
   ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from '@/components/ui/context-menu';
@@ -43,13 +44,15 @@ export type MenyVal = {
   length: (l: SchemaForslagLesson) => number;
   checking: boolean;
   week: RefObject<HTMLDivElement | null>;
+  /** Veckan visas (vyväljaren, 05.2-SM-PASSTABELL). Veckan ritas om när man byter tillbaka, och rutnätet mäts då på nytt. */
+  synlig?: boolean;
   andra: (action: Flytt) => void;
   pick: (l: SchemaForslagLesson) => void;
   taBort: (k: Extract<SchemaKalla, { typ: 'egen' }>) => void;
 };
 
 /** Villkoren för ett ämne i villkorsformuläret: rutan fälls ut och fokus läggs på ämnets första villkor, eller på formuläret för nya villkor. */
-function visaVillkorFor(title: string): void {
+export function visaVillkorFor(title: string): void {
   const box = document.querySelector<HTMLDetailsElement>('details.schema-villkor');
   if (!box) return;
   box.open = true;
@@ -61,7 +64,42 @@ function visaVillkorFor(title: string): void {
   target.focus({ preventScroll: true });
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, andra, pick, taBort, folj }: MenyVal) {
+/** Det man kan göra med ett pass. Utan `folj` finns ingen Följ passet; utan `visaIVeckan` ingen Visa i veckan (bara i passtabellen). */
+export type PassAtgarder = { flytta: () => void; folj?: () => void; parkera: () => void; laggAldrig: () => void; villkor: () => void; visaIVeckan?: () => void };
+type PassMenyProps = {
+  pass: Pick<SchemaForslagLesson, 'title' | 'day' | 'startMin'>; rubrik: string; flyttarFokus: (action: () => void) => () => void;
+  onFlytta: () => void; onFolj?: () => void; onParkera: () => void; onLaggAldrig: () => void; onVillkor: () => void; onVisaIVeckan?: () => void;
+};
+/** Passmenyns händelser ur åtgärderna, för passtabellen. */
+export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan });
+/**
+ * Passmenyns punkter (05.2-SM-MENY), utbrutna så att veckan och passtabellen använder samma lista (05.2-SM-PASSTABELL). Ett pass på viloytan har ingen
+ * Lägg på viloytan och ingen Lägg aldrig här. `flyttarFokus` omsluter de punkter som flyttar fokus själva, så att menyn inte lämnar tillbaka fokus.
+ */
+export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan }: PassMenyProps) {
+  const lagd = pass.day !== null && pass.startMin !== null;
+  return <>
+    <ContextMenuGroup><ContextMenuLabel>{rubrik}</ContextMenuLabel></ContextMenuGroup>
+    <ContextMenuItem onClick={flyttarFokus(onFlytta)}>Flytta…<ContextMenuShortcut><Kbd>Enter</Kbd></ContextMenuShortcut></ContextMenuItem>
+    {onFolj && <ContextMenuItem onClick={flyttarFokus(onFolj)}>Följ passet<ContextMenuShortcut><Kbd>F</Kbd></ContextMenuShortcut></ContextMenuItem>}
+    {lagd && <>
+      <ContextMenuItem onClick={onParkera}>Lägg på viloytan<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
+      <ContextMenuSeparator/>
+      <ContextMenuItem onClick={onLaggAldrig}>Lägg aldrig här</ContextMenuItem>
+    </>}
+    <ContextMenuSeparator/>
+    <ContextMenuItem onClick={flyttarFokus(onVillkor)}>Villkor för {pass.title}…</ContextMenuItem>
+    {onVisaIVeckan && <><ContextMenuSeparator/><ContextMenuItem onClick={flyttarFokus(onVisaIVeckan)}>Visa i veckan</ContextMenuItem></>}
+  </>;
+}
+
+/** Skift+F10 och menytangenten: samma meny som högerklick, vid elementet som har fokus. */
+export function oppnaMenyVid(el: HTMLElement): void {
+  const box = el.getBoundingClientRect();
+  el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
+}
+
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -76,7 +114,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     const observer = new ResizeObserver(() => setRutnat(somRutnat(el)));
     observer.observe(el);
     return () => observer.disconnect();
-  }, [week, forslag]);
+  }, [week, forslag, synlig]);
   useEffect(() => {
     if (!fokus.current) return;
     const el = week.current?.querySelector<HTMLElement>(fokus.current) ?? document.querySelector<HTMLElement>(fokus.current);
@@ -158,9 +196,8 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   }
   /** Skift+F10 och menytangenten: samma meny som högerklick, vid elementet som har fokus. */
   function oppnaMed(el: HTMLElement) {
-    const box = el.getBoundingClientRect();
     tangentbord.current = true;
-    el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
+    oppnaMenyVid(el);
   }
   function onKeyDown(e: ReactKeyboardEvent<HTMLDivElement>) {
     if (!forslag || !rutnat || e.defaultPrevented) return;
@@ -211,17 +248,16 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     ? <ContextMenuItem disabled>Inget att välja</ContextMenuItem>
     : tidResurser.map((r, i) => <ContextMenuItem key={`${r.slag}|${r.ref}`} onClick={() => oppnaPanel(typ, m, i)}>{r.namn}</ContextMenuItem>);
 
+  /** Passmenyns åtgärder för ett pass, samma i veckan och i passtabellen (05.2-SM-PASSTABELL). */
+  const passAtgarder = (l: SchemaForslagLesson): PassAtgarder => ({
+    flytta: () => pick(l), folj: folj && (() => folj(l.id)), parkera: () => andra({ type: 'park', lesson: l.id }),
+    laggAldrig: () => laggAldrig(l), villkor: () => visaVillkorFor(l.title),
+  });
   const meny = <ContextMenuContent className="schema-meny" finalFocus={() => { const keep = !menyFokus.current; menyFokus.current = false; return keep; }}>
-    {pass && pass.day !== null && pass.startMin !== null && <>
-      <ContextMenuGroup><ContextMenuLabel>{pass.title} · {text(pass).slice(pass.title.length + 1)}</ContextMenuLabel></ContextMenuGroup>
-      <ContextMenuItem onClick={flyttarFokus(() => pick(pass))}>Flytta…<ContextMenuShortcut><Kbd>Enter</Kbd></ContextMenuShortcut></ContextMenuItem>
-      {folj && <ContextMenuItem onClick={flyttarFokus(() => folj(pass.id))}>Följ passet<ContextMenuShortcut><Kbd>F</Kbd></ContextMenuShortcut></ContextMenuItem>}
-      <ContextMenuItem onClick={() => andra({ type: 'park', lesson: pass.id })}>Lägg på viloytan<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
-      <ContextMenuSeparator/>
-      <ContextMenuItem onClick={() => laggAldrig(pass)}>Lägg aldrig här</ContextMenuItem>
-      <ContextMenuSeparator/>
-      <ContextMenuItem onClick={flyttarFokus(() => visaVillkorFor(pass.title))}>Villkor för {pass.title}…</ContextMenuItem>
-    </>}
+    {pass && pass.day !== null && pass.startMin !== null &&
+      <PassMenypunkter pass={pass} rubrik={`${pass.title} · ${text(pass).slice(pass.title.length + 1)}`} flyttarFokus={flyttarFokus}
+        onFlytta={() => pick(pass)} onFolj={folj && (() => folj(pass.id))} onParkera={() => andra({ type: 'park', lesson: pass.id })}
+        onLaggAldrig={() => laggAldrig(pass)} onVillkor={() => visaVillkorFor(pass.title)}/>}
     {kalla && <>
       <ContextMenuGroup><ContextMenuLabel>{kallaRubrik}</ContextMenuLabel></ContextMenuGroup>
       <ContextMenuItem onClick={flyttarFokus(() => visaVillkor(kalla))}>Ändra</ContextMenuItem>
@@ -262,7 +298,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   }}/>;
 
   return {
-    verktyg, wrap, panel, veckaProps, angra,
+    verktyg, wrap, panel, veckaProps, angra, passAtgarder, text,
     meddelande: <output aria-live="polite" className="schema-note">{status}</output>,
     /** Klick på ett pass: med verktyget Viloyta läggs passet på viloytan, annars väljs det för flytt. */
     onPick: (l: SchemaForslagLesson) => { if (tool === 'viloyta' && l.day !== null) andra({ type: 'park', lesson: l.id }); else pick(l); },

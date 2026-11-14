@@ -22,8 +22,9 @@ import { Underlag } from './schema/underlag.tsx';
 import { dra, type Mal } from './schema/dra.ts';
 import { useSchemaMeny } from './schema/meny.tsx';
 import { Folj } from './schema/folj.tsx';
-// Tillfälligt (05.2-SM-VILLKORSTABELL): knappen "Villkor i tabell" öppnar tabellen tills vyväljaren från SM-PASSTABELL kopplas in när våg 4 slås ihop.
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
+import { Vyval, rememberVy, storedVy, visadVy, type SchemaVy } from './schema/vyval.tsx';
+import { Passtabell, tomtTabellVal, type PassTabellVal } from './schema/passtabell.tsx';
 import './valplaner.css';
 import './schema.css';
 
@@ -97,13 +98,28 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const kontroll = kontrollSvar && kontrollSvar.villkor === provadeKey ? kontrollSvar.svar : null;
   const [moveError, setMoveError] = useState<string | null>(null), [moved, setMoved] = useState('');
   // Följ passet (05.2-SM-FOLJ): passet panelen visar, och om panelen är låst till det i stället för att följa markeringen.
-  // Villkor i tabell (05.2-SM-VILLKORSTABELL), tillfälligt utan vyväljare: null är stängd; `mal` är raden "Ändra" i veckan öppnar.
-  const [tabell, setTabell] = useState<{ mal: VillkorstabellMal | null } | null>(null);
-  const andraFalt = (k: SchemaKalla) => { const m = villkorstabellMal(k, villkor); if (m) setTabell({ mal: { ...m, nr: Date.now() } }); else visaVillkor(k); };
+  // Villkor i tabell (05.2-SM-VILLKORSTABELL) är en vy i vyväljaren; `villkorMal` är raden som "Ändra" på ett fält i veckan öppnar.
+  const [villkorMal, setVillkorMal] = useState<VillkorstabellMal | null>(null);
   const [folj, setFolj] = useState<{ lesson: string; locked: boolean } | null>(null), foljRubrik = useRef<HTMLHeadingElement | null>(null), foljFokus = useRef(false);
+  // Vyväljaren (05.2-SM-PASSTABELL): veckan och tabellerna visar samma utkast. Tabellens filter och sortering står kvar när man byter vy.
+  const [vy, setVy] = useState<SchemaVy>(() => storedVy()), [tabellVal, setTabellVal] = useState<PassTabellVal>(tomtTabellVal);
+  const andraFalt = (k: SchemaKalla) => { const m = villkorstabellMal(k, villkor); if (m) { setVillkorMal({ ...m, nr: Date.now() }); setVy('villkor'); rememberVy('villkor'); } else visaVillkor(k); };
+  const tabell = useRef<HTMLDivElement | null>(null), visaFokus = useRef<string | null>(null);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
+  /** Passet att lägga fokus på: knappen i veckan, eller radens aktiva cell i passtabellen. */
+  const passElement = (id: string): HTMLElement | null => {
+    const rad = tabell.current?.querySelector<HTMLElement>(`tr[data-lesson="${id}"]`);
+    return week.current?.querySelector<HTMLElement>(`[data-lesson="${id}"]`) ?? rad?.querySelector<HTMLElement>('[tabindex="0"]') ?? rad?.querySelector<HTMLElement>('[data-col="1"]') ?? null;
+  };
+
   useEffect(() => () => running.current?.abort(), []);
-  useEffect(() => { if (picked) dayField.current?.focus(); }, [picked]);
+  useEffect(() => { if (picked && !visaFokus.current) dayField.current?.focus(); }, [picked]);
+  // Visa i veckan (05.2-SM-PASSTABELL): när veckan är ritad får passet fokus och rullas fram.
+  useEffect(() => {
+    const el = visaFokus.current ? week.current?.querySelector<HTMLElement>(`[data-lesson="${visaFokus.current}"]`) : null;
+    if (!el) return;
+    visaFokus.current = null; el.focus({ preventScroll: true }); el.scrollIntoView({ block: 'center' });
+  });
   useEffect(() => { if (folj && foljFokus.current) { foljFokus.current = false; foljRubrik.current?.focus(); } }, [folj]);
   // Efter Ta bort står fokus på Ångra; efter Ångra på fältet igen.
   useEffect(() => {
@@ -114,7 +130,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   // Efter flytt eller avbrott går fokus tillbaka till passet, så att tangentbordet inte tappar sin plats.
   useEffect(() => {
     if (!focus.current || picked) return;
-    week.current?.querySelector<HTMLButtonElement>(`[data-lesson="${focus.current}"]`)?.focus();
+    passElement(focus.current)?.focus();
     focus.current = null;
   }, [picked, forslag]);
 
@@ -160,8 +176,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       setBase({ ...base, teachings: reply.teachings, trims: reply.trims, metrics: reply.metrics });
       dispatch({ ...action, rooms: reply.rooms });
       focus.current = before.id; setKontroll({ svar: reply, villkor: key });
-      const { day, startMin } = next[before.id];
-      setMoved(`${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
+      const { day, startMin } = next[before.id], fler = action.type === 'park' ? action.fler?.length ?? 0 : 0;
+      setMoved(`${fler ? `${fler + 1} pass ligger nu på viloytan` : `${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
@@ -276,13 +292,53 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   }
   // Verktygsfält, snabbmeny, spärrar och tangentbord i veckan (05.2-SM-MENY).
   const meny = useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla: allaITerminen, visad: selected, unplaced, kallor: lager?.kallor ?? {}, length: shownMin, checking, week,
-    andra: action => void andra(action), pick, taBort, folj: foljPass });
+    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass });
+  /** Visa i veckan (05.2-SM-PASSTABELL): veckan för passets klass (eller lärare) och termin, med passet markerat och i fokus. */
+  function visaIVeckan(l: SchemaForslagLesson) {
+    if (!forslag) return;
+    if (!mine(l) || l.term !== null && l.term !== shownTerm) {
+      const klass = l.classIds.find(id => forslag.classes.some(c => c.id === id));
+      if (klass) { setBy('class'); setChosen(klass); } else if (l.teacherIds[0]) { setBy('teacher'); setChosen(l.teacherIds[0]); }
+      if (l.term) setShownTerm(l.term);
+    }
+    setVy('vecka'); rememberVy('vecka');
+    visaFokus.current = l.id;
+    if (picked !== l.id) pick(l);
+  }
+  const tabellAtgarder = (l: SchemaForslagLesson) => ({ ...meny.passAtgarder(l), visaIVeckan: l.day !== null ? () => visaIVeckan(l) : undefined });
+  const tabellRubrik = (l: SchemaForslagLesson) => l.day === null ? `${l.title} · på viloytan` : `${l.title} · ${meny.text(l).slice(l.title.length + 1)}`;
   const markerade = flagged;
   const falt = (o: SchemaOverlay, label: string, content: ReactNode) => {
     const k = o.sourceId ? lager?.kallor[o.sourceId] : undefined;
     return k && forslag ? <FaltKalla label={label} kalla={k} villkor={villkor} resurser={forslag.resurser} onAndra={andraFalt} onTaBort={taBort}>{content}</FaltKalla> : null;
   };
 
+  // Ångra, gör om, Följ passet och beskeden om ändrade villkor gäller utkastet och står i både veckan och tabellen (05.2-SM-PASSTABELL).
+  const gemensamt = forslag && <>
+    <div className="schema-moves">
+      <p className="schema-note">Dra ett pass till en ny tid eller till viloytan, eller välj passet för att flytta det med flyttpanelen. Varje flytt kontrolleras mot reglerna. Flyttar sparas inte: de försvinner när du lämnar sidan eller tar fram ett nytt förslag.</p>
+      <div className="schema-undo">
+        <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || checking} onClick={() => meny.angra('undo') || void andra({ type: 'undo' })}>{villkorSteg(utkast.undo.at(-1)) ? 'Ångra senaste villkor' : 'Ångra senaste flytt'}</Button>
+        <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => meny.angra('redo') || void andra({ type: 'redo' })}>Gör om</Button>
+        {/* Följ passet (05.2-SM-FOLJ) vid markerat pass; även dubbelklick eller tangenten F på ett pass. */}
+        {pickedLesson && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
+      </div>
+    </div>
+    {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
+      <Button ref={angraVillkor} type="button" variant="outline" onClick={angra}>Ångra borttagningen</Button></output>}
+    {villkorAndrade && <p className="schema-note" data-villkor-andrade={grundAndrad ? 'grund' : issues.length ? 'fel' : 'tid'}>{grundAndrad
+      ? kraverNytt === villkorKey
+        ? 'Ändringen kräver ett nytt förslag: villkoren ändrar hur passen kan delas på veckans dagar. Flytt, kontroll och möjliga starttider följer förslagets villkor tills du tar fram ett nytt förslag.'
+        : 'Ändringen kräver ett nytt förslag. Längsta och kortaste pass, passlängd, antal pass och salarna avgör vilka pass som finns. Flytt, kontroll och möjliga starttider följer förslagets villkor tills du tar fram ett nytt förslag.'
+      : issues.length
+        ? 'Villkoren har ändrats men har fel. Kontrollen följer förslagets villkor tills felen är rättade.'
+        : 'Villkoren har ändrats sedan förslaget togs fram. Kontrollen, möjliga starttider och Följ passet prövar de ändrade villkoren direkt. Passen ligger kvar tills du flyttar dem eller tar fram ett nytt förslag.'}</p>}
+  </>;
+  // Villkor i tabell (05.2-SM-VILLKORSTABELL): samma villkor och utkast som veckan, med ångra och beskeden ovanför.
+  const villkorsvy: ReactNode | undefined = forslag ? <>
+    {gemensamt}
+    <Villkorstabell villkor={villkor} setVillkor={setVillkor} dispatch={dispatch} forslag={forslag} kontroll={kontroll} disabled={busy} mal={villkorMal}/>
+  </> : undefined;
   return <section className="valplan-workspace schema-workspace">
     <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>Läsår {planningYearLabel(schoolYear)}. Förslaget räknas ur skolans tjänstefördelning. Det sparas inte och publiceras inte.</p></div></div>
     <form className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
@@ -313,51 +369,44 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       </div>
 
       {forslag.lessons.length > 0 && <>
-        <div className="schema-filter">
-          <fieldset><legend className="sr-only">Visa schema för</legend>
-            <Button type="button" variant={by === 'class' ? 'secondary' : 'outline'} aria-pressed={by === 'class'} onClick={() => setBy('class')}>Klass</Button>
-            <Button type="button" variant={by === 'teacher' ? 'secondary' : 'outline'} aria-pressed={by === 'teacher'} disabled={forslag.teachers.length === 0} onClick={() => setBy('teacher')}>Lärare</Button>
-          </fieldset>
-          <label>{by === 'class' ? 'Klass eller grupp' : 'Lärare'}<select value={selected} onChange={e => setChosen(e.target.value)}>{options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
-        </div>
-        {byTerm && <div className="schema-filter"><fieldset><legend className="schema-note">Vissa pass går bara en termin. Visa veckan under</legend>
-          {forslag.time.terms.map(t => <Button key={t.term} type="button" variant={shownTerm === t.term ? 'secondary' : 'outline'} aria-pressed={shownTerm === t.term} onClick={() => setShownTerm(t.term)}>{TERM[t.term]}</Button>)}</fieldset></div>}
-        <div className="schema-moves">
-          <p className="schema-note">Dra ett pass till en ny tid eller till viloytan, eller välj passet för att flytta det med flyttpanelen. Varje flytt kontrolleras mot reglerna. Flyttar sparas inte: de försvinner när du lämnar sidan eller tar fram ett nytt förslag.</p>
-          <div className="schema-undo">
-            <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || checking} onClick={() => meny.angra('undo') || void andra({ type: 'undo' })}>{villkorSteg(utkast.undo.at(-1)) ? 'Ångra senaste villkor' : 'Ångra senaste flytt'}</Button>
-            <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => meny.angra('redo') || void andra({ type: 'redo' })}>Gör om</Button>
-            {/* Följ passet (05.2-SM-FOLJ) vid markerat pass; även dubbelklick eller tangenten F på ett pass. */}
-            {pickedLesson && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
-            {/* Tillfälligt: ersätts av vyväljaren Vecka / Pass i tabell / Villkor i tabell (SM-PASSTABELL). */}
-            <Button type="button" variant={tabell ? 'secondary' : 'outline'} aria-pressed={tabell !== null} onClick={() => setTabell(t => t ? null : { mal: null })}>Villkor i tabell</Button>
+        {/* Vyväljaren (05.2-SM-PASSTABELL): veckan och tabellerna visar samma utkast. Ångra, flyttpanelen och Följ passet är gemensamma. */}
+        <Vyval vy={vy} onVy={setVy} villkor={villkorsvy} veckaVal={<>
+            <fieldset><legend className="sr-only">Visa schema för</legend>
+              <Button type="button" variant={by === 'class' ? 'secondary' : 'outline'} aria-pressed={by === 'class'} onClick={() => setBy('class')}>Klass</Button>
+              <Button type="button" variant={by === 'teacher' ? 'secondary' : 'outline'} aria-pressed={by === 'teacher'} disabled={forslag.teachers.length === 0} onClick={() => setBy('teacher')}>Lärare</Button>
+            </fieldset>
+            <label>{by === 'class' ? 'Klass eller grupp' : 'Lärare'}<select value={selected} onChange={e => setChosen(e.target.value)}>{options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
+          </>} vecka={<>
+          {byTerm && <div className="schema-filter"><fieldset><legend className="schema-note">Vissa pass går bara en termin. Visa veckan under</legend>
+            {forslag.time.terms.map(t => <Button key={t.term} type="button" variant={shownTerm === t.term ? 'secondary' : 'outline'} aria-pressed={shownTerm === t.term} onClick={() => setShownTerm(t.term)}>{TERM[t.term]}</Button>)}</fieldset></div>}
+          {gemensamt}
+          <div className="schema-verktygsrad">{meny.verktyg}
+            <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/></div>
+          {meny.meddelande}
+          <div className="schema-folj-lyssnare" {...foljHandelser}>
+          <div className="schema-vecka-rad">{meny.wrap(<Vecka gridRef={week} days={forslag.days} lessons={shown} picked={picked} drop={drop && dragged ? { ...drop, length: dragged.durationMin } : null} flagged={markerade} disabled={checking}
+            length={shownMin} detail={l => `${detail(l)}${termTag(l)}`} extra={l => [...passRader(l), avvikelse(l) ?? ''].filter(Boolean)} onGrab={grab} onPick={meny.onPick}
+            overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}/>)}{meny.panel}</div>
           </div>
-        </div>
-        {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
-          <Button ref={angraVillkor} type="button" variant="outline" onClick={angra}>Ångra borttagningen</Button></output>}
-        {villkorAndrade && <p className="schema-note" data-villkor-andrade={grundAndrad ? 'grund' : issues.length ? 'fel' : 'tid'}>{grundAndrad
-          ? kraverNytt === villkorKey
-            ? 'Ändringen kräver ett nytt förslag: villkoren ändrar hur passen kan delas på veckans dagar. Flytt, kontroll och möjliga starttider följer förslagets villkor tills du tar fram ett nytt förslag.'
-            : 'Ändringen kräver ett nytt förslag. Längsta och kortaste pass, passlängd, antal pass och salarna avgör vilka pass som finns. Flytt, kontroll och möjliga starttider följer förslagets villkor tills du tar fram ett nytt förslag.'
-          : issues.length
-            ? 'Villkoren har ändrats men har fel. Kontrollen följer förslagets villkor tills felen är rättade.'
-            : 'Villkoren har ändrats sedan förslaget togs fram. Kontrollen, möjliga starttider och Följ passet prövar de ändrade villkoren direkt. Passen ligger kvar tills du flyttar dem eller tar fram ett nytt förslag.'}</p>}
-        {tabell && <Villkorstabell villkor={villkor} setVillkor={setVillkor} dispatch={dispatch} forslag={forslag} kontroll={kontroll} disabled={busy} mal={tabell.mal}/>}
-        <div className="schema-verktygsrad">{meny.verktyg}
-          <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/></div>
-        {meny.meddelande}
-        <div className="schema-folj-lyssnare" {...foljHandelser}>
-        <div className="schema-vecka-rad">{meny.wrap(<Vecka gridRef={week} days={forslag.days} lessons={shown} picked={picked} drop={drop && dragged ? { ...drop, length: dragged.durationMin } : null} flagged={markerade} disabled={checking}
-          length={shownMin} detail={l => `${detail(l)}${termTag(l)}`} extra={l => [...passRader(l), avvikelse(l) ?? ''].filter(Boolean)} onGrab={grab} onPick={meny.onPick}
-          overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}/>)}{meny.panel}</div>
-        </div>
-        <Teckenforklaring lessons={shown} picked={picked} flagged={markerade} overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
+          <Teckenforklaring lessons={shown} picked={picked} flagged={markerade} overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
+        </>} pass={<>
+          {gemensamt}
+          {meny.meddelande}
+          <div className="schema-folj-lyssnare" {...foljHandelser}>
+            <Passtabell forslag={forslag} violations={kontroll?.violations ?? null} egna={provade.egna} term={viewTerm} picked={picked} checking={checking || busy}
+              val={tabellVal} onVal={setTabellVal} atgarder={tabellAtgarder} rubrik={tabellRubrik} tabellRef={tabell}
+              onParkera={ids => void andra({ type: 'park', lesson: ids[0], fler: ids.slice(1) })}
+              onAvbryt={() => { if (pickedLesson) { focus.current = pickedLesson.id; dispatch({ type: 'pick', lesson: null }); } }}/>
+          </div>
+        </>}/>
         {foljt && <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
-          onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => { setFolj(null); document.querySelector<HTMLButtonElement>(`[data-lesson="${foljt.id}"]`)?.focus(); }} onSessionLost={onSessionLost}
+          onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => { setFolj(null); passElement(foljt.id)?.focus(); }} onSessionLost={onSessionLost}
           onMove={p => void andra({ type: 'move', lesson: foljt.id, day: p.day, startMin: p.startMin, room: p.room })}/>}
-        <div className="schema-folj-lyssnare" {...foljHandelser}>
-        <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={drop?.to?.day === null} dragging={drop?.lesson ?? null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick}/>
-        </div>
+        {visadVy(vy, villkorsvy !== undefined) === 'vecka' && <>
+          <div className="schema-folj-lyssnare" {...foljHandelser}>
+          <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={drop?.to?.day === null} dragging={drop?.lesson ?? null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick}/>
+          </div>
+        </>}
       </>}
 
       {pickedLesson && <Flyttpanel lesson={pickedLesson} forslag={forslag} target={target} checking={checking} shownMin={shownMin(pickedLesson)}

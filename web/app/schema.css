@@ -335,3 +335,44 @@
 .tidsrutnat .tidsrutnat-ruta.falt-sparrad { border-radius: 0; border-inline: 1px dashed var(--schema-hatch-border); }
 .tidsrutnat .tidsrutnat-ruta.vt-tillaten { background: var(--card); }
 .tidsrutnat .tidsrutnat-ruta:focus-visible { position: relative; z-index: 1; outline: 2px solid var(--ring); outline-offset: 0; }
+
+/* ── 05.2-SM-PASSTABELL: vyväljaren och alla pass i tabell. Bara designsystemets variabler; vyväljaren delar verktygsfältets segmentknappar.
+   Tabellen rullar i sin ram (båda led) med rubrikraden kvar överst; isolation gör att flyttpanelen (sticky) ligger över tabellen. ── */
+.schema-workspace .schema-vyval { gap: .75rem 1.25rem; }
+.schema-workspace .schema-vyval .schema-verktyg-grupp { align-self: end; }
+.schema-workspace .passtabell { isolation: isolate; display: grid; gap: .75rem; min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-workspace .passtabell-verktyg label:has(input[type="search"]) { flex: 1 1 18rem; }
+.schema-workspace .passtabell-verktyg input[type="search"] { min-height: var(--control-height); }
+.schema-workspace .passtabell-verktyg .schema-check { display: flex; flex-direction: row; gap: .5rem; align-items: center; min-height: var(--control-height); color: var(--foreground); }
+.schema-workspace .passtabell-verktyg .schema-check input { width: 1rem; height: 1rem; accent-color: var(--primary); }
+.schema-workspace .passtabell-chips { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; min-width: 0; margin: 0; padding: 0; border: 0; }
+.schema-workspace .passtabell-chips legend { float: left; margin-right: .25rem; }
+.schema-workspace .passtabell-chips .schema-chip svg { width: .875rem; height: .875rem; }
+.schema-workspace .passtabell-rad { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; }
+.schema-workspace .passtabell-knappar { display: flex; flex-wrap: wrap; gap: .5rem; }
+.schema-workspace .passtabell-knappar button { min-height: var(--control-height); height: auto; white-space: normal; }
+.passtabell-yta { min-width: 0; }
+.passtabell-ram { min-width: 0; }
+.passtabell-ram [data-slot="table-container"] { max-height: min(70vh, 48rem); overflow: auto; border: 1px solid var(--border); border-radius: var(--radius-md); }
+.passtabell-ram table { font-size: .8125rem; }
+.passtabell-ram thead th { position: sticky; top: 0; z-index: 1; background: var(--card); box-shadow: inset 0 -1px 0 var(--border); }
+.passtabell-ram .passtabell-sort { all: unset; box-sizing: border-box; display: inline-flex; gap: .25rem; align-items: center; min-height: 2rem; padding: 0 .25rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600; }
+.passtabell-ram .passtabell-sort svg { width: .875rem; height: .875rem; color: var(--muted-foreground); }
+.passtabell-ram th[aria-sort] .passtabell-sort svg { color: var(--primary); }
+.passtabell-ram .passtabell-sort:focus-visible, .passtabell-ram td:focus-visible, .passtabell-ram input[type="checkbox"]:focus-visible { outline: 3px solid var(--ring); outline-offset: -3px; }
+.passtabell-ram td:focus { outline: 3px solid var(--ring); outline-offset: -3px; }
+.passtabell-ram input[type="checkbox"] { width: 1rem; height: 1rem; accent-color: var(--primary); }
+.passtabell-ram .passtabell-valruta { width: 2.25rem; text-align: center; }
+.passtabell-ram .passtabell-tal { font-variant-numeric: tabular-nums; }
+.passtabell-ram .passtabell-status { display: inline-flex; flex-wrap: wrap; gap: .25rem .5rem; align-items: center; min-width: 9rem; }
+.passtabell-ram .passtabell-orsak { color: var(--destructive); white-space: normal; max-width: 22rem; }
+/* Regelavvikelse har röd kant och text, inte bara färg; markerat pass har samma 2px primary som i veckan. */
+.passtabell-ram tr.passtabell-avvikelse > td:first-child { box-shadow: inset 3px 0 0 var(--destructive); }
+.passtabell-ram tr.passtabell-markerad { background: var(--accent); }
+.passtabell-ram tr.passtabell-markerad > td { box-shadow: inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+.passtabell-ram tr.passtabell-markerad > td:first-child { box-shadow: inset 2px 0 0 var(--primary), inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+.passtabell-ram tr.passtabell-markerad > td:last-child { box-shadow: inset -2px 0 0 var(--primary), inset 0 2px 0 var(--primary), inset 0 -2px 0 var(--primary); }
+.passtabell-ram .passtabell-markering { color: var(--accent-foreground); font-weight: 600; }
+.passtabell-ram tr.passtabell-grupp th { padding: .625rem .5rem .375rem; text-align: left; font-weight: 400; background: var(--secondary); color: var(--secondary-foreground); white-space: normal; }
+.passtabell-ram tr.passtabell-grupp strong { font-weight: 600; }
+.schema-workspace .passtabell .empty-state { display: grid; gap: .75rem; justify-items: start; }

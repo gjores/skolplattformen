@@ -30,7 +30,8 @@ export type SchemaUtkast = {
 export type SchemaUtkastSalar = Record<string, string | null>;
 export type SchemaUtkastAtgard =
   | { type: 'move'; lesson: string; day: number; startMin: number; room?: string | null; rooms?: SchemaUtkastSalar }
-  | { type: 'park'; lesson: string; rooms?: SchemaUtkastSalar }
+  /** `fler`: fler pass som läggs på viloytan i samma ångra-steg (flera valda rader i passtabellen, 05.2-SM-PASSTABELL). */
+  | { type: 'park'; lesson: string; fler?: string[]; rooms?: SchemaUtkastSalar }
   | { type: 'pick'; lesson: string | null }
   | { type: 'undo'; rooms?: SchemaUtkastSalar }
   | { type: 'redo'; rooms?: SchemaUtkastSalar }
@@ -79,7 +80,13 @@ export function utkastEfter(state: SchemaUtkast, action: SchemaUtkastAtgard): Sc
   if (action.type !== 'move' && action.type !== 'park') return null;
   const before = state.placements[action.lesson];
   if (!before) return null;
-  const next: SchemaUtkastPlats = action.type === 'park' ? { day: null, startMin: null, room: null }
+  const vila: SchemaUtkastPlats = { day: null, startMin: null, room: null };
+  if (action.type === 'park' && action.fler?.length) {
+    const ids = [action.lesson, ...action.fler];
+    if (!ids.every(id => id in state.placements)) return null;
+    return { ...state.placements, ...Object.fromEntries(ids.map(id => [id, vila])) };
+  }
+  const next: SchemaUtkastPlats = action.type === 'park' ? vila
     : { day: action.day, startMin: action.startMin, room: action.room === undefined ? before.room : action.room };
   return { ...state.placements, [action.lesson]: next };
 }
