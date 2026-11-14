@@ -24,7 +24,10 @@ pub struct State<'a> {
     pub inst: &'a Inst,
     pub pos: Vec<Option<Pos>>,
     pub rooms: Vec<Vec<u16>>,
+    /// Undervisning per resurs, period och dag.
     occ: Vec<u128>,
+    /// Undervisning och marginaler per resurs, period och dag. Dagsregler och kostnad räknas på denna.
+    full: Vec<u128>,
     placed_on: Vec<Vec<u32>>,
     ent_cost: Vec<i64>,
     act_cnt: Vec<u16>,
@@ -35,6 +38,12 @@ pub struct State<'a> {
     pub unplaced_min: i64,
     pub unplaced: usize,
     journal: Vec<(u32, Option<Pos>, Vec<u16>)>,
+}
+
+/// Ett pass på `len` steg från steg `s` med `before` steg före och `after` efter.
+pub fn margin_span(s: u32, len: u32, before: u8, after: u8) -> u128 {
+    let lo = s.saturating_sub(before as u32);
+    span(lo, s - lo + len + after as u32)
 }
 
 pub fn has_run(free: u128, len: u32) -> bool {
@@ -56,6 +65,7 @@ impl<'a> State<'a> {
             pos: vec![None; inst.units.len()],
             rooms: inst.units.iter().map(|u| vec![NO_ROOM; u.nrooms]).collect(),
             occ: vec![0; inst.n_res * cells],
+            full: vec![0; inst.n_res * cells],
             placed_on: vec![Vec::new(); inst.n_res],
             ent_cost: vec![0; inst.n_ents * cells],
             act_cnt: vec![0; inst.act_rule.len() * cells],
@@ -136,7 +146,7 @@ impl<'a> State<'a> {
         for ent in 0..inst.n_ents {
             for p in 0..inst.periods {
                 for d in 0..inst.days {
-                    let (gap, late) = self.day_parts(ent, d, self.occ[self.ix(ent, p, d)]);
+                    let (gap, late) = self.day_parts(ent, d, self.full[self.ix(ent, p, d)]);
                     let step = inst.step as i64;
                     if inst.is_teacher(ent) {
                         out[1] += gap * step;
@@ -182,35 +192,50 @@ impl<'a> State<'a> {
         !inst.ent_lunch[ent] || has_run(!occ & inst.lunch_win[d], inst.lunch_len)
     }
 
-    /// Enhetens mask på en resurs där den står nu.
-    fn mask_on(&self, v: usize, res: usize) -> u128 {
+    /// Enhetens masker på en resurs där den står nu: undervisningen, och undervisningen med marginal.
+    fn masks_on(&self, v: usize, res: usize) -> (u128, u128) {
         let unit = &self.inst.units[v];
-        let Some((_, s)) = self.pos[v] else { return 0 };
-        if let Some(x) = unit.ents.iter().chain(unit.virt.iter()).find(|x| x.0 as usize == res) {
-            return span(s as u32, x.1 as u32);
+        let Some((_, s)) = self.pos[v] else { return (0, 0) };
+        let s = s as u32;
+        if let Some(i) = unit.ents.iter().position(|x| x.0 as usize == res) {
+            let (len, (a, b)) = (unit.ents[i].1 as u32, unit.ent_margin[i]);
+            return (span(s, len), margin_span(s, len, a, b));
         }
-        let mut m = 0;
+        if let Some(x) = unit.virt.iter().find(|x| x.0 as usize == res) {
+            let m = span(s, x.1 as u32);
+            return (m, m);
+        }
+        let (mut m, mut f) = (0, 0);
         for part in &unit.parts {
             for k in 0..part.room_count as usize {
                 let r = self.rooms[v][part.room_off + k];
                 if r != NO_ROOM && self.inst.room_res(r) == res {
-                    m |= span(s as u32, part.len as u32);
+                    m |= span(s, part.len as u32);
+                    f |= margin_span(s, part.len as u32, part.room_margin.0, part.room_margin.1);
                 }
             }
         }
-        m
+        (m, f)
     }
 
-    /// Lägg till de placerade enheter på `res` som dag `d` skär `mask`.
-    /// Falskt om någon av dem är låst.
-    fn collect(&self, res: usize, d: usize, pm: u32, mask: u128, skip: usize, out: &mut Vec<u32>) -> bool {
+    fn mask_on(&self, v: usize, res: usize) -> u128 {
+        self.masks_on(v, res).0
+    }
+
+    /// Lägg till de placerade enheter på `res` som dag `d` krockar med: deras undervisning skär
+    /// `vs_core` eller deras undervisning med marginal skär `vs_full`. Falskt om någon av dem är låst.
+    fn collect(&self, res: usize, d: usize, pm: u32, vs_core: u128, vs_full: u128, skip: usize, out: &mut Vec<u32>) -> bool {
         for &v in &self.placed_on[res] {
             let vu = v as usize;
             if vu == skip || out.contains(&v) {
                 continue;
             }
             let (vd, _) = self.pos[vu].unwrap();
-            if vd as usize != d || self.inst.units[vu].pm & pm == 0 || self.mask_on(vu, res) & mask == 0 {
+            if vd as usize != d || self.inst.units[vu].pm & pm == 0 {
+                continue;
+            }
+            let (core, full) = self.masks_on(vu, res);
+            if core & vs_core == 0 && full & vs_full == 0 {
                 continue;
             }
             if self.inst.units[vu].locked {
@@ -219,6 +244,29 @@ impl<'a> State<'a> {
             out.push(v);
         }
         true
+    }
+
+    /// Undervisning och marginaler på `res` av de placerade enheterna utom `skip` och de som ska kastas ut.
+    /// Marginaler kan överlappa varandra, så masken räknas om i stället för att bitar tas bort.
+    fn full_without(&self, res: usize, p: usize, d: usize, eject: &[u32], skip: Option<u32>) -> u128 {
+        if !self.inst.has_margin {
+            let mut o = self.occ_without(res, p, d, eject);
+            if let Some(v) = skip {
+                if self.pos[v as usize].is_some_and(|x| x.0 as usize == d) && self.inst.units[v as usize].pm >> p & 1 == 1 {
+                    o &= !self.mask_on(v as usize, res);
+                }
+            }
+            return o;
+        }
+        let mut o = 0;
+        for &v in &self.placed_on[res] {
+            let vu = v as usize;
+            if Some(v) == skip || eject.contains(&v) || self.pos[vu].unwrap().0 as usize != d || self.inst.units[vu].pm >> p & 1 == 0 {
+                continue;
+            }
+            o |= self.masks_on(vu, res).1;
+        }
+        o
     }
 
     /// Beläggningen på `res` utan de enheter som ska kastas ut.
@@ -244,12 +292,16 @@ impl<'a> State<'a> {
             return false;
         }
         let pad = inst.pad;
-        for &(res, len) in &unit.ents {
+        for (i, &(res, len)) in unit.ents.iter().enumerate() {
+            // Undervisningen ska ligga `pad` från andras undervisning; ingen marginal får skära någon annans undervisning.
             let lo = s.saturating_sub(pad);
-            let wide = span(lo, s - lo + len as u32 + pad);
+            let (a, b) = unit.ent_margin[i];
+            let core = span(s, len as u32);
+            let vs_core = span(lo, s - lo + len as u32 + pad) | margin_span(s, len as u32, a, b);
             for p in 0..inst.periods {
-                if unit.pm >> p & 1 == 1 && self.occ[self.ix(res as usize, p, d)] & wide != 0 {
-                    if !eject || !self.collect(res as usize, d, unit.pm, wide, u, &mut out.eject) {
+                let at = self.ix(res as usize, p, d);
+                if unit.pm >> p & 1 == 1 && (self.occ[at] & vs_core != 0 || self.full[at] & core != 0) {
+                    if !eject || !self.collect(res as usize, d, unit.pm, vs_core, core, u, &mut out.eject) {
                         return false;
                     }
                     break;
@@ -260,7 +312,7 @@ impl<'a> State<'a> {
             let m = span(s, len as u32);
             for p in 0..inst.periods {
                 if unit.pm >> p & 1 == 1 && self.occ[self.ix(res as usize, p, d)] & m != 0 {
-                    if !eject || !self.collect(res as usize, d, unit.pm, m, u, &mut out.eject) {
+                    if !eject || !self.collect(res as usize, d, unit.pm, m, m, u, &mut out.eject) {
                         return false;
                     }
                     break;
@@ -292,18 +344,19 @@ impl<'a> State<'a> {
             }
         }
         // Dagsregler för varje lärare och kluster.
-        for &(ent, len) in &unit.ents {
+        for (i, &(ent, len)) in unit.ents.iter().enumerate() {
             let ent = ent as usize;
             if inst.ent_max[ent] == u32::MAX && !inst.ent_lunch[ent] {
                 continue;
             }
-            let m = span(s, len as u32);
+            let (a, b) = unit.ent_margin[i];
+            let m = margin_span(s, len as u32, a, b);
             for p in 0..inst.periods {
                 if unit.pm >> p & 1 == 0 {
                     continue;
                 }
                 loop {
-                    let o = if out.eject.is_empty() { self.occ[self.ix(ent, p, d)] } else { self.occ_without(ent, p, d, &out.eject) };
+                    let o = if out.eject.is_empty() { self.full[self.ix(ent, p, d)] } else { self.full_without(ent, p, d, &out.eject, None) };
                     if self.day_ok(ent, d, o | m) {
                         break;
                     }
@@ -311,14 +364,14 @@ impl<'a> State<'a> {
                         return false;
                     }
                     // Kasta ut den enhet som ger mest luft; lunchbrott kräver en i fönstret.
-                    let lunch_fail = o.count_ones() + len as u32 <= inst.ent_max[ent];
+                    let lunch_fail = (o | m).count_ones() <= inst.ent_max[ent];
                     let mut pick: Option<(u32, u32)> = None;
                     for &v in &self.placed_on[ent] {
                         let vu = v as usize;
                         if out.eject.contains(&v) || inst.units[vu].locked || self.pos[vu].unwrap().0 as usize != d || inst.units[vu].pm >> p & 1 == 0 {
                             continue;
                         }
-                        let vm = self.mask_on(vu, ent);
+                        let vm = self.masks_on(vu, ent).1;
                         let gain = if lunch_fail { (vm & inst.lunch_win[d]).count_ones() } else { vm.count_ones() };
                         if gain > 0 && pick.is_none_or(|x| gain > x.1) {
                             pick = Some((v, gain));
@@ -337,6 +390,7 @@ impl<'a> State<'a> {
                 continue;
             }
             let m = span(s, part.len as u32);
+            let mf = margin_span(s, part.len as u32, part.room_margin.0, part.room_margin.1);
             let first = out.rooms.len();
             let want = first + part.room_count as usize;
             let prefer = part.reference.is_some_and(|r| r == (d as u8, s as u8));
@@ -345,14 +399,15 @@ impl<'a> State<'a> {
                 if out.rooms.len() == want {
                     break;
                 }
-                if out.rooms.contains(&r) || inst.room_block[r as usize * inst.days + d] & m != 0 {
+                if out.rooms.contains(&r) || inst.room_block[r as usize * inst.days + d] & mf != 0 {
                     continue;
                 }
                 let res = inst.room_res(r);
                 let free = (0..inst.periods).all(|p| {
                     unit.pm >> p & 1 == 0 || {
-                        let o = self.occ[self.ix(res, p, d)];
-                        o & m == 0 || (!out.eject.is_empty() && self.occ_without(res, p, d, &out.eject) & m == 0)
+                        let at = self.ix(res, p, d);
+                        (self.occ[at] & mf == 0 && self.full[at] & m == 0)
+                            || (!out.eject.is_empty() && self.occ_without(res, p, d, &out.eject) & mf == 0 && self.full_without(res, p, d, &out.eject, None) & m == 0)
                     }
                 });
                 if free {
@@ -366,11 +421,11 @@ impl<'a> State<'a> {
                 // Ta den sal som kräver minst utkastad undervisning.
                 let mut best: Option<(u16, u32, Vec<u32>)> = None;
                 for &r in &part.cands {
-                    if out.rooms.contains(&r) || inst.room_block[r as usize * inst.days + d] & m != 0 {
+                    if out.rooms.contains(&r) || inst.room_block[r as usize * inst.days + d] & mf != 0 {
                         continue;
                     }
                     let mut who = Vec::new();
-                    if !self.collect(inst.room_res(r), d, unit.pm, m, u, &mut who) {
+                    if !self.collect(inst.room_res(r), d, unit.pm, mf, m, u, &mut who) {
                         continue;
                     }
                     who.retain(|v| !out.eject.contains(v));
@@ -414,45 +469,18 @@ impl<'a> State<'a> {
         let inst = self.inst;
         let unit = &inst.units[u];
         let (du, su) = (d as usize, s as u32);
-        for &(res, len) in unit.ents.iter().chain(unit.virt.iter()) {
+        let none = (0u8, 0u8);
+        let ents = unit.ents.iter().zip(unit.ent_margin.iter()).chain(unit.virt.iter().zip(std::iter::repeat(&none)));
+        for (&(res, len), &(a, b)) in ents {
             let res = res as usize;
-            let m = span(su, len as u32);
-            for p in 0..inst.periods {
-                if unit.pm >> p & 1 == 0 {
-                    continue;
-                }
-                let i = self.ix(res, p, du);
-                let o = if add { self.occ[i] | m } else { self.occ[i] & !m };
-                self.occ[i] = o;
-                if res < inst.n_ents {
-                    let c = self.day_cost(res, du, o);
-                    self.soft += c - self.ent_cost[i];
-                    self.ent_cost[i] = c;
-                }
-            }
-            if add {
-                self.placed_on[res].push(u as u32);
-            } else {
-                let k = self.placed_on[res].iter().position(|&x| x == u as u32).unwrap();
-                self.placed_on[res].swap_remove(k);
-            }
+            self.occupy(u, res, du, span(su, len as u32), margin_span(su, len as u32, a, b), add);
         }
         for part in &unit.parts {
             let m = span(su, part.len as u32);
+            let mf = margin_span(su, part.len as u32, part.room_margin.0, part.room_margin.1);
             for k in 0..part.room_count as usize {
                 let res = inst.room_res(self.rooms[u][part.room_off + k]);
-                for p in 0..inst.periods {
-                    if unit.pm >> p & 1 == 1 {
-                        let i = self.ix(res, p, du);
-                        if add { self.occ[i] |= m } else { self.occ[i] &= !m }
-                    }
-                }
-                if add {
-                    self.placed_on[res].push(u as u32);
-                } else {
-                    let k = self.placed_on[res].iter().position(|&x| x == u as u32).unwrap();
-                    self.placed_on[res].swap_remove(k);
-                }
+                self.occupy(u, res, du, m, mf, add);
             }
         }
         for &(a, n) in &unit.acts {
@@ -487,6 +515,36 @@ impl<'a> State<'a> {
             self.soft -= moved;
             self.unplaced_min += dur;
             self.unplaced += 1;
+        }
+    }
+
+    /// Lägg till eller ta bort enhet `u` på resurs `res` dag `d`: undervisningen `core` och med marginal `full`.
+    fn occupy(&mut self, u: usize, res: usize, d: usize, core: u128, full: u128, add: bool) {
+        let inst = self.inst;
+        let pm = inst.units[u].pm;
+        if add {
+            self.placed_on[res].push(u as u32);
+        } else {
+            let k = self.placed_on[res].iter().position(|&x| x == u as u32).unwrap();
+            self.placed_on[res].swap_remove(k);
+        }
+        for p in 0..inst.periods {
+            if pm >> p & 1 == 0 {
+                continue;
+            }
+            let i = self.ix(res, p, d);
+            if add {
+                self.occ[i] |= core;
+                self.full[i] |= full;
+            } else {
+                self.occ[i] &= !core;
+                self.full[i] = if inst.has_margin { self.full_without(res, p, d, &[], Some(u as u32)) } else { self.full[i] & !full };
+            }
+            if res < inst.n_ents {
+                let c = self.day_cost(res, d, self.full[i]);
+                self.soft += c - self.ent_cost[i];
+                self.ent_cost[i] = c;
+            }
         }
     }
 

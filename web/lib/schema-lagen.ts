@@ -199,13 +199,13 @@ const ONSKEMAL_TEXT: Record<string, string> = { student_gap: 'håltid för eleve
 
 /**
  * Varför passet inte kan ligga här, som rader i designvyns tooltip: rubrik, vad som ligger i vägen per resurs, vilka av passets resurser som är lediga
- * och till sist läget ("Regelbrott: eleverna har redan ett pass."). Tider är passens undervisningstid; marginal efter passet anges för sig.
+ * och till sist läget ("Regelbrott: eleverna har redan ett pass."). Tider är passens undervisningstid; marginal före och efter passet anges för sig.
  */
 export function varfor(lesson: string, position: SchemaLagenPosition, k: SchemaLagenKontext): string[] {
   const pass = new Map(k.lessons.map(l => [l.id, l])), at = new Map(k.placements.map(p => [p.lesson, p]));
   const klass = new Map(k.classes.map(c => [c.id, c.name])), larare = new Map(k.teachers.map(t => [t.id, t.name])), sal = new Map(k.rooms.map(r => [r.id, r.name]));
   const own = pass.get(lesson), dag = DAGAR[position.day], tid = klocka(position.startMin);
-  const length = own?.durationMin ?? 0, end = position.startMin + length + (own?.marginMin ?? 0);
+  const length = own?.durationMin ?? 0, end = position.startMin + length + (own?.marginMin ?? 0), from = position.startMin - (own?.marginBeforeMin ?? 0);
   const klasser = (ids: string[]) => ids.map(id => klass.get(id) ?? id);
   const elever = (other?: string) => {
     if (k.elev) return k.elev;
@@ -216,11 +216,12 @@ export function varfor(lesson: string, position: SchemaLagenPosition, k: SchemaL
     const p = at.get(id), l = pass.get(id);
     if (!p || !l) return '';
     const slut = p.startMin + l.durationMin;
-    return ` ${klocka(p.startMin)}–${klocka(slut)}${l.marginMin ? `, med marginal till ${klocka(slut + l.marginMin)}` : ''}`;
+    const fore = l.marginBeforeMin ?? 0;
+    return ` ${klocka(p.startMin)}–${klocka(slut)}${fore ? `, med marginal ${klocka(p.startMin - fore)}–${klocka(slut + l.marginMin)}` : l.marginMin ? `, med marginal till ${klocka(slut + l.marginMin)}` : ''}`;
   };
   const med = (id: string) => { const l = pass.get(id), c = l ? klasser(l.classIds) : []; return c.length ? ` med ${och(c)}` : ''; };
   const titel = (id: string) => pass.get(id)?.title ?? 'ett annat pass';
-  const overlaps = (id: string) => { const p = at.get(id), l = pass.get(id); return !!p && !!l && p.day === position.day && p.startMin < end && position.startMin < p.startMin + l.durationMin + l.marginMin; };
+  const overlaps = (id: string) => { const p = at.get(id), l = pass.get(id); return !!p && !!l && p.day === position.day && p.startMin - (l.marginBeforeMin ?? 0) < end && from < p.startMin + l.durationMin + l.marginMin; };
 
   const lines = [position.state === 'fri' ? `${forsta(dag)} ${tid}` : `Varför inte ${dag} ${tid}?`];
   const reasons = position.reasons;

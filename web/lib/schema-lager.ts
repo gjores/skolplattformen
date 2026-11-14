@@ -1,7 +1,8 @@
 // Villkoren som lager i veckan (05.2-SM-VILLKOR-SYNS): det som styr var pass får ligga ritas för den klass eller lärare som visas.
 // Ren funktion utan React. Ger fält, band och nedtoning i formen som veckorutnätet (app/schema/vecka.tsx) ritar, och för varje fält
 // varifrån det kommer (`sourceId` → `kallor`). Inget lagras.
-import type { SchemaForslag, SchemaForslagLesson, SchemaRegel, SchemaVillkor } from './schema-contract.ts';
+import type { SchemaForslag, SchemaForslagLesson, SchemaMarginalDel, SchemaRegel, SchemaVillkor } from './schema-contract.ts';
+import { passMarginal } from './schema-marginal.ts';
 import type { SchemaBand, SchemaDimmed, SchemaOverlay } from './schema-utkast.ts';
 
 /** Lagren som kan visas eller döljas i veckan (chipsraden i Main). Förval: alla på utom Salar. */
@@ -9,7 +10,7 @@ export const SCHEMA_LAGER = [
   { id: 'sparrad', namn: 'Spärrad tid', forval: true },
   { id: 'tillaten', namn: 'Tillåten tid', forval: true },
   { id: 'lunch', namn: 'Lunch', forval: true },
-  { id: 'marginal', namn: 'Marginal efter pass', forval: true },
+  { id: 'marginal', namn: 'Marginaler', forval: true },
   { id: 'salar', namn: 'Salar', forval: false },
   { id: 'sena', namn: 'Sena pass', forval: true },
 ] as const;
@@ -146,8 +147,26 @@ export function schemaLager(villkor: SchemaVillkor, f: SchemaLagerUnderlag, visa
     for (let day = 0; day < days; day++) { const to = Math.min(end, villkor.days[day]?.endMin ?? f.days[day].endMin); if (late < to) { field(day, [late, to], 'onskemal', `Sena pass · efter ${clock(late)}`, 'sena'); any = true; } }
     if (any) kallor.sena = { id: 'sena', lager: 'sena', typ: 'sena', beror: lessons.filter(l => l.startMin! + l.durationMin > late).length };
   }
-  // Marginal till nästa lektion (R4): den del som inte täcks av rasten, som band efter passet.
-  if (on('marginal')) for (const l of lessons) if (l.marginMin > 0) bands.push({ lesson: l.id, side: 'efter', minutes: l.marginMin, label: `Marginal ${l.marginMin} min`, kind: 'marginal' });
+  // Marginal före och efter passet (05.2-SM-MARGINAL) för den part vyn visar: klassens vy visar elevernas marginal, lärarens vy lärarens.
+  if (on('marginal')) for (const l of lessons) bands.push(...marginalBand(villkor, f, l, visad.slag === 'klass' ? 'elever' : 'larare'));
 
   return { overlays, bands, dimmed: [], kallor };
+}
+
+/**
+ * Banden före och efter ett pass för en part (05.2-SM-MARGINAL, N102): alla marginaler som gäller passet – klassens, gruppens, lärarens, ämnets,
+ * salens (pass som får ligga i salen) och passets eget – sammanslagna per sida, den största gäller. Samma regel som underlaget skickar till motorn.
+ * Bandets text är etiketten och tiden, till exempel "Omklädning 10 min".
+ */
+export function marginalBand(villkor: SchemaVillkor, f: SchemaLagerUnderlag, l: SchemaForslagLesson, del: SchemaMarginalDel): SchemaBand[] {
+  const ids = refs(f), roomName = (id: string | null) => f.rooms.find(r => r.id === id)?.name ?? null;
+  const galler = (r: SchemaRegel) => r.slag === 'pass' ? r.ref === l.id : r.slag === 'amne' ? r.ref === l.title : r.slag === 'sal' ? l.roomIds.some(id => roomName(id) === r.ref)
+    : (r.slag === 'larare' ? l.teacherIds : l.classIds).some(id => { const x = ids.get(id); return x?.slag === r.slag && x.ref === r.ref; });
+  const m = passMarginal(villkor.egna.filter(r => r.typ === 'marginal' && galler(r)))[del];
+  // Salens marginal gäller bara pass som har en sal; lärarens bara pass med lärare.
+  if (del === 'sal' && !l.roomIds.length || del === 'larare' && !l.teacherIds.length) return [];
+  return [
+    ...m.fore ? [{ lesson: l.id, side: 'fore' as const, minutes: m.fore, label: `${m.foreLabel} ${m.fore} min`, kind: 'marginal' as const }] : [],
+    ...m.efter ? [{ lesson: l.id, side: 'efter' as const, minutes: m.efter, label: `${m.efterLabel} ${m.efter} min`, kind: 'marginal' as const }] : [],
+  ];
 }

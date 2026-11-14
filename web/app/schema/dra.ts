@@ -31,7 +31,7 @@ export function dra(e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson, {
     for (const column of columns) {
       const box = column.getBoundingClientRect(), day = Number(column.dataset.day);
       if (x < box.left || x > box.right || y < box.top - 24 || y > box.bottom + 24) continue;
-      const starts = startTimes(f, day, l.durationMin + l.marginMin), wanted = start + (y - box.top) * span / box.height - held;
+      const starts = startTimes(f, day, l.durationMin + l.marginMin, l.marginBeforeMin), wanted = start + (y - box.top) * span / box.height - held;
       return starts.length ? { day, startMin: starts.reduce((best, m) => Math.abs(m - wanted) < Math.abs(best - wanted) ? m : best) } : null;
     }
     return null;

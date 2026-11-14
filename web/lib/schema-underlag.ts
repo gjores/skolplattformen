@@ -8,6 +8,7 @@
 import type { TjanstPlanRead, TjanstRow } from './tjanst-contract.ts';
 import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, defaultSchemaVillkor, schemaTerms, type SchemaInterval, type SchemaRegel, type SchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
   type SchemaSolution, type SchemaTerm, type SchemaTime } from './schema-contract.ts';
+import { passMarginal, yttreMarginal } from './schema-marginal.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
 export const SCHEMA_DEFAULTS = { days: 5, stepMin: 5, maxLessonsPerWeek: 20, classSize: 25, solveTimeMs: 10_000, weeks: { ht: 18, vt: 20 } } as const;
@@ -27,8 +28,8 @@ export type SchemaLabels = {
   /** `terms`: timplanens tid per termin och den tiden avrundad uppåt till hela 5 minuter (W3). `weeklyOff`: passen kan inte ge timplanens tid någon termin (E4). */
   activities: { id: string; title: string; classes: string[]; needMin: number; weeklyMin: number; days: Partial<Record<SchemaTerm, number[]>>;
     weeks: Partial<Record<SchemaTerm, number[][]>>; terms: { term: SchemaTerm; needMin: number; maxMin: number }[]; weeklyOff: boolean }[];
-  /** `durationMin` är undervisningstiden; motorns pass är `marginMin` längre (R4). */
-  lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; roomIds: string[]; vacant: boolean; term: SchemaTerm | null }[];
+  /** `durationMin` är undervisningstiden; `marginBeforeMin` och `marginMin` den största marginalen före och efter passet för någon av dess parter (05.2-SM-MARGINAL). */
+  lessons: { id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; marginBeforeMin: number; roomIds: string[]; vacant: boolean; term: SchemaTerm | null }[];
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime };
 export type SchemaUnderlag = { period: SchemaForslagRequest['period']; terms: SchemaTerm[]; villkor: SchemaVillkor; problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string;
@@ -370,27 +371,32 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
         const id = `pass-${problem.lessons.length + 1}`;
         const persons = turn ? [turn[i]] : known.map(x => x.personId), teacherIds = persons.map(personId => teacherNo.get(personId)!);
         const rules = egna(persons);
-        // Marginal till nästa lektion (R4): passet upptar lärare och elever den del av marginalen som rasten inte täcker.
-        const marginMin = Math.max(0, Math.max(0, ...rules.flatMap(r => r.typ === 'marginal' ? [r.minutes] : [])) - v.breakMin), length = durationMin + marginMin;
-        // Tillåtna fönster (R3), utan veckodagar som saknar skoldagar (W1). Marginalen får gå utanför fönstret. Utan något fönster där passet får plats:
-        // ett fönster för kort för passet, så att motorn redovisar det som utan tid.
+        // Tillåtna fönster (R3), utan veckodagar som saknar skoldagar (W1). Fönstren gäller undervisningen; marginalen får gå utanför. Utan något fönster
+        // där passet får plats: ett fönster för kort för passet, så att motorn redovisar det som utan tid.
         const times = rules.filter(tid);
         const allowed = !times.length && !noDays.length ? null : problem.time.days.flatMap((frame, day) => noDays.includes(day) ? [] : openSpans(times, day, [frame.start_min, frame.end_min])
-          .map(([a, b]): SchemaInterval => ({ day, start_min: a, end_min: Math.min(frame.end_min, b + marginMin) })).filter(w => w.end_min - w.start_min >= length));
+          .map(([a, b]): SchemaInterval => ({ day, start_min: a, end_min: b })).filter(w => w.end_min - w.start_min >= durationMin));
         // Sal (R6): ämnets salar går före gruppens, lärarens och klassens.
         const wanted = (['amne', 'grupp', 'larare', 'klass'] as const).map(slag => rules.flatMap(r => r.slag === slag && r.typ === 'sal' ? r.rooms : [])).find(rooms => rooms.length) ?? [];
         const roomIds = labels.rooms.filter(room => wanted.includes(room.name)).map(room => room.id);
-        // Marginalen räknas inte som undervisningstid (E3).
-        problem.lessons.push({ id, activity, duration_min: length, ...(marginMin ? { counted_min: durationMin } : {}), teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
+        // Marginal (05.2-SM-MARGINAL): passets egna villkor, marginaler för passet självt och för salar passet får ligga i, sammanslagna per sida och part (N102).
+        const own = v.egna.flatMap((r, k) => r.typ === 'marginal' && (r.slag === 'pass' ? r.ref === id : r.slag === 'sal' && wanted.includes(r.ref)) ? (hit.add(k), [r]) : []);
+        const m = passMarginal([...rules, ...own]), side = (x: { fore: number; efter: number }) => ({ before_min: x.fore, after_min: x.efter });
+        const delar = [...(teacherIds.length ? ['larare' as const] : []), 'elever' as const, ...(roomIds.length ? ['sal' as const] : [])], outer = yttreMarginal(m, delar);
+        const margin = outer.fore + outer.efter > 0 ? { students: side(m.elever), teachers: side(teacherIds.length ? m.larare : { fore: 0, efter: 0 }), rooms: side(roomIds.length ? m.sal : { fore: 0, efter: 0 }) } : null;
+        // Marginalen räknas aldrig som undervisningstid (N101): passets längd är undervisningen.
+        problem.lessons.push({ id, activity, duration_min: durationMin, teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
           ...(allowed === null ? {} : { allowed: allowed.length ? allowed : [{ day: 0, start_min: problem.time.days[0].start_min, end_min: problem.time.days[0].start_min + d.stepMin }] }),
-          ...(roomIds.length ? { rooms: { count: 1 as const, allowed: roomIds } } : {}) });
-        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin, roomIds, vacant: t.vacant, term });
+          ...(roomIds.length ? { rooms: { count: 1 as const, allowed: roomIds } } : {}), ...(margin ? { margin } : {}) });
+        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin: outer.efter, marginBeforeMin: outer.fore, roomIds, vacant: t.vacant, term });
       });
     }
   });
   const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
   const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),
-    amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: plan.teachers.map(t => ({ ref: t.personId, name: t.displayName })) };
+    amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: plan.teachers.map(t => ({ ref: t.personId, name: t.displayName })),
+    // Enskilda pass, för marginal på ett pass: ämnet, klasserna och passets nummer inom undervisningen. Numreringen följer underlaget.
+    pass: labels.lessons.map(l => ({ ref: l.id, name: `${l.title}, ${l.classIds.map(id => labels.classes.find(c => c.id === id)?.name ?? id).join(', ')}, pass ${labels.lessons.filter(x => x.activity === l.activity && x.term === l.term).indexOf(l) + 1}${l.term ? ` (${l.term.toUpperCase()})` : ''}` })) };
   return { period: request.period, terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
     resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
 }

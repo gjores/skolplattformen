@@ -139,3 +139,31 @@
 .schema-workspace .schema-weeks li { display: grid; grid-template-columns: 3.5rem 4.5rem 1fr; gap: .5rem; margin: 0; padding: .125rem .375rem; border-radius: var(--radius-sm); font-variant-numeric: tabular-nums; }
 .schema-workspace .schema-weeks li.trimmed { background: var(--accent); }
 .schema-workspace .schema-weeks li span:last-child { color: var(--muted-foreground); }
+
+/* Marginaler för pass (05.2-SM-MARGINAL, designvyn Regler): formulär, lista och förhandsvisning. Bara designsystemets variabler. */
+.schema-workspace .schema-marginaler { display: grid; gap: .75rem; min-width: 0; }
+.schema-workspace .schema-marginaler h3 { margin: 0; font-size: 1rem; font-weight: 600; letter-spacing: -.025em; }
+.schema-workspace .schema-marginaler h4 { margin: 0; font-size: .9375rem; font-weight: 600; color: var(--foreground); }
+.schema-workspace .schema-marginaler h5 { margin: 0; font-size: .8125rem; font-weight: 600; color: var(--heading-accent); }
+.schema-workspace .schema-marginal-kort { display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-start; }
+.schema-workspace .schema-marginal-kort > fieldset, .schema-workspace .schema-marginal-lista { flex: 1 1 28rem; min-width: 0; display: grid; gap: 1rem; align-content: start; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card); }
+.schema-workspace .schema-marginal-falt { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: .75rem; align-items: end; }
+.schema-workspace .schema-villkor fieldset.schema-marginal-nar { display: grid; gap: .375rem; padding: 0; border: 0; }
+.schema-workspace .schema-marginal-nar legend { padding: 0; margin-bottom: .375rem; font-size: .875rem; font-weight: 400; color: var(--muted-foreground); }
+.schema-workspace .schema-marginal-val { display: flex; flex-wrap: wrap; }
+.schema-workspace .schema-marginal-val button { min-height: var(--control-height); height: auto; border-radius: 0; white-space: normal; }
+.schema-workspace .schema-marginal-val button:first-child { border-radius: var(--radius) 0 0 var(--radius); }
+.schema-workspace .schema-marginal-val button:last-child { border-radius: 0 var(--radius) var(--radius) 0; margin-left: -1px; }
+.schema-workspace .schema-marginal-val button[aria-pressed="true"] { background: var(--secondary); color: var(--secondary-foreground); font-weight: 500; }
+.schema-workspace .schema-marginal-knappar { display: flex; flex-wrap: wrap; gap: .5rem; }
+.schema-workspace .schema-marginal-knappar button { min-height: var(--control-height); height: auto; white-space: normal; }
+.schema-workspace .schema-marginal-lista table td, .schema-workspace .schema-marginal-lista table th { white-space: normal; vertical-align: top; }
+.schema-workspace .schema-marginal-lista table td.schema-marginal-tid { white-space: nowrap; }
+.schema-workspace .schema-marginal-forhand, .schema-workspace .schema-marginal-jamfor { display: grid; gap: .5rem; }
+.schema-workspace .schema-banor { display: grid; grid-template-columns: minmax(5rem, 7.5rem) minmax(0, 1fr); gap: .5rem; align-items: center; font-size: .8125rem; }
+.schema-workspace .schema-bana { position: relative; height: 2.5rem; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--background); }
+.schema-workspace .schema-bana-del { position: absolute; top: .25rem; bottom: .25rem; left: calc(var(--from) * 100%); width: calc((var(--to) - var(--from)) * 100%); box-sizing: border-box; display: flex; align-items: center; justify-content: center;
+  padding: 0 .375rem; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; border-radius: var(--radius-sm); font-size: .75rem; }
+.schema-workspace .schema-bana-del.bana-pass { justify-content: flex-start; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--accent); color: var(--foreground); font-weight: 600; }
+.schema-workspace .schema-bana-del.bana-annat { justify-content: flex-start; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--card); color: var(--foreground); }
+.schema-workspace .schema-bana-del.bana-sparrad { color: var(--muted-foreground); }

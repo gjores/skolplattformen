@@ -34,6 +34,30 @@ struct Placed<'a> {
     start: u32,
     end: u32,
     rooms: &'a [String],
+    /// Passet med marginal för elever, lärare och sal (`STUDENTS`, `TEACHERS`, `ROOMS`).
+    full: [(u32, u32); 3],
+}
+
+const STUDENTS: usize = 0;
+const TEACHERS: usize = 1;
+const ROOMS: usize = 2;
+
+/// Passets tid med marginal för en part.
+fn with_margin(lesson: &Lesson, part: MarginPart, start: u32) -> (u32, u32) {
+    let m = lesson.margin_for(part);
+    (start.saturating_sub(m.before_min), start + lesson.duration_min + m.after_min)
+}
+
+fn placed_at<'a>(lesson: &'a Lesson, day: u32, start: u32, rooms: &'a [String]) -> Placed<'a> {
+    let full = [MarginPart::Students, MarginPart::Teachers, MarginPart::Rooms].map(|part| with_margin(lesson, part, start));
+    Placed { lesson, day, start, end: start + lesson.duration_min, rooms, full }
+}
+
+/// Krockar två pass för en part? Undervisningen ska ligga minst `gap` från varandra, och ingen
+/// marginal får överlappa det andra passets undervisning. Marginaler får överlappa varandra.
+fn conflict(a: &Placed, b: &Placed, part: usize, gap: u32) -> bool {
+    let (af, bf) = (a.full[part], b.full[part]);
+    (a.start < b.end + gap && b.start < a.end + gap) || overlaps(af.0, af.1, b.start, b.end) || overlaps(a.start, a.end, bf.0, bf.1)
 }
 
 fn share_period(a: &Lesson, b: &Lesson) -> bool {
@@ -72,7 +96,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
             v.push(Violation { code: "unknown_lesson", message: format!("Placeringen gäller okänt pass {}.", p.lesson), lessons: vec![p.lesson.clone()], resources: vec![] });
             continue;
         };
-        let one = Placed { lesson, day: p.day, start: p.start_min, end: p.start_min + lesson.duration_min, rooms: &p.rooms };
+        let one = placed_at(lesson, p.day, p.start_min, &p.rooms);
         if placed.insert(lesson.id.as_str(), one).is_some() {
             v.push(Violation { code: "placed_twice", message: format!("Pass {} är placerat flera gånger.", lesson.id), lessons: vec![lesson.id.clone()], resources: vec![] });
         }
@@ -86,8 +110,10 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
             v.push(Violation { code: "outside_day", message: format!("Pass {} ligger på en dag som inte finns.", l.id), lessons: id(), resources: vec![] });
             continue;
         };
-        if p.start < day.start_min || p.end > day.end_min {
-            v.push(Violation { code: "outside_day", message: format!("Pass {} ligger utanför skoldagen.", l.id), lessons: id(), resources: vec![] });
+        let outer = l.outer_margin();
+        if p.start < day.start_min + outer.before_min || p.end + outer.after_min > day.end_min {
+            let what = if p.start < day.start_min || p.end > day.end_min { "" } else { " med sin marginal" };
+            v.push(Violation { code: "outside_day", message: format!("Pass {} ligger utanför skoldagen{what}.", l.id), lessons: id(), resources: vec![] });
         } else if (p.start - day.start_min) % grid != 0 {
             v.push(Violation { code: "off_grid", message: format!("Pass {} börjar utanför startrutnätet.", l.id), lessons: id(), resources: vec![] });
         }
@@ -105,14 +131,14 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
         }
         for t in &l.teachers {
             if let Some(teacher) = teachers.get(t.as_str()) {
-                if hits(&teacher.unavailable, p.day, p.start, p.end) {
+                if hits(&teacher.unavailable, p.day, p.full[TEACHERS].0, p.full[TEACHERS].1) {
                     v.push(Violation { code: "teacher_unavailable", message: format!("Pass {} ligger när lärare {t} inte är tillgänglig.", l.id), lessons: id(), resources: vec![t.clone()] });
                 }
             }
         }
         for g in &l.groups {
             if let Some(group) = groups.get(g.as_str()) {
-                if hits(&group.unavailable, p.day, p.start, p.end) {
+                if hits(&group.unavailable, p.day, p.full[STUDENTS].0, p.full[STUDENTS].1) {
                     v.push(Violation { code: "group_unavailable", message: format!("Pass {} ligger när grupp {g} inte är tillgänglig.", l.id), lessons: id(), resources: vec![g.clone()] });
                 }
             }
@@ -139,7 +165,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
                     if !fits {
                         v.push(Violation { code: "room_unfit", message: format!("Sal {r} uppfyller inte kraven för pass {}.", l.id), lessons: id(), resources: vec![r.clone()] });
                     }
-                    if hits(&room.unavailable, p.day, p.start, p.end) {
+                    if hits(&room.unavailable, p.day, p.full[ROOMS].0, p.full[ROOMS].1) {
                         v.push(Violation { code: "room_unavailable", message: format!("Pass {} ligger när sal {r} inte är tillgänglig.", l.id), lessons: id(), resources: vec![r.clone()] });
                     }
                 }
@@ -175,24 +201,30 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
         }
     }
 
-    let clash = |kind: &'static str, code: &'static str, res: &str, list: &[&Placed], gap: u32, v: &mut Vec<Violation>| {
+    let clash = |kind: &'static str, code: &'static str, res: &str, list: &[&Placed], part: usize, gap: u32, v: &mut Vec<Violation>| {
         for (i, a) in list.iter().enumerate() {
             for b in &list[i + 1..] {
-                if a.day == b.day && share_period(a.lesson, b.lesson) && overlaps(a.start, a.end + gap, b.start, b.end + gap) {
-                    let what = if overlaps(a.start, a.end, b.start, b.end) { "krockar" } else { "ligger för tätt" };
+                if a.day == b.day && share_period(a.lesson, b.lesson) && conflict(a, b, part, gap) {
+                    let what = if overlaps(a.start, a.end, b.start, b.end) {
+                        "krockar"
+                    } else if a.start < b.end + gap && b.start < a.end + gap {
+                        "ligger för tätt"
+                    } else {
+                        "krockar med en marginal"
+                    };
                     v.push(Violation { code, message: format!("Pass {} och {} {what} för {kind} {res}.", a.lesson.id, b.lesson.id), lessons: vec![a.lesson.id.clone(), b.lesson.id.clone()], resources: vec![res.to_string()] });
                 }
             }
         }
     };
     for (t, list) in &by_teacher {
-        clash("lärare", "teacher_clash", t, list, brk, &mut v);
+        clash("lärare", "teacher_clash", t, list, TEACHERS, brk, &mut v);
     }
     for (c, list) in &by_cluster {
-        clash("elever i", "student_clash", c, list, brk, &mut v);
+        clash("elever i", "student_clash", c, list, STUDENTS, brk, &mut v);
     }
     for (r, list) in &by_room {
-        clash("sal", "room_clash", r, list, 0, &mut v);
+        clash("sal", "room_clash", r, list, ROOMS, 0, &mut v);
     }
 
     for (i, link) in problem.links.iter().enumerate() {
@@ -226,9 +258,9 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
     let w = &problem.weights;
     let lunch = problem.rules.lunch.as_ref();
 
-    // Sammanslagna upptagna intervall för en part, en period och en dag.
-    let busy = |list: &[&Placed], period: Option<&str>, day: u32| -> Vec<(u32, u32)> {
-        let mut ivs: Vec<(u32, u32)> = list.iter().filter(|p| p.day == day && in_period(p.lesson, period)).map(|p| (p.start, p.end)).collect();
+    // Sammanslagna upptagna intervall för en part, en period och en dag, med partens marginaler.
+    let busy = |list: &[&Placed], part: usize, period: Option<&str>, day: u32| -> Vec<(u32, u32)> {
+        let mut ivs: Vec<(u32, u32)> = list.iter().filter(|p| p.day == day && in_period(p.lesson, period)).map(|p| p.full[part]).collect();
         ivs.sort();
         let mut merged: Vec<(u32, u32)> = Vec::new();
         for (s, e) in ivs {
@@ -279,7 +311,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
     for &period in &period_ids {
         for day in 0..n_days {
             for (t, list) in &by_teacher {
-                let ivs = busy(list, period, day);
+                let ivs = busy(list, TEACHERS, period, day);
                 if ivs.is_empty() {
                     continue;
                 }
@@ -296,7 +328,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
                 m.teacher_gap_min += gaps(&ivs, with_lunch) as u64;
             }
             for (c, list) in &by_cluster {
-                let ivs = busy(list, period, day);
+                let ivs = busy(list, STUDENTS, period, day);
                 if ivs.is_empty() {
                     continue;
                 }
@@ -511,7 +543,8 @@ fn lesson_clusters(problem: &Problem, lesson: &Lesson) -> BTreeSet<String> {
 /// Räcker inte lediga salar används nuvarande eller första som passar, och kontrollen redovisar krocken.
 fn choose_rooms(problem: &Problem, lesson: &Lesson, others: &[Placement], day: u32, start: u32, preferred: &[String]) -> Vec<String> {
     let Some(req) = &lesson.rooms else { return vec![] };
-    let end = start + lesson.duration_min;
+    let me = placed_at(lesson, day, start, &[]);
+    let full = me.full[ROOMS];
     let fits = |id: &str| {
         let Some(room) = problem.rooms.iter().find(|r| r.id == id) else { return false };
         req.features.iter().all(|f| room.features.contains(f))
@@ -519,12 +552,12 @@ fn choose_rooms(problem: &Problem, lesson: &Lesson, others: &[Placement], day: u
             && (req.allowed.is_empty() || req.allowed.iter().any(|a| a == id))
     };
     let free = |id: &str| {
-        let room_free = problem.rooms.iter().find(|r| r.id == id).is_some_and(|r| !hits(&r.unavailable, day, start, end));
+        let room_free = problem.rooms.iter().find(|r| r.id == id).is_some_and(|r| !hits(&r.unavailable, day, full.0, full.1));
         room_free
             && !others.iter().any(|p| {
                 p.day == day
                     && p.rooms.iter().any(|r| r == id)
-                    && problem.lessons.iter().find(|l| l.id == p.lesson).is_some_and(|o| share_period(o, lesson) && overlaps(p.start_min, p.start_min + o.duration_min, start, end))
+                    && problem.lessons.iter().find(|l| l.id == p.lesson).is_some_and(|o| share_period(o, lesson) && conflict(&placed_at(o, p.day, p.start_min, &[]), &me, ROOMS, 0))
             })
     };
     let order: Vec<&str> = if req.allowed.is_empty() { problem.rooms.iter().map(|r| r.id.as_str()).collect() } else { req.allowed.iter().map(|s| s.as_str()).collect() };
@@ -605,7 +638,7 @@ fn preference_reasons(now: &Metrics, then: &Metrics, w: &Weights) -> Vec<Reason>
         .collect()
 }
 
-/// Pröva varje starttid på startrutnätet där passet ryms i skoldagen, mot övriga pass som de ligger.
+/// Pröva varje starttid på startrutnätet där passet och dess marginal ryms i skoldagen, mot övriga pass som de ligger.
 /// `pupil` är ett kluster: då räknas elevernas brott bara för det klustret.
 pub fn positions(problem: &Problem, placements: &[Placement], lesson: &str, pupil: Option<&str>) -> Result<Vec<Position>, PositionsError> {
     let l = problem.lessons.iter().find(|x| x.id == lesson).ok_or(PositionsError::UnknownLesson)?;
@@ -632,10 +665,15 @@ pub fn positions(problem: &Problem, placements: &[Placement], lesson: &str, pupi
     let mut without: HashMap<String, (Vec<Placement>, BTreeSet<Key>)> = HashMap::new();
     let mut out = Vec::new();
 
+    let outer = l.outer_margin();
     for (d, frame) in problem.time.days.iter().enumerate() {
         let day = d as u32;
+        // Första starttiden på rutnätet där marginalen före ryms.
         let mut start = frame.start_min;
-        while start + l.duration_min <= frame.end_min {
+        while start < frame.start_min + outer.before_min {
+            start += grid;
+        }
+        while start + l.duration_min + outer.after_min <= frame.end_min {
             let rooms = choose_rooms(problem, l, &base, day, start, &preferred);
             let here = Placement { lesson: lesson.to_string(), day, start_min: start, rooms: rooms.clone() };
             let mut cand = base.clone();
@@ -700,7 +738,7 @@ mod tests {
     /// `b` delar kluster k3 med `a`; `c` delar lärare t1 och är låst. Lärare t1 är spärrad dag 1 från 10.
     fn school() -> (Problem, Vec<Placement>) {
         let problem: Problem = serde_json::from_value(serde_json::json!({
-            "version": 1, "id": "lagen",
+            "version": CONTRACT_VERSION, "id": "lagen",
             "time": {"step_min": 5, "start_grid_min": 60, "days": [{"start_min": 480, "end_min": 720}, {"start_min": 480, "end_min": 720}]},
             "teachers": [{"id": "t1", "unavailable": [{"day": 1, "start_min": 600, "end_min": 720}]}, {"id": "t2"}],
             "clusters": [{"id": "k1", "size": 10}, {"id": "k2", "size": 10}, {"id": "k3", "size": 10}],

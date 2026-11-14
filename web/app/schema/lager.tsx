@@ -79,7 +79,7 @@ export function visaVillkor(k: SchemaKalla): void {
   if (!box) return;
   box.open = true;
   const field = (legend: string) => [...box.querySelectorAll('fieldset')].find(f => f.querySelector('legend')?.textContent === legend);
-  const target: HTMLElement | null | undefined = k.typ === 'egen' ? box.querySelector<HTMLElement>(`ul[aria-label="Egna villkor"] > li:nth-child(${k.index + 1})`)
+  const target: HTMLElement | null | undefined = k.typ === 'egen' ? box.querySelector<HTMLElement>(`ul[aria-label="Egna villkor"] > li[data-egen="${k.index}"]`)
     : k.typ === 'skoldag' ? field('Skoldag')?.querySelector('input')
     : field(k.typ === 'lunch' ? 'Lunch' : 'Dagens längd')?.querySelector('input');
   if (!target) return;

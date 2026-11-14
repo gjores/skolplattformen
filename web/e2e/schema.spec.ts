@@ -381,8 +381,8 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await form.getByRole('button', { name: 'Lägg till villkor' }).click();
   await form.getByLabel(/^Gäller/u).selectOption('klass');
   await form.getByLabel(/^Klass/u).selectOption({ label: 'Klass 1' });
-  await form.getByLabel(/^Villkor/u).selectOption('marginal');
-  await form.getByLabel(/^Marginal/u).selectOption('20');
+  await form.getByLabel(/^Villkor/u).selectOption('langd');
+  await form.getByLabel(/^Längsta pass/u).selectOption('60');
   await form.getByRole('button', { name: 'Lägg till villkor' }).click();
   await form.getByLabel(/^Gäller/u).selectOption('larare');
   await form.getByLabel(/^Villkor/u).selectOption('tillaten');
@@ -390,19 +390,19 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   for (const day of ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag']) await form.getByLabel(day, { exact: true }).check();
   await form.getByLabel('Till', { exact: true }).fill('15:00');
   await form.getByRole('button', { name: 'Lägg till villkor' }).click();
-  await expect(rules.getByRole('listitem')).toHaveText([/^Sal Idrottshallen: spärrad fredag 08:00–12:00/u, /^Ämne Idrott och hälsa: sal Idrottshallen/u, /^Klass Klass 1: 20 min marginal till nästa lektion/u,
+  await expect(rules.getByRole('listitem')).toHaveText([/^Sal Idrottshallen: spärrad fredag 08:00–12:00/u, /^Ämne Idrott och hälsa: sal Idrottshallen/u, /^Klass Klass 1: pass om högst 60 min/u,
     new RegExp(`^Lärare ${forslag.resurser.larare[0].name}: bara alla dagar 08:00–15:00`, 'u')]);
   // Lärare kan inte få villkor för uppdelning eller sal; det avgörs av ämne, grupp och klass.
-  await expect(form.getByLabel(/^Villkor/u).locator('option')).toHaveText(['Spärrad tid', 'Tillåten tid', 'Marginal till nästa lektion', 'Sal']);
+  await expect(form.getByLabel(/^Villkor/u).locator('option')).toHaveText(['Spärrad tid', 'Tillåten tid', 'Sal']);
   await expect(page.locator('.schema-villkor summary')).toContainText('4 egna villkor');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-egna-${info.project.name}.png`, fullPage: true });
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect.poll(() => bodies.length).toBe(2);
   const sent = bodies[1].villkor as typeof forslag.villkor & { egna: Record<string, unknown>[] };
-  expect(sent.egna).toEqual([sparr, { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] }, { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'marginal', minutes: 20 },
+  expect(sent.egna).toEqual([sparr, { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] }, { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'langd', maxMin: 60 },
     { slag: 'larare', ref: forslag.resurser.larare[0].ref, typ: 'tillaten', days: [0, 1, 2, 3, 4], startMin: 480, endMin: 900 }]);
-  await expect(page.getByText('Eget villkor: Klass Klass 1: 20 min marginal till nästa lektion.')).toBeVisible();
+  await expect(page.getByText('Eget villkor: Klass Klass 1: pass om högst 60 min.')).toBeVisible();
   await expect(page.getByText('Salar: Idrottshallen. Bara pass med ett salsvillkor får en sal.')).toBeVisible();
   // En sal som tas bort tar sina villkor med sig; övriga villkor står kvar.
   await page.getByRole('button', { name: 'Ta bort sal Idrottshallen' }).click();
@@ -515,9 +515,10 @@ const egnaProv = [
   { slag: 'amne', ref: 'Svenska', typ: 'tillaten', days: [0, 1, 2, 3, 4], startMin: 480, endMin: 900 },
 ];
 async function medVillkor(page: Page) {
-  await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`, JSON.stringify({ ...forslag.villkor, egna: egnaProv })] as const);
-  // Programämnet måndag 08:00 har 10 min marginal till nästa lektion (R4) i förslaget.
-  await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, lessons: forslag.lessons.map(l => l.id === 'pass-36' ? { ...l, marginMin: 10 } : l) } }));
+  // Programämnet måndag 08:00 har 10 min marginal efter passet (05.2-SM-MARGINAL; förut R4 i förslaget).
+  const marginal = { slag: 'pass', ref: 'pass-36', typ: 'marginal', beforeMin: 0, afterMin: 10, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' };
+  await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`, JSON.stringify({ ...forslag.villkor, egna: [...egnaProv, marginal] })] as const);
+  await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
@@ -536,12 +537,12 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   await expect(page.locator('.schema-falt.falt-tillaten-ute', { hasText: 'Utanför tillåten tid · Svenska' })).toHaveCount(5);
   await expect(page.locator('.schema-falt.falt-lunch')).toHaveCount(5);
   await expect(page.locator('.schema-falt.falt-onskemal', { hasText: 'Sena pass · efter 15:30' })).toHaveCount(5);
-  await expect(monday.locator('.schema-band.falt-marginal')).toHaveText('Efter Programämne: Marginal 10 min');
+  await expect(monday.locator('.schema-band.falt-marginal')).toHaveText('Efter Programämne: Övergång 10 min');
   // Passen ligger över fälten.
   const first = monday.locator('[data-lesson="pass-36"]'), box = (await first.boundingBox())!;
   expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem'))
-    .toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Sena pass (undviks)', 'Marginal efter pass', 'Pass utan lärare']);
+    .toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Sena pass (undviks)', 'Marginal före eller efter pass', 'Pass utan lärare']);
   // Passrutan visar justerad längd mot grundschemat och kortning vissa veckor med text.
   await expect(page.locator('[data-lesson="pass-1"]')).toContainText('65 min · 70 i grundschemat');
   await expect(page.locator('[data-lesson="pass-1"]')).toContainText('kortare 2 veckor');
@@ -592,14 +593,14 @@ test('lagren visas och döljs med chipsen, valet minns och utan lager ser veckan
   await medVillkor(page);
   const sparr = page.getByRole('region', { name: 'Måndag' }).locator('.schema-falt.falt-sparrad');
   // Förval: alla på utom Salar.
-  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginal efter pass', 'Sena pass']) await expect(chip(page, name)).toHaveAttribute('aria-pressed', 'true');
+  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginaler', 'Sena pass']) await expect(chip(page, name)).toHaveAttribute('aria-pressed', 'true');
   await expect(chip(page, 'Salar')).toHaveAttribute('aria-pressed', 'false');
   await chip(page, 'Spärrad tid').click();
   await expect(sparr).toHaveCount(0);
   await expect(page.locator('.schema-falt.falt-lunch')).toHaveCount(5);
   await chip(page, 'Spärrad tid').click();
   await expect(sparr).toHaveCount(1);
-  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginal efter pass', 'Sena pass']) await chip(page, name).click();
+  for (const name of ['Spärrad tid', 'Tillåten tid', 'Lunch', 'Marginaler', 'Sena pass']) await chip(page, name).click();
   await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
   await expect(page.locator('.status-badge', { hasText: 'syns i veckan' })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare']);
@@ -618,7 +619,7 @@ test('veckan med villkor vid 200 % textstorlek', async ({ page }, info) => {
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   const sparr = page.getByRole('region', { name: 'Måndag' }).locator('.schema-falt.falt-sparrad');
   await expect(sparr.getByText('Spärrad · Klass 1 · 08:00–10:00')).toBeVisible();
-  await expect(chip(page, 'Marginal efter pass')).toBeVisible();
+  await expect(chip(page, 'Marginaler')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   // Rutnätet växer med texten.
   expect((await page.getByRole('region', { name: 'Måndag' }).locator('ol').boundingBox())!.height).toBeGreaterThan(1000);
@@ -627,4 +628,120 @@ test('veckan med villkor vid 200 % textstorlek', async ({ page }, info) => {
   await expect(page.getByRole('dialog', { name: 'Spärrad tid för Klass 1' })).toBeVisible();
   if (shots) await page.screenshot({ path: `${shots}/schema-villkor-200-1280.png`, fullPage: true });
   if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-villkor-200-1600.png`, fullPage: true }); }
+});
+
+// ---------------------------------------------------------------------------
+// Marginal före och efter pass (05.2-SM-MARGINAL, designvyn Regler). Arbetsytan prövas bara på dator (beslut 2026-11-13).
+// ---------------------------------------------------------------------------
+test.describe('marginaler för pass', () => {
+  test.beforeEach(({}, info) => { test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.'); });
+  const band = (page: Page, day: string) => page.getByRole('region', { name: day }).locator('.schema-band.falt-marginal');
+  async function start(page: Page, width = 1280) {
+    await page.setViewportSize({ width, height: 1000 });
+    const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
+    await page.goto(URL);
+    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
+    return { bodies, m: page.locator('.schema-marginaler') };
+  }
+
+  test('marginal för idrotten syns före och efter passet i klassens vy men inte i lärarens, och kan ändras, tas bort och ångras', async ({ page }) => {
+    const { bodies, m } = await start(page);
+    await expect(m.getByRole('heading', { name: 'Ny marginal' })).toBeVisible();
+    await expect(m.getByRole('heading', { name: 'Marginaler (0)' })).toBeVisible();
+    // Formuläret som i designvyn: förval 10 min före, 15 efter, omklädning och dusch, upptar eleverna; "Vid byte av plats" väntar på salsregistret.
+    await expect(m.getByLabel('Gäller')).toHaveValue('amne');
+    await m.getByLabel(/^Ämne/u).selectOption('Idrott och hälsa');
+    await expect(m.getByLabel('Före passet')).toHaveValue('10');
+    await expect(m.getByLabel('Efter passet')).toHaveValue('15');
+    await expect(m.getByLabel('Etikett i schemat')).toHaveValue('Omklädning före, dusch efter');
+    await expect(m.getByLabel('Eleverna', { exact: true }).first()).toBeChecked();
+    await expect(m.getByRole('button', { name: 'Vid byte av plats' })).toBeDisabled();
+    await expect(m.getByRole('button', { name: 'Alltid' })).toHaveAttribute('aria-pressed', 'true');
+    await expect(m.getByLabel('Schemaläggaren')).toBeDisabled();
+    // Förhandsvisningen ritar samma band som veckan för ett pass marginalen gäller.
+    const forhand = m.locator('.schema-marginal-forhand');
+    await expect(forhand.getByRole('heading')).toHaveText('Så blir det, fredag 08:10–09:45');
+    await expect(forhand.locator('.bana-marginal')).toHaveText(['Före passet, 10 min: Omklädning', 'Efter passet, 15 min: Dusch']);
+    await expect(forhand).toContainText('Eleverna är upptagna under omklädning och dusch.');
+    await m.getByRole('button', { name: 'Lägg till marginal' }).click();
+    await expect(m.getByRole('heading', { name: 'Marginaler (1)' })).toBeVisible();
+    const idrott = m.getByRole('row', { name: /Ämne Idrott och hälsa/u });
+    await expect(idrott.getByRole('cell')).toHaveText(['Ämne Idrott och hälsaOmklädning före, dusch efter', '10 · 15 min', 'Elever', 'Alltid', 'ÄndraTa bort']);
+    // I klassens vy: omklädning före och dusch efter idrotten, med text för skärmläsare. Passets tid är undervisningen.
+    await expect(band(page, 'Tisdag')).toHaveText(['Före Idrott och hälsa: Omklädning 10 min', 'Efter Idrott och hälsa: Dusch 15 min']);
+    await expect(band(page, 'Fredag')).toHaveCount(2);
+    await expect(page.getByRole('list', { name: 'Teckenförklaring' })).toContainText('Marginal före eller efter pass');
+    const tisdag = page.getByRole('region', { name: 'Tisdag' });
+    const [pass, fore, efter] = await Promise.all([tisdag.locator('[data-lesson="pass-19"]').boundingBox(), band(page, 'Tisdag').nth(0).boundingBox(), band(page, 'Tisdag').nth(1).boundingBox()]);
+    expect(fore!.y + fore!.height).toBeLessThanOrEqual(pass!.y + 1);
+    expect(efter!.y).toBeGreaterThanOrEqual(pass!.y + pass!.height - 3);
+    expect(efter!.height / fore!.height).toBeCloseTo(1.5, 1);
+    if (shots) await page.locator('.schema-week').screenshot({ path: `${shots}/schema-marginaler-vecka-1280.png` });
+
+    // Ett enskilt pass: 10 min efter programämnet som bara upptar eleverna. Syns i klassens vy men inte i lärarens.
+    await m.getByLabel('Gäller').selectOption('pass');
+    await m.getByLabel(/^Pass/u).selectOption('pass-36');
+    await m.getByLabel('Före passet').selectOption('0');
+    await m.getByLabel('Efter passet').selectOption('10');
+    await m.getByLabel('Etikett i schemat').selectOption('Övergång');
+    await m.getByRole('button', { name: 'Lägg till marginal' }).click();
+    await expect(band(page, 'Måndag')).toHaveText('Efter Programämne: Övergång 10 min');
+    await page.getByRole('button', { name: 'Lärare', exact: true }).click();
+    await page.locator('.schema-filter select').first().selectOption({ label: 'Provlärare 22' });
+    await expect(page.getByRole('region', { name: 'Måndag' }).locator('[data-lesson="pass-36"]')).toBeVisible();
+    await expect(page.locator('.schema-band')).toHaveCount(0);
+    // Ändra: marginalen upptar också läraren och syns då i lärarens vy.
+    await m.getByRole('button', { name: /^Ändra marginalen Pass Programämne/u }).click();
+    await expect(m.getByRole('heading', { name: 'Ändra marginal' })).toBeVisible();
+    await expect(m.getByLabel('Gäller')).toBeFocused();
+    await m.getByLabel('Läraren').check();
+    await m.getByRole('button', { name: 'Spara ändringen' }).click();
+    await expect(band(page, 'Måndag')).toHaveText('Efter Programämne: Övergång 10 min');
+    await expect(m.getByRole('row', { name: /Pass Programämne/u }).getByRole('cell').nth(2)).toHaveText('Elever, lärare');
+    await page.getByRole('button', { name: 'Klass', exact: true }).click();
+
+    // Ta bort med tangentbordet; fokus på Ångra, och ångra lägger tillbaka marginalen och banden.
+    await m.getByRole('button', { name: 'Ta bort marginalen Ämne Idrott och hälsa' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(m.getByText('Marginalen är borttagen: Ämne Idrott och hälsa, 10 · 15 min.')).toBeVisible();
+    await expect(band(page, 'Tisdag')).toHaveCount(0);
+    await expect(m.getByRole('button', { name: 'Ångra borttagningen' })).toBeFocused();
+    await page.keyboard.press('Enter');
+    await expect(m.getByRole('heading', { name: 'Marginaler (2)' })).toBeVisible();
+    await expect(m.getByRole('row').nth(1)).toContainText('Ämne Idrott och hälsa');
+    await expect(band(page, 'Tisdag')).toHaveCount(2);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    if (shots) await m.screenshot({ path: `${shots}/schema-marginaler-1280.png` });
+
+    // Nästa förslag får marginalerna i fast form.
+    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await expect.poll(() => bodies.length).toBe(2);
+    expect((bodies[1].villkor as typeof forslag.villkor).egna).toEqual([
+      { slag: 'amne', ref: 'Idrott och hälsa', typ: 'marginal', beforeMin: 10, afterMin: 15, occupies: ['elever'], label: 'Omklädning före, dusch efter', visibleFor: ['elever'], when: 'alltid' },
+      { slag: 'pass', ref: 'pass-36', typ: 'marginal', beforeMin: 0, afterMin: 10, occupies: ['elever', 'larare'], label: 'Övergång', visibleFor: ['elever'], when: 'alltid' }]);
+    if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await m.screenshot({ path: `${shots}/schema-marginaler-1600.png` }); }
+  });
+
+  test('marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla', async ({ page }) => {
+    await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`,
+      JSON.stringify({ ...forslag.villkor, egna: [{ slag: 'amne', ref: 'Programämne', typ: 'marginal', minutes: 20 }] })] as const);
+    const { bodies, m } = await start(page);
+    expect((bodies[0].villkor as typeof forslag.villkor).egna).toEqual([
+      { slag: 'amne', ref: 'Programämne', typ: 'marginal', beforeMin: 0, afterMin: 20, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' }]);
+    await expect(m.getByRole('row', { name: /Ämne Programämne/u }).getByRole('cell')).toHaveText(['Ämne ProgramämneÖvergång', '– · 20 min', 'Elever, lärare, sal', 'Alltid', 'ÄndraTa bort']);
+    await expect(band(page, 'Måndag').first()).toHaveText('Efter Programämne: Övergång 20 min');
+  });
+
+  test('formuläret och listan vid 200 % textstorlek, utan sidledsrullning', async ({ page }) => {
+    const { m } = await start(page);
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    await m.getByLabel(/^Ämne/u).selectOption('Idrott och hälsa');
+    await m.getByRole('button', { name: 'Lägg till marginal' }).click();
+    await expect(m.getByRole('row', { name: /Ämne Idrott och hälsa/u })).toBeVisible();
+    await expect(m.getByRole('button', { name: 'Lägg till marginal' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    if (shots) await m.screenshot({ path: `${shots}/schema-marginaler-200-1280.png` });
+  });
 });

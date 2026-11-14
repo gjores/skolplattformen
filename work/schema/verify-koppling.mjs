@@ -1,4 +1,4 @@
-// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR och -LAGEN med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR, -LAGEN och -MARGINAL med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
@@ -142,15 +142,18 @@ try {
     assert.equal(r.status, 200, text.slice(0, 300));
     return parseSchemaSolution(JSON.parse(text), u.problem);
   };
+  const marginal = (slag, ref, beforeMin, afterMin, occupies, label) => ({ slag, ref, typ: 'marginal', beforeMin, afterMin, occupies, label, visibleFor: ['elever'], when: 'alltid' });
   const egna = [
     { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] },
     { slag: 'klass', ref: uid(100), typ: 'sparrad', days: [0], startMin: 480, endMin: 720 },
     { slag: 'larare', ref: uid(205), typ: 'tillaten', days: [0, 1, 2, 3], startMin: 480, endMin: 960 },
-    { slag: 'amne', ref: 'Matematik', typ: 'marginal', minutes: 20 },
+    marginal('amne', 'Matematik', 0, 20, ['elever', 'larare', 'sal'], 'Övergång'),
     { slag: 'amne', ref: 'Engelska', typ: 'antal', count: 3 },
     { slag: 'amne', ref: 'Programämne', typ: 'langd', maxMin: 90 },
     { slag: 'sal', ref: 'Idrottshallen', typ: 'sparrad', days: [4], startMin: 0, endMin: 1440 },
-    { slag: 'grupp', ref: uid(399), typ: 'marginal', minutes: 10 }];
+    marginal('grupp', uid(399), 0, 10, ['elever', 'larare', 'sal'], 'Övergång'),
+    // Marginal (05.2-SM-MARGINAL): omklädning och dusch upptar bara eleverna, så hallen och läraren är lediga under dem.
+    marginal('amne', 'Idrott och hälsa', 10, 15, ['elever'], 'Omklädning före, dusch efter')];
   const egnaRequest = { ...request, villkor: { ...defaultSchemaVillkor(), salar: ['Idrottshallen', 'Sal A'], egna } };
   const u2 = buildSchemaUnderlag(plan, egnaRequest, basis), sent2 = JSON.stringify(u2.problem);
   assert.ok(!sent2.includes('52a10000') && !sent2.includes('Idrott') && !sent2.includes('Sal A'), 'namn eller ID nådde motorn');
@@ -169,10 +172,20 @@ try {
   assert.ok(klass1.every(l => l.day !== 0 || l.startMin >= 720), 'klass 1 har pass på spärrad tid');
   assert.ok(f2.lessons.filter(l => l.teacherIds.includes('larare-6')).every(l => l.day <= 3 && end(l) <= 960), 'läraren har pass utanför tillåten tid');
   assert.ok(idrott.length && idrott.every(l => l.roomId === 'sal-1' && l.day !== 4), 'idrotten ligger inte i idrottshallen eller på spärrad dag');
-  for (const [i, a] of idrott.entries()) for (const b of idrott.slice(i + 1)) assert.ok(!meet(a, b) || end(a) <= b.startMin || end(b) <= a.startMin, 'två pass i samma sal samtidigt');
+  let hallUnderDusch = 0;
+  for (const [i, a] of idrott.entries()) for (const b of idrott.slice(i + 1)) {
+    assert.ok(!meet(a, b) || end(a) <= b.startMin || end(b) <= a.startMin, 'två pass i samma sal samtidigt');
+    if (meet(a, b) && (b.startMin >= end(a) && b.startMin < end(a) + 15 || a.startMin >= end(b) && a.startMin < end(b) + 15)) hallUnderDusch += 1;
+  }
+  // Marginalen följer passet: 20 min efter matematiken för klassen, och omklädning 10 min före och dusch 15 min efter idrotten. Passens längd är undervisningen.
   const matte = f2.lessons.filter(l => l.title === 'Matematik');
-  assert.ok(matte.every(l => l.marginMin === 20 - egnaRequest.villkor.breakMin) && f2.lessons.every(l => l.title === 'Matematik' || l.marginMin === 0));
+  assert.ok(matte.every(l => l.marginMin === 20 && l.marginBeforeMin === 0) && idrott.every(l => l.marginMin === 15 && l.marginBeforeMin === 10)
+    && f2.lessons.every(l => ['Matematik', 'Idrott och hälsa'].includes(l.title) || l.marginMin + l.marginBeforeMin === 0));
+  assert.deepEqual(f2.lessons.map(l => l.durationMin), u2.labels.lessons.map(l => l.durationMin));
   for (const m of matte) for (const l of f2.lessons) if (l !== m && meet(m, l) && l.startMin >= m.startMin && l.classIds.some(c => m.classIds.includes(c))) assert.ok(l.startMin >= end(m) + 20, 'marginalen efter matematik hålls inte');
+  for (const m of idrott) for (const l of f2.lessons) if (l !== m && meet(m, l) && l.classIds.some(c => m.classIds.includes(c)))
+    assert.ok(l.startMin >= end(m) + 15 || end(l) <= m.startMin - 10, `omklädning eller dusch överlappar ett annat pass för klassen: ${m.id} ${l.id}`);
+  assert.ok(idrott.every(l => l.startMin - 10 >= f2.days[l.day].startMin && end(l) + 15 <= f2.days[l.day].endMin), 'idrotten med marginal ryms inte i skoldagen');
   assert.ok(f2.lessons.filter(l => l.title === 'Engelska' && l.classIds[0] === f2.classes[0].id && l.term === 'ht').length === 3, 'engelskan ska ha tre pass i veckan');
   assert.ok(f2.lessons.filter(l => l.title === 'Programämne').every(l => l.durationMin <= 90), 'programämnet har pass längre än 90 minuter');
   // Uppdelning och marginal ändrar inte hur mycket tid som läggs (T1).
@@ -184,7 +197,7 @@ try {
   assert.ok(fredag.violations.some(v => v.code === 'room_unavailable' && v.message.includes('Idrottshallen')), 'spärrad sal redovisas inte');
   assert.ok(morgon.violations.some(v => v.code === 'outside_allowed' && v.lessons.includes(tidig.id)), 'spärrad tid redovisas inte');
   assert.ok([...fredag.violations, ...morgon.violations].every(v => !/\b(?:pass|grupp|kluster|larare|behov|sal)-\d/u.test(v.message)), 'löpnummer i avvikelsetext');
-  console.log(JSON.stringify({ egna: { status: f2.status, ...f2.metrics, utanTraff: f2.egnaUtanTraff, sal: fredag.violations.find(v => v.code === 'room_unavailable').message, tid: morgon.violations.find(v => v.code === 'outside_allowed').message } }));
+  console.log(JSON.stringify({ egna: { status: f2.status, ...f2.metrics, utanTraff: f2.egnaUtanTraff, idrottMedMarginal: idrott.length, hallenUnderDusch: hallUnderDusch, sal: fredag.violations.find(v => v.code === 'room_unavailable').message, tid: morgon.violations.find(v => v.code === 'outside_allowed').message } }));
   // Otillfredsställbart fönster: historia får bara ligga måndag 08.00–08.20.
   const trang = { ...request, villkor: { ...defaultSchemaVillkor(), egna: [{ slag: 'amne', ref: 'Historia', typ: 'tillaten', days: [0], startMin: 480, endMin: 500 }] } };
   const u3 = buildSchemaUnderlag(plan, trang, basis), s3 = await solve(u3), f3 = schemaForslag(plan, trang, u3, s3);
@@ -193,7 +206,7 @@ try {
   assert.ok(f3.teachings.filter(t => t.title === 'Historia').every(t => t.deviation === 'unplaced'));
   console.log(JSON.stringify({ trang: { status: f3.status, ...f3.metrics, diagnoses: f3.diagnoses.slice(0, 1) } }));
   // Möjliga starttider (05.2-SM-LAGEN): samma steg som appens lägesrutt, mot tjänstens /v1/positions, för ett pass i klass 1.
-  const lagen = async (lesson, pupil = null, lessons = forslag.lessons) => {
+  const lagen = async (lesson, pupil = null, lessons = forslag.lessons, underlag = base) => {
     const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId ?? null }]), underlag.problem);
     const started = performance.now();
     const reply = await fetch(`${url}/v1/positions`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
@@ -226,6 +239,15 @@ try {
   for (const l of own.slice(0, 8)) tider.push((await lagen(l.id)).ms);
   console.log(JSON.stringify({ lagen: { lessons: underlag.problem.lessons.length, positions: svar.positions.length, fri: count('fri'), onskemal: count('onskemal'), byte: count('byte'), brott: count('brott'), sparrad: count('sparrad'),
     ms, msMax: Math.max(...tider), elevBrott: enElev.svar.positions.filter(x => x.state === 'brott').length, varfor: rader } }));
+  // Marginal i lägena (05.2-SM-MARGINAL): möjliga starttider för ett idrottspass med omklädning och dusch ger samma svar som kontrollen av en flytt dit.
+  const gympaPass = idrott.find(l => l.classIds.includes(f2.classes[0].id)), marg = await lagen(gympaPass.id, null, f2.lessons, u2);
+  assert.ok(marg.svar.positions.every(x => x.startMin - 10 >= f2.days[x.day].startMin && x.startMin + gympaPass.durationMin + 15 <= f2.days[x.day].endMin), 'lägena ska bara ha tider där marginalen ryms');
+  const prov = { fri: marg.svar.positions.filter(x => x.state === 'fri').slice(0, 4), brott: marg.svar.positions.filter(x => x.state === 'brott').slice(0, 4) };
+  for (const [state, list] of Object.entries(prov)) for (const x of list) {
+    const k = await kontroll(f2.lessons.map(l => l.id === gympaPass.id ? { ...l, day: x.day, startMin: x.startMin, roomId: x.room ?? l.roomId } : l), u2, f2);
+    assert.ok(state === 'fri' ? k.total === 0 : k.total > 0, `läget ${state} ${x.day} ${x.startMin} stämmer inte med kontrollen (${k.total} avvikelser)`);
+  }
+  console.log(JSON.stringify({ marginalLagen: { positions: marg.svar.positions.length, provadeFri: prov.fri.length, provadeBrott: prov.brott.length, ms: marg.ms } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
   const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};

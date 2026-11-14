@@ -114,7 +114,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   function pick(l: SchemaForslagLesson) {
     if (!forslag || checking) return;
     if (skipClick.current) return;
-    const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin + l.marginMin);
+    const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin + l.marginMin, l.marginBeforeMin);
     setTarget({ day, startMin: l.startMin !== null && starts.includes(l.startMin) ? l.startMin : starts[0] ?? forslag.days[day].startMin, room: l.roomId });
     dispatch({ type: 'pick', lesson: l.id }); setMoveError(null);
   }
@@ -180,7 +180,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const lager = forslag ? schemaLager(villkor, forslag, { slag: by === 'class' ? 'klass' : 'larare', ref: selected }, { lessons: shown, alla: forslag.lessons.filter(l => l.term === null || l.term === shownTerm), layers: utkast.layers }) : null;
   const egnaSyns = lager ? Object.values(lager.kallor).filter(k => k.typ === 'egen').length : 0;
   const villkorAndrade = forslag !== null && JSON.stringify(villkor) !== JSON.stringify(forslag.villkor);
-  const NAMN = { onskemal: 'Sena pass (undviks)', 'band-marginal': 'Marginal efter pass' };
+  const NAMN = { onskemal: 'Sena pass (undviks)', 'band-marginal': 'Marginal före eller efter pass' };
   function taBort(k: Extract<SchemaKalla, { typ: 'egen' }>) {
     const rule = villkor.egna[k.index];
     if (!rule) return;
@@ -203,7 +203,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
       <Button type="submit" disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>
       <p className="schema-note schema-wide">Hur mycket tid ett ämne har och vilken termin kommer ur timplanen, via tjänstefördelningens behov. Tiden räknas på läsårskalenderns skoldagar. Vilka pass som får gå samtidigt avgörs av elevernas klasser och grupper.</p>
-      <Villkor value={villkor} disabled={busy} issues={issues} resurser={forslag?.resurser ?? null} onChange={setVillkor}/>
+      <Villkor value={villkor} disabled={busy} issues={issues} resurser={forslag?.resurser ?? null} forslag={forslag} onChange={setVillkor}/>
     </form>
     <output aria-live="polite" className="schema-note">{busy ? `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}

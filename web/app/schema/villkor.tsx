@@ -3,7 +3,10 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { SCHEMA_REGEL_SLAG, SCHEMA_REGEL_TYPER, SCHEMA_VILLKOR_LIMITS, defaultSchemaVillkor, parseSchemaVillkor, type SchemaRegel, type SchemaRegelSlag, type SchemaRegelTyp, type SchemaVillkor } from '@/lib/schema-contract.ts';
+import { lasGammalMarginal } from '@/lib/schema-marginal.ts';
+import type { SchemaForslag } from '@/lib/schema-contract.ts';
 import { DAYS, REGEL, SAME_DAY, SLAG, clock, daysText, hoursText, minutesOf, ruleText, steps, type Resurser } from './delat.ts';
+import { Marginaler } from './marginaler.tsx';
 
 /** Senast använda villkor för skolan, i den här webbläsaren. Egna villkor bär appens ID för klass, grupp och lärare, aldrig namn; ämnen och salar står med namn. Inget annat lagras. */
 const villkorKey = (unitId: string) => `schema-villkor:${unitId}`;
@@ -12,8 +15,9 @@ export function storedVillkor(unitId: string): SchemaVillkor | null {
     const raw = window.localStorage.getItem(villkorKey(unitId)), value = raw === null ? null : JSON.parse(raw) as Record<string, unknown> | null;
     if (value === null || typeof value !== 'object') return null;
     // Villkor sparade före egna villkor får tomma listor. Valet av egna pass per termin finns inte längre (05.2-SM-TIMPLAN-EXAKT, E5).
+    // Marginal till nästa lektion (R4) sparad före 05.2-SM-MARGINAL läses som marginal efter passet som upptar alla.
     const rest = Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'termDiffPct'));
-    return parseSchemaVillkor('egna' in rest ? rest : { ...rest, salar: [], egna: [] });
+    return parseSchemaVillkor('egna' in rest ? { ...rest, egna: Array.isArray(rest.egna) ? rest.egna.map(lasGammalMarginal) : rest.egna } : { ...rest, salar: [], egna: [] });
   } catch { return null; }
 }
 
@@ -22,7 +26,8 @@ export function rememberVillkor(unitId: string, villkor: SchemaVillkor): void {
 }
 
 /** Villkoren för schemat (05.2-SM-LASAR-VILLKOR, V2). Värdena prövas här och igen på servern. */
-export function Villkor({ value: v, disabled, issues, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
+export function Villkor({ value: v, disabled, issues, resurser, forslag = null, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; resurser: Resurser | null;
+  /** Förslaget, för förhandsvisningen av en marginal. */ forslag?: SchemaForslag | null; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS, set = (patch: Partial<SchemaVillkor>) => onChange({ ...v, ...patch });
   const time = (label: string, minutes: number, change: (minutes: number) => void, hidden = false) => <label className={hidden ? 'schema-time bare' : 'schema-time'}><span className={hidden ? 'sr-only' : undefined}>{label}</span>
     <input type="time" step={300} required disabled={disabled} value={clock(minutes)} onChange={e => { const next = minutesOf(e.target.value); if (next !== null) change(next); }}/></label>;
@@ -65,6 +70,7 @@ export function Villkor({ value: v, disabled, issues, resurser, onChange }: { va
         {choice('Högst undervisning per dag, lärare', v.teacherMaxMinPerDay, steps(L.perDay[0], L.perDay[1], 30, v.teacherMaxMinPerDay), n => set({ teacherMaxMinPerDay: n }), hoursText, 'Ingen gräns')}
       </fieldset>
       <Egna value={v} disabled={disabled} resurser={resurser} onChange={onChange}/>
+      <Marginaler value={v} disabled={disabled} resurser={resurser} forslag={forslag} onChange={onChange}/>
     </div>
     <div><Button type="button" variant="outline" disabled={disabled || !changed} onClick={() => onChange(defaultSchemaVillkor())}>Återställ förval</Button></div>
   </details>;
@@ -74,22 +80,23 @@ export function Villkor({ value: v, disabled, issues, resurser, onChange }: { va
 function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS;
   const [sal, setSal] = useState('');
-  const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as SchemaRegelTyp, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, minutes: 15, maxMin: 60, count: 2, rooms: [] as string[] });
+  const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as Exclude<SchemaRegelTyp, 'marginal'>, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, maxMin: 60, count: 2, rooms: [] as string[] });
   const name = sal.trim(), canAddSal = name.length > 0 && name.length <= L.salNamn && v.salar.length < L.salar && !v.salar.some(x => x.toLowerCase() === name.toLowerCase());
   const addSal = () => { if (canAddSal) { onChange({ ...v, salar: [...v.salar, name] }); setSal(''); } };
   // En sal som tas bort tas också bort ur villkoren.
   const removeSal = (room: string) => onChange({ ...v, salar: v.salar.filter(x => x !== room),
     egna: v.egna.flatMap((r): SchemaRegel[] => r.slag === 'sal' && r.ref === room ? [] : !('rooms' in r) ? [r] : r.rooms.some(x => x !== room) ? [{ slag: r.slag, ref: r.ref, typ: 'sal', rooms: r.rooms.filter(x => x !== room) }] : []) });
-  // Före första förslaget är bara salarna kända.
-  const slagen = SCHEMA_REGEL_SLAG.filter(x => x === 'sal' ? v.salar.length > 0 : resurser !== null && resurser[x].length > 0);
+  // Före första förslaget är bara salarna kända. Marginaler har ett eget formulär (Marginaler); här visas övriga villkor.
+  const egnaTyper = (x: SchemaRegelSlag) => SCHEMA_REGEL_TYPER[x].filter((t): t is Exclude<SchemaRegelTyp, 'marginal'> => t !== 'marginal');
+  const slagen = SCHEMA_REGEL_SLAG.filter(x => egnaTyper(x).length > 0 && (x === 'sal' ? v.salar.length > 0 : resurser !== null && resurser[x].length > 0));
   const slag = slagen.includes(draft.slag) ? draft.slag : slagen[0] ?? null;
   const choices = slag === null ? [] : slag === 'sal' ? v.salar.map(x => ({ ref: x, name: x })) : resurser?.[slag] ?? [];
   const ref = choices.some(c => c.ref === draft.ref) ? draft.ref : choices[0]?.ref ?? '';
-  const types = slag === null ? [] : SCHEMA_REGEL_TYPER[slag].filter(t => t !== 'sal' || v.salar.length > 0), typ = types.includes(draft.typ) ? draft.typ : types[0];
+  const types = slag === null ? [] : egnaTyper(slag).filter(t => t !== 'sal' || v.salar.length > 0), typ = types.includes(draft.typ) ? draft.typ : types[0];
   const rooms = draft.rooms.filter(x => v.salar.includes(x));
   const rule: SchemaRegel | null = slag === null || !ref || !typ ? null
     : typ === 'sparrad' || typ === 'tillaten' ? (draft.days.length > 0 && draft.startMin < draft.endMin ? { slag, ref, typ, days: [...draft.days].sort((a, b) => a - b), startMin: draft.startMin, endMin: draft.endMin } : null)
-    : typ === 'marginal' ? { slag, ref, typ, minutes: draft.minutes } : typ === 'langd' ? { slag, ref, typ, maxMin: draft.maxMin } : typ === 'antal' ? { slag, ref, typ, count: draft.count }
+    : typ === 'langd' ? { slag, ref, typ, maxMin: draft.maxMin } : typ === 'antal' ? { slag, ref, typ, count: draft.count }
     : rooms.length > 0 ? { slag, ref, typ, rooms } : null;
   const range = (from: number, to: number, step: number) => Array.from({ length: Math.floor((to - from) / step) + 1 }, (_, i) => from + i * step);
   const time = (label: string, minutes: number, change: (minutes: number) => void) => <label className="schema-time">{label}
@@ -110,19 +117,18 @@ function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor
       {slag !== null && <div className="schema-egna-form">
         <label>Gäller<select value={slag} onChange={e => setDraft({ ...draft, slag: e.target.value as SchemaRegelSlag, ref: '' })}>{slagen.map(x => <option key={x} value={x}>{SLAG[x]}</option>)}</select></label>
         <label>{SLAG[slag]}<select value={ref} onChange={e => setDraft({ ...draft, ref: e.target.value })}>{choices.map(c => <option key={c.ref} value={c.ref}>{c.name}</option>)}</select></label>
-        <label>Villkor<select value={typ} onChange={e => setDraft({ ...draft, typ: e.target.value as SchemaRegelTyp })}>{types.map(t => <option key={t} value={t}>{REGEL[t]}</option>)}</select></label>
+        <label>Villkor<select value={typ} onChange={e => setDraft({ ...draft, typ: e.target.value as Exclude<SchemaRegelTyp, 'marginal'> })}>{types.map(t => <option key={t} value={t}>{REGEL[t]}</option>)}</select></label>
         {(typ === 'sparrad' || typ === 'tillaten') && <>
           <fieldset className="schema-days schema-wide"><legend className="sr-only">Veckodagar</legend>{DAYS.slice(0, 5).map((d, i) => <label key={d} className="schema-check">
             <input type="checkbox" checked={draft.days.includes(i)} onChange={e => setDraft({ ...draft, days: e.target.checked ? [...draft.days, i] : draft.days.filter(x => x !== i) })}/>{d}</label>)}</fieldset>
           {time('Från', draft.startMin, startMin => setDraft({ ...draft, startMin }))}{time('Till', draft.endMin, endMin => setDraft({ ...draft, endMin }))}</>}
-        {typ === 'marginal' && number('Marginal', draft.minutes, range(L.marginal[0], L.marginal[1], 5), minutes => setDraft({ ...draft, minutes }), n => `${n} min`)}
         {typ === 'langd' && number('Längsta pass', draft.maxMin, range(L.maxLesson[0], L.maxLesson[1], 5), maxMin => setDraft({ ...draft, maxMin }), n => `${n} min`)}
         {typ === 'antal' && number('Pass per vecka', draft.count, range(L.antal[0], L.antal[1], 1), count => setDraft({ ...draft, count }), n => String(n))}
         {typ === 'sal' && <fieldset className="schema-days schema-wide"><legend className="sr-only">Salar för villkoret</legend>{v.salar.map(x => <label key={x} className="schema-check">
           <input type="checkbox" checked={rooms.includes(x)} onChange={e => setDraft({ ...draft, rooms: e.target.checked ? [...rooms, x] : rooms.filter(y => y !== x) })}/>{x}</label>)}</fieldset>}
         <div><Button type="button" variant="outline" disabled={disabled || rule === null || v.egna.length >= L.egna} onClick={() => { if (rule) onChange({ ...v, egna: [...v.egna, rule] }); }}>Lägg till villkor</Button></div>
       </div>}
-      {v.egna.length > 0 && <ul className="schema-egna" aria-label="Egna villkor">{v.egna.map((r, i) => <li key={i}><span>{ruleText(r, resurser)}</span>
+      {v.egna.some(r => r.typ !== 'marginal') && <ul className="schema-egna" aria-label="Egna villkor">{v.egna.map((r, i) => r.typ === 'marginal' ? null : <li key={i} data-egen={i}><span>{ruleText(r, resurser)}</span>
         <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort villkoret ${ruleText(r, resurser)}`} onClick={() => onChange({ ...v, egna: v.egna.filter((_, at) => at !== i) })}>Ta bort</Button></li>)}</ul>}
     </fieldset>
   </>;
