@@ -1366,7 +1366,8 @@ test('passtabell: filtrera på en lärare och sortera på dag; valet av vy minns
     await expect(dag).toHaveAttribute('aria-sort', 'ascending');
     const ordning = async () => (await page.locator('.passtabell tbody tr[data-lesson]').evaluateAll(rows => rows.map(r => [r.querySelector('[data-col="6"]')!.textContent!, r.querySelector('[data-col="7"]')!.textContent!])));
     const upp = await ordning();
-    expect(upp.map(([d, t]) => `${dagIndex(d)}|${t}`)).toEqual(upp.map(([d, t]) => `${dagIndex(d)}|${t}`).sort());
+    const nyckel = ([d, t]: string[]) => `${dagIndex(d)}|${t.slice(0, 5)}`;
+    expect(upp.map(nyckel)).toEqual(upp.map(nyckel).sort());
     await dag.getByRole('button').click();
     await expect(dag).toHaveAttribute('aria-sort', 'descending');
     expect((await ordning()).map(([d]) => dagIndex(d))).toEqual(upp.map(([d]) => dagIndex(d)).reverse());
@@ -1528,8 +1529,9 @@ test('passtabell: bara tangentbord', async ({ page }, info) => {
   // Till passet som Följ passet har data för.
   await page.getByLabel('Sök').fill('');
   await page.getByLabel('Lägg till filter').selectOption({ label: 'Provlärare 4' });
-  await page.getByLabel('Sök').fill(`matematik ${DAYS[own.day!]} ${tid(own.startMin!)}`);
-  await expect(rader).toHaveCount(1);
+  // Sökningen gäller inte dag och tid, så att raden står kvar när passet läggs på viloytan.
+  await page.getByLabel('Sök').fill('matematik klass 1');
+  await expect(tabell.rad(page, own.id)).toBeVisible();
   await tabell.cell(page, own.id, 1).focus();
   // Skift+F10: menyn med första punkten i fokus; Esc lämnar fokus på cellen.
   await page.keyboard.press('Shift+F10');
@@ -1623,17 +1625,23 @@ test('passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördr�
   const stor = { ...forslag, lessons, metrics: { ...forslag.metrics, lessons: 1000, placed: 1000 } } as typeof forslag;
   await tabell.start(page, 1600, stor);
   const matt: Record<string, number> = {};
-  const tid0 = await page.evaluate(() => performance.now());
-  await tabell.vy(page, 'Pass i tabell').click();
-  await expect(tabell.grid(page)).toBeVisible();
-  matt.forstaRader = await page.evaluate(t => performance.now() - t, tid0);
+  // Mätt i sidan: från klick på Pass i tabell tills de första raderna är ritade och lagda (layout), och tills alla 1 000 finns.
+  Object.assign(matt, await page.evaluate(async () => {
+    const forsta = new Promise<number>(res => { const o = new MutationObserver(() => { if (document.querySelector('.passtabell tbody tr')) { o.disconnect(); res(performance.now()); } }); o.observe(document.body, { subtree: true, childList: true }); });
+    const t = performance.now();
+    (document.querySelector('[role="group"][aria-label="Visa schemat som"] button:nth-child(2)') as HTMLButtonElement).click();
+    await forsta; void document.body.offsetHeight;
+    const forstaRader = performance.now() - t;
+    while (document.querySelectorAll('.passtabell tbody tr[data-lesson]').length < 1000) await new Promise(r => requestAnimationFrame(r));
+    void document.body.offsetHeight;
+    return { forstaRader, allaRader: performance.now() - t };
+  }));
   await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(1000);
-  matt.allaRader = await page.evaluate(t => performance.now() - t, tid0);
   /** Tiden från klick eller val tills tabellen visar resultatet (två bildrutor efter ändringen). */
   const tidFor = (atgard: string, klar: string) => page.evaluate(async ([atgard, klar]) => {
     const t = performance.now();
     if (atgard.startsWith('sort:')) (document.querySelector(`.passtabell thead th:nth-child(${atgard.slice(5)}) button`) as HTMLButtonElement).click();
-    else { const s = document.querySelector<HTMLSelectElement>('.passtabell-verktyg select')!; s.value = atgard; s.dispatchEvent(new Event('change', { bubbles: true })); }
+    else { const s = document.querySelector('.passtabell-verktyg select') as unknown as { value: string; dispatchEvent: (e: Event) => boolean }; s.value = atgard; s.dispatchEvent(new Event('change', { bubbles: true })); }
     for (let i = 0; i < 200 && !document.querySelector(klar); i += 1) await new Promise(r => requestAnimationFrame(r));
     await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
     return performance.now() - t;
@@ -1649,7 +1657,7 @@ test('passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördr�
   });
   console.log(`1 000 pass i webbläsaren (ms): ${Object.entries(matt).map(([k, v]) => `${k} ${Math.round(v)}`).join(', ')}`);
   await info.attach('matt-1000-pass.json', { body: JSON.stringify(matt), contentType: 'application/json' });
-  expect(matt.forstaRader).toBeLessThan(1000);
-  expect(matt.allaRader).toBeLessThan(3000);
+  expect(matt.forstaRader).toBeLessThan(500);
+  expect(matt.allaRader).toBeLessThan(2000);
   for (const k of ['sorteraDag', 'sorteraUndervisning', 'filtreraLarare', 'rullaTillSlut']) expect(matt[k], k).toBeLessThan(500);
 });

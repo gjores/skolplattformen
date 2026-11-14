@@ -66,6 +66,21 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   const vantar = useRef<{ index: number; col: number } | null>(null), rot = tabellRef;
   const [mal, setMal] = useState<string | null>(null), [open, setOpen] = useState(false), tangentbord = useRef(false), menyFokus = useRef(false);
 
+  // En ny sortering, ett filter, en sökning eller gruppering ritar om i omgångar från början, så att resultatet syns direkt: att lägga om 1 000 rader
+  // på en gång tar märkbar tid i webbläsarens layout (mått i SUMMARY). Raden med fokus och markerat pass ritas alltid med.
+  const ordningsVal = `${JSON.stringify(val.filter)}|${val.sok}|${val.sortering.kolumn}|${val.sortering.stigande}|${val.gruppera}`;
+  const [ritatFor, setRitatFor] = useState(ordningsVal), forstaVal = useRef(ordningsVal);
+  if (ritatFor !== ordningsVal) {
+    setRitatFor(ordningsVal);
+    const behov = Math.max(ordning.findIndex(r => r.id === aktiv.id), picked ? ordning.findIndex(r => r.id === picked) : -1) + 1;
+    setAntal(Math.min(ordning.length, Math.max(FORSTA, behov + 20)));
+  }
+  useEffect(() => {
+    if (forstaVal.current === ordningsVal) return;
+    forstaVal.current = ordningsVal;
+    const ram = rot.current?.querySelector('[data-slot="table-container"]');
+    if (ram) ram.scrollTop = 0;
+  }, [ordningsVal, rot]);
   // Rader i omgångar: första omgången direkt, resten en bildruta i taget.
   useEffect(() => {
     if (antal >= ordning.length) return;
@@ -76,7 +91,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   useEffect(() => {
     const v = vantar.current;
     if (!v || !rot.current) return;
-    const el = rot.current.querySelector<HTMLElement>(v.index < 0 ? `thead [data-col="${v.col}"]` : `tr[data-index="${v.index}"] [data-col="${v.col}"]`);
+    const id = v.index < 0 ? null : ordning[v.index]?.id, el = rot.current.querySelector<HTMLElement>(id ? `tr[data-lesson="${id}"] [data-col="${v.col}"]` : `thead [data-col="${v.col}"]`);
     if (el) { vantar.current = null; el.focus(); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
   });
   // Markerat pass syns när tabellen öppnas.
@@ -122,7 +137,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   function onKeyDown(e: ReactKeyboardEvent<HTMLTableElement>) {
     const el = e.target as HTMLElement, cell = el.closest<HTMLElement>('[data-col]'), tr = el.closest<HTMLTableRowElement>('tr');
     if (!cell || !tr || e.altKey) return;
-    const col = Number(cell.dataset.col), index = tr.dataset.index === undefined ? -1 : Number(tr.dataset.index), ctrl = e.ctrlKey || e.metaKey;
+    const col = Number(cell.dataset.col), index = tr.dataset.lesson === undefined ? -1 : ordning.findIndex(r => r.id === tr.dataset.lesson), ctrl = e.ctrlKey || e.metaKey;
     const rad = index >= 0 ? ordning[index] : null, l = rad ? lessons.get(rad.id) : undefined, checkbox = el instanceof HTMLInputElement;
     const steg: Record<string, [number, number]> = { ArrowDown: [1, 0], ArrowUp: [-1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1], PageDown: [10, 0], PageUp: [-10, 0] };
     if (e.key === 'ContextMenu' || e.key === 'F10' && e.shiftKey) {
@@ -205,9 +220,9 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
         onOpenChangeComplete={next => { if (next && tangentbord.current) document.querySelector<HTMLElement>('.schema-meny [role="menuitem"]:not([data-disabled])')?.focus(); }}>
         <ContextMenuTrigger className="passtabell-yta" onContextMenu={onContextMenu}>
           <div ref={tabellRef} className="passtabell-ram">
-            <Table role="grid" aria-labelledby={`${id}-rubrik`} aria-describedby={`${id}-hjalp`} aria-multiselectable="true" aria-rowcount={ordning.length + 1} aria-colcount={SISTA_KOLUMN + 1}
+            <Table role="grid" aria-labelledby={`${id}-rubrik`} aria-describedby={`${id}-hjalp`} aria-multiselectable="true" aria-colcount={SISTA_KOLUMN + 1}
               onKeyDown={onKeyDown} onFocus={onFocus}>
-              <TableHeader><TableRow aria-rowindex={1}>
+              <TableHeader><TableRow>
                 <TableHead className="passtabell-valruta"><input type="checkbox" data-col={0} tabIndex={tab(0)} checked={allaValda} aria-label="Välj alla pass som visas"
                   ref={el => { if (el) el.indeterminate = synligaValda.length > 0 && !allaValda; }}
                   onChange={() => setValda(allaValda ? new Set() : new Set(ordning.map(r => r.id)))}/></TableHead>
@@ -232,7 +247,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   </section>;
 
   function radFor(r: PassRad, index: number) {
-    return <Rad key={r.id} rad={r} index={index} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === r.id} onVald={valj}/>;
+    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === r.id} onVald={valj}/>;
   }
 }
 
@@ -243,12 +258,13 @@ function Grupprad({ grupp: g }: { grupp: PassGrupp }) {
     <strong>{g.undervisning}{g.klasser.length ? ` · ${g.klasser.join(', ')}` : ''}</strong><span className="schema-note"> {g.rader.length} pass · {tid}</span></th></TableRow>;
 }
 
-const Rad = memo(function Rad({ rad: r, index, aktivCol, vald, markerad, onVald }: {
-  rad: PassRad; index: number; aktivCol: number | null; vald: boolean; markerad: boolean; onVald: (id: string, utoka: boolean) => void;
+// Raden får inte sin plats som prop: vid sortering flyttas raderna utan att ritas om.
+const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald }: {
+  rad: PassRad; aktivCol: number | null; vald: boolean; markerad: boolean; onVald: (id: string, utoka: boolean) => void;
 }) {
   const tab = (c: number) => aktivCol === c ? 0 : -1;
   const veckor = veckorText(r), marginal = marginalText(r);
-  return <TableRow data-lesson={r.id} data-index={index} aria-rowindex={index + 2} aria-selected={vald} data-state={vald ? 'selected' : undefined}
+  return <TableRow data-lesson={r.id} aria-selected={vald} data-state={vald ? 'selected' : undefined}
     className={`${markerad ? 'passtabell-markerad' : ''}${r.status === 'avvikelse' ? ' passtabell-avvikelse' : ''}`}>
     <TableCell className="passtabell-valruta"><input type="checkbox" data-col={0} tabIndex={tab(0)} checked={vald} aria-label={`Välj ${radNamn(r)}`}
       onClick={e => onVald(r.id, e.shiftKey)} onChange={() => undefined}/></TableCell>
