@@ -290,26 +290,29 @@ try {
     .every(l => l.startMin >= sparr.endMin || l.startMin + l.durationMin <= sparr.startMin), 'nytt förslag lägger klassen på spärren');
   console.log(JSON.stringify({ villkorDirekt: { pass: a.id, sparr: [sparr.days[0], sparr.startMin, sparr.endMin], avvikelser: paSparren.total, kod: paSparren.violations[0].code,
     utpekade: [...utpekade], annat: annat.id, sparradeLagen: underSparr.length, flyttIn: inSparr.violations.filter(v => v.code === 'outside_allowed').length, nyttForslag: fSparr.status } }));
-  // Längsta dag per lärare (05.2-SM-VILLKORSTABELL, Q126): ett eget villkor `dag` för Provlärare 1 når motorn som `teachers[].max_min_per_day` och är ett
+  // Längsta dag per lärare (05.2-SM-VILLKORSTABELL, Q126): ett eget villkor `dag` för Provlärare 12 når motorn som `teachers[].max_min_per_day` och är ett
   // tidsvillkor. Lärarens undervisning räknas per termin och veckodag, som kontrollanten räknar den (pass som går hela läsåret räknas båda terminerna).
+  // Läraren har 820 min i veckan på hösten och en dag på 285 min i grundförslaget, så gränsen 240 min biter men går att hålla (5 × 240 = 1 200).
+  // Provlärare 1 (1 120 min i veckan, pass om 45–70 min) är för fullbokad: motorn hittar inget fullständigt schema på 10 s, utan att det är bevisat omöjligt.
   const dagar = (f, id) => { const out = {}; for (const l of f.lessons) if (l.day !== null && l.teacherIds.includes(id)) for (const t of l.term ? [l.term] : ['ht', 'vt']) out[`${t} ${l.day}`] = (out[`${t} ${l.day}`] ?? 0) + l.durationMin; return out; };
-  const ettan = forslag.teachers.find(t => t.name === 'Provlärare 1').id, foreDag = Math.max(...Object.values(dagar(forslag, ettan)));
-  const dagVillkor = { ...defaultSchemaVillkor(), egna: [{ slag: 'larare', ref: uid(200), typ: 'dag', maxMin: 240 }] }, dagRequest = { ...request, villkor: dagVillkor };
+  const tolvan = forslag.teachers.find(t => t.name === 'Provlärare 12').id, foreDag = Math.max(...Object.values(dagar(forslag, tolvan)));
+  const dagVillkor = { ...defaultSchemaVillkor(), egna: [{ slag: 'larare', ref: uid(211), typ: 'dag', maxMin: 240 }] }, dagRequest = { ...request, villkor: dagVillkor };
   const uDag = buildSchemaUnderlag(plan, dagRequest, basis);
-  assert.deepEqual(uDag.problem.teachers.map(t => t.max_min_per_day ?? null), [240, ...Array(TEACHERS - 1).fill(null)], 'längsta dag når inte motorn');
+  assert.deepEqual(uDag.problem.teachers.map(t => t.max_min_per_day ?? null), Array.from({ length: TEACHERS }, (_, i) => i === 11 ? 240 : null), 'längsta dag når inte motorn');
   assert.ok(sammaGrund(dagVillkor, request.villkor) && uDag.grundFingerprint === underlag.grundFingerprint, 'längsta dag ska vara ett tidsvillkor');
   assert.ok(!JSON.stringify(uDag.problem).includes('52a10000'), 'appens ID nådde motorn med längsta dag');
   // Direkt prövning mot det första förslaget: en dag över 240 min redovisas för läraren.
   const dagDirekt = await kontroll(forslag.lessons, schemaProvUnderlag(plan, { ...dagRequest, grundFingerprint: forslag.grundFingerprint }, basis));
   const forLang = dagDirekt.violations.filter(v => v.code === 'teacher_day_too_long');
-  assert.ok(foreDag <= 240 ? forLang.length === 0 : forLang.length > 0 && forLang.every(v => v.message.startsWith('Lärare Provlärare 1 har ')), 'kontrollen prövar inte längsta dag');
+  assert.ok(foreDag > 240, 'gränsen biter inte i grundförslaget');
+  assert.ok(forLang.length > 0 && forLang.every(v => v.message.startsWith('Lärare Provlärare 12 har ')), 'kontrollen prövar inte längsta dag');
   // Ett nytt förslag med villkoret: ingen dag över 240 min för läraren, och kontrollanten godkänner det.
   const fDag = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, dagRequest, uDag, await solve(uDag)))), dagRequest);
   assert.equal(fDag.status, 'complete', JSON.stringify(fDag.diagnoses.map(d => d.message)));
-  const efterDag = Math.max(...Object.values(dagar(fDag, ettan)));
-  assert.ok(efterDag <= 240, `Provlärare 1 har ${efterDag} min en dag`);
+  const efterDag = Math.max(...Object.values(dagar(fDag, tolvan)));
+  assert.ok(efterDag <= 240, `Provlärare 12 har ${efterDag} min en dag`);
   assert.equal((await kontroll(fDag.lessons, uDag, fDag)).total, 0, 'förslaget med längsta dag ska vara utan avvikelser');
-  console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 1', maxMin: 240, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
+  console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 12', maxMin: 240, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
   const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};

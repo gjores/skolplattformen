@@ -220,7 +220,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
                   <input type="checkbox" aria-label={`Välj ${rad.namn}`} {...kontrollFokus(r, c)} checked={mina.includes(rad.ref)} onChange={e => valj([rad.ref], e.target.checked)}/></TableCell>;
                 if (k.id === 'namn') return <TableHead key={k.id} scope="row" className="vt-namn" {...cellProps(r, c)}>{rad.namn}</TableHead>;
                 if (k.id === 'pass') return <TableCell key={k.id} {...cellProps(r, c)}>{rad.pass}</TableCell>;
-                if (k.id === 'veckotid') return <TableCell key={k.id} {...cellProps(r, c)}>{rad.veckotid}</TableCell>;
+                if (k.id === 'veckotid') return <TableCell key={k.id} className="vt-tid" {...cellProps(r, c)}>{rad.veckotid}</TableCell>;
                 if (k.id === 'vem') return <TableCell key={k.id} className="vt-vem" {...cellProps(r, c)}>{rad.vem}</TableCell>;
                 if (k.id === 'brott') return <TableCell key={k.id} data-vt={`${r}:${c}`} onClick={() => setAktiv({ r, c })} tabIndex={rad.brott > 0 ? undefined : aktiv.r === r && aktiv.c === c ? 0 : -1}>
                   {brottCell(rad.brott, r, c, `${rad.brott} pass bryter mot villkoren för ${rad.namn}`)}</TableCell>;

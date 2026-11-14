@@ -402,7 +402,8 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await expect(rules.getByRole('listitem')).toHaveText([/^Sal Idrottshallen: spärrad fredag 08:00–12:00/u, /^Ämne Idrott och hälsa: sal Idrottshallen/u, /^Klass Klass 1: pass om högst 60 min/u,
     new RegExp(`^Lärare ${forslag.resurser.larare[0].name}: bara alla dagar 08:00–15:00`, 'u')]);
   // Lärare kan inte få villkor för uppdelning eller sal; det avgörs av ämne, grupp och klass.
-  await expect(form.getByLabel(/^Villkor/u).locator('option')).toHaveText(['Spärrad tid', 'Tillåten tid', 'Sal']);
+  // Längsta dag per lärare (05.2-SM-VILLKORSTABELL) finns också i formuläret.
+  await expect(form.getByLabel(/^Villkor/u).locator('option')).toHaveText(['Spärrad tid', 'Tillåten tid', 'Sal', 'Längsta dag']);
   await expect(page.locator('.schema-villkor summary')).toContainText('4 egna villkor');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-egna-${info.project.name}.png`, fullPage: true });
@@ -574,11 +575,13 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   await page.keyboard.press('Escape');
   await expect(kalla).toBeHidden();
   await expect(field).toBeFocused();
-  // Ändra öppnar villkoret i villkorsformuläret.
+  // Ändra öppnar villkorets rad i Villkor i tabell (05.2-SM-VILLKORSTABELL; före det villkorsformuläret), med redigeraren öppen. Esc stänger den.
   await page.keyboard.press('Enter');
   await kalla.getByRole('button', { name: 'Ändra' }).click();
-  await expect(page.locator('details.schema-villkor')).toHaveAttribute('open', '');
-  await expect(page.getByRole('list', { name: 'Egna villkor' }).getByRole('listitem').first()).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Klasser' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('dialog', { name: 'Spärrad tid för Klass 1' }).locator('[data-ruta^="0-"][aria-selected="true"]')).toHaveCount(12);
+  await page.keyboard.press('Escape');
+  await page.locator('details.schema-villkor > summary').click();
   // Ta bort med tangentbord, sedan ångra.
   await field.focus();
   await page.keyboard.press('Enter');
@@ -1331,11 +1334,12 @@ const vt = {
 const vtLarare = forslag.resurser.larare.slice(0, 3);
 const vtSparr = vtLarare.map(l => ({ slag: 'larare', ref: l.ref, typ: 'sparrad', days: [4], startMin: 720, endMin: 990 }));
 const vtPaSparren = forslag.lessons.filter(l => ['larare-1', 'larare-2', 'larare-3'].some(t => l.teacherIds.includes(t)) && l.day === 4 && l.startMin! + l.durationMin > 720);
-async function vtKontroll(page: Page) {
+async function vtKontroll(page: Page, bodies: KontrollBody[]) {
   // Registreras efter mockKontroll och går därför först; övriga begäran går vidare dit.
   await page.route('**/api/schema/kontroll', route => {
     const body = route.request().postDataJSON() as KontrollBody;
     if (!sammaEgna(body.villkor.egna, vtSparr)) return route.fallback();
+    bodies.push(body);
     return route.fulfill({ headers, json: { ...clean, fingerprint: kontroll.clash.fingerprint, total: vtPaSparren.length,
       violations: vtPaSparren.map(l => ({ code: 'outside_allowed', message: `${l.title} ligger utanför tillåten tid fredag.`, lessons: [l.id] })) } });
   });
@@ -1345,7 +1349,7 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
   const bodies = await meny.start(page);
   await page.setViewportSize({ width, height: 1000 });
-  await vtKontroll(page);
+  await vtKontroll(page, bodies.kontroller);
   await vt.oppna(page, 'Lärare');
   await expect(vt.tabell(page).locator('thead th')).toHaveText(['', 'Namn', 'Pass', 'Veckotid', 'Klasser', 'Spärrad tid', 'Tillåten tid', 'Marginal', 'Salskrav', 'Längsta dag', 'Pass på villkoret']);
   await expect(vt.rad(page, 'Provlärare 1')).toHaveCount(1);
@@ -1405,8 +1409,8 @@ test('villkorstabell: redigera med bara tangentbordet, längsta dag per lärare 
   await expect(page.getByRole('tab', { name: 'Lärare', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(page.getByRole('tab', { name: 'Lärare', exact: true })).toHaveAttribute('aria-selected', 'true');
-  // Sök och Visa, sedan in i rutnätet: första radens namn.
-  await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+  // Flikens yta, Sök och Visa, sedan in i rutnätet: första radens namn.
+  for (let i = 0; i < 4; i++) await page.keyboard.press('Tab');
   const namn = page.getByRole('rowheader', { name: 'Provlärare 1', exact: true });
   await expect(namn).toBeFocused();
   // Mellanslag väljer raden, Skift+pil ned väljer två till.
@@ -1487,9 +1491,10 @@ test('villkorstabell: "Ändra" på ett fält i veckan öppnar rätt rad, och gru
   await page.getByRole('dialog').getByLabel('Längsta pass').selectOption('60');
   await page.getByRole('dialog').getByRole('button', { name: 'Spara' }).click();
   await expect(page.locator('[data-villkor-andrade="grund"]')).toContainText('Ändringen kräver ett nytt förslag.');
-  // Hela skolan: skoldagen från fältet i veckan.
+  // Ångra längsta pass: kvar är spärren, ett tidsvillkor som prövas direkt. Hela skolan har dagens övergripande villkor som rader.
   await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
-  await expect(page.locator('[data-villkor-andrade]')).toHaveCount(0);
+  await expect(page.locator('[data-villkor-andrade="tid"]')).toBeVisible();
+  await expect(await vt.cell(page, 'Klass 1', 'Längsta pass')).toHaveText('Inget villkor');
   await page.getByRole('tab', { name: 'Hela skolan' }).click();
   await expect(vt.tabell(page).locator('tbody th')).toHaveText(['Skoldag', 'Rast mellan pass', 'Pass får börja', 'Lunch', 'Längsta pass', 'Kortaste pass', 'Samma ämne samma dag', 'Sena pass', 'Längsta dag, elever', 'Längsta dag, lärare']);
   await expect(vt.tabell(page).locator('tbody tr').first().locator('td').first()).toHaveText('08:00–16:30 mån–fre');
@@ -1506,7 +1511,9 @@ test('villkorstabell vid 200 % text: tabellen rullar i sidled i sin ram, inte si
   // Namnet står kvar när tabellen rullas; redigeraren ryms på skärmen.
   await ram.evaluate(el => { el.scrollLeft = el.scrollWidth; });
   const namn = page.getByRole('rowheader', { name: 'Provlärare 1', exact: true });
-  await expect(namn).toBeInViewport();
+  await expect.poll(() => ram.evaluate(el => el.scrollLeft)).toBeGreaterThan(0);
+  const [r, n] = [(await ram.boundingBox())!, (await namn.boundingBox())!];
+  expect(n.x >= r.x && n.x + n.width <= r.x + r.width).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-villkorstabell-200-1280.png` });
   await (await vt.cell(page, 'Provlärare 1', 'Spärrad tid')).dblclick();
   const dialog = page.getByRole('dialog');

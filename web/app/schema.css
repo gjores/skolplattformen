@@ -290,12 +290,17 @@
 .villkorstabell .vt-sortera svg { width: 1em; height: 1em; }
 .villkorstabell .vt-grund { display: block; font-size: .75rem; font-weight: 400; color: var(--warning-foreground); }
 /* Valrutan och namnet står kvar när tabellen rullar i sidled. */
-.villkorstabell .vt-val { position: sticky; left: 0; z-index: 1; width: 2.75rem; background: var(--card); }
+.villkorstabell .vt-tabell .vt-val { position: sticky; left: 0; z-index: 1; box-sizing: border-box; width: 2.75rem; min-width: 2.75rem; max-width: 2.75rem; padding-inline: .875rem 0; background: var(--card); }
 .villkorstabell .vt-val input { width: 1rem; height: 1rem; margin-top: .125rem; accent-color: var(--primary); }
 .villkorstabell .vt-namn { position: sticky; left: 2.75rem; z-index: 1; min-width: 8rem; background: var(--card); font-weight: 600; }
 .villkorstabell .vt-tabell thead .vt-val, .villkorstabell .vt-tabell thead .vt-namn { background: var(--secondary); }
 .villkorstabell tr[data-state="selected"] .vt-val, .villkorstabell tr[data-state="selected"] .vt-namn { background: var(--muted); }
 .villkorstabell .vt-vem { min-width: 9rem; color: var(--muted-foreground); }
+.villkorstabell .vt-tid { white-space: nowrap; }
+/* Rubrikraden står kvar när tabellen rullar lodrätt i sin ram; ramen är högst så hög som skärmen, så att veckan nås. */
+.villkorstabell .vt-ram [data-slot="table-container"] { max-height: min(80vh, 60rem); overflow: auto; }
+.villkorstabell .vt-tabell thead th { position: sticky; top: 0; z-index: 2; }
+.villkorstabell .vt-tabell thead .vt-val, .villkorstabell .vt-tabell thead .vt-namn { z-index: 3; }
 .villkorstabell .vt-villkor { position: relative; min-width: 8.5rem; cursor: default; }
 .villkorstabell .vt-villkor.har { background: color-mix(in srgb, var(--accent) 70%, var(--card)); }
 .villkorstabell .vt-badge { display: inline-block; margin-top: .25rem; font-size: .75rem; }
@@ -322,7 +327,9 @@
 .tidsrutnat thead th { height: auto; padding: 0 0 .25rem; text-align: center; font-weight: 600; color: var(--foreground); }
 .tidsrutnat .tidsrutnat-tid { width: 2.75rem; height: auto; padding: 0 .375rem 0 0; text-align: right; vertical-align: top; font-weight: 400; color: var(--muted-foreground); }
 .tidsrutnat .tidsrutnat-tid span:not(.sr-only) { position: relative; top: -.45em; display: block; line-height: 1; font-size: .6875rem; }
-.tidsrutnat .tidsrutnat-ruta { width: 3.5rem; height: .5rem; padding: 0; border: 0; border-inline: 1px solid var(--border); border-radius: 0; background: var(--background); cursor: pointer; }
+.tidsrutnat .tidsrutnat-ruta { width: 3.5rem; height: .5rem; padding: 0; border: 0; border-inline: 1px solid var(--border); border-radius: 0; cursor: pointer; }
+/* Bakgrunden bara för rutor utan fältmönster, så att `falt-sparrad` och `falt-tillaten-ute` syns. */
+.tidsrutnat .tidsrutnat-ruta:not(.falt-sparrad, .falt-tillaten-ute, .vt-tillaten) { background: var(--background); }
 .tidsrutnat tr.hel .tidsrutnat-ruta { border-top: 1px solid var(--border); }
 .tidsrutnat tbody tr:last-child .tidsrutnat-ruta { border-bottom: 1px solid var(--border); }
 .tidsrutnat .tidsrutnat-ruta.falt-sparrad { border-radius: 0; border-inline: 1px dashed var(--schema-hatch-border); }
