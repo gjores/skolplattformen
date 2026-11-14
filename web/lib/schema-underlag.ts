@@ -230,7 +230,8 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     time: { step_min: d.stepMin, start_grid_min: v.startGridMin, days: v.days.map(day => ({ start_min: day.startMin, end_min: day.endMin })) },
     // Läsår: terminerna är motorns perioder, så att pass i olika terminer kan dela tid (L2).
     ...(terms.length > 1 ? { periods: terms.map(id => ({ id })) } : {}),
-    teachers: labels.teachers.map(t => ({ id: t.id, ...(v.teacherMaxMinPerDay === null ? {} : { max_min_per_day: v.teacherMaxMinPerDay }) })),
+    // Lärarnas längsta dag sätts när passen är lagda, se nedan.
+    teachers: [],
     // Salens spärrade tid, och all tid utanför dess tillåtna, är tid då salen inte kan användas (R3).
     ...(labels.rooms.length ? { rooms: labels.rooms.map(room => {
       const rules = v.egna.filter((r): r is Tid => r.slag === 'sal' && r.ref === room.name && tid(r));
@@ -411,6 +412,13 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
         labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin: outer.efter, marginBeforeMin: outer.fore, roomIds, vacant: t.vacant, term });
       });
     }
+  });
+  // Längsta dag per lärare (05.2-SM-VILLKORSTABELL, Q126): det lägsta av lärarens egna villkor och skolans värde. Ett tidsvillkor; ingår inte i grunden.
+  // Villkoret träffar när läraren har pass (markeras då av `egna` ovan).
+  problem.teachers = plan.teachers.map(t => {
+    const own = v.egna.flatMap(r => r.slag === 'larare' && r.typ === 'dag' && r.ref === t.personId ? [r.maxMin] : []);
+    const max = Math.min(...own, v.teacherMaxMinPerDay ?? Infinity);
+    return { id: teacherNo.get(t.personId)!, ...(Number.isFinite(max) ? { max_min_per_day: max } : {}) };
   });
   const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
   const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),

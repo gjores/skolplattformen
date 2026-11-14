@@ -1,4 +1,4 @@
-// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR, -LAGEN, -MARGINAL och -VILLKOR-DIREKT med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR, -LAGEN, -MARGINAL, -VILLKOR-DIREKT och -VILLKORSTABELL med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
@@ -11,7 +11,7 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
-import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund } from '../../web/lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund } from '../../web/lib/schema-contract.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
@@ -257,7 +257,7 @@ try {
   // Samma steg som rutterna: begäran med nuvarande villkor och förslagets grund, underlaget byggt med villkoren och grunden jämförd.
   const sparr = { slag: 'klass', ref: uid(100), typ: 'sparrad', days: [a.day], startMin: a.startMin, endMin: a.startMin + a.durationMin };
   const direkt = { ...request, villkor: { ...defaultSchemaVillkor(), egna: [sparr] } };
-  const begaran = parseSchemaKontrollRequest(JSON.parse(JSON.stringify({ contractVersion: 3, ...direkt, grundFingerprint: forslag.grundFingerprint, placements: [] })));
+  const begaran = parseSchemaKontrollRequest(JSON.parse(JSON.stringify({ contractVersion: SCHEMA_CONTRACT_VERSION, ...direkt, grundFingerprint: forslag.grundFingerprint, placements: [] })));
   const uSparr = schemaProvUnderlag(plan, begaran, basis);
   assert.ok(uSparr && sammaGrund(direkt.villkor, request.villkor), 'en ny spärr ska prövas mot förslagets pass, inte ge 409');
   assert.notEqual(uSparr.fingerprint, base.fingerprint);
@@ -290,6 +290,26 @@ try {
     .every(l => l.startMin >= sparr.endMin || l.startMin + l.durationMin <= sparr.startMin), 'nytt förslag lägger klassen på spärren');
   console.log(JSON.stringify({ villkorDirekt: { pass: a.id, sparr: [sparr.days[0], sparr.startMin, sparr.endMin], avvikelser: paSparren.total, kod: paSparren.violations[0].code,
     utpekade: [...utpekade], annat: annat.id, sparradeLagen: underSparr.length, flyttIn: inSparr.violations.filter(v => v.code === 'outside_allowed').length, nyttForslag: fSparr.status } }));
+  // Längsta dag per lärare (05.2-SM-VILLKORSTABELL, Q126): ett eget villkor `dag` för Provlärare 1 når motorn som `teachers[].max_min_per_day` och är ett
+  // tidsvillkor. Lärarens undervisning räknas per termin och veckodag, som kontrollanten räknar den (pass som går hela läsåret räknas båda terminerna).
+  const dagar = (f, id) => { const out = {}; for (const l of f.lessons) if (l.day !== null && l.teacherIds.includes(id)) for (const t of l.term ? [l.term] : ['ht', 'vt']) out[`${t} ${l.day}`] = (out[`${t} ${l.day}`] ?? 0) + l.durationMin; return out; };
+  const ettan = forslag.teachers.find(t => t.name === 'Provlärare 1').id, foreDag = Math.max(...Object.values(dagar(forslag, ettan)));
+  const dagVillkor = { ...defaultSchemaVillkor(), egna: [{ slag: 'larare', ref: uid(200), typ: 'dag', maxMin: 240 }] }, dagRequest = { ...request, villkor: dagVillkor };
+  const uDag = buildSchemaUnderlag(plan, dagRequest, basis);
+  assert.deepEqual(uDag.problem.teachers.map(t => t.max_min_per_day ?? null), [240, ...Array(TEACHERS - 1).fill(null)], 'längsta dag når inte motorn');
+  assert.ok(sammaGrund(dagVillkor, request.villkor) && uDag.grundFingerprint === underlag.grundFingerprint, 'längsta dag ska vara ett tidsvillkor');
+  assert.ok(!JSON.stringify(uDag.problem).includes('52a10000'), 'appens ID nådde motorn med längsta dag');
+  // Direkt prövning mot det första förslaget: en dag över 240 min redovisas för läraren.
+  const dagDirekt = await kontroll(forslag.lessons, schemaProvUnderlag(plan, { ...dagRequest, grundFingerprint: forslag.grundFingerprint }, basis));
+  const forLang = dagDirekt.violations.filter(v => v.code === 'teacher_day_too_long');
+  assert.ok(foreDag <= 240 ? forLang.length === 0 : forLang.length > 0 && forLang.every(v => v.message.startsWith('Lärare Provlärare 1 har ')), 'kontrollen prövar inte längsta dag');
+  // Ett nytt förslag med villkoret: ingen dag över 240 min för läraren, och kontrollanten godkänner det.
+  const fDag = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, dagRequest, uDag, await solve(uDag)))), dagRequest);
+  assert.equal(fDag.status, 'complete', JSON.stringify(fDag.diagnoses.map(d => d.message)));
+  const efterDag = Math.max(...Object.values(dagar(fDag, ettan)));
+  assert.ok(efterDag <= 240, `Provlärare 1 har ${efterDag} min en dag`);
+  assert.equal((await kontroll(fDag.lessons, uDag, fDag)).total, 0, 'förslaget med längsta dag ska vara utan avvikelser');
+  console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 1', maxMin: 240, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
   const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};

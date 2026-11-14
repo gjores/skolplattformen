@@ -5,9 +5,10 @@
 export const SCHEMA_MOTOR_VERSION = 2 as const;
 /**
  * Appens kontrakt mellan webbläsaren och schemarutterna. v3 (05.2-SM-VILLKOR-DIREKT): kontroll, möjliga starttider och Följ passet bär nuvarande villkor och
- * grundens fingeravtryck, och prövar tidsvillkor direkt. Motorns kontrakt (`SCHEMA_MOTOR_VERSION`) är oförändrat.
+ * grundens fingeravtryck, och prövar tidsvillkor direkt. v4 (05.2-SM-VILLKORSTABELL): ny villkorstyp `dag`, längsta dag per lärare. Motorns kontrakt
+ * (`SCHEMA_MOTOR_VERSION`) är oförändrat; fältet `teachers[].max_min_per_day` fanns redan.
  */
-export const SCHEMA_CONTRACT_VERSION = 3 as const;
+export const SCHEMA_CONTRACT_VERSION = 4 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
 /** Det schemat gäller: hela läsåret eller en termin (05.2-SM-LASAR-VILLKOR, L1). */
@@ -84,13 +85,15 @@ export type SchemaRegel = { slag: SchemaRegelSlag; ref: string } & (
   | SchemaMarginal
   | { typ: 'langd'; maxMin: number }
   | { typ: 'antal'; count: number }
+  /** Längsta undervisningsdag för en lärare (05.2-SM-VILLKORSTABELL, Q126). Det lägsta av lärarens och skolans värde gäller. */
+  | { typ: 'dag'; maxMin: number }
   | { typ: 'sal'; rooms: string[] });
 export type SchemaRegelTyp = SchemaRegel['typ'];
 /**
  * Grund och tidsvillkor (05.2-SM-VILLKOR-DIREKT, beslut B 2026-11-14). Grunden avgör vilka pass som finns: längsta och kortaste pass, salarna (salarnas
  * löpnummer) och egna villkor för passlängd och antal pass. Ändras grunden krävs ett nytt förslag. Allt annat är tidsvillkor och prövas direkt mot
  * nuvarande placeringar: skoldagen, rasten, startrutnätet, lunchen, samma ämne samma dag, sena pass, längsta dag och egna villkor för spärrad och tillåten tid,
- * sal och marginal. Ett tidsvillkor som ändå ändrar passen (en spärr som stänger alla dagar där passen kunde ge sin tid, så att längderna väljs om) ger ett
+ * sal, marginal och längsta dag per lärare (`dag`). Ett tidsvillkor som ändå ändrar passen (en spärr som stänger alla dagar där passen kunde ge sin tid, så att längderna väljs om) ger ett
  * annat grundfingeravtryck i underlaget och kräver då också ett nytt förslag.
  */
 export const SCHEMA_GRUND_TYPER: readonly SchemaRegelTyp[] = ['langd', 'antal'];
@@ -108,7 +111,7 @@ export function villkorNyckel(v: unknown): string {
 /** Vilka villkor som kan ställas för vad. */
 export const SCHEMA_REGEL_TYPER: Record<SchemaRegelSlag, SchemaRegelTyp[]> = {
   klass: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], grupp: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'],
-  amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal'], sal: ['sparrad', 'tillaten', 'marginal'], pass: ['marginal'] };
+  amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal', 'dag'], sal: ['sparrad', 'tillaten', 'marginal'], pass: ['marginal'] };
 export const SCHEMA_VILLKOR_LIMITS = { dayFrom: 6 * 60, dayTo: 20 * 60, daySpan: [60, 600], breakMin: [0, 30], startGrid: [5, 10, 15, 20, 30], lunchLength: [20, 90],
   maxLesson: [30, 180], minLesson: 10, perDay: [120, 600],
   salar: 100, salNamn: 60, egna: 200, ref: 2000, marginal: [0, 60], etikett: 40, antal: [1, 10] } as const;
@@ -161,6 +164,7 @@ export function checkSchemaVillkor(v: SchemaVillkor): string[] {
     }
     else if (r.typ === 'langd') { if (!whole(r.maxMin, L.maxLesson[0], L.maxLesson[1])) return issue('längsta pass ska vara 30–180 minuter, i steg om fem.'); }
     else if (r.typ === 'antal') { if (!Number.isSafeInteger(r.count) || r.count < L.antal[0] || r.count > L.antal[1]) return issue('antalet pass per vecka ska vara 1–10.'); }
+    else if (r.typ === 'dag') { if (!whole(r.maxMin, L.perDay[0], L.perDay[1])) return issue('längsta dag för läraren ska vara 2–10 timmar, i steg om fem minuter.'); }
     else if (r.typ === 'sal') { if (!names(r.rooms, L.salar) || !r.rooms.length || r.rooms.some(x => !v.salar.includes(x))) return issue('välj minst en av skolans salar.'); }
   });
   return issues;
@@ -283,6 +287,7 @@ function regel(value: unknown): SchemaRegel {
   }
   if (r.typ === 'langd') { keys(4); return { ...base, typ: 'langd', maxMin: int(r.maxMin, 0, 1440) }; }
   if (r.typ === 'antal') { keys(4); return { ...base, typ: 'antal', count: int(r.count, 0, 1000) }; }
+  if (r.typ === 'dag') { keys(4); return { ...base, typ: 'dag', maxMin: int(r.maxMin, 0, 1440) }; }
   if (r.typ === 'sal') { keys(4); return { ...base, typ: 'sal', rooms: list(r.rooms, SCHEMA_VILLKOR_LIMITS.salar).map(x => text(x, SCHEMA_VILLKOR_LIMITS.salNamn)) }; }
   return bad();
 }

@@ -34,11 +34,11 @@ const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_m
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 
 test('begäran: kontrollens fält, passet och en elev eller ingen', () => {
-  const base = { contractVersion: 3, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
+  const base = { contractVersion: 4, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
   assert.deepEqual(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: null }), { ...base, lesson: ma, pupilId: null });
   assert.equal(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: uid(901).toUpperCase() }).pupilId, uid(901));
   for (const broken of [{ ...base, lesson: ma }, { ...base, lesson: 'Matematik', pupilId: null }, { ...base, lesson: ma, pupilId: 'elev-1' }, { ...base, lesson: ma, pupilId: null, extra: 1 },
-    { ...base, grundFingerprint: 'x', lesson: ma, pupilId: null }, { ...base, contractVersion: 2, lesson: ma, pupilId: null }])
+    { ...base, grundFingerprint: 'x', lesson: ma, pupilId: null }, { ...base, contractVersion: 2, lesson: ma, pupilId: null }, { ...base, contractVersion: 3, lesson: ma, pupilId: null }])
     assert.throws(() => parseSchemaLagenRequest(broken));
   // Version 2 bar hela fingeravtrycket och förslagets villkor: nekas med egen orsak (05.2-SM-VILLKOR-DIREKT).
   const { grundFingerprint: _, ...gammal } = { ...base, contractVersion: 2, fingerprint: underlag.fingerprint, lesson: ma, pupilId: null };

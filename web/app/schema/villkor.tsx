@@ -80,7 +80,7 @@ export function Villkor({ value: v, disabled, issues, resurser, forslag = null, 
 function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS;
   const [sal, setSal] = useState('');
-  const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as Exclude<SchemaRegelTyp, 'marginal'>, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, maxMin: 60, count: 2, rooms: [] as string[] });
+  const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as Exclude<SchemaRegelTyp, 'marginal'>, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, maxMin: 60, count: 2, dagMin: 360, rooms: [] as string[] });
   const name = sal.trim(), canAddSal = name.length > 0 && name.length <= L.salNamn && v.salar.length < L.salar && !v.salar.some(x => x.toLowerCase() === name.toLowerCase());
   const addSal = () => { if (canAddSal) { onChange({ ...v, salar: [...v.salar, name] }); setSal(''); } };
   // En sal som tas bort tas också bort ur villkoren.
@@ -97,6 +97,7 @@ function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor
   const rule: SchemaRegel | null = slag === null || !ref || !typ ? null
     : typ === 'sparrad' || typ === 'tillaten' ? (draft.days.length > 0 && draft.startMin < draft.endMin ? { slag, ref, typ, days: [...draft.days].sort((a, b) => a - b), startMin: draft.startMin, endMin: draft.endMin } : null)
     : typ === 'langd' ? { slag, ref, typ, maxMin: draft.maxMin } : typ === 'antal' ? { slag, ref, typ, count: draft.count }
+    : typ === 'dag' ? { slag, ref, typ, maxMin: draft.dagMin }
     : rooms.length > 0 ? { slag, ref, typ, rooms } : null;
   const range = (from: number, to: number, step: number) => Array.from({ length: Math.floor((to - from) / step) + 1 }, (_, i) => from + i * step);
   const time = (label: string, minutes: number, change: (minutes: number) => void) => <label className="schema-time">{label}
@@ -123,6 +124,7 @@ function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor
             <input type="checkbox" checked={draft.days.includes(i)} onChange={e => setDraft({ ...draft, days: e.target.checked ? [...draft.days, i] : draft.days.filter(x => x !== i) })}/>{d}</label>)}</fieldset>
           {time('Från', draft.startMin, startMin => setDraft({ ...draft, startMin }))}{time('Till', draft.endMin, endMin => setDraft({ ...draft, endMin }))}</>}
         {typ === 'langd' && number('Längsta pass', draft.maxMin, range(L.maxLesson[0], L.maxLesson[1], 5), maxMin => setDraft({ ...draft, maxMin }), n => `${n} min`)}
+        {typ === 'dag' && number('Högst undervisning per dag', draft.dagMin, range(L.perDay[0], L.perDay[1], 30), dagMin => setDraft({ ...draft, dagMin }), hoursText)}
         {typ === 'antal' && number('Pass per vecka', draft.count, range(L.antal[0], L.antal[1], 1), count => setDraft({ ...draft, count }), n => String(n))}
         {typ === 'sal' && <fieldset className="schema-days schema-wide"><legend className="sr-only">Salar för villkoret</legend>{v.salar.map(x => <label key={x} className="schema-check">
           <input type="checkbox" checked={rooms.includes(x)} onChange={e => setDraft({ ...draft, rooms: e.target.checked ? [...rooms, x] : rooms.filter(y => y !== x) })}/>{x}</label>)}</fieldset>}
