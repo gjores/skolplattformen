@@ -1308,3 +1308,348 @@ test('flyttpanelen ligger över passen när veckan rullar under den', async ({ p
   expect(overlapp, lage).toBeGreaterThan(20);
   expect(fel).toEqual([]);
 });
+
+// ── 05.2-SM-PASSTABELL: alla pass i tabell, vyväljaren och samma meny som i veckan. Arbetsytan prövas på dator (1280 och 1600 px). ──
+const tabell = {
+  async start(page: Page, width = 1280, data: typeof forslag = forslag) {
+    await page.setViewportSize({ width, height: 1000 });
+    await mock(page, () => ({ json: data }));
+    const kontroller = await mockKontroll(page);
+    await page.goto(URL);
+    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    return kontroller;
+  },
+  vy: (page: Page, name: string) => page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name, exact: true }),
+  grid: (page: Page) => page.getByRole('grid', { name: 'Pass i tabell' }),
+  rad: (page: Page, id: string) => page.locator(`.passtabell tr[data-lesson="${id}"]`),
+  /** Cellen i en kolumn (1 Undervisning … 12 Status). */
+  cell: (page: Page, id: string, col: number) => page.locator(`.passtabell tr[data-lesson="${id}"] [data-col="${col}"]`),
+  async oppna(page: Page, rows = forslag.lessons.length) {
+    await tabell.vy(page, 'Pass i tabell').click();
+    await expect(tabell.grid(page)).toBeVisible();
+    // Raderna ritas i omgångar tills alla finns.
+    await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(rows);
+  },
+};
+const tid = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+const dagIndex = (text: string) => DAYS.indexOf(text) < 0 ? 99 : DAYS.indexOf(text);
+
+test('passtabell: filtrera på en lärare och sortera på dag; valet av vy minns', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    await tabell.start(page, width);
+    await expect(tabell.vy(page, 'Vecka')).toHaveAttribute('aria-pressed', 'true');
+    // Villkor i tabell kopplas in av 05.2-SM-VILLKORSTABELL; utan den vyn visas inte valet.
+    await expect(tabell.vy(page, 'Villkor i tabell')).toHaveCount(0);
+    await tabell.oppna(page);
+    await expect(page.getByText(`Visar ${forslag.lessons.length} av ${forslag.lessons.length} pass.`)).toBeVisible();
+    await expect(tabell.grid(page).getByRole('columnheader')).toHaveText(['', 'Undervisning', 'Klass', 'Grupper', 'Lärare', 'Sal', 'Dag', 'Tid', 'Längd', 'Termin', 'Veckor', 'Marginal', 'Status']);
+    // Veckans val och verktyg hör till veckan; ångra är gemensamt.
+    await expect(page.getByLabel('Klass eller grupp')).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Verktyg i schemat' })).toHaveCount(0);
+    await expect(page.getByRole('button', { name: 'Ångra senaste flytt' })).toBeVisible();
+    // En rad ur fixturen: justerad längd och kortning vissa veckor som i passrutan.
+    const p1 = forslag.lessons.find(l => l.id === 'pass-1')!;
+    await expect(tabell.rad(page, 'pass-1').getByRole('gridcell')).toHaveText(['', 'Svenska', 'Klass 1', '–', 'Provlärare 1', '–', DAYS[p1.day!], `${tid(p1.startMin!)}–${tid(p1.startMin! + 65)}`,
+      '65 min (70 i grundschemat)', 'HT', 'kortare 2 veckor', '–', 'Lagd']);
+    // Filtret Lärare: Provlärare 4.
+    await page.getByLabel('Lägg till filter').selectOption({ label: 'Provlärare 4' });
+    const fyra = forslag.lessons.filter(l => l.teacherIds.includes('larare-4'));
+    await expect(page.getByRole('group', { name: 'Valda filter:' }).getByRole('button', { name: 'Ta bort filtret Lärare: Provlärare 4' })).toBeVisible();
+    await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(fyra.length);
+    await expect(page.getByText(`Visar ${fyra.length} av ${forslag.lessons.length} pass.`)).toBeVisible();
+    for (const text of await page.locator('.passtabell tbody [data-col="4"]').allTextContents()) expect(text).toContain('Provlärare 4');
+    // Sortera på dag: stigande, sedan fallande; tiden ordnar inom dagen.
+    // Tabellen står i veckans ordning från början; Dag växlar mellan fallande och stigande.
+    const dag = tabell.grid(page).getByRole('columnheader', { name: 'Dag' });
+    await expect(dag).toHaveAttribute('aria-sort', 'ascending');
+    const ordning = async () => (await page.locator('.passtabell tbody tr[data-lesson]').evaluateAll(rows => rows.map(r => [r.querySelector('[data-col="6"]')!.textContent!, r.querySelector('[data-col="7"]')!.textContent!])));
+    const upp = await ordning();
+    expect(upp.map(([d, t]) => `${dagIndex(d)}|${t}`)).toEqual(upp.map(([d, t]) => `${dagIndex(d)}|${t}`).sort());
+    await dag.getByRole('button').click();
+    await expect(dag).toHaveAttribute('aria-sort', 'descending');
+    expect((await ordning()).map(([d]) => dagIndex(d))).toEqual(upp.map(([d]) => dagIndex(d)).reverse());
+    await page.getByRole('columnheader', { name: 'Lärare' }).getByRole('button').click();
+    await expect(dag).not.toHaveAttribute('aria-sort');
+    await dag.getByRole('button').click();
+    await expect(dag).toHaveAttribute('aria-sort', 'ascending');
+    expect(await ordning()).toEqual(upp);
+    // Filter kombineras: Lärare och Dag; sökning begränsar vidare.
+    await page.getByLabel('Lägg till filter').selectOption({ label: 'Måndag' });
+    const mandag = fyra.filter(l => l.day === 0);
+    await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(mandag.length);
+    await page.getByLabel('Sök').fill('matematik');
+    await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(mandag.filter(l => l.title === 'Matematik').length);
+    if (shots) await page.screenshot({ path: `${shots}/schema-passtabell-filter-${width}.png`, fullPage: true });
+    await page.getByLabel('Sök').fill('finns inte');
+    await expect(page.getByText('Inga pass med de här filtren.')).toBeVisible();
+    await page.getByRole('button', { name: 'Rensa filter och sökning' }).click();
+    await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(forslag.lessons.length);
+    // Gruppera per undervisning: en rubrikrad per undervisning med samma tal som Tid över läsåret.
+    await page.getByLabel('Gruppera per undervisning').check();
+    await expect(page.locator('.passtabell tr.passtabell-grupp')).toHaveCount(forslag.teachings.length);
+    const sv = forslag.teachings.find(t => t.title === 'Svenska' && t.classes.join() === 'Klass 1')!;
+    const h = (m: number) => `${(m / 60).toLocaleString('sv-SE', { maximumFractionDigits: 1 })} h`;
+    await expect(page.locator('.passtabell tr.passtabell-grupp', { hasText: 'Svenska · Klass 1' }).first())
+      .toContainText(`${forslag.lessons.filter(l => l.title === 'Svenska' && l.classIds.join() === 'grupp-1').length} pass · Utlagt ${h(sv.plannedMin)} av timplanens ${h(sv.needMin)}`);
+    await expect(page.getByText(`i ${forslag.teachings.length} undervisningar.`)).toBeVisible();
+    if (shots) await page.screenshot({ path: `${shots}/schema-passtabell-grupper-${width}.png` });
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    // Valet minns i webbläsaren: nästa förslag visas i tabellen direkt.
+    expect(await page.evaluate(() => localStorage.getItem('schema-vy'))).toBe('pass');
+    await page.reload();
+    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await expect(tabell.grid(page)).toBeVisible();
+    await tabell.vy(page, 'Vecka').click();
+    await expect(page.getByRole('region', { name: 'Måndag' })).toBeVisible();
+    expect(await page.evaluate(() => localStorage.getItem('schema-vy'))).toBe('vecka');
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell och vecka, och ångra återställer båda', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    const kontroller = await tabell.start(page, width);
+    await mockFolj(page);
+    await tabell.oppna(page);
+    // Längden som i veckan (justerad längd för höstterminen).
+    const langd = Number((await tabell.cell(page, own.id, 8).textContent())!.split(' ')[0]);
+    const fore = `${tid(own.startMin!)}–${tid(own.startMin! + langd)}`;
+    await expect(tabell.cell(page, own.id, 7)).toHaveText(fore);
+    await tabell.cell(page, own.id, 2).click({ button: 'right' });
+    const menu = page.getByRole('menu');
+    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Visa i veckan']);
+    await menu.getByRole('menuitem', { name: 'Följ passet' }).click();
+    const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
+    await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
+    await panel.getByRole('button', { name: `${at(folj.fri)}: fri. Välj för att flytta passet hit.` }).click();
+    await expect(page.getByRole('status').filter({ hasText: `Matematik ligger nu ${at(folj.fri).toLowerCase()}` })).toBeVisible();
+    expect(kontroller.at(-1)!.placements).toContainEqual({ lesson: own.id, day: folj.fri.day, startMin: folj.fri.startMin, room: null });
+    const efter = `${tid(folj.fri.startMin)}–${tid(folj.fri.startMin + langd)}`;
+    await expect(tabell.cell(page, own.id, 6)).toHaveText(DAYS[folj.fri.day]);
+    await expect(tabell.cell(page, own.id, 7)).toHaveText(efter);
+    // Fokus står kvar på raden efter flytten.
+    await expect(page.locator('.passtabell :focus')).toHaveCount(1);
+    await tabell.vy(page, 'Vecka').click();
+    await expect(page.locator(`[data-lesson="${own.id}"] time`)).toHaveText(efter);
+    await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
+    await expect(page.locator(`[data-lesson="${own.id}"] time`)).toHaveText(fore);
+    await tabell.vy(page, 'Pass i tabell').click();
+    await expect(tabell.cell(page, own.id, 7)).toHaveText(fore);
+    await expect(tabell.cell(page, own.id, 6)).toHaveText(DAYS[own.day!]);
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('passtabell: Visa i veckan markerar passet, och markerat pass är markerat i båda vyerna', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await tabell.start(page);
+  await tabell.oppna(page);
+  // Ett vårterminspass i Klass 3: veckan byter klass och termin.
+  const vt = forslag.lessons.find(l => l.classIds.includes('grupp-3') && l.term === 'vt' && l.day !== null)!;
+  await tabell.cell(page, vt.id, 1).click({ button: 'right' });
+  await page.getByRole('menuitem', { name: 'Visa i veckan' }).click();
+  await expect(tabell.vy(page, 'Vecka')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByLabel('Klass eller grupp')).toHaveValue('grupp-3');
+  await expect(page.getByRole('button', { name: 'Vårterminen' })).toHaveAttribute('aria-pressed', 'true');
+  const pass = page.locator(`[data-lesson="${vt.id}"]`);
+  await expect(pass).toBeFocused();
+  await expect(pass).toHaveAttribute('aria-pressed', 'true');
+  await expect(pass).toBeInViewport();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toBeVisible();
+  // Markerat i veckan är markerat i tabellen.
+  await tabell.vy(page, 'Pass i tabell').click();
+  await expect(tabell.rad(page, vt.id)).toHaveClass(/passtabell-markerad/u);
+  await expect(tabell.cell(page, vt.id, 1)).toContainText('Markerat');
+  await expect(tabell.rad(page, vt.id)).toBeInViewport();
+  await expect(page.locator('.passtabell tr.passtabell-markerad')).toHaveCount(1);
+});
+
+test('passtabell: tre valda rader läggs på viloytan och ångras som ett steg', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  const kontroller = await tabell.start(page);
+  await tabell.oppna(page);
+  await page.getByLabel('Lägg till filter').selectOption({ label: 'Provlärare 4' });
+  const ids = await page.locator('.passtabell tbody tr[data-lesson]').evaluateAll(rows => rows.slice(0, 3).map(r => (r as HTMLElement).dataset.lesson!));
+  expect(ids).not.toContain(kontroll.move.lesson);
+  await tabell.rad(page, ids[0]).getByRole('checkbox').click();
+  await tabell.rad(page, ids[2]).getByRole('checkbox').click({ modifiers: ['Shift'] });
+  await expect(page.getByText('3 pass valda.')).toBeVisible();
+  for (const id of ids) await expect(tabell.rad(page, id)).toHaveAttribute('aria-selected', 'true');
+  // Högerklick på en vald rad erbjuder samma sak.
+  await tabell.cell(page, ids[1], 1).click({ button: 'right' });
+  await expect(page.getByRole('menuitem', { name: 'Lägg 3 valda pass på viloytan' })).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.getByRole('button', { name: 'Lägg valda på viloytan' }).click();
+  await expect(page.getByRole('status').filter({ hasText: '3 pass ligger nu på viloytan.' })).toBeVisible();
+  const sista = kontroller.at(-1)!;
+  for (const id of ids) expect(sista.placements.some(p => p.lesson === id)).toBe(false);
+  expect(kontroller).toHaveLength(1);
+  for (const id of ids) await expect(tabell.cell(page, id, 12)).toHaveText('Viloyta');
+  await expect(page.getByText('3 pass valda.')).toHaveCount(0);
+  // Ett steg: en ångra lägger tillbaka alla tre, och det finns inget mer att ångra.
+  await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
+  for (const id of ids) await expect(tabell.cell(page, id, 12)).toHaveText('Lagd');
+  await expect(page.getByRole('button', { name: 'Ångra senaste flytt' })).toBeDisabled();
+  expect(kontroller.at(-1)!.placements).toHaveLength(forslag.lessons.filter(l => l.day !== null).length);
+});
+
+test('passtabell: bara tangentbord', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  const kontroller = await tabell.start(page, 1280);
+  await mockFolj(page);
+  await tabell.vy(page, 'Vecka').focus();
+  await page.keyboard.press('ArrowRight');
+  await page.keyboard.press('Enter');
+  await expect(tabell.grid(page)).toBeVisible();
+  await page.getByLabel('Sök').focus();
+  await page.keyboard.type('Matematik Klass 1');
+  // Sök, filter och gruppering, sedan ett tabbstopp in i rutnätet: första radens Undervisning.
+  await page.keyboard.press('Tab'); await page.keyboard.press('Tab'); await page.keyboard.press('Tab');
+  const rader = page.locator('.passtabell tbody tr[data-lesson]');
+  const forsta = await rader.first().getAttribute('data-lesson');
+  await expect(tabell.cell(page, forsta!, 1)).toBeFocused();
+  await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
+  await expect(tabell.cell(page, forsta!, 3)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  const andra = await rader.nth(1).getAttribute('data-lesson');
+  await expect(tabell.cell(page, andra!, 3)).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(tabell.rad(page, andra!).getByRole('checkbox')).toBeFocused();
+  await page.keyboard.press('End');
+  await expect(tabell.cell(page, andra!, 12)).toBeFocused();
+  // Upp till rubrikraden; Enter sorterar på kolumnen.
+  await page.keyboard.press('ArrowUp'); await page.keyboard.press('ArrowUp');
+  await expect(tabell.grid(page).getByRole('button', { name: 'Status' })).toBeFocused();
+  await page.keyboard.press('Enter');
+  await expect(tabell.grid(page).getByRole('columnheader', { name: 'Status' })).toHaveAttribute('aria-sort', 'ascending');
+  // Till passet som Följ passet har data för.
+  await page.getByLabel('Sök').fill('');
+  await page.getByLabel('Lägg till filter').selectOption({ label: 'Provlärare 4' });
+  await page.getByLabel('Sök').fill(`matematik ${DAYS[own.day!]} ${tid(own.startMin!)}`);
+  await expect(rader).toHaveCount(1);
+  await tabell.cell(page, own.id, 1).focus();
+  // Skift+F10: menyn med första punkten i fokus; Esc lämnar fokus på cellen.
+  await page.keyboard.press('Shift+F10');
+  await expect(page.getByRole('menuitem', { name: 'Flytta…' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(tabell.cell(page, own.id, 1)).toBeFocused();
+  // Enter: Flytta… med fokus i flyttpanelen; Avbryt lämnar fokus på raden.
+  await page.keyboard.press('Enter');
+  const panel = page.getByRole('form', { name: 'Flytta pass' });
+  await expect(panel.getByLabel('Dag')).toBeFocused();
+  await panel.getByRole('button', { name: 'Avbryt' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(tabell.cell(page, own.id, 1)).toBeFocused();
+  // F: Följ passet med fokus på rubriken.
+  await page.keyboard.press('f');
+  await expect(page.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
+  await page.getByRole('button', { name: 'Stäng' }).focus();
+  await page.keyboard.press('Enter');
+  await expect(tabell.cell(page, own.id, 1)).toBeFocused();
+  // Mellanslag väljer raden, Esc avmarkerar.
+  await page.keyboard.press(' ');
+  await expect(tabell.rad(page, own.id)).toHaveAttribute('aria-selected', 'true');
+  await page.keyboard.press('Escape');
+  await expect(tabell.rad(page, own.id)).toHaveAttribute('aria-selected', 'false');
+  // P: viloytan genom kontrollen, fokus kvar på raden.
+  await page.keyboard.press('p');
+  await expect(tabell.cell(page, own.id, 12)).toHaveText('Viloyta');
+  expect(kontroller.at(-1)!.placements.some(p => p.lesson === own.id)).toBe(false);
+  await expect(tabell.cell(page, own.id, 1)).toBeFocused();
+  // Ctrl+End och Ctrl+Home i hela tabellen.
+  await page.getByLabel('Sök').fill('');
+  await page.getByRole('button', { name: 'Rensa filter' }).click();
+  await tabell.cell(page, own.id, 1).focus();
+  await page.keyboard.press('Control+End');
+  await expect(page.locator('.passtabell tbody tr[data-lesson]').last().locator('[data-col="12"]')).toBeFocused();
+  await page.keyboard.press('Control+Home');
+  await expect(page.locator('.passtabell tbody tr[data-lesson]').first().getByRole('checkbox')).toBeFocused();
+});
+
+test('passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte sidan', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    await tabell.start(page, width);
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    await tabell.oppna(page);
+    await page.getByLabel('Lägg till filter').selectOption({ label: 'Provlärare 1' });
+    await expect(page.getByRole('button', { name: 'Ta bort filtret Lärare: Provlärare 1' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const ram = await page.locator('.passtabell [data-slot="table-container"]').evaluate(el => ({ scroll: el.scrollWidth, client: el.clientWidth }));
+    expect(ram.scroll).toBeGreaterThan(ram.client);
+    // Cellen längst till höger rullas fram i ramen med tangentbordet.
+    const id = await page.locator('.passtabell tbody tr[data-lesson]').first().getAttribute('data-lesson');
+    await tabell.cell(page, id!, 1).focus();
+    await page.keyboard.press('End');
+    await expect(tabell.cell(page, id!, 12)).toBeInViewport();
+    if (shots) { await page.locator('.passtabell').scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shots}/schema-passtabell-200-${width}.png` }); }
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('passtabell: flyttpanelen öppnad från tabellen ligger över raderna', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await tabell.start(page, 1280);
+  await page.setViewportSize({ width: 1280, height: 700 });
+  await tabell.oppna(page);
+  await tabell.cell(page, kontroll.move.lesson, 1).focus();
+  await page.keyboard.press('Enter');
+  const panel = page.getByRole('form', { name: 'Flytta pass' });
+  await expect(panel.getByLabel('Dag')).toBeFocused();
+  await page.evaluate(() => { const t = document.querySelector('.passtabell')!; window.scrollTo({ top: t.getBoundingClientRect().bottom + window.scrollY - innerHeight + 40, behavior: 'instant' }); });
+  await page.waitForTimeout(100);
+  const { overlapp, fel } = await page.evaluate(() => {
+    const p = document.querySelector('.schema-move')!.getBoundingClientRect(), rader = [...document.querySelectorAll('.passtabell thead th, .passtabell tbody tr')].map(e => e.getBoundingClientRect());
+    let overlapp = 0; const fel: string[] = [];
+    for (let x = p.left + 4; x < p.right; x += 24) for (let y = p.top + 4; y < p.bottom; y += 12) {
+      if (!rader.some(r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)) continue;
+      overlapp += 1;
+      const el = document.elementFromPoint(x, y);
+      if (!el?.closest('.schema-move')) fel.push(`${Math.round(x)},${Math.round(y)} ${el?.tagName}.${el?.className}`);
+    }
+    return { overlapp, fel };
+  });
+  expect(overlapp).toBeGreaterThan(20);
+  expect(fel).toEqual([]);
+  if (shots) await page.screenshot({ path: `${shots}/schema-passtabell-flytt-1280.png` });
+});
+
+test('passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördröjning (mått)', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  const lessons = Array.from({ length: 1000 }, (_, i) => ({ ...forslag.lessons[i % forslag.lessons.length], id: `pass-${i + 1}` }));
+  const stor = { ...forslag, lessons, metrics: { ...forslag.metrics, lessons: 1000, placed: 1000 } } as typeof forslag;
+  await tabell.start(page, 1600, stor);
+  const matt: Record<string, number> = {};
+  const tid0 = await page.evaluate(() => performance.now());
+  await tabell.vy(page, 'Pass i tabell').click();
+  await expect(tabell.grid(page)).toBeVisible();
+  matt.forstaRader = await page.evaluate(t => performance.now() - t, tid0);
+  await expect(page.locator('.passtabell tbody tr[data-lesson]')).toHaveCount(1000);
+  matt.allaRader = await page.evaluate(t => performance.now() - t, tid0);
+  /** Tiden från klick eller val tills tabellen visar resultatet (två bildrutor efter ändringen). */
+  const tidFor = (atgard: string, klar: string) => page.evaluate(async ([atgard, klar]) => {
+    const t = performance.now();
+    if (atgard.startsWith('sort:')) (document.querySelector(`.passtabell thead th:nth-child(${atgard.slice(5)}) button`) as HTMLButtonElement).click();
+    else { const s = document.querySelector<HTMLSelectElement>('.passtabell-verktyg select')!; s.value = atgard; s.dispatchEvent(new Event('change', { bubbles: true })); }
+    for (let i = 0; i < 200 && !document.querySelector(klar); i += 1) await new Promise(r => requestAnimationFrame(r));
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return performance.now() - t;
+  }, [atgard, klar]);
+  matt.sorteraDag = await tidFor('sort:7', '.passtabell th[aria-sort="ascending"]:nth-child(7)');
+  matt.sorteraUndervisning = await tidFor('sort:2', '.passtabell th[aria-sort="ascending"]:nth-child(2)');
+  matt.filtreraLarare = await tidFor('larare|larare-1', '.passtabell-chips');
+  matt.rullaTillSlut = await page.evaluate(async () => {
+    const ram = document.querySelector('.passtabell [data-slot="table-container"]')!, t = performance.now();
+    ram.scrollTop = ram.scrollHeight;
+    await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
+    return performance.now() - t;
+  });
+  console.log(`1 000 pass i webbläsaren (ms): ${Object.entries(matt).map(([k, v]) => `${k} ${Math.round(v)}`).join(', ')}`);
+  await info.attach('matt-1000-pass.json', { body: JSON.stringify(matt), contentType: 'application/json' });
+  expect(matt.forstaRader).toBeLessThan(1000);
+  expect(matt.allaRader).toBeLessThan(3000);
+  for (const k of ['sorteraDag', 'sorteraUndervisning', 'filtreraLarare', 'rullaTillSlut']) expect(matt[k], k).toBeLessThan(500);
+});
