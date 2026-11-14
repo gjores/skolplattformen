@@ -24,5 +24,7 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   for (const extra of [elective.event, study.event, lasar.event]) await logEvent(tx, { ...ctx, request }, { ...extra, outcome: 'ok' });
   const basis: SchemaBasis = { members: mergeSchemaMembers([{ pupils: elective.body.pupils, memberships: elective.body.placements }, { pupils: study.body.pupils, memberships: study.body.memberships }]),
     time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)) };
-  return { plan: result.body, basis, event: result.event };
+  // Elevernas namn, bara de som läsningarna gav med användarens egen behörighet (Följ passet, 05.2-SM-FOLJ). Stannar på servern utom i elevväljaren.
+  const pupilNames = new Map([...elective.body.pupils ?? [], ...study.body.pupils].map(p => [p.id, p.name] as const));
+  return { plan: result.body, basis, event: result.event, pupilNames };
 }
