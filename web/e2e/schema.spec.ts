@@ -628,3 +628,168 @@ test('veckan med villkor vid 200 % textstorlek', async ({ page }, info) => {
   if (shots) await page.screenshot({ path: `${shots}/schema-villkor-200-1280.png`, fullPage: true });
   if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-villkor-200-1600.png`, fullPage: true }); }
 });
+
+// ── Följ passet och möjlighetskartan (05.2-SM-FOLJ) ─────────────────────────────────────────────────────────────────────────────
+// Motorns riktiga lägessvar och Följ passets svar för förslaget ovan (work/schema/folj-fixtur.mjs); rutternas behörighet prövas separat.
+import folj from './fixtures/schema-folj.json' with { type: 'json' };
+type FoljBody = { fingerprint: string; lesson: string; pupilId: string | null; placements: Placement[] };
+/** Lägen och Följ passet för fixturens pass; andra pass ger att motorn inte svarar. `elever: false` = användaren får inte se elever. */
+async function mockFolj(page: Page, { elever = true } = {}) {
+  const lagen: FoljBody[] = [], foljd: FoljBody[] = [];
+  const unavailable = { headers, status: 503, json: { code: 'schema_engine_unavailable', correlationId: 'prov', details: { reason: 'schema_engine_unreachable' } } };
+  await page.route('**/api/schema/lagen', route => {
+    const body = route.request().postDataJSON() as FoljBody;
+    lagen.push(body);
+    if (body.lesson !== folj.lesson) return route.fulfill(unavailable);
+    const at = body.placements.find(p => p.lesson === folj.lesson);
+    return route.fulfill({ headers, json: body.pupilId ? folj.elev : at?.day === folj.fri.day && at.startMin === folj.fri.startMin ? folj.efter : folj.alla });
+  });
+  await page.route('**/api/schema/folj', route => {
+    const body = route.request().postDataJSON() as FoljBody;
+    foljd.push(body);
+    if (body.lesson !== folj.lesson) return route.fulfill(unavailable);
+    return route.fulfill({ headers, json: body.pupilId ? folj.foljElev : elever ? folj.folj : folj.utanElever });
+  });
+  return { lagen, foljd };
+}
+async function foljStart(page: Page, width: number) {
+  await page.setViewportSize({ width, height: 1000 });
+  await mock(page, () => ({ json: forslag }));
+  const kontrollBodies = await mockKontroll(page);
+  await page.goto(URL);
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  return kontrollBodies;
+}
+const foljt = folj.alla.positions, own = forslag.lessons.find(l => l.id === folj.lesson)!;
+const at = (p: { day: number; startMin: number }) => `${DAYS[p.day]} ${String(Math.floor(p.startMin / 60)).padStart(2, '0')}:${String(p.startMin % 60).padStart(2, '0')}`;
+
+test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid, markeringen följer och kan låsas', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    const kontrollBodies = await foljStart(page, width), calls = await mockFolj(page);
+    // Tangenten F på det fokuserade passet öppnar panelen och lägger fokus på rubriken.
+    await page.locator(`[data-lesson="${folj.lesson}"]`).focus();
+    await page.keyboard.press('f');
+    const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
+    await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
+    expect(calls.lagen[0]).toMatchObject({ fingerprint: forslag.fingerprint, lesson: folj.lesson, pupilId: null });
+    expect(calls.lagen[0].placements).toHaveLength(forslag.lessons.filter(l => l.day !== null).length);
+    // Raderna: klassen, läraren och grupperna som delar elever, med antal.
+    await expect(panel.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Spanska (delar 10 elever)', 'Tyska (delar 10 elever)']);
+    await expect(panel.getByText('klass · 25 elever')).toBeVisible();
+    await expect(panel.getByText('grupp · delar 10 elever')).toHaveCount(2);
+    await expect(panel.getByRole('list', { name: 'Klass 1, Måndag' }).getByText('Matematik, 11:10–12:20 (passet som följs)')).toBeAttached();
+    // Möjliga starttider: ett tabbstopp, fokus visar varför.
+    const start = panel.locator('.folj-start[tabindex="0"]');
+    await expect(start).toHaveAttribute('aria-label', `${at(own as { day: number; startMin: number })}: fri. Välj för att flytta passet hit.`);
+    await start.focus();
+    await expect(page.getByRole('tooltip')).toContainText(`${at(own as { day: number; startMin: number })}`);
+    await page.keyboard.press('ArrowRight');
+    const next = foljt.find(p => p.day === own.day && p.startMin === own.startMin! + 10)!;
+    await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', `${at(next)}: regelbrott`);
+    const tip = page.getByRole('tooltip');
+    await expect(tip).toContainText(`Varför inte ${at(next).toLowerCase()}?`);
+    await expect(tip).toContainText('Regelbrott:');
+    expect(await panel.locator('.folj-start:focus').getAttribute('aria-describedby')).toBe(await tip.getAttribute('id'));
+    await page.keyboard.press('Escape');
+    await expect(page.getByRole('tooltip')).toHaveCount(0);
+    // Pil ner går till samma tid nästa dag; Home till dagens första tid.
+    await page.keyboard.press('ArrowDown');
+    await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', new RegExp(`^${DAYS[own.day! + 1]} 11:20`));
+    await page.keyboard.press('Home');
+    await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', new RegExp(`^${DAYS[own.day! + 1]} 08:00`));
+    // Regelbrott flyttar inte; fri tid flyttar passet med samma kontroll som annars.
+    await page.keyboard.press('Enter');
+    expect(kontrollBodies).toHaveLength(0);
+    const fri = panel.getByRole('button', { name: `${at(folj.fri)}: fri. Välj för att flytta passet hit.` });
+    await fri.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('status').filter({ hasText: `Matematik ligger nu ${at(folj.fri).toLowerCase()}` })).toBeVisible();
+    expect(kontrollBodies.at(-1)!.placements).toContainEqual({ lesson: folj.lesson, day: folj.fri.day, startMin: folj.fri.startMin, room: null });
+    // Panelen står kvar och lägena hämtas om med den nya placeringen.
+    await expect.poll(() => calls.lagen.some(b => b.placements.some(p => p.lesson === folj.lesson && p.startMin === folj.fri.startMin))).toBe(true);
+    await expect(panel.getByRole('list', { name: 'Klass 1, Måndag' }).getByText('Matematik, 10:40–11:50 (passet som följs)')).toBeAttached();
+    await expect(panel.locator('.folj-start[tabindex="0"]')).toHaveAttribute('aria-label', `${at(folj.fri)}: fri. Välj för att flytta passet hit.`);
+    if (shots) await page.screenshot({ path: `${shots}/schema-folj-${width}.png`, fullPage: true });
+
+    // Markeringen följs: ett annat pass väljs i veckan.
+    const other = forslag.lessons.find(l => l.classIds.includes('grupp-1') && l.title === 'Svenska' && l.term === 'ht' && l.day !== null)!;
+    await page.locator(`[data-lesson="${other.id}"]`).click();
+    await expect(page.getByRole('heading', { name: 'Följ passet: Svenska, Klass 1' })).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Följ passet: Svenska, Klass 1' }).getByRole('alert')).toContainText('Schemamotorn kunde inte räkna möjliga starttider.');
+    // Knappen vid markerat pass, och låset: ett nytt markerat pass byter inte panelen.
+    await page.getByRole('button', { name: 'Avbryt' }).click();
+    await page.locator(`[data-lesson="${folj.lesson}"]`).click();
+    await page.getByRole('button', { name: 'Följ passet', exact: true }).click();
+    const lock = page.getByRole('button', { name: 'Lås till detta pass' });
+    await lock.click();
+    await expect(lock).toHaveAttribute('aria-pressed', 'true');
+    await page.getByRole('button', { name: 'Avbryt' }).click();
+    await page.locator(`[data-lesson="${other.id}"]`).click();
+    await expect(page.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeVisible();
+    await page.getByRole('button', { name: 'Avbryt' }).click();
+    await page.getByRole('button', { name: 'Stäng' }).click();
+    await expect(page.locator('.folj')).toHaveCount(0);
+    await expect(page.locator(`[data-lesson="${folj.lesson}"]`)).toBeFocused();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('elevnivå: väljaren syns för behörig, elevens rad och lägen för eleven; utan elevbehörighet ingen väljare', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await foljStart(page, 1280);
+  const calls = await mockFolj(page);
+  // Dubbelklick öppnar också panelen.
+  await page.locator(`[data-lesson="${folj.lesson}"]`).dblclick();
+  const panel = page.locator('.folj');
+  const val = panel.getByLabel('Möjliga starttider räknas för');
+  await expect(val.locator('option')).toHaveCount(folj.folj.elever!.length + 1);
+  await expect(val).toHaveValue('');
+  await val.selectOption({ label: 'Provelev 1' });
+  await expect(panel.getByText('elev · Klass 1, Spanska')).toBeVisible();
+  await expect(panel.locator('.folj-chip').last()).toHaveText('Provelev 1 (elev)');
+  expect(calls.foljd.at(-1)).toMatchObject({ lesson: folj.lesson, pupilId: folj.pupilId });
+  await expect.poll(() => calls.lagen.at(-1)?.pupilId).toBe(folj.pupilId);
+  // Elevens rad: klassens pass och elevens Spanska (gruppens pass, streckad kant), inte Tyska.
+  const elev = panel.locator('.folj-elev');
+  await expect(elev.locator('.folj-pass.grupp').first()).toBeVisible();
+  await expect(elev.getByText(/^Tyska,/u)).toHaveCount(0);
+  await expect(panel.getByText('streckad kant = gruppens pass')).toBeVisible();
+  // Lägena räknas för eleven: fler önskemål än för alla (håltid för just eleven).
+  await expect(panel.locator('.folj-start[aria-label$="bryter ett önskemål"]')).toHaveCount(folj.elev.positions.filter(p => p.state === 'onskemal').length);
+  if (shots) await page.screenshot({ path: `${shots}/schema-folj-elev-1280.png`, fullPage: true });
+
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await foljStart(page, 1280);
+  await mockFolj(page, { elever: false });
+  await page.locator(`[data-lesson="${folj.lesson}"]`).focus();
+  await page.keyboard.press('F');
+  await expect(page.locator('.folj-chip')).toHaveCount(4);
+  await expect(page.locator('.folj').getByLabel('Möjliga starttider räknas för')).toHaveCount(0);
+  await expect(page.locator('.folj select')).toHaveCount(0);
+  await expect(page.locator('.folj-alla')).toHaveText('Alla berörda elever');
+});
+
+test('Följ passet vid 200 % textstorlek', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    await foljStart(page, width);
+    await mockFolj(page);
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    await page.locator(`[data-lesson="${folj.lesson}"]`).focus();
+    await page.keyboard.press('f');
+    const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
+    await expect(panel.getByText('Provlärare 4', { exact: true }).first()).toBeVisible();
+    await panel.locator('.folj-start[tabindex="0"]').focus();
+    await page.keyboard.press('ArrowRight');
+    await expect(page.getByRole('tooltip')).toContainText('Varför inte');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    const box = (await page.getByRole('tooltip').boundingBox())!;
+    expect(box.x).toBeGreaterThanOrEqual(0);
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+    if (shots) { await panel.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shots}/schema-folj-200-${width}.png`, fullPage: true }); }
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});

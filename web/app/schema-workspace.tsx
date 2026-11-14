@@ -1,7 +1,7 @@
 'use client';
 // Arbetsytan i Schema. Sätter ihop modulerna under ./schema/ och äger hämtning av förslag och kontroll av ändringar (05.2-SM-YTA).
 // Var passen ligger för hand hålls i utkastet (lib/schema-utkast.ts) med ångra och gör om i flera steg; en ändring görs först när kontrollen har svarat.
-import { useEffect, useId, useMemo, useReducer, useRef, useState, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
+import { useEffect, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
@@ -20,6 +20,7 @@ import { Forklaring, Regelavvikelser } from './schema/avvikelser.tsx';
 import { Flyttpanel, type FlyttMal } from './schema/flytt.tsx';
 import { Underlag } from './schema/underlag.tsx';
 import { dra, type Mal } from './schema/dra.ts';
+import { Folj } from './schema/folj.tsx';
 import './valplaner.css';
 import './schema.css';
 
@@ -78,9 +79,12 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const [drop, setDrop] = useState<{ lesson: string; to: Mal | null } | null>(null);
   const [kontroll, setKontroll] = useState<SchemaKontroll | null>(null), [checking, setChecking] = useState(false);
   const [moveError, setMoveError] = useState<string | null>(null), [moved, setMoved] = useState('');
+  // Följ passet (05.2-SM-FOLJ): passet panelen visar, och om panelen är låst till det i stället för att följa markeringen.
+  const [folj, setFolj] = useState<{ lesson: string; locked: boolean } | null>(null), foljRubrik = useRef<HTMLHeadingElement | null>(null), foljFokus = useRef(false);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   useEffect(() => () => running.current?.abort(), []);
   useEffect(() => { if (picked) dayField.current?.focus(); }, [picked]);
+  useEffect(() => { if (folj && foljFokus.current) { foljFokus.current = false; foljRubrik.current?.focus(); } }, [folj]);
   // Efter Ta bort står fokus på Ångra; efter Ångra på fältet igen.
   useEffect(() => {
     if (borttaget) { angraVillkor.current?.focus(); return; }
@@ -102,7 +106,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     try {
       const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', request, controller.signal), request);
       rememberVillkor(unitId, villkor);
-      setBase(next); dispatch({ type: 'reset', forslag: next }); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
+      setBase(next); dispatch({ type: 'reset', forslag: next }); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
       setKontroll(null); setMoveError(null); setMoved('');
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
@@ -117,6 +121,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin + l.marginMin);
     setTarget({ day, startMin: l.startMin !== null && starts.includes(l.startMin) ? l.startMin : starts[0] ?? forslag.days[day].startMin, room: l.roomId });
     dispatch({ type: 'pick', lesson: l.id }); setMoveError(null);
+    // Följ passet följer markeringen tills panelen låses.
+    setFolj(f => f && !f.locked ? { ...f, lesson: l.id } : f);
   }
   /**
    * Flyttar ett pass, lägger det på viloytan, ångrar eller gör om. Passet behåller sin sal om ingen annan anges; utan sal väljer servern en ledig.
@@ -151,8 +157,23 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       onHover: to => setDrop({ lesson: l.id, to }), onEnd: () => setDrop(null),
       onDrop: to => void andra(to.day === null || to.startMin === null ? { type: 'park', lesson: l.id } : { type: 'move', lesson: l.id, day: to.day, startMin: to.startMin }) });
   }
+  /** Öppnar Följ passet för ett pass (knappen vid markerat pass, dubbelklick, tangenten F). Låst panel låses till det nya passet. */
+  function foljPass(id: string) {
+    if (!base?.lessons.some(l => l.id === id)) return;
+    foljFokus.current = true; setFolj(f => ({ lesson: id, locked: f?.locked ?? false }));
+  }
+  const foljHandelser = {
+    onDoubleClick: (e: { target: EventTarget }) => { const id = (e.target as HTMLElement).closest<HTMLElement>('[data-lesson]')?.dataset.lesson; if (id) foljPass(id); },
+    onKeyDown: (e: ReactKeyboardEvent<HTMLElement>) => {
+      if (e.key.toLowerCase() !== 'f' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const id = (e.target as HTMLElement).closest<HTMLElement>('[data-lesson]')?.dataset.lesson;
+      if (id) { e.preventDefault(); foljPass(id); }
+    },
+  };
   const steps = utkast.undo.length, pickedLesson = forslag?.lessons.find(l => l.id === picked) ?? null;
   const flagged = new Set(kontroll?.violations.flatMap(v => v.lessons));
+  const foljt = folj ? forslag?.lessons.find(l => l.id === folj.lesson) ?? null : null;
+  const placeringar = useMemo(() => forslag?.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) ?? [], [forslag]);
 
   const options = forslag ? (by === 'class' ? forslag.classes : forslag.teachers) : [];
   const selected = options.some(o => o.id === chosen) ? chosen : options[0]?.id ?? '';
@@ -240,17 +261,26 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           <div className="schema-undo">
             <Button type="button" variant="outline" disabled={steps === 0 || checking} onClick={() => void andra({ type: 'undo' })}>Ångra senaste flytt</Button>
             <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => void andra({ type: 'redo' })}>Gör om</Button>
+            {/* Följ passet (05.2-SM-FOLJ) vid markerat pass; även dubbelklick eller tangenten F på ett pass. */}
+            {pickedLesson && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
           </div>
         </div>
         {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
           <Button ref={angraVillkor} type="button" variant="outline" onClick={angra}>Ångra borttagningen</Button></output>}
         {villkorAndrade && <p className="schema-note">Villkoren har ändrats sedan förslaget togs fram. Veckan visar de ändrade villkoren; passen och kontrollen följer förslagets villkor tills du tar fram ett nytt förslag.</p>}
         <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/>
+        <div className="schema-folj-lyssnare" {...foljHandelser}>
         <Vecka gridRef={week} days={forslag.days} lessons={shown} picked={picked} drop={drop && dragged ? { ...drop, length: dragged.durationMin } : null} flagged={flagged} disabled={checking}
           length={shownMin} detail={l => `${detail(l)}${termTag(l)}`} extra={passRader} onGrab={grab} onPick={pick}
           overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN}/>
+        </div>
         <Teckenforklaring lessons={shown} picked={picked} flagged={flagged} overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
+        {foljt && <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
+          onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => { setFolj(null); document.querySelector<HTMLButtonElement>(`[data-lesson="${foljt.id}"]`)?.focus(); }} onSessionLost={onSessionLost}
+          onMove={p => void andra({ type: 'move', lesson: foljt.id, day: p.day, startMin: p.startMin, room: p.room })}/>}
+        <div className="schema-folj-lyssnare" {...foljHandelser}>
         <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={drop?.to?.day === null} dragging={drop?.lesson ?? null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick}/>
+        </div>
       </>}
 
       {pickedLesson && <Flyttpanel lesson={pickedLesson} forslag={forslag} target={target} checking={checking} shownMin={shownMin(pickedLesson)}
