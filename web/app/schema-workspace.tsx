@@ -22,6 +22,8 @@ import { Underlag } from './schema/underlag.tsx';
 import { dra, type Mal } from './schema/dra.ts';
 import { useSchemaMeny } from './schema/meny.tsx';
 import { Folj } from './schema/folj.tsx';
+// Tillfälligt (05.2-SM-VILLKORSTABELL): knappen "Villkor i tabell" öppnar tabellen tills vyväljaren från SM-PASSTABELL kopplas in när våg 4 slås ihop.
+import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
 import './valplaner.css';
 import './schema.css';
 
@@ -95,6 +97,9 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const kontroll = kontrollSvar && kontrollSvar.villkor === provadeKey ? kontrollSvar.svar : null;
   const [moveError, setMoveError] = useState<string | null>(null), [moved, setMoved] = useState('');
   // Följ passet (05.2-SM-FOLJ): passet panelen visar, och om panelen är låst till det i stället för att följa markeringen.
+  // Villkor i tabell (05.2-SM-VILLKORSTABELL), tillfälligt utan vyväljare: null är stängd; `mal` är raden "Ändra" i veckan öppnar.
+  const [tabell, setTabell] = useState<{ mal: VillkorstabellMal | null } | null>(null);
+  const andraFalt = (k: SchemaKalla) => { const m = villkorstabellMal(k, villkor); if (m) setTabell({ mal: { ...m, nr: Date.now() } }); else visaVillkor(k); };
   const [folj, setFolj] = useState<{ lesson: string; locked: boolean } | null>(null), foljRubrik = useRef<HTMLHeadingElement | null>(null), foljFokus = useRef(false);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   useEffect(() => () => running.current?.abort(), []);
@@ -275,7 +280,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const markerade = flagged;
   const falt = (o: SchemaOverlay, label: string, content: ReactNode) => {
     const k = o.sourceId ? lager?.kallor[o.sourceId] : undefined;
-    return k && forslag ? <FaltKalla label={label} kalla={k} villkor={villkor} resurser={forslag.resurser} onAndra={visaVillkor} onTaBort={taBort}>{content}</FaltKalla> : null;
+    return k && forslag ? <FaltKalla label={label} kalla={k} villkor={villkor} resurser={forslag.resurser} onAndra={andraFalt} onTaBort={taBort}>{content}</FaltKalla> : null;
   };
 
   return <section className="valplan-workspace schema-workspace">
@@ -324,6 +329,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
             <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => meny.angra('redo') || void andra({ type: 'redo' })}>Gör om</Button>
             {/* Följ passet (05.2-SM-FOLJ) vid markerat pass; även dubbelklick eller tangenten F på ett pass. */}
             {pickedLesson && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
+            {/* Tillfälligt: ersätts av vyväljaren Vecka / Pass i tabell / Villkor i tabell (SM-PASSTABELL). */}
+            <Button type="button" variant={tabell ? 'secondary' : 'outline'} aria-pressed={tabell !== null} onClick={() => setTabell(t => t ? null : { mal: null })}>Villkor i tabell</Button>
           </div>
         </div>
         {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
@@ -335,6 +342,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           : issues.length
             ? 'Villkoren har ändrats men har fel. Kontrollen följer förslagets villkor tills felen är rättade.'
             : 'Villkoren har ändrats sedan förslaget togs fram. Kontrollen, möjliga starttider och Följ passet prövar de ändrade villkoren direkt. Passen ligger kvar tills du flyttar dem eller tar fram ett nytt förslag.'}</p>}
+        {tabell && <Villkorstabell villkor={villkor} setVillkor={setVillkor} dispatch={dispatch} forslag={forslag} kontroll={kontroll} disabled={busy} mal={tabell.mal}/>}
         <div className="schema-verktygsrad">{meny.verktyg}
           <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/></div>
         {meny.meddelande}

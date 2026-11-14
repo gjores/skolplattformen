@@ -28,13 +28,15 @@ export function daysText(days: SchemaVillkor['days']): string {
 }
 
 export const SLAG: Record<SchemaRegelSlag, string> = { klass: 'Klass', grupp: 'Grupp', amne: 'Ämne', larare: 'Lärare', sal: 'Sal', pass: 'Pass' };
-export const REGEL: Record<SchemaRegelTyp, string> = { sparrad: 'Spärrad tid', tillaten: 'Tillåten tid', marginal: 'Marginal', langd: 'Uppdelning: längsta pass', antal: 'Uppdelning: antal pass per vecka', sal: 'Sal' };
+export const REGEL: Record<SchemaRegelTyp, string> = { sparrad: 'Spärrad tid', tillaten: 'Tillåten tid', marginal: 'Marginal', langd: 'Uppdelning: längsta pass', antal: 'Uppdelning: antal pass per vecka', sal: 'Sal',
+  dag: 'Längsta dag' };
 export type Resurser = SchemaForslag['resurser'];
 /** Ett eget villkor i klartext. Namn på klass, grupp och lärare finns först när ett förslag har tagits fram. */
 export function ruleText(r: SchemaRegel, resurser: Resurser | null): string {
   const name = r.slag === 'sal' || r.slag === 'amne' ? r.ref : resurser === null ? '(namnet visas när ett förslag finns)' : resurser[r.slag].find(x => x.ref === r.ref)?.name ?? '(finns inte i underlaget)';
   const when = (x: { days: number[]; startMin: number; endMin: number }) => `${x.days.length === 5 ? 'alla dagar' : [...x.days].sort((a, b) => a - b).map(i => DAYS[i].toLowerCase()).join(', ')} ${clock(x.startMin)}–${clock(x.endMin)}`;
   const what = r.typ === 'sparrad' ? `spärrad ${when(r)}` : r.typ === 'tillaten' ? `bara ${when(r)}` : r.typ === 'marginal' ? `marginal ${marginalTider(r)} (${r.label}), upptar ${upptarText(r.occupies).toLocaleLowerCase('sv-SE')}`
-    : r.typ === 'langd' ? `pass om högst ${r.maxMin} min` : r.typ === 'antal' ? `${r.count} pass per vecka` : 'rooms' in r ? `sal ${r.rooms.join(' eller ')}` : '';
+    : r.typ === 'langd' ? `pass om högst ${r.maxMin} min` 
+    : r.typ === 'antal' ? `${r.count} pass per vecka` : r.typ === 'dag' ? `högst ${hoursText(r.maxMin)} undervisning per dag` : 'rooms' in r ? `sal ${r.rooms.join(' eller ')}` : '';
   return `${SLAG[r.slag]} ${name}: ${what}`;
 }
