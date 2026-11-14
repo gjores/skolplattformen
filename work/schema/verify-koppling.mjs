@@ -1,4 +1,4 @@
-// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR, -LAGEN och -MARGINAL med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
+// Kedjeprov för 05.2-SM-KOPPLING, -ELEVER-KALENDER, -FLYTT, -LASAR-VILLKOR, -LAGEN, -MARGINAL och -VILLKOR-DIREKT med syntetiska uppgifter: tjänstefördelning, elevernas grupper och läsårets skoldagar → underlag → schemamotor-tjanst över HTTP
 // → appens strikta tolkning → motorns fristående kontrollant. Ingen databas och inga verkliga uppgifter.
 // Kör från web/: node ../work/schema/verify-koppling.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn, spawnSync } from 'node:child_process';
@@ -9,9 +9,9 @@ import { dirname } from 'node:path';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../../web/lib/schema-underlag.ts';
+import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
-import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaSolution } from '../../web/lib/schema-contract.ts';
+import { checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund } from '../../web/lib/schema-contract.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
@@ -109,7 +109,7 @@ try {
     const reply = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
       body: JSON.stringify({ problem: underlag.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }) });
     assert.equal(reply.status, 200);
-    return parseSchemaKontroll(JSON.parse(JSON.stringify(schemaKontroll(underlag, placements, parseSchemaCheck(await reply.json(), underlag.problem)))), forslag.fingerprint);
+    return parseSchemaKontroll(JSON.parse(JSON.stringify(schemaKontroll(underlag, placements, parseSchemaCheck(await reply.json(), underlag.problem)))), forslag.grundFingerprint);
   };
   assert.equal((await fetch(`${url}/v1/validate`, { method: 'POST', body: JSON.stringify({ problem: underlag.problem, placements: [] }) })).status, 401);
   assert.equal((await kontroll(forslag.lessons)).total, 0, 'förslaget som det räknades ska vara utan avvikelser');
@@ -123,10 +123,15 @@ try {
   assert.equal((await kontroll(forslag.lessons)).total, 0, 'ångrad flytt ska ge ett schema utan avvikelser');
   const lifted = await kontroll(forslag.lessons.map(l => l.id === a.id ? { ...l, day: null, startMin: null } : l));
   assert.deepEqual([lifted.total, lifted.metrics.unplaced, lifted.teachings.reduce((n, t) => n + t.unplaced, 0)], [0, 1, 1]);
-  assert.throws(() => checkSchemaPlacements([{ lesson: a.id, day: 0, startMin: forslag.days[0].endMin, room: null }], underlag.problem), 'tid utanför skoldagen ska nekas före motorn');
+  // Tid utanför skoldagen redovisas av kontrollanten, eftersom skoldagen är ett tidsvillkor (05.2-SM-VILLKOR-DIREKT); tid utanför dygnet nekas före motorn.
+  const sent_ = await kontroll(forslag.lessons.map(l => l.id === a.id ? { ...l, day: 0, startMin: forslag.days[0].endMin } : l));
+  assert.ok(sent_.violations.some(v => v.code === 'outside_day' && v.lessons.includes(a.id)), 'pass utanför skoldagen redovisas inte');
+  assert.throws(() => checkSchemaPlacements([{ lesson: a.id, day: 0, startMin: 1440, room: null }], underlag.problem), 'tid utanför dygnet ska nekas före motorn');
   // Ändrat underlag (en lärare byts) ger ett annat fingeravtryck: kontrollrutten nekar då flytten.
   const other = { ...plan, rows: plan.rows.map((r, i) => i === 0 ? { ...r, personId: uid(200 + TEACHERS - 1) } : r) };
   assert.notEqual(buildSchemaUnderlag(other, request, basis).fingerprint, underlag.fingerprint);
+  assert.notEqual(buildSchemaUnderlag(other, request, basis).grundFingerprint, underlag.grundFingerprint);
+  assert.equal(schemaProvUnderlag(other, { ...request, grundFingerprint: forslag.grundFingerprint }, basis), null, 'ändrad tjänstefördelning ska ge 409');
   assert.equal(buildSchemaUnderlag(plan, request, basis).fingerprint, underlag.fingerprint);
   console.log(JSON.stringify({ flytt: { violations: clash.total, codes: [...new Set(clash.violations.map(v => v.code))], first: clash.violations[0].message } }));
   // Valfritt: spara det namnsatta förslaget och en kontrollerad flytt som syntetiskt underlag för vyns prov.
@@ -213,7 +218,7 @@ try {
       body: JSON.stringify({ problem: underlag.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })), lesson, ...(pupil ? { pupil } : {}) }) });
     const text = await reply.text(), ms = Math.round(performance.now() - started);
     assert.equal(reply.status, 200, text.slice(0, 200));
-    return { ms, placements, svar: parseSchemaLagen(JSON.parse(JSON.stringify(schemaLagen(underlag, parseSchemaPositions(JSON.parse(text), underlag.problem, lesson), pupil !== null))), underlag.fingerprint, lesson) };
+    return { ms, placements, svar: parseSchemaLagen(JSON.parse(JSON.stringify(schemaLagen(underlag, parseSchemaPositions(JSON.parse(text), underlag.problem, lesson), pupil !== null))), underlag.grundFingerprint, lesson) };
   };
   assert.equal((await fetch(`${url}/v1/positions`, { method: 'POST', body: JSON.stringify({ problem: underlag.problem, placements: [], lesson: a.id }) })).status, 401, 'lägen utan token ska nekas');
   const { ms, svar, placements: lagda } = await lagen(a.id);
@@ -248,6 +253,43 @@ try {
     assert.ok(state === 'fri' ? k.total === 0 : k.total > 0, `läget ${state} ${x.day} ${x.startMin} stämmer inte med kontrollen (${k.total} avvikelser)`);
   }
   console.log(JSON.stringify({ marginalLagen: { positions: marg.svar.positions.length, provadeFri: prov.fri.length, provadeBrott: prov.brott.length, ms: marg.ms } }));
+  // Nya tidsvillkor prövas direkt (05.2-SM-VILLKOR-DIREKT): förslaget är räknat utan villkor, och därefter läggs en spärr för Klass 1 över ett av dess pass.
+  // Samma steg som rutterna: begäran med nuvarande villkor och förslagets grund, underlaget byggt med villkoren och grunden jämförd.
+  const sparr = { slag: 'klass', ref: uid(100), typ: 'sparrad', days: [a.day], startMin: a.startMin, endMin: a.startMin + a.durationMin };
+  const direkt = { ...request, villkor: { ...defaultSchemaVillkor(), egna: [sparr] } };
+  const begaran = parseSchemaKontrollRequest(JSON.parse(JSON.stringify({ contractVersion: 3, ...direkt, grundFingerprint: forslag.grundFingerprint, placements: [] })));
+  const uSparr = schemaProvUnderlag(plan, begaran, basis);
+  assert.ok(uSparr && sammaGrund(direkt.villkor, request.villkor), 'en ny spärr ska prövas mot förslagets pass, inte ge 409');
+  assert.notEqual(uSparr.fingerprint, base.fingerprint);
+  assert.ok(!JSON.stringify(uSparr.problem).includes('52a10000'), 'appens ID nådde motorn med spärren');
+  assert.deepEqual(uSparr.problem.lessons.map(l => [l.id, l.duration_min, l.teachers, l.groups]), base.problem.lessons.map(l => [l.id, l.duration_min, l.teachers, l.groups]), 'spärren ändrade passen');
+  const paSparren = await kontroll(forslag.lessons, uSparr);
+  assert.ok(paSparren.violations.some(v => v.code === 'outside_allowed' && v.lessons.includes(a.id)), 'kontrollen redovisar inte passet på den nya spärren');
+  assert.ok(paSparren.violations.every(v => v.code === 'outside_allowed' && v.lessons.every(id => forslag.lessons.find(l => l.id === id).classIds.includes(forslag.classes[0].id))), 'andra avvikelser än spärren');
+  assert.ok(paSparren.grundFingerprint === forslag.grundFingerprint && paSparren.fingerprint === uSparr.fingerprint, 'svaret ska bära villkorens fingeravtryck');
+  // Möjliga starttider för ett annat pass i klassen: tiden under spärren är spärrad.
+  const annat = own.find(l => l.id !== a.id && l.durationMin <= a.durationMin + 30);
+  const lagenSparr = (await lagen(annat.id, null, forslag.lessons, uSparr)).svar;
+  const underSparr = lagenSparr.positions.filter(x => x.day === sparr.days[0] && x.startMin < sparr.endMin && x.startMin + annat.durationMin > sparr.startMin);
+  assert.ok(underSparr.length > 0 && underSparr.every(x => x.state === 'sparrad' && x.reasons.some(r => r.code === 'outside_allowed')), 'lägena visar inte spärrad tid');
+  const utanSparr = (await lagen(annat.id)).svar.positions.filter(x => underSparr.some(y => y.day === x.day && y.startMin === x.startMin));
+  assert.ok(utanSparr.every(x => !x.reasons.some(r => r.code === 'outside_allowed')), 'tiden var spärrad redan utan spärren');
+  // En flytt in i spärren nekas: passen kontrollen pekade ut (spärren gäller hela läsåret, så också vårens pass på samma tid) läggs på viloytan, och
+  // schemat är då utan avvikelser. Sedan flyttas ett annat pass i klassen till spärrens tid.
+  const utpekade = new Set(paSparren.violations.flatMap(v => v.lessons));
+  const bort = forslag.lessons.map(l => utpekade.has(l.id) ? { ...l, day: null, startMin: null } : l);
+  assert.equal((await kontroll(bort, uSparr)).total, 0, 'passen borttagna från spärren ska ge ett schema utan avvikelser');
+  const inSparr = await kontroll(bort.map(l => l.id === annat.id ? { ...l, day: sparr.days[0], startMin: sparr.startMin } : l), uSparr);
+  assert.ok(inSparr.violations.some(v => v.code === 'outside_allowed' && v.lessons.includes(annat.id)), 'en flytt in i spärren nekas inte');
+  // Ändrad grund (längsta pass) ger 409; ett nytt förslag med samma villkor har inga avvikelser och inget av klassens pass på spärren.
+  assert.equal(schemaProvUnderlag(plan, { ...begaran, villkor: { ...begaran.villkor, maxLessonMin: 70 } }, basis), null, 'ändrad grund ska ge 409');
+  const fSparr = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, direkt, uSparr, await solve(uSparr)))), direkt);
+  assert.equal(fSparr.grundFingerprint, forslag.grundFingerprint);
+  assert.equal((await kontroll(fSparr.lessons, uSparr, fSparr)).total, 0, 'nytt förslag med spärren ska vara utan avvikelser');
+  assert.ok(fSparr.lessons.filter(l => l.classIds.includes(fSparr.classes[0].id) && l.day === sparr.days[0] && l.startMin !== null)
+    .every(l => l.startMin >= sparr.endMin || l.startMin + l.durationMin <= sparr.startMin), 'nytt förslag lägger klassen på spärren');
+  console.log(JSON.stringify({ villkorDirekt: { pass: a.id, sparr: [sparr.days[0], sparr.startMin, sparr.endMin], avvikelser: paSparren.total, kod: paSparren.violations[0].code,
+    utpekade: [...utpekade], annat: annat.id, sparradeLagen: underSparr.length, flyttIn: inSparr.violations.filter(v => v.code === 'outside_allowed').length, nyttForslag: fSparr.status } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
   const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};

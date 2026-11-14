@@ -6,7 +6,7 @@ import { useEffect, useId, useRef, useState, type CSSProperties, type Ref } from
 import { LockIcon, LockOpenIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
-import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement } from '@/lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaPlacement, type SchemaVillkor } from '@/lib/schema-contract.ts';
 import { elevKrockar, foljRader, parseSchemaFolj, type FoljRad, type SchemaFolj } from '@/lib/schema-folj.ts';
 import { SCHEMA_LAGEN, parseSchemaLagen, type SchemaLagen, type SchemaLagenPosition } from '@/lib/schema-lagen.ts';
 import { clock, dayName, names } from './delat.ts';
@@ -14,7 +14,7 @@ import { LAGE, LAGE_KLASS, Mojligt } from './mojligt.tsx';
 import { lanes, veckansSpann } from './vecka.tsx';
 
 const FEL: Record<string, string> = {
-  schema_underlag_changed: 'Underlaget har ändrats sedan förslaget togs fram. Ta fram ett nytt schemaförslag för att följa passet.',
+  schema_underlag_changed: 'Underlaget eller villkoren som avgör vilka pass som finns har ändrats sedan förslaget togs fram. Ta fram ett nytt schemaförslag för att följa passet.',
   schema_pupil_not_in_lesson: 'Eleven har inte passet. Välj en annan elev.',
   schema_engine_unavailable: 'Schemamotorn kunde inte räkna möjliga starttider. Försök igen om en stund.',
 };
@@ -29,48 +29,51 @@ function fel(error: unknown): string {
 
 type Props = {
   forslag: SchemaForslag; lesson: SchemaForslagLesson; placements: SchemaPlacement[];
+  /** Villkoren lägena prövas mot: nuvarande villkor när grunden är förslagets, annars förslagets (05.2-SM-VILLKOR-DIREKT). */
+  villkor: SchemaVillkor;
   locked: boolean; checking: boolean; headingRef: Ref<HTMLHeadingElement>;
   onLock: (locked: boolean) => void; onClose: () => void; onMove: (p: SchemaLagenPosition) => void; onSessionLost: () => void;
   /** Terminen veckan visar; passets egen termin går före. */
   term: 'ht' | 'vt';
 };
 
-export function Folj({ forslag, lesson, placements, locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, term }: Props) {
+export function Folj({ forslag, lesson, placements, villkor, locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, term }: Props) {
   const heading = useId(), pupilLabel = useId();
-  const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [lagen, setLagen] = useState<SchemaLagen | null>(null);
+  const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
   // Panelen får en ny nyckel för varje pass (schema-workspace.tsx), så att elevvalet och svaren börjar om: eleven kanske inte har det nya passet.
-  const placed = useRef(placements), lost = useRef(onSessionLost);
-  useEffect(() => { placed.current = placements; lost.current = onSessionLost; });
-  const key = JSON.stringify(placements), lessonId = lesson.id;
-  const { unitId, schoolYear, period, villkor, fingerprint } = forslag;
-  // Grupper och elever: hämtas när passet eller eleven byts. Avbryts om markeringen byts.
+  const placed = useRef(placements), lost = useRef(onSessionLost), provade = useRef(villkor);
+  useEffect(() => { placed.current = placements; lost.current = onSessionLost; provade.current = villkor; });
+  const key = JSON.stringify(placements), lessonId = lesson.id, villkorKey = villkorNyckel(villkor);
+  const { unitId, schoolYear, period, grundFingerprint } = forslag, contractVersion = SCHEMA_CONTRACT_VERSION;
+  // Grupper och elever: hämtas när passet eller eleven byts, och följer bara grunden. Avbryts om markeringen byts.
   useEffect(() => {
     const controller = new AbortController();
-    api.post<unknown>('/api/schema/folj', { unitId, schoolYear, period, villkor, fingerprint, placements: placed.current, lesson: lessonId, pupilId: pupil }, controller.signal)
-      .then(value => { setFolj(parseSchemaFolj(value, fingerprint, lessonId)); })
+    api.post<unknown>('/api/schema/folj', { contractVersion, unitId, schoolYear, period, villkor: provade.current, grundFingerprint, placements: placed.current, lesson: lessonId, pupilId: pupil }, controller.signal)
+      .then(value => { setFolj(parseSchemaFolj(value, grundFingerprint, lessonId)); })
       .catch((caught: unknown) => {
         if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
         if (caught instanceof ApiError && caught.status === 401) { lost.current(); return; }
         setError(fel(caught));
       });
     return () => controller.abort();
-  }, [unitId, schoolYear, period, villkor, fingerprint, lessonId, pupil]);
-  // Lägen: hämtas om efter varje flytt (placeringarna) och när passet eller eleven byts.
+  }, [contractVersion, unitId, schoolYear, period, grundFingerprint, lessonId, pupil]);
+  // Lägen: hämtas om efter varje flytt (placeringarna), när villkoren ändras (en ny spärr prövas direkt) och när passet eller eleven byts.
   useEffect(() => {
     const controller = new AbortController();
-    api.post<unknown>('/api/schema/lagen', { unitId, schoolYear, period, villkor, fingerprint, placements: JSON.parse(key) as SchemaPlacement[], lesson: lessonId, pupilId: pupil }, controller.signal)
-      .then(value => { setLagen(parseSchemaLagen(value, fingerprint, lessonId)); setError(null); })
+    api.post<unknown>('/api/schema/lagen', { contractVersion, unitId, schoolYear, period, villkor: JSON.parse(villkorKey) as SchemaVillkor, grundFingerprint,
+      placements: JSON.parse(key) as SchemaPlacement[], lesson: lessonId, pupilId: pupil }, controller.signal)
+      .then(value => { setSvar({ lagen: parseSchemaLagen(value, grundFingerprint, lessonId), villkor: villkorKey }); setError(null); })
       .catch((caught: unknown) => {
         if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
         if (caught instanceof ApiError && caught.status === 401) { lost.current(); return; }
-        setLagen(null); setError(fel(caught));
+        setSvar(null); setError(fel(caught));
       })
-      .finally(() => { if (!controller.signal.aborted) setRaknat(key + (pupil ?? '')); });
+      .finally(() => { if (!controller.signal.aborted) setRaknat(key + (pupil ?? '') + villkorKey); });
     return () => controller.abort();
-  }, [unitId, schoolYear, period, villkor, fingerprint, lessonId, pupil, key]);
-  // Lägena räknas tills svaret för just dessa placeringar och den eleven har kommit.
-  const loading = raknat !== key + (pupil ?? '');
+  }, [contractVersion, unitId, schoolYear, period, villkorKey, grundFingerprint, lessonId, pupil, key]);
+  // Lägena räknas tills svaret för just dessa placeringar, den eleven och de villkoren har kommit. Ett svar för andra villkor visas inte.
+  const loading = raknat !== key + (pupil ?? '') + villkorKey, lagen = svar?.villkor === villkorKey ? svar.lagen : null;
 
   const visas = (l: SchemaForslagLesson) => l.term === null || l.term === (lesson.term ?? term);
   const rader = foljRader(forslag, lesson.id, folj, visas);

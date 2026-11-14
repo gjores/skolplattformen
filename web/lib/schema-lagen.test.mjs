@@ -34,12 +34,15 @@ const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_m
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 
 test('begäran: kontrollens fält, passet och en elev eller ingen', () => {
-  const base = { ...request, fingerprint: underlag.fingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
+  const base = { contractVersion: 3, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
   assert.deepEqual(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: null }), { ...base, lesson: ma, pupilId: null });
   assert.equal(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: uid(901).toUpperCase() }).pupilId, uid(901));
   for (const broken of [{ ...base, lesson: ma }, { ...base, lesson: 'Matematik', pupilId: null }, { ...base, lesson: ma, pupilId: 'elev-1' }, { ...base, lesson: ma, pupilId: null, extra: 1 },
-    { ...base, fingerprint: 'x', lesson: ma, pupilId: null }])
+    { ...base, grundFingerprint: 'x', lesson: ma, pupilId: null }, { ...base, contractVersion: 2, lesson: ma, pupilId: null }])
     assert.throws(() => parseSchemaLagenRequest(broken));
+  // Version 2 bar hela fingeravtrycket och förslagets villkor: nekas med egen orsak (05.2-SM-VILLKOR-DIREKT).
+  const { grundFingerprint: _, ...gammal } = { ...base, contractVersion: 2, fingerprint: underlag.fingerprint, lesson: ma, pupilId: null };
+  assert.throws(() => parseSchemaLagenRequest(gammal), { name: 'SchemaVersionError' });
 });
 
 test('motorns svar tolkas strikt: okända koder, fel läge, okända resurser och tider utanför rutnätet nekas', () => {
@@ -76,14 +79,14 @@ test('svaret får namn i stället för löpnummer, och klientens tolkning pröva
   assert.ok(!/\b(?:grupp|kluster|larare|behov)-\d/u.test(JSON.stringify(lagen)) && lagen.positions.every(x => x.room === 'sal-1'), 'löpnummer för resurser i svaret');
   assert.ok(!JSON.stringify(lagen).includes('52a10000'), 'appens ID i svaret');
   const wire = JSON.parse(JSON.stringify(lagen));
-  assert.deepEqual(parseSchemaLagen(wire, underlag.fingerprint, ma), lagen);
+  assert.deepEqual(parseSchemaLagen(wire, underlag.grundFingerprint, ma), lagen);
   assert.throws(() => parseSchemaLagen(wire, '0'.repeat(28), ma));
-  assert.throws(() => parseSchemaLagen(wire, underlag.fingerprint, idh));
+  assert.throws(() => parseSchemaLagen(wire, underlag.grundFingerprint, idh));
   for (const change of [x => { x.positions[0].reasons[0].code = 'ny_regel'; }, x => { x.positions[0].state = 'oklart'; }, x => { x.positions[1].reasons = [x.positions[0].reasons[0]]; },
-    x => { x.positions[0].reasons[0].kind = 'larare'; }, x => { x.positions[0].reasons = []; }, x => { x.positions[0].room = 'Sal 204'; }, x => { x.elev = 'ja'; }, x => { x.extra = 1; }]) {
+    x => { x.positions[0].reasons[0].kind = 'larare'; }, x => { x.positions[0].reasons = []; }, x => { x.positions[0].room = 'Sal 204'; }, x => { x.elev = 'ja'; }, x => { x.extra = 1; }, x => { x.fingerprint = 'x'; }, x => { x.contractVersion = 2; }]) {
     const copy = structuredClone(wire);
     change(copy);
-    assert.throws(() => parseSchemaLagen(copy, underlag.fingerprint, ma));
+    assert.throws(() => parseSchemaLagen(copy, underlag.grundFingerprint, ma));
   }
 });
 

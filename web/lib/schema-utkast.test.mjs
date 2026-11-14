@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCHEMA_UTKAST_STEG, flyttaMarkering, laggAldrigHar, markeringMellan, markeringVid, medUtkast, nyaVillkorBrott, passPaVillkor, schemaUtkast, sparrRegel, sparrResurser,
+import { SCHEMA_UTKAST_STEG, avvikelseRad, flyttaMarkering, laggAldrigHar, markeringMellan, markeringVid, medUtkast, passPaVillkor, schemaUtkast, sparrRegel, sparrResurser,
   stegMal, tomtUtkast, utkastEfter, utkastPlaceringar, utkastSteg, villkorSteg } from './schema-utkast.ts';
 
 /** Syntetiskt förslag: tre pass på måndag, ett på viloytan. */
@@ -124,10 +124,22 @@ test('en spärr läggs till och ångras och görs om i utkastet, utan att något
   const u2 = run(s2, { type: 'undo' });
   assert.deepEqual(u2.placements, s0.placements);
   assert.equal(villkorSteg(u2.undo.at(-1)), true);
-  // Passet som ligger på spärren märks; ångrad spärr märker inget.
-  assert.deepEqual([...nyaVillkorBrott(underlag, [regel], [], vecka)], [['p1', 'sparrad'], ['p3', 'sparrad']]);
-  assert.deepEqual([...nyaVillkorBrott(underlag, [regel], [regel], vecka)], [], 'villkor som förslaget redan räknade med märks av kontrollen');
-  assert.deepEqual([...nyaVillkorBrott(underlag, [], [], vecka)], []);
+  // Salarna efter en omkontroll för ändrade villkor (05.2-SM-VILLKOR-DIREKT): inget pass flyttas och inget ångra-steg läggs till.
+  const s3 = run(s1, { type: 'salar', rooms: { a: 'sal-2', b: null } });
+  assert.deepEqual([s3.placements.a, s3.placements.b, s3.placements.d, s3.undo, s3.redo], [{ day: 0, startMin: 480, room: 'sal-2' }, { day: 0, startMin: 600, room: null },
+    { day: null, startMin: null, room: null }, s1.undo, s1.redo]);
+});
+
+test('passet säger varför det avviker, ur kontrollens koder: spärrad tid, tillåten tid, sal och skoldag', () => {
+  const m = markeringMellan(days, 3, 840, 990), sparr = sparrRegel('sparrad', { slag: 'klass', ref: 'k1' }, m), tillat = sparrRegel('tillaten', { slag: 'amne', ref: 'Svenska' }, m);
+  // Vilka pass som avviker avgör kontrollen; utan dess kod ingen rad, även när passet ligger på spärren.
+  assert.equal(avvikelseRad(underlag, [sparr], [], vecka[0]), null);
+  assert.equal(avvikelseRad(underlag, [sparr], ['student_clash'], vecka[0]), null);
+  assert.equal(avvikelseRad(underlag, [sparr], ['outside_allowed'], vecka[0]), 'Ligger på spärrad tid');
+  assert.equal(avvikelseRad(underlag, [sparr, tillat], ['outside_allowed'], vecka[3]), 'Utanför tillåten tid');
+  assert.equal(avvikelseRad(underlag, [], ['room_unavailable', 'teacher_clash'], vecka[0]), 'Salen är spärrad då');
+  assert.equal(avvikelseRad(underlag, [], ['room_unfit'], vecka[0]), 'Salen följer inte salvillkoret');
+  assert.equal(avvikelseRad(underlag, [], ['outside_day'], vecka[0]), 'Utanför skoldagen');
 });
 
 test('det en spärr kan gälla är den som visas och lärare, sal, ämne och grupper för passen som ligger där', () => {

@@ -78,10 +78,10 @@ test('elevens schema är klassens och elevens gruppers pass; elev utan passet ne
   assert.throws(() => schemaFolj(plan, underlag, members, names, 'pass-999', null));
   // Klientens tolkning: samma svar, och fel form nekas.
   const svar = schemaFolj(plan, underlag, members, names, ma1[0], uid(901)), wire = JSON.parse(JSON.stringify(svar));
-  assert.deepEqual(parseSchemaFolj(wire, underlag.fingerprint, ma1[0]), svar);
+  assert.deepEqual(parseSchemaFolj(wire, underlag.grundFingerprint, ma1[0]), svar);
   for (const broken of [{ ...wire, lesson: sp[0] }, { ...wire, extra: 1 }, { ...wire, grupper: [{ ...wire.grupper[0], id: 'kluster-1' }] },
     { ...wire, elever: [{ id: 'elev-1', name: 'x' }] }, { ...wire, elev: { ...wire.elev, fromGroup: ['pass-999'] } }, { ...wire, grupper: [{ ...wire.grupper[0], delar: -1 }] }])
-    assert.throws(() => parseSchemaFolj(broken, underlag.fingerprint, ma1[0]), JSON.stringify(broken).slice(0, 120));
+    assert.throws(() => parseSchemaFolj(broken, underlag.grundFingerprint, ma1[0]), JSON.stringify(broken).slice(0, 120));
   assert.throws(() => parseSchemaFolj(wire, '0'.repeat(28), ma1[0]));
 });
 

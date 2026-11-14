@@ -1,6 +1,7 @@
 'use client';
 // Snabbmenyn, verktygen och tangentbordet i veckan (05.2-SM-MENY, Main och Sparra). Allt som går att göra med ett pass eller en tid
 // nås på tre likvärdiga vägar: högerklick, verktygsfält och tangentbord. En spärr blir ett vanligt eget villkor, via utkastet så att den kan ångras.
+// Spärren är ett tidsvillkor: arbetsytan låter kontrollen pröva den direkt, och passen märks ur kontrollens svar (05.2-SM-VILLKOR-DIREKT).
 // Menypunkter för funktioner som kommer i senare planer (Följ passet, Varför inte här, Föreslå placering, Lås, Byt, Gemensam ledig tid) finns inte än.
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub,
@@ -8,7 +9,7 @@ import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, Con
 import { Kbd } from '@/components/ui/kbd';
 import type { SchemaForslag, SchemaForslagLesson, SchemaRegel, SchemaVillkor } from '@/lib/schema-contract.ts';
 import type { SchemaKalla } from '@/lib/schema-lager.ts';
-import { flyttaMarkering, laggAldrigHar, markeringVid, nyaVillkorBrott, passPaVillkor, sparrRegel, sparrResurser, stegMal, villkorSteg,
+import { flyttaMarkering, laggAldrigHar, markeringVid, passPaVillkor, sparrRegel, sparrResurser, stegMal, villkorSteg,
   type SchemaMarkering, type SchemaPil, type SchemaUtkast, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
 import { PERIOD, startTimes } from './delat.ts';
 import { kallaText, visaVillkor } from './lager.tsx';
@@ -86,14 +87,13 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   if (visadVy !== vy) { setVisadVy(vy); setMarkering(null); setNy(null); }
 
   const days = forslag?.days ?? [];
-  const brott = forslag ? nyaVillkorBrott(forslag, villkor.egna, forslag.villkor.egna, alla) : new Map<string, SchemaRegel['typ']>();
   const visadMarkering = markering ?? (markerar && days.length ? { ...markeringVid(days, 0, days[0].startMin), tom: true } : null);
 
   function laggTill(rule: SchemaRegel, text: string, berorda: SchemaForslagLesson[], efterFokus: string | null) {
     const fore = villkor.egna, efter = [...fore, rule];
     setVillkor({ ...villkor, egna: efter });
     dispatch({ type: 'villkor', fore, efter, text });
-    setStatus(`${text}: tillagt som eget villkor ${efter.length}. ${berorda.length ? `${berorda.length} pass ligger fel och märks som regelavvikelse.` : 'Inga pass ligger fel.'} Villkoret gäller nästa förslag.`);
+    setStatus(`${text}: tillagt som eget villkor ${efter.length}. ${berorda.length ? `${berorda.length} pass ligger där nu.` : 'Inga pass ligger där nu.'} Kontrollen prövar villkoret direkt.`);
     fokus.current = efterFokus;
   }
   /** Ångra eller gör om ett villkor som lades till i veckan. Ger false när nästa steg är en flytt, som arbetsytan kontrollerar som vanligt. */
@@ -264,9 +264,6 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   return {
     verktyg, wrap, panel, veckaProps, angra,
     meddelande: <output aria-live="polite" className="schema-note">{status}</output>,
-    /** Pass som ligger på ett villkor som har lagts till efter förslaget, och raden i passrutan. */
-    brott,
-    rad: (l: SchemaForslagLesson) => { const typ = brott.get(l.id); return typ === 'sparrad' ? 'Ligger på ny spärr' : typ === 'tillaten' ? 'Utanför ny tillåten tid' : null; },
     /** Klick på ett pass: med verktyget Viloyta läggs passet på viloytan, annars väljs det för flytt. */
     onPick: (l: SchemaForslagLesson) => { if (tool === 'viloyta' && l.day !== null) andra({ type: 'park', lesson: l.id }); else pick(l); },
   };

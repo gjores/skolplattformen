@@ -36,6 +36,8 @@ export type SchemaUtkastAtgard =
   | { type: 'redo'; rooms?: SchemaUtkastSalar }
   | { type: 'reset'; forslag: { lessons: Pick<SchemaForslagLesson, 'id' | 'day' | 'startMin' | 'roomId'>[] } }
   | { type: 'villkor'; fore: SchemaRegel[]; efter: SchemaRegel[]; text: string }
+  /** Salarna efter en kontroll som kördes om för ändrade villkor (05.2-SM-VILLKOR-DIREKT): inget pass flyttas och inget ångra-steg läggs till. */
+  | { type: 'salar'; rooms: SchemaUtkastSalar }
   | { type: 'tool'; tool: SchemaVerktyg }
   | { type: 'layer'; layer: string; on: boolean };
 
@@ -109,6 +111,8 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
     }
     case 'pick':
       return action.lesson === null || action.lesson in state.placements ? { ...state, picked: action.lesson } : state;
+    case 'salar':
+      return { ...state, placements: withRooms(state.placements, action.rooms) };
     case 'villkor':
       return { ...state, undo: push(state.undo, { villkor: action.fore, efter: action.efter, text: action.text }), redo: [] };
     case 'tool':
@@ -259,14 +263,17 @@ export function passPaVillkor<T extends Lagt>(f: Underlag, egna: SchemaRegel[], 
 }
 
 /**
- * Pass som ligger på spärrad tid eller utanför tillåten tid enligt egna villkor som har lagts till efter att förslaget togs fram.
- * Kontrollen prövar förslagets villkor (fingeravtrycket gäller underlaget med dem), så de nya villkoren märks här tills ett nytt förslag tas fram.
+ * Varför ett pass avviker, i passrutan (05.2-SM-VILLKOR-DIREKT). Vilka pass som avviker avgörs bara av kontrollens svar (`koder`: kontrollens koder för
+ * passet); villkoren används för att säga om ett pass utanför sina tillåtna fönster ligger på spärrad tid eller utanför tillåten tid.
+ * Null: ingen rad för koden (avvikelsen står i listan Regelavvikelser).
  */
-export function nyaVillkorBrott<T extends Lagt>(f: Underlag, egna: SchemaRegel[], forslagets: SchemaRegel[], lessons: T[]): Map<string, 'sparrad' | 'tillaten'> {
-  const out = new Map<string, 'sparrad' | 'tillaten'>(), kanda = new Set(forslagets.map(x => JSON.stringify(x)));
-  egna.forEach((r, i) => {
-    if (!tid(r) || kanda.has(JSON.stringify(r))) return;
-    for (const l of passPaVillkor(f, egna, i, lessons)) if (!out.has(l.id)) out.set(l.id, r.typ);
-  });
-  return out;
+export function avvikelseRad<T extends Lagt>(f: Underlag, egna: SchemaRegel[], koder: string[], l: T): string | null {
+  if (koder.includes('outside_allowed')) {
+    const typer = egna.flatMap((r, i) => tid(r) && r.slag !== 'sal' && passPaVillkor(f, egna, i, [l]).length ? [r.typ] : []);
+    return typer.includes('sparrad') ? 'Ligger på spärrad tid' : 'Utanför tillåten tid';
+  }
+  if (koder.includes('room_unavailable')) return 'Salen är spärrad då';
+  if (koder.includes('room_unfit')) return 'Salen följer inte salvillkoret';
+  if (koder.includes('outside_day')) return 'Utanför skoldagen';
+  return null;
 }

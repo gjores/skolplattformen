@@ -23,7 +23,8 @@ export type SchemaFoljGrupp = { id: string; name: string; slag: 'klass' | 'grupp
   klasser: string[] };
 /** Vald elev: namn, klasser och grupper, passen och vilka av dem som kommer ur en grupp i stället för hela klassen. */
 export type SchemaFoljElev = { name: string; grupper: string[]; lessons: string[]; fromGroup: string[] };
-export type SchemaFolj = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; fingerprint: string; lesson: string;
+/** `grundFingerprint` är förslagets grund; `fingerprint` underlaget med villkoren i begäran (05.2-SM-VILLKOR-DIREKT). Grupperna följer bara grunden. */
+export type SchemaFolj = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string; lesson: string;
   grupper: SchemaFoljGrupp[];
   /** Elever som har passet, för väljaren. `null` när användaren inte får se elever eller elevernas indelning inte kunde stämmas av. */
   elever: { id: string; name: string }[] | null;
@@ -100,7 +101,7 @@ export function schemaFolj(plan: Pick<TjanstPlanRead, 'classes' | 'groups'>, und
     elev = { name: names?.get(pupilId) ?? 'Vald elev', grupper: groups.map(g => name(g.id)),
       lessons: lessons.map(l => l.id), fromGroup: lessons.filter(l => !l.groups.some(g => ids.has(g) && slag(g) === 'klass')).map(l => l.id) };
   }
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, lesson, grupper: [...on, ...delar], elever, elev };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: underlag.grundFingerprint, fingerprint: underlag.fingerprint, lesson, grupper: [...on, ...delar], elever, elev };
 }
 
 function bad(): never { throw new SchemaContractError(); }
@@ -122,9 +123,9 @@ const count = (value: unknown) => { if (typeof value !== 'number' || !Number.isS
 const ids = (value: unknown, pattern: RegExp) => list(value, LIMIT.lessons).map(x => { const s = text(x, 20); if (!pattern.test(s)) bad(); return s; });
 
 /** Klientens tolkning av ruttens svar. */
-export function parseSchemaFolj(value: unknown, fingerprint: string, lesson: string): SchemaFolj {
-  const k = exact(value, ['contractVersion', 'fingerprint', 'lesson', 'grupper', 'elever', 'elev']);
-  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.fingerprint !== fingerprint || k.lesson !== lesson) bad();
+export function parseSchemaFolj(value: unknown, grundFingerprint: string, lesson: string): SchemaFolj {
+  const k = exact(value, ['contractVersion', 'grundFingerprint', 'fingerprint', 'lesson', 'grupper', 'elever', 'elev']);
+  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.grundFingerprint !== grundFingerprint || typeof k.fingerprint !== 'string' || !/^[0-9a-f]{28}$/u.test(k.fingerprint) || k.lesson !== lesson) bad();
   const grupper = list(k.grupper, LIMIT.grupper).map(raw => {
     const g = exact(raw, ['id', 'name', 'slag', 'elever', 'delar', 'antagen', 'lessons', 'klasser']);
     if (!GROUP.test(text(g.id, 20)) || (g.slag !== 'klass' && g.slag !== 'grupp') || typeof g.antagen !== 'boolean') bad();
@@ -142,7 +143,7 @@ export function parseSchemaFolj(value: unknown, fingerprint: string, lesson: str
     elev = { name: text(e.name), grupper: list(e.grupper, LIMIT.grupper).map(x => text(x)), lessons: ids(e.lessons, LESSON), fromGroup: ids(e.fromGroup, LESSON) };
     if (elev.fromGroup.some(id => !elev!.lessons.includes(id))) bad();
   }
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint, lesson, grupper, elever, elev };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint, fingerprint: k.fingerprint, lesson, grupper, elever, elev };
 }
 
 // ── Klientens rader ──────────────────────────────────────────────────────────────────────────────────────────────────────────

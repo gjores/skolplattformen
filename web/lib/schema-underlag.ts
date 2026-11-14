@@ -6,7 +6,7 @@
  * hur mycket tid och vilken termin kommer ur timplanen via tjänstefördelningens behov (05.2-SM-LASAR-VILLKOR).
  */
 import type { TjanstPlanRead, TjanstRow } from './tjanst-contract.ts';
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, defaultSchemaVillkor, schemaTerms, type SchemaInterval, type SchemaRegel, type SchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, SCHEMA_LIMITS, defaultSchemaVillkor, schemaTerms, type SchemaInterval, type SchemaRegel, type SchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaCheck, type SchemaKontroll, type SchemaMembers, type SchemaOmission, type SchemaPlacement, type SchemaProblem,
   type SchemaSolution, type SchemaTerm, type SchemaTime } from './schema-contract.ts';
 import { passMarginal, yttreMarginal } from './schema-marginal.ts';
 
@@ -33,6 +33,8 @@ export type SchemaLabels = {
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime };
 export type SchemaUnderlag = { period: SchemaForslagRequest['period']; terms: SchemaTerm[]; villkor: SchemaVillkor; problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string;
+  /** Grundens fingeravtryck: passen, deras deltagare och namnen (05.2-SM-VILLKOR-DIREKT). */
+  grundFingerprint: string;
   resurser: SchemaForslag['resurser']; egnaUtanTraff: number[] };
 
 /** Utan läsårskalender: ett fast antal lika veckor (förval). */
@@ -59,7 +61,25 @@ export function mergeSchemaMembers(sources: { pupils: { id: string; classIds: st
  * Det upptäcker ändringar och skyddar ingenting; servern bygger alltid underlaget själv ur sin egen läsning.
  */
 export function schemaFingerprint(problem: SchemaProblem, labels: SchemaLabels): string {
-  const text = JSON.stringify([problem, labels]);
+  return hash(JSON.stringify([problem, labels]));
+}
+/**
+ * Grundens fingeravtryck (05.2-SM-VILLKOR-DIREKT): det som avgör vilka pass som finns och vilka som deltar. Passens ID, aktivitet, längd, lärare, grupper
+ * och termin, aktiviteternas tid, kluster, grupper, lärare, salarnas löpnummer och namnen. Tidsvillkoren (skoldagen, startrutnätet, regler, vikter,
+ * tillåtna fönster, salar per pass, salarnas spärrade tid, marginaler och lärarnas längsta dag) ingår inte. Räknas på underlaget med de villkor som
+ * prövas, så att ett tidsvillkor som ändå ändrar passen ger ett annat värde.
+ */
+export function schemaGrundFingerprint(problem: SchemaProblem, labels: SchemaLabels): string {
+  const grund = { version: problem.version, id: problem.id, step: problem.time.step_min, days: problem.time.days.length, periods: problem.periods ?? null,
+    teachers: problem.teachers.map(t => t.id), rooms: (problem.rooms ?? []).map(r => r.id), clusters: problem.clusters, groups: problem.groups, activities: problem.activities,
+    lessons: problem.lessons.map(l => [l.id, l.activity, l.duration_min, l.teachers, l.groups, l.periods ?? null]) };
+  const names = { classes: labels.classes, teachers: labels.teachers, rooms: labels.rooms, names: labels.names,
+    // `weeklyOff` säger om passen kan ge tiden med villkoren; det är ett resultat av tidsvillkoren, inte grunden.
+    activities: labels.activities.map(({ weeklyOff: _, ...a }) => a),
+    lessons: labels.lessons.map(({ marginMin: _m, marginBeforeMin: _b, roomIds: _r, ...l }) => l) };
+  return hash(JSON.stringify([grund, names]));
+}
+function hash(text: string): string {
   const part = (seed: number) => {
     let a = 0xdeadbeef ^ seed, b = 0x41c6ce57 ^ seed;
     for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i); a = Math.imul(a ^ c, 2654435761); b = Math.imul(b ^ c, 1597334677); }
@@ -206,7 +226,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   // Egna villkor som träffar något i underlaget. Villkor för en sal träffar alltid: salen finns bland salarna.
   const hit = new Set<number>(v.egna.flatMap((r, i) => r.slag === 'sal' ? [i] : []));
   const problem: SchemaProblem = {
-    version: SCHEMA_CONTRACT_VERSION, id: `forslag-${request.period}`,
+    version: SCHEMA_MOTOR_VERSION, id: `forslag-${request.period}`,
     time: { step_min: d.stepMin, start_grid_min: v.startGridMin, days: v.days.map(day => ({ start_min: day.startMin, end_min: day.endMin })) },
     // Läsår: terminerna är motorns perioder, så att pass i olika terminer kan dela tid (L2).
     ...(terms.length > 1 ? { periods: terms.map(id => ({ id })) } : {}),
@@ -398,7 +418,16 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     // Enskilda pass, för marginal på ett pass: ämnet, klasserna och passets nummer inom undervisningen. Numreringen följer underlaget.
     pass: labels.lessons.map(l => ({ ref: l.id, name: `${l.title}, ${l.classIds.map(id => labels.classes.find(c => c.id === id)?.name ?? id).join(', ')}, pass ${labels.lessons.filter(x => x.activity === l.activity && x.term === l.term).indexOf(l) + 1}${l.term ? ` (${l.term.toUpperCase()})` : ''}` })) };
   return { period: request.period, terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
-    resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
+    grundFingerprint: schemaGrundFingerprint(problem, labels), resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
+}
+
+/**
+ * Underlaget för kontroll, möjliga starttider och Följ passet (05.2-SM-VILLKOR-DIREKT): byggt med begärans villkor, så att tidsvillkor som har lagts till
+ * efter förslaget prövas direkt. `null` när grunden inte är förslagets; rutten svarar då 409 som förut.
+ */
+export function schemaProvUnderlag(plan: TjanstPlanRead, input: Pick<SchemaForslagRequest, 'period' | 'villkor'> & { grundFingerprint: string }, basis?: SchemaBasis): SchemaUnderlag | null {
+  const underlag = buildSchemaUnderlag(plan, input, basis);
+  return underlag.grundFingerprint === input.grundFingerprint ? underlag : null;
 }
 
 /** Motorns klartext bär löpnummer; här byts de mot namn innan texten visas. */
@@ -486,7 +515,7 @@ export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlace
     if (seen.has(key)) continue;
     seen.add(key); violations.push({ code: v.code, message, lessons: v.lessons });
   }
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, violations: violations.slice(0, SCHEMA_LIMITS.shownViolations), total: violations.length,
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: underlag.grundFingerprint, fingerprint: underlag.fingerprint, violations: violations.slice(0, SCHEMA_LIMITS.shownViolations), total: violations.length,
     ...plannedTeachings(underlag, new Map(placements.map(p => [p.lesson, p]))),
     metrics: { lessons: total, placed: placements.length, unplaced: total - placements.length, ...weeklyGaps(check.metrics, underlag) },
     rooms: Object.fromEntries(placements.flatMap(p => p.room ? [[p.lesson, p.room]] : [])) };
@@ -501,7 +530,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
   const usedTeachers = new Set(lessons.flatMap(l => l.teacherIds)), usedClasses = new Set(lessons.flatMap(l => l.classIds));
   return {
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, period: underlag.period, schoolName: plan.schoolName, villkor: underlag.villkor,
-    fingerprint: underlag.fingerprint, startGridMin: underlag.problem.time.start_grid_min,
+    fingerprint: underlag.fingerprint, grundFingerprint: underlag.grundFingerprint, startGridMin: underlag.problem.time.start_grid_min,
     time: { source: underlag.time.source, version: underlag.time.version, status: underlag.time.status, current: underlag.time.current, schoolDays: days, weeks: days / 5, terms: termDays, weekLabels: schemaWeekLabels(underlag) },
     members: underlag.members, teachings, trims, resurser: underlag.resurser, rooms: underlag.labels.rooms, egnaUtanTraff: underlag.egnaUtanTraff,
     basis: plan.version ? { versionNo: plan.version.versionNo, status: plan.version.status } : null,

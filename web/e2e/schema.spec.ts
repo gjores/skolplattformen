@@ -19,13 +19,21 @@ async function mock(page: Page, reply: (body: Record<string, unknown>) => { stat
 const DAYS = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 const clean = { ...kontroll.clash, violations: [], total: 0 };
 type Placement = { lesson: string; day: number; startMin: number; room: string | null };
-/** Kontrollens svar följer placeringarna: flyttat pass ger avvikelserna, borttagen tid ett olagt pass, annars inga avvikelser. */
+type KontrollBody = { contractVersion: number; grundFingerprint: string; villkor: typeof forslag.villkor; placements: Placement[] };
+/** Samma egna villkor oavsett fältens ordning. */
+const sammaEgna = (a: unknown[], b: unknown[]) => JSON.stringify(a.map(x => Object.entries(x as object).sort())) === JSON.stringify(b.map(x => Object.entries(x as object).sort()));
+/**
+ * Kontrollens svar följer villkoren och placeringarna (05.2-SM-VILLKOR-DIREKT): en spärr som lagts till efter förslaget ger motorns svar för den
+ * (work/schema/folj-fixtur.mjs), annars ger flyttat pass avvikelserna, borttagen tid ett olagt pass och övrigt inga avvikelser.
+ */
 async function mockKontroll(page: Page, status?: number) {
-  const bodies: { fingerprint: string; placements: Placement[] }[] = [];
+  const bodies: KontrollBody[] = [];
   await page.route('**/api/schema/kontroll', route => {
-    const body = route.request().postDataJSON() as { fingerprint: string; placements: Placement[] };
+    const body = route.request().postDataJSON() as KontrollBody;
     bodies.push(body);
     if (status) return route.fulfill({ headers, status, json: { code: 'schema_underlag_changed', correlationId: 'prov', details: { reason: 'schema_underlag_changed' } } });
+    const direkt = Object.values(kontroll.direkt).find(x => sammaEgna(body.villkor.egna, [x.regel]));
+    if (direkt) return route.fulfill({ headers, json: direkt.kontroll });
     const at = body.placements.find(p => p.lesson === kontroll.move.lesson);
     return route.fulfill({ headers, json: !at ? kontroll.lifted : at.day === kontroll.move.day && at.startMin === kontroll.move.startMin ? kontroll.clash : clean });
   });
@@ -236,7 +244,8 @@ test('ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan �
   const lesson = await move(page);
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
   expect(bodies).toHaveLength(1);
-  expect(bodies[0].fingerprint).toBe(forslag.fingerprint);
+  expect(bodies[0]).toMatchObject({ contractVersion: 3, grundFingerprint: forslag.grundFingerprint });
+  expect(bodies[0]).not.toHaveProperty('fingerprint');
   expect(bodies[0].placements).toHaveLength(forslag.lessons.length);
   expect(bodies[0].placements).toContainEqual({ ...kontroll.move, room: null });
   // Passet står på den nya dagen, är märkt i text och har fått fokus tillbaka.
@@ -759,10 +768,12 @@ const meny = {
   async start(page: Page) {
     await page.setViewportSize({ width: 1280, height: 1000 });
     const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
+    // Nya villkor prövas direkt av kontrollen (05.2-SM-VILLKOR-DIREKT).
+    const kontroller = await mockKontroll(page);
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
     await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
-    return bodies;
+    return Object.assign(bodies, { kontroller });
   },
 };
 const nySparr = { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'sparrad', days: [3], startMin: 840, endMin: 990 };
@@ -795,27 +806,39 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   await panel.getByRole('button', { name: 'Lägg till spärr' }).click();
   await expect(panel).toBeHidden();
   const pass = page.locator('[data-lesson="pass-27"]');
+  // Kontrollen prövar spärren direkt (05.2-SM-VILLKOR-DIREKT): märkningen och texten kommer ur motorns svar.
   await expect(pass).toContainText('Regelavvikelse');
-  await expect(pass).toContainText('Ligger på ny spärr');
+  await expect(pass).toContainText('Ligger på spärrad tid');
+  await expect.poll(() => bodies.kontroller.length).toBe(1);
+  expect(bodies.kontroller[0]).toMatchObject({ contractVersion: 3, grundFingerprint: forslag.grundFingerprint });
+  expect(bodies.kontroller[0].villkor.egna).toEqual([nySparr]);
   const falt = meny.dag(page, 3).locator('.schema-falt.falt-sparrad');
   await expect(falt).toContainText('Spärrad · Klass 1 · 14:00–16:30');
   await expect(falt.getByRole('button')).toBeFocused();
   await expect(page.locator('ul[aria-label="Egna villkor"] > li')).toHaveText([/^Klass Klass 1: spärrad torsdag 14:00–16:30/u]);
-  await expect(page.getByText('Spärrad · Klass 1 · torsdag 14:00–16:30: tillagt som eget villkor 1. 1 pass ligger fel och märks som regelavvikelse.')).toBeVisible();
+  await expect(page.getByText('Spärrad · Klass 1 · torsdag 14:00–16:30: tillagt som eget villkor 1. 1 pass ligger där nu. Kontrollen prövar villkoret direkt.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: `Regelavvikelser (${kontroll.direkt.sparr.kontroll.total})` })).toBeVisible();
+  await expect(page.getByText(kontroll.direkt.sparr.kontroll.violations.find(v => v.lessons.includes('pass-27'))!.message)).toBeVisible();
+  await expect(page.locator('[data-villkor-andrade="tid"]')).toContainText('prövar de ändrade villkoren direkt');
   // Ångra och gör om går genom utkastet; ingen flytt räknas.
   await expect(page.locator('.status-badge', { hasText: 'Ändrat för hand' })).toHaveCount(0);
+  // Ångra kör om kontrollen utan spärren, och avvikelsen försvinner; gör om prövar spärren igen.
   await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
   await expect(falt).toHaveCount(0);
   await expect(pass).not.toContainText('Regelavvikelse');
+  await expect(page.getByRole('heading', { name: /^Regelavvikelser/u })).toHaveCount(0);
+  await expect.poll(() => bodies.kontroller.length).toBe(2);
+  expect(bodies.kontroller[1].villkor.egna).toEqual([]);
   await expect(page.locator('ul[aria-label="Egna villkor"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Gör om' }).click();
   await expect(falt).toHaveCount(1);
-  await expect(pass).toContainText('Ligger på ny spärr');
-  // Spärren skickas med nästa förslag; då prövar motorn den och passet märks inte längre här.
+  await expect(pass).toContainText('Ligger på spärrad tid');
+  await expect.poll(() => bodies.kontroller.length).toBe(3);
+  // Spärren skickas med nästa förslag. Ett nytt förslag har ingen kontroll än: passet märks inte förrän det flyttas eller villkoren ändras.
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([nySparr]);
-  await expect(pass).not.toContainText('Ligger på ny spärr');
+  await expect(pass).not.toContainText('Ligger på spärrad tid');
 });
 
 test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen', async ({ page }, info) => {
@@ -857,7 +880,7 @@ test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fo
   await page.keyboard.press('Tab');
   await expect(panel.getByRole('button', { name: 'Lägg till spärr' })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('[data-lesson="pass-27"]')).toContainText('Ligger på ny spärr');
+  await expect(page.locator('[data-lesson="pass-27"]')).toContainText('Ligger på spärrad tid');
   await expect(meny.dag(page, 3).locator('.schema-falt.falt-sparrad').getByRole('button')).toBeFocused();
 });
 
@@ -870,6 +893,9 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
     const med = (body.villkor as { egna: unknown[] }).egna.some(r => JSON.stringify(r) === JSON.stringify(aldrig));
     return { json: { ...forslag, villkor: body.villkor, lessons: forslag.lessons.map(l => med && l.id === 'pass-35' ? { ...l, startMin: 920 } : l) } };
   });
+  // Kontrollen prövar villkoret direkt med motorns svar (work/schema/folj-fixtur.mjs).
+  expect(kontroll.direkt.aldrig.regel).toEqual(aldrig);
+  await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
@@ -883,13 +909,13 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
   await expect(menu).toBeHidden();
-  await expect(pass).toContainText('Ligger på ny spärr');
+  await expect(pass).toContainText('Ligger på spärrad tid');
   await expect(page.locator('ul[aria-label="Egna villkor"] > li')).toHaveText([/^Ämne Programämne: spärrad torsdag 10:00–11:10/u]);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([aldrig]);
   await expect(pass).toContainText('15:20–16:25');
-  await expect(pass).not.toContainText('Ligger på ny spärr');
+  await expect(pass).not.toContainText('Ligger på spärrad tid');
 });
 
 test('meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen', async ({ page }, info) => {
@@ -1000,7 +1026,7 @@ test('meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg
 // ── Följ passet och möjlighetskartan (05.2-SM-FOLJ) ─────────────────────────────────────────────────────────────────────────────
 // Motorns riktiga lägessvar och Följ passets svar för förslaget ovan (work/schema/folj-fixtur.mjs); rutternas behörighet prövas separat.
 import folj from './fixtures/schema-folj.json' with { type: 'json' };
-type FoljBody = { fingerprint: string; lesson: string; pupilId: string | null; placements: Placement[] };
+type FoljBody = { contractVersion: number; grundFingerprint: string; villkor: typeof forslag.villkor; lesson: string; pupilId: string | null; placements: Placement[] };
 /** Lägen och Följ passet för fixturens pass; andra pass ger att motorn inte svarar. `elever: false` = användaren får inte se elever. */
 async function mockFolj(page: Page, { elever = true } = {}) {
   const lagen: FoljBody[] = [], foljd: FoljBody[] = [];
@@ -1010,6 +1036,8 @@ async function mockFolj(page: Page, { elever = true } = {}) {
     lagen.push(body);
     if (body.lesson !== folj.lesson) return route.fulfill(unavailable);
     const at = body.placements.find(p => p.lesson === folj.lesson);
+    // En spärr efter förslaget: motorns lägen med spärren (05.2-SM-VILLKOR-DIREKT).
+    if (sammaEgna(body.villkor.egna, [folj.sparr.regel])) return route.fulfill({ headers, json: folj.sparr.lagen });
     return route.fulfill({ headers, json: body.pupilId ? folj.elev : at?.day === folj.fri.day && at.startMin === folj.fri.startMin ? folj.efter : folj.alla });
   });
   await page.route('**/api/schema/folj', route => {
@@ -1041,7 +1069,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await page.keyboard.press('f');
     const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
     await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
-    expect(calls.lagen[0]).toMatchObject({ fingerprint: forslag.fingerprint, lesson: folj.lesson, pupilId: null });
+    expect(calls.lagen[0]).toMatchObject({ contractVersion: 3, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson, pupilId: null });
     expect(calls.lagen[0].placements).toHaveLength(forslag.lessons.filter(l => l.day !== null).length);
     // Raderna: klassen, läraren och grupperna som delar elever, med antal.
     await expect(panel.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Spanska (delar 10 elever)', 'Tyska (delar 10 elever)']);
@@ -1179,4 +1207,73 @@ test('Följ passet nås från passmenyn med högerklick och med Skift+F10', asyn
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('Enter');
   await expect(rubrik).toBeFocused();
+});
+
+// ── 05.2-SM-VILLKOR-DIREKT: nya tidsvillkor prövas direkt av kontroll, möjliga starttider och Följ passet; ändrad grund kräver ett nytt förslag. ──
+async function draSparr(page: Page) {
+  await meny.verktyg(page, 'Spärra').click();
+  const from = await meny.punkt(page, 3, 840), to = await meny.punkt(page, 3, 990);
+  await page.mouse.move(from.x, from.y); await page.mouse.down();
+  await page.mouse.move(to.x, (from.y + to.y) / 2, { steps: 4 }); await page.mouse.move(to.x, to.y, { steps: 4 });
+  await page.mouse.up();
+  const panel = page.getByRole('region', { name: 'Ny spärr' });
+  await expect(panel.getByLabel('Gäller')).toHaveValue('0');
+  await panel.getByRole('button', { name: 'Lägg till spärr' }).click();
+  await expect(panel).toBeHidden();
+}
+
+test('villkor direkt: ändrad passlängd kräver ett nytt förslag, och flytt prövas mot förslagets villkor', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  const bodies = await meny.start(page);
+  await page.getByText('Villkor för schemat').click();
+  await page.getByLabel('Längsta pass').first().selectOption('70');
+  const note = page.locator('[data-villkor-andrade="grund"]');
+  await expect(note).toContainText('Ändringen kräver ett nytt förslag.');
+  await expect(note).toContainText('Flytt, kontroll och möjliga starttider följer förslagets villkor');
+  // Grunden prövas inte direkt: ingen kontroll för ändringen, och en flytt skickar förslagets villkor.
+  await page.waitForTimeout(500);
+  expect(bodies.kontroller).toHaveLength(0);
+  const lesson = await move(page);
+  await expect(lesson).toContainText('Regelavvikelse');
+  expect(bodies.kontroller).toHaveLength(1);
+  expect(bodies.kontroller[0].villkor.maxLessonMin).toBe(forslag.villkor.maxLessonMin);
+  // Tillbaka till förslagets passlängd: texten försvinner.
+  await page.getByLabel('Längsta pass').first().selectOption(String(forslag.villkor.maxLessonMin));
+  await expect(page.locator('[data-villkor-andrade]')).toHaveCount(0);
+});
+
+test('villkor direkt: ett tidsvillkor som servern ändå svarar 409 för kräver ett nytt förslag', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await meny.start(page);
+  const kontroller = await mockKontroll(page, 409);
+  await draSparr(page);
+  await expect.poll(() => kontroller.length).toBe(1);
+  await expect(page.locator('[data-villkor-andrade="grund"]')).toContainText('Ändringen kräver ett nytt förslag: villkoren ändrar hur passen kan delas på veckans dagar.');
+  await expect(page.getByRole('alert')).toHaveCount(0);
+  await expect(page.locator('[data-lesson="pass-27"]')).not.toContainText('Regelavvikelse');
+  await page.waitForTimeout(500);
+  expect(kontroller).toHaveLength(1);
+});
+
+test('villkor direkt: Följ passet visar den nya spärren som spärrad tid i möjlighetskartan', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await meny.start(page);
+  const calls = await mockFolj(page);
+  await page.locator(`[data-lesson="${folj.lesson}"]`).focus();
+  await page.keyboard.press('f');
+  const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
+  const sparrad = folj.sparr.lagen.positions.filter(p => p.state === 'sparrad'), forst = sparrad[0];
+  expect(sparrad.length).toBeGreaterThan(0);
+  await expect(panel.locator('.folj-start[tabindex="0"]')).toBeVisible();
+  await expect(panel.locator(`.folj-start[aria-label="${at(forst)}: spärrad tid"]`)).toHaveCount(0);
+  expect(folj.sparr.regel).toEqual(nySparr);
+  await draSparr(page);
+  // Lägena hämtas om med spärren och förslagets grund; svaret är motorns.
+  await expect.poll(() => calls.lagen.some(b => sammaEgna(b.villkor.egna, [nySparr]))).toBe(true);
+  expect(calls.lagen.find(b => sammaEgna(b.villkor.egna, [nySparr]))).toMatchObject({ contractVersion: 3, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson });
+  await expect(panel.locator(`.folj-start[aria-label="${at(forst)}: spärrad tid"]`)).toBeAttached();
+  await expect(panel.locator('.folj-start[aria-label$=": spärrad tid"]')).toHaveCount(sparrad.length);
+  // Ångra spärren: lägena utan spärren igen.
+  await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
+  await expect(panel.locator('.folj-start[aria-label$=": spärrad tid"]')).toHaveCount(0);
 });

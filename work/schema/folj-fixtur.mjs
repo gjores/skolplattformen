@@ -1,14 +1,16 @@
 // Fixtur för Följ passet (05.2-SM-FOLJ): motorns riktiga lägessvar och Följ passets svar för vyns prov, för förslaget i web/e2e/fixtures/schema-forslag.json.
-// Samma syntetiska skola som verify-koppling.mjs (kopierad; fingeravtrycket prövas mot fixturen så att underlaget är detsamma). Ingen databas, inga verkliga uppgifter.
+// Samma syntetiska skola som verify-koppling.mjs (kopierad; passen prövas mot fixturen så att underlaget är detsamma). Ingen databas, inga verkliga uppgifter.
+// 05.2-SM-VILLKOR-DIREKT: skriptet ger också förslagets och kontrollens fixturer appens kontraktsversion och fingeravtryck (förslaget räknas inte om, så att
+// vyns prov behåller sina pass), kör om kontrollens svar mot motorn och tar fram motorns svar för villkor som läggs till efter förslaget.
 // Kör från web/: node ../work/schema/folj-fixtur.mjs   (kräver `cargo build --release` i schemamotor/)
 import { spawn } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag } from '../../web/lib/schema-underlag.ts';
+import { buildSchemaUnderlag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
-import { checkSchemaPlacements, defaultSchemaVillkor } from '../../web/lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll } from '../../web/lib/schema-contract.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster } from '../../web/lib/schema-lagen.ts';
 import { parseSchemaFolj, schemaFolj } from '../../web/lib/schema-folj.ts';
 
@@ -54,7 +56,14 @@ const plan = { contractVersion: 1, unitId: uid(1), schoolName: 'Provskolan', sch
 const request = { unitId: uid(1), schoolYear: 2026, period: 'lasar', villkor: defaultSchemaVillkor() };
 const forslag = JSON.parse(readFileSync(join(fixtures, 'schema-forslag.json'), 'utf8'));
 const underlag = buildSchemaUnderlag(plan, request, basis);
-assert.equal(underlag.fingerprint, forslag.fingerprint, 'underlaget är inte detsamma som fixturens');
+// Förslagets pass ska vara underlagets; då får fixturen appens kontraktsversion och underlagets fingeravtryck. Inga gamla fingeravtryck står kvar.
+const passen = list => list.map(l => [l.id, l.title, l.classIds, l.teacherIds, l.durationMin, l.marginMin, l.marginBeforeMin, l.roomIds, l.vacant, l.term]);
+assert.deepEqual(passen(forslag.lessons), passen(underlag.labels.lessons), 'underlaget är inte detsamma som fixturens');
+assert.deepEqual(forslag.villkor, request.villkor);
+Object.assign(forslag, { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, grundFingerprint: underlag.grundFingerprint });
+parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request);
+writeFileSync(join(fixtures, 'schema-forslag.json'), JSON.stringify(forslag));
+const gammalKontroll = JSON.parse(readFileSync(join(fixtures, 'schema-kontroll.json'), 'utf8'));
 // Elevernas namn är syntetiska; bara den som får se elever får dem i appen.
 const names = new Map(pupils.map((p, i) => [p.id, `Provelev ${i + 1}`]));
 const token = randomBytes(24).toString('hex'), port = 20000 + Math.floor(Math.random() * 20000), url = `http://127.0.0.1:${port}`;
@@ -66,16 +75,37 @@ try {
     await new Promise(r => setTimeout(r, 100));
   }
   // Samma steg som appens lägesrutt.
-  const lagen = async (lesson, lessons, pupilId = null) => {
-    const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId ?? null }]), underlag.problem);
-    const pupil = pupilId && schemaElevKluster(plan, request, basis, underlag, pupilId);
-    if (pupilId) assert.ok(pupil && schemaPassKluster(underlag.problem, lesson).includes(pupil));
+  const lagen = async (lesson, lessons, pupilId = null, u = underlag) => {
+    const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId ?? null }]), u.problem);
+    const pupil = pupilId && schemaElevKluster(plan, request, basis, u, pupilId);
+    if (pupilId) assert.ok(pupil && schemaPassKluster(u.problem, lesson).includes(pupil));
     const reply = await fetch(`${url}/v1/positions`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
-      body: JSON.stringify({ problem: underlag.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })), lesson, ...(pupil ? { pupil } : {}) }) });
+      body: JSON.stringify({ problem: u.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })), lesson, ...(pupil ? { pupil } : {}) }) });
     const text = await reply.text();
     assert.equal(reply.status, 200, text.slice(0, 200));
-    return parseSchemaLagen(JSON.parse(JSON.stringify(schemaLagen(underlag, parseSchemaPositions(JSON.parse(text), underlag.problem, lesson), pupil !== null))), underlag.fingerprint, lesson);
+    return parseSchemaLagen(JSON.parse(JSON.stringify(schemaLagen(u, parseSchemaPositions(JSON.parse(text), u.problem, lesson), pupil !== null))), forslag.grundFingerprint, lesson);
   };
+  // Samma steg som appens kontrollrutt, med villkoren i begäran och förslagets grund (05.2-SM-VILLKOR-DIREKT).
+  const kontroll = async (lessons, villkor = request.villkor) => {
+    const u = schemaProvUnderlag(plan, { ...request, villkor, grundFingerprint: forslag.grundFingerprint }, basis);
+    assert.ok(u, 'villkoren ska ha förslagets grund');
+    const placements = checkSchemaPlacements(lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId ?? null }]), u.problem);
+    const reply = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ problem: u.problem, placements: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }) });
+    assert.equal(reply.status, 200);
+    return parseSchemaKontroll(JSON.parse(JSON.stringify(schemaKontroll(u, placements, parseSchemaCheck(await reply.json(), u.problem)))), forslag.grundFingerprint);
+  };
+  // Kontrollens fixtur: samma flytt som förut (verify-koppling.mjs), körd om mot motorn.
+  const { move } = gammalKontroll, flytt = forslag.lessons.map(l => l.id === move.lesson ? { ...l, day: move.day, startMin: move.startMin } : l);
+  const clash = await kontroll(flytt), lifted = await kontroll(forslag.lessons.map(l => l.id === move.lesson ? { ...l, day: null, startMin: null } : l));
+  assert.ok(clash.total > 0 && clash.violations.some(v => v.lessons.includes(move.lesson)) && lifted.total === 0 && (await kontroll(forslag.lessons)).total === 0);
+  // Villkor efter förslaget (vyns prov): spärr för Klass 1 torsdag 14:00–16:30 och "Lägg aldrig här" för Programämne torsdag 10:00–11:10.
+  const sparr = { slag: 'klass', ref: plan.classes[0].classId, typ: 'sparrad', days: [3], startMin: 840, endMin: 990 };
+  const aldrig = { slag: 'amne', ref: 'Programämne', typ: 'sparrad', days: [3], startMin: 600, endMin: 670 };
+  const villkorMed = egna => ({ ...request.villkor, egna });
+  const direkt = { sparr: { regel: sparr, kontroll: await kontroll(forslag.lessons, villkorMed([sparr])) }, aldrig: { regel: aldrig, kontroll: await kontroll(forslag.lessons, villkorMed([aldrig])) } };
+  for (const [namn, x] of Object.entries(direkt)) assert.ok(x.kontroll.total > 0 && x.kontroll.violations.every(v => v.code === 'outside_allowed'), `${namn}: kontrollen prövar inte villkoret`);
+  writeFileSync(join(fixtures, 'schema-kontroll.json'), JSON.stringify({ move, clash, lifted, direkt }));
   // Matematik i klass 1 under hösten, som designvyn. Eleven: första eleven i klass 1 med Spanska.
   const lesson = forslag.lessons.find(l => l.title === 'Matematik' && l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.term === 'ht' && l.day !== null);
   const pupilId = pupils[0].id;
@@ -83,12 +113,19 @@ try {
   const fri = alla.positions.find(p => p.state === 'fri' && !(p.day === lesson.day && p.startMin === lesson.startMin));
   assert.ok(fri, 'ingen annan fri tid');
   const flyttad = forslag.lessons.map(l => l.id === lesson.id ? { ...l, day: fri.day, startMin: fri.startMin } : l), efter = await lagen(lesson.id, flyttad);
-  const folj = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, null))), underlag.fingerprint, lesson.id);
-  const foljElev = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, pupilId))), underlag.fingerprint, lesson.id);
-  const utanElever = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, null, lesson.id, null))), underlag.fingerprint, lesson.id);
+  const folj = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, null))), underlag.grundFingerprint, lesson.id);
+  const foljElev = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, pupilId))), underlag.grundFingerprint, lesson.id);
+  const utanElever = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, null, lesson.id, null))), underlag.grundFingerprint, lesson.id);
+  // Möjliga starttider med en spärr för klassen efter förslaget (05.2-SM-VILLKOR-DIREKT): tiden under spärren är spärrad.
+  const uSparr = schemaProvUnderlag(plan, { ...request, villkor: villkorMed([sparr]), grundFingerprint: forslag.grundFingerprint }, basis);
+  const medSparr = await lagen(lesson.id, forslag.lessons, null, uSparr);
+  const underSparr = medSparr.positions.filter(p => p.day === 3 && p.startMin < sparr.endMin && p.startMin + lesson.durationMin > sparr.startMin);
+  assert.ok(underSparr.length && underSparr.every(p => p.state === 'sparrad'), 'spärren syns inte i lägena');
+  assert.ok(alla.positions.filter(p => underSparr.some(q => q.day === p.day && q.startMin === p.startMin)).every(p => p.state !== 'sparrad'));
   assert.ok(folj.grupper.some(g => g.delar !== null), 'ingen grupp delar elever med passet');
   assert.equal(utanElever.elever, null);
   const count = x => Object.fromEntries(['fri', 'onskemal', 'byte', 'brott', 'sparrad'].map(s => [s, x.positions.filter(p => p.state === s).length]));
-  console.log(JSON.stringify({ lesson: lesson.id, alla: count(alla), elev: count(elev), efter: count(efter), fri: [fri.day, fri.startMin], grupper: folj.grupper.map(g => [g.name, g.delar]), elever: folj.elever.length }));
-  writeFileSync(join(fixtures, 'schema-folj.json'), JSON.stringify({ lesson: lesson.id, pupilId, fri, alla, elev, efter, folj, foljElev, utanElever }));
+  console.log(JSON.stringify({ lesson: lesson.id, alla: count(alla), elev: count(elev), efter: count(efter), medSparr: count(medSparr), fri: [fri.day, fri.startMin], grupper: folj.grupper.map(g => [g.name, g.delar]), elever: folj.elever.length,
+    kontroll: { clash: clash.total, sparr: direkt.sparr.kontroll.violations.map(v => v.lessons), aldrig: direkt.aldrig.kontroll.violations.map(v => v.lessons) } }));
+  writeFileSync(join(fixtures, 'schema-folj.json'), JSON.stringify({ lesson: lesson.id, pupilId, fri, alla, elev, efter, folj, foljElev, utanElever, sparr: { regel: sparr, lagen: medSparr } }));
 } finally { service.kill(); }

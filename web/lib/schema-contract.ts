@@ -2,7 +2,12 @@
  * Schemamotorns kontrakt v2 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
-export const SCHEMA_CONTRACT_VERSION = 2 as const;
+export const SCHEMA_MOTOR_VERSION = 2 as const;
+/**
+ * Appens kontrakt mellan webbläsaren och schemarutterna. v3 (05.2-SM-VILLKOR-DIREKT): kontroll, möjliga starttider och Följ passet bär nuvarande villkor och
+ * grundens fingeravtryck, och prövar tidsvillkor direkt. Motorns kontrakt (`SCHEMA_MOTOR_VERSION`) är oförändrat.
+ */
+export const SCHEMA_CONTRACT_VERSION = 3 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
 /** Det schemat gäller: hela läsåret eller en termin (05.2-SM-LASAR-VILLKOR, L1). */
@@ -15,7 +20,7 @@ export type SchemaStatus = typeof SCHEMA_STATUSES[number];
 
 export type SchemaInterval = { day: number; start_min: number; end_min: number };
 export type SchemaProblem = {
-  version: typeof SCHEMA_CONTRACT_VERSION; id: string;
+  version: typeof SCHEMA_MOTOR_VERSION; id: string;
   time: { step_min: number; start_grid_min: number; days: { start_min: number; end_min: number }[] };
   periods?: { id: string }[];
   teachers: { id: string; max_min_per_day?: number }[];
@@ -81,6 +86,25 @@ export type SchemaRegel = { slag: SchemaRegelSlag; ref: string } & (
   | { typ: 'antal'; count: number }
   | { typ: 'sal'; rooms: string[] });
 export type SchemaRegelTyp = SchemaRegel['typ'];
+/**
+ * Grund och tidsvillkor (05.2-SM-VILLKOR-DIREKT, beslut B 2026-11-14). Grunden avgör vilka pass som finns: längsta och kortaste pass, salarna (salarnas
+ * löpnummer) och egna villkor för passlängd och antal pass. Ändras grunden krävs ett nytt förslag. Allt annat är tidsvillkor och prövas direkt mot
+ * nuvarande placeringar: skoldagen, rasten, startrutnätet, lunchen, samma ämne samma dag, sena pass, längsta dag och egna villkor för spärrad och tillåten tid,
+ * sal och marginal. Ett tidsvillkor som ändå ändrar passen (en spärr som stänger alla dagar där passen kunde ge sin tid, så att längderna väljs om) ger ett
+ * annat grundfingeravtryck i underlaget och kräver då också ett nytt förslag.
+ */
+export const SCHEMA_GRUND_TYPER: readonly SchemaRegelTyp[] = ['langd', 'antal'];
+export function schemaGrund(v: SchemaVillkor): Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin' | 'salar' | 'egna'> {
+  return { maxLessonMin: v.maxLessonMin, minLessonMin: v.minLessonMin, salar: v.salar, egna: v.egna.filter(r => SCHEMA_GRUND_TYPER.includes(r.typ)) };
+}
+/** Samma grund: villkoren skiljer sig bara i tidsvillkor och kan prövas mot förslagets pass. */
+export const sammaGrund = (a: SchemaVillkor, b: SchemaVillkor) => villkorNyckel(schemaGrund(a)) === villkorNyckel(schemaGrund(b));
+/** Villkoren som text i fast fältordning, för att jämföra villkor (som i servern efter tolkning). Villkor som inte går att tolka jämförs som de är. */
+export function villkorNyckel(v: unknown): string {
+  const sorted = (x: unknown): unknown => Array.isArray(x) ? x.map(sorted)
+    : x !== null && typeof x === 'object' ? Object.fromEntries(Object.keys(x).sort().map(k => [k, sorted((x as Record<string, unknown>)[k])])) : x;
+  return JSON.stringify(sorted(v));
+}
 /** Vilka villkor som kan ställas för vad. */
 export const SCHEMA_REGEL_TYPER: Record<SchemaRegelSlag, SchemaRegelTyp[]> = {
   klass: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], grupp: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'],
@@ -159,13 +183,17 @@ export type SchemaForslagLesson = { id: string; title: string; classIds: string[
   roomIds: string[]; roomId: string | null;
   /** Terminen passet går, när det inte går hela den valda perioden. */
   term: SchemaTerm | null; day: number | null; startMin: number | null };
-/** Kontroll av ett för hand ändrat förslag (05.2-SM-FLYTT, F1–F3): alla lagda pass skickas, tillsammans med förslagets fingeravtryck. */
-export type SchemaKontrollRequest = SchemaForslagRequest & { fingerprint: string; placements: SchemaPlacement[] };
+/**
+ * Kontroll av ett för hand ändrat förslag (05.2-SM-FLYTT, F1–F3): alla lagda pass skickas med nuvarande villkor och förslagets grundfingeravtryck
+ * (05.2-SM-VILLKOR-DIREKT). Servern bygger underlaget med villkoren; skiljer sig grunden svarar den 409.
+ */
+export type SchemaKontrollRequest = SchemaForslagRequest & { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; placements: SchemaPlacement[] };
 export type SchemaRawViolation = { code: string; message: string; lessons: string[]; resources: string[] };
 export type SchemaViolation = { code: string; message: string; lessons: string[] };
 /** Regelbrott i hela schemat efter en flytt. `total` kan vara större än antalet som visas. */
 export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] };
-export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; fingerprint: string; violations: SchemaViolation[]; total: number;
+/** `fingerprint` gäller underlaget med villkoren kontrollen prövade, `grundFingerprint` grunden (samma som förslagets). */
+export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string; violations: SchemaViolation[]; total: number;
   teachings: SchemaForslagTeaching[]; trims: SchemaTrim[]; metrics: SchemaForslag['metrics'];
   /** Salen för varje lagt pass som ska ha en sal. */
   rooms: Record<string, string> };
@@ -200,8 +228,11 @@ export type SchemaForslag = {
   rooms: { id: string; name: string }[];
   /** Egna villkor (plats i `villkor.egna`) som inte träffade något i underlaget och därför inte användes. */
   egnaUtanTraff: number[];
-  /** Underlagets fingeravtryck: ändras underlaget gäller inte förslaget längre för flytt. Ingen säkerhetsfunktion; servern bygger alltid underlaget själv. */
-  fingerprint: string; startGridMin: number;
+  /**
+   * Underlagets fingeravtryck, över hela underlaget, och grundens, över det som avgör vilka pass som finns (05.2-SM-VILLKOR-DIREKT). Ändras grunden gäller
+   * förslaget inte längre för flytt. Ingen säkerhetsfunktion; servern bygger alltid underlaget själv.
+   */
+  fingerprint: string; grundFingerprint: string; startGridMin: number;
   time: { source: SchemaTime['source']; version: number | null; status: string | null; current: boolean; schoolDays: number; weeks: number;
     terms: { term: SchemaTerm; schoolDays: number }[]; weekLabels: string[] };
   members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[] };
@@ -215,6 +246,10 @@ export type SchemaForslag = {
 
 export class SchemaContractError extends TypeError {
   constructor() { super('Schemaunderlaget kunde inte kontrolleras.'); this.name = 'SchemaContractError'; }
+}
+/** Begäran med en annan kontraktsversion än appens: nekas med egen orsak, så att en gammal sida inte prövas mot nya regler. */
+export class SchemaVersionError extends SchemaContractError {
+  constructor() { super(); this.name = 'SchemaVersionError'; }
 }
 function bad(): never { throw new SchemaContractError(); }
 function record(value: unknown): Record<string, unknown> {
@@ -296,31 +331,34 @@ function teaching(t: SchemaForslagTeaching): void {
   if (t.perWeek.length !== t.trimPerWeek.length) bad();
 }
 const ROOM = /^sal-\d{1,3}$/u;
-/** Placeringarnas form. Att passen finns, ligger en gång och inom skoldagen prövas mot underlaget med `checkSchemaPlacements`. */
+/** Placeringarnas form. Att passen finns och ligger en gång prövas mot underlaget med `checkSchemaPlacements`. Gammal kontraktsversion ger `SchemaVersionError`. */
 export function parseSchemaKontrollRequest(value: unknown): SchemaKontrollRequest {
-  const r = record(value), base = parseSchemaForslagRequest(value, 6);
-  if (typeof r.fingerprint !== 'string' || !FINGERPRINT.test(r.fingerprint)) bad();
+  const r = record(value);
+  if (r.contractVersion !== SCHEMA_CONTRACT_VERSION) throw new SchemaVersionError();
+  const base = parseSchemaForslagRequest(value, 7);
+  if (typeof r.grundFingerprint !== 'string' || !FINGERPRINT.test(r.grundFingerprint)) bad();
   const placements = list(r.placements, SCHEMA_LIMITS.lessons).map(raw => {
     const p = record(raw);
     if (Object.keys(p).length !== 4 || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
     return { lesson: text(p.lesson, 100), day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null };
   });
-  return { ...base, fingerprint: r.fingerprint, placements };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, ...base, grundFingerprint: r.grundFingerprint, placements };
 }
 /**
- * Passet ska finnas, ligga en gång och inom skoldagen, och en sal ska vara en av passets tillåtna. Ett pass som ska ha en sal men saknar en
- * får den första tillåtna som är ledig, annars den första tillåtna (R6); en upptagen sal redovisas då av kontrollanten.
+ * Passet ska finnas, ligga en gång på en av veckans dagar och rymmas i dygnet. Att det ligger inom skoldagen prövas av kontrollanten (`outside_day`),
+ * eftersom skoldagen är ett tidsvillkor som kan ha ändrats efter förslaget (05.2-SM-VILLKOR-DIREKT). En sal som inte är en av passets tillåtna
+ * (salvillkoret har ändrats) släpps. Ett pass som ska ha en sal men saknar en får den första tillåtna som är ledig, annars den första tillåtna (R6);
+ * en upptagen sal redovisas då av kontrollanten.
  */
 export function checkSchemaPlacements(placements: SchemaPlacement[], problem: SchemaProblem): SchemaPlacement[] {
   const lesson = new Map(problem.lessons.map(l => [l.id, l])), seen = new Set<string>();
   for (const p of placements) {
-    const l = lesson.get(p.lesson), frame = problem.time.days[p.day];
-    if (l === undefined || seen.has(p.lesson) || !frame || p.startMin < frame.start_min || p.startMin > frame.end_min - l.duration_min) bad();
-    if (p.room !== null && !l.rooms?.allowed.includes(p.room)) bad();
+    const l = lesson.get(p.lesson);
+    if (l === undefined || seen.has(p.lesson) || !problem.time.days[p.day] || p.startMin > 1440 - l.duration_min) bad();
     seen.add(p.lesson);
   }
   const meets = (a: SchemaPlacement, b: SchemaPlacement) => a.day === b.day && a.startMin < b.startMin + lesson.get(b.lesson)!.duration_min && b.startMin < a.startMin + lesson.get(a.lesson)!.duration_min;
-  const result = placements.map(p => ({ ...p }));
+  const result = placements.map(p => ({ ...p, room: p.room !== null && lesson.get(p.lesson)!.rooms?.allowed.includes(p.room) ? p.room : null }));
   for (const p of result) {
     const allowed = lesson.get(p.lesson)!.rooms?.allowed;
     if (p.room === null && allowed) p.room = allowed.find(room => !result.some(o => o !== p && o.room === room && meets(o, p))) ?? allowed[0];
@@ -330,7 +368,7 @@ export function checkSchemaPlacements(placements: SchemaPlacement[], problem: Sc
 /** Kontrollantens svar från motorn: bara pass som finns i underlaget får pekas ut. */
 export function parseSchemaCheck(value: unknown, problem: SchemaProblem): SchemaCheck {
   const s = record(value), known = new Set(problem.lessons.map(l => l.id)), m = record(s.metrics);
-  if (s.version !== SCHEMA_CONTRACT_VERSION || s.problem_id !== problem.id) bad();
+  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id) bad();
   const violations = list(s.violations, SCHEMA_LIMITS.violations).map(raw => {
     const v = record(raw), lessons = list(v.lessons, SCHEMA_LIMITS.lessons).map(id => text(id, 100));
     if (lessons.some(id => !known.has(id))) bad();
@@ -338,10 +376,10 @@ export function parseSchemaCheck(value: unknown, problem: SchemaProblem): Schema
   });
   return { violations, metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER) } };
 }
-/** Klientens tolkning av kontrollruttens svar. */
-export function parseSchemaKontroll(value: unknown, fingerprint: string): SchemaKontroll {
+/** Klientens tolkning av kontrollruttens svar: grunden ska vara förslagets. */
+export function parseSchemaKontroll(value: unknown, grundFingerprint: string): SchemaKontroll {
   const k = record(value);
-  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.fingerprint !== fingerprint) bad();
+  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.grundFingerprint !== grundFingerprint || typeof k.fingerprint !== 'string' || !FINGERPRINT.test(k.fingerprint)) bad();
   const violations = list(k.violations, SCHEMA_LIMITS.shownViolations).map(raw => {
     const v = record(raw);
     return { code: text(v.code, 100), message: text(v.message, SCHEMA_LIMITS.message), lessons: list(v.lessons, SCHEMA_LIMITS.lessons).map(id => text(id, 100)) };
@@ -350,7 +388,7 @@ export function parseSchemaKontroll(value: unknown, fingerprint: string): Schema
   for (const room of Object.values(rooms)) if (!ROOM.test(text(room, 10))) bad();
   for (const t of teachings) teaching(record(t) as SchemaForslagTeaching);
   for (const key of ['lessons', 'placed', 'unplaced', 'studentGapMin', 'teacherGapMin'] as const) int(m[key], 0, Number.MAX_SAFE_INTEGER);
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, trims: trims(k.trims, null), metrics: m, rooms };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint, fingerprint: k.fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, trims: trims(k.trims, null), metrics: m, rooms };
 }
 
 /**
@@ -359,7 +397,7 @@ export function parseSchemaKontroll(value: unknown, fingerprint: string): Schema
  */
 export function parseSchemaSolution(value: unknown, problem: SchemaProblem): SchemaSolution {
   const s = record(value);
-  if (s.version !== SCHEMA_CONTRACT_VERSION || s.problem_id !== problem.id) bad();
+  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id) bad();
   const status = SCHEMA_STATUSES.find(x => x === s.status) ?? bad();
   const duration = new Map(problem.lessons.map(l => [l.id, l.duration_min])), wanted = new Map(problem.lessons.map(l => [l.id, l.rooms?.allowed])), seen = new Set<string>();
   const placements = list(s.placements, SCHEMA_LIMITS.lessons).map(raw => {
@@ -401,7 +439,7 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   for (const x of f.rooms) { if (!ROOM.test(text(record(x).id, 10))) bad(); text(x.name, SCHEMA_VILLKOR_LIMITS.salNamn); }
   for (const i of f.egnaUtanTraff) int(i, 0, SCHEMA_VILLKOR_LIMITS.egna);
   record(f.metrics); text(f.schoolName, 500); int(f.startGridMin, 1, 1440);
-  if (typeof f.fingerprint !== 'string' || !FINGERPRINT.test(f.fingerprint)) bad();
+  if (typeof f.fingerprint !== 'string' || !FINGERPRINT.test(f.fingerprint) || typeof f.grundFingerprint !== 'string' || !FINGERPRINT.test(f.grundFingerprint)) bad();
   const time = record(f.time), members = record(f.members);
   if (time.source !== 'kalender' && time.source !== 'forval' || typeof time.weeks !== 'number' || !(time.weeks > 0)) bad();
   int(time.schoolDays, 0, 366); list(time.terms, 2); int(members.pupils, 0, 1_000_000);

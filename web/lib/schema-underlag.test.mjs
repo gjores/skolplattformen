@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaKontroll, weeklyLessons } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaKontroll, schemaProvUnderlag, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
-import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution } from './schema-contract.ts';
+import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel } from './schema-contract.ts';
 
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -273,14 +273,16 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.equal(schemaForslag(plan(), request, underlag, parseSchemaSolution(solved(p), p)).fingerprint, underlag.fingerprint);
 
   const placements = [{ lesson: 'pass-1', day: 0, startMin: 480, room: null }, { lesson: 'pass-2', day: 4, startMin: 930, room: null }];
-  const body = { ...request, fingerprint: underlag.fingerprint, placements };
+  const body = { contractVersion: 3, ...request, grundFingerprint: underlag.grundFingerprint, placements };
   assert.deepEqual(parseSchemaKontrollRequest(body), body);
-  for (const broken of [{ ...body, fingerprint: 'x' }, { ...body, extra: 1 }, { ...body, placements: [{ ...placements[0], rooms: [] }] }, { ...body, placements: [{ ...placements[0], day: 1.5 }] }, { ...body, placements: [{ ...placements[0], room: 'Idrottshallen' }] }, { ...body, placements: [{ lesson: 'pass-1', day: 0, startMin: 480 }] }, { ...request, placements }])
+  for (const broken of [{ ...body, grundFingerprint: 'x' }, { ...body, contractVersion: 2 }, { ...body, fingerprint: underlag.fingerprint }, { ...body, extra: 1 }, { ...body, placements: [{ ...placements[0], rooms: [] }] }, { ...body, placements: [{ ...placements[0], day: 1.5 }] }, { ...body, placements: [{ ...placements[0], room: 'Idrottshallen' }] }, { ...body, placements: [{ lesson: 'pass-1', day: 0, startMin: 480 }] }, { ...request, placements }])
     assert.throws(() => parseSchemaKontrollRequest(broken));
   assert.deepEqual(checkSchemaPlacements(placements, p), placements);
-  // Okänt pass, samma pass två gånger, dag som inte finns och tid utanför skoldagen stoppas innan motorn anropas.
-  for (const broken of [[{ ...placements[0], lesson: 'pass-999' }], [placements[0], placements[0]], [{ ...placements[0], day: 5 }], [{ ...placements[0], startMin: 475 }], [{ ...placements[0], startMin: 16 * 60 + 30 - 55 }]])
+  // Okänt pass, samma pass två gånger, dag som inte finns och tid som inte ryms i dygnet stoppas innan motorn anropas. Tid utanför skoldagen redovisas
+  // av kontrollanten (`outside_day`), eftersom skoldagen är ett tidsvillkor som kan ha ändrats efter förslaget (05.2-SM-VILLKOR-DIREKT).
+  for (const broken of [[{ ...placements[0], lesson: 'pass-999' }], [placements[0], placements[0]], [{ ...placements[0], day: 5 }], [{ ...placements[0], startMin: 1440 - 55 }]])
     assert.throws(() => checkSchemaPlacements(broken, p));
+  for (const ok of [[{ ...placements[0], startMin: 475 }], [{ ...placements[0], startMin: 16 * 60 + 30 - 55 }]]) assert.deepEqual(checkSchemaPlacements(ok, p), ok);
 
   const reply = { version: 2, problem_id: p.id, violations: [
     { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
@@ -296,8 +298,10 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.deepEqual(core(kontroll.teachings.find(t => t.title === 'Matematik' && t.classes[0] === '1A')), { title: 'Matematik', classes: ['1A'], needMin: h(54), weeklyMin: 180, plannedMin: 2 * 60 * 18, unplaced: 1,
     terms: [term('ht', h(54), 2 * 60 * 18)], deviation: 'unplaced' });
   assert.deepEqual(kontroll.rooms, {});
-  assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.fingerprint), kontroll);
+  assert.deepEqual([kontroll.contractVersion, kontroll.grundFingerprint, kontroll.fingerprint], [3, underlag.grundFingerprint, underlag.fingerprint]);
+  assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.grundFingerprint), kontroll);
   assert.throws(() => parseSchemaKontroll(kontroll, '0'.repeat(28)));
+  for (const broken of [{ ...kontroll, contractVersion: 2 }, { ...kontroll, fingerprint: 'x' }]) assert.throws(() => parseSchemaKontroll(broken, underlag.grundFingerprint));
   for (const broken of [{ ...reply, problem_id: 'annat' }, { ...reply, version: 1 }, { ...reply, violations: [{ ...reply.violations[0], lessons: ['pass-999'] }] }, { ...reply, metrics: {} }])
     assert.throws(() => parseSchemaCheck(broken, p));
 });
@@ -380,9 +384,9 @@ test('villkoren prövas och når motorn', () => {
   assert.deepEqual(p.lessons.slice(0, 4).map(l => l.duration_min), [45, 45, 45, 45]);
   assert.equal(u.villkor, villkor);
   assert.deepEqual(buildSchemaUnderlag(plan(), request).problem.rules, { break_min: 10, lunch: { window_start_min: 630, window_end_min: 810, length_min: 40, teachers: true }, same_day: 'avoid' });
-  // Fredagens kortare dag gäller också när en flytt prövas.
-  assert.throws(() => checkSchemaPlacements([{ lesson: 'pass-1', day: 4, startMin: 480, room: null }], p));
-  assert.deepEqual(checkSchemaPlacements([{ lesson: 'pass-1', day: 4, startMin: 510, room: null }], p).length, 1);
+  // Fredagens kortare dag gäller också när en flytt prövas: kontrollanten redovisar ett pass före 08:30 som utanför skoldagen (`outside_day`, motorns prov).
+  assert.deepEqual(p.time.days[4], { start_min: 510, end_min: 840 });
+  assert.deepEqual(checkSchemaPlacements([{ lesson: 'pass-1', day: 4, startMin: 480, room: null }], p).length, 1);
 });
 
 /** Egna villkor (05.2-SM-VILLKOR-PER-RESURS): salar och regler per klass, ämne, lärare och sal. */
@@ -451,12 +455,13 @@ test('egna villkor når motorn som fönster, salar, marginal och uppdelning; vec
   const idh = slots.findIndex(x => x.rooms.length > 0);
   for (const rooms of [[], ['sal-2'], ['sal-1', 'sal-2']]) assert.throws(() => parseSchemaSolution({ ...raw, placements: slots.map((x, i) => i === idh ? { ...x, rooms } : x) }, p));
 
-  // Flytt för hand: passet behåller sin sal, får första lediga när ingen anges, och en otillåten sal nekas.
+  // Flytt för hand: passet behåller sin sal och får första lediga när ingen anges. En sal passet inte längre får ha (salvillkoret har ändrats efter förslaget,
+  // 05.2-SM-VILLKOR-DIREKT) släpps: passet får en tillåten sal, och ett pass utan salkrav ingen.
   const [a, b] = of('Idrott', 'grupp-2').map(l => l.id), at = (lesson, room, startMin = 720) => ({ lesson, day: 1, startMin, room });
   assert.deepEqual(checkSchemaPlacements([at(a, null)], p), [at(a, 'sal-1')]);
   assert.deepEqual(checkSchemaPlacements([at(a, 'sal-1'), at(b, null, 800)], p).map(x => x.room), ['sal-1', 'sal-1']);
-  assert.throws(() => checkSchemaPlacements([at(a, 'sal-2')], p));
-  assert.throws(() => checkSchemaPlacements([at(ma[0].id, 'sal-1')], p));
+  assert.deepEqual(checkSchemaPlacements([at(a, 'sal-2')], p), [at(a, 'sal-1')]);
+  assert.deepEqual(checkSchemaPlacements([at(ma[0].id, 'sal-1')], p), [at(ma[0].id, null)]);
   const kontroll = schemaKontroll(u, checkSchemaPlacements([at(a, null)], p), { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } });
   assert.deepEqual(kontroll.rooms, { [a]: 'sal-1' });
 });
@@ -568,4 +573,109 @@ test('marginaler slås ihop per pass och part, når motorn utan att ändra passe
   assert.throws(() => parseSchemaVillkor({ ...defaultSchemaVillkor(), egna: [gammal] }));
   assert.deepEqual(parseSchemaVillkor({ ...defaultSchemaVillkor(), egna: [lasGammalMarginal(gammal)] }).egna[0].afterMin, 20);
   assert.equal(lasGammalMarginal(egna[0]), egna[0]);
+});
+
+/**
+ * Grund och tidsvillkor (05.2-SM-VILLKOR-DIREKT, beslut B 2026-11-14). Varje fält i villkoren och varje typ av eget villkor är klassad; ett tidsvillkor
+ * får inte ändra passens ID, aktivitet, längd, lärare, grupper eller termin, och grunden ska ändra grundens fingeravtryck.
+ */
+const passen = u => u.problem.lessons.map(l => [l.id, l.activity, l.duration_min, l.teachers, l.groups, l.periods ?? null]);
+const passensNamn = u => u.labels.lessons.map(l => [l.id, l.title, l.classIds, l.teacherIds, l.durationMin, l.vacant, l.term]);
+const marginal = { slag: 'amne', ref: 'Matematik', typ: 'marginal', beforeMin: 0, afterMin: 20, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' };
+const grundVillkor = { ...defaultSchemaVillkor(), salar: ['Hallen', 'Sal A'] };
+/** Varje fält i `SchemaVillkor` och varje typ av eget villkor, med en ändring som gör skillnad i underlaget. */
+const TIDSVILLKOR = {
+  days: { days: grundVillkor.days.map((x, i) => i === 4 ? { startMin: 510, endMin: 840 } : x) },
+  breakMin: { breakMin: 5 }, startGridMin: { startGridMin: 15 }, lunch: { lunch: null }, lunchfonster: { lunch: { ...grundVillkor.lunch, lengthMin: 30, teachers: false } },
+  sameDay: { sameDay: 'forbid' }, lateAfterMin: { lateAfterMin: null }, studentMaxMinPerDay: { studentMaxMinPerDay: 360 }, teacherMaxMinPerDay: { teacherMaxMinPerDay: 300 },
+  'egna sparrad': { egna: [{ slag: 'klass', ref: uid(10), typ: 'sparrad', days: [3], startMin: 840, endMin: 990 }] },
+  'egna sparrad för sal': { egna: [{ slag: 'sal', ref: 'Hallen', typ: 'sparrad', days: [4], startMin: 480, endMin: 990 }] },
+  'egna tillaten': { egna: [{ slag: 'larare', ref: uid(21), typ: 'tillaten', days: [0, 1, 2, 3, 4], startMin: 480, endMin: 900 }] },
+  'egna sal': { egna: [{ slag: 'amne', ref: 'Idrott', typ: 'sal', rooms: ['Hallen'] }] },
+  'egna marginal': { egna: [marginal] },
+};
+const GRUND = {
+  maxLessonMin: { maxLessonMin: 50 }, minLessonMin: { minLessonMin: 10 }, salar: { salar: ['Hallen', 'Sal A', 'Sal B'] },
+  'egna langd': { egna: [{ slag: 'amne', ref: 'Matematik', typ: 'langd', maxMin: 45 }] }, 'egna antal': { egna: [{ slag: 'amne', ref: 'Svenska', typ: 'antal', count: 4 }] },
+};
+
+test('grund och tidsvillkor: varje fält och varje eget villkor är klassat', () => {
+  const falt = Object.keys(defaultSchemaVillkor()).filter(k => k !== 'egna'), typer = ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'];
+  const klassat = Object.keys({ ...TIDSVILLKOR, ...GRUND }).map(k => k === 'lunchfonster' ? 'lunch' : k);
+  assert.deepEqual(falt.filter(k => !klassat.includes(k)), [], 'fält utan klassning');
+  assert.deepEqual(typer.filter(t => !klassat.some(k => k === `egna ${t}`)), [], 'eget villkor utan klassning');
+  assert.deepEqual(Object.keys(schemaGrund(grundVillkor)), ['maxLessonMin', 'minLessonMin', 'salar', 'egna']);
+  assert.deepEqual(schemaGrund({ ...grundVillkor, egna: [marginal, ...GRUND['egna langd'].egna, ...TIDSVILLKOR['egna sal'].egna] }).egna, GRUND['egna langd'].egna);
+  // Jämförelsen bryr sig inte om fältens ordning, som servern efter tolkning.
+  assert.equal(villkorNyckel({ b: 1, a: [{ d: 2, c: 3 }] }), villkorNyckel({ a: [{ c: 3, d: 2 }], b: 1 }));
+});
+
+test('tidsvillkor ändrar fingeravtrycket men inte grunden: passens ID, längder och deltagare är desamma och servern prövar villkoret', () => {
+  const req = { ...request, villkor: grundVillkor }, base = buildSchemaUnderlag(plan(), req);
+  assert.match(base.grundFingerprint, /^[0-9a-f]{28}$/u);
+  assert.notEqual(base.grundFingerprint, base.fingerprint);
+  for (const [namn, change] of Object.entries(TIDSVILLKOR)) {
+    const villkor = { ...grundVillkor, ...change };
+    assert.deepEqual(checkSchemaVillkor(villkor), [], namn);
+    const u = buildSchemaUnderlag(plan(), { ...req, villkor });
+    assert.notEqual(u.fingerprint, base.fingerprint, `${namn}: villkoret når inte underlaget`);
+    assert.equal(u.grundFingerprint, base.grundFingerprint, `${namn}: grunden ändrades`);
+    assert.deepEqual(passen(u), passen(base), namn);
+    assert.deepEqual(passensNamn(u), passensNamn(base), namn);
+    assert.ok(sammaGrund(villkor, grundVillkor), namn);
+    // Rutterna: samma grund ger underlaget byggt med de nya villkoren (200), inte 409.
+    assert.equal(schemaProvUnderlag(plan(), { ...req, villkor, grundFingerprint: base.grundFingerprint })?.fingerprint, u.fingerprint, namn);
+  }
+  // En ny spärr når motorn som tillåtna fönster utan spärren, för passen den gäller.
+  const sparr = buildSchemaUnderlag(plan(), { ...req, villkor: { ...grundVillkor, ...TIDSVILLKOR['egna sparrad'] } });
+  const klass1A = sparr.problem.lessons.filter((_, i) => sparr.labels.lessons[i].classIds.includes('grupp-1'));
+  assert.ok(klass1A.length && klass1A.every(l => l.allowed.some(w => w.day === 3) && l.allowed.filter(w => w.day === 3).every(w => w.end_min <= 840) && l.allowed.some(w => w.day === 0 && w.end_min === 990)));
+  assert.ok(base.problem.lessons.every(l => !l.allowed));
+});
+
+test('grunden ändrar båda fingeravtrycken och kräver ett nytt förslag (409)', () => {
+  const req = { ...request, villkor: grundVillkor }, base = buildSchemaUnderlag(plan(), req);
+  for (const [namn, change] of Object.entries(GRUND)) {
+    const villkor = { ...grundVillkor, ...change };
+    assert.deepEqual(checkSchemaVillkor(villkor), [], namn);
+    const u = buildSchemaUnderlag(plan(), { ...req, villkor });
+    assert.notEqual(u.fingerprint, base.fingerprint, namn);
+    assert.notEqual(u.grundFingerprint, base.grundFingerprint, namn);
+    assert.equal(sammaGrund(villkor, grundVillkor), false, namn);
+    assert.equal(schemaProvUnderlag(plan(), { ...req, villkor, grundFingerprint: base.grundFingerprint }), null, namn);
+  }
+  // Passen ändras av längsta och kortaste pass, passlängd och antal; salarna ändrar salarnas löpnummer.
+  for (const namn of ['maxLessonMin', 'minLessonMin', 'egna langd', 'egna antal'])
+    assert.notDeepEqual(passen(buildSchemaUnderlag(plan(), { ...req, villkor: { ...grundVillkor, ...GRUND[namn] } })), passen(base), namn);
+  // Ändrad tjänstefördelning ändrar också grunden, som förut.
+  assert.notEqual(buildSchemaUnderlag(plan({ rows: [row(30, classKey(10, 'ma'), uid(23))] }), req).grundFingerprint, base.grundFingerprint);
+});
+
+test('avvikelse från planens klassning: tidsvillkor som stänger hela veckodagar kan ändra passens längd, och grunden fångar det', () => {
+  // Måndagen har 17 skoldagar, övriga 18. Matematik i 1A (54 h) behöver 65-minuterspass om motorn kan välja måndagen, men kortare räcker när klassen är spärrad
+  // hela måndagen: underlaget väljer längderna efter veckodagarna där passen kan ligga (W1–W2). Spärren är ett tidsvillkor men ändrar passen;
+  // grundens fingeravtryck räknas därför på underlaget med villkoren, och rutten svarar 409 (arbetsytan säger att ändringen kräver ett nytt förslag).
+  const basis = { members: null, time: timeWith({ perWeekday: [17, 18, 18, 18, 18] }) }, req = { ...request, villkor: grundVillkor };
+  const base = buildSchemaUnderlag(plan(), req, basis);
+  const ma = u => u.labels.lessons.filter(l => l.title === 'Matematik' && l.classIds.includes('grupp-1')).map(l => l.durationMin);
+  const helDag = { ...grundVillkor, egna: [{ slag: 'klass', ref: uid(10), typ: 'sparrad', days: [0], startMin: 480, endMin: 990 }] };
+  const delDag = { ...grundVillkor, egna: [{ slag: 'klass', ref: uid(10), typ: 'sparrad', days: [0], startMin: 480, endMin: 720 }] };
+  assert.deepEqual(ma(base), [65, 65, 65]);
+  const u = buildSchemaUnderlag(plan(), { ...req, villkor: helDag }, basis);
+  assert.deepEqual(ma(u), [65, 60, 60]);
+  assert.ok(sammaGrund(helDag, grundVillkor), 'villkoret är klassat som tidsvillkor');
+  assert.notEqual(u.grundFingerprint, base.grundFingerprint);
+  assert.equal(schemaProvUnderlag(plan(), { ...req, villkor: helDag, grundFingerprint: base.grundFingerprint }, basis), null);
+  // En spärr del av dagen lämnar dagen möjlig: passen och grunden är desamma, och spärren prövas direkt.
+  const d = buildSchemaUnderlag(plan(), { ...req, villkor: delDag }, basis);
+  assert.deepEqual([ma(d), d.grundFingerprint], [[65, 65, 65], base.grundFingerprint]);
+  assert.ok(schemaProvUnderlag(plan(), { ...req, villkor: delDag, grundFingerprint: base.grundFingerprint }, basis));
+});
+
+test('version 2 av begäran nekas med egen orsak; servern bygger aldrig underlaget med den', () => {
+  const underlag = buildSchemaUnderlag(plan(), request);
+  const gammal = { ...request, fingerprint: underlag.fingerprint, placements: [] };
+  assert.throws(() => parseSchemaKontrollRequest(gammal), { name: 'SchemaVersionError' });
+  assert.throws(() => parseSchemaKontrollRequest({ ...gammal, contractVersion: 2 }), { name: 'SchemaVersionError' });
+  assert.throws(() => parseSchemaKontrollRequest({ contractVersion: 3, ...request, fingerprint: underlag.fingerprint, placements: [] }), { name: 'SchemaContractError' });
 });

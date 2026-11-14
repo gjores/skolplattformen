@@ -4,7 +4,7 @@
  * mot namn och orsakerna blir svenska rader som i designvyn (`design/Samlingsvy.dc.html`). Inget sparas.
  * Elevnivå: motorn får elevens kluster (löpnummer), aldrig elevens ID; bara den som får se eleven kan begära den.
  */
-import { SCHEMA_CONTRACT_VERSION, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaForslagRequest, type SchemaKontrollRequest, type SchemaPlacement,
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaForslagRequest, type SchemaKontrollRequest, type SchemaPlacement,
   type SchemaProblem } from './schema-contract.ts';
 import { buildSchemaUnderlag, type SchemaBasis, type SchemaUnderlag } from './schema-underlag.ts';
 import type { TjanstPlanRead } from './tjanst-contract.ts';
@@ -31,14 +31,15 @@ export type SchemaPositions = { lesson: string; positions: { day: number; startM
 /** Ruttens svar: namn i stället för löpnummer för lärare, elever, grupper, salar och ämnen. Passens löpnummer behålls, som i förslaget. */
 export type SchemaLagenOrsak = { code: string; kind: SchemaOrsakSlag | null; name: string | null; lessons: string[] };
 export type SchemaLagenPosition = { day: number; startMin: number; room: string | null; state: SchemaLage; costDelta: number; reasons: SchemaLagenOrsak[] };
-export type SchemaLagen = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; fingerprint: string; lesson: string;
+/** `fingerprint` gäller underlaget med villkoren som prövades, `grundFingerprint` förslagets grund (05.2-SM-VILLKOR-DIREKT). */
+export type SchemaLagen = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string; lesson: string;
   /** Lägena räknade för en elev: elevernas brott gäller bara den eleven. */
   elev: boolean; positions: SchemaLagenPosition[] };
 /** Begäran: kontrollens underlag och placeringar, passet och eventuellt en elev (appens ID; stannar på servern). */
 export type SchemaLagenRequest = SchemaKontrollRequest & { lesson: string; pupilId: string | null };
 
 const LIMIT = { positions: 7 * 288, reasons: 2000, lessons: 2000 } as const;
-const LESSON = /^pass-\d{1,6}$/u, ROOM = /^sal-\d{1,3}$/u, UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+const FINGERPRINT = /^[0-9a-f]{28}$/u, LESSON = /^pass-\d{1,6}$/u, ROOM = /^sal-\d{1,3}$/u, UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 function bad(): never { throw new SchemaContractError(); }
 function record(value: unknown): Record<string, unknown> {
   if (value === null || typeof value !== 'object' || Array.isArray(value)) bad();
@@ -95,7 +96,7 @@ export function schemaElevKluster(plan: TjanstPlanRead, request: Pick<SchemaFors
 export function parseSchemaPositions(value: unknown, problem: SchemaProblem, lesson: string): SchemaPositions {
   const s = exact(value, ['version', 'problem_id', 'lesson', 'positions']);
   const own = problem.lessons.find(l => l.id === lesson);
-  if (s.version !== SCHEMA_CONTRACT_VERSION || s.problem_id !== problem.id || s.lesson !== lesson || !own) bad();
+  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id || s.lesson !== lesson || !own) bad();
   const known: Record<SchemaOrsakSlag, Set<string>> = {
     larare: new Set(problem.teachers.map(t => t.id)), elever: new Set(problem.clusters.map(c => c.id)), grupp: new Set(problem.groups.map(g => g.id)),
     sal: new Set((problem.rooms ?? []).map(r => r.id)), amne: new Set(problem.activities.map(a => a.id)), pass: new Set() };
@@ -147,13 +148,14 @@ export function schemaLagen(underlag: SchemaUnderlag, reply: SchemaPositions, el
     }
     return { ...p, reasons };
   });
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, lesson: reply.lesson, elev, positions };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: underlag.grundFingerprint, fingerprint: underlag.fingerprint, lesson: reply.lesson, elev, positions };
 }
 
-/** Klientens tolkning av ruttens svar. */
-export function parseSchemaLagen(value: unknown, fingerprint: string, lesson: string): SchemaLagen {
-  const k = exact(value, ['contractVersion', 'fingerprint', 'lesson', 'elev', 'positions']);
-  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.fingerprint !== fingerprint || k.lesson !== lesson || typeof k.elev !== 'boolean') bad();
+/** Klientens tolkning av ruttens svar: grunden ska vara förslagets. */
+export function parseSchemaLagen(value: unknown, grundFingerprint: string, lesson: string): SchemaLagen {
+  const k = exact(value, ['contractVersion', 'grundFingerprint', 'fingerprint', 'lesson', 'elev', 'positions']);
+  if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.grundFingerprint !== grundFingerprint || typeof k.fingerprint !== 'string' || !FINGERPRINT.test(k.fingerprint)
+    || k.lesson !== lesson || typeof k.elev !== 'boolean') bad();
   const seen = new Set<string>();
   const positions = list(k.positions, LIMIT.positions).map(raw => {
     const p = exact(raw, ['day', 'startMin', 'room', 'state', 'costDelta', 'reasons']);
@@ -175,7 +177,7 @@ export function parseSchemaLagen(value: unknown, fingerprint: string, lesson: st
     if (state !== 'fri' && !reasons.length) bad();
     return { day, startMin, room: p.room as string | null, state, costDelta: int(p.costDelta, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER), reasons };
   });
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint, lesson, elev: k.elev, positions };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint, fingerprint: k.fingerprint, lesson, elev: k.elev, positions };
 }
 
 /** Det som behövs för texterna: förslagets pass och namn, och placeringarna lägena räknades mot. */

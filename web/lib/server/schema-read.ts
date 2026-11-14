@@ -8,10 +8,22 @@ import { readElectiveBlocks } from './elective-block.ts';
 import { logEvent } from './events.ts';
 import { lasarRead } from './lasar.ts';
 import { readStudyGroups } from './study-groups.ts';
-import { planRead } from './tjanst.ts';
-import type { SchemaForslagRequest } from '../schema-contract.ts';
+import { Deny } from './db.ts';
+import { planRead, tjanstRequest } from './tjanst.ts';
+import { SchemaVersionError, type SchemaForslagRequest } from '../schema-contract.ts';
 import { schemaTime } from '../schema-kalender.ts';
 import { mergeSchemaMembers, type SchemaBasis } from '../schema-underlag.ts';
+
+/**
+ * Begäran till kontroll, möjliga starttider och Följ passet (05.2-SM-VILLKOR-DIREKT): samma läsning och storleksgräns som övriga schemarutter.
+ * En annan kontraktsversion nekas med orsaken `schema_contract_version`, så att en sida från en äldre version inte prövas mot nya regler.
+ */
+export async function schemaBegaran<T>(request: Request, parse: (value: unknown) => T): Promise<T> {
+  const value = await tjanstRequest(request, raw => raw);
+  try { return parse(value); } catch (error) {
+    throw error instanceof SchemaVersionError ? new Deny('bad_request', 400, { reason: 'schema_contract_version' }) : new Deny('bad_request', 400);
+  }
+}
 
 export async function readSchemaBasis(request: Request, tx: Parameters<typeof planRead>[0], ctx: Context, input: SchemaForslagRequest) {
   const scope = { unitId: input.unitId, schoolYear: input.schoolYear }, target = { kind: 'school' as const, unitId: input.unitId };
