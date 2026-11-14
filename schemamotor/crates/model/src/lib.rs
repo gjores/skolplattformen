@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 
-pub const CONTRACT_VERSION: u32 = 1;
+pub const CONTRACT_VERSION: u32 = 2;
 /// Lösaren håller en dag i ett 128-bitarsord.
 pub const MAX_SLOTS_PER_DAY: u32 = 128;
 pub const MAX_PERIODS: usize = 32;
@@ -198,11 +198,73 @@ pub struct Lesson {
     /// upptar mer tid än undervisningen, t.ex. med marginal. Utan värde: `duration_min`.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub counted_min: Option<u32>,
+    /// Tid före och efter passet som följer passet när det flyttas (omklädning, dusch, städning, övergång).
+    /// Marginalen upptar bara de parter den anger, räknas i deras dag (krockar, dagslängd, lunch, håltid)
+    /// men aldrig i aktivitetens tid. Utan värde: ingen marginal.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub margin: Option<Margin>,
+}
+
+/// Marginal före och efter ett pass för en part. Minuterna följer tidssteget.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct MarginSide {
+    #[serde(default)]
+    pub before_min: u32,
+    #[serde(default)]
+    pub after_min: u32,
+}
+
+impl MarginSide {
+    pub fn max(self, other: MarginSide) -> MarginSide {
+        MarginSide { before_min: self.before_min.max(other.before_min), after_min: self.after_min.max(other.after_min) }
+    }
+    pub fn is_zero(&self) -> bool {
+        self.before_min == 0 && self.after_min == 0
+    }
+}
+
+/// Passets marginal per part. Två pass får inte ligga så att det ena passets marginal överlappar det andras
+/// undervisning för en gemensam part; marginaler får överlappa varandra. Rasten (`rules.break_min`)
+/// gäller mellan passens undervisning och räknas inte ovanpå marginalen.
+#[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct Margin {
+    #[serde(default)]
+    pub students: MarginSide,
+    #[serde(default)]
+    pub teachers: MarginSide,
+    #[serde(default)]
+    pub rooms: MarginSide,
+}
+
+/// Den part en marginal gäller.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum MarginPart {
+    Students,
+    Teachers,
+    Rooms,
 }
 
 impl Lesson {
     pub fn counted(&self) -> u32 {
         self.counted_min.unwrap_or(self.duration_min)
+    }
+
+    /// Marginalen för en part. Noll när passet saknar parten (inga grupper, lärare eller salskrav).
+    pub fn margin_for(&self, part: MarginPart) -> MarginSide {
+        let Some(m) = &self.margin else { return MarginSide::default() };
+        match part {
+            MarginPart::Students if !self.groups.is_empty() => m.students,
+            MarginPart::Teachers if !self.teachers.is_empty() => m.teachers,
+            MarginPart::Rooms if self.rooms.is_some() => m.rooms,
+            _ => MarginSide::default(),
+        }
+    }
+
+    /// Den största marginalen åt varje håll. Passet och denna marginal ska rymmas i skoldagen.
+    pub fn outer_margin(&self) -> MarginSide {
+        self.margin_for(MarginPart::Students).max(self.margin_for(MarginPart::Teachers)).max(self.margin_for(MarginPart::Rooms))
     }
 }
 
@@ -578,6 +640,11 @@ impl Problem {
             if l.counted_min.is_some_and(|c| c > l.duration_min) {
                 err("duration", format!("Pass {} räknar fler minuter än det varar.", l.id), id(), vec![]);
             }
+            if let Some(m) = &l.margin {
+                if [m.students, m.teachers, m.rooms].iter().any(|x| x.before_min % step != 0 || x.after_min % step != 0 || x.before_min > 1440 || x.after_min > 1440) {
+                    err("time_step", format!("Pass {} har en marginal som inte följer tidssteget {step} min.", l.id), id(), vec![]);
+                }
+            }
             if l.teachers.is_empty() && l.groups.is_empty() {
                 err("empty_lesson", format!("Pass {} har varken lärare eller grupp.", l.id), id(), vec![]);
             }
@@ -617,7 +684,8 @@ impl Problem {
             if let Some(s) = &l.locked {
                 let ok = (s.day as usize) < self.time.days.len() && {
                     let d = &self.time.days[s.day as usize];
-                    s.start_min >= d.start_min && s.start_min + l.duration_min <= d.end_min && (s.start_min - d.start_min) % step == 0
+                    let m = l.outer_margin();
+                    s.start_min >= d.start_min + m.before_min && s.start_min + l.duration_min + m.after_min <= d.end_min && (s.start_min - d.start_min) % step == 0
                 };
                 if !ok {
                     err("locked", format!("Pass {} är låst till en tid utanför skoldagen eller tidssteget.", l.id), id(), vec![]);

@@ -16,9 +16,9 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, shownMin, ext
   dayRef?: Ref<HTMLSelectElement>;
   onTarget: (next: FlyttMal) => void; onMove: () => void; onPark: () => void; onCancel: () => void;
 }) {
-  const starts = (day: number) => startTimes(forslag, day, l.durationMin + l.marginMin);
+  const starts = (day: number) => startTimes(forslag, day, l.durationMin + l.marginMin, l.marginBeforeMin);
   return <form className="schema-move" aria-label="Flytta pass" onSubmit={e => { e.preventDefault(); onMove(); }}>
-    <p><strong>{l.title}</strong>, {shownMin} min{shownMin !== l.durationMin && ` (${l.durationMin} min i grundschemat)`}{extra.someWeeks}{l.marginMin > 0 && ` och ${l.marginMin} min marginal`}{extra.termTag} · {names(l.classIds, forslag.classes)}{l.teacherIds.length > 0 && ` · ${names(l.teacherIds, forslag.teachers)}`}
+    <p><strong>{l.title}</strong>, {shownMin} min{shownMin !== l.durationMin && ` (${l.durationMin} min i grundschemat)`}{extra.someWeeks}{l.marginMin + l.marginBeforeMin > 0 && ` och marginal ${l.marginBeforeMin || '–'} · ${l.marginMin || '–'} min`}{extra.termTag} · {names(l.classIds, forslag.classes)}{l.teacherIds.length > 0 && ` · ${names(l.teacherIds, forslag.teachers)}`}
       <span className="schema-note"> {l.day === null || l.startMin === null ? 'Ligger på viloytan.' : `Ligger nu ${DAYS[l.day].toLowerCase()} ${clock(l.startMin)}${l.roomId ? ` i ${roomName(l.roomId)}` : ''}.`}</span></p>
     <label>Dag<select ref={dayRef} value={target.day} disabled={checking} onChange={e => { const day = Number(e.target.value), next = starts(day); onTarget({ ...target, day, startMin: next.includes(target.startMin) ? target.startMin : next[0] ?? target.startMin }); }}>
       {forslag.days.map((_, day) => <option key={day} value={day}>{dayName(day)}</option>)}</select></label>

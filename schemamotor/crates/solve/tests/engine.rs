@@ -307,3 +307,123 @@ fn activity_time_must_match_the_days() {
     p.activities[0].time[0].weekday_days.pop();
     assert!(p.check().iter().any(|d| d.code == "activity_time"));
 }
+
+// ---------------------------------------------------------------------------
+// Marginal före och efter pass (05.2-SM-MARGINAL).
+// ---------------------------------------------------------------------------
+
+/// Idrott för två klasser med samma lärare och hall, en kort förmiddag 08:00–10:30. Eleverna har
+/// omklädning 10 min före och dusch 15 min efter; `room` anger om marginalen också upptar hallen.
+fn hall(room: bool) -> Problem {
+    let margin = |students: bool| json!({ "students": { "before_min": 10, "after_min": 15 }, "rooms": if students && room { json!({ "before_min": 10, "after_min": 15 }) } else { json!({}) } });
+    let idh = |id: &str, group: &str| {
+        let mut l = lesson(id, 60, "t9", group);
+        l["rooms"] = json!({ "count": 1, "allowed": ["hall"] });
+        l["margin"] = margin(true);
+        l
+    };
+    problem(json!({
+        "time": { "step_min": 5, "start_grid_min": 10, "days": [{ "start_min": 480, "end_min": 630 }] },
+        "teachers": [{ "id": "t9" }], "groups": [{ "id": "k1", "size": 25 }, { "id": "k3", "size": 25 }], "rooms": [{ "id": "hall" }],
+        "lessons": [idh("k1-idh", "k1"), idh("k3-idh", "k3")],
+        "rules": { "break_min": 0, "same_day": "allow" }
+    }))
+}
+
+fn at(lesson: &str, day: u32, start_min: u32, rooms: &[&str]) -> Placement {
+    Placement { lesson: lesson.into(), day, start_min, rooms: rooms.iter().map(|r| r.to_string()).collect() }
+}
+
+#[test]
+fn a_margin_for_the_students_leaves_the_hall_and_the_teacher_free() {
+    // Klass 3 börjar i hallen medan Klass 1 duschar: det enda sättet att få in båda passen.
+    let p = hall(false);
+    let s = run(&p);
+    assert_eq!(s.status, Status::Complete);
+    let mut starts: Vec<u32> = s.placements.iter().map(|x| x.start_min).collect();
+    starts.sort();
+    assert_eq!(starts, vec![490, 550]);
+    assert!(validate(&p, &[at("k1-idh", 0, 490, &["hall"]), at("k3-idh", 0, 550, &["hall"])]).ok());
+    // Omklädningen ryms inte före skoldagen: passet kan inte börja 08:00.
+    let report = validate(&p, &[at("k1-idh", 0, 480, &["hall"])]);
+    assert!(report.violations.iter().any(|v| v.code == "outside_day" && v.message.contains("med sin marginal")), "{:?}", report.violations);
+    let list = schemamotor_validate::positions(&p, &[], "k1-idh", None).unwrap();
+    assert_eq!(list.first().map(|x| x.start_min), Some(490));
+    assert_eq!(list.last().map(|x| x.start_min), Some(550));
+}
+
+#[test]
+fn a_margin_that_occupies_the_hall_keeps_others_out() {
+    let p = hall(true);
+    let report = validate(&p, &[at("k1-idh", 0, 490, &["hall"]), at("k3-idh", 0, 550, &["hall"])]);
+    assert!(report.violations.iter().any(|v| v.code == "room_clash" && v.message.contains("krockar med en marginal")), "{:?}", report.violations);
+    // Hallen räcker inte till båda passen med sina marginaler.
+    let s = solve(&p, &Options { time_limit_ms: None, max_iters: Some(20_000), threads: 1, seed: 7 }, &AtomicBool::new(false));
+    assert_ne!(s.status, Status::Complete);
+    assert_eq!(s.placements.len(), 1);
+    assert!(validate_solution(&p, &s).violations.iter().all(|v| v.code == "status_mismatch" || v.code == "unaccounted").then_some(()).is_some());
+}
+
+#[test]
+fn overlapping_margins_take_the_largest_not_the_sum() {
+    // Samma klass: dusch 15 min efter det första passet och omklädning 10 min före det andra. Det andra kan börja 15 min efter, inte 25.
+    let mut first = lesson("a", 60, "t1", "k1");
+    first["margin"] = json!({ "students": { "after_min": 15 } });
+    let mut second = lesson("b", 60, "t2", "k1");
+    second["margin"] = json!({ "students": { "before_min": 10 } });
+    let p = problem(json!({
+        "time": { "step_min": 5, "start_grid_min": 5, "days": [{ "start_min": 480, "end_min": 615 }] },
+        "teachers": [{ "id": "t1" }, { "id": "t2" }], "groups": [{ "id": "k1", "size": 20 }],
+        "lessons": [first, second], "rules": { "break_min": 10, "same_day": "allow" }
+    }));
+    assert!(validate(&p, &[at("a", 0, 480, &[]), at("b", 0, 555, &[])]).ok());
+    let close = validate(&p, &[at("a", 0, 480, &[]), at("b", 0, 550, &[])]);
+    assert!(close.violations.iter().any(|v| v.code == "student_clash" && v.message.contains("marginal")), "{:?}", close.violations);
+    let s = run(&p);
+    assert_eq!(s.status, Status::Complete);
+    let a = s.placements.iter().find(|x| x.lesson == "a").unwrap();
+    let b = s.placements.iter().find(|x| x.lesson == "b").unwrap();
+    assert_eq!((a.start_min, b.start_min), (480, 555));
+    // Rasten gäller mellan undervisningen och räknas inte ovanpå marginalen: 10 min rast räcker inte för ett pass utan marginal.
+    let mut plain = p.clone();
+    plain.lessons[0].margin = None;
+    assert!(validate(&plain, &[at("a", 0, 480, &[]), at("b", 0, 545, &[])]).violations.iter().any(|v| v.code == "student_clash" && v.message.contains("för tätt")));
+    assert!(validate(&plain, &[at("a", 0, 480, &[]), at("b", 0, 550, &[])]).ok());
+}
+
+#[test]
+fn a_margin_counts_in_the_day_but_not_in_the_activity_time() {
+    // Två pass om 60 min. Med 25 min marginal blir dagen 145 min, över elevernas 130: passen måste ligga olika dagar.
+    let mut sv = lesson("sv", 60, "t1", "k1");
+    sv["margin"] = json!({ "students": { "before_min": 10, "after_min": 15 }, "teachers": { "after_min": 5 } });
+    sv["activity"] = json!("idh");
+    let mut ma = lesson("ma", 60, "t2", "k1");
+    ma["activity"] = json!("ma");
+    let p = problem(json!({
+        "time": { "step_min": 5, "start_grid_min": 10, "days": [{ "start_min": 480, "end_min": 720 }, { "start_min": 480, "end_min": 720 }] },
+        "teachers": [{ "id": "t1" }, { "id": "t2" }], "groups": [{ "id": "k1", "size": 20 }],
+        "activities": [{ "id": "idh", "time": [{ "weekday_days": [10, 10], "min_min": 600, "max_min": 600 }] }, { "id": "ma" }],
+        "lessons": [sv, ma], "rules": { "break_min": 0, "same_day": "allow", "student_max_min_per_day": 130 }
+    }));
+    let same_day = validate(&p, &[at("sv", 0, 490, &[]), at("ma", 0, 600, &[])]);
+    assert!(same_day.violations.iter().any(|v| v.code == "student_day_too_long" && v.message.contains("145 min")), "{:?}", same_day.violations);
+    // Aktivitetens tid räknar bara passets 60 min: 60 × 10 skoldagar = 600.
+    assert!(same_day.violations.iter().all(|v| v.code != "activity_time"));
+    let s = run(&p);
+    assert_eq!(s.status, Status::Complete);
+    assert_ne!(s.placements[0].day, s.placements[1].day);
+    assert_eq!(s.metrics.placed_min, 120);
+    // Lärarens marginal upptar läraren men inte eleverna: lärarens dag är 5 min längre.
+    let r = validate(&p, &[at("sv", 0, 490, &[])]);
+    assert!(r.ok());
+}
+
+#[test]
+fn a_margin_is_part_of_the_hash_and_must_follow_the_step() {
+    let p = hall(false);
+    let mut q = p.clone();
+    q.lessons[0].margin.as_mut().unwrap().students.after_min = 20;
+    assert_ne!(p.hash(), q.hash());
+    q.lessons[0].margin.as_mut().unwrap().students.after_min = 12;
+    assert!(q.check().iter().any(|d| d.code == "time_step" && d.message.contains("marginal")));
+}

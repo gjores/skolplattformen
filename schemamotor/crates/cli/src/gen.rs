@@ -152,6 +152,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         allowed: vec![],
                         locked: None,
                         counted_min: None,
+                        margin: None,
                     });
                 }
             }
@@ -189,6 +190,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         allowed: vec![],
                         locked: None,
                         counted_min: None,
+                        margin: None,
                     });
                 }
                 p.links.push(Link { kind: LinkKind::Simultaneous, lessons: ids });

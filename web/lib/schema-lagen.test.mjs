@@ -29,7 +29,7 @@ const underlag = buildSchemaUnderlag(plan, request, basis), p = underlag.problem
 const lessonOf = title => underlag.labels.lessons.find(l => l.title === title && l.classIds.includes('grupp-1')).id;
 const ma = lessonOf('Matematik'), idh = lessonOf('Idrott och hälsa');
 
-const reply = positions => ({ version: 1, problem_id: p.id, lesson: ma, positions });
+const reply = positions => ({ version: 2, problem_id: p.id, lesson: ma, positions });
 const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_min, rooms: ['sal-1'], state, cost_delta: 0, reasons, ...extra });
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 
@@ -51,7 +51,7 @@ test('motorns svar tolkas strikt: okända koder, fel läge, okända resurser och
   assert.deepEqual(parsed.positions[0].reasons, [{ code: 'student_clash', kind: 'elever', resource: 'kluster-1', lessons: [idh] }]);
   const one = (position, extra = {}) => ({ ...reply([position]), ...extra });
   for (const broken of [
-    one(pos(0, 480, 'free'), { problem_id: 'annat' }), one(pos(0, 480, 'free'), { lesson: idh }), one(pos(0, 480, 'free'), { extra: 1 }), one(pos(0, 480, 'free'), { version: 2 }),
+    one(pos(0, 480, 'free'), { problem_id: 'annat' }), one(pos(0, 480, 'free'), { lesson: idh }), one(pos(0, 480, 'free'), { extra: 1 }), one(pos(0, 480, 'free'), { version: 1 }),
     // Okänd kod, okänt läge, kod som inte hör till läget, orsak som saknas.
     one(pos(0, 480, 'violation', [reason('ny_regel', 'lesson', null)])), one(pos(0, 480, 'kanske')), one(pos(0, 480, 'violation', [reason('student_gap', null, null)])),
     one(pos(0, 480, 'preference', [reason('teacher_clash', 'teacher', 'larare-1')])), one(pos(0, 480, 'violation')), one(pos(0, 480, 'free', [reason('student_gap', null, null)])),

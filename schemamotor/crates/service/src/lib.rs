@@ -199,7 +199,7 @@ mod tests {
         let addr = server.server_addr().to_ip().unwrap().to_string();
         std::thread::spawn(move || serve(server, Config::new(TOKEN.into())));
         let problem = serde_json::json!({
-            "version": 1, "id": "prov",
+            "version": schemamotor_model::CONTRACT_VERSION, "id": "prov",
             "time": {"step_min": 5, "start_grid_min": 60, "days": [{"start_min": 480, "end_min": 600}]},
             "teachers": [{"id": "larare-1"}], "clusters": [{"id": "kluster-1", "size": 25}],
             "groups": [{"id": "grupp-1", "clusters": ["kluster-1"]}],
@@ -223,7 +223,7 @@ mod tests {
         let (status, out) = call(&addr, "/v1/positions", Some(TOKEN), &body(serde_json::json!({"pupil": "kluster-1"})));
         assert_eq!(status, 200);
         let reply: serde_json::Value = serde_json::from_str(&out).unwrap();
-        assert_eq!((reply["version"].as_u64(), reply["problem_id"].as_str(), reply["lesson"].as_str()), (Some(1), Some("prov"), Some("pass-1")));
+        assert_eq!((reply["version"].as_u64(), reply["problem_id"].as_str(), reply["lesson"].as_str()), (Some(CONTRACT_VERSION as u64), Some("prov"), Some("pass-1")));
         let list = reply["positions"].as_array().unwrap();
         assert_eq!(list.len(), 2);
         assert_eq!(list[0]["state"], "violation");

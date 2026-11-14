@@ -1,8 +1,8 @@
 /**
- * Schemamotorns kontrakt v1 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER). Typerna speglar `schemamotor/crates/model`;
+ * Schemamotorns kontrakt v2 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
-export const SCHEMA_CONTRACT_VERSION = 1 as const;
+export const SCHEMA_CONTRACT_VERSION = 2 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
 /** Det schemat gäller: hela läsåret eller en termin (05.2-SM-LASAR-VILLKOR, L1). */
@@ -24,8 +24,12 @@ export type SchemaProblem = {
   groups: { id: string; clusters: string[] }[];
   /** `time`: undervisningens tid per termin ska ligga inom timplanens minuter och avrundningen uppåt (05.2-SM-TIMPLAN-EXAKT, E2–E3). */
   activities: { id: string; time?: { period?: string; weekday_days: number[]; min_min: number; max_min: number }[] }[];
-  /** `counted_min`: minuter som räknas som undervisning när passet upptar mer tid (marginal). */
+  /**
+   * `margin`: tid före och efter passet per part (elever, lärare, sal) som följer passet. Den upptar parten men räknas aldrig som undervisning
+   * (05.2-SM-MARGINAL). `counted_min` används inte längre av appen.
+   */
   lessons: { id: string; activity: string; duration_min: number; counted_min?: number; teachers: string[]; groups: string[]; periods?: string[];
+    margin?: Record<'students' | 'teachers' | 'rooms', { before_min: number; after_min: number }>;
     /** Tillåtna fönster: passet ska ligga helt inom ett av dem. Saknas fältet gäller hela skoldagen. */
     allowed?: SchemaInterval[]; rooms?: { count: 1; allowed: string[] } }[];
   rules: { student_max_min_per_day?: number; break_min: number; lunch: { window_start_min: number; window_end_min: number; length_min: number; teachers: boolean } | null; same_day: 'forbid' | 'avoid' | 'allow' };
@@ -57,11 +61,22 @@ export type SchemaVillkor = {
  * Ett eget villkor (05.2-SM-VILLKOR-PER-RESURS, R2–R6). `ref` är appens ID för klass, grupp och lärare, undervisningens namn för ämne och salens namn för sal.
  * Villkoren styr när och var passen läggs och hur veckotiden delas i pass, aldrig hur mycket tid som läggs (T1).
  */
-export const SCHEMA_REGEL_SLAG = ['klass', 'grupp', 'amne', 'larare', 'sal'] as const;
+export const SCHEMA_REGEL_SLAG = ['klass', 'grupp', 'amne', 'larare', 'sal', 'pass'] as const;
 export type SchemaRegelSlag = typeof SCHEMA_REGEL_SLAG[number];
+/** Parterna en marginal kan uppta, och de den kan visas för i elevernas och lärarnas schema (05.2-SM-MARGINAL, N97, N100). */
+export const SCHEMA_MARGINAL_DELAR = ['elever', 'larare', 'sal'] as const;
+export type SchemaMarginalDel = typeof SCHEMA_MARGINAL_DELAR[number];
+export const SCHEMA_MARGINAL_SYNLIG = ['elever', 'larare'] as const;
+/**
+ * Marginal före och efter ett pass (05.2-SM-MARGINAL): följer passet när det flyttas, upptar de valda parterna och syns i schemat med etiketten.
+ * `when` är alltid `alltid`; "vid byte av plats" kräver salsregister. `visibleFor` sparas men används först när schemat visas för elever och lärare.
+ * För `sal` gäller marginalen pass som får ligga i salen, för `pass` ett enskilt pass i underlaget (`pass-n`).
+ */
+export type SchemaMarginal = { typ: 'marginal'; beforeMin: number; afterMin: number; occupies: SchemaMarginalDel[]; label: string;
+  visibleFor: (typeof SCHEMA_MARGINAL_SYNLIG[number])[]; when: 'alltid' };
 export type SchemaRegel = { slag: SchemaRegelSlag; ref: string } & (
   | { typ: 'sparrad' | 'tillaten'; days: number[]; startMin: number; endMin: number }
-  | { typ: 'marginal'; minutes: number }
+  | SchemaMarginal
   | { typ: 'langd'; maxMin: number }
   | { typ: 'antal'; count: number }
   | { typ: 'sal'; rooms: string[] });
@@ -69,10 +84,10 @@ export type SchemaRegelTyp = SchemaRegel['typ'];
 /** Vilka villkor som kan ställas för vad. */
 export const SCHEMA_REGEL_TYPER: Record<SchemaRegelSlag, SchemaRegelTyp[]> = {
   klass: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], grupp: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'],
-  amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal'], sal: ['sparrad', 'tillaten'] };
+  amne: ['sparrad', 'tillaten', 'marginal', 'langd', 'antal', 'sal'], larare: ['sparrad', 'tillaten', 'marginal', 'sal'], sal: ['sparrad', 'tillaten', 'marginal'], pass: ['marginal'] };
 export const SCHEMA_VILLKOR_LIMITS = { dayFrom: 6 * 60, dayTo: 20 * 60, daySpan: [60, 600], breakMin: [0, 30], startGrid: [5, 10, 15, 20, 30], lunchLength: [20, 90],
   maxLesson: [30, 180], minLesson: 10, perDay: [120, 600],
-  salar: 100, salNamn: 60, egna: 200, ref: 2000, marginal: [5, 60], antal: [1, 10] } as const;
+  salar: 100, salNamn: 60, egna: 200, ref: 2000, marginal: [0, 60], etikett: 40, antal: [1, 10] } as const;
 export function defaultSchemaVillkor(): SchemaVillkor {
   return { days: Array.from({ length: 5 }, () => ({ startMin: 8 * 60, endMin: 16 * 60 + 30 })), breakMin: 10, startGridMin: 10,
     lunch: { startMin: 10 * 60 + 30, endMin: 13 * 60 + 30, lengthMin: 40, teachers: true }, maxLessonMin: 80, minLessonMin: 20, sameDay: 'avoid',
@@ -113,7 +128,13 @@ export function checkSchemaVillkor(v: SchemaVillkor): string[] {
     if (r.typ === 'sparrad' || r.typ === 'tillaten') {
       if (!Array.isArray(r.days) || !r.days.length || new Set(r.days).size !== r.days.length || r.days.some(d => !Number.isSafeInteger(d) || d < 0 || d > 4)) return issue('välj minst en veckodag.');
       if (!whole(r.startMin, 0, 1435) || !whole(r.endMin, 5, 1440) || r.startMin >= r.endMin) return issue('tiden ska sluta efter att den börjar, på hela fem minuter.');
-    } else if (r.typ === 'marginal') { if (!whole(r.minutes, L.marginal[0], L.marginal[1])) return issue('marginalen ska vara 5–60 minuter, i steg om fem.'); }
+    } else if (r.typ === 'marginal') {
+      if (!whole(r.beforeMin, L.marginal[0], L.marginal[1]) || !whole(r.afterMin, L.marginal[0], L.marginal[1]) || r.beforeMin + r.afterMin === 0) return issue('marginalen ska vara 0–60 minuter före och efter passet, i steg om fem, och inte noll åt båda hållen.');
+      const subset = (x: unknown, of: readonly string[]) => Array.isArray(x) && new Set(x).size === x.length && x.every(y => of.includes(y));
+      if (!subset(r.occupies, SCHEMA_MARGINAL_DELAR) || !r.occupies.length) return issue('välj vad marginalen upptar: eleverna, läraren eller salen.');
+      if (typeof r.label !== 'string' || !r.label || r.label !== r.label.trim() || r.label.length > L.etikett) return issue(`ge marginalen en etikett om högst ${L.etikett} tecken.`);
+      if (!subset(r.visibleFor, SCHEMA_MARGINAL_SYNLIG) || r.when !== 'alltid') return issue('marginalen gäller alltid; "vid byte av plats" kräver salsregister.');
+    }
     else if (r.typ === 'langd') { if (!whole(r.maxMin, L.maxLesson[0], L.maxLesson[1])) return issue('längsta pass ska vara 30–180 minuter, i steg om fem.'); }
     else if (r.typ === 'antal') { if (!Number.isSafeInteger(r.count) || r.count < L.antal[0] || r.count > L.antal[1]) return issue('antalet pass per vecka ska vara 1–10.'); }
     else if (r.typ === 'sal') { if (!names(r.rooms, L.salar) || !r.rooms.length || r.rooms.some(x => !v.salar.includes(x))) return issue('välj minst en av skolans salar.'); }
@@ -132,8 +153,8 @@ export type SchemaTermTime = { span: { start: string; end: string } | null; perW
   weeks: { monday: string | null; label: string; perWeekday: number[]; classes: Record<string, number[]> }[] };
 export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null; status: string | null; current: boolean; terms: Record<SchemaTerm, SchemaTermTime> };
 export type SchemaForslagLesson = { id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
-  /** Tid efter passet som lärare och elever är upptagna, utöver rasten (marginal till nästa lektion, R4). */
-  marginMin: number;
+  /** Den längsta marginalen efter och före passet för någon av passets parter (05.2-SM-MARGINAL). Passet och marginalen ska rymmas i skoldagen. */
+  marginMin: number; marginBeforeMin: number;
   /** Salar passet får ligga i (tom: passet har ingen sal) och salen det ligger i. */
   roomIds: string[]; roomId: string | null;
   /** Terminen passet går, när det inte går hela den valda perioden. */
@@ -219,7 +240,12 @@ function regel(value: unknown): SchemaRegel {
   const r = record(value), base = { slag: r.slag as SchemaRegelSlag, ref: text(r.ref, SCHEMA_VILLKOR_LIMITS.ref) };
   const keys = (n: number) => { if (Object.keys(r).length !== n) bad(); };
   if (r.typ === 'sparrad' || r.typ === 'tillaten') { keys(6); return { ...base, typ: r.typ, days: list(r.days, 5).map(d => int(d, 0, 4)), startMin: int(r.startMin, 0, 1440), endMin: int(r.endMin, 0, 1440) }; }
-  if (r.typ === 'marginal') { keys(4); return { ...base, typ: 'marginal', minutes: int(r.minutes, 0, 1440) }; }
+  if (r.typ === 'marginal') {
+    keys(9);
+    const parts = <T extends string>(x: unknown, of: readonly T[]) => list(x, of.length).map(y => of.find(z => z === y) ?? bad());
+    return { ...base, typ: 'marginal', beforeMin: int(r.beforeMin, 0, 1440), afterMin: int(r.afterMin, 0, 1440), occupies: parts(r.occupies, SCHEMA_MARGINAL_DELAR),
+      label: text(r.label, SCHEMA_VILLKOR_LIMITS.etikett), visibleFor: parts(r.visibleFor, SCHEMA_MARGINAL_SYNLIG), when: r.when === 'alltid' ? 'alltid' : bad() };
+  }
   if (r.typ === 'langd') { keys(4); return { ...base, typ: 'langd', maxMin: int(r.maxMin, 0, 1440) }; }
   if (r.typ === 'antal') { keys(4); return { ...base, typ: 'antal', count: int(r.count, 0, 1000) }; }
   if (r.typ === 'sal') { keys(4); return { ...base, typ: 'sal', rooms: list(r.rooms, SCHEMA_VILLKOR_LIMITS.salar).map(x => text(x, SCHEMA_VILLKOR_LIMITS.salNamn)) }; }
@@ -371,7 +397,7 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
     || f.period !== expected.period || JSON.stringify(parseSchemaVillkor(f.villkor)) !== JSON.stringify(parseSchemaVillkor(expected.villkor)) || !SCHEMA_STATUSES.includes(f.status)) bad();
   for (const key of ['days', 'classes', 'teachers', 'lessons', 'omitted', 'diagnoses', 'teachings', 'rooms', 'egnaUtanTraff'] as const) list(f[key], SCHEMA_LIMITS.lessons);
   const resurser = record(f.resurser);
-  for (const slag of ['klass', 'grupp', 'amne', 'larare'] as const) for (const x of list(resurser[slag], SCHEMA_LIMITS.lessons)) { text(record(x).ref, SCHEMA_VILLKOR_LIMITS.ref); text(record(x).name, 2000); }
+  for (const slag of ['klass', 'grupp', 'amne', 'larare', 'pass'] as const) for (const x of list(resurser[slag], SCHEMA_LIMITS.lessons)) { text(record(x).ref, SCHEMA_VILLKOR_LIMITS.ref); text(record(x).name, 2000); }
   for (const x of f.rooms) { if (!ROOM.test(text(record(x).id, 10))) bad(); text(x.name, SCHEMA_VILLKOR_LIMITS.salNamn); }
   for (const i of f.egnaUtanTraff) int(i, 0, SCHEMA_VILLKOR_LIMITS.egna);
   record(f.metrics); text(f.schoolName, 500); int(f.startGridMin, 1, 1440);
@@ -385,7 +411,7 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   if (f.teachings.some(t => t.perWeek.length !== (time.weekLabels as string[]).length)) bad();
   f.trims = trims(f.trims, new Set(f.lessons.map(l => record(l).id as string)));
   for (const l of f.lessons) {
-    text(l.id, 100); text(l.title, 2000); list(l.classIds, 2000); list(l.teacherIds, 2000); int(l.durationMin, 1, 1440); int(l.marginMin, 0, 60);
+    text(l.id, 100); text(l.title, 2000); list(l.classIds, 2000); list(l.teacherIds, 2000); int(l.durationMin, 1, 1440); int(l.marginMin, 0, 60); int(l.marginBeforeMin, 0, 60);
     const rooms = list(l.roomIds, SCHEMA_VILLKOR_LIMITS.salar);
     if (l.roomId !== null && !rooms.includes(l.roomId)) bad();
     if (l.term !== null && !SCHEMA_TERMS.includes(l.term)) bad();

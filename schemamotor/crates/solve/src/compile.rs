@@ -20,6 +20,8 @@ pub struct Part {
     pub room_off: usize,
     pub reference: Option<(u8, u8)>,
     pub ref_rooms: Vec<u16>,
+    /// Salens marginal före och efter passet, i steg.
+    pub room_margin: (u8, u8),
 }
 
 #[derive(Clone, Debug)]
@@ -29,6 +31,8 @@ pub struct Unit {
     pub pm: u32,
     /// Lärare och kluster med längsta längd i enheten.
     pub ents: Vec<(u32, u8)>,
+    /// Marginal före och efter passet i steg, per post i `ents`.
+    pub ent_margin: Vec<(u8, u8)>,
     /// Virtuella resurser från kopplingar av typen `no_overlap`.
     pub virt: Vec<(u32, u8)>,
     /// Aktiviteter med antal pass i enheten.
@@ -90,6 +94,8 @@ pub struct Inst {
     /// Steget där en sen dag börjar, per dag.
     pub late_slot: Option<Vec<i64>>,
     pub room_block: Vec<u128>,
+    /// Något pass har marginal. Utan marginal är upptagen tid med marginal densamma som undervisningen.
+    pub has_margin: bool,
     pub units: Vec<Unit>,
     pub lesson_unit: Vec<usize>,
     pub res_names: Vec<String>,
@@ -251,6 +257,7 @@ pub fn compile(p: &Problem) -> Inst {
         let pm = if first.periods.is_empty() { all_periods } else { first.periods.iter().fold(0u32, |m, x| m | 1 << period_ix[x.as_str()]) };
         let mut parts = Vec::new();
         let mut ents: Vec<(u32, u8)> = Vec::new();
+        let mut ent_margin: Vec<(u8, u8)> = Vec::new();
         let mut virt: Vec<(u32, u8)> = Vec::new();
         let mut acts: Vec<(u32, u16)> = Vec::new();
         let mut nrooms = 0usize;
@@ -260,6 +267,8 @@ pub fn compile(p: &Problem) -> Inst {
             lesson_unit[li] = ui;
             let l = &p.lessons[li];
             let len = (l.duration_min / step) as u8;
+            let steps = |m: MarginSide| ((m.before_min / step) as u8, (m.after_min / step) as u8);
+            let (tm, sm) = (steps(l.margin_for(MarginPart::Teachers)), steps(l.margin_for(MarginPart::Students)));
             let mut mine: Vec<u32> = l.teachers.iter().map(|t| teacher_ix[t.as_str()] as u32).collect();
             for g in &l.groups {
                 mine.extend(group_clusters[group_ix[g.as_str()]].iter().map(|&c| (n_teachers + c) as u32));
@@ -272,6 +281,7 @@ pub fn compile(p: &Problem) -> Inst {
                     self_conflict = Some(format!("passen ska gå samtidigt men delar {name}"));
                 } else {
                     ents.push((e, len));
+                    ent_margin.push(if (e as usize) < n_teachers { tm } else { sm });
                 }
             }
             for &v in &lesson_virt[li] {
@@ -320,7 +330,7 @@ pub fn compile(p: &Problem) -> Inst {
                 (d < days && r.start_min >= day_start[d] && (r.start_min - day_start[d]) % step == 0 && (r.start_min - day_start[d]) / step < 128).then(|| (d as u8, ((r.start_min - day_start[d]) / step) as u8))
             });
             let ref_rooms: Vec<u16> = r.map(|r| r.rooms.iter().filter_map(|x| room_ix.get(x.as_str()).map(|&i| i as u16)).collect()).unwrap_or_default();
-            parts.push(Part { lesson: li, len, room_count, cands, room_off: nrooms, reference: ref_pos, ref_rooms });
+            parts.push(Part { lesson: li, len, room_count, cands, room_off: nrooms, reference: ref_pos, ref_rooms, room_margin: steps(l.margin_for(MarginPart::Rooms)) });
             nrooms += room_count as usize;
         }
 
@@ -341,10 +351,13 @@ pub fn compile(p: &Problem) -> Inst {
                 let ok = group.iter().all(|&li| {
                     let l = &p.lessons[li];
                     let end = start + l.duration_min;
-                    end <= day.end_min
+                    // Passet och dess marginal ryms i skoldagen; marginalen räknas i lärarnas och gruppernas otillgängliga tid.
+                    let (outer, tm, gm) = (l.outer_margin(), l.margin_for(MarginPart::Teachers), l.margin_for(MarginPart::Students));
+                    start >= day.start_min + outer.before_min
+                        && end + outer.after_min <= day.end_min
                         && (l.allowed.is_empty() || l.allowed.iter().any(|iv| iv.day as usize == d && iv.start_min <= start && end <= iv.end_min))
-                        && !l.teachers.iter().any(|t| hits(&p.teachers[teacher_ix[t.as_str()]].unavailable, d as u32, start, end))
-                        && !l.groups.iter().any(|g| hits(&p.groups[group_ix[g.as_str()]].unavailable, d as u32, start, end))
+                        && !l.teachers.iter().any(|t| hits(&p.teachers[teacher_ix[t.as_str()]].unavailable, d as u32, start - tm.before_min, end + tm.after_min))
+                        && !l.groups.iter().any(|g| hits(&p.groups[group_ix[g.as_str()]].unavailable, d as u32, start - gm.before_min, end + gm.after_min))
                 });
                 if ok {
                     dom[d] |= 1u128 << i;
@@ -356,7 +369,7 @@ pub fn compile(p: &Problem) -> Inst {
         if acts.iter().any(|&(a, n)| n > 1 && p.activities[a as usize].same_day.unwrap_or(p.rules.same_day) == SameDay::Forbid) {
             self_conflict = Some("passen ska gå samtidigt men hör till samma aktivitet, som bara får ha ett pass per dag".into());
         }
-        units.push(Unit { parts, pm, ents, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, time: Vec::new(), self_conflict });
+        units.push(Unit { parts, pm, ents, ent_margin, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, time: Vec::new(), self_conflict });
     }
 
     // Tidsregler: varje enhet bidrar med sina pass i aktiviteten, i de perioder den går.
@@ -426,6 +439,7 @@ pub fn compile(p: &Problem) -> Inst {
         lunch_len: lunch.map_or(0, |l| l.length_min / step),
         late_slot,
         room_block,
+        has_margin: p.lessons.iter().any(|l| !l.outer_margin().is_zero()),
         units,
         lesson_unit,
         res_names,

@@ -28,7 +28,7 @@ fn call(addr: &str, method: &str, path: &str, token: Option<&str>, body: &str) -
 fn problem(lessons: usize) -> String {
     let lessons: Vec<_> = (0..lessons).map(|i| serde_json::json!({"id": format!("pass-{i}"), "duration_min": 60, "teachers": ["larare-1"], "groups": ["grupp-1"]})).collect();
     serde_json::json!({
-        "version": 1, "id": "prov",
+        "version": schemamotor_model::CONTRACT_VERSION, "id": "prov",
         "time": {"step_min": 5, "days": [{"start_min": 480, "end_min": 960}, {"start_min": 480, "end_min": 960}]},
         "teachers": [{"id": "larare-1"}], "clusters": [{"id": "kluster-1", "size": 25}],
         "groups": [{"id": "grupp-1", "clusters": ["kluster-1"]}], "lessons": lessons,

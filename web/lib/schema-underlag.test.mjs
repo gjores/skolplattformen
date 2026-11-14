@@ -52,7 +52,7 @@ test('veckotiden avrundas uppåt och delas i lika pass om högst 80 min; under 2
 test('underlaget bär bara löpnummer: inga namn och inga av appens ID:n når motorn', () => {
   const { problem } = buildSchemaUnderlag(plan(), request), sent = JSON.stringify(problem);
   assert.ok(!sent.includes('52a10000') && !sent.includes('Lärare') && !sent.includes('1A') && !sent.includes('Matematik') && !sent.includes('Provskolan'));
-  assert.equal(problem.version, 1);
+  assert.equal(problem.version, 2);
   assert.deepEqual(problem.teachers.map(t => t.id), ['larare-1', 'larare-2', 'larare-3', 'larare-4']);
 });
 
@@ -223,7 +223,7 @@ test('utlagd tid är passens längd gånger skoldagarna på passets veckodag; kl
 
 function solved(problem, extra = {}) {
   const slots = problem.lessons.map((l, i) => ({ lesson: l.id, day: i % 5, start_min: 480 + 90 * Math.floor(i / 5), rooms: [] }));
-  return { version: 1, problem_id: problem.id, problem_hash: 'x', status: 'time_limit', placements: slots.slice(1), unplaced: [slots[0].lesson],
+  return { version: 2, problem_id: problem.id, problem_hash: 'x', status: 'time_limit', placements: slots.slice(1), unplaced: [slots[0].lesson],
     diagnoses: [{ code: 'unplaced', message: 'Pass pass-1 fick ingen plats. I vägen: lärare larare-1 är upptagen; eleverna i kluster-1.', lessons: ['pass-1'], resources: [], proof: false }],
     metrics: { lessons: slots.length, student_gap_min: 50, teacher_gap_min: 10 }, stats: { elapsed_ms: 12 }, ...extra };
 }
@@ -245,7 +245,7 @@ test('motorns svar tolkas strikt och förslaget får namn i stället för löpnu
 
   const p = underlag.problem, first = raw.placements[0];
   for (const broken of [
-    { problem_id: 'annat' }, { version: 2 }, { status: 'klart' },
+    { problem_id: 'annat' }, { version: 1 }, { status: 'klart' },
     { placements: [...raw.placements, first] },
     { placements: [{ ...first, lesson: 'pass-999' }, ...raw.placements.slice(1)] },
     { placements: [{ ...first, start_min: 16 * 60 }, ...raw.placements.slice(1)] },
@@ -282,7 +282,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   for (const broken of [[{ ...placements[0], lesson: 'pass-999' }], [placements[0], placements[0]], [{ ...placements[0], day: 5 }], [{ ...placements[0], startMin: 475 }], [{ ...placements[0], startMin: 16 * 60 + 30 - 55 }]])
     assert.throws(() => checkSchemaPlacements(broken, p));
 
-  const reply = { version: 1, problem_id: p.id, violations: [
+  const reply = { version: 2, problem_id: p.id, violations: [
     { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
     { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
     { code: 'teacher_no_lunch', message: 'Lärare larare-1 saknar lunch dag 2.', lessons: [], resources: ['larare-1'] }],
@@ -298,7 +298,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.deepEqual(kontroll.rooms, {});
   assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.fingerprint), kontroll);
   assert.throws(() => parseSchemaKontroll(kontroll, '0'.repeat(28)));
-  for (const broken of [{ ...reply, problem_id: 'annat' }, { ...reply, version: 2 }, { ...reply, violations: [{ ...reply.violations[0], lessons: ['pass-999'] }] }, { ...reply, metrics: {} }])
+  for (const broken of [{ ...reply, problem_id: 'annat' }, { ...reply, version: 1 }, { ...reply, violations: [{ ...reply.violations[0], lessons: ['pass-999'] }] }, { ...reply, metrics: {} }])
     assert.throws(() => parseSchemaCheck(broken, p));
 });
 
@@ -390,25 +390,25 @@ const egna = [
   { slag: 'amne', ref: 'Idrott', typ: 'sal', rooms: ['Hallen'] },
   { slag: 'klass', ref: uid(10), typ: 'sparrad', days: [0], startMin: 480, endMin: 720 },
   { slag: 'larare', ref: uid(21), typ: 'tillaten', days: [0, 1, 2], startMin: 480, endMin: 900 },
-  { slag: 'amne', ref: 'Matematik', typ: 'marginal', minutes: 20 },
+  { slag: 'amne', ref: 'Matematik', typ: 'marginal', beforeMin: 0, afterMin: 20, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' },
   { slag: 'amne', ref: 'Svenska', typ: 'antal', count: 4 },
   { slag: 'klass', ref: uid(11), typ: 'langd', maxMin: 45 },
   { slag: 'sal', ref: 'Hallen', typ: 'sparrad', days: [4], startMin: 480, endMin: 990 },
-  { slag: 'grupp', ref: uid(99), typ: 'marginal', minutes: 15 },
+  { slag: 'grupp', ref: uid(99), typ: 'marginal', beforeMin: 0, afterMin: 15, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' },
 ];
 const medEgna = { ...defaultSchemaVillkor(), salar: ['Hallen', 'Sal A'], egna };
 
 test('egna villkor prövas: bara tillåtna slag, salar som finns och värden inom gränserna', () => {
   assert.deepEqual(checkSchemaVillkor(medEgna), []);
   assert.deepEqual(parseSchemaVillkor(JSON.parse(JSON.stringify(medEgna))), medEgna);
-  const broken = [{ ...egna[0], rooms: ['Okänd'] }, { ...egna[0], slag: 'sal', ref: 'Hallen' }, { ...egna[3], minutes: 7 }, { ...egna[4], count: 11 }, { ...egna[1], days: [] },
-    { ...egna[1], startMin: 720, endMin: 480 }, { ...egna[6], ref: 'Okänd' }, { slag: 'sal', ref: 'Hallen', typ: 'marginal', minutes: 10 }];
+  const broken = [{ ...egna[0], rooms: ['Okänd'] }, { ...egna[0], slag: 'sal', ref: 'Hallen' }, { ...egna[3], afterMin: 7 }, { ...egna[3], afterMin: 0 }, { ...egna[3], occupies: [] }, { ...egna[3], label: '' }, { ...egna[3], when: 'vid_byte' }, { ...egna[4], count: 11 }, { ...egna[1], days: [] },
+    { ...egna[1], startMin: 720, endMin: 480 }, { ...egna[6], ref: 'Okänd' }, { ...egna[3], slag: 'sal', ref: 'Okänd' }];
   for (const r of broken) {
     assert.match(checkSchemaVillkor({ ...medEgna, egna: [r] })[0], /^Eget villkor 1: /u, JSON.stringify(r));
     assert.throws(() => parseSchemaVillkor({ ...medEgna, egna: [r] }), JSON.stringify(r));
   }
   assert.ok(checkSchemaVillkor({ ...medEgna, salar: ['Hallen', 'hallen'] }).length > 0);
-  for (const odd of [{ ...egna[3], extra: 1 }, { ...egna[3], typ: 'annat' }, { slag: 'amne', ref: 'Matematik', typ: 'marginal' }, null])
+  for (const odd of [{ ...egna[3], extra: 1 }, { ...egna[3], typ: 'annat' }, { slag: 'amne', ref: 'Matematik', typ: 'marginal' }, { slag: 'amne', ref: 'Matematik', typ: 'marginal', minutes: 20 }, null])
     assert.throws(() => parseSchemaVillkor({ ...medEgna, egna: [odd] }));
 });
 
@@ -420,9 +420,10 @@ test('egna villkor når motorn som fönster, salar, marginal och uppdelning; vec
   assert.deepEqual(p.rooms, [{ id: 'sal-1', unavailable: [{ day: 4, start_min: 480, end_min: 990 }] }, { id: 'sal-2' }]);
   assert.deepEqual(u.labels.rooms, [{ id: 'sal-1', name: 'Hallen' }, { id: 'sal-2', name: 'Sal A' }]);
   assert.ok(!JSON.stringify(p).includes('Hallen'));
-  // 1A är spärrad måndag förmiddag. Matematiken har 20 min marginal, tio utöver rasten: passet upptar 70 min men är 60.
+  // 1A är spärrad måndag förmiddag. Matematiken har 20 min marginal efter passet (05.2-SM-MARGINAL): passet är 60 min och marginalen följer med för elever och lärare.
   const ma = of('Matematik', 'grupp-1');
-  assert.deepEqual(ma.map(l => [l.duration_min, label(l.id).durationMin, label(l.id).marginMin]), Array(3).fill([70, 60, 10]));
+  assert.deepEqual(ma.map(l => [l.duration_min, l.counted_min, l.margin, label(l.id).durationMin, label(l.id).marginMin, label(l.id).marginBeforeMin]),
+    Array(3).fill([60, undefined, { students: { before_min: 0, after_min: 20 }, teachers: { before_min: 0, after_min: 20 }, rooms: { before_min: 0, after_min: 0 } }, 60, 20, 0]));
   assert.deepEqual(ma[0].allowed, [{ day: 0, start_min: 720, end_min: 990 }, ...[1, 2, 3, 4].map(day => ({ day, start_min: 480, end_min: 990 }))]);
   // Svenskan: fyra pass i stället för tre, samma 180 min. Läraren får bara mån–ons till 15.00, och klassens spärr gäller också.
   const sv = of('Svenska', 'grupp-1');
@@ -441,7 +442,7 @@ test('egna villkor når motorn som fönster, salar, marginal och uppdelning; vec
 
   // Motorn lägger idrotten i hallen; förslaget bär salens namn och följer timplanen när allt är lagt.
   const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: i % 4, start_min: 720 + 60 * Math.floor(i / 4), rooms: l.rooms ? ['sal-1'] : [] }));
-  const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
+  const raw = { version: 2, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
   const forslag = schemaForslag(data, req, u, parseSchemaSolution(raw, p));
   assert.deepEqual(forslag.lessons.filter(l => l.title === 'Idrott').map(l => l.roomId), ['sal-1', 'sal-1']);
   assert.deepEqual([forslag.rooms, forslag.egnaUtanTraff, forslag.teachings.filter(t => t.deviation !== null)], [u.labels.rooms, [7], []]);
@@ -476,7 +477,7 @@ test('överskottet justeras tillfälle för tillfälle till timplanens tid', () 
   assert.deepEqual(p.activities[0].time, [{ weekday_days: [17, 18, 18, 18, 19], min_min: 3240, max_min: 195 * 19 }]);
   const at = days => {
     const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
-    const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
+    const raw = { version: 2, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
     const t = schemaForslag(data, request, u, parseSchemaSolution(raw, p)).teachings[0];
     return [t.deviation, t.plannedMin, t.terms[0].trimmedCount, t.trimPerWeek.filter(n => n > 0).length, new Set(t.perWeek.slice(0, 17)).size];
   };
@@ -488,7 +489,7 @@ test('överskottet justeras tillfälle för tillfälle till timplanens tid', () 
   // och de sista 30 minuterna fördelas på enskilda tillfällen.
   const trimsAt = days => {
     const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
-    const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
+    const raw = { version: 2, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
     return schemaForslag(data, request, u, parseSchemaSolution(raw, p)).trims;
   };
   assert.deepEqual(trimsAt([1, 2, 3]), p.lessons.map(l => ({ lesson: l.id, term: 'ht', fixedMin: 5, extraCount: 0, extraMin: 0 })));
@@ -519,7 +520,7 @@ test('justeringen sprids jämnt över veckorna och kortar aldrig ett tillfälle 
   // 20 veckor med ett pass om 25 min: 500 min mot timplanens 410. 18 steg om 5 min behövs, men varje tillfälle får bara kortas till 20 min.
   const data = one(410, 0), time = timeWith({ span: HT, perWeekday: [20, 20, 20, 20, 20] }), u = buildSchemaUnderlag(data, request, { members: null, time }), p = u.problem;
   assert.deepEqual(p.lessons.map(l => l.duration_min), [25]);
-  const raw = { version: 1, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: [{ lesson: p.lessons[0].id, day: 2, start_min: 480, rooms: [] }], unplaced: [], diagnoses: [],
+  const raw = { version: 2, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: [{ lesson: p.lessons[0].id, day: 2, start_min: 480, rooms: [] }], unplaced: [], diagnoses: [],
     metrics: { lessons: 1, student_gap_min: 0, teacher_gap_min: 0 }, stats: { elapsed_ms: 1 } };
   const t = schemaForslag(data, request, u, parseSchemaSolution(raw, p)).teachings[0];
   assert.deepEqual([t.terms[0].baseMin, t.plannedMin, t.terms[0].trimmedCount, t.deviation], [500, 410, 18, null]);
@@ -530,4 +531,41 @@ test('justeringen sprids jämnt över veckorna och kortar aldrig ett tillfälle 
   const strict = { ...request, villkor: { ...defaultSchemaVillkor(), minLessonMin: 25 } }, u2 = buildSchemaUnderlag(data, strict, { members: null, time });
   const t2 = schemaForslag(data, strict, u2, parseSchemaSolution({ ...raw, problem_id: u2.problem.id }, u2.problem)).teachings[0];
   assert.deepEqual([t2.plannedMin, t2.deviation], [500, 'calendar']);
+});
+
+/** Marginal före och efter pass (05.2-SM-MARGINAL): sammanslagning per pass, gamla villkor och timplanens tid. */
+test('marginaler slås ihop per pass och part, når motorn utan att ändra passens längd, och gamla R4-villkor läses', async () => {
+  const { lasGammalMarginal, passMarginal } = await import('./schema-marginal.ts');
+  const m = (slag, ref, beforeMin, afterMin, occupies, label) => ({ slag, ref, typ: 'marginal', beforeMin, afterMin, occupies, label, visibleFor: ['elever'], when: 'alltid' });
+  const egna = [{ slag: 'amne', ref: 'Idrott', typ: 'sal', rooms: ['Hallen'] }, m('amne', 'Idrott', 10, 15, ['elever'], 'Omklädning före, dusch efter'),
+    m('sal', 'Hallen', 0, 10, ['sal'], 'Städning'), m('klass', uid(11), 5, 20, ['elever', 'larare'], 'Övergång'), m('pass', 'pass-1', 5, 0, ['elever', 'larare'], 'Övergång')];
+  const villkor = { ...defaultSchemaVillkor(), salar: ['Hallen'], egna }, plain = buildSchemaUnderlag(plan(), request), u = buildSchemaUnderlag(plan(), { ...request, villkor });
+  assert.deepEqual(checkSchemaVillkor(villkor), []);
+  const idx = u.labels.lessons.findIndex(l => l.title === 'Idrott' && l.classIds[0] === 'grupp-2'), idh = u.problem.lessons[idx];
+  // Den största marginalen gäller per sida och part: eleverna 10 före (ämnet) och 20 efter (klassen), salen 10 efter. Idrotten saknar lärare, så lärarens marginal är noll.
+  assert.deepEqual(u.labels.lessons[idx].teacherIds, []);
+  assert.deepEqual(idh.margin, { students: { before_min: 10, after_min: 20 }, teachers: { before_min: 0, after_min: 0 }, rooms: { before_min: 0, after_min: 10 } });
+  // Ett pass med lärare: marginalen som upptar läraren når lärarens del.
+  assert.deepEqual([u.labels.lessons[0].teacherIds.length > 0, u.problem.lessons[0].margin.teachers], [true, { before_min: 5, after_min: 0 }]);
+  assert.deepEqual([u.labels.lessons[idx].marginBeforeMin, u.labels.lessons[idx].marginMin], [10, 20]);
+  // Ett enskilt pass och dess marginal; alla villkor träffade något.
+  assert.deepEqual(u.problem.lessons[0].margin.students, { before_min: 5, after_min: 0 });
+  assert.deepEqual(u.egnaUtanTraff, []);
+  // Marginalen räknas aldrig som undervisning: passens längd, veckotid och timplanens tid är desamma som utan marginal.
+  assert.ok(u.problem.lessons.every((l, i) => l.duration_min === u.labels.lessons[i].durationMin && l.counted_min === undefined));
+  assert.deepEqual(u.problem.lessons.map(l => l.duration_min), plain.problem.lessons.map(l => l.duration_min));
+  assert.deepEqual(u.problem.activities, plain.problem.activities);
+  assert.deepEqual(u.labels.activities.map(a => [a.weeklyMin, a.terms]), plain.labels.activities.map(a => [a.weeklyMin, a.terms]));
+  // Utan marginal skickas inget fält, och passen får namn för villkor på ett pass.
+  assert.ok(plain.problem.lessons.every(l => !('margin' in l)));
+  assert.match(u.resurser.pass[0].name, /^Matematik, 1A, pass 1$/u);
+  // Sammanslagningen för sig: den största per sida, texten från den som ger tiden.
+  assert.deepEqual(passMarginal([m('amne', 'x', 10, 5, ['elever'], 'Restid'), m('klass', 'y', 5, 15, ['elever', 'sal'], 'Omklädning före, dusch efter')]).elever,
+    { fore: 10, efter: 15, foreLabel: 'Restid', efterLabel: 'Dusch' });
+  // Gamla villkor i webbläsaren: marginal till nästa lektion blir marginal efter passet som upptar alla och heter Övergång.
+  const gammal = { slag: 'amne', ref: 'Matematik', typ: 'marginal', minutes: 20 };
+  assert.deepEqual(lasGammalMarginal(gammal), { slag: 'amne', ref: 'Matematik', typ: 'marginal', beforeMin: 0, afterMin: 20, occupies: ['elever', 'larare', 'sal'], label: 'Övergång', visibleFor: [], when: 'alltid' });
+  assert.throws(() => parseSchemaVillkor({ ...defaultSchemaVillkor(), egna: [gammal] }));
+  assert.deepEqual(parseSchemaVillkor({ ...defaultSchemaVillkor(), egna: [lasGammalMarginal(gammal)] }).egna[0].afterMin, 20);
+  assert.equal(lasGammalMarginal(egna[0]), egna[0]);
 });
