@@ -581,6 +581,8 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   await expect(page.getByRole('tab', { name: 'Klasser' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('dialog', { name: 'Spärrad tid för Klass 1' }).locator('[data-ruta^="0-"][aria-selected="true"]')).toHaveCount(12);
   await page.keyboard.press('Escape');
+  // Tabellen är en egen vy (vyväljaren, våg 4): tillbaka till veckan för att nå fältet.
+  await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
   await page.locator('details.schema-villkor > summary').click();
   // Ta bort med tangentbord, sedan ångra.
   await field.focus();
@@ -1383,9 +1385,11 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   await expect(await vt.cell(page, 'Provlärare 1', 'Pass på villkoret')).toHaveText(antal('larare-1'));
   await expect(await vt.cell(page, 'Provlärare 2', 'Pass på villkoret')).toHaveText('0');
   await expect(await vt.cell(page, 'Provlärare 3', 'Pass på villkoret')).toHaveText(antal('larare-3'));
-  // Passen på tiden märks direkt i veckan (Klass 1, höstterminen).
+  // Passen på tiden märks direkt i veckan (Klass 1, höstterminen). Veckan och tabellen är vyer av samma utkast.
+  await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
   for (const id of ['pass-1', 'pass-45', 'pass-577']) await expect(page.locator(`[data-lesson="${id}"]`)).toContainText('Ligger på spärrad tid');
   await expect(page.locator('[data-lesson="pass-9"]')).not.toContainText('Regelavvikelse');
+  await vt.oppna(page, 'Lärare');
   if (shots) await page.screenshot({ path: `${shots}/schema-villkorstabell-${width}.png`, fullPage: true });
   await (await vt.cell(page, 'Provlärare 1', 'Pass på villkoret')).getByRole('button').click();
   await expect(page.getByRole('heading', { name: `Regelavvikelser (${vtPaSparren.length})` })).toBeFocused();
@@ -1393,6 +1397,7 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
   for (const l of vtLarare) await expect(await vt.cell(page, l.name, 'Spärrad tid')).toHaveText('Inget villkor');
   await expect.poll(() => bodies.kontroller.at(-1)?.villkor.egna).toEqual([]);
+  await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
   await expect(page.locator('[data-lesson="pass-1"]')).not.toContainText('Regelavvikelse');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
@@ -1560,7 +1565,7 @@ test('passtabell: filtrera på en lärare och sortera på dag; valet av vy minns
     await tabell.start(page, width);
     await expect(tabell.vy(page, 'Vecka')).toHaveAttribute('aria-pressed', 'true');
     // Villkor i tabell kopplas in av 05.2-SM-VILLKORSTABELL; utan den vyn visas inte valet.
-    await expect(tabell.vy(page, 'Villkor i tabell')).toHaveCount(0);
+    await expect(tabell.vy(page, 'Villkor i tabell')).toHaveCount(1);
     await tabell.oppna(page);
     await expect(page.getByText(`Visar ${forslag.lessons.length} av ${forslag.lessons.length} pass.`)).toBeVisible();
     await expect(tabell.grid(page).getByRole('columnheader')).toHaveText(['', 'Undervisning', 'Klass', 'Grupper', 'Lärare', 'Sal', 'Dag', 'Tid', 'Längd', 'Termin', 'Veckor', 'Marginal', 'Status']);
@@ -1879,4 +1884,18 @@ test('passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördr�
   expect(matt.forstaRader).toBeLessThan(500);
   expect(matt.allaRader).toBeLessThan(2000);
   for (const k of ['sorteraDag', 'sorteraUndervisning', 'filtreraLarare', 'rullaTillSlut']) expect(matt[k], k).toBeLessThan(500);
+});
+
+// Sammanslagningen av våg 4: Ändra i fältets högerklicksmeny öppnar villkorets rad i Villkor i tabell, som Ändra i fältets ruta.
+test('Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await medVillkor(page);
+  await page.setViewportSize({ width: 1280, height: 1000 });
+  await mockKontroll(page);
+  // Spärren för Klass 1 måndag 08:00–10:00, som i fallet för villkorsfältets meny.
+  await meny.dag(page, 0).locator('.schema-falt.falt-sparrad').getByRole('button').focus();
+  await page.keyboard.press('Shift+F10');
+  await page.getByRole('menu').getByRole('menuitem', { name: 'Ändra' }).click();
+  await expect(page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Villkor i tabell', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByRole('tab', { name: 'Klasser' })).toHaveAttribute('aria-selected', 'true');
 });

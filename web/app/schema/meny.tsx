@@ -26,6 +26,8 @@ const PILAR: Record<string, SchemaPil> = { ArrowUp: 'upp', ArrowDown: 'ner', Arr
 
 export type MenyVal = {
   forslag: SchemaForslag | null;
+  /** Ändra på ett villkorsfält: öppnar villkorets rad i Villkor i tabell (05.2-SM-VILLKORSTABELL); utan den öppnas villkorsformuläret. */
+  andraVillkor?: (kalla: SchemaKalla) => void;
   /** Öppnar Följ passet för ett pass (05.2-SM-FOLJ); utan den finns ingen menypunkt. */
   folj?: (lesson: string) => void;
   utkast: SchemaUtkast;
@@ -99,7 +101,7 @@ export function oppnaMenyVid(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -260,7 +262,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
         onLaggAldrig={() => laggAldrig(pass)} onVillkor={() => visaVillkorFor(pass.title)}/>}
     {kalla && <>
       <ContextMenuGroup><ContextMenuLabel>{kallaRubrik}</ContextMenuLabel></ContextMenuGroup>
-      <ContextMenuItem onClick={flyttarFokus(() => visaVillkor(kalla))}>Ändra</ContextMenuItem>
+      <ContextMenuItem onClick={flyttarFokus(() => (andraVillkor ?? visaVillkor)(kalla))}>Ändra</ContextMenuItem>
       {kalla.typ === 'egen' && <ContextMenuItem onClick={flyttarFokus(() => taBort(kalla))}>Ta bort</ContextMenuItem>}
       {tidRegel(kalla) && <ContextMenuItem onClick={() => visaBerorda(kalla)}>Visa berörda pass</ContextMenuItem>}
       {tid && <ContextMenuSeparator/>}

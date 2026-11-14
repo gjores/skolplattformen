@@ -292,7 +292,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   }
   // Verktygsfält, snabbmeny, spärrar och tangentbord i veckan (05.2-SM-MENY).
   const meny = useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla: allaITerminen, visad: selected, unplaced, kallor: lager?.kallor ?? {}, length: shownMin, checking, week,
-    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass });
+    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass, andraVillkor: andraFalt });
   /** Visa i veckan (05.2-SM-PASSTABELL): veckan för passets klass (eller lärare) och termin, med passet markerat och i fokus. */
   function visaIVeckan(l: SchemaForslagLesson) {
     if (!forslag) return;
