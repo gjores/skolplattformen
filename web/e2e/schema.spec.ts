@@ -1277,3 +1277,34 @@ test('villkor direkt: Följ passet visar den nya spärren som spärrad tid i mö
   await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
   await expect(panel.locator('.folj-start[aria-label$=": spärrad tid"]')).toHaveCount(0);
 });
+
+// Flyttpanelen står kvar längst ned medan veckan rullar under den; passen får inte ritas över panelen (fel vid användarprovet 2026-11-14).
+test('flyttpanelen ligger över passen när veckan rullar under den', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await foljStart(page, 1280);
+  await page.setViewportSize({ width: 1280, height: 700 });
+  const lesson = page.locator(`[data-lesson="${kontroll.move.lesson}"]`);
+  await lesson.focus();
+  await page.keyboard.press('Enter');
+  const panel = page.getByRole('form', { name: 'Flytta pass' });
+  await expect(panel.getByLabel('Dag')).toBeFocused();
+  // Rulla så att veckans pass ligger bakom den klistrade panelen.
+  await page.evaluate(() => { const v = document.querySelector('.schema-week')!; window.scrollTo({ top: v.getBoundingClientRect().bottom + window.scrollY - innerHeight + 40, behavior: 'instant' }); });
+  await expect(page.locator('.schema-lesson').first()).toBeVisible();
+  await page.waitForTimeout(100);
+  // Punkter i panelen som också ligger över ett pass: överst ska alltid panelen vara.
+  const { overlapp, fel } = await page.evaluate(() => {
+    const p = document.querySelector('.schema-move')!.getBoundingClientRect(), pass = [...document.querySelectorAll('.schema-week .schema-lesson')].map(e => e.getBoundingClientRect());
+    let overlapp = 0; const fel: string[] = [];
+    for (let x = p.left + 4; x < p.right; x += 24) for (let y = p.top + 4; y < p.bottom; y += 12) {
+      if (!pass.some(r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)) continue;
+      overlapp += 1;
+      const el = document.elementFromPoint(x, y);
+      if (!el?.closest('.schema-move')) fel.push(`${Math.round(x)},${Math.round(y)} ${el?.className}`);
+    }
+    return { overlapp, fel };
+  });
+  const lage = await page.evaluate(() => JSON.stringify({ y: scrollY, h: innerHeight, panel: document.querySelector('.schema-move')!.getBoundingClientRect(), vecka: document.querySelector('.schema-week')!.getBoundingClientRect() }));
+  expect(overlapp, lage).toBeGreaterThan(20);
+  expect(fel).toEqual([]);
+});

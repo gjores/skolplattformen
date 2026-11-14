@@ -23,7 +23,8 @@
 .schema-workspace .schema-villkor .valplan-alert ul { color: var(--destructive); }
 .schema-workspace .schema-filter legend { float: left; margin-right: .5rem; align-self: center; }
 
-.schema-week { --minute: .0875rem; display: grid; grid-template-columns: 3rem repeat(var(--days), minmax(0, 1fr)); gap: 0 .5rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+/* isolation: passens, fältens och markeringens z-index gäller bara inne i veckan, så att flyttpanelen (sticky) ligger över passen. */
+.schema-week { --minute: .0875rem; isolation: isolate; display: grid; grid-template-columns: 3rem repeat(var(--days), minmax(0, 1fr)); gap: 0 .5rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-hours { position: relative; margin-top: 2rem; height: calc(var(--span) * var(--minute)); color: var(--muted-foreground); font-size: .75rem; }
 .schema-hours span { position: absolute; top: calc(var(--at) * var(--minute)); transform: translateY(-50%); }
 .schema-day h3 { height: 2rem; font-size: .875rem; font-weight: 600; }
