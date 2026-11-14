@@ -3,7 +3,7 @@
 // Utan lager ritas inget extra och veckan ser ut som före uppdelningen.
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
-import { SCHEMA_FALT, type SchemaBand, type SchemaDimmed, type SchemaFaltTyp, type SchemaOverlay } from '@/lib/schema-utkast.ts';
+import { SCHEMA_FALT, markeringMellan, type SchemaBand, type SchemaDimmed, type SchemaFaltTyp, type SchemaMarkering, type SchemaOverlay, type SchemaVerktyg } from '@/lib/schema-utkast.ts';
 import { clock, dayName } from './delat.ts';
 import { Pass } from './pass.tsx';
 
@@ -66,14 +66,47 @@ export type VeckaProps = {
   falt?: (o: SchemaOverlay, label: string, content: ReactNode) => ReactNode;
   /** Egna namn på fälttyper och band, i teckenförklaringen och för skärmläsare. Nyckel: fälttyp eller `band-marginal`/`band-restid`. */
   namn?: Partial<Record<string, string>>;
+  /** Valt verktyg (05.2-SM-MENY). Med Spärra och Tillåt bara markeras tid genom att dra över en dag. */
+  verktyg?: SchemaVerktyg;
+  /** Markerad tid. `tom`: ingen tid är vald än; markeringen syns bara när den har fokus (tangentbordets startpunkt). */
+  markering?: (SchemaMarkering & { tom?: boolean }) | null;
+  /** Namn för skärmläsare och vilken hjälptext markeringen beskrivs av. */
+  markeringNamn?: (m: SchemaMarkering) => string;
+  markeringHjalp?: string;
+  /** Tid markeras med musen: under draget (`klar` false) och när det är slut. */
+  onMarkera?: (m: SchemaMarkering, klar: boolean) => void;
 };
+
+/** Minuten i rutnätet under en punkt i en dags kolumn. */
+export function minutVid(ol: HTMLElement, clientY: number): number {
+  const box = ol.getBoundingClientRect(), start = Number(ol.dataset.start), span = Number(ol.dataset.span);
+  return start + (clientY - box.top) * span / box.height;
+}
+/** Veckan visas som rutnät (inte staplad lista på smal yta). Menyer och verktyg finns bara då. */
+export const somRutnat = (week: HTMLElement | null) => !!week?.querySelector<HTMLElement>('.schema-hours')?.offsetParent;
 
 const at = (from: number, to: number, origin: number) => ({ '--start': from - origin, '--length': to - from }) as CSSProperties;
 
-export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {} }: VeckaProps) {
+export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {},
+  verktyg = 'markera', markering = null, markeringNamn, markeringHjalp, onMarkera }: VeckaProps) {
   const { start, end, hours } = veckansSpann(days);
+  // Dra över tom tid med Spärra eller Tillåt bara (05.2-SM-MENY): från punkten där musen trycktes ned till där den släpps, på 5-minutersrutnätet.
+  const markera = (e: ReactPointerEvent<HTMLOListElement>, day: number) => {
+    if (!onMarkera || (verktyg !== 'sparra' && verktyg !== 'tillat') || e.button !== 0 || e.pointerType === 'touch' || disabled) return;
+    if ((e.target as HTMLElement).closest('.schema-lesson') || !somRutnat(e.currentTarget.closest('.schema-week'))) return;
+    const ol = e.currentTarget, from = minutVid(ol, e.clientY);
+    e.preventDefault();
+    const at = (y: number) => markeringMellan(days, day, from, minutVid(ol, y));
+    onMarkera(at(e.clientY), false);
+    const move = (ev: PointerEvent) => { ev.preventDefault(); onMarkera(at(ev.clientY), false); };
+    const done = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', done); window.removeEventListener('pointercancel', done);
+      if (ev.type === 'pointerup') onMarkera(at(ev.clientY), true);
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', done); window.addEventListener('pointercancel', done);
+  };
   const clip = <T extends { startMin: number; endMin: number }>(x: T) => ({ ...x, startMin: Math.max(start, x.startMin), endMin: Math.min(end, x.endMin) });
-  return <div ref={gridRef} className="schema-week" style={{ '--days': days.length, '--span': end - start, '--first-hour': (hours[0] ?? start) - start } as CSSProperties}>
+  return <div ref={gridRef} className={`schema-week verktyg-${verktyg}`} style={{ '--days': days.length, '--span': end - start, '--first-hour': (hours[0] ?? start) - start } as CSSProperties}>
     <div className="schema-hours" aria-hidden="true">{hours.map(h => <span key={h} style={{ '--at': h - start } as CSSProperties}>{clock(h)}</span>)}</div>
     {days.map((_, day) => {
       const lessons = all.filter(l => l.day === day && l.startMin !== null).sort((a, b) => a.startMin! - b.startMin! || a.id.localeCompare(b.id));
@@ -86,7 +119,10 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
       // Passen står först i dagen, så att tangentbordet når dem före fälten; fälten ritas ändå under passen (z-index i schema.css).
       return <section className="schema-day" key={day} aria-label={dayName(day)}>
         <h3>{dayName(day)}</h3>
-        <ol data-day={day}>
+        <ol data-day={day} data-start={start} data-span={end - start} onPointerDown={e => markera(e, day)}>
+          {markering?.day === day && <li className={`schema-markering${markering.tom ? ' tom' : ''}`} style={at(markering.startMin, markering.endMin, start)}>
+            <button type="button" data-markering="" aria-label={markeringNamn?.(markering) ?? `Markerad tid ${dayName(day).toLowerCase()} ${clock(markering.startMin)}–${clock(markering.endMin)}`}
+              aria-describedby={markeringHjalp}><span>{clock(markering.startMin)}–{clock(markering.endMin)}</span></button></li>}
           {lessons.map(l => <Pass key={l.id} lesson={l} origin={start} length={length(l)} lane={lane.get(l.id)!} picked={picked === l.id} flagged={flagged.has(l.id)}
             dragging={drop?.lesson === l.id} disabled={disabled} detail={detail(l)} rader={extra?.(l)} locked={locked?.(l)} onGrab={onGrab} onPick={onPick}/>)}
           {beside.map(({ b, l }, i) => {
