@@ -13,12 +13,12 @@ import './samling.css';
 
 type Props = {
   forslag: SchemaForslag; villkor: SchemaVillkor; placements: SchemaPlacement[]; layers: Record<string, boolean>; term: SchemaTerm;
-  picked: string | null; onPick: (id: string) => void; onLayer: (layer: SchemaLagerTyp, on: boolean) => void; onSessionLost: () => void;
+  picked: string | null; intentional?: string[]; onPick: (id: string) => void; onLayer: (layer: SchemaLagerTyp, on: boolean) => void; onSessionLost: () => void;
   slag: 'larare' | 'sal' | 'elev'; initialResource?: string; onTerm?: (term: SchemaTerm) => void;
 };
 const TITLE = { larare: 'Lärarens schema', sal: 'Salens schema', elev: 'Elevens schema' };
 export function ResursFonster(props: Props) { return <ResursInnehall key={`${props.slag}:${props.forslag.grundFingerprint}`} {...props}/>; }
-function ResursInnehall({ forslag, villkor, placements, layers, term, picked, onPick, onLayer, onSessionLost, slag, initialResource, onTerm }: Props) {
+function ResursInnehall({ forslag, villkor, placements, layers, term, picked, onPick, onLayer, onSessionLost, slag, initialResource, onTerm, intentional = [] }: Props) {
   const heading = useId(), choice = useId(), [selected, setSelected] = useState(initialResource ?? ''), [data, setData] = useState<SchemaSamlingData | null>(null), [error, setError] = useState(''), [retry, setRetry] = useState(0);
   const ref = useRef({ forslag, villkor, placements, onSessionLost }); useEffect(() => { ref.current = { forslag, villkor, placements, onSessionLost }; });
   const fingerprint = forslag.grundFingerprint;
@@ -45,7 +45,7 @@ function ResursInnehall({ forslag, villkor, placements, layers, term, picked, on
         <Lagerval layers={layers} onChange={onLayer}/>
         <div className="samling-ram"><div className="folj-rutnat" style={{ '--span': end - start, '--first-hour': Math.ceil(start / 60) * 60 - start, '--days': f.days.length } as CSSProperties}>
           <div className="folj-rad folj-dagar"><div/>{f.days.map((_, d) => <div key={d}>{dayName(d)}<small>{clock(start)}–{clock(end)}</small></div>)}</div>
-          {resource && <SamlingRad rad={{ key: resource.key, slag: resource.slag, name: resource.name, detail: SAMLING_NAMN[slag], chip: resource.name, lessons }} days={f.days} start={start} classes={f.classes} followed={picked ?? ''} onPick={onPick} shortTitles
+          {resource && <SamlingRad intentional={intentional} rad={{ key: resource.key, slag: resource.slag, name: resource.name, detail: SAMLING_NAMN[slag], chip: resource.name, lessons }} days={f.days} start={start} classes={f.classes} followed={picked ?? ''} onPick={onPick} shortTitles
             overlays={layer?.overlays ?? samlingTidsvillkor(resource, villkor).filter(o => lagerPa(layers, o.kind === 'sparrad' ? 'sparrad' : 'tillaten'))} bands={layer?.bands}/>}
         </div></div>
       </>}

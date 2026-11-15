@@ -7,7 +7,7 @@ import { DAYS, clock, dayName, names, startTimes } from './delat.ts';
 
 export type FlyttMal = { day: number; startMin: number; room: string | null };
 
-export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, onTarget, onMove, onPark, onCancel }: {
+export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest }: {
   lesson: SchemaForslagLesson; forslag: SchemaForslag; target: FlyttMal; checking: boolean; locked?: string;
   shownMin: number;
   /** Kortning vissa veckor och termin, i samma text som i passrutan. */
@@ -15,6 +15,7 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
   roomName: (id: string | null) => string;
   dayRef?: Ref<HTMLSelectElement>;
   onTarget: (next: FlyttMal) => void; onMove: () => void; onPark: () => void; onCancel: () => void;
+  onSuggest?: () => void; onTargetSuggest?: () => void;
 }) {
   const blocked = checking || !!locked;
   const starts = (day: number) => startTimes(forslag, day, l.durationMin + l.marginMin, l.marginBeforeMin);
@@ -29,6 +30,8 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
     {l.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} disabled={blocked} onChange={e => onTarget({ ...target, room: e.target.value || null })}>
       <option value="">Första lediga</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
     <Button type="submit" disabled={blocked || target.day === l.day && target.startMin === l.startMin && target.room === l.roomId}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
+    {onTargetSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onTargetSuggest}>Lägg här och flytta det som krockar</Button>}
+    {onSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onSuggest}>Föreslå placering</Button>}
     {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Lägg på viloytan</Button>}
     <Button type="button" variant="outline" disabled={checking} onClick={onCancel}>Avbryt</Button>
   </form>;

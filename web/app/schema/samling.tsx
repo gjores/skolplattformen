@@ -22,7 +22,7 @@ type Props = {
   forslag: SchemaForslag; villkor: SchemaVillkor; placements: SchemaPlacement[]; layers: Record<string, boolean>; term: SchemaTerm;
   onLayer: (layer: SchemaLagerTyp, on: boolean) => void; onPick: (lesson: string) => void; onSessionLost: () => void;
   picked?: string | null; violations?: string[]; locked?: string[]; start?: SamlingStart | null;
-  onOpen?: () => void; windows?: SchemaFonsterVal[]; onOpenWindows?: (windows: SchemaFonsterVal[]) => void;
+  intentional?: string[]; onOpen?: () => void; windows?: SchemaFonsterVal[]; onOpenWindows?: (windows: SchemaFonsterVal[]) => void;
 };
 const EXTRA = [{ id: 'haltid', namn: 'Håltid' }, { id: 'lunchtryck', namn: 'Lunchtryck' }] as const;
 const FARG: { id: SamlingFarg; label: string }[] = [{ id: 'amne', label: 'Ämne' }, { id: 'larare', label: 'Lärare' }, { id: 'sal', label: 'Sal' }, { id: 'avvikelse', label: 'Regelavvikelse' }, { id: 'last', label: 'Låst' }];
@@ -30,7 +30,7 @@ const FARG: { id: SamlingFarg; label: string }[] = [{ id: 'amne', label: 'Ämne'
 export function Samling(props: Props) {
   return <SamlingInnehall key={`${props.forslag.unitId}:${props.forslag.grundFingerprint}:${props.start?.nr ?? ''}`} {...props}/>;
 }
-function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, onPick, onSessionLost, picked = null, violations = [], locked = [], start: initial, windows = [], onOpenWindows, onOpen }: Props) {
+function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, onPick, onSessionLost, picked = null, violations = [], locked = [], start: initial, windows = [], onOpenWindows, onOpen, intentional = [] }: Props) {
   const heading = useId(), label = useId(), [readForslag] = useState(forslag), current = useRef({ villkor, placements, onSessionLost });
   useEffect(() => { current.current = { villkor, placements, onSessionLost }; }, [villkor, placements, onSessionLost]);
   const [data, setData] = useState<SchemaSamlingData | null>(null), [error, setError] = useState<string | null>(null), [retry, setRetry] = useState(0);
@@ -125,7 +125,7 @@ function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, 
         const allLessons = samlingPass(r, f.lessons, effectiveTerm), lessons = allLessons.filter(l => allowedIds.has(l.id));
         const layer = r.slag === 'klass' || r.slag === 'grupp' || r.slag === 'larare' ? schemaLager(villkor, f, { slag: r.slag === 'larare' ? 'larare' : 'klass', ref: r.id }, { lessons: allLessons, alla: f.lessons, layers }) : null;
         const holes = extra.haltid ? samlingHal(r, f, villkor, effectiveTerm).map(s => ({ ...s, kind: 'onskemal' as const, label: 'Håltid' })) : [];
-        return <SamlingRad key={r.key} rad={{ key: r.key, slag: r.slag, name: r.name, detail: SAMLING_NAMN[r.slag], chip: r.name, lessons }} days={f.days} start={from} classes={f.classes} visibleDays={days} compact={compact} shortTitles={compact || day === null} followed={picked ?? ''} onPick={onPick} passClass={passClass} passLabel={labelOf}
+        return <SamlingRad intentional={intentional} key={r.key} rad={{ key: r.key, slag: r.slag, name: r.name, detail: SAMLING_NAMN[r.slag], chip: r.name, lessons }} days={f.days} start={from} classes={f.classes} visibleDays={days} compact={compact} shortTitles={compact || day === null} followed={picked ?? ''} onPick={onPick} passClass={passClass} passLabel={labelOf}
           overlays={[...layer?.overlays ?? [], ...(r.slag === 'sal' || r.slag === 'grupp' && !f.classes.some(c => c.id === r.id) ? samlingTidsvillkor(r, villkor).filter(o => lagerPa(layers, o.kind === 'sparrad' ? 'sparrad' : 'tillaten')) : []), ...holes]} bands={layer?.bands} onTime={(d, m) => setWhen({ day: d, startMin: m, endMin: Math.min(m + 60, villkor.days[d].endMin) })}
           head={<><label className="schema-check"><input type="checkbox" aria-label={`Markera raden ${r.name}`} checked={checked.includes(r.key)} onChange={e => setChecked(xs => e.target.checked ? [...xs, r.key] : xs.filter(k => k !== r.key))}/><b>{r.name}</b></label><small>{SAMLING_NAMN[r.slag]}{r.size !== null ? ` · ${r.antagen ? 'antagna ' : ''}${r.size} elever` : ''}{r.year ? ` · ${r.year}` : ''}</small></>}/>;
       })}

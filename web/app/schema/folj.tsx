@@ -37,10 +37,10 @@ type Props = {
   onLock: (locked: boolean) => void; onClose: () => void; onMove: (p: SchemaLagenPosition) => void; onSessionLost: () => void;
   onPick?: (lesson: string) => void;
   /** Terminen veckan visar; passets egen termin går före. */
-  term: 'ht' | 'vt'; onOpen?: () => void;
+  term: 'ht' | 'vt'; onOpen?: () => void; onSuggest?: () => void; intentional?: string[];
 };
 
-export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen }: Props) {
+export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen, onSuggest, intentional = [] }: Props) {
   const heading = useId(), pupilLabel = useId();
   const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
@@ -97,6 +97,7 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
           {locked ? ' Panelen är låst till passet.' : ' Panelen följer det markerade passet.'}</p>
       </div>
       <div className="folj-knappar">
+        {onSuggest && <Button type="button" variant="outline" disabled={checking || lesson.locked} onClick={onSuggest}>Föreslå placering</Button>}
         <OppnaFonster onOpen={onOpen} label="Följ passet"/>
         <Button type="button" variant={locked ? 'secondary' : 'outline'} aria-pressed={locked} onClick={() => onLock(!locked)}>
           {locked ? <LockIcon aria-hidden="true"/> : <LockOpenIcon aria-hidden="true"/>}Lås till detta pass</Button>
@@ -122,7 +123,7 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
       <div className="folj-rad folj-dagar" aria-hidden="true"><div/>{forslag.days.map((_, d) => <div key={d}>{dayName(d)}</div>)}</div>
       <Mojligt days={forslag.days} span={{ start, end }} step={forslag.startGridMin} lesson={lesson.id} title={lesson.title} lengthMin={lesson.durationMin}
         lagen={lagen} loading={loading} kontext={kontext} disabled={checking} onMove={onMove}/>
-      {rader.map(r => <SamlingRad key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick} compact/>)}
+      {rader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick} compact/>)}
     </div>
     {krock.texter.length > 0 && <div className="folj-krock">{krock.texter.map(t => <p key={t}>{t}</p>)}</div>}
     {rader.some(r => r.slag === 'elev') && <p className="schema-note">Elevens pass kommer ur klassen och elevens grupper; streckad kant = gruppens pass.</p>}

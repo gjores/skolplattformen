@@ -32,6 +32,8 @@ export type MenyVal = {
   /** Öppnar Följ passet för ett pass (05.2-SM-FOLJ); utan den finns ingen menypunkt. */
   folj?: (lesson: string) => void;
   onOpenWindow?: (lesson: SchemaForslagLesson) => void;
+  foresla?: (lesson: string) => void;
+  minsta?: (tid: SchemaMarkering) => void;
   /** Samlingsvyns resursurval och egna aktiviteter kan börja från markerad tom tid. */
   gemensam?: (tid: SchemaMarkering) => void;
   nyAktivitet?: (tid: SchemaMarkering) => void;
@@ -72,23 +74,24 @@ export function visaVillkorFor(title: string): void {
 }
 
 /** Det man kan göra med ett pass. Utan `folj` finns ingen Följ passet; utan `visaIVeckan` ingen Visa i veckan (bara i passtabellen). */
-export type PassAtgarder = { flytta: () => void; folj?: () => void; parkera: () => void; laggAldrig: () => void; villkor: () => void; visaIVeckan?: () => void; las?: () => void; last?: boolean; byt?: () => void; oppnaFonster?: () => void };
+export type PassAtgarder = { flytta: () => void; folj?: () => void; parkera: () => void; laggAldrig: () => void; villkor: () => void; visaIVeckan?: () => void; las?: () => void; last?: boolean; byt?: () => void; oppnaFonster?: () => void; foresla?: () => void };
 type PassMenyProps = {
   pass: Pick<SchemaForslagLesson, 'title' | 'day' | 'startMin'>; rubrik: string; flyttarFokus: (action: () => void) => () => void;
-  onFlytta: () => void; onFolj?: () => void; onParkera: () => void; onLaggAldrig: () => void; onVillkor: () => void; onVisaIVeckan?: () => void; onLas?: () => void; last?: boolean; onByt?: () => void; onOppnaFonster?: () => void;
+  onFlytta: () => void; onFolj?: () => void; onParkera: () => void; onLaggAldrig: () => void; onVillkor: () => void; onVisaIVeckan?: () => void; onLas?: () => void; last?: boolean; onByt?: () => void; onOppnaFonster?: () => void; onForesla?: () => void;
 };
 /** Passmenyns händelser ur åtgärderna, för passtabellen. */
-export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan, onLas: a.las, last: a.last, onByt: a.byt, onOppnaFonster: a.oppnaFonster });
+export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan, onLas: a.las, last: a.last, onByt: a.byt, onOppnaFonster: a.oppnaFonster, onForesla: a.foresla });
 /**
  * Passmenyns punkter (05.2-SM-MENY), utbrutna så att veckan och passtabellen använder samma lista (05.2-SM-PASSTABELL). Ett pass på viloytan har ingen
  * Lägg på viloytan och ingen Lägg aldrig här. `flyttarFokus` omsluter de punkter som flyttar fokus själva, så att menyn inte lämnar tillbaka fokus.
  */
-export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan, onLas, last, onByt, onOppnaFonster }: PassMenyProps) {
+export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan, onLas, last, onByt, onOppnaFonster, onForesla }: PassMenyProps) {
   const lagd = pass.day !== null && pass.startMin !== null;
   return <>
     <ContextMenuGroup><ContextMenuLabel>{rubrik}</ContextMenuLabel></ContextMenuGroup>
     <ContextMenuItem onClick={flyttarFokus(onFlytta)}>Flytta…<ContextMenuShortcut><Kbd>Enter</Kbd></ContextMenuShortcut></ContextMenuItem>
     {onFolj && <ContextMenuItem onClick={flyttarFokus(onFolj)}>Följ passet<ContextMenuShortcut><Kbd>F</Kbd></ContextMenuShortcut></ContextMenuItem>}
+    {onForesla && <ContextMenuItem disabled={last} onClick={flyttarFokus(onForesla)}>Föreslå placering</ContextMenuItem>}
     {lagd && <>
       {onLas && <ContextMenuItem onClick={onLas}>{last ? 'Lås upp' : 'Lås här'}<ContextMenuShortcut><Kbd>L</Kbd></ContextMenuShortcut></ContextMenuItem>}
       {onByt && <ContextMenuItem disabled={last} onClick={onByt}>Byt med ett annat pass…<ContextMenuShortcut><Kbd>B</Kbd></ContextMenuShortcut></ContextMenuItem>}
@@ -109,7 +112,7 @@ export function oppnaMenyVid(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet, onOpenWindow }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet, onOpenWindow, foresla, minsta }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -275,6 +278,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   const passAtgarder = (l: SchemaForslagLesson): PassAtgarder => ({
     flytta: () => pick(l), folj: folj && (() => folj(l.id)), parkera: () => andra({ type: 'park', lesson: l.id }),
     oppnaFonster: onOpenWindow && (() => onOpenWindow(l)),
+    foresla: foresla && (() => foresla(l.id)),
     las: () => lasa([l.id], !utkast.locked?.[l.id]), last: !!utkast.locked?.[l.id], byt: () => borjaByte(l),
     laggAldrig: () => laggAldrig(l), villkor: () => visaVillkorFor(l.title),
   });
@@ -284,7 +288,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
         onFlytta={() => pick(pass)} onFolj={folj && (() => folj(pass.id))} onParkera={() => andra({ type: 'park', lesson: pass.id })}
         onLaggAldrig={() => laggAldrig(pass)} onVillkor={() => visaVillkorFor(pass.title)}
         last={!!utkast.locked?.[pass.id]} onLas={() => lasa([pass.id], !utkast.locked?.[pass.id])} onByt={() => borjaByte(pass)}
-        onOppnaFonster={onOpenWindow && (() => onOpenWindow(pass))}/>}
+        onOppnaFonster={onOpenWindow && (() => onOpenWindow(pass))} onForesla={foresla && (() => foresla(pass.id))}/>}
     {kalla && <>
       <ContextMenuGroup><ContextMenuLabel>{kallaRubrik}</ContextMenuLabel></ContextMenuGroup>
       <ContextMenuItem onClick={flyttarFokus(() => (andraVillkor ?? visaVillkor)(kalla))}>Ändra</ContextMenuItem>
@@ -294,6 +298,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     </>}
     {tid && <>
       <ContextMenuGroup><ContextMenuLabel>{tidText(tid)}</ContextMenuLabel></ContextMenuGroup>
+      {minsta && utkast.picked && <ContextMenuItem onClick={flyttarFokus(() => minsta(tid))}>Lägg här och flytta det som krockar</ContextMenuItem>}
       {nyAktivitet && <ContextMenuItem onClick={flyttarFokus(() => nyAktivitet(tid))}>Ny aktivitet här</ContextMenuItem>}
       {gemensam && <ContextMenuItem onClick={flyttarFokus(() => gemensam(tid))}>Visa gemensam ledig tid</ContextMenuItem>}
       <ContextMenuSub><ContextMenuSubTrigger>Spärra för</ContextMenuSubTrigger>

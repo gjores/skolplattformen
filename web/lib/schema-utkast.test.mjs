@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { SCHEMA_UTKAST_STEG, avvikelseRad, flyttaMarkering, laggAldrigHar, markeringMellan, markeringVid, medUtkast, passPaVillkor, schemaUtkast, sparrRegel, sparrResurser,
+import { SCHEMA_UTKAST_STEG, avvikelseRad, avvikelseNyckel, medvetenMarkering, medvetenKrock, medvetenPubliceringssparr, medvetnaAvvikelser, medvetenSteg, flyttaMarkering, laggAldrigHar, markeringMellan, markeringVid, medUtkast, passPaVillkor, schemaUtkast, sparrRegel, sparrResurser,
   stegMal, tomtUtkast, utkastEfter, utkastPlaceringar, utkastSteg, villkorSteg } from './schema-utkast.ts';
 
 /** Syntetiskt förslag: tre pass på måndag, ett på viloytan. */
@@ -51,7 +51,7 @@ test('nytt förslag tömmer historiken men behåller verktyg och lager', () => {
     { type: 'tool', tool: 'sparra' }, { type: 'layer', layer: 'lunch', on: false }, { type: 'pick', lesson: 'c' });
   assert.deepEqual([s.undo.length, s.redo.length, s.picked], [1, 1, 'c']);
   const next = run(s, { type: 'reset', forslag: { lessons: [{ id: 'x', day: 1, startMin: 480, roomId: null }] } });
-  assert.deepEqual(next, { placements: { x: { day: 1, startMin: 480, room: null } }, picked: null, selected: [], locked: {}, tool: 'sparra', layers: { lunch: false }, undo: [], redo: [] });
+  assert.deepEqual(next, { placements: { x: { day: 1, startMin: 480, room: null } }, picked: null, selected: [], locked: {}, intentional: [], tool: 'sparra', layers: { lunch: false }, undo: [], redo: [] });
 });
 
 test('parkera och lägga ut igen', () => {
@@ -107,10 +107,10 @@ const vecka = [
 test('en spärr läggs till och ångras och görs om i utkastet, utan att något pass flyttas', () => {
   const m = markeringMellan(days, 3, 840, 990), regel = sparrRegel('sparrad', { slag: 'klass', ref: 'k1' }, m);
   assert.deepEqual(regel, { slag: 'klass', ref: 'k1', typ: 'sparrad', days: [3], startMin: 840, endMin: 990 });
-  const s0 = start(), s1 = run(s0, { type: 'villkor', fore: [], efter: [regel], text: 'Spärrad · Klass 1' });
+  const s0 = start(), s1 = run(s0, { type: 'villkor', fore: [], efter: [regel], text: 'Spärrad · Klass 1', intentional: [] });
   assert.equal(s1.placements, s0.placements);
   assert.equal(villkorSteg(s1.undo.at(-1)), true);
-  assert.deepEqual(s1.undo.at(-1), { villkor: [], efter: [regel], text: 'Spärrad · Klass 1' });
+  assert.deepEqual(s1.undo.at(-1), { villkor: [], efter: [regel], text: 'Spärrad · Klass 1', intentional: [] });
   // Ett villkorssteg prövas inte av kontrollen: inga placeringar och inget pass.
   assert.equal(utkastEfter(s1, { type: 'undo' }), null);
   assert.equal(utkastSteg(s1, 'undo'), null);
@@ -244,4 +244,78 @@ test('sal följer det bytta passet när den är ledig och släpps när den är u
   const places = { a: { day: 0, startMin: 600, room: 'sal-1' }, b: { day: 0, startMin: 480, room: 'sal-2' }, c: { day: 0, startMin: 620, room: 'sal-1' } };
   assert.deepEqual(bytSalar({ lessons }, places, ['a', 'b']), { ...places, a: { ...places.a, room: null } });
   assert.deepEqual(bytSalar({ lessons: lessons.map(l => l.id === 'c' ? { ...l, term: 'vt' } : l) }, places, ['a', 'b']), places, 'olika terminer upptar inte salen samtidigt');
+});
+
+
+test('helt placeringsförslag med tre ändrade pass är ett steg och håller låsta pass orörda', () => {
+  const s0 = start(), placements = [{ lesson: 'a', day: 2, startMin: 480, room: null }, { lesson: 'b', day: 2, startMin: 600, room: 'sal-1' }, { lesson: 'c', day: 1, startMin: 540, room: null }, { lesson: 'd', day: 3, startMin: 720, room: null }];
+  const s1 = schemaUtkast(s0, { type: 'placement', lesson: 'd', placements });
+  assert.equal(s1.undo.length, 1); assert.equal(utkastPlaceringar(s1.placements).length, 4);
+  const undo = schemaUtkast(s1, { type: 'undo' }); assert.deepEqual(undo.placements, s0.placements);
+  assert.deepEqual(schemaUtkast(undo, { type: 'redo' }).placements, s1.placements);
+  const locked = schemaUtkast(s0, { type: 'lock', lesson: 'a', locked: true });
+  assert.equal(schemaUtkast(locked, { type: 'placement', lesson: 'd', placements }), locked);
+  assert.equal(schemaUtkast(s0, { type: 'placement', lesson: 'd', placements: [...placements, placements[0]] }), s0);
+  assert.equal(schemaUtkast(s0, { type: 'placement', lesson: 'd', placements: [...placements, { lesson: 'unknown', day: 0, startMin: 480, room: null }] }), s0);
+});
+
+test('medveten krock binds till exakt avvikelse, berörda platser och villkor utan att godkänna brottet', () => {
+  const s0 = start(), violation = { code: 'teacher_clash', message: 'Två pass krockar för provläraren.', lessons: ['a', 'b'] }, other = { ...violation, message: 'En annan krock.' };
+  const marked = schemaUtkast(s0, { type: 'intent', mark: medvetenMarkering(violation, s0.placements, 'villkor-a'), on: true });
+  assert.equal(medvetenSteg(marked.undo.at(-1)), true); assert.deepEqual([...medvetnaAvvikelser(marked, [violation, other], 'villkor-a')], [avvikelseNyckel(violation)]);
+  assert.equal(medvetnaAvvikelser(marked, [other], 'villkor-a').size, 0);
+  assert.equal(medvetnaAvvikelser(marked, [violation], 'villkor-b').size, 0);
+  const reordered = { ...violation, lessons: ['b', 'a'] }; assert.equal(avvikelseNyckel(violation), avvikelseNyckel(reordered));
+  const moved = schemaUtkast(marked, { type: 'move', lesson: 'a', day: 4, startMin: 900 }); assert.equal(moved.intentional.length, 0);
+  const restored = schemaUtkast(moved, { type: 'undo' }); assert.equal(medvetnaAvvikelser(restored, [violation], 'villkor-a').size, 1);
+  const unmarked = schemaUtkast(marked, { type: 'undo' }); assert.equal(unmarked.intentional.length, 0);
+  assert.equal(schemaUtkast(unmarked, { type: 'redo' }).intentional.length, 1);
+  assert.deepEqual(JSON.parse(JSON.stringify(marked)), marked);
+});
+
+test('nya villkor upphäver markering; bara explicit ångra återställer rätt tidigare medvetna krock', () => {
+  const s0 = start(), violation = { code: 'student_clash', message: 'Elevernas pass krockar.', lessons: ['a', 'b'] };
+  const marked = schemaUtkast(s0, { type: 'intent', mark: medvetenMarkering(violation, s0.placements, 'fore'), on: true });
+  const changed = schemaUtkast(marked, { type: 'villkor', fore: [], efter: [{ slag: 'klass', ref: 'k1', typ: 'sparrad', days: [0], startMin: 480, endMin: 540 }], text: 'Ny spärr' });
+  assert.equal(changed.intentional.length, 0); assert.equal(schemaUtkast(changed, { type: 'undo' }).intentional.length, 1);
+  const pruned = schemaUtkast(marked, { type: 'intent-prune', keys: [] }); assert.equal(medvetnaAvvikelser(pruned, [violation], 'fore').size, 0);
+  const later = schemaUtkast(pruned, { type: 'move', lesson: 'a', day: 4, startMin: 900 }); assert.equal(schemaUtkast(later, { type: 'undo' }).intentional.length, 0);
+});
+
+
+test('oförändrad medveten krock bevaras när ett orelaterat pass flyttas, parkeras eller låses', () => {
+  const s0 = start(), violation = { code: 'teacher_clash', message: 'A och B krockar.', lessons: ['a', 'b'] };
+  const marked = schemaUtkast(s0, { type: 'intent', mark: medvetenMarkering(violation, s0.placements, 'villkor'), on: true });
+  for (const action of [{ type: 'move', lesson: 'c', day: 4, startMin: 900 }, { type: 'park', lesson: 'c' }, { type: 'lock', lesson: 'c', locked: true }]) {
+    const next = schemaUtkast(marked, action); assert.equal(medvetnaAvvikelser(next, [violation], 'villkor').size, 1);
+  }
+  const rooms = schemaUtkast(marked, { type: 'salar', rooms: { a: null, b: 'sal-1', c: 'sal-2' } }); assert.equal(rooms.intentional.length, 1);
+});
+
+test('bara lärar-, elev- och salskrock samt förbjuden överlappning kan medvetenmarkeras', () => {
+  const state = start();
+  for (const code of ['teacher_clash', 'student_clash', 'room_clash', 'overlap_forbidden']) assert.equal(medvetenKrock({ code }), true);
+  for (const code of ['off_grid', 'outside_allowed', 'teacher_no_lunch', 'outside_day']) {
+    const v = { code, message: 'Regeln gäller.', lessons: ['a'] }; assert.equal(medvetenKrock(v), false);
+    assert.equal(schemaUtkast(state, { type: 'intent', mark: medvetenMarkering(v, state.placements, 'villkor'), on: true }), state);
+  }
+});
+
+
+test('grundfingeravtryck är en explicit del av markeringen och den framtida publiceringsdelspärren', () => {
+  const state = start(), violation = { code: 'room_clash', message: 'Samma sal används samtidigt.', lessons: ['a', 'b'] };
+  const mark = medvetenMarkering(violation, state.placements, 'villkor', 'grund-1');
+  const marked = schemaUtkast(state, { type: 'intent', mark, on: true }); assert.equal(marked.intentional[0].grundFingerprint, 'grund-1');
+  const blocked = medvetenPubliceringssparr(marked, [violation], 'villkor', 'grund-1');
+  assert.deepEqual({ blocked: blocked.blocked, count: blocked.count, reason: blocked.reason }, { blocked: true, count: 1, reason: 'medvetna_krockar' });
+  const incomplete = { ...marked, intentional: [{ ...mark, placements: { a: mark.placements.a } }] };
+  assert.equal(medvetenPubliceringssparr(incomplete, [violation], 'villkor', 'grund-1').blocked, false);
+  assert.equal(medvetnaAvvikelser(marked, [violation], 'villkor', 'grund-2').size, 0);
+  assert.equal(medvetenPubliceringssparr(marked, [violation], 'villkor', 'grund-2').blocked, false);
+  assert.equal(medvetenPubliceringssparr(marked, [{ ...violation, message: 'En annan sal krockar.' }], 'villkor', 'grund-1').blocked, false);
+  assert.equal(medvetenPubliceringssparr(marked, [violation], 'ändrade villkor', 'grund-1').blocked, false);
+  assert.equal(medvetenPubliceringssparr(schemaUtkast(marked, { type: 'move', lesson: 'a', day: 4, startMin: 900 }), [violation], 'villkor', 'grund-1').blocked, false);
+  // Delspärren ändrar inte regelbrotten och är ingen implementerad publiceringsrutt.
+  const all = [violation, { code: 'off_grid', message: 'Fel startrutnät.', lessons: ['c'] }], before = structuredClone(all);
+  assert.equal(medvetenPubliceringssparr(marked, all, 'villkor', 'grund-1').count, 1); assert.deepEqual(all, before);
 });

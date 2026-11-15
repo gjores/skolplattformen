@@ -4,7 +4,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
 import { startTimes } from './delat.ts';
 
-export type Mal = { day: number | null; startMin: number | null; other?: string };
+export type Mal = { day: number | null; startMin: number | null; other?: string; suggest?: boolean };
 export type DraVal = {
   forslag: SchemaForslag;
   grid: HTMLElement | null;
@@ -50,7 +50,7 @@ export function dra(e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson, {
     if (!active) return;
     skipClick.current = true; window.setTimeout(() => { skipClick.current = false; }, 0);
     const to = ev.type === 'pointerup' ? at(ev.clientX, ev.clientY) : null;
-    if (to && (to.day !== l.day || to.startMin !== l.startMin)) onDrop(to);
+    if (to && (to.day !== l.day || to.startMin !== l.startMin)) onDrop({ ...to, ...(e.altKey || ev.altKey ? { suggest: true } : {}) });
   };
   window.addEventListener('pointermove', move); window.addEventListener('pointerup', done); window.addEventListener('pointercancel', done);
 }

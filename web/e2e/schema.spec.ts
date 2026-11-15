@@ -925,8 +925,8 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await pass.click({ button: 'right' });
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Programämne · torsdag 10:00–11:05');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…', 'Öppna i nytt fönster']);
-  for (const senare of ['Varför inte här', 'Föreslå placering']) await expect(menu.getByText(senare)).toHaveCount(0);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…', 'Öppna i nytt fönster']);
+  await expect(menu.getByText('Varför inte här')).toHaveCount(0);
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
   await expect(menu).toBeHidden();
@@ -1666,7 +1666,7 @@ test('passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell
     await expect(tabell.cell(page, own.id, 7)).toHaveText(fore);
     await tabell.cell(page, own.id, 2).click({ button: 'right' });
     const menu = page.getByRole('menu');
-    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Öppna i nytt fönster', 'Visa i veckan']);
+    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Öppna i nytt fönster', 'Visa i veckan']);
     await menu.getByRole('menuitem', { name: 'Följ passet' }).click();
     const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
     await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();

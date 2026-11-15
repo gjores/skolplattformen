@@ -37,7 +37,7 @@ type Props = {
   /** Terminen veckan visar: ett pass som går hela läsåret visas med sin längd den terminen. */
   term: SchemaTerm;
   visning?: SchemaVeckaVal;
-  picked: string | null; checking: boolean;
+  picked: string | null; checking: boolean; intentional?: string[];
   val: PassTabellVal; onVal: (next: PassTabellVal) => void;
   /** Passmenyns åtgärder för ett pass (samma som i veckan), med Visa i veckan. */
   atgarder: (l: SchemaForslagLesson) => PassAtgarder;
@@ -52,7 +52,7 @@ type Props = {
   tabellRef: RefObject<HTMLDivElement | null>;
 };
 
-export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef }: Props) {
+export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef, intentional = [] }: Props) {
   const id = useId();
   const rader = useMemo(() => passRader(forslag, term, violations, egna, visning), [forslag, term, violations, egna, visning]);
   const val_ = useMemo(() => filterVal(rader), [rader]);
@@ -255,7 +255,7 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
   </section>;
 
   function radFor(r: PassRad, index: number) {
-    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === (r.lessonId ?? r.id)} onVald={valj}/>;
+    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === (r.lessonId ?? r.id)} intentional={intentional.includes(r.lessonId ?? r.id)} onVald={valj}/>;
   }
 }
 
@@ -267,8 +267,8 @@ function Grupprad({ grupp: g }: { grupp: PassGrupp }) {
 }
 
 // Raden får inte sin plats som prop: vid sortering flyttas raderna utan att ritas om.
-const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald }: {
-  rad: PassRad; aktivCol: number | null; vald: boolean; markerad: boolean; onVald: (id: string, utoka: boolean) => void;
+const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald, intentional }: {
+  rad: PassRad; aktivCol: number | null; vald: boolean; markerad: boolean; intentional: boolean; onVald: (id: string, utoka: boolean) => void;
 }) {
   const tab = (c: number) => aktivCol === c ? 0 : -1;
   const veckor = veckorText(r), marginal = marginalText(r);
@@ -288,6 +288,7 @@ const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald }: {
     <TableCell data-col={10} tabIndex={tab(10)}>{veckor || '–'}</TableCell>
     <TableCell data-col={11} tabIndex={tab(11)} className="passtabell-tal">{marginal || '–'}</TableCell>
     <TableCell data-col={12} tabIndex={tab(12)}><span className="passtabell-status"><span className={`status-badge ${TON[r.status]}`}>{PASS_STATUS[r.status]}</span>
+      {intentional && <span className="status-badge warning">Medveten krock</span>}
       {r.orsak && <span className="passtabell-orsak">{r.orsak}</span>}</span></TableCell>
   </TableRow>;
 });
