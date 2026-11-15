@@ -4,7 +4,7 @@ import type { PointerEvent as ReactPointerEvent } from 'react';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
 import { startTimes } from './delat.ts';
 
-export type Mal = { day: number | null; startMin: number | null };
+export type Mal = { day: number | null; startMin: number | null; other?: string };
 export type DraVal = {
   forslag: SchemaForslag;
   grid: HTMLElement | null;
@@ -32,7 +32,8 @@ export function dra(e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson, {
       const box = column.getBoundingClientRect(), day = Number(column.dataset.day);
       if (x < box.left || x > box.right || y < box.top - 24 || y > box.bottom + 24) continue;
       const starts = startTimes(f, day, l.durationMin + l.marginMin, l.marginBeforeMin), wanted = start + (y - box.top) * span / box.height - held;
-      return starts.length ? { day, startMin: starts.reduce((best, m) => Math.abs(m - wanted) < Math.abs(best - wanted) ? m : best) } : null;
+      const other = document.elementFromPoint(x, y)?.closest<HTMLElement>('[data-lesson]')?.dataset.lesson;
+      return starts.length ? { ...(other && other !== l.id ? { other } : {}), day, startMin: starts.reduce((best, m) => Math.abs(m - wanted) < Math.abs(best - wanted) ? m : best) } : null;
     }
     return null;
   };

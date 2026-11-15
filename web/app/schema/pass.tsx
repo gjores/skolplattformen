@@ -21,13 +21,13 @@ export type PassProps = {
   /** Låst pass. Lås införs av SM-BYT; fältet finns så att passrutan kan visa det. */
   locked?: boolean;
   onGrab: (e: ReactPointerEvent<HTMLElement>, lesson: SchemaForslagLesson) => void;
-  onPick: (lesson: SchemaForslagLesson) => void;
+  onPick: (lesson: SchemaForslagLesson, utoka?: boolean) => void;
 };
 
 export function Pass({ lesson: l, origin, length, lane, picked, flagged, dragging, disabled, detail, rader = [], locked = false, onGrab, onPick }: PassProps) {
   return <li className={`schema-lesson${l.egenAktivitet ? ' aktivitet' : ''}${l.vacant ? ' vacant' : ''}${flagged ? ' deviation' : ''}${picked ? ' picked' : ''}${dragging ? ' dragging' : ''}`}
     style={{ '--start': l.startMin! - origin, '--length': length, '--lane': lane.lane, '--lanes': lane.lanes } as CSSProperties}>
-    <button type="button" data-lesson={l.id} aria-pressed={picked} disabled={disabled} title="Flytta passet" onPointerDown={e => onGrab(e, l)} onClick={() => onPick(l)}>
+    <button type="button" data-lesson={l.id} aria-pressed={picked} disabled={disabled} title="Flytta passet" onPointerDown={e => { if (!e.shiftKey) onGrab(e, l); }} onClick={e => onPick(l, e.shiftKey)}>
       <time>{clock(l.startMin!)}–{clock(l.startMin! + length)}</time><strong>{l.title}</strong>{l.egenAktivitet && <span className="akt-typtext">{l.egenAktivitet.typ} · {aktivitetsVeckorText(l.egenAktivitet.veckor)}</span>}{locked && <LockIcon className="schema-las" aria-hidden="true"/>}
       {flagged && <em>Regelavvikelse</em>}<span>{[detail, locked ? 'Låst' : ''].filter(Boolean).join(' · ')}</span>{rader.map(x => <span key={x}>{x}</span>)}</button></li>;
 }

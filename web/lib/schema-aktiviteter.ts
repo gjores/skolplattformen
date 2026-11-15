@@ -104,3 +104,12 @@ export function aktivitetsSnapshot(f: SchemaForslag, placements: Record<string, 
 export const fastAktivitet = (l: SchemaForslagLesson, villkor: SchemaVillkor): boolean => !!l.egenAktivitet && villkor.aktiviteter?.find(a => a.id === l.egenAktivitet!.id)?.tid.typ === 'fast';
 /** Liten ren hjälpare för listan och för samma metadata i varje schemavy. */
 export const aktivitetPass = (lessons: SchemaForslagLesson[], id: string) => lessons.find(l => l.egenAktivitet?.id === id);
+
+
+/** Ett användarlås måste tas bort uttryckligt före ändring eller borttagning av aktiviteten. Då bevaras också låsens egen ångraordning. */
+export function lastAktivitetAndras(before: SchemaAktivitet[], after: SchemaAktivitet[], lockedPasses: string[]): boolean {
+  const locked = new Set(lockedPasses), next = new Map(after.map(a => [a.id, a]));
+  const key = (a: SchemaAktivitet) => JSON.stringify(a, (_name, value: unknown) => value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b))) : value);
+  return before.some(a => locked.has(aktivitetsPassId(a.id)) && (!next.has(a.id) || key(a) !== key(next.get(a.id)!)));
+}

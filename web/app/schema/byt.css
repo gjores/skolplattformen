@@ -1,0 +1,14 @@
+.schema-flerpass { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.schema-flerpass:empty { display: none; }
+.schema-daglas { min-height: var(--control-height); padding: .25rem .5rem; color: var(--foreground); font: inherit; border-radius: var(--radius); }
+.schema-daglas:hover { background: var(--secondary); }
+.schema-day:has(.schema-daglas) > h3 { min-height: var(--control-height); height: auto; }
+.schema-flerpass button { white-space: normal; height: auto; min-height: var(--control-height); }
+
+.schema-week:has(.schema-daglas) { position: relative; }
+.schema-week:has(.schema-daglas) > .schema-hours { margin-top: max(2rem, var(--control-height)); }
+.schema-day:has(.schema-daglas) > h3, .schema-daglas { min-height: max(2rem, var(--control-height)); }
+.schema-urvalsram { position: absolute; z-index: 4; pointer-events: none; border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
+
+/* Beskedet får inte flytta rutnätet under ett pågående drag. Hela texten kan läsas i radens egen rullning. */
+.schema-drag-status { display: block; height: 4.5em; overflow: auto; }

@@ -13,7 +13,9 @@ test('en rad per pass ur utkastets placeringar, också passen på viloytan', () 
   let utkast = schemaUtkast(tomtUtkast(), { type: 'reset', forslag });
   utkast = schemaUtkast(utkast, { type: 'park', lesson: 'pass-1' });
   utkast = schemaUtkast(utkast, { type: 'move', lesson: 'pass-2', day: 0, startMin: 480 });
-  const rader = passRader({ ...forslag, lessons: medUtkast(forslag.lessons, utkast.placements) }, 'ht', null, []);
+  // Ett uttryckligt kortningsexempel är oberoende av vilket av flera giltiga motorförslag som fixturen innehåller.
+  const trims = forslag.trims.map(t => t.term === 'ht' && ['pass-1', 'pass-2'].includes(t.lesson) ? { ...t, fixedMin: 5, extraCount: t.lesson === 'pass-1' ? 2 : 0 } : t);
+  const rader = passRader({ ...forslag, trims, lessons: medUtkast(forslag.lessons, utkast.placements) }, 'ht', null, []);
   assert.equal(rader.length, forslag.lessons.length);
   const [a, b] = rader;
   assert.deepEqual({ id: a.id, dag: a.dag, start: a.start, status: a.status }, { id: 'pass-1', dag: null, start: null, status: 'viloyta' });
@@ -142,4 +144,14 @@ test('1 000 pass filtreras, sorteras och grupperas på under 50 ms', () => {
   assert.equal(rader.length, 1000);
   assert.ok(Math.max(...matt) < 50, `högst ${Math.max(...matt)} ms`);
   assert.ok(tRader < 50, `rader ${tRader} ms`);
+});
+
+test('Låst finns i status och filter även när låset har en regelavvikelse eller saknar placering', () => {
+  const lessons = forslag.lessons.map((l, i) => i < 3 ? { ...l, locked: true, ...(i === 2 ? { day: null, startMin: null, roomId: null } : {}) } : l);
+  const rader = passRader({ ...forslag, lessons }, 'ht', [{ code: 'student_clash', message: 'En prövad krock.', lessons: [lessons[1].id] }], []);
+  assert.equal(rader[0].status, 'last');
+  assert.equal(rader[1].status, 'avvikelse');
+  assert.equal(rader[2].status, 'viloyta');
+  assert.deepEqual(ids(filtreraPass(rader, [{ typ: 'status', varde: 'last' }])), lessons.slice(0, 3).map(l => l.id));
+  assert.ok(filterVal(rader).status.some(s => s.varde === 'last' && s.namn === 'Låst'));
 });

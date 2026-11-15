@@ -51,7 +51,7 @@ test('nytt förslag tömmer historiken men behåller verktyg och lager', () => {
     { type: 'tool', tool: 'sparra' }, { type: 'layer', layer: 'lunch', on: false }, { type: 'pick', lesson: 'c' });
   assert.deepEqual([s.undo.length, s.redo.length, s.picked], [1, 1, 'c']);
   const next = run(s, { type: 'reset', forslag: { lessons: [{ id: 'x', day: 1, startMin: 480, roomId: null }] } });
-  assert.deepEqual(next, { placements: { x: { day: 1, startMin: 480, room: null } }, picked: null, tool: 'sparra', layers: { lunch: false }, undo: [], redo: [] });
+  assert.deepEqual(next, { placements: { x: { day: 1, startMin: 480, room: null } }, picked: null, selected: [], locked: {}, tool: 'sparra', layers: { lunch: false }, undo: [], redo: [] });
 });
 
 test('parkera och lägga ut igen', () => {
@@ -198,4 +198,50 @@ test('markerad tid följer 5-minutersrutnätet och skoldagen; pilar flyttar och 
   assert.deepEqual(flyttaMarkering(days, m, 'hoger'), { day: 4, startMin: 840, endMin: 990 });
   assert.deepEqual(flyttaMarkering(days, { day: 4, startMin: 840, endMin: 990 }, 'hoger'), { day: 4, startMin: 840, endMin: 990 });
   assert.deepEqual(flyttaMarkering(days, { day: 0, startMin: 480, endMin: 495 }, 'upp', true), { day: 0, startMin: 480, endMin: 485 }, 'minst 5 minuter');
+});
+
+test('byte av två pass ger ett ångra-steg och behåller sal när den följer passet', () => {
+  const first = start(), changed = schemaUtkast(first, { type: 'swap', lesson: 'a', other: 'b' });
+  assert.deepEqual(changed.placements.a, { day: 0, startMin: 600, room: null });
+  assert.deepEqual(changed.placements.b, { day: 0, startMin: 480, room: 'sal-1' });
+  assert.equal(changed.undo.length, 1);
+  assert.deepEqual(schemaUtkast(changed, { type: 'undo' }).placements, first.placements);
+  assert.equal(utkastEfter(first, { type: 'swap', lesson: 'a', other: 'd' }), null, 'pass på viloytan byts inte');
+});
+
+test('tre markerade pass flyttas med samma tidsförskjutning och ångras tillsammans', () => {
+  const first = schemaUtkast(start(), { type: 'select', lessons: ['a', 'b', 'c'] });
+  const changed = schemaUtkast(first, { type: 'move', lesson: 'a', day: 1, startMin: 510, fler: ['b', 'c'] });
+  assert.deepEqual(changed.placements, { ...first.placements, a: { day: 1, startMin: 510, room: null }, b: { day: 1, startMin: 630, room: 'sal-1' }, c: { day: 2, startMin: 570, room: null } });
+  assert.equal(changed.undo.length, 1);
+  assert.deepEqual(schemaUtkast(changed, { type: 'undo' }).placements, first.placements);
+});
+
+test('lås hela dagen, lås upp och ångra bevarar platser och blockerar flytt, byte och parkering', () => {
+  const first = start(), locked = schemaUtkast(first, { type: 'lock', lesson: 'a', fler: ['b'], locked: true });
+  assert.deepEqual(locked.locked, { a: first.placements.a, b: first.placements.b });
+  for (const action of [{ type: 'move', lesson: 'a', day: 1, startMin: 600 }, { type: 'park', lesson: 'b' }, { type: 'swap', lesson: 'a', other: 'c' }]) {
+    assert.equal(utkastEfter(locked, action), null);
+    assert.equal(schemaUtkast(locked, action), locked);
+  }
+  const unlocked = schemaUtkast(locked, { type: 'lock', lesson: 'a', fler: ['b'], locked: false });
+  assert.deepEqual(unlocked.locked, {});
+  assert.deepEqual(schemaUtkast(unlocked, { type: 'undo' }).locked, locked.locked);
+  const undo = schemaUtkast(locked, { type: 'undo' });
+  assert.deepEqual(undo.locked, {});
+  assert.deepEqual(schemaUtkast(undo, { type: 'redo' }).locked, locked.locked);
+});
+
+test('olösbart förslag bevarar låsens ursprungliga placering utan att påstå att passet är lagt', () => {
+  const state = schemaUtkast(tomtUtkast(), { type: 'reset', forslag: { lessons: [{ id: 'a', day: null, startMin: null, roomId: null }], locks: [{ lesson: 'a', day: 1, startMin: 600, room: null }] } });
+  assert.equal(state.placements.a.day, null);
+  assert.deepEqual(state.locked.a, { day: 1, startMin: 600, room: null });
+});
+
+test('sal följer det bytta passet när den är ledig och släpps när den är upptagen', async () => {
+  const { bytSalar } = await import('./schema-utkast.ts');
+  const lessons = [{ id: 'a', durationMin: 60, term: 'ht' }, { id: 'b', durationMin: 60, term: 'ht' }, { id: 'c', durationMin: 45, term: 'ht' }];
+  const places = { a: { day: 0, startMin: 600, room: 'sal-1' }, b: { day: 0, startMin: 480, room: 'sal-2' }, c: { day: 0, startMin: 620, room: 'sal-1' } };
+  assert.deepEqual(bytSalar({ lessons }, places, ['a', 'b']), { ...places, a: { ...places.a, room: null } });
+  assert.deepEqual(bytSalar({ lessons: lessons.map(l => l.id === 'c' ? { ...l, term: 'vt' } : l) }, places, ['a', 'b']), places, 'olika terminer upptar inte salen samtidigt');
 });

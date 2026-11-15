@@ -6,8 +6,8 @@ import { avvikelseRad, resursRefs } from './schema-utkast.ts';
 import { schemaDateText, schemaTillfallen, type SchemaVeckaVal } from './schema-vecka.ts';
 import { aktivitetsVeckorText } from './schema-aktiviteter.ts';
 
-export type PassStatus = 'lagd' | 'viloyta' | 'avvikelse';
-export const PASS_STATUS: Record<PassStatus, string> = { lagd: 'Lagd', viloyta: 'Viloyta', avvikelse: 'Regelavvikelse' };
+export type PassStatus = 'lagd' | 'viloyta' | 'avvikelse' | 'last';
+export const PASS_STATUS: Record<PassStatus, string> = { last: 'Låst', lagd: 'Lagd', viloyta: 'Viloyta', avvikelse: 'Regelavvikelse' };
 const VECKODAGAR = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'];
 const klocka = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 
@@ -32,6 +32,7 @@ export type PassRad = {
   kortareVeckor: number;
   marginalFore: number; marginalEfter: number;
   status: PassStatus;
+  last?: boolean;
   /** Orsaken till en regelavvikelse, ur kontrollens svar. */
   orsak: string | null;
   /** Text för sökning, i gemener. */
@@ -66,13 +67,13 @@ export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: S
     const lar = l.teacherIds.map(id => ({ id, namn: larare.get(id) ?? '' }));
     const trim = trims.get(`${l.id}|${l.term ?? (f.period === 'lasar' ? term : f.period)}`);
     const lagd = l.day !== null && l.startMin !== null, brott = lagd ? perPass.get(l.id) ?? [] : [];
-    const status: PassStatus = !lagd ? 'viloyta' : brott.length ? 'avvikelse' : 'lagd';
+    const status: PassStatus = !lagd ? 'viloyta' : brott.length ? 'avvikelse' : l.locked ? 'last' : 'lagd';
     const orsak = brott.length ? avvikelseRad(f, egna, brott.map(v => v.code), l) ?? brott[0].message : null;
     const sal = l.roomId ? salar.get(l.roomId) ?? '' : '';
     const rad: Omit<PassRad, 'sok'> = {
       id: l.id, undervisning: l.title, nyckel: undervisningsNyckel(l.title, klasser.map(x => x.namn)), klasser, grupper, larare: lar, vakant: l.vacant && l.teacherIds.length === 0,
       salId: l.roomId, sal, dag: lagd ? l.day : null, start: lagd ? l.startMin : null, langd: l.durationMin - (trim?.fixedMin ?? 0), grundLangd: l.durationMin,
-      termin: l.term, kortareVeckor: trim?.extraCount ?? 0, marginalFore: l.marginBeforeMin, marginalEfter: l.marginMin, status, orsak,
+      termin: l.term, kortareVeckor: trim?.extraCount ?? 0, marginalFore: l.marginBeforeMin, marginalEfter: l.marginMin, status, last: !!l.locked, orsak,
       ...(l.egenAktivitet ? { aktivitetTyp: l.egenAktivitet.typ, aktivitetVeckor: aktivitetsVeckorText(l.egenAktivitet.veckor) } : {}),
     };
     const sok = [rad.undervisning, ...klasser.map(x => x.namn), ...grupper.map(x => x.namn), ...lar.map(x => x.namn), sal, rad.dag === null ? 'viloyta' : VECKODAGAR[rad.dag],
@@ -98,7 +99,7 @@ function varden(r: PassRad, typ: PassFilterTyp): string[] {
     case 'larare': return r.vakant ? ['ingen'] : r.larare.map(x => x.id);
     case 'sal': return [r.salId ?? 'ingen'];
     case 'dag': return [r.dag === null ? 'viloyta' : String(r.dag)];
-    case 'status': return [r.status];
+    case 'status': return r.last && r.status !== 'last' ? [r.status, 'last'] : [r.status];
     // Ett pass som går hela läsåret går båda terminerna.
     case 'termin': return r.termin ? [r.termin] : ['ht', 'vt'];
   }
@@ -118,7 +119,7 @@ export function filterVal(rader: PassRad[]): Record<PassFilterTyp, { varde: stri
     larare: [...samla(r => r.larare), ...rader.some(r => r.vakant) ? [{ varde: 'ingen', namn: 'Ingen lärare' }] : []],
     sal: [...salar, ...rader.some(r => r.salId === null) ? [{ varde: 'ingen', namn: 'Ingen sal' }] : []],
     dag: dagar.map(d => d === null ? { varde: 'viloyta', namn: 'Viloytan' } : { varde: String(d), namn: VECKODAGAR[d] ?? `Dag ${d + 1}` }),
-    status: (['lagd', 'avvikelse', 'viloyta'] as const).filter(s => rader.some(r => r.status === s)).map(s => ({ varde: s, namn: PASS_STATUS[s] })),
+    status: (['lagd', 'last', 'avvikelse', 'viloyta'] as const).filter(s => rader.some(r => r.status === s || s === 'last' && r.last)).map(s => ({ varde: s, namn: PASS_STATUS[s] })),
     termin: (['ht', 'vt'] as const).filter(t => rader.some(r => r.termin === null || r.termin === t)).map(t => ({ varde: t, namn: t === 'ht' ? 'Höstterminen' : 'Vårterminen' })),
   };
 }
@@ -144,7 +145,7 @@ export const PASS_KOLUMNER: { id: PassKolumn; namn: string }[] = [
   { id: 'veckor', namn: 'Veckor' }, { id: 'marginal', namn: 'Marginal' }, { id: 'status', namn: 'Status' },
 ];
 export type PassSortering = { kolumn: PassKolumn; stigande: boolean };
-const STATUS_ORDNING: Record<PassStatus, number> = { avvikelse: 0, lagd: 1, viloyta: 2 };
+const STATUS_ORDNING: Record<PassStatus, number> = { avvikelse: 0, last: 1, lagd: 2, viloyta: 3 };
 const TERMIN_ORDNING = { ht: 0, vt: 1, bada: 2 } as const;
 /** Veckans ordning: dag och tid, pass på viloytan sist. */
 const veckoOrdning = (a: PassRad, b: PassRad) => (a.datum ?? '').localeCompare(b.datum ?? '') || (a.dag ?? 99) - (b.dag ?? 99) || (a.start ?? 0) - (b.start ?? 0);

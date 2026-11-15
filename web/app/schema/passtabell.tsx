@@ -23,7 +23,7 @@ export const tomtTabellVal = (): PassTabellVal => ({ filter: [], sok: '', sorter
 /** Rader som ritas först, och hur många som läggs till per bildruta tills alla finns. */
 const FORSTA = 150, OMGANG = 300;
 const SISTA_KOLUMN = PASS_KOLUMNER.length;
-const TON: Record<PassRad['status'], string> = { lagd: 'success', viloyta: '', avvikelse: 'warning' };
+const TON: Record<PassRad['status'], string> = { last: 'info', lagd: 'success', viloyta: '', avvikelse: 'warning' };
 const lista = (x: { namn: string }[]) => x.map(y => y.namn).join(', ');
 /** Var fokus är i rutnätet: en rad (passets id) eller rubrikraden, och kolumnen (0 är valrutan). */
 type Aktiv = { id: string; col: number };
@@ -45,13 +45,14 @@ type Props = {
   rubrik: (l: SchemaForslagLesson) => string;
   /** Lägger flera pass på viloytan i ett ångra-steg. */
   onParkera: (ids: string[]) => void;
+  onLas?: (ids: string[], locked: boolean) => void;
   /** Esc utan valda rader: avbryter flytten av markerat pass. */
   onAvbryt: () => void;
   /** Tabellens ram, så att arbetsytan kan lägga fokus på ett pass efter en flytt. */
   tabellRef: RefObject<HTMLDivElement | null>;
 };
 
-export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onAvbryt, tabellRef }: Props) {
+export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef }: Props) {
   const id = useId();
   const rader = useMemo(() => passRader(forslag, term, violations, egna, visning), [forslag, term, violations, egna, visning]);
   const val_ = useMemo(() => filterVal(rader), [rader]);
@@ -165,6 +166,8 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
     } else if (e.key === ' ' && !checkbox) {
       e.preventDefault();
       valj(rad!.id, e.shiftKey);
+    } else if (e.key.toLowerCase() === 'l' && atgarder(l).las) { e.preventDefault(); atgarder(l).las?.();
+    } else if (e.key.toLowerCase() === 'b' && atgarder(l).byt) { e.preventDefault(); atgarder(l).byt?.();
     } else if ((e.key === 'p' || e.key === 'P') && l.day !== null) {
       e.preventDefault();
       atgarder(l).parkera();
@@ -213,6 +216,8 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
         {synligaValda.length > 0 && ` ${synligaValda.length} ${visning && visning.mode !== 'grundschema' ? synligaValda.length === 1 ? 'tillfälle valt' : 'tillfällen valda' : synligaValda.length === 1 ? 'pass valt' : 'pass valda'}.`}</p>
       {synligaValda.length > 0 && <div className="passtabell-knappar">
         <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={parkeraValda}>Lägg valda på viloytan</Button>
+        {onLas && <><Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id))], true)}>Lås valda</Button>
+          <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.last)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.last).map(r => r.lessonId ?? r.id))], false)}>Lås upp valda</Button></>}
         <Button type="button" variant="ghost" onClick={() => setValda(new Set())}>Avmarkera</Button>
       </div>}
     </div>

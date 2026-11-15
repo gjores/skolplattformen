@@ -12,6 +12,7 @@ import { aktivitetsPassId } from './schema-aktiviteter.ts';
 import { SchemaContractError } from './schema-contract.ts';
 import { passMarginal, yttreMarginal } from './schema-marginal.ts';
 import { schemaDatedCalendar } from './schema-vecka-data.ts';
+import { schemaSearchStatistics } from './schema-diagnos.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
 export const SCHEMA_DEFAULTS = { days: 5, stepMin: 5, maxLessonsPerWeek: 20, classSize: 25, solveTimeMs: 10_000, weeks: { ht: 18, vt: 20 } } as const;
@@ -216,7 +217,7 @@ function teachings(plan: TjanstPlanRead, term: SchemaTerm, hasMembers: (groupId:
   return result;
 }
 
-export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaForslagRequest, 'period'> & { villkor?: SchemaVillkor }, basis?: SchemaBasis): SchemaUnderlag {
+export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaForslagRequest, 'period' | 'locks'> & { villkor?: SchemaVillkor }, basis?: SchemaBasis): SchemaUnderlag {
   const d = SCHEMA_DEFAULTS, v = request.villkor ?? defaultSchemaVillkor(), terms = schemaTerms(request.period);
   const time = basis?.time ?? defaultSchemaTime(), members = basis?.members ?? null;
   const classNo = new Map(plan.classes.map((c, i) => [c.classId, `grupp-${i + 1}`])), className = new Map(plan.classes.map(c => [c.classId, c.name]));
@@ -460,8 +461,21 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: teachers.map(t => ({ ref: t.personId, name: t.displayName })),
     // Enskilda pass, för marginal på ett pass: ämnet, klasserna och passets nummer inom undervisningen. Numreringen följer underlaget.
     pass: labels.lessons.map(l => ({ ref: l.id, name: `${l.title}, ${l.classIds.map(id => labels.classes.find(c => c.id === id)?.name ?? id).join(', ')}, pass ${labels.lessons.filter(x => x.activity === l.activity && x.term === l.term).indexOf(l) + 1}${l.term ? ` (${l.term.toUpperCase()})` : ''}` })) };
+  const grundFingerprint = schemaGrundFingerprint(problem, labels);
+  if (request.locks) {
+    if (request.locks.grundFingerprint !== grundFingerprint) throw new SchemaContractError();
+    const seen = new Set<string>();
+    for (const p of request.locks.placements) {
+      const l = problem.lessons.find(l => l.id === p.lesson), frame = problem.time.days[p.day];
+      if (!l || seen.has(p.lesson) || !frame || p.startMin < frame.start_min || p.startMin + l.duration_min > frame.end_min || (p.startMin - frame.start_min) % problem.time.step_min !== 0
+        || p.room !== null && !l.rooms?.allowed.includes(p.room)
+        || l.locked && (l.locked.day !== p.day || l.locked.start_min !== p.startMin)) throw new SchemaContractError();
+      seen.add(p.lesson);
+      l.locked = { day: p.day, start_min: p.startMin, ...(p.room ? { rooms: [p.room] } : {}) };
+    }
+  }
   return { groupRefs: Object.fromEntries(nodes), period: request.period, terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
-    grundFingerprint: schemaGrundFingerprint(problem, labels), resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
+    grundFingerprint, resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]) };
 }
 
 /**
@@ -579,6 +593,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
   const { teachings, trims } = plannedTeachings(underlag, at);
   const usedTeachers = new Set(lessons.flatMap(l => l.teacherIds)), usedClasses = new Set(lessons.flatMap(l => l.classIds));
   return {
+    ...(request.locks ? { locks: request.locks.placements } : {}),
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, period: underlag.period, schoolName: plan.schoolName, villkor: underlag.villkor,
     fingerprint: underlag.fingerprint, grundFingerprint: underlag.grundFingerprint, startGridMin: underlag.problem.time.start_grid_min,
     time: { source: underlag.time.source, version: underlag.time.version, status: underlag.time.status, current: underlag.time.current, schoolDays: days, weeks: days / 5, terms: termDays, weekLabels: schemaWeekLabels(underlag),
@@ -594,6 +609,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
     lessons, omitted: underlag.omitted, diagnoses: solution.diagnoses.map(x => ({ message: named(x.message, underlag.labels), proof: x.proof })),
     metrics: { lessons: lessons.length, placed: solution.placements.length, unplaced: solution.unplaced.length,
       ...weeklyGaps(solution.metrics, underlag) },
+    statistics: schemaSearchStatistics(underlag, solution.statistics),
     elapsedMs: solution.elapsedMs,
   };
 }

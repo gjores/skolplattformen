@@ -10,17 +10,17 @@ export const VERKTYG: { id: SchemaVerktyg; namn: string; ikon: ReactNode; senare
   { id: 'markera', namn: 'Markera', ikon: <MousePointer2Icon aria-hidden="true"/> },
   { id: 'sparra', namn: 'Spärra', ikon: <BanIcon aria-hidden="true"/> },
   { id: 'tillat', namn: 'Tillåt bara', ikon: <CircleCheckIcon aria-hidden="true"/> },
-  { id: 'las', namn: 'Lås', ikon: <LockIcon aria-hidden="true"/>, senare: true },
+  { id: 'las', namn: 'Lås', ikon: <LockIcon aria-hidden="true"/> },
   { id: 'viloyta', namn: 'Viloyta', ikon: <InboxIcon aria-hidden="true"/> },
-  { id: 'byt', namn: 'Byt', ikon: <ArrowLeftRightIcon aria-hidden="true"/>, senare: true },
+  { id: 'byt', namn: 'Byt', ikon: <ArrowLeftRightIcon aria-hidden="true"/> },
 ];
 
 /** Vad verktyget gör, under verktygsfältet. */
 const HJALP: Record<SchemaVerktyg, string> = {
-  markera: 'Välj ett pass för att flytta det. Högerklick eller Skift+F10 öppnar menyn för ett pass, en tid eller ett villkor.',
+  markera: 'Välj ett pass för att flytta det. Skift-klick eller dra en ram över tom tid för att välja flera pass. Högerklick eller Skift+F10 öppnar menyn för ett pass, en tid eller ett villkor.',
   sparra: 'Dra över tid i en dag för att spärra den, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
   tillat: 'Dra över tid i en dag där passen bara får ligga, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
-  las: '', byt: '',
+  las: 'Välj ett lagt pass för att låsa eller låsa upp tiden. Låsta pass står kvar vid nästa beräkning.', byt: 'Välj två lagda pass för att byta deras dag och starttid. B på ett pass börjar ett byte.',
   viloyta: 'Välj ett pass för att lägga det på viloytan.',
 };
 export const HJALP_ID = 'schema-verktyg-hjalp';
@@ -32,6 +32,6 @@ export function Verktygsfalt({ tool, disabled, onTool }: { tool: SchemaVerktyg; 
       {VERKTYG.map(v => <ToggleGroupItem key={v.id} value={v.id} disabled={v.senare} className="schema-verktyg-knapp"
         aria-describedby={v.senare ? 'schema-verktyg-senare' : undefined}>{v.ikon}{v.namn}</ToggleGroupItem>)}
     </ToggleGroup>
-    <p id={HJALP_ID} className="schema-note">{HJALP[tool]} <span id="schema-verktyg-senare">Lås och Byt kommer i en senare version.</span></p>
+    <p id={HJALP_ID} className="schema-note">{HJALP[tool]}</p>
   </div>;
 }

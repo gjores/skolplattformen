@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { aktiviteternasFel, aktivitetTypAndra, aktivitetsTyper, aktivitetsPassId, aktivitetsSnapshot, aktivitetsVeckorText, parseAktiviteter, readAktivitetsTyper, writeAktivitetsTyper } from './schema-aktiviteter.ts';
+import { lastAktivitetAndras, aktiviteternasFel, aktivitetTypAndra, aktivitetsTyper, aktivitetsPassId, aktivitetsSnapshot, aktivitetsVeckorText, parseAktiviteter, readAktivitetsTyper, writeAktivitetsTyper } from './schema-aktiviteter.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaForslag, parseSchemaVillkor, sammaGrund } from './schema-contract.ts';
 import { buildSchemaUnderlag, schemaForslag } from './schema-underlag.ts';
 import { parseSchemaAktiviteterRequest, schemaAktivitetsAndring, schemaAktivitetsPlaceringar } from './schema-aktiviteter-underlag.ts';
@@ -130,4 +130,15 @@ test('oförändrat fast aktivitetspass får inte parkeras eller flyttas genom ak
   assert.throws(() => schemaAktivitetsAndring(plan(), { ...unchanged, placements: [...unchanged.placements, { lesson: 'pass-900001', day: 1, startMin: 480, room: 'sal-1' }] }));
   const removed = olagdFastAktivitet([]);
   assert.throws(() => schemaAktivitetsAndring(plan(), { ...removed, placements: [...removed.placements, { lesson: 'pass-899999', day: 0, startMin: 480, room: null }] }));
+});
+
+
+test('användarlåst aktivitet kräver explicit upplåsning före ändring eller borttagning, med oförändrad nyckelordning tillåten', () => {
+  const old = a({ tid: { typ: 'motor', days: [1, 2], startMin: 840, endMin: 960 } }), locked = [aktivitetsPassId(old.id)];
+  assert.equal(lastAktivitetAndras([old], [], locked), true);
+  assert.equal(lastAktivitetAndras([old], [{ ...old, durationMin: old.durationMin + 5 }], locked), true);
+  assert.equal(lastAktivitetAndras([old], [{ ...old, tid: { ...old.tid, startMin: 900 } }], locked), true);
+  assert.equal(lastAktivitetAndras([old], [Object.fromEntries(Object.entries(old).reverse())], locked), false);
+  assert.equal(lastAktivitetAndras([old], [], []), false);
+  assert.equal(lastAktivitetAndras([old], [old, a({ id: 'aktivitet-2' })], locked), false);
 });

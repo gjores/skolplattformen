@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub,
   ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from '@/components/ui/context-menu';
+import { Button } from '@/components/ui/button';
 import { Kbd } from '@/components/ui/kbd';
 import type { SchemaForslag, SchemaForslagLesson, SchemaRegel, SchemaVillkor } from '@/lib/schema-contract.ts';
 import type { SchemaKalla } from '@/lib/schema-lager.ts';
@@ -18,7 +19,7 @@ import { SparrPanel, passText, tidText, type SparrTyp } from './sparr.tsx';
 import { HJALP_ID, Verktygsfalt } from './verktyg.tsx';
 import { minutVid, somRutnat, type VeckaProps } from './vecka.tsx';
 
-type Flytt = Extract<SchemaUtkastAtgard, { type: 'move' | 'park' }>;
+type Flytt = Extract<SchemaUtkastAtgard, { type: 'move' | 'park' | 'swap' | 'lock' }>;
 /** Vad menyn öppnades för: ett pass, en markerad tid eller ett fält med villkor. */
 /** Ett fält med villkor har också tiden som högerklickades, så att tom tid under ett fält (lunch, sena pass) kan spärras. */
 type Mal = { typ: 'pass'; lesson: string } | { typ: 'tid'; markering: SchemaMarkering } | { typ: 'falt'; kalla: SchemaKalla; markering: SchemaMarkering | null };
@@ -30,6 +31,7 @@ export type MenyVal = {
   andraVillkor?: (kalla: SchemaKalla) => void;
   /** Öppnar Följ passet för ett pass (05.2-SM-FOLJ); utan den finns ingen menypunkt. */
   folj?: (lesson: string) => void;
+  onOpenWindow?: (lesson: SchemaForslagLesson) => void;
   /** Samlingsvyns resursurval och egna aktiviteter kan börja från markerad tom tid. */
   gemensam?: (tid: SchemaMarkering) => void;
   nyAktivitet?: (tid: SchemaMarkering) => void;
@@ -70,30 +72,33 @@ export function visaVillkorFor(title: string): void {
 }
 
 /** Det man kan göra med ett pass. Utan `folj` finns ingen Följ passet; utan `visaIVeckan` ingen Visa i veckan (bara i passtabellen). */
-export type PassAtgarder = { flytta: () => void; folj?: () => void; parkera: () => void; laggAldrig: () => void; villkor: () => void; visaIVeckan?: () => void };
+export type PassAtgarder = { flytta: () => void; folj?: () => void; parkera: () => void; laggAldrig: () => void; villkor: () => void; visaIVeckan?: () => void; las?: () => void; last?: boolean; byt?: () => void; oppnaFonster?: () => void };
 type PassMenyProps = {
   pass: Pick<SchemaForslagLesson, 'title' | 'day' | 'startMin'>; rubrik: string; flyttarFokus: (action: () => void) => () => void;
-  onFlytta: () => void; onFolj?: () => void; onParkera: () => void; onLaggAldrig: () => void; onVillkor: () => void; onVisaIVeckan?: () => void;
+  onFlytta: () => void; onFolj?: () => void; onParkera: () => void; onLaggAldrig: () => void; onVillkor: () => void; onVisaIVeckan?: () => void; onLas?: () => void; last?: boolean; onByt?: () => void; onOppnaFonster?: () => void;
 };
 /** Passmenyns händelser ur åtgärderna, för passtabellen. */
-export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan });
+export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan, onLas: a.las, last: a.last, onByt: a.byt, onOppnaFonster: a.oppnaFonster });
 /**
  * Passmenyns punkter (05.2-SM-MENY), utbrutna så att veckan och passtabellen använder samma lista (05.2-SM-PASSTABELL). Ett pass på viloytan har ingen
  * Lägg på viloytan och ingen Lägg aldrig här. `flyttarFokus` omsluter de punkter som flyttar fokus själva, så att menyn inte lämnar tillbaka fokus.
  */
-export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan }: PassMenyProps) {
+export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan, onLas, last, onByt, onOppnaFonster }: PassMenyProps) {
   const lagd = pass.day !== null && pass.startMin !== null;
   return <>
     <ContextMenuGroup><ContextMenuLabel>{rubrik}</ContextMenuLabel></ContextMenuGroup>
     <ContextMenuItem onClick={flyttarFokus(onFlytta)}>Flytta…<ContextMenuShortcut><Kbd>Enter</Kbd></ContextMenuShortcut></ContextMenuItem>
     {onFolj && <ContextMenuItem onClick={flyttarFokus(onFolj)}>Följ passet<ContextMenuShortcut><Kbd>F</Kbd></ContextMenuShortcut></ContextMenuItem>}
     {lagd && <>
+      {onLas && <ContextMenuItem onClick={onLas}>{last ? 'Lås upp' : 'Lås här'}<ContextMenuShortcut><Kbd>L</Kbd></ContextMenuShortcut></ContextMenuItem>}
+      {onByt && <ContextMenuItem disabled={last} onClick={onByt}>Byt med ett annat pass…<ContextMenuShortcut><Kbd>B</Kbd></ContextMenuShortcut></ContextMenuItem>}
       <ContextMenuItem onClick={onParkera}>Lägg på viloytan<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
       <ContextMenuSeparator/>
       <ContextMenuItem onClick={onLaggAldrig}>Lägg aldrig här</ContextMenuItem>
     </>}
     <ContextMenuSeparator/>
     <ContextMenuItem onClick={flyttarFokus(onVillkor)}>Villkor för {pass.title}…</ContextMenuItem>
+    {onOppnaFonster && <ContextMenuItem onClick={onOppnaFonster}>Öppna i nytt fönster</ContextMenuItem>}
     {onVisaIVeckan && <><ContextMenuSeparator/><ContextMenuItem onClick={flyttarFokus(onVisaIVeckan)}>Visa i veckan</ContextMenuItem></>}
   </>;
 }
@@ -104,12 +109,21 @@ export function oppnaMenyVid(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet, onOpenWindow }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
   const [ny, setNy] = useState<{ typ: SparrTyp; markering: SchemaMarkering; vald: number } | null>(null);
   const [mal, setMal] = useState<Mal | null>(null), [open, setOpen] = useState(false), [status, setStatus] = useState('');
+  const [byteFran, setByteFran] = useState<string | null>(null);
+  const valda = (utkast.selected ?? []).filter(id => alla.some(l => l.id === id));
+  const lasa = (ids: string[], locked: boolean) => { const placed = ids.filter(id => locked ? utkast.placements[id]?.day !== null : !!utkast.locked?.[id]); if (placed.length) andra({ type: 'lock', lesson: placed[0], fler: placed.slice(1), locked }); };
+  const borjaByte = (l: SchemaForslagLesson) => {
+    if (utkast.locked?.[l.id]) { setStatus('Lås upp passet innan du byter plats.'); return; }
+    if (l.day === null) { setStatus('Lägg ut passet innan du byter plats.'); return; }
+    if (byteFran && byteFran !== l.id) { andra({ type: 'swap', lesson: byteFran, other: l.id }); setByteFran(null); dispatch({ type: 'tool', tool: 'markera' }); setStatus('Bytet kontrolleras.'); return; }
+    setByteFran(l.id); dispatch({ type: 'tool', tool: 'byt' }); setStatus(`Byt ${l.title}: välj det andra passet. I tabellen väljer du Byt eller B även på det andra passet.`);
+  };
   const [rutnat, setRutnat] = useState(true);
   // Fokus efter en ändring: markeringen (efter piltangent), ett fält eller ett pass (css-väljare). `menyFokus` hindrar menyn från att ta tillbaka fokus.
   const fokus = useRef<string | null>(null), menyFokus = useRef(false), tangentbord = useRef(false);
@@ -127,7 +141,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   });
   // Ett nytt förslag eller en annan vy tömmer markering och panel.
   const vy = `${forslag?.fingerprint ?? ''}|${visad}`, [visadVy, setVisadVy] = useState(vy);
-  if (visadVy !== vy) { setVisadVy(vy); setMarkering(null); setNy(null); }
+  if (visadVy !== vy) { setByteFran(null); setVisadVy(vy); setMarkering(null); setNy(null); }
 
   const days = forslag?.days ?? [];
   const visadMarkering = markering ?? (markerar && days.length ? { ...markeringVid(days, 0, days[0].startMin), tom: true } : null);
@@ -210,12 +224,15 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     if (e.key === 'ContextMenu' || e.key === 'F10' && e.shiftKey) { e.preventDefault(); oppnaMed(el); return; }
     const lessonId = el.matches('[data-lesson]') ? el.dataset.lesson : undefined, l = shown.find(x => x.id === lessonId);
     if (l && plain && !e.shiftKey) {
-      if (e.key === 'p' || e.key === 'P') { e.preventDefault(); andra({ type: 'park', lesson: l.id }); return; }
+      if (e.key.toLowerCase() === 'l') { e.preventDefault(); lasa(valda.includes(l.id) ? valda : [l.id], !utkast.locked?.[l.id]); return; }
+      if (e.key.toLowerCase() === 'b') { e.preventDefault(); borjaByte(l); return; }
+      if (e.key === 'Escape' && byteFran) { e.preventDefault(); setByteFran(null); setStatus('Bytet är avbrutet.'); return; }
+      if (e.key === 'p' || e.key === 'P') { e.preventDefault(); andra({ type: 'park', lesson: l.id, ...(valda.includes(l.id) ? { fler: valda.filter(id => id !== l.id) } : {}) }); return; }
       const pil = PILAR[e.key];
       if (pil) {
         e.preventDefault();
         const to = stegMal(forslag, l, pil);
-        if (to) andra({ type: 'move', lesson: l.id, day: to.day, startMin: to.startMin });
+        if (to) andra({ type: 'move', lesson: l.id, day: to.day, startMin: to.startMin, ...(valda.includes(l.id) ? { fler: valda.filter(id => id !== l.id) } : {}) });
         else setStatus(`${l.title} kan inte flyttas längre åt det hållet: ${pil === 'upp' || pil === 'ner' ? 'dagens gräns är nådd' : 'tiden ryms inte där'}.`);
       }
       return;
@@ -236,7 +253,8 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     }
   }
 
-  const veckaProps: Pick<VeckaProps, 'verktyg' | 'markering' | 'markeringNamn' | 'markeringHjalp' | 'onMarkera'> = {
+  const veckaProps: Pick<VeckaProps, 'verktyg' | 'markering' | 'markeringNamn' | 'markeringHjalp' | 'onMarkera' | 'selected' | 'onSelect' | 'onLockDay'> = {
+    selected: valda, onSelect: lessons => dispatch({ type: 'select', lessons }), onLockDay: (day, locked = true) => lasa(shown.filter(l => l.day === day).map(l => l.id), locked),
     verktyg: tool, markering: rutnat ? visadMarkering : null, markeringHjalp: HJALP_ID,
     markeringNamn: m => `${'tom' in m && m.tom ? 'Välj tid' : 'Markerad tid'} ${tidText(m).toLowerCase()}`,
     onMarkera: (m, klar) => { setMarkering(m); if (klar) oppnaPanel(tool === 'sparra' ? 'sparrad' : 'tillaten', m); },
@@ -256,13 +274,17 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   /** Passmenyns åtgärder för ett pass, samma i veckan och i passtabellen (05.2-SM-PASSTABELL). */
   const passAtgarder = (l: SchemaForslagLesson): PassAtgarder => ({
     flytta: () => pick(l), folj: folj && (() => folj(l.id)), parkera: () => andra({ type: 'park', lesson: l.id }),
+    oppnaFonster: onOpenWindow && (() => onOpenWindow(l)),
+    las: () => lasa([l.id], !utkast.locked?.[l.id]), last: !!utkast.locked?.[l.id], byt: () => borjaByte(l),
     laggAldrig: () => laggAldrig(l), villkor: () => visaVillkorFor(l.title),
   });
   const meny = <ContextMenuContent className="schema-meny" finalFocus={() => { const keep = !menyFokus.current; menyFokus.current = false; return keep; }}>
     {pass && pass.day !== null && pass.startMin !== null &&
       <PassMenypunkter pass={pass} rubrik={`${pass.title} · ${text(pass).slice(pass.title.length + 1)}`} flyttarFokus={flyttarFokus}
         onFlytta={() => pick(pass)} onFolj={folj && (() => folj(pass.id))} onParkera={() => andra({ type: 'park', lesson: pass.id })}
-        onLaggAldrig={() => laggAldrig(pass)} onVillkor={() => visaVillkorFor(pass.title)}/>}
+        onLaggAldrig={() => laggAldrig(pass)} onVillkor={() => visaVillkorFor(pass.title)}
+        last={!!utkast.locked?.[pass.id]} onLas={() => lasa([pass.id], !utkast.locked?.[pass.id])} onByt={() => borjaByte(pass)}
+        onOppnaFonster={onOpenWindow && (() => onOpenWindow(pass))}/>}
     {kalla && <>
       <ContextMenuGroup><ContextMenuLabel>{kallaRubrik}</ContextMenuLabel></ContextMenuGroup>
       <ContextMenuItem onClick={flyttarFokus(() => (andraVillkor ?? visaVillkor)(kalla))}>Ändra</ContextMenuItem>
@@ -299,15 +321,30 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     berorda={panelBerorda} beskriv={text} nummer={villkor.egna.length + 1} period={PERIOD[forslag.period]} full={villkor.egna.length >= 200}
     onVald={vald => setNy({ ...ny, vald })} onLagg={laggTillSparr} onAvbryt={avbryt}/> : null;
 
-  const verktyg = <Verktygsfalt tool={tool} disabled={checking} onTool={next => {
+  const klassens = forslag?.lessons.filter(l => l.classIds.includes(visad) && (l.day !== null || utkast.locked?.[l.id])).map(l => l.id) ?? [];
+  const helaKlassenLast = klassens.length > 0 && klassens.every(id => !!utkast.locked?.[id]);
+  const verktyg = <><Verktygsfalt tool={tool} disabled={checking} onTool={next => {
     dispatch({ type: 'tool', tool: next });
     if (next !== 'sparra' && next !== 'tillat') { setNy(null); setMarkering(null); } else if (ny) setNy({ ...ny, typ: next === 'sparra' ? 'sparrad' : 'tillaten' });
-  }}/>;
+  }}/><div className="schema-flerpass">
+    {forslag?.classes.some(c => c.id === visad) && <Button variant="outline" disabled={checking} onClick={() => lasa(klassens, !helaKlassenLast)}>{helaKlassenLast ? 'Lås upp klassens schema' : 'Lås klassens schema'}</Button>}
+    {valda.length > 0 && <><span>{valda.length} pass markerade</span>
+      <Button variant="outline" disabled={checking} onClick={() => { const first = alla.find(l => l.id === valda[0]); if (first) pick(first); }}>Flytta markerade</Button>
+      <Button variant="outline" disabled={checking} onClick={() => lasa(valda, true)}>Lås markerade</Button>
+      <Button variant="outline" disabled={checking} onClick={() => lasa(valda, false)}>Lås upp markerade</Button>
+      <Button variant="outline" disabled={checking} onClick={() => andra({ type: 'park', lesson: valda[0], fler: valda.slice(1) })}>Parkera markerade</Button>
+      <Button variant="outline" onClick={() => dispatch({ type: 'select', lessons: [] })}>Avmarkera</Button></>}
+    {byteFran && <><span>Välj det andra passet för bytet.</span><Button variant="outline" onClick={() => { setByteFran(null); dispatch({ type: 'tool', tool: 'markera' }); }}>Avbryt bytet</Button></>}
+  </div></>;
 
   return {
     verktyg, wrap, panel, veckaProps, angra, passAtgarder, text,
     meddelande: <output aria-live="polite" className="schema-note">{status}</output>,
     /** Klick på ett pass: med verktyget Viloyta läggs passet på viloytan, annars väljs det för flytt. */
-    onPick: (l: SchemaForslagLesson) => { if (tool === 'viloyta' && l.day !== null) andra({ type: 'park', lesson: l.id }); else pick(l); },
+    onPick: (l: SchemaForslagLesson, utoka = false) => {
+      if (utoka) { dispatch({ type: 'select', lessons: valda.includes(l.id) ? valda.filter(id => id !== l.id) : [...valda, l.id] }); return; }
+      if (tool === 'las') { lasa(valda.includes(l.id) ? valda : [l.id], !utkast.locked?.[l.id]); return; }
+      if (tool === 'byt') { borjaByte(l); return; }
+      if (tool === 'viloyta' && l.day !== null) andra({ type: 'park', lesson: l.id }); else pick(l); },
   };
 }
