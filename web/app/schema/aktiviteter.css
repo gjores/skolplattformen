@@ -1,0 +1,26 @@
+/* Skolplattan: aktiviteter bygger på befintliga kort, tabell, dialog och fältmönster. */
+.aktiviteter { min-width: 0; display: grid; gap: 1rem; padding: 1.25rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.akt-rubrik { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem; }
+.akt-rubrik > div:first-child { flex: 1 1 30rem; }
+.aktiviteter h4 { font-weight: 600; }
+.akt-dialog { width: min(70rem, calc(100vw - 2rem)); max-width: min(70rem, calc(100vw - 2rem)); max-height: 90dvh; overflow: auto; }
+.akt-form { min-width: 0; display: grid; gap: 1rem; }
+.akt-typval { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; }
+.akt-typval > label { flex: 1 1 20rem; }
+.akt-field { min-width: 0; display: flex; flex-direction: column; gap: .375rem; color: var(--muted-foreground); }
+.akt-field :is(input, select) { min-height: var(--control-height, 44px); box-sizing: border-box; width: 100%; min-width: 0; padding: .5rem .75rem; border: 1px solid var(--input); border-radius: var(--radius); background: var(--card); color: var(--foreground); font: inherit; }
+.akt-tidfalt { min-width: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr)); gap: .75rem; }
+.akt-segment { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+.akt-deltagare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 16rem), 1fr)); gap: 1rem; }
+.akt-val { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem; }
+.akt-val legend, .akt-nar legend { color: var(--heading-accent); font-weight: 500; margin-bottom: .375rem; }
+.akt-val > div { max-height: 15rem; overflow: auto; }
+.akt-check { display: flex; gap: .5rem; align-items: center; min-height: var(--control-height, 44px); color: var(--foreground); }
+.akt-check input { flex-shrink: 0; width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
+.akt-nar { border: 0; padding: 0; min-width: 0; }
+.akt-info { padding: .75rem; border-radius: var(--radius); background: var(--info-surface); color: var(--info-foreground); }
+:is(.aktiviteter, .akt-dialog) button { min-height: var(--control-height, 44px); white-space: normal; height: auto; max-width: 100%; }
+.aktiviteter [data-slot="table-container"] { max-width: 100%; overflow: auto; }
+.aktiviteter :is(th, td) { white-space: normal; min-width: 8rem; vertical-align: top; }
+.aktiviteter .aktivitet, .schema-lesson.aktivitet, .folj-pass.aktivitet, tr.aktivitet { background: color-mix(in srgb, var(--secondary-foreground) 6%, var(--secondary)); border-color: var(--secondary-foreground); }
+.akt-typtext { display: block; color: var(--secondary-foreground); }

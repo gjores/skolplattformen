@@ -16,13 +16,13 @@ export function storedVillkor(unitId: string): SchemaVillkor | null {
     if (value === null || typeof value !== 'object') return null;
     // Villkor sparade före egna villkor får tomma listor. Valet av egna pass per termin finns inte längre (05.2-SM-TIMPLAN-EXAKT, E5).
     // Marginal till nästa lektion (R4) sparad före 05.2-SM-MARGINAL läses som marginal efter passet som upptar alla.
-    const rest = Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'termDiffPct'));
+    const rest = Object.fromEntries(Object.entries(value).filter(([key]) => key !== 'termDiffPct' && key !== 'aktiviteter'));
     return parseSchemaVillkor('egna' in rest ? { ...rest, egna: Array.isArray(rest.egna) ? rest.egna.map(lasGammalMarginal) : rest.egna } : { ...rest, salar: [], egna: [] });
   } catch { return null; }
 }
 
 export function rememberVillkor(unitId: string, villkor: SchemaVillkor): void {
-  try { window.localStorage.setItem(villkorKey(unitId), JSON.stringify(villkor)); } catch { /* utan lagring gäller villkoren bara tills sidan lämnas */ }
+  try { const { aktiviteter: _, ...stored } = villkor; window.localStorage.setItem(villkorKey(unitId), JSON.stringify(stored)); } catch { /* utan lagring gäller villkoren bara tills sidan lämnas */ }
 }
 
 /** Villkoren för schemat (05.2-SM-LASAR-VILLKOR, V2). Värdena prövas här och igen på servern. */

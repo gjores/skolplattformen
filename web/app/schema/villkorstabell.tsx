@@ -60,7 +60,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
   const skola = useMemo(() => vtSkolaRader(villkor, kontroll), [villkor, kontroll]);
   const typer = useMemo(() => slag ? vtTyper(slag) : [], [slag]);
   const kolumner = useMemo((): Kol[] => slag ? [{ id: 'val', namn: 'Välj' }, { id: 'namn', namn: 'Namn' }, { id: 'pass', namn: slag === 'sal' ? 'Pass i salen' : 'Pass' },
-    { id: 'veckotid', namn: 'Veckotid' }, { id: 'vem', namn: VT_VEM[slag] }, ...typer.map(t => ({ id: t, namn: VT_TYP_NAMN[t], grund: vtGrund(t) })), { id: 'brott', namn: 'Pass på villkoret' }]
+    { id: 'veckotid', namn: 'Veckotid' }, { id: 'vem', namn: VT_VEM[slag] }, ...(slag === 'amne' ? [] : [{ id: 'aktiviteter' as const, namn: 'Aktiviteter' }]), ...typer.map(t => ({ id: t, namn: VT_TYP_NAMN[t], grund: vtGrund(t) })), { id: 'brott', namn: 'Pass på villkoret' }]
     : [{ id: 'namn', namn: 'Villkor' }, { id: 'vem', namn: 'Värde' }, { id: 'pass', namn: 'Slag' }, { id: 'brott', namn: 'Avvikelser' }], [slag, typer]);
   const antalRader = slag ? visade.length : skola.length;
   const mina = slag ? valda[slag] ?? [] : [], valdaRader = rader.filter(r => mina.includes(r.ref));
@@ -222,6 +222,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
                 if (k.id === 'pass') return <TableCell key={k.id} {...cellProps(r, c)}>{rad.pass}</TableCell>;
                 if (k.id === 'veckotid') return <TableCell key={k.id} className="vt-tid" {...cellProps(r, c)}>{rad.veckotid}</TableCell>;
                 if (k.id === 'vem') return <TableCell key={k.id} className="vt-vem" {...cellProps(r, c)}>{rad.vem}</TableCell>;
+                if (k.id === 'aktiviteter') return <TableCell key={k.id} {...cellProps(r, c)} aria-readonly="true">{rad.aktiviteter || '–'}</TableCell>;
                 if (k.id === 'brott') return <TableCell key={k.id} data-vt={`${r}:${c}`} onClick={() => setAktiv({ r, c })} tabIndex={rad.brott > 0 ? undefined : aktiv.r === r && aktiv.c === c ? 0 : -1}>
                   {brottCell(rad.brott, r, c, `${rad.brott} pass bryter mot villkoren för ${rad.namn}`)}</TableCell>;
                 const typ = k.id as SchemaRegelTyp, cell = rad.celler[typ], oppen = redigeras(rad.ref, typ);
