@@ -1,8 +1,8 @@
 # Skolplattformen
 
-## Aktuellt 2026-11-15 — schemats våg 6 genomförd
+## Aktuellt 2026-11-15 — schemats våg 7 genomförd
 
-Byte av två pass, pass-/dag-/klasslås och gemensam ändring av flera pass är implementerade. Flera fönster delar samma utkast, markering och ångra med egen sessions-/skolkontroll. Fördiagnos visar orimligt underlag före sökning; efter beräkning syns svåra pass och räknade flaskhalsar. [Vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-6-VERIFICATION.md) redovisar 153 Node, 44 Rust, verklig lokal syntetisk motorkedja samt UI-serie och slutomprov på 1280/1600. Typ/lint/bygge gröna, bilder granskade och Skolplattan synkad. Appkontrakt 6, motor 3. Inga migrationer eller installationer på 3012/3013, ingen ny mänsklig acceptans eller standardiserad kommunanslutning. Nästa är våg 7, SM-PLACERING, enligt [arbetsflödet](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md). Handbok, lagring, publicering och T1:s daterade aktivitetsundantag följer sina egna planer. Äldre lägesnoteringar nedan är historik.
+[SM-PLACERING](phases/05.2-schemamodul/05.2-SM-PLACERING-SUMMARY.md) ger förslag för ett pass, en önskad målpunkt eller hela viloytan, med byte/korta kedjor och före/efter. Godkänn kontrollerar hela kandidaten och gör en sammanhållen ändring i det gemensamma utkastet. Medvetna krockar märks utan att regelbrottet försvinner. [Vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-7-VERIFICATION.md): 180 Node, 65 Rust, verklig lokal syntetisk motorkedja/workerdtransport och alla 184 UI-profilfall verifierade (182 i helserie + 2/2 riktade omprov efter ett rättat äldre menyantagande). Typ/lint/bygge gröna, 14 bilder granskade och Skolplattan synkad. Appkontrakt 7, motor 4. Inga migrationer eller installationer på 3012/3013, ingen ny mänsklig acceptans eller verifierad standardiserad kommunanslutning. Våg 4–7 är inte installerade. Nästa är SM-HANDBOK efter installation och användarprov enligt [arbetsflödet](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md); lagring, publicering och daterade undantag följer sina egna planer. Äldre lägesnoteringar nedan är historik.
 
 ## Aktuellt 2026-10-30 — klassorganisation inventerad
 

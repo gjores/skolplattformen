@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "våg 6 klar – nästa våg 7: SM-PLACERING"
+current_plan: "våg 7 klar – nästa SM-HANDBOK efter installation och användarprov"
 status: in_progress
-stopped_at: "Våg 6 klar 2026-11-15. Byte/lås/flera pass, synkade fönster och diagnos. 153 Node, 44 Rust, lokal syntetisk motorkedja, UI-serie och berörda slutomprov PASS. Typ/lint/bygge gröna, bilder granskade och Skolplattan synkad. Ingen installation. Nästa SM-PLACERING."
+stopped_at: "Våg 7 klar 2026-11-15. Placeringsförslag, kedjor, målpunkt, lägg viloytan och medvetna krockar. 180 Node, 65 Rust, lokal syntetisk motorkedja och alla 184 UI-profilfall verifierade via helserie/riktat omprov. Typ/lint/bygge gröna, 14 bilder granskade, Skolplattan synkad. Ingen installation."
 last_updated: "2026-11-15"
 last_activity: 2026-11-15
-last_activity_desc: "Våg 6 automatiskt verifierad mot syntetiska data. Appkontrakt 6, motor 3. Installation, mänsklig acceptans och fulla faskrav återstår."
-state_head: f28f6a22
+last_activity_desc: "Våg 7 automatiskt verifierad mot syntetiska data. Appkontrakt 7, motor 4. Installation, mänsklig acceptans och fulla faskrav återstår."
+state_head: 5a73a6a9
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,11 +21,13 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-user_trial_status: schema_wave6_not_installed_no_new_human_acceptance
+user_trial_status: schema_wave7_not_installed_no_new_human_acceptance
 milestone_name: milestone
 ---
 
-**05.2-SM våg 6 klar 2026-11-15:** [Byte/lås/flera pass](phases/05.2-schemamodul/05.2-SM-BYT-SUMMARY.md), [flera fönster](phases/05.2-schemamodul/05.2-SM-FONSTER-SUMMARY.md) och [diagnos](phases/05.2-schemamodul/05.2-SM-DIAGNOS-SUMMARY.md) är genomförda. [Samlad verifiering](phases/05.2-schemamodul/05.2-SM-WAVE-6-VERIFICATION.md): 153/153 Node, 44/44 Rust, riktig lokal syntetisk motorkedja utan databas samt UI-serie på 1280/1600 med berörda slutomprov PASS. Exakta körningar och rättade provantaganden står i rapporten. Typ/lint/bygge gröna och bilder granskade. Appkontrakt 6, motor 3. [Skolplattans tillägg](phases/05.2-schemamodul/05.2-SM-WAVE-6-SKOLPLATTAN.md) sparat och omladdningskontrollerat enligt grundregeln. Inget installerat, ingen ny faktisk Worker/OIDC/databasserie, mänsklig acceptans eller verifierat standardutbyte. Våg 4–6 är ännu inte installerade. **Nästa: våg 7, SM-PLACERING.** Handbok följer SM-HANDBOK efter installation och användarprov. Äldre worker-/kalenderbevis i metadata och text är historik; pilotens formella antal ändras inte.
+**05.2-SM våg 7 klar 2026-11-15:** [SM-PLACERING](phases/05.2-schemamodul/05.2-SM-PLACERING-SUMMARY.md) ger placeringsförslag med byten/korta kedjor, önskad målpunkt och lägg hela viloytan. Samtliga ändringar granskas före Godkänn, kontrolleras på nytt och kan ångras som ett steg i alla anslutna fönster. Medvetna krockar är exakt bunden metadata; regelbrotten ligger kvar. [Slutkontroll](phases/05.2-schemamodul/05.2-SM-WAVE-7-VERIFICATION.md): 180/180 Node, 65/65 Rust, riktig lokal syntetisk motorkedja/workerdtransport och typ/lint/bygge PASS. Alla 184 UI-profilfall verifierade via 182 PASS i helserie och 2/2 riktade omprov efter ett rättat äldre menyantagande, inga skip/automatiska omprov. 14 bilder granskade, [oberoende granskning](phases/05.2-schemamodul/05.2-SM-WAVE-7-REVIEW.md) utan öppna blockerande kodfynd och [Skolplattan synkad](phases/05.2-schemamodul/05.2-SM-WAVE-7-SKOLPLATTAN.md). Appkontrakt 7, motor 4. Våg 4–7 är inte installerade. Ingen ny faktisk skyddad OIDC/PostgreSQL-kedja, mänsklig acceptans eller verifierat standardutbyte. **Nästa: SM-HANDBOK efter installation och användarprov.** Ingen installation startas automatiskt. Äldre Worker-/kalenderbevis är historik och pilotens formella antal består.
+
+**Historik — 05.2-SM våg 6 klar 2026-11-15:** [Byte/lås/flera pass](phases/05.2-schemamodul/05.2-SM-BYT-SUMMARY.md), [flera fönster](phases/05.2-schemamodul/05.2-SM-FONSTER-SUMMARY.md) och [diagnos](phases/05.2-schemamodul/05.2-SM-DIAGNOS-SUMMARY.md) är genomförda. [Samlad verifiering](phases/05.2-schemamodul/05.2-SM-WAVE-6-VERIFICATION.md): 153/153 Node, 44/44 Rust, riktig lokal syntetisk motorkedja utan databas samt UI-serie på 1280/1600 med berörda slutomprov PASS. Exakta körningar och rättade provantaganden står i rapporten. Typ/lint/bygge gröna och bilder granskade. Appkontrakt 6, motor 3. [Skolplattans tillägg](phases/05.2-schemamodul/05.2-SM-WAVE-6-SKOLPLATTAN.md) sparat och omladdningskontrollerat enligt grundregeln. Inget installerat, ingen ny faktisk Worker/OIDC/databasserie, mänsklig acceptans eller verifierat standardutbyte. Våg 4–6 är ännu inte installerade. **Nästa: våg 7, SM-PLACERING.** Handbok följer SM-HANDBOK efter installation och användarprov. Äldre worker-/kalenderbevis i metadata och text är historik; pilotens formella antal ändras inte.
 
 **Historik — 05.2-SM våg 5 klar 2026-11-15:** [Samlingsvy](phases/05.2-schemamodul/05.2-SM-SAMLINGSVY-SUMMARY.md), [egna aktiviteter](phases/05.2-schemamodul/05.2-SM-AKTIVITETER-SUMMARY.md) och [faktiska veckor/datum](phases/05.2-schemamodul/05.2-SM-VECKOVY-SUMMARY.md) är genomförda. [Samlad verifiering](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md):121/121 Node,35/35 Rust, riktig lokal motorkedja utan databas,120/120 UI på1280/1600 och riktade omprov efter sista läsbarhets-/dialogrättningar PASS. Typ/lint/bygge gröna, bilder granskade. Nytt appkontrakt5; motorns kontrakt2 består. [Skolplattans tillägg](phases/05.2-schemamodul/05.2-SM-WAVE-5-SKOLPLATTAN.md) uttryckligen godkänt och sparat. Inget installerat, ingen ny faktisk Worker/OIDC/databasserie, inget användargodkännande eller verifierat standardutbyte. Våg4–5 är ännu inte installerade. **Nästa: våg6, SM-BYT/SM-FONSTER/SM-DIAGNOS.** Handbok följer SM-HANDBOK efter installation och användarprov. Äldre worker-/kalenderbevis i metadata och text är historik; pilotens formella antal ändras inte.
 
