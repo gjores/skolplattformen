@@ -875,7 +875,7 @@ test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fo
   await page.keyboard.press('Shift+F10');
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Torsdag 14:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här', 'Visa gemensam ledig tid']);
   await expect(menu.getByRole('menuitem', { name: 'Spärra för' })).toBeFocused();
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('menuitem', { name: 'Klass 1', exact: true })).toBeFocused();
@@ -985,8 +985,9 @@ test('meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkera
   await page.mouse.click(sen.x, sen.y, { button: 'right' });
   await expect(menu).toContainText('Sena pass');
   await expect(menu).toContainText('Torsdag 16:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
-  await expect(menu.getByText('Visa gemensam ledig tid')).toHaveCount(0);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här', 'Visa gemensam ledig tid']);
+  // Punkten finns sedan 05.2-SM-SAMLINGSVY.
+  await expect(menu.getByText('Visa gemensam ledig tid')).toHaveCount(1);
   await menu.getByRole('menuitem', { name: 'Tillåt bara här för' }).hover();
   await page.getByRole('menuitem', { name: 'Klass 1', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Ny tillåten tid' });
@@ -1898,4 +1899,400 @@ test('Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell',
   await page.getByRole('menu').getByRole('menuitem', { name: 'Ändra' }).click();
   await expect(page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Villkor i tabell', exact: true })).toHaveAttribute('aria-pressed', 'true');
   await expect(page.getByRole('tab', { name: 'Klasser' })).toHaveAttribute('aria-selected', 'true');
+});
+
+// ── 05.2-SM-SAMLINGSVY: flera scheman samtidigt, arbetsvy i webbläsaren, gemensam ledig tid, resursmatris, lager, färg, filter och sök ledig.
+// Arbetsytan prövas på dator (1280 och 1600 px). Elevlistan och elevens pass kommer från Följ passets rutt, här med fixturens svar. ──
+const medSal = { ...forslag, rooms: [{ id: 'sal-1', name: 'Sal 204' }], lessons: forslag.lessons.map(l => l.id === folj.lesson ? { ...l, roomIds: ['sal-1'], roomId: 'sal-1' } : l) } as unknown as typeof forslag;
+const samling = {
+  vy: (page: Page) => page.getByRole('region', { name: /^Samlingsvy/u }),
+  rad: (page: Page, key: string) => page.locator(`.samling [data-rad="${key}"]`),
+  async start(page: Page, width = 1280, data: typeof forslag = forslag) {
+    await tabell.start(page, width, data);
+    await tabell.vy(page, 'Samlingsvy').click();
+    await expect(samling.vy(page)).toBeVisible();
+  },
+  /** Följ passets rutt för vilket pass som helst: klassens elevlista (eller ingen, utan elevbehörighet) och en elevs pass. */
+  async folj(page: Page, { elever = true } = {}) {
+    const bodies: FoljBody[] = [];
+    await page.route('**/api/schema/folj', route => {
+      const body = route.request().postDataJSON() as FoljBody;
+      bodies.push(body);
+      return route.fulfill({ headers, json: { ...(body.pupilId ? folj.foljElev : elever ? folj.folj : folj.utanElever), lesson: body.lesson } });
+    });
+    return bodies;
+  },
+  /** Lägger till en rad med sökrutan och bara tangentbordet. */
+  async laggTill(page: Page, text: string) {
+    await samling.vy(page).getByRole('button', { name: 'Lägg till klass, grupp, lärare, sal eller elev' }).focus();
+    await page.keyboard.press('Enter');
+    const sok = page.getByRole('combobox', { name: 'Sök klass, grupp, lärare, sal eller elev' });
+    await expect(sok).toBeFocused();
+    await page.keyboard.type(text);
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('dialog')).toHaveCount(0);
+  },
+};
+/** Ett val (select) efter sin etikett; etikettens text börjar med namnet och följs av valen. */
+const val = (scope: ReturnType<Page['locator']>, namn: string) => scope.locator('label').filter({ hasText: new RegExp(`^${namn}`, 'u') }).locator('select');
+const htPass = (pred: (l: typeof forslag.lessons[number]) => boolean) => forslag.lessons.filter(l => l.day !== null && l.term !== 'vt' && pred(l));
+/** Tider då ingen av passen ligger, minst 20 min (kortaste pass i fixturens villkor), per dag i skoldagen 08:00–16:30. */
+function ledigaTider(lessons: typeof forslag.lessons) {
+  const out: { day: number; startMin: number; endMin: number }[] = [];
+  for (let day = 0; day < 5; day++) {
+    let at = 480;
+    for (const l of lessons.filter(x => x.day === day).sort((a, b) => a.startMin! - b.startMin!)) {
+      if (l.startMin! - at >= 20) out.push({ day, startMin: at, endMin: l.startMin! });
+      at = Math.max(at, l.startMin! + l.durationMin);
+    }
+    if (990 - at >= 20) out.push({ day, startMin: at, endMin: 990 });
+  }
+  return out;
+}
+
+test('samlingsvy: klass, lärare och sal läggs till med tangentbordet, sparas som arbetsvy, och arbetsvyn öppnas efter omladdning', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  test.setTimeout(90_000);
+  for (const width of [1280, 1600]) {
+    await tabell.start(page, width, medSal);
+    await samling.folj(page, { elever: false });
+    await page.evaluate(() => window.localStorage.clear());
+    // Vyn väljs med tangentbordet, bredvid Vecka och tabellerna.
+    await tabell.vy(page, 'Samlingsvy').focus();
+    await page.keyboard.press('Enter');
+    const vy = samling.vy(page);
+    await expect(vy.getByText('Inga rader ännu.')).toBeVisible();
+    await expect(vy.getByRole('button', { name: 'Spara som arbetsvy' })).toBeDisabled();
+    await samling.laggTill(page, 'Klass 1');
+    await samling.laggTill(page, 'Provlärare 4');
+    await samling.laggTill(page, 'Sal 204');
+    await expect(vy.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Sal 204']);
+    await expect(vy.getByText('Sal 204 visas i samlingsvyn.')).toBeVisible();
+    // En rad per resurs med gemensam tidsaxel: klassens och lärarens pass under höstterminen, och salens enda pass.
+    await expect(samling.rad(page, 'klass:grupp-1').locator('.folj-pass')).toHaveCount(htPass(l => l.classIds.includes('grupp-1')).length);
+    await expect(samling.rad(page, 'larare:larare-4').locator('.folj-pass')).toHaveCount(htPass(l => l.teacherIds.includes('larare-4')).length);
+    await expect(samling.rad(page, 'sal:sal-1').locator('.folj-pass')).toHaveCount(1);
+    await expect(samling.rad(page, 'sal:sal-1').getByText(`Matematik, Klass 1, ${tid(own.startMin!)}–${tid(own.startMin! + own.durationMin)}`)).toHaveCount(1);
+    await expect(vy.locator('.folj-dagar > div')).toHaveText(['', ...DAYS]);
+    // Det som redan visas står inte i sökningen.
+    await vy.getByRole('button', { name: 'Lägg till klass, grupp, lärare, sal eller elev' }).click();
+    await page.getByRole('combobox', { name: 'Sök klass, grupp, lärare, sal eller elev' }).fill('Sal');
+    await expect(page.getByRole('dialog').getByText('Ingen träff.')).toBeVisible();
+    await page.keyboard.press('Escape');
+    // Spara som arbetsvy: namnet skrivs och sparas med Enter.
+    await vy.getByRole('button', { name: 'Spara som arbetsvy' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(vy.getByLabel('Namn på arbetsvyn')).toBeFocused();
+    await page.keyboard.type('Matematik åk 1');
+    await page.keyboard.press('Enter');
+    await expect(vy.getByText('Arbetsvyn Matematik åk 1 är sparad i den här webbläsaren med 3 rader.')).toBeVisible();
+    await expect(page.getByRole('heading', { name: 'Samlingsvy: Matematik åk 1' })).toBeVisible();
+    await expect(val(vy, 'Arbetsvy')).toHaveValue('Matematik åk 1');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    if (shots) await page.screenshot({ path: `${shots}/schema-samling-${width}.png`, fullPage: true });
+    // Raden tas bort med chipets knapp; arbetsvyn har den kvar.
+    await vy.getByRole('button', { name: 'Ta bort Provlärare 4 ur samlingsvyn' }).click();
+    await expect(vy.locator('.folj-chip')).toHaveText(['Klass 1', 'Sal 204']);
+
+    // Efter omladdning finns arbetsvyn kvar för skolan, och vyn är den som valdes senast.
+    await page.reload();
+    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await expect(samling.vy(page)).toBeVisible();
+    await expect(samling.vy(page).getByText('Inga rader ännu.')).toBeVisible();
+    await val(samling.vy(page), 'Arbetsvy').selectOption('Matematik åk 1');
+    await expect(samling.vy(page).locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Sal 204']);
+    await expect(samling.vy(page).getByText('Arbetsvyn Matematik åk 1 visas med 3 rader.')).toBeVisible();
+    // Döp om och ta bort.
+    await samling.vy(page).getByRole('button', { name: 'Döp om' }).click();
+    await samling.vy(page).getByLabel('Namn på arbetsvyn').fill('Ma 1');
+    await samling.vy(page).getByRole('button', { name: 'Byt namn' }).click();
+    await expect(page.getByRole('heading', { name: 'Samlingsvy: Ma 1' })).toBeVisible();
+    const sparat = await page.evaluate(() => Object.entries(window.localStorage).filter(([k]) => k.startsWith('schema-arbetsvyer:')));
+    expect(sparat).toHaveLength(1);
+    expect(sparat[0][0]).toBe(`schema-arbetsvyer:${forslag.unitId}`);
+    expect(JSON.parse(sparat[0][1])).toMatchObject([{ namn: 'Ma 1', resurser: [{ slag: 'klass', ref: forslag.resurser.klass[0].ref }, { slag: 'larare', ref: forslag.resurser.larare[3].ref }, { slag: 'sal', ref: 'Sal 204' }] }]);
+    await samling.vy(page).getByRole('button', { name: 'Ta bort arbetsvyn' }).click();
+    await expect(val(samling.vy(page), 'Arbetsvy').locator('option')).toHaveText(['Inga sparade arbetsvyer']);
+    await expect(samling.vy(page).locator('.folj-chip')).toHaveCount(3);
+    // Nästa bredd börjar utan minnet val av vy.
+    await page.evaluate(() => window.localStorage.clear());
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('samlingsvy: gemensam ledig tid för markerade rader, och Visa gemensam ledig tid i menyn på tom tid', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await samling.start(page);
+  await samling.folj(page, { elever: false });
+  const vy = samling.vy(page);
+  await samling.laggTill(page, 'Klass 1');
+  await samling.laggTill(page, 'Provlärare 4');
+  await expect(vy.getByText('Markera två eller fler rader för att se när alla är lediga samtidigt.')).toBeVisible();
+  await expect(samling.rad(page, 'ledig')).toHaveCount(0);
+  // Raderna markeras med valrutan (mellanslag).
+  await vy.getByLabel('Markera Klass 1 för gemensam ledig tid').focus();
+  await page.keyboard.press('Space');
+  await vy.getByLabel('Markera Provlärare 4 för gemensam ledig tid').focus();
+  await page.keyboard.press('Space');
+  const lediga = ledigaTider(htPass(l => l.classIds.includes('grupp-1') || l.teacherIds.includes('larare-4')));
+  expect(lediga.length).toBeGreaterThan(4);
+  await expect(samling.rad(page, 'ledig').locator('.falt-fri')).toHaveCount(lediga.length);
+  await expect(samling.rad(page, 'ledig')).toContainText('2 markerade rader');
+  await expect(samling.rad(page, 'ledig').locator('.falt-fri').first()).toContainText(`${tid(lediga[0].startMin)}–${tid(lediga[0].endMin)}`);
+  await expect(vy.getByText(`Gemensam ledig tid för Klass 1, Provlärare 4: ${DAYS[lediga[0].day].toLowerCase()} ${tid(lediga[0].startMin)}–${tid(lediga[0].endMin)}`)).toBeVisible();
+  if (shots) await page.screenshot({ path: `${shots}/schema-samling-ledig-1280.png`, fullPage: true });
+  // Avmarkerad rad: raden med ledig tid försvinner.
+  await vy.getByLabel('Markera Provlärare 4 för gemensam ledig tid').uncheck();
+  await expect(samling.rad(page, 'ledig')).toHaveCount(0);
+
+  // Från veckan: högerklick på tom tid i Klass 2. Klassen läggs i samlingsvyn, alla rader markeras och rubriken får fokus.
+  await tabell.vy(page, 'Vecka').click();
+  await page.getByLabel('Klass eller grupp').selectOption({ label: 'Klass 2' });
+  const tom = ledigaTider(htPass(l => l.classIds.includes('grupp-2'))).find(t => t.day === 2 && t.endMin - t.startMin >= 30)!;
+  const punkt = await meny.punkt(page, 2, tom.startMin + 10);
+  await page.mouse.click(punkt.x, punkt.y, { button: 'right' });
+  await page.getByRole('menu').getByRole('menuitem', { name: 'Visa gemensam ledig tid' }).click();
+  await expect(page.getByRole('heading', { name: 'Samlingsvy' })).toBeFocused();
+  await expect(samling.vy(page).locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Klass 2']);
+  await expect(samling.vy(page).getByText('Gemensam ledig tid visas för 3 rader.')).toBeVisible();
+  for (const namn of ['Klass 1', 'Provlärare 4', 'Klass 2']) await expect(samling.vy(page).getByLabel(`Markera ${namn} för gemensam ledig tid`)).toBeChecked();
+  const tre = ledigaTider(htPass(l => l.classIds.includes('grupp-1') || l.classIds.includes('grupp-2') || l.teacherIds.includes('larare-4')));
+  await expect(samling.rad(page, 'ledig').locator('.falt-fri')).toHaveCount(tre.length);
+  await expect(tabell.vy(page, 'Samlingsvy')).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('samlingsvy: resursmatrisen visar alla lärare kompakt, en rad läggs i samlingsvyn, och matrisen zoomar till en dag', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    await samling.start(page, width);
+    const vy = samling.vy(page), lage = vy.getByRole('group', { name: 'Visa som' });
+    await lage.getByRole('button', { name: 'Resursmatris' }).click();
+    await expect(vy.locator('.samling-kompakt')).toHaveCount(forslag.teachers.length);
+    // Beläggningen: en fylld ruta per pass, med passet i text för skärmläsare.
+    const tva = htPass(l => l.teacherIds.includes('larare-2'));
+    await expect(samling.rad(page, 'larare:larare-2').locator('.folj-pass')).toHaveCount(tva.length);
+    await expect(samling.rad(page, 'larare:larare-2')).toContainText(`${tva.length} pass`);
+    if (shots) await page.screenshot({ path: `${shots}/schema-samling-matris-${width}.png`, fullPage: true });
+    // Radens namn är en knapp: med tangentbordet läggs raden i samlingsvyn.
+    await vy.getByRole('button', { name: 'Lägg till Provlärare 2 i samlingsvyn' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(vy.getByText('Provlärare 2 visas i samlingsvyn.')).toBeVisible();
+    await expect(vy.getByRole('button', { name: 'Provlärare 2 visas i samlingsvyn' })).toBeDisabled();
+    await expect(vy.locator('.folj-chip')).toHaveText(['Provlärare 2']);
+    // Zoom till en dag: en kolumn, bara den dagens pass.
+    await val(vy, 'Dag').selectOption({ label: 'Tisdag' });
+    await expect(vy.locator('.folj-dagar > div')).toHaveText(['', 'Tisdag']);
+    await expect(samling.rad(page, 'larare:larare-2').locator('.folj-pass')).toHaveCount(tva.filter(l => l.day === 1).length);
+    // Klasser och grupper: tolv klasser och gruppen Franska.
+    await val(vy, 'Matrisen visar').selectOption({ label: 'Klasser och grupper' });
+    await expect(vy.locator('.samling-kompakt')).toHaveCount(forslag.classes.length);
+    await val(vy, 'Matrisen visar').selectOption({ label: 'Salar' });
+    await expect(vy.getByText('Skolan har inga salar i villkoren för schemat.')).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    // Tillbaka till valda rader: raden finns där.
+    await lage.getByRole('button', { name: 'Valda rader' }).click();
+    await expect(samling.rad(page, 'larare:larare-2').locator('.folj-pass')).toHaveCount(tva.filter(l => l.day === 1).length);
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
+});
+
+test('samlingsvy: elever finns i sökningen för behörig och sparas inte; utan elevbehörighet finns ingen elev i sökningen', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await samling.start(page);
+  const anrop = await samling.folj(page);
+  const vy = samling.vy(page), sok = page.getByRole('combobox', { name: 'Sök klass, grupp, lärare, sal eller elev' });
+  // Utan någon klass eller grupp som visas hämtas inga elever.
+  await vy.getByRole('button', { name: 'Lägg till klass, grupp, lärare, sal eller elev' }).click();
+  await sok.fill('Provelev');
+  await expect(page.getByRole('dialog').getByText('Ingen träff.')).toBeVisible();
+  expect(anrop).toHaveLength(0);
+  await page.keyboard.press('Escape');
+  await samling.laggTill(page, 'Klass 1');
+  // Med klassen som rad läses klassens elever när sökningen öppnas, med ett av klassens pass.
+  await vy.getByRole('button', { name: 'Lägg till klass, grupp, lärare, sal eller elev' }).click();
+  await expect(page.getByRole('dialog').getByText('Elever', { exact: true })).toBeVisible();
+  expect(anrop[0]).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint, pupilId: null });
+  expect(forslag.lessons.find(l => l.id === anrop[0].lesson)!.classIds).toEqual(['grupp-1']);
+  await sok.fill('Provelev 1');
+  await expect(page.getByRole('dialog').getByRole('option')).toHaveCount(folj.folj.elever!.filter(e => /^Provelev 1/u.test(e.name)).length);
+  await page.keyboard.press('Enter');
+  // Elevens rad: klassens pass och elevens grupp, med gruppens pass streckat.
+  await expect(samling.rad(page, `elev:${folj.pupilId}`)).toContainText('elev · Klass 1, Spanska');
+  await expect(vy.locator('.folj-chip')).toHaveText(['Klass 1', 'Provelev 1 (elev)']);
+  await expect(samling.rad(page, `elev:${folj.pupilId}`).locator('.folj-pass.grupp').first()).toBeVisible();
+  expect(anrop.at(-1)).toMatchObject({ pupilId: folj.pupilId });
+  // Arbetsvyn sparar klassen men inte eleven: varken elevens ID eller namn ligger i webbläsaren.
+  await vy.getByRole('button', { name: 'Spara som arbetsvy' }).click();
+  await vy.getByLabel('Namn på arbetsvyn').fill('Med elev');
+  await vy.getByRole('button', { name: 'Spara arbetsvyn' }).click();
+  await expect(vy.getByText('Arbetsvyn Med elev är sparad i den här webbläsaren med 1 rad. 1 rad sparas inte: elever och grupper utan egen rad i förslaget.')).toBeVisible();
+  const lagrat = await page.evaluate(() => JSON.stringify(Object.entries(window.localStorage)));
+  expect(lagrat).toContain('Med elev');
+  expect(lagrat).not.toContain(folj.pupilId);
+  expect(lagrat).not.toContain('Provelev');
+  if (shots) await page.screenshot({ path: `${shots}/schema-samling-elev-1280.png`, fullPage: true });
+
+  // Utan elevbehörighet ger servern ingen elevlista: sökningen har klasser, grupper och lärare men ingen elev.
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await samling.start(page);
+  const utan = await samling.folj(page, { elever: false });
+  await samling.laggTill(page, 'Klass 1');
+  await samling.vy(page).getByRole('button', { name: 'Lägg till klass, grupp, lärare, sal eller elev' }).click();
+  await expect.poll(() => utan.length).toBe(1);
+  await expect(page.getByRole('dialog').getByText('Lärare', { exact: true })).toBeVisible();
+  await expect(page.getByRole('dialog').getByText('Elever', { exact: true })).toHaveCount(0);
+  await sok.fill('Provelev');
+  await expect(page.getByRole('dialog').getByText('Ingen träff.')).toBeVisible();
+  await expect(sok).toHaveAttribute('placeholder', 'Sök klass, grupp, lärare eller sal');
+});
+
+test('samlingsvy: lager, färg med text, filter som följer arbetsvyn och sök ledig lärare eller sal', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await samling.start(page);
+  await samling.folj(page, { elever: false });
+  await page.evaluate(() => window.localStorage.clear());
+  const vy = samling.vy(page), klass = samling.rad(page, 'klass:grupp-1'), lager = vy.getByRole('group', { name: 'Visa i raderna:' });
+  await samling.laggTill(page, 'Klass 1');
+  const egna = htPass(l => l.classIds.includes('grupp-1'));
+  // Samma lager som veckan: lunchfönstret och sena pass syns i raden och kan döljas.
+  await expect(klass.locator('.falt-lunch')).toHaveCount(5);
+  await expect(klass.locator('.falt-onskemal')).toHaveCount(5);
+  await lager.getByRole('button', { name: 'Lunch', exact: true }).click();
+  await expect(klass.locator('.falt-lunch')).toHaveCount(0);
+  // Håltid och lunchtryck är samlingsvyns egna lager, från början av.
+  await expect(klass.locator('.samling-haltid')).toHaveCount(0);
+  await lager.getByRole('button', { name: 'Håltid', exact: true }).click();
+  await expect(klass.locator('.samling-haltid').first()).toContainText(/Håltid \d+ min/u);
+  await lager.getByRole('button', { name: 'Lunchtryck', exact: true }).click();
+  await expect(samling.rad(page, 'lunchtryck')).toContainText('klasser med lunchlucka per tid');
+  await expect(samling.rad(page, 'lunchtryck').locator('.samling-tryck').first()).toContainText(/\d+ klass(er)? har lunchlucka/u);
+  // Färg efter lärare: rutan har alltid text, och teckenförklaringen säger vad färgen står för.
+  await expect(klass.locator('.folj-pass').first()).toHaveClass(/samling-ton-\d/u);
+  await val(vy, 'Färg efter').selectOption({ label: 'Lärare' });
+  await expect(klass.locator('.folj-pass > span[aria-hidden]').filter({ hasText: /^P\d+ / })).toHaveCount(egna.filter(l => l.teacherIds.length > 0).length);
+  await expect(klass.locator('.folj-pass > span[aria-hidden]').filter({ hasText: /^– / })).toHaveCount(egna.filter(l => l.teacherIds.length === 0).length);
+  await expect(page.getByRole('list', { name: 'Teckenförklaring för samlingsvyn' })).toContainText('Ingen lärare');
+  // Filter: ämnena kombineras, och håltiden räknas ändå på alla pass.
+  const haltider = await klass.locator('.samling-haltid').count();
+  await val(vy, 'Filter: ämne').selectOption({ label: 'Matematik' });
+  await expect(klass.locator('.folj-pass')).toHaveCount(egna.filter(l => l.title === 'Matematik').length);
+  await val(vy, 'Filter: ämne').selectOption({ label: 'Svenska' });
+  await expect(klass.locator('.folj-pass')).toHaveCount(egna.filter(l => l.title === 'Matematik' || l.title === 'Svenska').length);
+  await expect(klass.locator('.samling-haltid')).toHaveCount(haltider);
+  await val(vy, 'Filter: termin').selectOption({ label: 'Vårterminen' });
+  const vt = forslag.lessons.filter(l => l.day !== null && l.term !== 'ht' && l.classIds.includes('grupp-1') && (l.title === 'Matematik' || l.title === 'Svenska'));
+  await expect(klass.locator('.folj-pass')).toHaveCount(vt.length);
+  // Lager, filter och färg ingår i arbetsvyn.
+  await vy.getByRole('button', { name: 'Spara som arbetsvy' }).click();
+  await vy.getByLabel('Namn på arbetsvyn').fill('Ma och Sv');
+  await vy.getByRole('button', { name: 'Spara arbetsvyn' }).click();
+  await vy.getByRole('button', { name: 'Ta bort filtret Svenska' }).click();
+  await vy.getByRole('button', { name: 'Rensa filter' }).click();
+  await val(vy, 'Filter: termin').selectOption({ index: 0 });
+  await val(vy, 'Färg efter').selectOption({ label: 'Ämne' });
+  await expect(klass.locator('.folj-pass')).toHaveCount(egna.length);
+  await val(vy, 'Arbetsvy').selectOption({ index: 0 });
+  await val(vy, 'Arbetsvy').selectOption('Ma och Sv');
+  await expect(klass.locator('.folj-pass')).toHaveCount(vt.length);
+  await expect(val(vy, 'Färg efter')).toHaveValue('larare');
+  await expect(lager.getByRole('button', { name: 'Håltid', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(lager.getByRole('button', { name: 'Lunch', exact: true })).toHaveAttribute('aria-pressed', 'false');
+  await vy.getByRole('button', { name: 'Rensa filter' }).click();
+  await val(vy, 'Filter: termin').selectOption({ index: 0 });
+
+  // Sök ledig lärare eller sal: panelen öppnas med tangentbordet och rubriken får fokus.
+  await vy.getByRole('button', { name: 'Sök ledig lärare eller sal' }).focus();
+  await page.keyboard.press('Enter');
+  const panel = page.getByRole('region', { name: 'Sök ledig lärare eller sal' });
+  await expect(panel.getByRole('heading', { name: 'Sök ledig lärare eller sal' })).toBeFocused();
+  const ma = egna.find(l => l.title === 'Matematik')!;
+  await val(panel, 'Dag').selectOption({ label: DAYS[ma.day!] });
+  await val(panel, 'Från').selectOption(String(ma.startMin));
+  await val(panel, 'Till').selectOption(String(ma.startMin! + ma.durationMin));
+  await val(panel, 'Ämne').selectOption({ label: 'Matematik' });
+  const upptagna = new Set(htPass(l => l.day === ma.day && l.startMin! < ma.startMin! + ma.durationMin && ma.startMin! < l.startMin! + l.durationMin).flatMap(l => l.teacherIds));
+  const medMa = new Set(forslag.lessons.filter(l => l.title === 'Matematik').flatMap(l => l.teacherIds));
+  const lediga = forslag.teachers.filter(t => !upptagna.has(t.id));
+  const lista = panel.getByRole('list', { name: /^Lediga lärare/u }).getByRole('listitem');
+  await expect(panel.getByRole('heading', { name: `Lediga lärare (${lediga.length})` })).toBeVisible();
+  // De som har Matematik i tjänstefördelningen står först och är märkta; läraren som har passet är inte ledig.
+  const forst = lediga.filter(t => medMa.has(t.id));
+  expect(forst.length).toBeGreaterThan(0);
+  await expect(lista.filter({ hasText: 'Har Matematik' })).toHaveCount(forst.length);
+  for (const [i, t] of forst.entries()) await expect(lista.nth(i)).toContainText(t.name);
+  await expect(lista.nth(forst.length)).not.toContainText('Har Matematik');
+  await expect(lista.filter({ hasText: `${forslag.teachers.find(t => t.id === ma.teacherIds[0])!.name}Lägg` })).toHaveCount(0);
+  await expect(panel.getByText('Skolan har inga salar i villkoren för schemat.')).toBeVisible();
+  // En ledig lärare läggs till som rad.
+  await panel.getByRole('button', { name: `Lägg till ${forst[0].name} i samlingsvyn` }).click();
+  await expect(vy.locator('.folj-chip').last()).toHaveText(forst[0].name);
+  // Klick på tom tid i en rad väljer dagen och tiden där.
+  const cell = klass.getByRole('list', { name: 'Klass 1, Fredag' }), box = (await cell.boundingBox())!;
+  const fri = ledigaTider(egna).find(t => t.day === 4 && t.endMin - t.startMin >= 40)!;
+  await page.mouse.click(box.x + box.width * (fri.startMin + 17 - 480) / 510, box.y + 3);
+  await expect(val(panel, 'Dag')).toHaveValue('4');
+  await expect(val(panel, 'Från')).toHaveValue(String(Math.floor((fri.startMin + 17) / 10) * 10));
+  if (shots) { await panel.scrollIntoViewIfNeeded(); await page.screenshot({ path: `${shots}/schema-samling-sok-1280.png`, fullPage: true }); }
+  // Esc stänger panelen och lämnar fokus på samlingsvyns rubrik.
+  await val(panel, 'Dag').focus();
+  await page.keyboard.press('Escape');
+  await expect(panel).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: /^Samlingsvy/u })).toBeFocused();
+});
+
+test('samlingsvy: Följ passet är ett läge av vyn – rader läggs till och urvalet sparas som arbetsvy', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  await foljStart(page, 1280);
+  await mockFolj(page);
+  await page.evaluate(() => window.localStorage.clear());
+  await page.locator(`[data-lesson="${folj.lesson}"]`).focus();
+  await page.keyboard.press('f');
+  const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
+  await expect(panel.locator('.folj-chip')).toHaveCount(4);
+  // Lägg till en lärare utöver passets rader; passets egna rader står inte i sökningen.
+  await panel.getByRole('button', { name: 'Lägg till klass, grupp, lärare eller sal' }).click();
+  const sok = page.getByRole('combobox', { name: 'Sök klass, grupp, lärare, sal eller elev' });
+  await sok.fill('Provlärare 4');
+  await expect(page.getByRole('dialog').getByText('Ingen träff.')).toBeVisible();
+  await sok.fill('Provlärare 2');
+  await page.keyboard.press('Enter');
+  await expect(panel.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Spanska (delar 10 elever)', 'Tyska (delar 10 elever)', 'Provlärare 2']);
+  await expect(panel.locator('[data-rad="larare:larare-2"] .folj-pass')).toHaveCount(htPass(l => l.teacherIds.includes('larare-2')).length);
+  // Urvalet sparas som arbetsvy: klassen och lärarna. Grupperna som bara delar elever har ingen egen rad i förslaget.
+  await panel.getByRole('button', { name: 'Spara som arbetsvy' }).click();
+  await panel.getByLabel('Namn på arbetsvyn').fill('Matematik K1');
+  await page.keyboard.press('Enter');
+  await expect(panel.getByText('Arbetsvyn Matematik K1 är sparad i den här webbläsaren med 3 rader. 2 rader sparas inte: elever och grupper utan egen rad i förslaget. Öppna den i Samlingsvy.')).toBeVisible();
+  // Tillagd rad tas bort; passets rader har ingen sådan knapp.
+  await panel.getByRole('button', { name: 'Ta bort Provlärare 2 ur Följ passet' }).click();
+  await expect(panel.locator('.folj-chip')).toHaveCount(4);
+  await expect(panel.getByRole('button', { name: /^Ta bort /u })).toHaveCount(0);
+  // Arbetsvyn öppnas i samlingsvyn med samma rader.
+  await tabell.vy(page, 'Samlingsvy').click();
+  await val(samling.vy(page), 'Arbetsvy').selectOption('Matematik K1');
+  await expect(samling.vy(page).locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Provlärare 2']);
+});
+
+test('samlingsvy vid 200 % textstorlek: raderna rullar i sin ram, inte sidan', async ({ page }, info) => {
+  test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
+  for (const width of [1280, 1600]) {
+    await samling.start(page, width);
+    await samling.folj(page, { elever: false });
+    await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
+    const vy = samling.vy(page);
+    await samling.laggTill(page, 'Klass 1');
+    await samling.laggTill(page, 'Provlärare 4');
+    await vy.getByLabel('Markera Klass 1 för gemensam ledig tid').check();
+    await vy.getByLabel('Markera Provlärare 4 för gemensam ledig tid').check();
+    await expect(samling.rad(page, 'ledig')).toBeVisible();
+    await vy.getByRole('button', { name: 'Sök ledig lärare eller sal' }).click();
+    await expect(page.getByRole('region', { name: 'Sök ledig lärare eller sal' })).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    if (shots) await page.screenshot({ path: `${shots}/schema-samling-200-${width}.png`, fullPage: true });
+    await vy.getByRole('group', { name: 'Visa som' }).getByRole('button', { name: 'Resursmatris' }).click();
+    await expect(vy.locator('.samling-kompakt')).toHaveCount(forslag.teachers.length);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    if (shots) await page.screenshot({ path: `${shots}/schema-samling-matris-200-${width}.png`, fullPage: true });
+    await page.unrouteAll({ behavior: 'ignoreErrors' });
+  }
 });

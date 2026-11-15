@@ -376,3 +376,82 @@
 .passtabell-ram tr.passtabell-grupp th { padding: .625rem .5rem .375rem; text-align: left; font-weight: 400; background: var(--secondary); color: var(--secondary-foreground); white-space: normal; }
 .passtabell-ram tr.passtabell-grupp strong { font-weight: 600; }
 .schema-workspace .passtabell .empty-state { display: grid; gap: .75rem; justify-items: start; }
+
+/* ── 05.2-SM-SAMLINGSVY: flera scheman samtidigt (design/Samlingsvy.dc.html). Raderna är Följ passets (folj-rad, folj-dag, folj-pass); här finns chips med
+   ta bort, arbetsvyn, valen, fälten i raderna (lager, håltid, gemensam ledig tid, lunchtryck), färgtonerna, resursmatrisen och panelen Sök ledig.
+   Bara designsystemets variabler. Tonerna är blandningar av befintliga ytor; texten står alltid i rutan, så färgen bär aldrig betydelsen ensam. */
+.samling-arbetsvy { display: flex; flex-wrap: wrap; gap: .5rem; align-items: end; }
+.samling-arbetsvy label, .samling-namnform label, .samling-ledig-falt label { display: grid; gap: .375rem; font-size: .875rem; color: var(--muted-foreground); }
+.samling-arbetsvy select { min-width: 14rem; max-width: 100%; }
+.samling-arbetsvy button, .samling-namnform button, .samling-ledig button { min-height: var(--control-height); height: auto; white-space: normal; }
+.folj-chip.samling-chip { display: inline-flex; align-items: center; gap: .25rem; }
+.samling-chip button { display: inline-flex; align-items: center; justify-content: center; min-width: 1.75rem; min-height: 1.75rem; margin: -.125rem -.5rem -.125rem 0; padding: 0; border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--muted-foreground); cursor: pointer; }
+.samling-chip button:hover { background: var(--secondary); color: var(--foreground); }
+.samling-chip button:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.samling-chip button svg { width: 1rem; height: 1rem; }
+.folj-chips .schema-chip { display: inline-flex; align-items: center; gap: .375rem; cursor: pointer; }
+.folj-chips .schema-chip:disabled { opacity: .55; cursor: default; }
+.folj-chips .schema-chip svg { width: 1rem; height: 1rem; }
+.samling-namnform { display: flex; flex-wrap: wrap; gap: .5rem .75rem; align-items: end; padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); flex-basis: 100%; }
+.samling-namnform input { min-height: var(--control-height); min-width: min(18rem, 100%); padding: 0 .75rem; border: 1px solid var(--input); border-radius: var(--radius); background: var(--card); color: var(--foreground); font: inherit; }
+.samling-namnform .schema-note { flex-basis: 100%; margin: 0; }
+.schema-workspace .samling-val select { min-width: 9rem; }
+.samling-filter { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; margin: 0; padding: 0; border: 0; min-width: 0; }
+.samling-filter legend { float: left; margin-right: .5rem; }
+.samling-status:empty { display: none; }
+.samling-rutnat { overflow-x: auto; }
+.samling-rutnat .folj-rad { min-width: 46rem; }
+.schema-workspace .samling-radval { display: flex; flex-direction: row; align-items: center; gap: .5rem; min-height: 2.75rem; cursor: pointer; }
+.samling-radval input { flex: none; width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
+.samling-radval span { display: flex; flex-direction: column; min-width: 0; }
+.samling-radval:has(:focus-visible) { outline: 3px solid var(--ring); outline-offset: 1px; border-radius: var(--radius-sm); }
+.folj-dag.samling-valbar { cursor: crosshair; }
+.samling-falt { z-index: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; margin: 0; padding: 0; list-style: none; font-size: .625rem; line-height: 1; white-space: nowrap; }
+.samling-falt.falt-lunch { text-align: center; }
+.samling-haltid { border: 1px dotted var(--schema-hatch-border); border-radius: var(--radius-sm); background: color-mix(in srgb, var(--warning-surface) 60%, transparent); color: var(--warning-foreground); }
+.samling-tryck { border: 1px solid color-mix(in srgb, var(--info-foreground) 45%, var(--info-surface)); border-radius: var(--radius-sm); color: var(--foreground); font-weight: 600; }
+.samling-tryck-1 { background: var(--info-surface); }
+.samling-tryck-2 { background: color-mix(in srgb, var(--info-foreground) 22%, var(--info-surface)); }
+.samling-tryck-3 { background: color-mix(in srgb, var(--info-foreground) 42%, var(--info-surface)); }
+.samling-tryck-hogst { justify-content: flex-start; color: var(--muted-foreground); }
+[data-rad="ledig"] .samling-falt, [data-rad="lunchtryck"] .samling-falt { top: .375rem; bottom: .375rem; font-size: .6875rem; }
+[data-rad="ledig"] .folj-dag, [data-rad="lunchtryck"] .folj-dag { background: var(--card); }
+.folj-pass.samling-ton-0, .schema-sw.samling-ton-0 { background: var(--accent); border-color: color-mix(in srgb, var(--primary) 35%, var(--card)); }
+.folj-pass.samling-ton-1, .schema-sw.samling-ton-1 { background: var(--success-surface); border-color: color-mix(in srgb, var(--success-foreground) 40%, var(--success-surface)); }
+.folj-pass.samling-ton-2, .schema-sw.samling-ton-2 { background: var(--warning-surface); border-color: color-mix(in srgb, var(--warning-foreground) 45%, var(--warning-surface)); }
+.folj-pass.samling-ton-3, .schema-sw.samling-ton-3 { background: var(--secondary); border-color: color-mix(in srgb, var(--secondary-foreground) 35%, var(--secondary)); }
+.folj-pass.samling-ton-4, .schema-sw.samling-ton-4 { background: color-mix(in srgb, var(--heading-accent) 22%, var(--card)); border-color: color-mix(in srgb, var(--heading-accent) 60%, var(--card)); }
+.folj-pass.samling-ton-5, .schema-sw.samling-ton-5 { background: color-mix(in srgb, var(--success-foreground) 16%, var(--info-surface)); border-color: color-mix(in srgb, var(--success-foreground) 45%, var(--info-surface)); }
+.schema-sw.samling-ton-0, .schema-sw.samling-ton-1, .schema-sw.samling-ton-2, .schema-sw.samling-ton-3, .schema-sw.samling-ton-4, .schema-sw.samling-ton-5 { border-width: 1px; border-style: solid; }
+/* Resursmatrisen: samma rad i kompakt höjd, passen som fyllda rutor. */
+.samling-kompakt .folj-dag { min-height: 1.5rem; }
+.samling-kompakt .folj-pass { top: .1875rem; height: calc(100% - .375rem); padding: 0; background: color-mix(in srgb, var(--primary) 55%, var(--card)); border-color: var(--primary); }
+.samling-kompakt .folj-pass.krock { background: var(--destructive); border-color: var(--destructive); }
+.samling-matris-namn { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 0 .375rem; align-items: center; width: 100%; min-height: 1.75rem; padding: .125rem .375rem; border: 1px solid transparent; border-radius: var(--radius-sm);
+  background: transparent; color: var(--foreground); font: inherit; font-size: .8125rem; text-align: left; cursor: pointer; }
+.samling-matris-namn svg { grid-row: span 2; width: 1rem; height: 1rem; color: var(--primary); }
+.samling-matris-namn b { font-weight: 600; }
+.samling-matris-namn small { grid-column: 2; color: var(--muted-foreground); font-size: .6875rem; }
+.samling-matris-namn:hover:not(:disabled) { border-color: var(--input); background: var(--accent); }
+.samling-matris-namn:focus-visible { outline: 3px solid var(--ring); outline-offset: 1px; }
+.samling-matris-namn:disabled { cursor: default; color: var(--muted-foreground); }
+.samling-matris-namn:disabled b { grid-column: span 2; }
+/* Sök ledig lärare eller sal. */
+.samling-ledig { display: grid; gap: .75rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); }
+.samling-ledig-huvud { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem 1rem; align-items: center; }
+.samling-ledig h3 { margin: 0; font-size: 1.0625rem; font-weight: 600; color: var(--foreground); }
+.samling-ledig h3:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; border-radius: var(--radius-sm); }
+.samling-ledig h4 { margin: 0 0 .375rem; font-size: .875rem; font-weight: 600; color: var(--foreground); }
+.samling-ledig-falt { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; }
+.samling-ledig-falt select { min-height: var(--control-height); min-width: 8rem; max-width: 100%; }
+.samling-ledig .schema-note { margin: 0; }
+.samling-ledig-listor { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(20rem, 100%), 1fr)); gap: 1rem 1.5rem; }
+.samling-ledig-listor ul { display: grid; gap: .125rem; max-height: 16rem; margin: 0; padding: 0; overflow-y: auto; list-style: none; }
+.samling-ledig-listor li { display: flex; flex-wrap: wrap; gap: .25rem .75rem; align-items: center; min-height: 2.25rem; padding: 0 .5rem; border-bottom: 1px solid var(--border); font-size: .875rem; color: var(--foreground); }
+.samling-ledig-listor li > span:first-child { flex: 1 1 8rem; }
+.samling-ledig-listor li button { min-height: 2rem; }
+.samling-sok-slag { margin-left: auto; color: var(--muted-foreground); font-size: .75rem; }
+.samling-tid { position: absolute; inset: 0; z-index: 0; margin: 0; padding: 0; list-style: none; }
+.samling-tid button { display: block; width: 100%; height: 100%; margin: 0; padding: 0; border: 0; background: transparent; cursor: crosshair; }
+.samling-valbar .folj-pass { z-index: 1; }
+.samling-valbar .samling-falt { pointer-events: none; z-index: 1; }

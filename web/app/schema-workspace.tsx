@@ -25,6 +25,7 @@ import { Folj } from './schema/folj.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
 import { Vyval, rememberVy, storedVy, visadVy, type SchemaVy } from './schema/vyval.tsx';
 import { Passtabell, tomtTabellVal, type PassTabellVal } from './schema/passtabell.tsx';
+import { useSamling } from './schema/samling.tsx';
 import './valplaner.css';
 import './schema.css';
 
@@ -290,9 +291,12 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     setVillkor({ ...villkor, egna: [...villkor.egna.slice(0, borttaget.index), borttaget.rule, ...villkor.egna.slice(borttaget.index)] });
     aterFalt.current = `egna:${borttaget.index}`; setBorttaget(null);
   }
+  // Samlingsvyn (05.2-SM-SAMLINGSVY): flera scheman samtidigt, som vy i vyväljaren och som tillägg i Följ passet.
+  const samling = useSamling({ forslag, unitId, villkor, provade, placements: placeringar, term: shownTerm, flagged, oppna: () => { setVy('samling'); rememberVy('samling'); }, onSessionLost });
   // Verktygsfält, snabbmeny, spärrar och tangentbord i veckan (05.2-SM-MENY).
   const meny = useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla: allaITerminen, visad: selected, unplaced, kallor: lager?.kallor ?? {}, length: shownMin, checking, week,
-    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass, andraVillkor: andraFalt });
+    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass, andraVillkor: andraFalt,
+    ledigTid: () => samling.visaLedigTid({ slag: by === 'class' ? 'klass' : 'larare', id: selected }) });
   /** Visa i veckan (05.2-SM-PASSTABELL): veckan för passets klass (eller lärare) och termin, med passet markerat och i fokus. */
   function visaIVeckan(l: SchemaForslagLesson) {
     if (!forslag) return;
@@ -370,7 +374,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
 
       {forslag.lessons.length > 0 && <>
         {/* Vyväljaren (05.2-SM-PASSTABELL): veckan och tabellerna visar samma utkast. Ångra, flyttpanelen och Följ passet är gemensamma. */}
-        <Vyval vy={vy} onVy={setVy} villkor={villkorsvy} veckaVal={<>
+        <Vyval vy={vy} onVy={setVy} villkor={villkorsvy} samling={samling.vy} veckaVal={<>
             <fieldset><legend className="sr-only">Visa schema för</legend>
               <Button type="button" variant={by === 'class' ? 'secondary' : 'outline'} aria-pressed={by === 'class'} onClick={() => setBy('class')}>Klass</Button>
               <Button type="button" variant={by === 'teacher' ? 'secondary' : 'outline'} aria-pressed={by === 'teacher'} disabled={forslag.teachers.length === 0} onClick={() => setBy('teacher')}>Lärare</Button>
@@ -399,7 +403,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
               onAvbryt={() => { if (pickedLesson) { focus.current = pickedLesson.id; dispatch({ type: 'pick', lesson: null }); } }}/>
           </div>
         </>}/>
-        {foljt && <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
+        {foljt && <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm} samling={samling.folj}
           onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => { setFolj(null); passElement(foljt.id)?.focus(); }} onSessionLost={onSessionLost}
           onMove={p => void andra({ type: 'move', lesson: foljt.id, day: p.day, startMin: p.startMin, room: p.room })}/>}
         {visadVy(vy, villkorsvy !== undefined) === 'vecka' && <>

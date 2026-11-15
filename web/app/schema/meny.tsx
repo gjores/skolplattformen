@@ -2,7 +2,8 @@
 // Snabbmenyn, verktygen och tangentbordet i veckan (05.2-SM-MENY, Main och Sparra). Allt som går att göra med ett pass eller en tid
 // nås på tre likvärdiga vägar: högerklick, verktygsfält och tangentbord. En spärr blir ett vanligt eget villkor, via utkastet så att den kan ångras.
 // Spärren är ett tidsvillkor: arbetsytan låter kontrollen pröva den direkt, och passen märks ur kontrollens svar (05.2-SM-VILLKOR-DIREKT).
-// Menypunkter för funktioner som kommer i senare planer (Varför inte här, Föreslå placering, Lås, Byt, Gemensam ledig tid) finns inte än.
+// Menypunkter för funktioner som kommer i senare planer (Varför inte här, Föreslå placering, Lås, Byt) finns inte än.
+// Visa gemensam ledig tid (05.2-SM-SAMLINGSVY) finns på tom tid när arbetsytan kopplar in den.
 // Passets punkter står i `PassMenypunkter`, som passtabellen också använder (05.2-SM-PASSTABELL).
 import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub,
@@ -30,6 +31,8 @@ export type MenyVal = {
   andraVillkor?: (kalla: SchemaKalla) => void;
   /** Öppnar Följ passet för ett pass (05.2-SM-FOLJ); utan den finns ingen menypunkt. */
   folj?: (lesson: string) => void;
+  /** Visar gemensam ledig tid i samlingsvyn (05.2-SM-SAMLINGSVY); utan den finns ingen menypunkt. */
+  ledigTid?: () => void;
   utkast: SchemaUtkast;
   dispatch: (action: SchemaUtkastAtgard) => void;
   villkor: SchemaVillkor;
@@ -101,7 +104,7 @@ export function oppnaMenyVid(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, ledigTid }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -277,6 +280,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
         <ContextMenuSubContent className="schema-meny">{unplaced.length === 0 ? <ContextMenuItem disabled>Viloytan är tom</ContextMenuItem>
           : unplaced.map(l => <ContextMenuItem key={l.id} disabled={startTimes(forslag!, tid.day, l.durationMin + l.marginMin).length === 0}
             onClick={() => laggUt(l, tid)}>{l.title}, {l.durationMin} min</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub>
+      {ledigTid && <><ContextMenuSeparator/><ContextMenuItem onClick={flyttarFokus(ledigTid)}>Visa gemensam ledig tid</ContextMenuItem></>}
     </>}
   </ContextMenuContent>;
 

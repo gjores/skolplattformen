@@ -1,17 +1,19 @@
 'use client';
 // Följ passet (05.2-SM-FOLJ, design/Samlingsvy.dc.html): alla scheman ett pass berör, rad för rad med gemensam tidsaxel, och överst var passet kan ligga.
 // Panelen följer markeringen tills den låses. Grupper, elevkluster och elevlistan kommer från servern (/api/schema/folj); lägena från /api/schema/lagen.
-// Elevens schema ritas här ur utkastets placeringar. Inget sparas.
+// Elevens schema ritas här ur utkastets placeringar. Inget sparas. Raden (`SamlingRad`) delas med samlingsvyn (05.2-SM-SAMLINGSVY).
 import { useEffect, useId, useRef, useState, type CSSProperties, type Ref } from 'react';
 import { LockIcon, LockOpenIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { SCHEMA_CONTRACT_VERSION, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaPlacement, type SchemaVillkor } from '@/lib/schema-contract.ts';
-import { elevKrockar, foljRader, parseSchemaFolj, type FoljRad, type SchemaFolj } from '@/lib/schema-folj.ts';
+import { elevKrockar, foljRader, parseSchemaFolj, type SchemaFolj } from '@/lib/schema-folj.ts';
 import { SCHEMA_LAGEN, parseSchemaLagen, type SchemaLagen, type SchemaLagenPosition } from '@/lib/schema-lagen.ts';
-import { clock, dayName, names } from './delat.ts';
+import { dayName, names } from './delat.ts';
 import { LAGE, LAGE_KLASS, Mojligt } from './mojligt.tsx';
-import { lanes, veckansSpann } from './vecka.tsx';
+import { veckansSpann } from './vecka.tsx';
+import { SamlingRad } from './samling-matris.tsx';
+import type { SamlingFolj } from './samling.tsx';
 
 const FEL: Record<string, string> = {
   schema_underlag_changed: 'Underlaget eller villkoren som avgör vilka pass som finns har ändrats sedan förslaget togs fram. Ta fram ett nytt schemaförslag för att följa passet.',
@@ -35,9 +37,11 @@ type Props = {
   onLock: (locked: boolean) => void; onClose: () => void; onMove: (p: SchemaLagenPosition) => void; onSessionLost: () => void;
   /** Terminen veckan visar; passets egen termin går före. */
   term: 'ht' | 'vt';
+  /** Följ passet som läge av samlingsvyn (05.2-SM-SAMLINGSVY): tillagda rader, "Lägg till" och "Spara som arbetsvy". */
+  samling?: SamlingFolj;
 };
 
-export function Folj({ forslag, lesson, placements, villkor, locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, term }: Props) {
+export function Folj({ forslag, lesson, placements, villkor, locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, term, samling }: Props) {
   const heading = useId(), pupilLabel = useId();
   const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
@@ -76,8 +80,10 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
   const loading = raknat !== key + (pupil ?? '') + villkorKey, lagen = svar?.villkor === villkorKey ? svar.lagen : null;
 
   const visas = (l: SchemaForslagLesson) => l.term === null || l.term === (lesson.term ?? term);
-  const rader = foljRader(forslag, lesson.id, folj, visas);
-  const krock = elevKrockar(rader);
+  const passets = foljRader(forslag, lesson.id, folj, visas);
+  // Rader som lagts till från samlingsvyn står efter passets egna.
+  const rader = [...passets, ...(samling?.rader(visas) ?? []).filter(r => !passets.some(x => x.key === r.key))];
+  const krock = elevKrockar(passets);
   const { start, end } = veckansSpann(forslag.days);
   const elevNamn = pupil ? folj?.elever?.find(e => e.id === pupil)?.name : undefined;
   const kontext = { lessons: forslag.lessons, classes: forslag.classes, teachers: forslag.teachers, rooms: forslag.rooms, placements, ...(elevNamn ? { elev: elevNamn } : {}) };
@@ -99,7 +105,8 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
       </div>
     </div>
     <div className="folj-chips"><span className="schema-note" id={`${heading}-visas`}>Visas:</span>
-      <ul aria-labelledby={`${heading}-visas`}>{rader.map(r => <li key={r.key} className="folj-chip">{r.chip}</li>)}</ul></div>
+      <ul aria-labelledby={`${heading}-visas`}>{rader.map(r => <li key={r.key} className="folj-chip samling-chip">{r.chip}{samling?.taBort(r.key, r.name)}</li>)}</ul>
+      {samling?.verktyg(passets)}</div>
     <div className="folj-for">
       {elever && elever.length > 0
         ? <label htmlFor={pupilLabel}>Möjliga starttider räknas för</label>
@@ -117,7 +124,7 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
       <div className="folj-rad folj-dagar" aria-hidden="true"><div/>{forslag.days.map((_, d) => <div key={d}>{dayName(d)}</div>)}</div>
       <Mojligt days={forslag.days} span={{ start, end }} step={forslag.startGridMin} lesson={lesson.id} title={lesson.title} lengthMin={lesson.durationMin}
         lagen={lagen} loading={loading} kontext={kontext} disabled={checking} onMove={onMove}/>
-      {rader.map(r => <Rad key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes}/>)}
+      {rader.map(r => <SamlingRad key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes}/>)}
     </div>
     {krock.texter.length > 0 && <div className="folj-krock">{krock.texter.map(t => <p key={t}>{t}</p>)}</div>}
     {rader.some(r => r.slag === 'elev') && <p className="schema-note">Elevens pass kommer ur klassen och elevens grupper; streckad kant = gruppens pass.</p>}
@@ -129,30 +136,4 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
       {krock.lessons.size > 0 && <li><span className="schema-sw falt-brott" aria-hidden="true"/>Krock för eleven</li>}
     </ul>
   </section>;
-}
-
-/** Kort namn i passrutan, som designvyns "Ma", "Sv": två första bokstäverna. Hela namnet står i skärmläsartexten och i title. */
-const kort = (title: string) => title.slice(0, 2);
-/** "Klass 1, Klass 2" → "K1, K2". */
-const kortKlass = (text: string) => text.replace(/\bKlass (\d+)/gu, 'K$1');
-
-function Rad({ rad, days, start, followed, krock, classes }: { rad: FoljRad; days: SchemaForslag['days']; start: number; followed: string; krock: Set<string>; classes: SchemaForslag['classes'] }) {
-  const visaKlass = rad.slag === 'larare' || rad.slag === 'sal';
-  return <div className={`folj-rad folj-${rad.slag}`}>
-    <div className="folj-namn"><b>{rad.name}</b><small>{rad.detail}</small></div>
-    {days.map((_, day) => {
-      const own = rad.lessons.filter(l => l.day === day).sort((a, b) => a.startMin! - b.startMin! || a.id.localeCompare(b.id)), lane = lanes(own);
-      return <ul key={day} className="folj-dag" aria-label={`${rad.name}, ${dayName(day)}`}>
-        {own.map(l => {
-          const place = lane.get(l.id)!, mark = [l.id === followed ? 'passet som följs' : '', rad.fromGroup?.has(l.id) ? 'gruppens pass' : '', krock.has(l.id) && rad.slag === 'elev' ? 'krock för eleven' : ''].filter(Boolean);
-          const extra = visaKlass ? names(l.classIds, classes) : '';
-          return <li key={l.id} title={`${l.title}${extra ? `, ${extra}` : ''}, ${clock(l.startMin!)}–${clock(l.startMin! + l.durationMin)}`}
-            className={`folj-pass${l.id === followed ? ' vald' : ''}${rad.fromGroup?.has(l.id) ? ' grupp' : ''}${krock.has(l.id) && rad.slag === 'elev' ? ' krock' : ''}`}
-            style={{ '--at': l.startMin! - start, '--length': l.durationMin, '--lane': place.lane, '--lanes': place.lanes } as CSSProperties}>
-            <span aria-hidden="true">{kort(l.title)}{extra ? ` ${kortKlass(extra)}` : ''}</span>
-            <span className="sr-only">{l.title}{extra ? `, ${extra}` : ''}, {clock(l.startMin!)}–{clock(l.startMin! + l.durationMin)}{mark.length ? ` (${mark.join(', ')})` : ''}</span></li>;
-        })}
-      </ul>;
-    })}
-  </div>;
 }
