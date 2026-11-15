@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 
-pub const CONTRACT_VERSION: u32 = 2;
+pub const CONTRACT_VERSION: u32 = 3;
 /// Lösaren håller en dag i ett 128-bitarsord.
 pub const MAX_SLOTS_PER_DAY: u32 = 128;
 pub const MAX_PERIODS: usize = 32;
@@ -484,6 +484,37 @@ pub struct Stats {
     pub seed: u64,
 }
 
+/// Faktiska sökhändelser, summerade över samtliga söktrådar. De är inte ett
+/// mått på bevisad svårighet. Samma frö, iterationsgräns och en tråd ger samma tal.
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct LessonSearchStat {
+    pub lesson: String,
+    pub attempts: u64,
+    pub moves: u64,
+    pub backtracks: u64,
+    pub ejections: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BottleneckStat {
+    /// Orsaken som faktiskt påträffades vid ett placeringsförsök.
+    pub code: String,
+    pub resource: Option<String>,
+    pub count: u64,
+}
+
+#[derive(Clone, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SearchStatistics {
+    /// Högst 20 pass, fallande efter backtracks + ejections, sedan attempts.
+    pub lessons: Vec<LessonSearchStat>,
+    /// Högst 20 kombinationer av villkor och resurs, fallande efter antal.
+    pub bottlenecks: Vec<BottleneckStat>,
+    pub iterations: u64,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
 #[serde(deny_unknown_fields)]
 pub struct Solution {
@@ -497,6 +528,7 @@ pub struct Solution {
     pub diagnoses: Vec<Diagnosis>,
     pub metrics: Metrics,
     pub stats: Stats,
+    pub search_statistics: SearchStatistics,
 }
 
 impl Problem {

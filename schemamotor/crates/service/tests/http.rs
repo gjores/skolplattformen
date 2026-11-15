@@ -112,3 +112,23 @@ fn validate_reports_violations_without_changing_anything() {
     assert_eq!(fine["violations"].as_array().unwrap().len(), 0);
     assert_eq!(fine["metrics"]["placed_lessons"], 2);
 }
+
+#[test]
+fn preflight_requires_authorization_and_reports_without_searching() {
+    let addr = start(Config::new(TOKEN.into()));
+    let body = problem(30);
+    assert_eq!(call(&addr,"POST","/v1/diagnose",None,&body).0,401);
+    assert_eq!(call(&addr,"GET","/v1/diagnose",Some(TOKEN),"").0,405);
+    assert_eq!(call(&addr,"POST","/v1/diagnose?time_ms=100",Some(TOKEN),&body).0,400);
+    let (status,text)=call(&addr,"POST","/v1/diagnose",Some(TOKEN),&body);
+    assert_eq!(status,200);
+    let out:serde_json::Value=serde_json::from_str(&text).unwrap();
+    assert_eq!(out["version"],schemamotor_model::CONTRACT_VERSION);
+    assert_eq!(out["problem_id"],"prov");
+    assert!(out["diagnoses"].as_array().unwrap().iter().any(|d|d["code"]=="too_little_time"));
+    assert!(out.get("placements").is_none() && out.get("search_statistics").is_none());
+    let old=body.replace(&format!("\"version\":{}",schemamotor_model::CONTRACT_VERSION),"\"version\":2");
+    let (_,text)=call(&addr,"POST","/v1/diagnose",Some(TOKEN),&old);
+    let out:serde_json::Value=serde_json::from_str(&text).unwrap();
+    assert_eq!(out["diagnoses"][0]["code"],"version");
+}

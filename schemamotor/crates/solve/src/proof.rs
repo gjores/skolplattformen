@@ -86,6 +86,16 @@ pub fn presolve(p: &Problem, inst: &Inst) -> Vec<Diagnosis> {
         }
     }
 
+    // Undervisning utan utsedd lärare är planeringsbar men måste synliggöras.
+    // Egna elevaktiviteter utan lärardeltagare har ingen ActivityTime och omfattas inte.
+    let vacant: Vec<_> = p.lessons.iter().filter(|l| l.teachers.is_empty() && !l.groups.is_empty()
+        && l.activity.as_ref().is_some_and(|id| p.activities.iter().any(|a| &a.id == id && !a.time.is_empty()))).collect();
+    if !vacant.is_empty() {
+        let groups: BTreeSet<_> = vacant.iter().flat_map(|l| l.groups.iter().cloned()).collect();
+        out.push(diag("group_without_teacher", format!("{} undervisningspass saknar utsedd lärare. Tilldela lärare för grupperna i tjänstefördelningen.", vacant.len()),
+            vacant.iter().map(|l| l.id.clone()).collect(), groups.into_iter().collect(), false));
+    }
+
     // Låsta pass mot varandra.
     let mut st = State::new(inst);
     let mut plan = Plan::default();
@@ -187,6 +197,28 @@ pub fn presolve(p: &Problem, inst: &Inst) -> Vec<Diagnosis> {
             out.push(diag("activity_time", format!("Aktivitet {act} kan få högst {hi} min{period} men ska ha minst {} min.", rule.min), lessons, vec![act.clone()], true));
         } else if lo > rule.max {
             out.push(diag("activity_time", format!("Aktivitet {act} får minst {lo} min{period} men ska ha högst {} min.", rule.max), lessons, vec![act.clone()], true));
+        } else {
+            // Exakta möjliga summor i en förenkling utan resurskrockar.
+            // Om mängden blir stor avstår vi från slutsats, aldrig ett gissat bevis.
+            let mut sums = BTreeSet::from([0i64]);
+            let mut capped = false;
+            for unit in &inst.units {
+                let Some(&(_, m)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
+                let amounts: BTreeSet<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| m * rule.days[d]).collect();
+                if amounts.is_empty() { capped = true; break; }
+                let mut next = BTreeSet::new();
+                for a in &sums {
+                    for b in &amounts {
+                        if a + b <= rule.max { next.insert(a + b); }
+                    }
+                    if next.len() > 20_000 { capped = true; break; }
+                }
+                if capped { break; }
+                sums = next;
+            }
+            if !capped && !sums.iter().any(|&x| x >= rule.min && x <= rule.max) {
+                out.push(diag("indivisible_time", format!("Aktivitet {act}: tillåtna passlängder och veckodagar kan inte ge {}–{} min{period}.", rule.min, rule.max), lessons, vec![act.clone()], true));
+            }
         }
     }
     out

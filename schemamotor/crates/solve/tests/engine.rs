@@ -427,3 +427,120 @@ fn a_margin_is_part_of_the_hash_and_must_follow_the_step() {
     q.lessons[0].margin.as_mut().unwrap().students.after_min = 12;
     assert!(q.check().iter().any(|d| d.code == "time_step" && d.message.contains("marginal")));
 }
+
+// SM-DIAGNOS: förkontroll gör ingen sökning och hittar konkreta orsaker.
+#[test]
+fn preflight_finds_only_the_overbooked_teacher_when_students_have_room() {
+    let p = problem(json!({
+        "time": {"step_min": 5, "days": [{"start_min":480,"end_min":540}]},
+        "teachers": [{"id":"t"}], "groups": [{"id":"a"},{"id":"b"}],
+        "lessons": [lesson("l1",60,"t","a"),lesson("l2",60,"t","b")]
+    }));
+    let found = schemamotor_solve::diagnose(&p);
+    assert_eq!(found.len(), 1);
+    assert_eq!((&*found[0].code, found[0].proof, &found[0].resources), ("too_little_time", true, &vec!["t".to_string()]));
+}
+
+#[test]
+fn preflight_finds_missing_rooms_and_time_that_cannot_be_divided() {
+    let p = problem(json!({
+        "time": {"step_min":5,"days":[{"start_min":480,"end_min":720},{"start_min":480,"end_min":720}]},
+        "teachers":[{"id":"t"}], "groups":[{"id":"g"}],
+        "activities":[{"id":"a","time":[{"weekday_days":[1,2],"min_min":90,"max_min":90}]}],
+        "lessons":[{"id":"l","activity":"a","duration_min":60,"teachers":["t"],"groups":["g"],"rooms":{"count":1,"features":["labb"]}}]
+    }));
+    let found = schemamotor_solve::diagnose(&p);
+    let mut codes: Vec<_> = found.iter().map(|d| d.code.as_str()).collect(); codes.sort();
+    assert_eq!(codes, vec!["indivisible_time", "no_room"]);
+    assert!(found.iter().all(|d| d.proof));
+}
+
+#[test]
+fn preflight_distinguishes_vacant_teaching_from_student_activities() {
+    let p = problem(json!({
+        "groups":[{"id":"g"}],
+        "activities":[{"id":"teaching","time":[{"weekday_days":[1,1,1,1,1],"min_min":60,"max_min":60}]},{"id":"own"}],
+        "lessons":[{"id":"vacant","activity":"teaching","duration_min":60,"groups":["g"]},{"id":"student-activity","activity":"own","duration_min":30,"groups":["g"]}]
+    }));
+    let found = schemamotor_solve::diagnose(&p);
+    assert_eq!(found.len(), 1);
+    assert_eq!((&*found[0].code, found[0].proof, &found[0].lessons), ("group_without_teacher",false,&vec!["vacant".to_string()]));
+    assert_eq!(run(&p).status, Status::Complete, "ett uppmärksamhetsfynd är inget olösbarhetsbevis");
+}
+
+#[test]
+fn preflight_counts_activities_blocked_time_and_margins() {
+    let p = problem(json!({
+        "time":{"step_min":5,"days":[{"start_min":480,"end_min":600}]},
+        "teachers":[{"id":"t","unavailable":[{"day":0,"start_min":480,"end_min":510}]}],
+        "lessons":[
+            {"id":"meeting","duration_min":30,"teachers":["t"],"locked":{"day":0,"start_min":510}},
+            {"id":"teaching","duration_min":65,"teachers":["t"],"margin":{"teachers":{"before_min":5,"after_min":5}}}
+        ]
+    }));
+    let found = schemamotor_solve::diagnose(&p);
+    assert!(found.iter().any(|d| d.code == "too_little_time" && d.resources == vec!["t"] && d.proof), "{:?}",found);
+    let mut long = p.clone();
+    long.lessons[1].allowed = vec![Interval{day:0,start_min:540,end_min:570}];
+    assert!(schemamotor_solve::diagnose(&long).iter().any(|d| d.code == "no_possible_time" && d.lessons.contains(&"teaching".to_string())));
+}
+
+#[test]
+fn search_events_and_bottlenecks_are_real_bounded_and_repeatable() {
+    let p = school();
+    let (a,b) = (run(&p),run(&p));
+    assert_eq!(a.search_statistics,b.search_statistics);
+    assert_eq!(a.search_statistics.iterations,a.stats.iterations);
+    assert!(!a.search_statistics.lessons.is_empty());
+    assert!(a.search_statistics.lessons.len() <= 20 && a.search_statistics.bottlenecks.len() <= 20);
+    assert!(a.search_statistics.lessons.iter().any(|l| l.attempts > 0 && l.moves > 0));
+    assert!(a.search_statistics.bottlenecks.iter().any(|b| b.code == "resource_busy" && b.count > 0 && b.resource.is_some()));
+    assert!(a.search_statistics.lessons.iter().all(|s| p.lessons.iter().any(|l| l.id == s.lesson)));
+}
+
+#[test]
+fn preflight_names_the_full_student_cluster_without_overstating_teacher_load() {
+    let p=problem(json!({
+        "time":{"step_min":5,"days":[{"start_min":480,"end_min":540}]},
+        "teachers":[{"id":"t1"},{"id":"t2"}],"clusters":[{"id":"cluster","size":2}],
+        "groups":[{"id":"a","clusters":["cluster"]},{"id":"b","clusters":["cluster"]}],
+        "lessons":[lesson("a1",60,"t1","a"),lesson("b1",60,"t2","b")]
+    }));
+    let findings=schemamotor_solve::diagnose(&p);
+    assert_eq!(findings.len(),1);
+    assert_eq!((&*findings[0].code,&findings[0].resources),("too_little_time",&vec!["cluster".to_string()]));
+    assert!(findings[0].proof);
+}
+
+#[test]
+fn five_hundred_one_vacant_lessons_are_one_actionable_finding() {
+    let groups:Vec<_>=(0..501).map(|i|json!({"id":format!("g{i}")})).collect();
+    let activities:Vec<_>=(0..501).map(|i|json!({"id":format!("a{i}"),"time":[{"weekday_days":[1,1,1,1,1],"min_min":30,"max_min":30}]})).collect();
+    let lessons:Vec<_>=(0..501).map(|i|json!({"id":format!("l{i}"),"activity":format!("a{i}"),"duration_min":30,"groups":[format!("g{i}")]})).collect();
+    let p=problem(json!({"groups":groups,"activities":activities,"lessons":lessons}));
+    let findings=schemamotor_solve::diagnose(&p);
+    assert_eq!(findings.len(),1);
+    assert_eq!(findings[0].code,"group_without_teacher");
+    assert_eq!(findings[0].lessons.len(),501);
+    assert!(findings[0].message.contains("501 undervisningspass"));
+    let out=solve(&p,&Options{time_limit_ms:None,max_iters:Some(2000),threads:1,seed:7},&AtomicBool::new(false));
+    assert_eq!(out.status,Status::Complete);
+    assert_eq!(out.diagnoses.len(),1);
+    assert_eq!(out.placements.len(),501);
+}
+
+#[test]
+fn oversized_preflight_and_solution_findings_have_an_explicit_summary() {
+    let lessons:Vec<_>=(0..501).map(|i|json!({"id":format!("l{i}"),"duration_min":60,"groups":["g"],"allowed":[{"day":0,"start_min":480,"end_min":485}]})).collect();
+    let p=problem(json!({"groups":[{"id":"g"}],"lessons":lessons}));
+    let out=solve(&p,&Options{time_limit_ms:None,max_iters:Some(100),threads:1,seed:7},&AtomicBool::new(false));
+    assert_eq!(out.status,Status::Infeasible);
+    for findings in [schemamotor_solve::diagnose(&p),out.diagnoses] {
+        assert_eq!(findings.len(),500);
+        assert_eq!(findings.iter().filter(|d|d.proof).count(),499);
+        let summary=findings.last().unwrap();
+        assert_eq!(summary.code,"more_diagnoses");
+        assert!(summary.message.contains("Ytterligare 2 fynd"));
+        assert!(!summary.proof && summary.lessons.is_empty() && summary.resources.is_empty());
+    }
+}

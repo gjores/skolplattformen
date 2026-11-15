@@ -7,10 +7,11 @@
 //! regelbrott; inget räknas om och inget rättas.
 //! `POST /v1/positions` tar underlag, placeringar och ett pass och svarar med
 //! läget för varje starttid i veckan (05.2-SM-LAGEN), prövat med samma kontrollant.
+//! `POST /v1/diagnose` ger förkontroller utan motorsökning (05.2-SM-DIAGNOS).
 //! Kö, jobbstatus och avbryt återstår.
 
 use schemamotor_model::{Placement, Problem, CONTRACT_VERSION};
-use schemamotor_solve::{solve, Options};
+use schemamotor_solve::{diagnose, solve, Options};
 use schemamotor_validate::{positions, validate, PositionsError};
 use serde::Deserialize;
 use std::io::Read;
@@ -97,7 +98,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return reply(request, 200, format!("{{\"contract_version\":{CONTRACT_VERSION}}}"));
     }
     let check = path == "/v1/validate" || path == "/v1/positions";
-    if path != "/v1/solve" && !check {
+    if path != "/v1/solve" && path != "/v1/diagnose" && !check {
         return error(request, 404, "not_found");
     }
     if *request.method() != Method::Post {
@@ -109,7 +110,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return error(request, 401, "unauthorized");
     }
     let Ok(limit) = time_ms(request.url(), cfg) else { return error(request, 400, "bad_request") };
-    if check && request.url().contains('?') {
+    if (check || path == "/v1/diagnose") && request.url().contains('?') {
         return error(request, 400, "bad_request");
     }
     if request.body_length().is_some_and(|n| n > cfg.max_body_bytes) {
@@ -160,6 +161,10 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return error(request, 429, "busy");
     }
     let _guard = Running(running);
+    if path == "/v1/diagnose" {
+        let out = serde_json::json!({"version": CONTRACT_VERSION, "problem_id": problem.id, "diagnoses": diagnose(&problem)});
+        return reply(request, 200, out.to_string());
+    }
     let options = Options { time_limit_ms: Some(limit), max_iters: None, threads: cfg.threads, seed: 1 };
     let solution = solve(&problem, &options, &AtomicBool::new(false));
     reply(request, 200, serde_json::to_string(&solution).expect("resultat"));

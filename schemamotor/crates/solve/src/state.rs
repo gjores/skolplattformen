@@ -18,6 +18,8 @@ pub type Pos = (u8, u8);
 pub struct Plan {
     pub rooms: Vec<u16>,
     pub eject: Vec<u32>,
+    /// De villkor/resurser som faktiskt stod i vägen i detta försök.
+    pub causes: Vec<(&'static str, Option<usize>)>,
 }
 
 pub struct State<'a> {
@@ -288,7 +290,9 @@ impl<'a> State<'a> {
         let unit = &inst.units[u];
         out.eject.clear();
         out.rooms.clear();
+        out.causes.clear();
         if unit.dom[d] >> s & 1 == 0 || unit.self_conflict.is_some() {
+            out.causes.push(("allowed_time", None));
             return false;
         }
         let pad = inst.pad;
@@ -301,6 +305,7 @@ impl<'a> State<'a> {
             for p in 0..inst.periods {
                 let at = self.ix(res as usize, p, d);
                 if unit.pm >> p & 1 == 1 && (self.occ[at] & vs_core != 0 || self.full[at] & core != 0) {
+                    out.causes.push(("resource_busy", Some(res as usize)));
                     if !eject || !self.collect(res as usize, d, unit.pm, vs_core, core, u, &mut out.eject) {
                         return false;
                     }
@@ -312,6 +317,7 @@ impl<'a> State<'a> {
             let m = span(s, len as u32);
             for p in 0..inst.periods {
                 if unit.pm >> p & 1 == 1 && self.occ[self.ix(res as usize, p, d)] & m != 0 {
+                    out.causes.push(("linked_overlap", Some(res as usize)));
                     if !eject || !self.collect(res as usize, d, unit.pm, m, m, u, &mut out.eject) {
                         return false;
                     }
@@ -327,6 +333,7 @@ impl<'a> State<'a> {
             if !taken {
                 continue;
             }
+            out.causes.push(("same_day", None));
             if !eject {
                 return false;
             }
@@ -360,6 +367,7 @@ impl<'a> State<'a> {
                     if self.day_ok(ent, d, o | m) {
                         break;
                     }
+                    out.causes.push((if (o | m).count_ones() > inst.ent_max[ent] { "max_day" } else { "lunch" }, Some(ent)));
                     if !eject {
                         return false;
                     }
@@ -399,7 +407,9 @@ impl<'a> State<'a> {
                 if out.rooms.len() == want {
                     break;
                 }
-                if out.rooms.contains(&r) || inst.room_block[r as usize * inst.days + d] & mf != 0 {
+                if out.rooms.contains(&r) { continue; }
+                if inst.room_block[r as usize * inst.days + d] & mf != 0 {
+                    out.causes.push(("room_unavailable", Some(inst.room_res(r))));
                     continue;
                 }
                 let res = inst.room_res(r);
@@ -412,9 +422,12 @@ impl<'a> State<'a> {
                 });
                 if free {
                     out.rooms.push(r);
+                } else {
+                    out.causes.push(("room_busy", Some(res)));
                 }
             }
             while out.rooms.len() < want {
+                out.causes.push(("room_requirement", None));
                 if !eject {
                     return false;
                 }

@@ -6,6 +6,7 @@ use crate::compile::*;
 use crate::state::*;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::Instant;
+use std::collections::{BTreeMap, BTreeSet};
 
 pub struct Rng(pub u64);
 
@@ -37,6 +38,8 @@ pub struct Outcome {
     pub snap: Vec<(Option<Pos>, Vec<u16>)>,
     pub obj: i64,
     pub iterations: u64,
+    pub events: Vec<[u64; 4]>,
+    pub bottlenecks: BTreeMap<(&'static str, Option<usize>), u64>,
 }
 
 struct Search<'a, 'b> {
@@ -48,6 +51,9 @@ struct Search<'a, 'b> {
     plan: Plan,
     best: Vec<(Option<Pos>, Vec<u16>)>,
     best_obj: i64,
+    // attempts, moves, backtracks, ejections per samplacerad enhet.
+    events: Vec<[u64; 4]>,
+    bottlenecks: BTreeMap<(&'static str, Option<usize>), u64>,
 }
 
 fn nth_bit(mut m: u128, n: u32) -> u32 {
@@ -58,6 +64,20 @@ fn nth_bit(mut m: u128, n: u32) -> u32 {
 }
 
 impl<'a, 'b> Search<'a, 'b> {
+    fn record_plan(&mut self, u: usize, plan: &Plan, ok: bool) {
+        self.events[u][0] += 1;
+        if !ok { self.events[u][2] += 1; }
+        // En orsak/resurs räknas högst en gång per faktiskt starttidsförsök.
+        for cause in plan.causes.iter().copied().collect::<BTreeSet<_>>() {
+            *self.bottlenecks.entry(cause).or_default() += 1;
+        }
+    }
+
+    fn record_execute(&mut self, u: usize, plan: &Plan) {
+        self.events[u][1] += 1;
+        for &v in &plan.eject { self.events[v as usize][3] += 1; }
+    }
+
     fn stop(&self) -> bool {
         if self.ctl.cancel.load(Ordering::Relaxed) {
             return true;
@@ -177,7 +197,9 @@ impl<'a, 'b> Search<'a, 'b> {
         let mut best: Option<(i64, usize, u32, Vec<u16>)> = None;
         let mut plan = std::mem::take(&mut self.plan);
         let mut consider = |me: &mut Self, d: usize, s: u32, plan: &mut Plan| {
-            if !me.st.plan(u, d, s, false, plan) {
+            let ok = me.st.plan(u, d, s, false, plan);
+            me.record_plan(u, plan, ok);
+            if !ok {
                 return;
             }
             let mark = me.st.mark();
@@ -227,7 +249,9 @@ impl<'a, 'b> Search<'a, 'b> {
                     unit.parts.iter().find_map(|p| p.reference).map(|(d, s)| (d as usize, s as u32))
                 };
                 if let Some((d, s)) = target {
-                    if self.st.plan(u, d, s, false, &mut plan) {
+                    let ok = self.st.plan(u, d, s, false, &mut plan);
+                    self.record_plan(u, &plan, ok);
+                    if ok {
                         self.st.place(u, d, s, &plan.rooms);
                     }
                 }
@@ -274,7 +298,9 @@ impl<'a, 'b> Search<'a, 'b> {
                 while m != 0 {
                     let s = m.trailing_zeros();
                     m &= m - 1;
-                    if !self.st.plan(u, d, s, true, &mut plan) {
+                    let ok = self.st.plan(u, d, s, true, &mut plan);
+                    self.record_plan(u, &plan, ok);
+                    if !ok {
                         continue;
                     }
                     let score = if plan.eject.is_empty() {
@@ -307,6 +333,7 @@ impl<'a, 'b> Search<'a, 'b> {
                 heat[v as usize] += 1;
                 todo.push(v as usize);
             }
+            self.record_execute(u, &chosen);
             self.st.execute(u, d, s, &chosen);
             self.st.commit();
             if self.st.unplaced_min < best_left {
@@ -340,8 +367,11 @@ impl<'a, 'b> Search<'a, 'b> {
             self.st.unplace(u);
         }
         let mut plan = std::mem::take(&mut self.plan);
-        let ok = self.st.plan(u, d, s, true, &mut plan) && plan.eject.len() <= most;
+        let fits = self.st.plan(u, d, s, true, &mut plan);
+        let ok = fits && plan.eject.len() <= most;
+        self.record_plan(u, &plan, ok);
         if ok {
+            self.record_execute(u, &plan);
             self.st.execute(u, d, s, &plan);
         }
         let ejected = plan.eject.clone();
@@ -355,6 +385,7 @@ impl<'a, 'b> Search<'a, 'b> {
             if let Some((od, os)) = old {
                 let mut plan = std::mem::take(&mut self.plan);
                 let fits = self.st.plan(v, od as usize, os as u32, false, &mut plan);
+                self.record_plan(v, &plan, fits);
                 if fits && self.rng.below(2) == 0 {
                     self.st.place(v, od as usize, os as u32, &plan.rooms);
                 }
@@ -396,6 +427,7 @@ impl<'a, 'b> Search<'a, 'b> {
                     cnt += 1;
                 }
             }
+            self.events[u][2] += 1;
             self.st.rollback(mark);
         }
         self.st.commit();
@@ -427,6 +459,7 @@ impl<'a, 'b> Search<'a, 'b> {
             let moved = self.try_move(u, d, s);
             let delta = self.st.obj() - before;
             if !moved || (delta > 0 && (delta >= BIG || self.rng.unit() >= (-(delta as f64) / temp).exp())) {
+                self.events[u][2] += 1;
                 self.st.rollback(mark);
             } else {
                 self.st.commit();
@@ -489,6 +522,7 @@ impl<'a, 'b> Search<'a, 'b> {
                                 improved = true;
                                 continue 'rule;
                             }
+                            self.events[u][2] += 1;
                             self.st.rollback(mark);
                         }
                     }
@@ -503,7 +537,7 @@ impl<'a, 'b> Search<'a, 'b> {
 }
 
 pub fn run(inst: &Inst, ctl: &Ctl, seed: u64) -> Outcome {
-    let mut search = Search { st: State::new(inst), inst, ctl, rng: Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1), it: 0, plan: Plan::default(), best: Vec::new(), best_obj: i64::MAX };
+    let mut search = Search { st: State::new(inst), inst, ctl, rng: Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1), it: 0, plan: Plan::default(), best: Vec::new(), best_obj: i64::MAX, events: vec![[0; 4]; inst.units.len()], bottlenecks: BTreeMap::new() };
     search.seed_start();
     search.best = search.st.snapshot();
     search.best_obj = search.st.obj();
@@ -513,5 +547,5 @@ pub fn run(inst: &Inst, ctl: &Ctl, seed: u64) -> Outcome {
     search.construct();
     search.anneal();
     search.repair_time();
-    Outcome { snap: search.best, obj: search.best_obj, iterations: search.it }
+    Outcome { snap: search.best, obj: search.best_obj, iterations: search.it, events: search.events, bottlenecks: search.bottlenecks }
 }

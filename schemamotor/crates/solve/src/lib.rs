@@ -12,6 +12,7 @@ mod state;
 use schemamotor_model::*;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
+use std::collections::BTreeMap;
 
 #[derive(Clone, Debug)]
 pub struct Options {
@@ -31,6 +32,20 @@ impl Default for Options {
     }
 }
 
+/// Samma svargräns som appens kontrakt. Bevisen visas först och resterande
+/// fynd redovisas uttryckligt; varken överstorlek eller tyst borttagning får se ut som PASS.
+fn bounded_diagnoses(mut findings: Vec<Diagnosis>) -> Vec<Diagnosis> {
+    const MAX: usize = 500;
+    if findings.len() <= MAX { return findings; }
+    findings.sort_by_key(|d| !d.proof);
+    let remaining = findings.len() - (MAX - 1);
+    findings.truncate(MAX - 1);
+    findings.push(Diagnosis { code: "more_diagnoses".into(),
+        message: format!("Ytterligare {remaining} fynd finns i underlaget. Rätta de visade punkterna och kontrollera igen."),
+        lessons: vec![], resources: vec![], proof: false });
+    findings
+}
+
 fn empty(p: &Problem, status: Status, diagnoses: Vec<Diagnosis>, opt: &Options, start: Instant) -> Solution {
     Solution {
         version: CONTRACT_VERSION,
@@ -39,7 +54,7 @@ fn empty(p: &Problem, status: Status, diagnoses: Vec<Diagnosis>, opt: &Options, 
         status,
         placements: vec![],
         unplaced: p.lessons.iter().map(|l| l.id.clone()).collect(),
-        diagnoses,
+        diagnoses: bounded_diagnoses(diagnoses),
         metrics: Metrics {
             lessons: p.lessons.len() as u32,
             unplaced_lessons: p.lessons.len() as u32,
@@ -47,7 +62,44 @@ fn empty(p: &Problem, status: Status, diagnoses: Vec<Diagnosis>, opt: &Options, 
             ..Metrics::default()
         },
         stats: Stats { elapsed_ms: start.elapsed().as_millis() as u64, first_complete_ms: None, iterations: 0, threads: 0, seed: opt.seed },
+        search_statistics: SearchStatistics::default(),
     }
+}
+
+/// Kontroller före sökningen. Kräver ingen sökbudget och gör inga ändringar.
+/// `proof: false` (t.ex. grupp utan lärare) är ett uppmärksamhetsfynd, inget olösbarhetsbevis.
+pub fn diagnose(p: &Problem) -> Vec<Diagnosis> {
+    let errors = p.check();
+    if !errors.is_empty() { return bounded_diagnoses(errors); }
+    bounded_diagnoses(proof::presolve(p, &compile::compile(p)))
+}
+
+fn search_statistics(p: &Problem, inst: &compile::Inst, outcomes: &[search::Outcome], iterations: u64) -> SearchStatistics {
+    let mut lessons = Vec::new();
+    for (li, lesson) in p.lessons.iter().enumerate() {
+        let u = inst.lesson_unit[li];
+        let total = outcomes.iter().fold([0u64; 4], |mut sum, o| {
+            for (i, value) in sum.iter_mut().enumerate() { *value += o.events[u][i]; }
+            sum
+        });
+        if total.iter().any(|&v| v > 0) {
+            lessons.push(LessonSearchStat { lesson: lesson.id.clone(), attempts: total[0], moves: total[1], backtracks: total[2], ejections: total[3] });
+        }
+    }
+    lessons.sort_by(|a, b| (b.backtracks + b.ejections).cmp(&(a.backtracks + a.ejections)).then(b.attempts.cmp(&a.attempts)).then(a.lesson.cmp(&b.lesson)));
+    lessons.truncate(20);
+    let mut counts: BTreeMap<(String, Option<String>), u64> = BTreeMap::new();
+    for o in outcomes {
+        for (&(code, res), &n) in &o.bottlenecks {
+            // Virtuella resurser hålls interna; villkoret redovisas utan låtsas-ID.
+            let resource = res.filter(|&r| r < inst.n_ents + inst.n_rooms).and_then(|r| inst.res_names.get(r)).cloned();
+            *counts.entry((code.to_string(), resource)).or_default() += n;
+        }
+    }
+    let mut bottlenecks: Vec<_> = counts.into_iter().map(|((code, resource), count)| BottleneckStat { code, resource, count }).collect();
+    bottlenecks.sort_by(|a, b| b.count.cmp(&a.count).then(a.code.cmp(&b.code)).then(a.resource.cmp(&b.resource)));
+    bottlenecks.truncate(20);
+    SearchStatistics { lessons, bottlenecks, iterations }
 }
 
 pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
@@ -61,7 +113,7 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
     }
     let inst = compile::compile(p);
     let mut diagnoses = proof::presolve(p, &inst);
-    let proved = !diagnoses.is_empty();
+    let proved = diagnoses.iter().any(|d| d.proof);
 
     let threads = if opt.threads == 0 { std::thread::available_parallelism().map_or(1, |n| n.get()) } else { opt.threads };
     let mut limit = match (opt.time_limit_ms, opt.max_iters) {
@@ -159,8 +211,9 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
         status,
         placements,
         unplaced,
-        diagnoses,
+        diagnoses: bounded_diagnoses(diagnoses),
         metrics: m,
+        search_statistics: search_statistics(p, &inst, &outcomes, iterations),
         stats: Stats { elapsed_ms: start.elapsed().as_millis() as u64, first_complete_ms: (first != u64::MAX).then_some(first), iterations, threads: threads as u32, seed: opt.seed },
     }
 }
