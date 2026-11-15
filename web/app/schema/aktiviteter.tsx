@@ -8,12 +8,12 @@ import { aktivitetPass, aktivitetsTidText, aktivitetsTyper, aktivitetTypAndra, r
 import { AktivitetForm, type NyAktivitetsTid } from './aktivitet-form.tsx';
 import './aktiviteter.css';
 
-export type AktiviteterProps = { forslag: SchemaForslag; villkor: SchemaVillkor; lessons: SchemaForslagLesson[]; busy: boolean;
+export type AktiviteterProps = { forslag: SchemaForslag; villkor: SchemaVillkor; lessons: SchemaForslagLesson[]; busy: boolean; saveError?: string | null;
   onChange: (next: SchemaAktivitet[], text: string) => Promise<boolean>; start?: NyAktivitetsTid | null; onStartHandled?: () => void };
 function lokalaTyper(unitId: string): SchemaAktivitetsTyp[] {
   try { return readAktivitetsTyper(window.localStorage, unitId); } catch { return aktivitetsTyper(); }
 }
-export function Aktiviteter({ forslag: f, villkor, lessons, busy, onChange, start, onStartHandled }: AktiviteterProps) {
+export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, onChange, start, onStartHandled }: AktiviteterProps) {
   const [typeState, setTypeState] = useState(() => ({ unitId: f.unitId, types: lokalaTyper(f.unitId) }));
   if (typeState.unitId !== f.unitId) setTypeState({ unitId: f.unitId, types: lokalaTyper(f.unitId) });
   const types = typeState.types, setTypes = (next: SchemaAktivitetsTyp[]) => setTypeState({ unitId: f.unitId, types: next });
@@ -40,7 +40,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, onChange, star
             <TableCell>Upptar deltagarna{a.rooms.length ? ' och salen' : ''}. Ingen timplanetid.</TableCell><TableCell><div className="akt-segment"><Button variant="outline" disabled={busy} onClick={() => setForm({ aktivitet: a })} aria-label={`Ändra aktiviteten ${a.name}`}>Ändra</Button>
               <Button variant="outline" disabled={busy} onClick={() => void onChange(activities.filter(x => x.id !== a.id), `Aktiviteten ${a.name} är borttagen`)} aria-label={`Ta bort aktiviteten ${a.name}`}>Ta bort</Button></div></TableCell></TableRow>;
         })}</TableBody></Table>}
-    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy}
+    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError}
       onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
     {manage && <AktivitetsTyper typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;

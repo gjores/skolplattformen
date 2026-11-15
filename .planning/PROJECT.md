@@ -1,5 +1,9 @@
 # Skolplattformen
 
+## Aktuellt 2026-11-15 — schemats våg 5 genomförd
+
+Samlingsvy med lokala arbetsvyer och direkt dagval, egna återkommande aktiviteter utan ändrad timplanetid samt faktiska veckor/datum och daterad passtabell är implementerade. [Vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md) skiljer118 Node,35 Rust, verklig lokal syntetisk motorkedja och simulerade UI-/routeprov från riktig skyddad drift. Hela schemasviten120/120 och berörda slutomprov passerar; typ/lint/bygge gröna och bilder granskade. Skolplattans tillägg är uttryckligen godkänt, sparat och omladdningskontrollerat. Inga migrationer eller installationer på3012/3013, ingen ny mänsklig acceptans eller standardiserad kommunanslutning. Nästa är våg6 enligt [arbetsflödet](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md). Handbok, lagring, publicering och T1:s daterade aktivitetsundantag följer sina egna planer. Äldre lägesnoteringar nedan är historik.
+
 ## Aktuellt 2026-10-30 — klassorganisation inventerad
 
 [Nulägesgranskningen](phases/05.3-klassorganisation/05.3-READINESS.md) beskriver återanvändbara klass-/kullflöden, timplanskopplingar och elevperioder samt luckorna inför schema. Senare styrning prioriterar [valbara undervisningsgrupper och elevmedlemskap](phases/05.2-schemamodul/05.2-VALBARA-GRUPPER-CONTEXT.md) före schemaberäkningen. En samlad läsande klassöversikt och ett ID-/versionsbundet underlag stödjer detta; klassgiltighet, namn-/källidentiteter och omorganisation behöver därefter egna kontrollerade kontrakt. [Kontext](phases/05.3-klassorganisation/05.3-CONTEXT.md) och [planeringsutkast](phases/05.3-klassorganisation/05.3-PHASE-PLAN.md) finns. Utkastet är inte genomförd implementation eller nya kravgodkännanden. Befintlig CLASS-COHORT A–B återanvänds. Tjänstefördelningen lämnas vilande enligt godkänt U1–U8. Ingen ny produktversion eller installation på 3012 i denna granskning.

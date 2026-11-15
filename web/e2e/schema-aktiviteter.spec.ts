@@ -64,6 +64,7 @@ for (const width of [1280, 1600]) test(`mentorstid via tom tid syns för klass o
   await expect(page.getByRole('dialog', { name: 'Ny aktivitet', exact: true })).toHaveCount(0);
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid');
+  await page.screenshot({ path: info.outputPath('aktivitet-i-schemat.png'), fullPage: false });
   await page.getByRole('button', { name: 'Lärare', exact: true }).click(); await page.getByRole('combobox', { name: 'Lärare', exact: true }).selectOption('larare-1');
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
   await page.getByRole('button', { name: 'Klass', exact: true }).click();
@@ -91,7 +92,9 @@ test('nekad aktivitetsbegäran lämnar det befintliga utkastet orört', async ({
   test.skip(info.project.name === 'phone', 'Arbetsytan är beslutad för dator.'); await page.setViewportSize({ width: 1280, height: 1000 });
   const requests = await setup(page, true); await laggTill(page, false);
   await expect(page.getByRole('dialog', { name: 'Ny aktivitet', exact: true })).toBeVisible();
-  await expect(page.getByRole('alert')).toBeVisible(); await expect(page.locator('.schema-lesson.aktivitet')).toHaveCount(0); expect(requests).toHaveLength(1);
+  await expect(page.getByRole('dialog', { name: 'Ny aktivitet', exact: true }).getByRole('alert')).toHaveText('Ditt uppdrag tillåter inte den här åtgärden.');
+  await expect(page.locator('.schema-lesson.aktivitet')).toHaveCount(0); expect(requests).toHaveLength(1);
+  await page.screenshot({ path: info.outputPath('aktivitet-nekat-svar.png'), fullPage: false });
 });
 test('typer kan grupperas och döpas om, aktiviteter och datumfunktioner lagras inte', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'Arbetsytan är beslutad för dator.'); await page.setViewportSize({ width: 1280, height: 1000 }); await setup(page);
@@ -106,6 +109,7 @@ test('typer kan grupperas och döpas om, aktiviteter och datumfunktioner lagras 
   await page.evaluate(() => document.documentElement.style.fontSize = '200%');
   await expect(form.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await page.screenshot({ path: info.outputPath('aktivitet-form-200.png'), fullPage: false });
 });
 
 // Aktivitetshistoriken återställer aktivitetslistan, inte senare tidsvillkor.

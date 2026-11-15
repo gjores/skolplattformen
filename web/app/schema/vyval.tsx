@@ -3,13 +3,15 @@
 // markering, flytt, ångra och kontroll gäller alla. Valet minns i webbläsaren. Villkor i tabell (05.2-SM-VILLKORSTABELL) kopplas in med propen `villkor`;
 // utan den visas inte valet.
 import type { ReactNode } from 'react';
-import { CalendarDaysIcon, ListIcon, TableIcon } from 'lucide-react';
+import { CalendarDaysIcon, ListIcon, Rows3Icon, ScanEyeIcon, TableIcon } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
-export type SchemaVy = 'vecka' | 'pass' | 'villkor';
+export type SchemaVy = 'vecka' | 'folj' | 'samling' | 'pass' | 'villkor';
 const VY_KEY = 'schema-vy';
 const VYER: { id: SchemaVy; namn: string; ikon: ReactNode }[] = [
   { id: 'vecka', namn: 'Vecka', ikon: <CalendarDaysIcon aria-hidden="true"/> },
+  { id: 'folj', namn: 'Följ passet', ikon: <ScanEyeIcon aria-hidden="true"/> },
+  { id: 'samling', namn: 'Samlingsvy', ikon: <Rows3Icon aria-hidden="true"/> },
   { id: 'pass', namn: 'Pass i tabell', ikon: <ListIcon aria-hidden="true"/> },
   { id: 'villkor', namn: 'Villkor i tabell', ikon: <TableIcon aria-hidden="true"/> },
 ];
@@ -18,7 +20,7 @@ const VYER: { id: SchemaVy; namn: string; ikon: ReactNode }[] = [
 export function storedVy(): SchemaVy {
   try {
     const value = window.localStorage.getItem(VY_KEY);
-    return value === 'pass' || value === 'villkor' ? value : 'vecka';
+    return value === 'pass' || value === 'villkor' || value === 'samling' ? value : 'vecka';
   } catch { return 'vecka'; }
 }
 export function rememberVy(vy: SchemaVy): void {
@@ -26,27 +28,29 @@ export function rememberVy(vy: SchemaVy): void {
 }
 
 /** Vyn som visas: ett minnet val av Villkor i tabell visar veckan när den vyn inte finns. */
-export const visadVy = (vy: SchemaVy, harVillkor: boolean): SchemaVy => vy === 'villkor' && !harVillkor ? 'vecka' : vy;
+export const visadVy = (vy: SchemaVy, harVillkor: boolean, harSamling = false, harFolj = false): SchemaVy =>
+  vy === 'villkor' && !harVillkor || vy === 'samling' && !harSamling || vy === 'folj' && !harFolj ? 'vecka' : vy;
 
 /**
  * Väljaren och den valda vyn under den. `villkor` är vyn Villkor i tabell; saknas den visas inte valet, och ett minnet val av den visar veckan.
  * Vyn som inte visas ritas inte, så att veckans och tabellens pass inte finns två gånger på sidan.
  */
-export function Vyval({ vy, onVy, vecka, veckaVal, pass, villkor }: {
+export function Vyval({ vy, onVy, vecka, veckaVal, folj, samling, pass, villkor }: {
   vy: SchemaVy; onVy: (vy: SchemaVy) => void; vecka: ReactNode;
   /** Veckans val (Klass eller Lärare) står i samma rad som väljaren, så att veckan inte flyttas ned. */
   veckaVal?: ReactNode;
-  pass: ReactNode; villkor?: ReactNode;
+  pass: ReactNode; villkor?: ReactNode; samling?: ReactNode; folj?: ReactNode;
 }) {
-  const vyer = VYER.filter(v => v.id !== 'villkor' || villkor !== undefined), visad = visadVy(vy, villkor !== undefined);
+  const vyer = VYER.filter(v => (v.id !== 'villkor' || villkor !== undefined) && (v.id !== 'samling' || samling !== undefined) && (v.id !== 'folj' || folj !== undefined));
+  const visad = visadVy(vy, villkor !== undefined, samling !== undefined, folj !== undefined);
   return <>
     <div className="schema-filter schema-vyval">
       <ToggleGroup aria-label="Visa schemat som" variant="outline" spacing={0} className="schema-verktyg-grupp" value={[visad]}
         onValueChange={next => { const valt = next.find(x => x !== visad); if (valt) { onVy(valt as SchemaVy); rememberVy(valt as SchemaVy); } }}>
-        {vyer.map(v => <ToggleGroupItem key={v.id} value={v.id} className="schema-verktyg-knapp">{v.ikon}{v.namn}</ToggleGroupItem>)}
+        {vyer.map(v => <ToggleGroupItem key={v.id} value={v.id} aria-label={v.id === 'folj' ? 'Visa Följ passet' : undefined} className="schema-verktyg-knapp">{v.ikon}{v.namn}</ToggleGroupItem>)}
       </ToggleGroup>
       {visad === 'vecka' && veckaVal}
     </div>
-    {visad === 'vecka' ? vecka : visad === 'pass' ? pass : villkor}
+    {visad === 'vecka' ? vecka : visad === 'folj' ? folj : visad === 'samling' ? samling : visad === 'pass' ? pass : villkor}
   </>;
 }

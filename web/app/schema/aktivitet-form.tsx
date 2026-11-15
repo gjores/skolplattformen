@@ -10,15 +10,16 @@ const DAGAR = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 const time = (m: number) => `${Math.floor(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}`;
 const minutes = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 type Props = { forslag: SchemaForslag; typer: SchemaAktivitetsTyp[]; activities: SchemaAktivitet[]; tid?: NyAktivitetsTid | null; aktivitet?: SchemaAktivitet | null;
-  busy: boolean; onSave: (a: SchemaAktivitet) => Promise<boolean>; onClose: () => void; onTypes: () => void };
-export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, busy, onSave, onClose, onTypes }: Props) {
+  busy: boolean; saveError?: string | null; onSave: (a: SchemaAktivitet) => Promise<boolean>; onClose: () => void; onTypes: () => void };
+export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, busy, saveError, onSave, onClose, onTypes }: Props) {
   const first = typer.find(t => t.name === 'Mentorstid') ?? typer[0] ?? aktivitetsTyper()[0];
   const [draft, setDraft] = useState<SchemaAktivitet>(() => aktivitet ?? {
     id: nyAktivitetId(activities), typId: first.id, typ: first.name, name: first.name, classRefs: tid?.resurs?.slag === 'klass' ? [tid.resurs.ref] : [],
     groupRefs: tid?.resurs?.slag === 'grupp' ? [tid.resurs.ref] : [], teacherRefs: tid?.resurs?.slag === 'larare' ? [tid.resurs.ref] : [], rooms: tid?.resurs?.slag === 'sal' ? [tid.resurs.ref] : [],
     durationMin: 20, veckor: { typ: 'alla' }, visibleFor: first.visibleFor, margin: first.margin, tid: { typ: 'fast', day: tid?.day ?? 0, startMin: tid?.startMin ?? 480 },
   });
-  const [error, setError] = useState(''), [weeks, setWeeks] = useState(draft.veckor.typ === 'valda' ? draft.veckor.veckor.join(', ') : '35, 36, 37');
+  const [error, setError] = useState(''), [attempted, setAttempted] = useState(false), [weeks, setWeeks] = useState(draft.veckor.typ === 'valda' ? draft.veckor.veckor.join(', ') : '35, 36, 37');
+  const shownError = error || (attempted && !busy ? saveError ?? 'Aktiviteten kunde inte kontrolleras. Dina val står kvar. Försök igen.' : '');
   const patch = (value: Partial<SchemaAktivitet>) => setDraft(d => ({ ...d, ...value }));
   const chooseType = (id: string) => {
     if (id === '__ny__') { onTypes(); return; }
@@ -34,6 +35,7 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
     const a = { ...draft, name: draft.name.trim(), ...(draft.veckor.typ === 'valda' ? { veckor: { typ: 'valda' as const, veckor: weeks.split(/[\s,;]+/u).filter(Boolean).map(Number) } } : {}) };
     const errors = aktiviteternasFel([a]);
     if (errors.length) { setError(errors.join(' ')); return; }
+    setError(''); setAttempted(true);
     if (await onSave(a)) onClose();
   };
   return <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}><DialogContent className="akt-dialog" aria-describedby="akt-beskrivning">
@@ -66,7 +68,7 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
       {draft.veckor.typ !== 'alla' && <p className="akt-info">Aktiviteten upptar alla veckor i grundschemat. Veckovalet är en märkning tills schema i tid finns.</p>}
       {draft.margin && <p className="text-muted-foreground">{draft.margin.label}: {draft.margin.beforeMin} min före och {draft.margin.afterMin} min efter, från aktivitetstypen.</p>}
       <p className="text-muted-foreground">Synligheten är ett förval för ett framtida publicerat schema. Inget publiceras eller sparas på servern här.</p>
-      {error && <p role="alert" className="text-destructive">{error}</p>}
+      {shownError && <p role="alert" className="text-destructive">{shownError}</p>}
       <div className="akt-segment"><Button disabled={busy} onClick={() => void save()}>{busy ? 'Prövar aktiviteten…' : aktivitet ? 'Ändra aktiviteten' : 'Lägg till aktivitet'}</Button><Button disabled={busy} variant="outline" onClick={onClose}>Avbryt</Button></div>
     </div>
   </DialogContent></Dialog>;

@@ -1,6 +1,7 @@
 // Vyn Schema mot ett syntetiskt förslag som schemamotorn har räknat (work/schema/verify-koppling.mjs).
 // Rutt, behörighet och motoranrop verifieras separat; här prövas bara vad användaren ser.
 import { test, expect, type Page } from '@playwright/test';
+import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
 import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
 // En flytt som motorns kontrollant har prövat: passet läggs där klassen redan har ett annat pass.
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
@@ -244,7 +245,7 @@ test('ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan �
   const lesson = await move(page);
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
   expect(bodies).toHaveLength(1);
-  expect(bodies[0]).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint });
+  expect(bodies[0]).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint });
   expect(bodies[0]).not.toHaveProperty('fingerprint');
   expect(bodies[0].placements).toHaveLength(forslag.lessons.length);
   expect(bodies[0].placements).toContainEqual({ ...kontroll.move, room: null });
@@ -492,7 +493,9 @@ test('veckan ritar fält, nedtoning och band under och intill passen, med tecken
   // Fältet ligger över hela dagens bredd och under passen.
   const column = (await monday.locator('ol').boundingBox())!, field = (await sparr.boundingBox())!;
   expect(Math.abs(field.width - column.width)).toBeLessThan(2);
-  const first = monday.locator('[data-lesson="pass-36"]'), box = (await first.boundingBox())!;
+  const first = monday.locator('[data-lesson="pass-36"]');
+  await first.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest' }));
+  const box = (await first.boundingBox())!;
   expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
   // Band intill passet: omklädning före, dusch efter, med text för skärmläsare.
   const idrott = (await tuesday.locator('[data-lesson="pass-19"]').boundingBox())!;
@@ -549,7 +552,9 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   await expect(page.locator('.schema-falt.falt-onskemal', { hasText: 'Sena pass · efter 15:30' })).toHaveCount(5);
   await expect(monday.locator('.schema-band.falt-marginal')).toHaveText('Efter Programämne: Övergång 10 min');
   // Passen ligger över fälten.
-  const first = monday.locator('[data-lesson="pass-36"]'), box = (await first.boundingBox())!;
+  const first = monday.locator('[data-lesson="pass-36"]');
+  await first.evaluate(el => el.scrollIntoView({ block: 'center', inline: 'nearest' }));
+  const box = (await first.boundingBox())!;
   expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem'))
     .toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Sena pass (undviks)', 'Marginal före eller efter pass', 'Pass utan lärare']);
@@ -815,7 +820,7 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   await expect(pass).toContainText('Regelavvikelse');
   await expect(pass).toContainText('Ligger på spärrad tid');
   await expect.poll(() => bodies.kontroller.length).toBe(1);
-  expect(bodies.kontroller[0]).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint });
+  expect(bodies.kontroller[0]).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint });
   expect(bodies.kontroller[0].villkor.egna).toEqual([nySparr]);
   const falt = meny.dag(page, 3).locator('.schema-falt.falt-sparrad');
   await expect(falt).toContainText('Spärrad · Klass 1 · 14:00–16:30');
@@ -875,8 +880,10 @@ test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fo
   await page.keyboard.press('Shift+F10');
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Torsdag 14:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
-  await expect(menu.getByRole('menuitem', { name: 'Spärra för' })).toBeFocused();
+  await expect(menu.getByRole('menuitem')).toHaveText(['Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
+  await expect(menu.getByRole('menuitem', { name: 'Ny aktivitet här' })).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowRight');
   await expect(page.getByRole('menuitem', { name: 'Klass 1', exact: true })).toBeFocused();
   await page.keyboard.press('Enter');
@@ -985,8 +992,8 @@ test('meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkera
   await page.mouse.click(sen.x, sen.y, { button: 'right' });
   await expect(menu).toContainText('Sena pass');
   await expect(menu).toContainText('Torsdag 16:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
-  await expect(menu.getByText('Visa gemensam ledig tid')).toHaveCount(0);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
+  await expect(menu.getByText('Visa gemensam ledig tid')).toHaveCount(1);
   await menu.getByRole('menuitem', { name: 'Tillåt bara här för' }).hover();
   await page.getByRole('menuitem', { name: 'Klass 1', exact: true }).click();
   const panel = page.getByRole('region', { name: 'Ny tillåten tid' });
@@ -1074,7 +1081,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await page.keyboard.press('f');
     const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
     await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
-    expect(calls.lagen[0]).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson, pupilId: null });
+    expect(calls.lagen[0]).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson, pupilId: null });
     expect(calls.lagen[0].placements).toHaveLength(forslag.lessons.filter(l => l.day !== null).length);
     // Raderna: klassen, läraren och grupperna som delar elever, med antal.
     await expect(panel.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Spanska (delar 10 elever)', 'Tyska (delar 10 elever)']);
@@ -1116,18 +1123,19 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
 
     // Markeringen följs: ett annat pass väljs i veckan.
     const other = forslag.lessons.find(l => l.classIds.includes('grupp-1') && l.title === 'Svenska' && l.term === 'ht' && l.day !== null)!;
-    await page.locator(`[data-lesson="${other.id}"]`).click();
+    await panel.getByRole('list', { name: `Klass 1, ${DAYS[other.day!]}` }).getByRole('button', { name: /^Svenska,/u }).first().click();
     await expect(page.getByRole('heading', { name: 'Följ passet: Svenska, Klass 1' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Följ passet: Svenska, Klass 1' }).getByRole('alert')).toContainText('Schemamotorn kunde inte räkna möjliga starttider.');
     // Knappen vid markerat pass, och låset: ett nytt markerat pass byter inte panelen.
     await page.getByRole('button', { name: 'Avbryt' }).click();
+    await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
     await page.locator(`[data-lesson="${folj.lesson}"]`).click();
     await page.getByRole('button', { name: 'Följ passet', exact: true }).click();
     const lock = page.getByRole('button', { name: 'Lås till detta pass' });
     await lock.click();
     await expect(lock).toHaveAttribute('aria-pressed', 'true');
     await page.getByRole('button', { name: 'Avbryt' }).click();
-    await page.locator(`[data-lesson="${other.id}"]`).click();
+    await page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' }).getByRole('list', { name: `Klass 1, ${DAYS[other.day!]}` }).getByRole('button', { name: /^Svenska,/u }).first().click();
     await expect(page.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeVisible();
     await page.getByRole('button', { name: 'Avbryt' }).click();
     await page.getByRole('button', { name: 'Stäng' }).click();
@@ -1272,10 +1280,12 @@ test('villkor direkt: Följ passet visar den nya spärren som spärrad tid i mö
   await expect(panel.locator('.folj-start[tabindex="0"]')).toBeVisible();
   await expect(panel.locator(`.folj-start[aria-label="${at(forst)}: spärrad tid"]`)).toHaveCount(0);
   expect(folj.sparr.regel).toEqual(nySparr);
+  await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
   await draSparr(page);
+  await page.getByRole('button', { name: 'Visa Följ passet', exact: true }).click();
   // Lägena hämtas om med spärren och förslagets grund; svaret är motorns.
   await expect.poll(() => calls.lagen.some(b => sammaEgna(b.villkor.egna, [nySparr]))).toBe(true);
-  expect(calls.lagen.find(b => sammaEgna(b.villkor.egna, [nySparr]))).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson });
+  expect(calls.lagen.find(b => sammaEgna(b.villkor.egna, [nySparr]))).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint, lesson: folj.lesson });
   await expect(panel.locator(`.folj-start[aria-label="${at(forst)}: spärrad tid"]`)).toBeAttached();
   await expect(panel.locator('.folj-start[aria-label$=": spärrad tid"]')).toHaveCount(sparrad.length);
   // Ångra spärren: lägena utan spärren igen.
@@ -1353,7 +1363,7 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   await page.setViewportSize({ width, height: 1000 });
   await vtKontroll(page, bodies.kontroller);
   await vt.oppna(page, 'Lärare');
-  await expect(vt.tabell(page).locator('thead th')).toHaveText(['', 'Namn', 'Pass', 'Veckotid', 'Klasser', 'Spärrad tid', 'Tillåten tid', 'Marginal', 'Salskrav', 'Längsta dag', 'Pass på villkoret']);
+  await expect(vt.tabell(page).locator('thead th')).toHaveText(['', 'Namn', 'Pass', 'Veckotid', 'Klasser', 'Aktiviteter', 'Spärrad tid', 'Tillåten tid', 'Marginal', 'Salskrav', 'Längsta dag', 'Pass på villkoret']);
   await expect(vt.rad(page, 'Provlärare 1')).toHaveCount(1);
   await expect(page.getByText(`Visar ${forslag.resurser.larare.length} av ${forslag.resurser.larare.length} lärare.`)).toBeVisible();
   for (const l of vtLarare) await page.getByRole('checkbox', { name: `Välj ${l.name}`, exact: true }).check();
@@ -1377,7 +1387,7 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   await expect(ny).toBeHidden();
   // Ett villkor per lärare, i ett ångra-steg; kontrollen prövar dem direkt med version 4.
   await expect.poll(() => bodies.kontroller.some(x => sammaEgna(x.villkor.egna, vtSparr))).toBe(true);
-  expect(bodies.kontroller.find(x => sammaEgna(x.villkor.egna, vtSparr))).toMatchObject({ contractVersion: 4, grundFingerprint: forslag.grundFingerprint });
+  expect(bodies.kontroller.find(x => sammaEgna(x.villkor.egna, vtSparr))).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint });
   for (const l of vtLarare) await expect(await vt.cell(page, l.name, 'Spärrad tid')).toHaveText('fre em');
   await expect(page.getByText(/Spärrad tid på 3 lärare: Provlärare 1, Provlärare 2, Provlärare 3\. Kontrollen prövar villkoren direkt\./u)).toBeVisible();
   // Pass på villkoret: lärarens pass som kontrollen pekar ut; länken leder till Regelavvikelser.
@@ -1424,8 +1434,8 @@ test('villkorstabell: redigera med bara tangentbordet, längsta dag per lärare 
   await expect(page.getByText('· 3 valda')).toBeVisible();
   await page.keyboard.press('ArrowUp'); await page.keyboard.press('ArrowUp');
   await expect(namn).toBeFocused();
-  // Till Spärrad tid: fyra steg åt höger (Pass, Veckotid, Klasser, Spärrad tid). Enter öppnar tidsrutnätet med fokus i första rutan.
-  for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowRight');
+  // Till Spärrad tid: Pass, Veckotid, Klasser, Aktiviteter, Spärrad tid.
+  for (let i = 0; i < 5; i++) await page.keyboard.press('ArrowRight');
   const sparrad = await vt.cell(page, 'Provlärare 1', 'Spärrad tid');
   await expect(sparrad).toBeFocused();
   await page.keyboard.press('Enter');
@@ -1653,6 +1663,7 @@ test('passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell
     await expect(page.getByRole('status').filter({ hasText: `Matematik ligger nu ${at(folj.fri).toLowerCase()}` })).toBeVisible();
     expect(kontroller.at(-1)!.placements).toContainEqual({ lesson: own.id, day: folj.fri.day, startMin: folj.fri.startMin, room: null });
     const efter = `${tid(folj.fri.startMin)}–${tid(folj.fri.startMin + langd)}`;
+    await panel.getByRole('button', { name: 'Stäng', exact: true }).click();
     await expect(tabell.cell(page, own.id, 6)).toHaveText(DAYS[folj.fri.day]);
     await expect(tabell.cell(page, own.id, 7)).toHaveText(efter);
     // Fokus står kvar på raden efter flytten.
@@ -1726,6 +1737,7 @@ test('passtabell: bara tangentbord', async ({ page }, info) => {
   const kontroller = await tabell.start(page, 1280);
   await mockFolj(page);
   await tabell.vy(page, 'Vecka').focus();
+  await page.keyboard.press('ArrowRight');
   await page.keyboard.press('ArrowRight');
   await page.keyboard.press('Enter');
   await expect(tabell.grid(page)).toBeVisible();
@@ -1853,7 +1865,9 @@ test('passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördr�
   Object.assign(matt, await page.evaluate(async () => {
     const forsta = new Promise<number>(res => { const o = new MutationObserver(() => { if (document.querySelector('.passtabell tbody tr')) { o.disconnect(); res(performance.now()); } }); o.observe(document.body, { subtree: true, childList: true }); });
     const t = performance.now();
-    (document.querySelector('[role="group"][aria-label="Visa schemat som"] button:nth-child(2)') as HTMLButtonElement).click();
+    const knapp = [...document.querySelectorAll<HTMLButtonElement>('[role="group"][aria-label="Visa schemat som"] button')].find(b => b.textContent?.trim() === 'Pass i tabell');
+    if (!knapp) throw new Error('Vyväljaren saknar Pass i tabell.');
+    knapp.click();
     await forsta; void document.body.offsetHeight;
     const forstaRader = performance.now() - t;
     while (document.querySelectorAll('.passtabell tbody tr[data-lesson]').length < 1000) await new Promise(r => requestAnimationFrame(r));

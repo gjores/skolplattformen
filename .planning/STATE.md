@@ -1,15 +1,15 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: "05.1.1"
-current_phase_name: Läsårskalender i skyddad drift
-current_plan: "fasverifiering klar – plan 01–17 avslutade"
-status: complete
-stopped_at: "Fas05.1.1 avslutad2026-11-12. Plan01–17 klara, U1–U8 samlat godkända, fasverifiering passed och LASAR-01–06 uppfyllda inom beslutad omfattning.3012 kvar på kandidat7dda9d75."
-last_updated: "2026-11-12"
-last_activity: 2026-11-12
-last_activity_desc: "Ordagrant användarsvar alla funkade registrerat. Oberoende kod-/bevisgranskning passed; nya1085 Node, typ/lint och handboksbygge gröna. Ingen ny installation eller verksamhetsskrivning."
-state_head: 326dac0f
+current_phase: "05.2"
+current_phase_name: Schemaläggning med Rust-schemamotor
+current_plan: "våg 5 klar – nästa våg 6: SM-BYT, SM-FONSTER och SM-DIAGNOS"
+status: in_progress
+stopped_at: "Våg5 klar2026-11-15.118 Node,35 Rust, riktig lokal syntetisk motorkedja,120 UI samt berörda slutomprov10/10samling och10/10aktiviteter PASS. Typ/lint/bygge gröna, bilder granskade och Skolplattan synkad efter uttryckligt ja. Ingen installation. Nästa våg6."
+last_updated: "2026-11-15"
+last_activity: 2026-11-15
+last_activity_desc: "Våg5 automatiskt verifierad. Samlingsvy med dagval, egna aktiviteter och faktiska datum klara mot syntetiska data. Appkontraktv5, motorv2. Full fasacceptans och installation återstår."
+state_head: b9de459b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,9 +21,11 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-user_trial_status: lasar_accepted_aggregate_response_2026_11_12
+user_trial_status: schema_wave5_not_installed_no_new_human_acceptance
 milestone_name: milestone
 ---
+
+**05.2-SM våg 5 klar 2026-11-15:** [Samlingsvy](phases/05.2-schemamodul/05.2-SM-SAMLINGSVY-SUMMARY.md), [egna aktiviteter](phases/05.2-schemamodul/05.2-SM-AKTIVITETER-SUMMARY.md) och [faktiska veckor/datum](phases/05.2-schemamodul/05.2-SM-VECKOVY-SUMMARY.md) är genomförda. [Samlad verifiering](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md):118/118 Node,35/35 Rust, riktig lokal motorkedja utan databas,120/120 UI på1280/1600 och riktade omprov efter sista läsbarhets-/dialogrättningar PASS. Typ/lint/bygge gröna, bilder granskade. Nytt appkontrakt5; motorns kontrakt2 består. [Skolplattans tillägg](phases/05.2-schemamodul/05.2-SM-WAVE-5-SKOLPLATTAN.md) uttryckligen godkänt och sparat. Inget installerat, ingen ny faktisk Worker/OIDC/databasserie, inget användargodkännande eller verifierat standardutbyte. Våg4–5 är ännu inte installerade. **Nästa: våg6, SM-BYT/SM-FONSTER/SM-DIAGNOS.** Handbok följer SM-HANDBOK efter installation och användarprov. Äldre worker-/kalenderbevis i metadata och text är historik; pilotens formella antal ändras inte.
 
 **05.2-SM utbyggnad planerad 2026-11-13:** På användarens uppdrag är [researchen](phases/05.2-schemamodul/05.2-SM-UTVECKLING-RESEARCH.md) uppdelad i ett [arbetsflöde](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md) med 17 planer i nio vågor (SM-YTA → SM-VILLKOR-SYNS ∥ SM-LAGEN → SM-MENY ∥ SM-MARGINAL ∥ SM-FOLJ → SM-VILLKOR-DIREKT → SM-VILLKORSTABELL ∥ SM-PASSTABELL → SM-SAMLINGSVY ∥ SM-AKTIVITETER ∥ SM-VECKOVY → SM-BYT ∥ SM-FONSTER ∥ SM-DIAGNOS → SM-PLACERING → SM-HANDBOK). Varje plan pekar på sin vy i [designvyerna](phases/05.2-schemamodul/design/README.md) (kopia av designytan). Våg 0–2 är genomförda och sammanslagna på master 2026-11-14 (mot syntetiska data; inget installerat, rutterna inte prövade inloggat). Användarens beslut 2026-11-14 (alternativ B): tidsvillkor som läggs till efter förslaget prövas direkt av servern; fingeravtrycket delas i grund och tidsvillkor ([SM-VILLKOR-DIREKT](phases/05.2-schemamodul/05.2-SM-VILLKOR-DIREKT-PLAN.md), våg 3, före SM-BYT). Lagring, schema i tid, åtgärdsförslag, nationella prov och drift ligger efter spreen och kräver migrationer eller beslut. SM-VILLKOR-DIREKT genomförd och sammanslagen 2026-11-14 (fd9d8f87; syntetiska data, inte prövad inloggat). Installerad på 3012 2026-11-14 (`8b6b9968`, ny motor på 3013; [installationen](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md)). Användarprovet 2026-11-14: ett fel (passen ritades över flyttpanelen), rättat i `5c6bb53f` men inte installerat; användaren hittade inga fler. Användarens besked efter provet: alla resurser ska kunna villkorssättas i tabellform och alla pass ska kunna ses i tabell – research Q121–Q132 och planerna [SM-VILLKORSTABELL](phases/05.2-schemamodul/05.2-SM-VILLKORSTABELL-PLAN.md) och [SM-PASSTABELL](phases/05.2-schemamodul/05.2-SM-PASSTABELL-PLAN.md) som ny våg 4; senare vågor ett steg. Våg 4 genomförd och sammanslagen 2026-11-15 (syntetiska data, inte installerad): villkorstabellen ligger i vyväljaren, Ändra i fältets ruta och meny öppnar villkorets rad, appens kontraktsversion är 4. Nästa steg: våg 5 (SM-SAMLINGSVY ∥ SM-AKTIVITETER ∥ SM-VECKOVY).
 
@@ -403,7 +405,7 @@ See: .planning/PROJECT.md (updated 2026-10-15)
 
 ## Current Position
 
-Aktuellt2026-11-12: fas05.1.1 är avslutad med plan01–17 klara, samlat användargodkännande och fasverifiering passed.3012 kör kandidat7dda9d75 med kalenderpaketet till20261112141000. Färdplanens nästa förberedande klassunderlag i05.3 är inte påbörjat här. Följande äldre lägesbilder är bevarad historik; aktuell status står överst.
+Aktuellt 2026-11-15: schemats våg 5 är implementerad och automatiskt verifierad enligt [vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md). Nästa är våg 6, SM-BYT/SM-FONSTER/SM-DIAGNOS. Ingen installation eller ny mänsklig acceptans i detta arbetspass. Kalenderfasens tidigare godkännande består. Följande äldre lägesbilder är bevarad historik; aktuell status står överst.
 
 Senaste ändring är44: ämnesnamn en gång och kod under rubriken.3012 kör982444b efter UI28/typ/lint/bygge/hälsa PASS. Tidigare leveranser nedan är historik.
 
@@ -782,11 +784,11 @@ Inga kända blockerare för fas 4:s planering och lokala syntetiska genomförand
 
 ## Session
 
-**Last Date:** 2026-11-12
-**Stopped At:** Fas05.1.1 avslutad. Plan01–17 klara; användaren svarade ”alla funkade” och separat verifiering av LASAR-01–06 är passed. Ingen ny installation eller verksamhetsskrivning.
-**Resume File:** [Avslutad fasverifiering](phases/05.1.1-lasarskalender-i-skyddad-drift/05.1.1-VERIFICATION.md)
+**Last Date:** 2026-11-15
+**Stopped At:** 05.2-SM våg 5 klar: samlingsvy, egna aktiviteter och datumvy. Automatiska syntetiska prov och bildkontroll PASS; ingen installation eller verksamhetsskrivning. Skolplattans tillägg uttryckligen godkänt och sparat.
+**Resume File:** [Våg 5:s verifiering och nästa steg](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md)
 
-**Planned Phase:** Nästa enligt prioriteringen är förberedande klassunderlag i05.3 före schemamotorn i05.2; inget nytt fasarbete startat i detta avslut. Befintliga separata öppna gränser i05.1/05.3/05.2 ändras inte av kalenderns godkännande.
+**Planned Phase:** Fortsätt 05.2-SM med våg 6 enligt arbetsflödet: SM-BYT, SM-FONSTER och SM-DIAGNOS. Sedan SM-PLACERING; SM-HANDBOK efter installation och användarprov. Fulla fas-/pilotkrav och separata öppna gränser i 05.1/05.3 kvarstår.
 
 ### Senaste användarfynd, 2026-10-02
 

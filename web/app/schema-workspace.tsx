@@ -6,13 +6,16 @@ import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, sammaGrund, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
-  type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm } from '@/lib/schema-contract.ts';
+  SchemaContractError, type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm } from '@/lib/schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '@/lib/schema-underlag.ts';
-import { avvikelseRad, medUtkast, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, villkorSteg, type SchemaOverlay, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
+import { aktivitetsSteg, avvikelseRad, medUtkast, resursRefs, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, villkorSteg, type SchemaOverlay, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
+import { fastAktivitet, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
 import { FaltKalla, Lagerval, rememberLager, storedLager, visaVillkor } from './schema/lager.tsx';
 import { Vecka, Teckenforklaring, veckansSpann } from './schema/vecka.tsx';
+import { VeckaVal } from './schema/vecka-val.tsx';
+import { grundschemaVal, schemaVeckaVal, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import { Viloyta } from './schema/viloyta.tsx';
 import { Villkor, rememberVillkor, storedVillkor } from './schema/villkor.tsx';
 import { Tid, tidAvvikelser } from './schema/tid.tsx';
@@ -22,6 +25,9 @@ import { Underlag } from './schema/underlag.tsx';
 import { dra, type Mal } from './schema/dra.ts';
 import { useSchemaMeny } from './schema/meny.tsx';
 import { Folj } from './schema/folj.tsx';
+import { Samling, type SamlingStart } from './schema/samling.tsx';
+import { Aktiviteter } from './schema/aktiviteter.tsx';
+import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
 import { Vyval, rememberVy, storedVy, visadVy, type SchemaVy } from './schema/vyval.tsx';
 import { Passtabell, tomtTabellVal, type PassTabellVal } from './schema/passtabell.tsx';
@@ -50,6 +56,14 @@ function message(error: unknown): string {
   return 'Schemaförslaget kunde inte tas fram. Försök igen.';
 }
 function moveMessage(error: unknown, text = 'Flytten'): string {
+  if (text === 'Aktiviteten') {
+    if (error instanceof ApiError) {
+      if (error.reason === 'schema_underlag_changed' || error.code === 'schema_underlag_changed') return 'Underlaget har ändrats. Ta fram ett nytt förslag innan du ändrar aktiviteter.';
+      if (error.status === 403) return 'Ditt uppdrag tillåter inte den här åtgärden.';
+      if (error.status === 503) return 'Schemamotorn kunde inte pröva aktiviteten. Försök igen om en stund.';
+    }
+    return 'Aktiviteten kunde inte kontrolleras. Försök igen.';
+  }
   if (error instanceof ApiError) {
     if (text !== 'Flytten') {
       if (error.reason && REASON[error.reason]) return 'Schemamotorn kunde inte pröva villkoren. Försök igen om en stund.';
@@ -73,6 +87,7 @@ export default function SchemaWorkspace(props: Props) {
 function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: string }) {
   const resultHeading = useId();
   const [period, setPeriod] = useState<SchemaPeriod>('lasar'), [villkor, setVillkor] = useState(() => storedVillkor(unitId) ?? defaultSchemaVillkor()), [shownTerm, setShownTerm] = useState<SchemaTerm>('ht');
+  const [visning, setVisning] = useState<SchemaVeckaVal>(grundschemaVal);
   const issues = checkSchemaVillkor(villkor);
   // Förslaget som motorn räknade fram; tid och mått uppdateras efter varje kontroll. Var passen ligger står i utkastet.
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
@@ -103,13 +118,17 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const [folj, setFolj] = useState<{ lesson: string; locked: boolean } | null>(null), foljRubrik = useRef<HTMLHeadingElement | null>(null), foljFokus = useRef(false);
   // Vyväljaren (05.2-SM-PASSTABELL): veckan och tabellerna visar samma utkast. Tabellens filter och sortering står kvar när man byter vy.
   const [vy, setVy] = useState<SchemaVy>(() => storedVy()), [tabellVal, setTabellVal] = useState<PassTabellVal>(tomtTabellVal);
+  const [samlingStart, setSamlingStart] = useState<SamlingStart | null>(null), foljFran = useRef<SchemaVy>('vecka');
+  const [aktivitetsStart, setAktivitetsStart] = useState<NyAktivitetsTid | null>(null);
   const andraFalt = (k: SchemaKalla) => { const m = villkorstabellMal(k, villkor); if (m) { setVillkorMal({ ...m, nr: Date.now() }); setVy('villkor'); rememberVy('villkor'); } else visaVillkor(k); };
   const tabell = useRef<HTMLDivElement | null>(null), visaFokus = useRef<string | null>(null);
+  const resursvy = useRef<HTMLDivElement | null>(null);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   /** Passet att lägga fokus på: knappen i veckan, eller radens aktiva cell i passtabellen. */
   const passElement = (id: string): HTMLElement | null => {
     const rad = tabell.current?.querySelector<HTMLElement>(`tr[data-lesson="${id}"]`);
-    return week.current?.querySelector<HTMLElement>(`[data-lesson="${id}"]`) ?? rad?.querySelector<HTMLElement>('[tabindex="0"]') ?? rad?.querySelector<HTMLElement>('[data-col="1"]') ?? null;
+    return week.current?.querySelector<HTMLElement>(`[data-lesson="${id}"]`) ?? rad?.querySelector<HTMLElement>('[tabindex="0"]') ?? rad?.querySelector<HTMLElement>('[data-col="1"]')
+      ?? resursvy.current?.querySelector<HTMLElement>(`[data-schema-pass="${id}"]`) ?? null;
   };
 
   useEffect(() => () => running.current?.abort(), []);
@@ -143,6 +162,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', request, controller.signal), request);
       rememberVillkor(unitId, villkor);
       setBase(next); dispatch({ type: 'reset', forslag: next }); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
+      setVisning(grundschemaVal());
       setKontroll(null); setKraverNytt(null); setMisslyckat(null); setMoveError(null); setMoved('');
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
@@ -154,6 +174,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   function pick(l: SchemaForslagLesson) {
     if (!forslag || checking) return;
     if (skipClick.current) return;
+    if (fastAktivitet(l, provade)) { setMoveError('Aktiviteten har fast tid. Ändra eller ta bort den i aktivitetslistan.'); return; }
     const day = l.day ?? 0, starts = startTimes(forslag, day, l.durationMin + l.marginMin, l.marginBeforeMin);
     setTarget({ day, startMin: l.startMin !== null && starts.includes(l.startMin) ? l.startMin : starts[0] ?? forslag.days[day].startMin, room: l.roomId });
     dispatch({ type: 'pick', lesson: l.id }); setMoveError(null);
@@ -165,6 +186,37 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
    * Hela schemat kontrolleras om med placeringarna ändringen ger, och utkastet ändras först när kontrollen har svarat.
    */
   async function andra(action: Extract<SchemaUtkastAtgard, { type: 'move' | 'park' | 'undo' | 'redo' }>) {
+    if ((action.type === 'move' || action.type === 'park') && forslag?.lessons.some(l =>
+      (l.id === action.lesson || action.type === 'park' && action.fler?.includes(l.id)) && fastAktivitet(l, provade))) {
+      setMoveError('Aktiviteten har fast tid. Ändra eller ta bort den i aktivitetslistan.'); return;
+    }
+    if (action.type === 'undo' || action.type === 'redo') {
+      const step = utkast[action.type].at(-1);
+      if (aktivitetsSteg(step)) {
+        if (!base || checking || busy) return;
+        const snapshot = action.type === 'undo' ? step.aktiviteter.fore : step.aktiviteter.efter;
+        // Ett senare val i det vanliga villkorsformuläret hör inte till aktivitetssteget.
+        const restoredVillkor = { ...villkor, aktiviteter: snapshot.villkor.aktiviteter ?? [] };
+        if (!sammaGrund(restoredVillkor, snapshot.villkor) || checkSchemaVillkor(restoredVillkor).length > 0) {
+          setMoveError('Villkoren för passens uppdelning har ändrats eller innehåller fel. Återställ dem för att kunna ångra eller göra om aktivitetsändringen.'); return;
+        }
+        const controller = new AbortController();
+        running.current = controller; setChecking(true); setMoveError(null);
+        try {
+          const reply = await kontrollera(snapshot.forslag, snapshot.forslag.lessons, controller, restoredVillkor);
+          if (controller.signal.aborted) return;
+          setBase({ ...snapshot.forslag, teachings: reply.teachings, trims: reply.trims, metrics: reply.metrics });
+          setVillkor(restoredVillkor); dispatch({ ...action, rooms: reply.rooms }); setFolj(null);
+          setKontroll({ svar: reply, villkor: villkorNyckel(restoredVillkor) }); setKraverNytt(null); setMisslyckat(null);
+          setMoved(`${action.type === 'undo' ? 'Ångrat' : 'Gjort om'}: ${step.text}.`);
+        } catch (caught) {
+          if (controller.signal.aborted) return;
+          if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+          setMoveError(moveMessage(caught));
+        } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
+        return;
+      }
+    }
     const next = utkastEfter(utkast, action), lessonId = action.type === 'undo' || action.type === 'redo' ? utkastSteg(utkast, action.type) : action.lesson;
     const before = base?.lessons.find(l => l.id === lessonId);
     if (!base || !next || !before || checking || busy) return;
@@ -186,10 +238,34 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
   }
   /** Kontrollen av placeringarna med villkoren som prövas och förslagets grund. */
-  async function kontrollera(f: SchemaForslag, lessons: SchemaForslagLesson[], controller: AbortController): Promise<SchemaKontroll> {
-    const request: SchemaKontrollRequest = { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period: f.period, villkor: provade, grundFingerprint: f.grundFingerprint,
+  async function kontrollera(f: SchemaForslag, lessons: SchemaForslagLesson[], controller: AbortController, villkoren = provade): Promise<SchemaKontroll> {
+    const request: SchemaKontrollRequest = { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period: f.period, villkor: villkoren, grundFingerprint: f.grundFingerprint,
       placements: lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) };
     return parseSchemaKontroll(await api.post<unknown>('/api/schema/kontroll', request, controller.signal), f.grundFingerprint);
+  }
+  /** Aktiviteter ändrar bara utkastet; servern bevarar befintliga undervisningspass och prövar samtliga placeringar. */
+  async function andraAktiviteter(aktiviteter: SchemaAktivitet[], text: string): Promise<boolean> {
+    if (!base || !forslag || checking || busy) return false;
+    if (grundAndrad || issues.length) { setMoveError('Ta fram ett nytt förslag med de ändrade villkoren innan du ändrar aktiviteter.'); return false; }
+    const nextVillkor = { ...villkor, aktiviteter }, controller = new AbortController();
+    running.current = controller; setChecking(true); setMoveError(null); setMoved('');
+    try {
+      const raw = await api.post<unknown>('/api/schema/aktiviteter', { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period: base.period,
+        villkor: nextVillkor, previousVillkor: villkor, grundFingerprint: base.grundFingerprint, placements: placeringar }, controller.signal);
+      if (controller.signal.aborted) return false;
+      if (!raw || typeof raw !== 'object' || Array.isArray(raw) || Object.keys(raw).length !== 2 || !('forslag' in raw) || !('kontroll' in raw)) throw new SchemaContractError();
+      const next = parseSchemaForslag(raw.forslag, { unitId, schoolYear, period: base.period, villkor: nextVillkor });
+      const checked = parseSchemaKontroll(raw.kontroll, next.grundFingerprint);
+      dispatch({ type: 'aktiviteter', fore: { forslag, villkor }, efter: { forslag: next, villkor: nextVillkor }, text });
+      setBase(next); setVillkor(nextVillkor); setKontroll({ svar: checked, villkor: villkorNyckel(nextVillkor) });
+      setKraverNytt(null); setMisslyckat(null); setFolj(null);
+      setMoved(`${text}. ${checked.total === 0 ? 'Inga regelavvikelser.' : `${checked.total} regelavvikelser.`}`);
+      return true;
+    } catch (caught) {
+      if (controller.signal.aborted) return false;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return false; }
+      setMoveError(moveMessage(caught, 'Aktiviteten')); return false;
+    } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
   }
   /** 409 för ändrade tidsvillkor: de ändrar ändå vilka pass som finns, så kontrollen går tillbaka till förslagets villkor tills ett nytt förslag tas fram. */
   function kraver(caught: unknown): boolean {
@@ -228,6 +304,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const span = forslag ? veckansSpann(forslag.days) : { start: 0, end: 0 };
   function grab(e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson) {
     if (!forslag || checking || busy) return;
+    if (fastAktivitet(l, provade)) return;
     dra(e, l, { forslag, grid: week.current, rest: rest.current, start: span.start, end: span.end, skipClick,
       onHover: to => setDrop({ lesson: l.id, to }), onEnd: () => setDrop(null),
       onDrop: to => void andra(to.day === null || to.startMin === null ? { type: 'park', lesson: l.id } : { type: 'move', lesson: l.id, day: to.day, startMin: to.startMin }) });
@@ -235,6 +312,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   /** Öppnar Följ passet för ett pass (knappen vid markerat pass, dubbelklick, tangenten F). Låst panel låses till det nya passet. */
   function foljPass(id: string) {
     if (!base?.lessons.some(l => l.id === id)) return;
+    if (vy !== 'folj') foljFran.current = vy;
+    setVy('folj');
     foljFokus.current = true; setFolj(f => ({ lesson: id, locked: f?.locked ?? false }));
   }
   const foljHandelser = {
@@ -245,12 +324,12 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       if (id) { e.preventDefault(); foljPass(id); }
     },
   };
-  const steps = utkast.undo.filter(x => !villkorSteg(x)).length, pickedLesson = forslag?.lessons.find(l => l.id === picked) ?? null;
+  const steps = utkast.undo.filter(x => !villkorSteg(x) && !aktivitetsSteg(x)).length, pickedLesson = forslag?.lessons.find(l => l.id === picked) ?? null;
   const flagged = new Set(kontroll?.violations.flatMap(v => v.lessons));
   /** Varför passet avviker, ur kontrollens svar (05.2-SM-VILLKOR-DIREKT). */
   const avvikelse = (l: SchemaForslagLesson) => forslag && flagged.has(l.id) ? avvikelseRad(forslag, provade.egna, kontroll!.violations.filter(v => v.lessons.includes(l.id)).map(v => v.code), l) : null;
   const foljt = folj ? forslag?.lessons.find(l => l.id === folj.lesson) ?? null : null;
-  const placeringar = useMemo(() => forslag?.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) ?? [], [forslag]);
+  const placeringar = forslag?.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) ?? [];
 
   const options = forslag ? (by === 'class' ? forslag.classes : forslag.teachers) : [];
   const selected = options.some(o => o.id === chosen) ? chosen : options[0]?.id ?? '';
@@ -258,6 +337,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const mine = (l: SchemaForslagLesson) => (l.term === null || l.term === shownTerm) && (by === 'class' ? l.classIds : l.teacherIds).includes(selected);
   // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): det passet kortas alla veckor i den termin som visas syns i veckan; kortning vissa veckor står i text.
   const viewTerm: SchemaTerm = !forslag || forslag.period === 'lasar' ? shownTerm : forslag.period;
+  const datumVal = forslag ? schemaVeckaVal(forslag, viewTerm, visning) : visning;
   const trimOf = (l: SchemaForslagLesson) => forslag?.trims.find(x => x.lesson === l.id && x.term === (l.term ?? viewTerm)) ?? null;
   const shownMin = (l: SchemaForslagLesson) => l.durationMin - (trimOf(l)?.fixedMin ?? 0);
   const someWeeks = (l: SchemaForslagLesson) => { const n = trimOf(l)?.extraCount ?? 0; return n ? ` · kortare ${n === 1 ? 'en vecka' : `${n} veckor`}` : ''; };
@@ -271,7 +351,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const detail = (l: SchemaForslagLesson) => forslag ? [by === 'class' ? (l.vacant && l.teacherIds.length === 0 ? 'Ingen lärare' : names(l.teacherIds, forslag.teachers)) : names(l.classIds, forslag.classes), roomName(l.roomId)].filter(Boolean).join(' · ') : '';
   const dragged = drop ? forslag?.lessons.find(l => l.id === drop.lesson) ?? null : null;
   const unplaced = forslag?.lessons.filter(l => l.day === null) ?? [];
-  const shown = forslag?.lessons.filter(l => l.day !== null && l.startMin !== null && mine(l)) ?? [];
+  const shown = forslag?.lessons.filter(l => l.day !== null && l.startMin !== null && (datumVal.mode === 'grundschema' ? mine(l) : (by === 'class' ? l.classIds : l.teacherIds).includes(selected))) ?? [];
   const d = SCHEMA_DEFAULTS;
   const { deviating, off } = tidAvvikelser(forslag);
   // Villkoren som lager för den klass eller lärare som visas. Lagren följer villkoren i formuläret, så att en ändring syns direkt.
@@ -292,7 +372,11 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   }
   // Verktygsfält, snabbmeny, spärrar och tangentbord i veckan (05.2-SM-MENY).
   const meny = useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla: allaITerminen, visad: selected, unplaced, kallor: lager?.kallor ?? {}, length: shownMin, checking, week,
-    synlig: visadVy(vy, false) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass, andraVillkor: andraFalt });
+    synlig: visadVy(vy, true, true, foljt !== null) === 'vecka', andra: action => void andra(action), pick, taBort, folj: foljPass, andraVillkor: andraFalt,
+    gemensam: time => { setSamlingStart({ nr: Date.now(), resources: [selected], time, common: true }); setVy('samling'); rememberVy('samling'); },
+    nyAktivitet: time => { const ref = forslag ? resursRefs(forslag).get(selected) : undefined;
+      const resurs = ref && (ref.slag === 'klass' || ref.slag === 'grupp' || ref.slag === 'larare' || ref.slag === 'sal') ? { slag: ref.slag, ref: ref.ref } : undefined;
+      setAktivitetsStart({ day: time.day, startMin: time.startMin, nr: Date.now(), resurs }); } });
   /** Visa i veckan (05.2-SM-PASSTABELL): veckan för passets klass (eller lärare) och termin, med passet markerat och i fokus. */
   function visaIVeckan(l: SchemaForslagLesson) {
     if (!forslag) return;
@@ -318,10 +402,10 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     <div className="schema-moves">
       <p className="schema-note">Dra ett pass till en ny tid eller till viloytan, eller välj passet för att flytta det med flyttpanelen. Varje flytt kontrolleras mot reglerna. Flyttar sparas inte: de försvinner när du lämnar sidan eller tar fram ett nytt förslag.</p>
       <div className="schema-undo">
-        <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || checking} onClick={() => meny.angra('undo') || void andra({ type: 'undo' })}>{villkorSteg(utkast.undo.at(-1)) ? 'Ångra senaste villkor' : 'Ångra senaste flytt'}</Button>
+        <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || checking} onClick={() => meny.angra('undo') || void andra({ type: 'undo' })}>{aktivitetsSteg(utkast.undo.at(-1)) ? 'Ångra senaste aktivitet' : villkorSteg(utkast.undo.at(-1)) ? 'Ångra senaste villkor' : 'Ångra senaste flytt'}</Button>
         <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking} onClick={() => meny.angra('redo') || void andra({ type: 'redo' })}>Gör om</Button>
         {/* Följ passet (05.2-SM-FOLJ) vid markerat pass; även dubbelklick eller tangenten F på ett pass. */}
-        {pickedLesson && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
+        {pickedLesson && vy !== 'folj' && <Button type="button" variant="outline" title="Även dubbelklick eller tangenten F på ett pass" onClick={() => foljPass(pickedLesson.id)}>Följ passet</Button>}
       </div>
     </div>
     {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
@@ -337,8 +421,25 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   // Villkor i tabell (05.2-SM-VILLKORSTABELL): samma villkor och utkast som veckan, med ångra och beskeden ovanför.
   const villkorsvy: ReactNode | undefined = forslag ? <>
     {gemensamt}
-    <Villkorstabell villkor={villkor} setVillkor={setVillkor} dispatch={dispatch} forslag={forslag} kontroll={kontroll} disabled={busy} mal={villkorMal}/>
+    <Villkorstabell villkor={villkor} setVillkor={setVillkor} dispatch={dispatch} forslag={forslag} kontroll={kontroll} disabled={busy || checking} mal={villkorMal}/>
   </> : undefined;
+  const samlingsvy = forslag ? <div ref={resursvy}>
+    {gemensamt}
+    <Samling forslag={forslag} villkor={provade} placements={placeringar} layers={utkast.layers} term={viewTerm} picked={picked}
+      violations={[...flagged]} start={samlingStart} onSessionLost={onSessionLost}
+      onLayer={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}
+      onPick={id => { const l = forslag.lessons.find(x => x.id === id); if (l) pick(l); }}/>
+  </div> : undefined;
+  const foljvy = forslag && foljt ? <div ref={resursvy}>
+    {gemensamt}
+    <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
+      onPick={id => { const l = forslag.lessons.find(x => x.id === id); if (l) pick(l); }}
+      onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => {
+        setFolj(null); setVy(foljFran.current === 'folj' ? 'vecka' : foljFran.current);
+        requestAnimationFrame(() => passElement(foljt.id)?.focus());
+      }} onSessionLost={onSessionLost}
+      onMove={p => void andra({ type: 'move', lesson: foljt.id, day: p.day, startMin: p.startMin, room: p.room })}/>
+  </div> : undefined;
   return <section className="valplan-workspace schema-workspace">
     <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>Läsår {planningYearLabel(schoolYear)}. Förslaget räknas ur skolans tjänstefördelning. Det sparas inte och publiceras inte.</p></div></div>
     <form className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
@@ -346,7 +447,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
       <Button type="submit" disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>
       <p className="schema-note schema-wide">Hur mycket tid ett ämne har och vilken termin kommer ur timplanen, via tjänstefördelningens behov. Tiden räknas på läsårskalenderns skoldagar. Vilka pass som får gå samtidigt avgörs av elevernas klasser och grupper.</p>
-      <Villkor value={villkor} disabled={busy} issues={issues} resurser={forslag?.resurser ?? null} forslag={forslag} onChange={setVillkor}/>
+      <Villkor value={villkor} disabled={busy || checking} issues={issues} resurser={forslag?.resurser ?? null} forslag={forslag} onChange={setVillkor}/>
     </form>
     <output aria-live="polite" className="schema-note">{busy ? `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
@@ -355,7 +456,7 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
     {forslag && <>
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
-        <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>
+        <span className={`status-badge ${forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'warning' : STATUS[forslag.status].tone}`}>Förslag · {forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'Pass kvar på viloytan' : STATUS[forslag.status].text}</span>
         <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Tiden följer timplanen'}</span>
         {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
@@ -369,8 +470,10 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       </div>
 
       {forslag.lessons.length > 0 && <>
+        {['vecka', 'pass'].includes(visadVy(vy, villkorsvy !== undefined, samlingsvy !== undefined, foljvy !== undefined)) &&
+          <VeckaVal forslag={forslag} term={viewTerm} value={visning} onChange={setVisning}/>}
         {/* Vyväljaren (05.2-SM-PASSTABELL): veckan och tabellerna visar samma utkast. Ångra, flyttpanelen och Följ passet är gemensamma. */}
-        <Vyval vy={vy} onVy={setVy} villkor={villkorsvy} veckaVal={<>
+        <Vyval vy={vy} onVy={setVy} villkor={villkorsvy} samling={samlingsvy} folj={foljvy} veckaVal={<>
             <fieldset><legend className="sr-only">Visa schema för</legend>
               <Button type="button" variant={by === 'class' ? 'secondary' : 'outline'} aria-pressed={by === 'class'} onClick={() => setBy('class')}>Klass</Button>
               <Button type="button" variant={by === 'teacher' ? 'secondary' : 'outline'} aria-pressed={by === 'teacher'} disabled={forslag.teachers.length === 0} onClick={() => setBy('teacher')}>Lärare</Button>
@@ -385,24 +488,23 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
           {meny.meddelande}
           <div className="schema-folj-lyssnare" {...foljHandelser}>
           <div className="schema-vecka-rad">{meny.wrap(<Vecka gridRef={week} days={forslag.days} lessons={shown} picked={picked} drop={drop && dragged ? { ...drop, length: dragged.durationMin } : null} flagged={markerade} disabled={checking}
+            locked={l => fastAktivitet(l, provade)}
             length={shownMin} detail={l => `${detail(l)}${termTag(l)}`} extra={l => [...passRader(l), avvikelse(l) ?? ''].filter(Boolean)} onGrab={grab} onPick={meny.onPick}
-            overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}/>)}{meny.panel}</div>
+            overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}
+            kalender={forslag.time.calendar} visning={datumVal} trims={forslag.trims} classId={by === 'class' ? selected : null}/>)}{meny.panel}</div>
           </div>
           <Teckenforklaring lessons={shown} picked={picked} flagged={markerade} overlays={lager?.overlays} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
         </>} pass={<>
           {gemensamt}
           {meny.meddelande}
           <div className="schema-folj-lyssnare" {...foljHandelser}>
-            <Passtabell forslag={forslag} violations={kontroll?.violations ?? null} egna={provade.egna} term={viewTerm} picked={picked} checking={checking || busy}
+            <Passtabell forslag={forslag} violations={kontroll?.violations ?? null} egna={provade.egna} term={viewTerm} visning={datumVal} picked={picked} checking={checking || busy}
               val={tabellVal} onVal={setTabellVal} atgarder={tabellAtgarder} rubrik={tabellRubrik} tabellRef={tabell}
               onParkera={ids => void andra({ type: 'park', lesson: ids[0], fler: ids.slice(1) })}
               onAvbryt={() => { if (pickedLesson) { focus.current = pickedLesson.id; dispatch({ type: 'pick', lesson: null }); } }}/>
           </div>
         </>}/>
-        {foljt && <Folj key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
-          onLock={locked => setFolj(f => f && { ...f, locked })} onClose={() => { setFolj(null); passElement(foljt.id)?.focus(); }} onSessionLost={onSessionLost}
-          onMove={p => void andra({ type: 'move', lesson: foljt.id, day: p.day, startMin: p.startMin, room: p.room })}/>}
-        {visadVy(vy, villkorsvy !== undefined) === 'vecka' && <>
+        {visadVy(vy, villkorsvy !== undefined, true, foljvy !== undefined) === 'vecka' && <>
           <div className="schema-folj-lyssnare" {...foljHandelser}>
           <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={drop?.to?.day === null} dragging={drop?.lesson ?? null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick}/>
           </div>
@@ -420,6 +522,8 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       <Forklaring diagnoses={forslag.diagnoses}/>
       <Tid forslag={forslag} deviating={deviating} off={off}/>
       <Underlag forslag={forslag}/>
+      <Aktiviteter forslag={forslag} villkor={villkor} lessons={forslag.lessons} busy={busy || checking} onChange={andraAktiviteter} saveError={moveError}
+        start={aktivitetsStart} onStartHandled={() => setAktivitetsStart(null)}/>
     </>}
   </section>;
 }
