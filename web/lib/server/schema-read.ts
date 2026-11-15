@@ -9,7 +9,7 @@ import { logEvent } from './events.ts';
 import { lasarRead } from './lasar.ts';
 import { readStudyGroups } from './study-groups.ts';
 import { Deny } from './db.ts';
-import { planRead, tjanstRequest } from './tjanst.ts';
+import { personalRead, planRead, tjanstRequest } from './tjanst.ts';
 import { SchemaVersionError, type SchemaForslagRequest } from '../schema-contract.ts';
 import { schemaTime } from '../schema-kalender.ts';
 import { mergeSchemaMembers, type SchemaBasis } from '../schema-underlag.ts';
@@ -36,6 +36,14 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   for (const extra of [elective.event, study.event, lasar.event]) await logEvent(tx, { ...ctx, request }, { ...extra, outcome: 'ok' });
   const basis: SchemaBasis = { members: mergeSchemaMembers([{ pupils: elective.body.pupils, memberships: elective.body.placements }, { pupils: study.body.pupils, memberships: study.body.memberships }]),
     time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)) };
+  // Personallistan har eget mandat: rektor får skolans personal. Administratörens planmandat utvidgas inte.
+  if (ctx.accessFunction === 'rektor') {
+    const personal = await personalRead(tx, { unitId: input.unitId }, ctx);
+    await logEvent(tx, { ...ctx, request }, { ...personal.event, outcome: 'ok' });
+    basis.personer = personal.body.people.filter(p => p.status === 'active' && p.duties.some(d => d.unitId === input.unitId
+      && d.startsOn <= `${input.schoolYear + 1}-06-30` && (d.endsOn === null || d.endsOn >= `${input.schoolYear}-07-01`)))
+      .map(p => ({ ref: p.id, name: `${p.givenName} ${p.familyName}`.trim() })).sort((a, b) => a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref));
+  }
   // Elevernas namn, bara de som läsningarna gav med användarens egen behörighet (Följ passet, 05.2-SM-FOLJ). Stannar på servern utom i elevväljaren.
   const pupilNames = new Map([...elective.body.pupils ?? [], ...study.body.pupils].map(p => [p.id, p.name] as const));
   return { plan: result.body, basis, event: result.event, pupilNames };

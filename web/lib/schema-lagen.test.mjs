@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSchemaLagen, parseSchemaLagenRequest, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from './schema-lagen.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
-import { defaultSchemaVillkor } from './schema-contract.ts';
+import { defaultSchemaVillkor, SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 
 /** Syntetisk tjänstefördelning: två klasser, ett valbart block med Spanska och Tyska, sex elever. Inga verkliga personer eller skolor. */
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -34,7 +34,7 @@ const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_m
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 
 test('begäran: kontrollens fält, passet och en elev eller ingen', () => {
-  const base = { contractVersion: 4, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
+  const base = { contractVersion: SCHEMA_CONTRACT_VERSION, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
   assert.deepEqual(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: null }), { ...base, lesson: ma, pupilId: null });
   assert.equal(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: uid(901).toUpperCase() }).pupilId, uid(901));
   for (const broken of [{ ...base, lesson: ma }, { ...base, lesson: 'Matematik', pupilId: null }, { ...base, lesson: ma, pupilId: 'elev-1' }, { ...base, lesson: ma, pupilId: null, extra: 1 },

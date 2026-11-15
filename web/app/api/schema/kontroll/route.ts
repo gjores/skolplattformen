@@ -23,9 +23,9 @@ export async function POST(request: Request): Promise<Response> {
   if (!response.ok || !read.plan || !read.input || !read.basis) return response;
   const correlationId = response.headers.get('X-Correlation-Id') ?? '', epochHeader = response.headers.get('X-Context-Epoch');
   const init = { correlationId, ...(epochHeader === null ? {} : { epoch: Number(epochHeader) }) };
-  const underlag = schemaProvUnderlag(read.plan, read.input, read.basis);
-  if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
   try {
+    const underlag = schemaProvUnderlag(read.plan, read.input, read.basis);
+    if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
     const placements = checkSchemaPlacements(read.input.placements, underlag.problem);
     return json(schemaKontroll(underlag, placements, await validateSchema(underlag.problem, placements)), init);
   } catch (error) {

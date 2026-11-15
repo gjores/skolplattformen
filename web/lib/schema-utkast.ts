@@ -1,6 +1,7 @@
 // Utkastet för arbetsytan i Schema (05.2-SM-YTA): var passen ligger just nu, markerat pass, verktyg, synliga lager och ångra/gör om.
 // Ren reducer utan React och utan sidoeffekter. Tillståndet är vanlig JSON (krävs för att flera fönster ska kunna dela utkastet, SM-FONSTER).
 // Inget sparas: utkastet lever i webbläsaren tills sidan lämnas eller ett nytt förslag tas fram.
+import type { SchemaAktivitetsSnapshot } from './schema-aktiviteter.ts';
 import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement, SchemaRegel, SchemaRegelSlag } from './schema-contract.ts';
 
 /** Var ett pass ligger. `day` och `startMin` är null när passet ligger på viloytan. */
@@ -15,7 +16,9 @@ export type SchemaFlyttSteg = { lesson: string; placements: SchemaUtkastPlatser 
  * Villkoren hålls i arbetsytans villkorsformulär; steget bär båda listorna så att ångra och gör om kan sätta tillbaka rätt lista.
  */
 export type SchemaVillkorSteg = { villkor: SchemaRegel[]; efter: SchemaRegel[]; text: string };
-export type SchemaUtkastSteg = SchemaFlyttSteg | SchemaVillkorSteg;
+export type SchemaAktivitetsSteg = { aktiviteter: { fore: SchemaAktivitetsSnapshot; efter: SchemaAktivitetsSnapshot }; text: string };
+export type SchemaUtkastSteg = SchemaFlyttSteg | SchemaVillkorSteg | SchemaAktivitetsSteg;
+export const aktivitetsSteg = (step: SchemaUtkastSteg | undefined): step is SchemaAktivitetsSteg => step !== undefined && 'aktiviteter' in step;
 export const villkorSteg = (step: SchemaUtkastSteg | undefined): step is SchemaVillkorSteg => step !== undefined && 'villkor' in step;
 export type SchemaUtkast = {
   placements: SchemaUtkastPlatser;
@@ -29,6 +32,7 @@ export type SchemaUtkast = {
 /** Salar som kontrollen har valt, per pass. Används efter en kontroll så att utkastet bär samma sal som servern räknat med. */
 export type SchemaUtkastSalar = Record<string, string | null>;
 export type SchemaUtkastAtgard =
+  | { type: 'aktiviteter'; fore: SchemaAktivitetsSnapshot; efter: SchemaAktivitetsSnapshot; text: string }
   | { type: 'move'; lesson: string; day: number; startMin: number; room?: string | null; rooms?: SchemaUtkastSalar }
   /** `fler`: fler pass som läggs på viloytan i samma ångra-steg (flera valda rader i passtabellen, 05.2-SM-PASSTABELL). */
   | { type: 'park'; lesson: string; fler?: string[]; rooms?: SchemaUtkastSalar }
@@ -68,7 +72,7 @@ const withRooms = (placements: SchemaUtkastPlatser, rooms?: SchemaUtkastSalar): 
   return Object.fromEntries(Object.entries(placements).map(([id, p]) => [id, { ...p, room: p.day === null ? null : rooms[id] ?? null }]));
 };
 const push = (list: SchemaUtkastSteg[], step: SchemaUtkastSteg) => [...list, step].slice(-SCHEMA_UTKAST_STEG);
-const flyttSteg = (step: SchemaUtkastSteg | undefined) => step && !villkorSteg(step) ? step : null;
+const flyttSteg = (step: SchemaUtkastSteg | undefined) => step && !villkorSteg(step) && !aktivitetsSteg(step) ? step : null;
 
 /**
  * Placeringarna som en flytt, parkering, ångra eller gör om skulle ge, utan att ändra utkastet. Används för att låta kontrollen pröva ändringen först.
@@ -96,6 +100,10 @@ export const utkastSteg = (state: SchemaUtkast, which: 'undo' | 'redo') => flytt
 
 export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): SchemaUtkast {
   switch (action.type) {
+    case 'aktiviteter': {
+      const placements = Object.fromEntries(action.efter.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
+      return { ...state, placements, picked: null, undo: push(state.undo, { aktiviteter: { fore: action.fore, efter: action.efter }, text: action.text }), redo: [] };
+    }
     case 'reset': {
       const placements = Object.fromEntries(action.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
       // Ett nytt förslag tömmer historiken. Verktyg och lager är användarens val och står kvar.
@@ -110,6 +118,11 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
       const from = action.type === 'undo' ? state.undo : state.redo, to = action.type === 'undo' ? state.redo : state.undo;
       const step = from.at(-1);
       if (!step) return state;
+      if (aktivitetsSteg(step)) {
+        const snapshot = action.type === 'undo' ? step.aktiviteter.fore : step.aktiviteter.efter;
+        const placements = Object.fromEntries(snapshot.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
+        return { ...state, placements: withRooms(placements, action.rooms), picked: null, undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
+      }
       // Ett villkorssteg bär villkoren före och efter och flyttar inget pass; arbetsytan sätter tillbaka villkoren.
       if (villkorSteg(step)) return { ...state, undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       const moved = { lesson: step.lesson, placements: state.placements };

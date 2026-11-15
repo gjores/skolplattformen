@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaKontroll, schemaProvUnderlag, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
-import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel, SCHEMA_GRUND_TYPER, SCHEMA_REGEL_TYPER } from './schema-contract.ts';
+import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel, SCHEMA_CONTRACT_VERSION, SCHEMA_GRUND_TYPER, SCHEMA_REGEL_TYPER } from './schema-contract.ts';
 
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -214,7 +214,7 @@ test('utlagd tid är passens längd gånger skoldagarna på passets veckodag; kl
   // pass-1 är olagt, pass-2 ligger på tisdag (18 skoldagar) och pass-3 på onsdag (17).
   assert.deepEqual(forslag.teachings.map(core), [{ title: 'Matematik', classes: ['1B'], needMin: h(54), weeklyMin: 195, plannedMin: 65 * 18 + 65 * 17, unplaced: 1,
     terms: [term('ht', h(54), 65 * 18 + 65 * 17)], deviation: 'unplaced' }]);
-  assert.deepEqual(forslag.time, { source: 'kalender', version: 2, status: 'utkast', current: false, schoolDays: 88, weeks: 17.6, terms: [{ term: 'ht', schoolDays: 88 }],
+  assert.deepEqual(forslag.time, { source: 'kalender', version: 2, status: 'utkast', current: false, schoolDays: 88, weeks: 17.6, calendar: null, terms: [{ term: 'ht', schoolDays: 88 }],
     weekLabels: Array.from({ length: 18 }, (_, i) => `Vecka ${i + 1}`) });
   assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request), forslag);
   const none = buildSchemaUnderlag(data, request, { members: null, time: timeWith({ span: HT, classes: { [uid(11)]: [0, 0, 0, 0, 0] } }) });
@@ -235,7 +235,7 @@ test('motorns svar tolkas strikt och förslaget får namn i stället för löpnu
   assert.deepEqual([forslag.metrics.placed, forslag.metrics.unplaced, forslag.lessons[0].day, forslag.lessons[1].startMin], [underlag.problem.lessons.length - 1, 1, null, 480]);
   assert.deepEqual(forslag.teachers.map(t => t.name), ['Lärare 20', 'Lärare 21', 'Lärare 22']);
   assert.deepEqual(forslag.basis, { versionNo: 4, status: 'draft' });
-  assert.deepEqual(forslag.time, { source: 'forval', version: null, status: null, current: false, schoolDays: 90, weeks: 18, terms: [{ term: 'ht', schoolDays: 90 }],
+  assert.deepEqual(forslag.time, { source: 'forval', version: null, status: null, current: false, schoolDays: 90, weeks: 18, calendar: null, terms: [{ term: 'ht', schoolDays: 90 }],
     weekLabels: Array.from({ length: 18 }, (_, i) => `Vecka ${i + 1}`) });
   assert.deepEqual(forslag.members, { pupils: 0, groupsWithoutMembers: [], classesWithoutPupils: ['1A', '1B'], withoutChoice: [] });
   assert.equal(forslag.teachings.find(t => t.title === 'Svenska').needMin, h(54));
@@ -273,7 +273,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.equal(schemaForslag(plan(), request, underlag, parseSchemaSolution(solved(p), p)).fingerprint, underlag.fingerprint);
 
   const placements = [{ lesson: 'pass-1', day: 0, startMin: 480, room: null }, { lesson: 'pass-2', day: 4, startMin: 930, room: null }];
-  const body = { contractVersion: 4, ...request, grundFingerprint: underlag.grundFingerprint, placements };
+  const body = { contractVersion: SCHEMA_CONTRACT_VERSION, ...request, grundFingerprint: underlag.grundFingerprint, placements };
   assert.deepEqual(parseSchemaKontrollRequest(body), body);
   for (const broken of [{ ...body, grundFingerprint: 'x' }, { ...body, contractVersion: 2 }, { ...body, contractVersion: 3 }, { ...body, fingerprint: underlag.fingerprint }, { ...body, extra: 1 }, { ...body, placements: [{ ...placements[0], rooms: [] }] }, { ...body, placements: [{ ...placements[0], day: 1.5 }] }, { ...body, placements: [{ ...placements[0], room: 'Idrottshallen' }] }, { ...body, placements: [{ lesson: 'pass-1', day: 0, startMin: 480 }] }, { ...request, placements }])
     assert.throws(() => parseSchemaKontrollRequest(broken));
@@ -298,7 +298,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
   assert.deepEqual(core(kontroll.teachings.find(t => t.title === 'Matematik' && t.classes[0] === '1A')), { title: 'Matematik', classes: ['1A'], needMin: h(54), weeklyMin: 180, plannedMin: 2 * 60 * 18, unplaced: 1,
     terms: [term('ht', h(54), 2 * 60 * 18)], deviation: 'unplaced' });
   assert.deepEqual(kontroll.rooms, {});
-  assert.deepEqual([kontroll.contractVersion, kontroll.grundFingerprint, kontroll.fingerprint], [4, underlag.grundFingerprint, underlag.fingerprint]);
+  assert.deepEqual([kontroll.contractVersion, kontroll.grundFingerprint, kontroll.fingerprint], [SCHEMA_CONTRACT_VERSION, underlag.grundFingerprint, underlag.fingerprint]);
   assert.deepEqual(parseSchemaKontroll(JSON.parse(JSON.stringify(kontroll)), underlag.grundFingerprint), kontroll);
   assert.throws(() => parseSchemaKontroll(kontroll, '0'.repeat(28)));
   for (const broken of [{ ...kontroll, contractVersion: 2 }, { ...kontroll, contractVersion: 3 }, { ...kontroll, fingerprint: 'x' }]) assert.throws(() => parseSchemaKontroll(broken, underlag.grundFingerprint));
@@ -683,7 +683,7 @@ test('version 2 och 3 av begäran nekas med egen orsak; servern bygger aldrig un
   assert.throws(() => parseSchemaKontrollRequest({ ...gammal, contractVersion: 2 }), { name: 'SchemaVersionError' });
   // Version 3 saknade villkorstypen `dag` (05.2-SM-VILLKORSTABELL): en sida med den versionen nekas, med eller utan villkoret.
   assert.throws(() => parseSchemaKontrollRequest({ contractVersion: 3, ...request, grundFingerprint: underlag.grundFingerprint, placements: [] }), { name: 'SchemaVersionError' });
-  assert.throws(() => parseSchemaKontrollRequest({ contractVersion: 4, ...request, fingerprint: underlag.fingerprint, placements: [] }), { name: 'SchemaContractError' });
+  assert.throws(() => parseSchemaKontrollRequest({ contractVersion: SCHEMA_CONTRACT_VERSION, ...request, fingerprint: underlag.fingerprint, placements: [] }), { name: 'SchemaContractError' });
 });
 
 test('längsta dag per lärare når motorn som max_min_per_day: det lägsta av lärarens och skolans värde, utan att ändra grunden', () => {

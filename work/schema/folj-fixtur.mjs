@@ -8,7 +8,7 @@ import { randomBytes } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
+import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll } from '../../web/lib/schema-contract.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster } from '../../web/lib/schema-lagen.ts';
@@ -61,6 +61,11 @@ const passen = list => list.map(l => [l.id, l.title, l.classIds, l.teacherIds, l
 assert.deepEqual(passen(forslag.lessons), passen(underlag.labels.lessons), 'underlaget är inte detsamma som fixturens');
 assert.deepEqual(forslag.villkor, request.villkor);
 Object.assign(forslag, { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: underlag.fingerprint, grundFingerprint: underlag.grundFingerprint });
+// Datum och tillfälleskortning kommer ur samma serverberäkning som timplanssumman; placeringarna bevaras utan ny solve.
+const dated = schemaForslag(plan, request, underlag, { status: forslag.status,
+  placements: forslag.lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]),
+  unplaced: forslag.lessons.filter(l => l.day === null).map(l => l.id), diagnoses: [], metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: forslag.elapsedMs });
+Object.assign(forslag, { time: dated.time, trims: dated.trims, teachings: dated.teachings });
 parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request);
 writeFileSync(join(fixtures, 'schema-forslag.json'), JSON.stringify(forslag));
 const gammalKontroll = JSON.parse(readFileSync(join(fixtures, 'schema-kontroll.json'), 'utf8'));

@@ -12,6 +12,7 @@ import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund } from '../../web/lib/schema-contract.ts';
+import { schemaAktivitetsAndring, schemaAktivitetsPlaceringar, schemaAktivitetsSvar } from '../../web/lib/schema-aktiviteter-underlag.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
 const bin = new URL('../../schemamotor/target/release/', import.meta.url).pathname;
@@ -147,6 +148,38 @@ try {
     assert.equal(r.status, 200, text.slice(0, 300));
     return parseSchemaSolution(JSON.parse(text), u.problem);
   };
+  // Egna aktiviteter: ett riktigt motorplacerat arbetslagsmöte och en riktig kontroll av mentorstid.
+  const smallPlan = { ...plan, classes: [{ ...plan.classes[0], needs: [plan.classes[0].needs[0]] }],
+    rows: plan.rows.filter(r => r.sourceKey === plan.classes[0].needs[0].sourceKey), groups: [] };
+  const smallRequest = { ...request, period: 'ht', villkor: { ...defaultSchemaVillkor(), breakMin: 0, lunch: null } };
+  const smallUnderlag = buildSchemaUnderlag(smallPlan, smallRequest, basis), smallSolution = await solve(smallUnderlag);
+  const smallForslag = schemaForslag(smallPlan, smallRequest, smallUnderlag, smallSolution);
+  const meeting = { id: 'aktivitet-1', typId: 'typ-mote', typ: 'Arbetslagsmöte', name: 'Arbetslagsmöte prov', classRefs: [], groupRefs: [],
+    teacherRefs: [plan.teachers[0].personId, plan.teachers[1].personId], rooms: [], durationMin: 60, veckor: { typ: 'alla' }, visibleFor: 'personal', margin: null,
+    tid: { typ: 'motor', days: [1, 2, 3], startMin: 840, endMin: 990 } };
+  const activityInput = { ...smallRequest, contractVersion: SCHEMA_CONTRACT_VERSION, previousVillkor: smallRequest.villkor,
+    villkor: { ...smallRequest.villkor, aktiviteter: [meeting] }, grundFingerprint: smallUnderlag.grundFingerprint, placements: smallSolution.placements };
+  const activityChange = schemaAktivitetsAndring(smallPlan, activityInput, basis);
+  assert.ok(activityChange);
+  const activitySolution = await solve({ ...activityChange.efter, problem: activityChange.solver });
+  const activityPlacements = schemaAktivitetsPlaceringar(activityChange, activitySolution), meetingAt = activityPlacements.find(p => p.lesson === 'pass-900001');
+  assert.ok(meetingAt && [1, 2, 3].includes(meetingAt.day) && meetingAt.startMin >= 840 && meetingAt.startMin + 60 <= 990, 'arbetslagsmötet placerades inte inom sitt fönster');
+  const activityCheckResponse = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ problem: activityChange.efter.problem, placements: activityPlacements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }) });
+  const activityCheck = parseSchemaCheck(await activityCheckResponse.json(), activityChange.efter.problem);
+  assert.deepEqual(activityCheck.violations, []);
+  const activityReply = schemaAktivitetsSvar(smallPlan, activityInput, activityChange, activityPlacements, activityCheck, activitySolution);
+  assert.deepEqual(activityReply.forslag.teachings, smallForslag.teachings, 'aktiviteten ändrade undervisningens timplanetid');
+  assert.deepEqual(activityPlacements.filter(p => p.lesson !== 'pass-900001'), smallSolution.placements, 'undervisningens placeringar ändrades');
+  const lessonAt = smallSolution.placements[0], mentor = { ...meeting, name: 'Mentorstid prov', typ: 'Mentorstid', classRefs: [smallPlan.classes[0].classId],
+    durationMin: 20, tid: { typ: 'fast', day: lessonAt.day, startMin: lessonAt.startMin } };
+  const mentorInput = { ...activityInput, villkor: { ...smallRequest.villkor, aktiviteter: [mentor] } }, mentorChange = schemaAktivitetsAndring(smallPlan, mentorInput, basis);
+  const mentorPlacements = schemaAktivitetsPlaceringar(mentorChange, null);
+  const mentorResponse = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ problem: mentorChange.efter.problem, placements: mentorPlacements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) }) });
+  const mentorCheck = parseSchemaCheck(await mentorResponse.json(), mentorChange.efter.problem);
+  assert.ok(mentorCheck.violations.some(v => v.code === 'student_clash' && v.lessons.includes('pass-900001')), 'mentorstiden upptar inte sina elever i riktiga kontrollanten');
+  console.log(JSON.stringify({ aktiviteter: { meetingWithinWindow: true, noViolations: activityCheck.violations.length === 0, unchangedTeaching: true, preservedPlacements: true, mentorClashDetected: true } }));
   const marginal = (slag, ref, beforeMin, afterMin, occupies, label) => ({ slag, ref, typ: 'marginal', beforeMin, afterMin, occupies, label, visibleFor: ['elever'], when: 'alltid' });
   const egna = [
     { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] },

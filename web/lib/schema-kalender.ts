@@ -5,7 +5,7 @@
 import type { LasarReadReply } from './lasar-contract.ts';
 import { lasarSchoolYear } from './lasar-contract.ts';
 import { groupsFromRefs, klassGroupId } from './lasar-groups.ts';
-import { groupYearDays, isoWeek, monday, weekday, yearDays, type GroupDay } from './lasar-model.ts';
+import { causeLabel, groupYearDays, isoWeek, monday, weekday, yearDays, type GroupDay } from './lasar-model.ts';
 import { SCHEMA_TERMS, type SchemaTerm, type SchemaTime } from './schema-contract.ts';
 import { defaultSchemaTime } from './schema-underlag.ts';
 
@@ -34,5 +34,13 @@ export function schemaTime(read: LasarReadReply | null, classIds: string[]): Sch
       perWeekday: all.get(key) ?? [0, 0, 0, 0, 0], classes: Object.fromEntries(mine.map(([id, m]) => [id, m.get(key) ?? [0, 0, 0, 0, 0]])) }));
   };
   const term = (t: SchemaTerm) => ({ span: { ...c.terms[t] }, perWeekday: count(school, t), classes: Object.fromEntries(own.map(x => [x.classId, count(x.days, t)])), weeks: weeks(t) });
-  return { source: 'kalender', version: c.version, status: c.status, current: read.versions.some(v => v.current && v.versionId === c.versionId), terms: { ht: term('ht'), vt: term('vt') } };
+  // Bara dagens undervisningsstatus och dess verksamhetsorsak lämnar kalendern, inga kommentarer, personer eller redigeringsmetadata.
+  const reason = (d: GroupDay): string | null => d.off ? d.off.recurring ? 'Kort vecka' : causeLabel[d.off.cause]
+    : d.holiday ?? (d.part === 'jullov' ? 'Jullov' : d.status === 'lovdag' ? 'Lovdag' : d.status === 'studiedag' ? 'Studiedag' : d.status === 'helg' ? 'Helg' : d.status === 'utanför' ? 'Utanför terminen' : null);
+  const byClass = own.map(x => ({ classId: x.classId, days: new Map(x.days.map(d => [d.date, d])) }));
+  const dates = school.map(d => ({ date: d.date, term: d.part === 'ht' || d.part === 'vt' ? d.part : null,
+    schoolDay: d.status === 'skoldag', reason: reason(d), classes: Object.fromEntries(byClass.flatMap(x => {
+      const mine = x.days.get(d.date); return mine?.off ? [[x.classId, { schoolDay: false, reason: reason(mine) }]] : [];
+    })) }));
+  return { source: 'kalender', version: c.version, status: c.status, current: read.versions.some(v => v.current && v.versionId === c.versionId), terms: { ht: term('ht'), vt: term('vt') }, dates };
 }

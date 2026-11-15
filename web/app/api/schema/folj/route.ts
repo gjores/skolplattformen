@@ -26,9 +26,10 @@ export async function POST(request: Request): Promise<Response> {
   if (!response.ok || !read.plan || !read.input || !read.basis || !read.names) return response;
   const correlationId = response.headers.get('X-Correlation-Id') ?? '', epochHeader = response.headers.get('X-Context-Epoch');
   const init = { correlationId, ...(epochHeader === null ? {} : { epoch: Number(epochHeader) }) };
-  const input = read.input, underlag = schemaProvUnderlag(read.plan, input, read.basis);
-  if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
+  const input = read.input;
   try {
+    const underlag = schemaProvUnderlag(read.plan, input, read.basis);
+    if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
     checkSchemaPlacements(input.placements, underlag.problem);
     if (!underlag.problem.lessons.some(l => l.id === input.lesson)) throw new SchemaContractError();
     try {

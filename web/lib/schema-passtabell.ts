@@ -3,6 +3,8 @@
 // Tabellen och veckan är två vyer av samma utkast. Inget sparas, och tabellen visar namn och förslagets löpnummer, inga externa ID.
 import type { SchemaForslag, SchemaRegel, SchemaTerm, SchemaViolation } from './schema-contract.ts';
 import { avvikelseRad, resursRefs } from './schema-utkast.ts';
+import { schemaDateText, schemaTillfallen, type SchemaVeckaVal } from './schema-vecka.ts';
+import { aktivitetsVeckorText } from './schema-aktiviteter.ts';
 
 export type PassStatus = 'lagd' | 'viloyta' | 'avvikelse';
 export const PASS_STATUS: Record<PassStatus, string> = { lagd: 'Lagd', viloyta: 'Viloyta', avvikelse: 'Regelavvikelse' };
@@ -12,6 +14,10 @@ const klocka = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${
 /** En rad i passtabellen. `dag` och `start` är null för pass på viloytan. Namnen är förslagets; id är förslagets löpnummer. */
 export type PassRad = {
   id: string; undervisning: string;
+  /** Daterad rad har eget rad-ID men meny och flytt använder fortfarande grundschemats pass-ID. */
+  lessonId?: string; datum?: string;
+  aktivitetTyp?: string;
+  aktivitetVeckor?: string;
   /** Undervisningen raden hör till: ämnet och klasserna, som i Tid över läsåret. */
   nyckel: string;
   klasser: { id: string; namn: string }[]; grupper: { id: string; namn: string }[]; larare: { id: string; namn: string }[];
@@ -32,7 +38,7 @@ export type PassRad = {
   sok: string;
 };
 
-export type PassTabellUnderlag = Pick<SchemaForslag, 'lessons' | 'classes' | 'teachers' | 'rooms' | 'resurser' | 'trims' | 'period'>;
+export type PassTabellUnderlag = Pick<SchemaForslag, 'lessons' | 'classes' | 'teachers' | 'rooms' | 'resurser' | 'trims' | 'period'> & Partial<Pick<SchemaForslag, 'time'>>;
 
 /** Undervisningens nyckel: ämnet och klassernas namn i bokstavsordning, så att den kan jämföras med Tid över läsåret. */
 export const undervisningsNyckel = (titel: string, klasser: string[]) => `${titel}|${[...klasser].sort((a, b) => a.localeCompare(b, 'sv')).join(',')}`;
@@ -41,7 +47,15 @@ export const undervisningsNyckel = (titel: string, klasser: string[]) => `${tite
  * Passtabellens rader. `term` är terminen veckan visar: ett pass som går hela läsåret visas med sin längd den terminen, som i veckan.
  * `violations` är kontrollens svar för villkoren som prövas (null när ingen kontroll har körts); `egna` är de egna villkor som prövas.
  */
-export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: SchemaViolation[] | null, egna: SchemaRegel[]): PassRad[] {
+export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: SchemaViolation[] | null, egna: SchemaRegel[], visning?: SchemaVeckaVal): PassRad[] {
+  if (visning && visning.mode !== 'grundschema' && f.time?.calendar) {
+    const base = new Map(passRader(f, term, violations, egna).map(r => [r.id, r]));
+    return schemaTillfallen({ lessons: f.lessons, trims: f.trims, time: f.time }, visning).flatMap(o => {
+      const r = base.get(o.lesson.id);
+      return r ? [{ ...r, id: o.key, lessonId: o.lesson.id, datum: o.date, langd: o.length, termin: o.term, kortareVeckor: 0,
+        sok: `${r.sok} ${o.date} ${schemaDateText(o.date)}`.toLocaleLowerCase('sv-SE') }] : [];
+    });
+  }
   const refs = resursRefs(f), klass = new Map(f.classes.map(c => [c.id, c.name])), larare = new Map(f.teachers.map(t => [t.id, t.name])), salar = new Map(f.rooms.map(r => [r.id, r.name]));
   const trims = new Map(f.trims.map(t => [`${t.lesson}|${t.term}`, t]));
   const perPass = new Map<string, SchemaViolation[]>();
@@ -59,9 +73,10 @@ export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: S
       id: l.id, undervisning: l.title, nyckel: undervisningsNyckel(l.title, klasser.map(x => x.namn)), klasser, grupper, larare: lar, vakant: l.vacant && l.teacherIds.length === 0,
       salId: l.roomId, sal, dag: lagd ? l.day : null, start: lagd ? l.startMin : null, langd: l.durationMin - (trim?.fixedMin ?? 0), grundLangd: l.durationMin,
       termin: l.term, kortareVeckor: trim?.extraCount ?? 0, marginalFore: l.marginBeforeMin, marginalEfter: l.marginMin, status, orsak,
+      ...(l.egenAktivitet ? { aktivitetTyp: l.egenAktivitet.typ, aktivitetVeckor: aktivitetsVeckorText(l.egenAktivitet.veckor) } : {}),
     };
     const sok = [rad.undervisning, ...klasser.map(x => x.namn), ...grupper.map(x => x.namn), ...lar.map(x => x.namn), sal, rad.dag === null ? 'viloyta' : VECKODAGAR[rad.dag],
-      rad.start === null ? '' : klocka(rad.start), PASS_STATUS[status], orsak ?? ''].join(' ').toLocaleLowerCase('sv-SE');
+      rad.start === null ? '' : klocka(rad.start), PASS_STATUS[status], orsak ?? '', rad.aktivitetTyp ?? ''].join(' ').toLocaleLowerCase('sv-SE');
     return { ...rad, sok };
   });
 }
@@ -132,7 +147,7 @@ export type PassSortering = { kolumn: PassKolumn; stigande: boolean };
 const STATUS_ORDNING: Record<PassStatus, number> = { avvikelse: 0, lagd: 1, viloyta: 2 };
 const TERMIN_ORDNING = { ht: 0, vt: 1, bada: 2 } as const;
 /** Veckans ordning: dag och tid, pass på viloytan sist. */
-const veckoOrdning = (a: PassRad, b: PassRad) => (a.dag ?? 99) - (b.dag ?? 99) || (a.start ?? 0) - (b.start ?? 0);
+const veckoOrdning = (a: PassRad, b: PassRad) => (a.datum ?? '').localeCompare(b.datum ?? '') || (a.dag ?? 99) - (b.dag ?? 99) || (a.start ?? 0) - (b.start ?? 0);
 const namnLista = (x: { namn: string }[]) => x.map(y => y.namn).join(', ');
 
 /** Nycklar för sortering per kolumn, räknade en gång per rad så att 1 000 pass sorteras snabbt. Text jämförs i svensk ordning. */
@@ -143,7 +158,7 @@ function nyckelFor(r: PassRad, kolumn: PassKolumn): string | number {
     case 'grupper': return namnLista(r.grupper).toLocaleLowerCase('sv-SE');
     case 'larare': return (r.vakant ? '' : namnLista(r.larare)).toLocaleLowerCase('sv-SE');
     case 'sal': return r.sal.toLocaleLowerCase('sv-SE');
-    case 'dag': return (r.dag ?? 99) * 10000 + (r.start ?? 0);
+    case 'dag': return r.datum ? `${r.datum} ${klocka(r.start ?? 0)}` : (r.dag ?? 99) * 10000 + (r.start ?? 0);
     case 'tid': return (r.start ?? 9999) * 100 + (r.dag ?? 99);
     case 'langd': return r.langd;
     case 'termin': return TERMIN_ORDNING[r.termin ?? 'bada'];
@@ -185,10 +200,10 @@ export function grupperaPass(rader: PassRad[], teachings: SchemaForslag['teachin
 }
 
 // ── Text i cellerna ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
-export const dagText = (r: Pick<PassRad, 'dag'>) => r.dag === null ? 'Viloytan' : VECKODAGAR[r.dag] ?? `Dag ${r.dag + 1}`;
+export const dagText = (r: Pick<PassRad, 'dag' | 'datum'>) => r.dag === null ? 'Viloytan' : `${VECKODAGAR[r.dag] ?? `Dag ${r.dag + 1}`}${r.datum ? ` ${schemaDateText(r.datum)}` : ''}`;
 export const tidText = (r: Pick<PassRad, 'start' | 'langd'>) => r.start === null ? '–' : `${klocka(r.start)}–${klocka(r.start + r.langd)}`;
 export const terminText = (r: Pick<PassRad, 'termin'>) => r.termin === 'ht' ? 'HT' : r.termin === 'vt' ? 'VT' : 'HT och VT';
-export const veckorText = (r: Pick<PassRad, 'kortareVeckor'>) => r.kortareVeckor === 0 ? '' : `kortare ${r.kortareVeckor === 1 ? 'en vecka' : `${r.kortareVeckor} veckor`}`;
+export const veckorText = (r: Pick<PassRad, 'kortareVeckor' | 'aktivitetVeckor'>) => r.aktivitetVeckor ?? (r.kortareVeckor === 0 ? '' : `kortare ${r.kortareVeckor === 1 ? 'en vecka' : `${r.kortareVeckor} veckor`}`);
 export const marginalText = (r: Pick<PassRad, 'marginalFore' | 'marginalEfter'>) => r.marginalFore + r.marginalEfter === 0 ? '' : `${r.marginalFore || '–'} · ${r.marginalEfter || '–'} min`;
 
 /** Passet i ett ord för skärmläsare och menyns rubrik: ämne, klass, dag och tid eller viloytan. */

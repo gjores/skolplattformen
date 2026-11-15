@@ -29,7 +29,7 @@ export type VtCell = { typ: SchemaRegelTyp; index: number[]; text: string };
 export type VtRad = {
   slag: VtSlag; ref: string; namn: string;
   /** Antal pass resursen har i förslaget, veckotid per termin och vem resursen undervisar eller undervisas av. */
-  pass: number; veckotidMin: number[]; veckotid: string; vem: string;
+  pass: number; veckotidMin: number[]; veckotid: string; vem: string; aktiviteter: string;
   celler: Partial<Record<SchemaRegelTyp, VtCell>>;
   /** Villkoren träffar inget pass i förslaget (resursen har inga pass); villkoret används då inte, som i dag. */
   utanTraff: boolean;
@@ -124,6 +124,13 @@ function namnLista(values: string[]): string {
   return u.length > 3 ? `${u.slice(0, 3).join(', ')} +${u.length - 3}` : u.join(', ');
 }
 
+/** Egna aktiviteter som uttryckligen upptar resursen. Läsande fakta, aldrig ett ämnesvillkor. */
+export function vtAktiviteter(slag: VtSlag, ref: string, villkor: SchemaVillkor): string {
+  if (slag === 'amne') return '';
+  return (villkor.aktiviteter ?? []).filter(a => slag === 'klass' ? a.classRefs.includes(ref) : slag === 'grupp' ? a.groupRefs.includes(ref)
+    : slag === 'larare' ? a.teacherRefs.includes(ref) : a.rooms.includes(ref)).map(a => `${a.name} (${a.typ})`).join(', ');
+}
+
 /** Tabellens rader för en resurstyp: en rad per resurs, med fakta, en cell per villkorstyp och pass på villkoret. Tom utan förslag (utom salar). */
 export function vtRader(slag: VtSlag, villkor: SchemaVillkor, f: VtUnderlag | null, kontroll: SchemaKontroll | null = null): VtRad[] {
   const typer = vtTyper(slag), terms = f ? schemaTerms(f.period) : [];
@@ -141,14 +148,14 @@ export function vtRader(slag: VtSlag, villkor: SchemaVillkor, f: VtUnderlag | nu
     // Ett villkor för en sal träffar alltid i underlaget (salen finns bland salarna); övriga träffar när resursen har pass.
     const utanTraff = f !== null && slag !== 'sal' && lessons.length === 0 && Object.keys(celler).length > 0;
     const rad = { slag, ref, namn };
-    return { ...rad, pass: lessons.length, veckotidMin, veckotid, vem, celler, utanTraff, brott: f ? brott(rad, typer, lessons, villkor.egna, f, kontroll) : 0 };
+    return { ...rad, pass: lessons.length, veckotidMin, veckotid, vem, aktiviteter: vtAktiviteter(slag, ref, villkor), celler, utanTraff, brott: f ? brott(rad, typer, lessons, villkor.egna, f, kontroll) : 0 };
   });
 }
 
 export type VtFilter = 'alla' | 'har' | 'saknar' | 'utanTraff';
 export const VT_FILTER: Record<VtFilter, string> = { alla: 'Alla', har: 'Har villkor', saknar: 'Saknar villkor', utanTraff: 'Träffar inget' };
 /** Kolumnerna som går att sortera: namn, fakta, en villkorstyp eller pass på villkoret. */
-export type VtKolumn = 'namn' | 'pass' | 'veckotid' | 'vem' | 'brott' | SchemaRegelTyp;
+export type VtKolumn = 'namn' | 'pass' | 'veckotid' | 'vem' | 'aktiviteter' | 'brott' | SchemaRegelTyp;
 export function vtFiltrera(rader: VtRad[], sok: string, filter: VtFilter): VtRad[] {
   const q = sok.trim().toLocaleLowerCase('sv-SE'), har = (r: VtRad) => Object.keys(r.celler).length > 0;
   return rader.filter(r => (!q || r.namn.toLocaleLowerCase('sv-SE').includes(q))
@@ -158,7 +165,7 @@ export function vtFiltrera(rader: VtRad[], sok: string, filter: VtFilter): VtRad
 export function vtSortera(rader: VtRad[], kolumn: VtKolumn, riktning: 'asc' | 'desc'): VtRad[] {
   const sv = (a: string, b: string) => a.localeCompare(b, 'sv', { numeric: true });
   const value = (r: VtRad): string | number | null => kolumn === 'namn' ? r.namn : kolumn === 'pass' ? r.pass : kolumn === 'veckotid' ? Math.max(0, ...r.veckotidMin)
-    : kolumn === 'vem' ? r.vem || null : kolumn === 'brott' ? r.brott : r.celler[kolumn]?.text ?? null;
+    : kolumn === 'vem' ? r.vem || null : kolumn === 'aktiviteter' ? r.aktiviteter || null : kolumn === 'brott' ? r.brott : r.celler[kolumn]?.text ?? null;
   const sign = riktning === 'asc' ? 1 : -1;
   return rader.map((r, i) => ({ r, i, v: value(r) })).sort((a, b) => a.v === null || b.v === null ? (a.v === null ? 1 : 0) - (b.v === null ? 1 : 0) || a.i - b.i
     : (typeof a.v === 'number' && typeof b.v === 'number' ? a.v - b.v : sv(String(a.v), String(b.v))) * sign || a.i - b.i).map(x => x.r);
