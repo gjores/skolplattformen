@@ -9,7 +9,9 @@ import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaPlacement, type
 import { lagerPa, SCHEMA_LAGER, schemaLager, type SchemaLagerTyp } from '@/lib/schema-lager.ts';
 import { filtreraSamling, gemensamLedigTid, lasArbetsvyer, ledigaResurser, lunchTryck, parseSamlingData, sakerArbetsvy, samlingForslag, samlingHal, samlingPass, samlingResurser, samlingTidsvillkor, skrivArbetsvyer, tomtSamlingFilter,
   SAMLING_NAMN, type SamlingArbetsvy, type SamlingFarg, type SamlingFilter, type SamlingSlag, type SamlingSpann, type SchemaSamlingData } from '@/lib/schema-samling.ts';
+import type { SchemaFonsterVal } from '@/lib/schema-synk.ts';
 import { clock, dayName } from './delat.ts';
+import { OppnaFonster } from './fonster';
 import { SamlingMatris } from './samling-matris.tsx';
 import { SamlingRad } from './samling-rad.tsx';
 import { SamlingSok } from './samling-sok.tsx';
@@ -20,6 +22,7 @@ type Props = {
   forslag: SchemaForslag; villkor: SchemaVillkor; placements: SchemaPlacement[]; layers: Record<string, boolean>; term: SchemaTerm;
   onLayer: (layer: SchemaLagerTyp, on: boolean) => void; onPick: (lesson: string) => void; onSessionLost: () => void;
   picked?: string | null; violations?: string[]; locked?: string[]; start?: SamlingStart | null;
+  onOpen?: () => void; windows?: SchemaFonsterVal[]; onOpenWindows?: (windows: SchemaFonsterVal[]) => void;
 };
 const EXTRA = [{ id: 'haltid', namn: 'Håltid' }, { id: 'lunchtryck', namn: 'Lunchtryck' }] as const;
 const FARG: { id: SamlingFarg; label: string }[] = [{ id: 'amne', label: 'Ämne' }, { id: 'larare', label: 'Lärare' }, { id: 'sal', label: 'Sal' }, { id: 'avvikelse', label: 'Regelavvikelse' }, { id: 'last', label: 'Låst' }];
@@ -27,7 +30,7 @@ const FARG: { id: SamlingFarg; label: string }[] = [{ id: 'amne', label: 'Ämne'
 export function Samling(props: Props) {
   return <SamlingInnehall key={`${props.forslag.unitId}:${props.forslag.grundFingerprint}:${props.start?.nr ?? ''}`} {...props}/>;
 }
-function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, onPick, onSessionLost, picked = null, violations = [], locked = [], start: initial }: Props) {
+function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, onPick, onSessionLost, picked = null, violations = [], locked = [], start: initial, windows = [], onOpenWindows, onOpen }: Props) {
   const heading = useId(), label = useId(), [readForslag] = useState(forslag), current = useRef({ villkor, placements, onSessionLost });
   useEffect(() => { current.current = { villkor, placements, onSessionLost }; }, [villkor, placements, onSessionLost]);
   const [data, setData] = useState<SchemaSamlingData | null>(null), [error, setError] = useState<string | null>(null), [retry, setRetry] = useState(0);
@@ -68,13 +71,14 @@ function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, 
   };
   const chooseView = (id: string) => {
     setViewId(id); const v = views.find(x => x.id === id); if (!v) { setViewName(''); return; }
+    if (v.windows?.length) onOpenWindows?.(v.windows);
     setViewName(v.name); setSelected(v.resources.filter(k => resources.some(r => r.key === k))); setChecked([]); setFilter(v.filter); setColor(v.color); setCompact(v.compact); setDay(v.day);
     for (const l of SCHEMA_LAGER) onLayer(l.id, v.layers[l.id] ?? l.forval); setExtra({ haltid: v.layers.haltid ?? false, lunchtryck: v.layers.lunchtryck ?? false });
     const missing = v.resources.filter(k => !resources.some(r => r.key === k)).length; setNote(missing ? `${missing} resurser i arbetsvyn finns inte i det här underlaget.` : `Arbetsvyn ${v.name} är öppnad.`);
   };
   const save = () => {
     if (!viewName.trim()) { setNote('Ge arbetsvyn ett namn.'); return; }
-    const id = `vy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, v = sakerArbetsvy({ id, name: viewName, resources: selected, layers: { ...layers, ...extra }, filter, color, compact, day });
+    const id = `vy-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, v = sakerArbetsvy({ id, name: viewName, resources: selected, layers: { ...layers, ...extra }, filter, color, compact, day, windows });
     const saved = saveViews([...views, v]); setViewId(id); if (saved) setNote(`Arbetsvyn ${v.name} är sparad i den här webbläsaren. Elevval följer inte med.`);
   };
   const labelOf = (l: SchemaForslag['lessons'][number]) => color === 'larare' ? l.teacherIds.map(id => f.teachers.find(t => t.id === id)?.name ?? '').filter(Boolean).join(', ') || 'Ingen lärare'
@@ -87,7 +91,7 @@ function SamlingInnehall({ forslag, villkor, placements, layers, term, onLayer, 
     return `samling-farg-${hash % 4}`;
   };
   return <section className="folj samling" aria-labelledby={heading}>
-    <div className="folj-huvud"><div><p className="folj-overrad">Flera scheman samtidigt</p><h2 id={heading}>Samlingsvy</h2><p className="schema-note">Välj resurser som ska visas tillsammans. Markera minst två rader för att se gemensam ledig tid. Beläggning räknas alltid på hela förslaget.</p></div></div>
+    <div className="folj-huvud"><div><p className="folj-overrad">Flera scheman samtidigt</p><h2 id={heading}>Samlingsvy</h2><p className="schema-note">Välj resurser som ska visas tillsammans. Markera minst två rader för att se gemensam ledig tid. Beläggning räknas alltid på hela förslaget.</p></div><OppnaFonster onOpen={onOpen} label="Samlingsvy"/></div>
     {error && <div className="valplan-alert" role="alert"><p>{error}</p><Button type="button" variant="outline" onClick={() => setRetry(n => n + 1)}>Läs om resurserna</Button></div>}
     <div className="folj-chips"><span className="schema-note">Visas:</span>{selectedResources.map(r => <Button key={r.key} type="button" variant="outline" className="schema-chip" aria-label={`Ta bort ${r.name} från samlingsvyn`} onClick={() => { setSelected(xs => xs.filter(k => k !== r.key)); setChecked(xs => xs.filter(k => k !== r.key)); }}>{r.name}<XIcon aria-hidden="true"/></Button>)}<SamlingSok resources={resources} selected={selected} onAdd={add}/></div>
     <div className="samling-arbetsvy schema-filter"><label htmlFor={`${label}-vy`}>Arbetsvy<select id={`${label}-vy`} value={viewId} onChange={e => chooseView(e.target.value)}><option value="">Eget urval</option>{views.map(v => <option key={v.id} value={v.id}>{v.name}</option>)}</select></label>

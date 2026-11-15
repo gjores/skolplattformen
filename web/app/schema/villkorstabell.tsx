@@ -28,9 +28,11 @@ export function villkorstabellMal(k: SchemaKalla, villkor: SchemaVillkor): Omit<
   const r = villkor.egna[k.index];
   return r && r.slag !== 'pass' ? { flik: r.slag, ref: r.ref, typ: r.typ } : null;
 }
+import { OppnaFonster } from './fonster';
+
 type Props = {
   villkor: SchemaVillkor; setVillkor: (next: SchemaVillkor) => void; dispatch: (action: SchemaUtkastAtgard) => void;
-  forslag: SchemaForslag | null; kontroll: SchemaKontroll | null; disabled: boolean; mal: VillkorstabellMal | null;
+  forslag: SchemaForslag | null; kontroll: SchemaKontroll | null; disabled: boolean; mal: VillkorstabellMal | null; onOpen?: () => void;
 };
 type Kol = { id: VtKolumn | 'val'; namn: string; grund?: boolean };
 type Redigera = { ref: string; typ: SchemaRegelTyp } | { falt: VtSkolaFalt };
@@ -44,7 +46,7 @@ function visaAvvikelser(): void {
   h.tabIndex = -1; h.scrollIntoView({ block: 'center' }); h.focus({ preventScroll: true });
 }
 
-export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontroll, disabled, mal }: Props) {
+export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontroll, disabled, mal, onOpen }: Props) {
   const id = useId();
   const [flik, setFlik] = useState<VtFlik>('skola'), [sok, setSok] = useState(''), [filter, setFilter] = useState<VtFilter>('alla');
   const [sort, setSort] = useState<{ kol: VtKolumn; dir: 'asc' | 'desc' } | null>(null);
@@ -165,7 +167,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
 
   return <section className="villkorstabell schema-wide" aria-labelledby={`${id}-rubrik`}>
     <div className="vt-huvud">
-      <h2 id={`${id}-rubrik`}>Villkor i tabell</h2>
+      <div className="flex flex-wrap items-center justify-between gap-2"><h2 id={`${id}-rubrik`}>Villkor i tabell</h2><OppnaFonster onOpen={onOpen} label="Villkor i tabell"/></div>
       <p className="schema-note">Samma egna villkor som i Villkor för schemat och i veckan. Välj en cell och tryck Enter, eller dubbelklicka, för att ändra. Ändringar kan ångras med Ångra senaste villkor och prövas direkt mot schemat; de sparas inte i systemet.</p>
     </div>
     <Tabs value={flik} onValueChange={v => { setFlik(v as VtFlik); setAktiv({ r: 0, c: 1 }); setRedigera(null); setLaggPa(false); setSort(null); }}>

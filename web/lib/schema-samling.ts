@@ -1,5 +1,6 @@
 // Samlingsvyns rena beräkningar (05.2-SM-SAMLINGSVY). Alla beläggningar räknas på hela förslaget, även när pass filtreras bort i vyn.
 import { SCHEMA_CONTRACT_VERSION, SchemaContractError, type SchemaForslag, type SchemaForslagLesson, type SchemaMembers, type SchemaPlacement, type SchemaTerm, type SchemaVillkor } from './schema-contract.ts';
+import { sakerFonsteruppsattning, type SchemaFonsterVal } from './schema-synk.ts';
 import { schemaElevernasKluster } from './schema-folj.ts';
 import { marginalBand } from './schema-lager.ts';
 import type { SchemaOverlay } from './schema-utkast.ts';
@@ -18,7 +19,7 @@ export type SchemaSamlingData = { contractVersion: typeof SCHEMA_CONTRACT_VERSIO
 export type SamlingFilter = { subject: string; year: string; program: string; team: string; term: '' | SchemaTerm };
 export const tomtSamlingFilter = (): SamlingFilter => ({ subject: '', year: '', program: '', team: '', term: '' });
 export type SamlingFarg = 'amne' | 'larare' | 'sal' | 'avvikelse' | 'last';
-export type SamlingArbetsvy = { id: string; name: string; resources: string[]; layers: Record<string, boolean>; filter: SamlingFilter; color: SamlingFarg; compact: boolean; day: number | null };
+export type SamlingArbetsvy = { id: string; name: string; resources: string[]; layers: Record<string, boolean>; filter: SamlingFilter; color: SamlingFarg; compact: boolean; day: number | null; windows?: SchemaFonsterVal[] };
 export type SamlingSpann = { day: number; startMin: number; endMin: number };
 const unik = <T,>(xs: T[]): T[] => [...new Set(xs)];
 
@@ -176,6 +177,7 @@ export function sakerArbetsvy(v: SamlingArbetsvy): SamlingArbetsvy {
   const layers = Object.fromEntries(Object.entries(v.layers).filter(([k, on]) => ['sparrad', 'tillaten', 'lunch', 'marginal', 'salar', 'sena', 'haltid', 'lunchtryck'].includes(k) && typeof on === 'boolean'));
   return { id: v.id.slice(0, 80), name: v.name.trim().slice(0, 80), resources: unik(v.resources.filter(k => /^(klass|grupp|larare|sal):/u.test(k))).slice(0, 100), layers,
     filter: { subject: v.filter.subject.slice(0, 200), year: v.filter.year.slice(0, 80), program: '', team: '', term: v.filter.term === 'ht' || v.filter.term === 'vt' ? v.filter.term : '' },
+    ...(v.windows ? { windows: sakerFonsteruppsattning(v.windows) } : {}),
     color: ['amne', 'larare', 'sal', 'avvikelse', 'last'].includes(v.color) ? v.color : 'amne', compact: !!v.compact, day: v.day !== null && Number.isInteger(v.day) && v.day >= 0 && v.day < 5 ? v.day : null };
 }
 export const arbetsvyNyckel = (unitId: string) => `schema-arbetsvyer:${unitId}`;

@@ -12,6 +12,7 @@ import { SCHEMA_LAGEN, parseSchemaLagen, type SchemaLagen, type SchemaLagenPosit
 import { dayName, names } from './delat.ts';
 import { LAGE, LAGE_KLASS, Mojligt } from './mojligt.tsx';
 import { veckansSpann } from './vecka.tsx';
+import { OppnaFonster } from './fonster';
 import { SamlingRad } from './samling-rad.tsx';
 
 const FEL: Record<string, string> = {
@@ -31,22 +32,22 @@ function fel(error: unknown): string {
 type Props = {
   forslag: SchemaForslag; lesson: SchemaForslagLesson; placements: SchemaPlacement[];
   /** Villkoren lägena prövas mot: nuvarande villkor när grunden är förslagets, annars förslagets (05.2-SM-VILLKOR-DIREKT). */
-  villkor: SchemaVillkor;
+  villkor: SchemaVillkor; userLocks?: SchemaPlacement[];
   locked: boolean; checking: boolean; headingRef: Ref<HTMLHeadingElement>;
   onLock: (locked: boolean) => void; onClose: () => void; onMove: (p: SchemaLagenPosition) => void; onSessionLost: () => void;
   onPick?: (lesson: string) => void;
   /** Terminen veckan visar; passets egen termin går före. */
-  term: 'ht' | 'vt';
+  term: 'ht' | 'vt'; onOpen?: () => void;
 };
 
-export function Folj({ forslag, lesson, placements, villkor, locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term }: Props) {
+export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen }: Props) {
   const heading = useId(), pupilLabel = useId();
   const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
   // Panelen får en ny nyckel för varje pass (schema-workspace.tsx), så att elevvalet och svaren börjar om: eleven kanske inte har det nya passet.
   const placed = useRef(placements), lost = useRef(onSessionLost), provade = useRef(villkor);
   useEffect(() => { placed.current = placements; lost.current = onSessionLost; provade.current = villkor; });
-  const key = JSON.stringify(placements), lessonId = lesson.id, villkorKey = villkorNyckel(villkor);
+  const key = JSON.stringify(placements), lessonId = lesson.id, villkorKey = villkorNyckel(villkor), lockKey = JSON.stringify(userLocks);
   const { unitId, schoolYear, period, grundFingerprint } = forslag, contractVersion = SCHEMA_CONTRACT_VERSION;
   // Grupper och elever: hämtas när passet eller eleven byts, och följer bara grunden. Avbryts om markeringen byts.
   useEffect(() => {
@@ -64,18 +65,19 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
   useEffect(() => {
     const controller = new AbortController();
     api.post<unknown>('/api/schema/lagen', { contractVersion, unitId, schoolYear, period, villkor: JSON.parse(villkorKey) as SchemaVillkor, grundFingerprint,
+      ...(lockKey !== '[]' ? { locks: { grundFingerprint, placements: JSON.parse(lockKey) as SchemaPlacement[] } } : {}),
       placements: JSON.parse(key) as SchemaPlacement[], lesson: lessonId, pupilId: pupil }, controller.signal)
-      .then(value => { setSvar({ lagen: parseSchemaLagen(value, grundFingerprint, lessonId), villkor: villkorKey }); setError(null); })
+      .then(value => { setSvar({ lagen: parseSchemaLagen(value, grundFingerprint, lessonId), villkor: villkorKey + lockKey }); setError(null); })
       .catch((caught: unknown) => {
         if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
         if (caught instanceof ApiError && caught.status === 401) { lost.current(); return; }
         setSvar(null); setError(fel(caught));
       })
-      .finally(() => { if (!controller.signal.aborted) setRaknat(key + (pupil ?? '') + villkorKey); });
+      .finally(() => { if (!controller.signal.aborted) setRaknat(key + (pupil ?? '') + villkorKey + lockKey); });
     return () => controller.abort();
-  }, [contractVersion, unitId, schoolYear, period, villkorKey, grundFingerprint, lessonId, pupil, key]);
+  }, [contractVersion, unitId, schoolYear, period, villkorKey, grundFingerprint, lessonId, pupil, key, lockKey]);
   // Lägena räknas tills svaret för just dessa placeringar, den eleven och de villkoren har kommit. Ett svar för andra villkor visas inte.
-  const loading = raknat !== key + (pupil ?? '') + villkorKey, lagen = svar?.villkor === villkorKey ? svar.lagen : null;
+  const loading = raknat !== key + (pupil ?? '') + villkorKey + lockKey, lagen = svar?.villkor === villkorKey + lockKey ? svar.lagen : null;
 
   const visas = (l: SchemaForslagLesson) => l.term === null || l.term === (lesson.term ?? term);
   const rader = foljRader(forslag, lesson.id, folj, visas);
@@ -95,6 +97,7 @@ export function Folj({ forslag, lesson, placements, villkor, locked, checking, h
           {locked ? ' Panelen är låst till passet.' : ' Panelen följer det markerade passet.'}</p>
       </div>
       <div className="folj-knappar">
+        <OppnaFonster onOpen={onOpen} label="Följ passet"/>
         <Button type="button" variant={locked ? 'secondary' : 'outline'} aria-pressed={locked} onClick={() => onLock(!locked)}>
           {locked ? <LockIcon aria-hidden="true"/> : <LockOpenIcon aria-hidden="true"/>}Lås till detta pass</Button>
         <Button type="button" variant="outline" onClick={onClose}><XIcon aria-hidden="true"/>Stäng</Button>

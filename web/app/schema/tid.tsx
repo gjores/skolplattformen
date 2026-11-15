@@ -3,6 +3,7 @@
 import { useId, useState } from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { SchemaForslag, SchemaTimplanDeviation } from '@/lib/schema-contract.ts';
+import { OppnaFonster } from './fonster';
 import { hoursText } from './delat.ts';
 
 /** Små skillnader i minuter, större i timmar. */
@@ -23,28 +24,28 @@ export function tidAvvikelser(forslag: SchemaForslag | null) {
   return { deviating, off };
 }
 
-export function Tid({ forslag, deviating, off }: { forslag: SchemaForslag; deviating: SchemaForslag['teachings']; off: number }) {
+export function Tid({ forslag, deviating, off, onOpen, onOpenWeeks, mode = 'all' }: { forslag: SchemaForslag; deviating: SchemaForslag['teachings']; off: number; onOpen?: () => void; onOpenWeeks?: () => void; mode?: 'all' | 'tid' | 'veckor' }) {
   if (deviating.length === 0) return null;
   return <>
-    <details className="schema-list"><summary><h2>Tid över {forslag.period === 'lasar' ? 'läsåret' : 'terminen'} ({deviating.length})</h2>
-        <span className="schema-note">{off === 0 ? 'All undervisning följer timplanen.' : `${off} av ${deviating.length} skiljer sig från timplanen.`}</span></summary>
+    {mode !== 'veckor' && <details className="schema-list" open={mode === 'tid'}><summary><h2>Tid över {forslag.period === 'lasar' ? 'läsåret' : 'terminen'} ({deviating.length})</h2>
+        <span className="schema-note">{off === 0 ? 'All undervisning följer timplanen.' : `${off} av ${deviating.length} skiljer sig från timplanen.`}</span><OppnaFonster onOpen={onOpen} label="Tid över läsåret"/></summary>
         <p className="schema-note">Timplanen bestämmer hur mycket undervisning som läggs; villkor och flytt ändrar bara när och var. Utlagd tid räknas på faktiska lektionstillfällen: varje skoldag i läsårskalendern på passets veckodag, för de klasser passet gäller. Grundschemat ger minst timplanens tid; det som blir över tas bort genom att enskilda tillfällen slutar 5 minuter tidigare, jämnt spritt över veckorna, så att tiden blir timplanens avrundad uppåt till hela 5 minuter. Avvikelser står först.</p>
         <Table><TableHeader><TableRow><TableHead>Undervisning</TableHead><TableHead>Klass</TableHead><TableHead>Timplan</TableHead><TableHead>Utlagt</TableHead><TableHead>Skillnad</TableHead><TableHead>Justering</TableHead><TableHead>Följer timplanen</TableHead></TableRow></TableHeader>
           <TableBody>{deviating.map((t, i) => <TableRow key={i}><TableCell>{t.title}</TableCell><TableCell>{t.classes.join(', ') || '–'}</TableCell><TableCell>{hoursText(t.needMin)}</TableCell>
             <TableCell>{hoursText(t.plannedMin)}{t.unplaced > 0 && ` (${t.unplaced} pass utan tid)`}</TableCell>
             <TableCell>{t.plannedMin > t.needMin ? '+' : t.plannedMin < t.needMin ? '−' : ''}{diffText(t.plannedMin - t.needMin)}</TableCell>
             <TableCell>{trimText(t)}</TableCell>
-            <TableCell>{t.deviation ? `Nej: ${TIMPLAN[t.deviation].toLowerCase()}` : 'Ja'}</TableCell></TableRow>)}</TableBody></Table></details>
-    <Veckor teachings={deviating} labels={forslag.time.weekLabels}/>
+            <TableCell>{t.deviation ? `Nej: ${TIMPLAN[t.deviation].toLowerCase()}` : 'Ja'}</TableCell></TableRow>)}</TableBody></Table></details>}
+    {mode !== 'tid' && <Veckor teachings={deviating} labels={forslag.time.weekLabels} onOpen={onOpenWeeks} open={mode === 'veckor'}/>}
   </>;
 }
 
 /** Tid vecka för vecka för en undervisning (05.2-SM-TIMPLAN-VECKA, W4): kalenderns faktiska tillfällen, med justerade veckor utmärkta. */
-function Veckor({ teachings, labels }: { teachings: SchemaForslag['teachings']; labels: string[] }) {
+function Veckor({ teachings, labels, onOpen, open }: { teachings: SchemaForslag['teachings']; labels: string[]; onOpen?: () => void; open?: boolean }) {
   const [pick, setPick] = useState(0), id = useId();
   const t = teachings[Math.min(pick, teachings.length - 1)];
   const name = (x: SchemaForslag['teachings'][number]) => x.classes.length ? `${x.title} (${x.classes.join(', ')})` : x.title;
-  return <details className="schema-list"><summary><h2>Vecka för vecka</h2><span className="schema-note">Tid per vecka för en undervisning, räknad på läsårskalenderns skoldagar.</span></summary>
+  return <details className="schema-list" open={open}><summary><h2>Vecka för vecka</h2><span className="schema-note">Tid per vecka för en undervisning, räknad på läsårskalenderns skoldagar.</span><OppnaFonster onOpen={onOpen} label="Vecka för vecka"/></summary>
     <div className="schema-filter"><label>Undervisning<select value={pick} onChange={e => setPick(Number(e.target.value))}>
       {teachings.map((x, i) => <option key={i} value={i}>{name(x)}</option>)}</select></label></div>
     <ol className="schema-weeks" aria-labelledby={id}>{labels.map((label, w) => <li key={w} className={t.trimPerWeek[w] ? 'trimmed' : undefined}>

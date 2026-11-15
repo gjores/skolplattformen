@@ -1,10 +1,11 @@
 'use client';
 // Regelavvikelser efter flytt för hand (05.2-SM-FLYTT) och schemamotorns förklaring. Flyttat oförändrat från arbetsytan av 05.2-SM-YTA.
+import { OppnaFonster } from './fonster';
 import type { SchemaForslag, SchemaKontroll } from '@/lib/schema-contract.ts';
 
-export function Regelavvikelser({ kontroll }: { kontroll: SchemaKontroll | null }) {
+export function Regelavvikelser({ kontroll, onOpen }: { kontroll: SchemaKontroll | null; onOpen?: () => void }) {
   if (!kontroll) return null;
-  return <div className="schema-list"><h2>Regelavvikelser ({kontroll.total})</h2>
+  return <div className="schema-list"><div className="flex flex-wrap items-center justify-between gap-2"><h2>Regelavvikelser ({kontroll.total})</h2><OppnaFonster onOpen={onOpen} label="Regelavvikelser"/></div>
     {kontroll.total === 0 ? <p>Inga regler bryts av schemat som det ligger nu.</p> : <>
       <p className="schema-note">Schemat som det ligger nu bryter mot reglerna nedan. Passen är märkta i schemat. Flytta ett pass eller ångra för att rätta.</p>
       <ul>{kontroll.violations.map((v, i) => <li key={i}>{v.message}</li>)}</ul>

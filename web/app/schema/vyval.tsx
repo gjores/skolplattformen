@@ -35,8 +35,8 @@ export const visadVy = (vy: SchemaVy, harVillkor: boolean, harSamling = false, h
  * Väljaren och den valda vyn under den. `villkor` är vyn Villkor i tabell; saknas den visas inte valet, och ett minnet val av den visar veckan.
  * Vyn som inte visas ritas inte, så att veckans och tabellens pass inte finns två gånger på sidan.
  */
-export function Vyval({ vy, onVy, vecka, veckaVal, folj, samling, pass, villkor }: {
-  vy: SchemaVy; onVy: (vy: SchemaVy) => void; vecka: ReactNode;
+export function Vyval({ utlyft = false, vy, onVy, vecka, veckaVal, folj, samling, pass, villkor }: {
+  utlyft?: boolean; vy: SchemaVy; onVy: (vy: SchemaVy) => void; vecka: ReactNode;
   /** Veckans val (Klass eller Lärare) står i samma rad som väljaren, så att veckan inte flyttas ned. */
   veckaVal?: ReactNode;
   pass: ReactNode; villkor?: ReactNode; samling?: ReactNode; folj?: ReactNode;
@@ -44,13 +44,14 @@ export function Vyval({ vy, onVy, vecka, veckaVal, folj, samling, pass, villkor 
   const vyer = VYER.filter(v => (v.id !== 'villkor' || villkor !== undefined) && (v.id !== 'samling' || samling !== undefined) && (v.id !== 'folj' || folj !== undefined));
   const visad = visadVy(vy, villkor !== undefined, samling !== undefined, folj !== undefined);
   return <>
-    <div className="schema-filter schema-vyval">
+    {!utlyft && <div className="schema-filter schema-vyval">
       <ToggleGroup aria-label="Visa schemat som" variant="outline" spacing={0} className="schema-verktyg-grupp" value={[visad]}
         onValueChange={next => { const valt = next.find(x => x !== visad); if (valt) { onVy(valt as SchemaVy); rememberVy(valt as SchemaVy); } }}>
         {vyer.map(v => <ToggleGroupItem key={v.id} value={v.id} aria-label={v.id === 'folj' ? 'Visa Följ passet' : undefined} className="schema-verktyg-knapp">{v.ikon}{v.namn}</ToggleGroupItem>)}
       </ToggleGroup>
       {visad === 'vecka' && veckaVal}
-    </div>
+    </div>}
+    {utlyft && visad === 'vecka' && <div className="schema-filter">{veckaVal}</div>}
     {visad === 'vecka' ? vecka : visad === 'folj' ? folj : visad === 'samling' ? samling : visad === 'pass' ? pass : villkor}
   </>;
 }
