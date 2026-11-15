@@ -13,6 +13,7 @@ import type { SchemaForslag, SchemaForslagLesson, SchemaRegel, SchemaTerm, Schem
 import { PASS_FILTER, PASS_KOLUMNER, PASS_STATUS, dagText, filterVal, filtreraPass, grupperaPass, marginalText, passRader, radNamn, sorteraPass, terminText, tidText, veckorText,
   type PassFilter, type PassGrupp, type PassKolumn, type PassRad, type PassSortering } from '@/lib/schema-passtabell.ts';
 import { hoursText } from './delat.ts';
+import type { SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import { PassMenypunkter, oppnaMenyVid, passMenyHandelser, type PassAtgarder } from './meny.tsx';
 
 /** Tabellens val. Hålls i arbetsytan, så att filter och sortering står kvar när man byter till veckan och tillbaka. */
@@ -35,6 +36,7 @@ type Props = {
   violations: SchemaViolation[] | null; egna: SchemaRegel[];
   /** Terminen veckan visar: ett pass som går hela läsåret visas med sin längd den terminen. */
   term: SchemaTerm;
+  visning?: SchemaVeckaVal;
   picked: string | null; checking: boolean;
   val: PassTabellVal; onVal: (next: PassTabellVal) => void;
   /** Passmenyns åtgärder för ett pass (samma som i veckan), med Visa i veckan. */
@@ -49,9 +51,9 @@ type Props = {
   tabellRef: RefObject<HTMLDivElement | null>;
 };
 
-export function Passtabell({ forslag, violations, egna, term, picked, checking, val, onVal, atgarder, rubrik, onParkera, onAvbryt, tabellRef }: Props) {
+export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onAvbryt, tabellRef }: Props) {
   const id = useId();
-  const rader = useMemo(() => passRader(forslag, term, violations, egna), [forslag, term, violations, egna]);
+  const rader = useMemo(() => passRader(forslag, term, violations, egna, visning), [forslag, term, violations, egna, visning]);
   const val_ = useMemo(() => filterVal(rader), [rader]);
   const synliga = useMemo(() => sorteraPass(filtreraPass(rader, val.filter, val.sok), val.sortering), [rader, val.filter, val.sok, val.sortering]);
   const grupper = useMemo(() => val.gruppera ? grupperaPass(synliga, forslag.teachings) : null, [val.gruppera, synliga, forslag.teachings]);
@@ -91,7 +93,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   useEffect(() => {
     const v = vantar.current;
     if (!v || !rot.current) return;
-    const id = v.index < 0 ? null : ordning[v.index]?.id, el = rot.current.querySelector<HTMLElement>(id ? `tr[data-lesson="${id}"] [data-col="${v.col}"]` : `thead [data-col="${v.col}"]`);
+    const id = v.index < 0 ? null : ordning[v.index]?.id, el = rot.current.querySelector<HTMLElement>(id ? `tr[data-passrad="${id}"] [data-col="${v.col}"]` : `thead [data-col="${v.col}"]`);
     if (el) { vantar.current = null; el.focus(); el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); }
   });
   // Markerat pass syns när tabellen öppnas.
@@ -122,7 +124,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
     return next;
   }), []);
   function parkeraValda() {
-    const ids = synligaValda.filter(r => r.dag !== null).map(r => r.id);
+    const ids = [...new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id))];
     if (!ids.length || checking) return;
     onParkera(ids); setValda(new Set());
   }
@@ -137,8 +139,8 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   function onKeyDown(e: ReactKeyboardEvent<HTMLTableElement>) {
     const el = e.target as HTMLElement, cell = el.closest<HTMLElement>('[data-col]'), tr = el.closest<HTMLTableRowElement>('tr');
     if (!cell || !tr || e.altKey) return;
-    const col = Number(cell.dataset.col), index = tr.dataset.lesson === undefined ? -1 : ordning.findIndex(r => r.id === tr.dataset.lesson), ctrl = e.ctrlKey || e.metaKey;
-    const rad = index >= 0 ? ordning[index] : null, l = rad ? lessons.get(rad.id) : undefined, checkbox = el instanceof HTMLInputElement;
+    const col = Number(cell.dataset.col), index = tr.dataset.passrad === undefined ? -1 : ordning.findIndex(r => r.id === tr.dataset.passrad), ctrl = e.ctrlKey || e.metaKey;
+    const rad = index >= 0 ? ordning[index] : null, l = rad ? lessons.get(rad.lessonId ?? rad.id) : undefined, checkbox = el instanceof HTMLInputElement;
     const steg: Record<string, [number, number]> = { ArrowDown: [1, 0], ArrowUp: [-1, 0], ArrowLeft: [0, -1], ArrowRight: [0, 1], PageDown: [10, 0], PageUp: [-10, 0] };
     if (e.key === 'ContextMenu' || e.key === 'F10' && e.shiftKey) {
       e.preventDefault();
@@ -162,7 +164,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
       atgarder(l).flytta();
     } else if (e.key === ' ' && !checkbox) {
       e.preventDefault();
-      valj(l.id, e.shiftKey);
+      valj(rad!.id, e.shiftKey);
     } else if ((e.key === 'p' || e.key === 'P') && l.day !== null) {
       e.preventDefault();
       atgarder(l).parkera();
@@ -171,17 +173,18 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   function onFocus(e: ReactFocusEvent<HTMLTableElement>) {
     const el = e.target as HTMLElement, cell = el.closest<HTMLElement>('[data-col]'), tr = el.closest<HTMLTableRowElement>('tr');
     if (!cell || !tr) return;
-    const next = { id: tr.dataset.lesson ?? RUBRIK, col: Number(cell.dataset.col) };
+    const next = { id: tr.dataset.passrad ?? RUBRIK, col: Number(cell.dataset.col) };
     if (next.id !== aktiv.id || next.col !== aktiv.col) setAktiv(next);
   }
   function onContextMenu(e: ReactMouseEvent<HTMLDivElement> & { preventBaseUIHandler?: () => void }) {
-    const rid = (e.target as HTMLElement).closest<HTMLElement>('tr[data-lesson]')?.dataset.lesson;
+    const rid = (e.target as HTMLElement).closest<HTMLElement>('tr[data-passrad]')?.dataset.passrad;
     if (!rid || checking) { e.preventBaseUIHandler?.(); return; }
     setMal(rid);
   }
   const flyttarFokus = (action: () => void) => () => { menyFokus.current = true; action(); };
-  const malLesson = mal ? lessons.get(mal) ?? null : null;
-  const flera = malLesson && valda.has(malLesson.id) ? synligaValda.filter(r => r.dag !== null).length : 0;
+  const malRad = mal ? ordning.find(r => r.id === mal) ?? null : null;
+  const malLesson = malRad ? lessons.get(malRad.lessonId ?? malRad.id) ?? null : null;
+  const flera = malLesson && malRad && valda.has(malRad.id) ? new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id)).size : 0;
 
   const allaValda = ordning.length > 0 && synligaValda.length === ordning.length;
   const sortIkon = (k: PassKolumn) => val.sortering.kolumn !== k ? <ChevronsUpDownIcon aria-hidden="true"/> : val.sortering.stigande ? <ArrowUpIcon aria-hidden="true"/> : <ArrowDownIcon aria-hidden="true"/>;
@@ -206,8 +209,8 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
       <Button type="button" variant="ghost" onClick={() => onVal({ ...val, filter: [] })}>Rensa filter</Button>
     </fieldset>}
     <div className="passtabell-rad">
-      <p className="schema-note" aria-live="polite">Visar {ordning.length} av {rader.length} pass{grupper ? ` i ${grupper.length} ${grupper.length === 1 ? 'undervisning' : 'undervisningar'}` : ''}.
-        {synligaValda.length > 0 && ` ${synligaValda.length} ${synligaValda.length === 1 ? 'pass valt' : 'pass valda'}.`}</p>
+      <p className="schema-note" aria-live="polite">Visar {ordning.length} av {rader.length} {visning && visning.mode !== 'grundschema' ? 'tillfällen' : 'pass'}{grupper ? ` i ${grupper.length} ${grupper.length === 1 ? 'undervisning' : 'undervisningar'}` : ''}.
+        {synligaValda.length > 0 && ` ${synligaValda.length} ${visning && visning.mode !== 'grundschema' ? synligaValda.length === 1 ? 'tillfälle valt' : 'tillfällen valda' : synligaValda.length === 1 ? 'pass valt' : 'pass valda'}.`}</p>
       {synligaValda.length > 0 && <div className="passtabell-knappar">
         <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={parkeraValda}>Lägg valda på viloytan</Button>
         <Button type="button" variant="ghost" onClick={() => setValda(new Set())}>Avmarkera</Button>
@@ -247,7 +250,7 @@ export function Passtabell({ forslag, violations, egna, term, picked, checking, 
   </section>;
 
   function radFor(r: PassRad, index: number) {
-    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === r.id} onVald={valj}/>;
+    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === (r.lessonId ?? r.id)} onVald={valj}/>;
   }
 }
 
@@ -264,11 +267,11 @@ const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald }: {
 }) {
   const tab = (c: number) => aktivCol === c ? 0 : -1;
   const veckor = veckorText(r), marginal = marginalText(r);
-  return <TableRow data-lesson={r.id} aria-selected={vald} data-state={vald ? 'selected' : undefined}
+  return <TableRow data-lesson={r.lessonId ?? r.id} data-passrad={r.id} aria-selected={vald} data-state={vald ? 'selected' : undefined}
     className={`${markerad ? 'passtabell-markerad' : ''}${r.status === 'avvikelse' ? ' passtabell-avvikelse' : ''}`}>
     <TableCell className="passtabell-valruta"><input type="checkbox" data-col={0} tabIndex={tab(0)} checked={vald} aria-label={`Välj ${radNamn(r)}`}
       onClick={e => onVald(r.id, e.shiftKey)} onChange={() => undefined}/></TableCell>
-    <TableCell data-col={1} tabIndex={tab(1)}><strong>{r.undervisning}</strong>{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
+    <TableCell data-col={1} tabIndex={tab(1)}><strong>{r.undervisning}</strong>{r.aktivitetTyp && <span className="schema-note"> · {r.aktivitetTyp}{r.datum ? " · Grundschemaaktivitet" : ""}</span>}{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
     <TableCell data-col={2} tabIndex={tab(2)}>{lista(r.klasser) || '–'}</TableCell>
     <TableCell data-col={3} tabIndex={tab(3)}>{lista(r.grupper) || '–'}</TableCell>
     <TableCell data-col={4} tabIndex={tab(4)}>{r.vakant ? 'Ingen lärare' : lista(r.larare) || '–'}</TableCell>

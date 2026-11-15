@@ -1,0 +1,27 @@
+.schema-datumval { min-width:0; border:1px solid var(--border); border-radius:var(--radius); padding:1rem; background:var(--card); margin-block:1rem; }
+.schema-datumval-rad, .schema-datumintervall { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; min-width:0; }
+.schema-datumval .schema-note { margin:.75rem 0 0; }
+.schema-datumval-lagen { display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--input); border-radius:var(--radius); overflow:hidden; height:auto; }
+.schema-datumval-lagen [data-slot="toggle-group-item"] { min-height:var(--control-height,44px); height:auto; padding:.5rem .875rem; white-space:normal; border-radius:0; border-inline-end:1px solid var(--border); }
+.schema-datumval-lagen [data-slot="toggle-group-item"]:last-child { border-inline-end:0; }
+.schema-datumval-lagen [data-slot="toggle-group-item"][data-pressed] { background:var(--secondary); color:var(--secondary-foreground); }
+.schema-veckoblad { display:flex; align-items:end; gap:.5rem; min-width:0; max-width:100%; flex:1 1 24rem; }
+.schema-veckoblad label { min-width:0; flex:1; }
+.schema-datumval label { display:flex; flex-direction:column; gap:.375rem; font-size:.875rem; color:var(--muted-foreground); }
+.schema-veckoblad select { width:100%; min-width:0; min-height:var(--control-height,44px); color:var(--foreground); background:var(--card); border:1px solid var(--input); border-radius:var(--radius); padding:.5rem 2rem .5rem .75rem; }
+.schema-veckoblad button { flex-shrink:0; min-height:var(--control-height,44px); min-width:var(--control-height,44px); }
+.schema-datumintervall { align-items:end; flex:1 1 28rem; }
+.schema-datumintervall input { min-height:var(--control-height,44px); color:var(--foreground); }
+.schema-datumintervall label { flex:1 1 10rem; }
+.schema-flytt-alla { display:block; font-weight:500; color:var(--foreground); }
+.schema-daterad-ram { min-width:0; max-width:100%; overflow-x:auto; }
+.schema-daterad-ram .schema-week { min-width:calc(var(--date-days,5) * 11rem + 4rem); }
+/* Datum och kalenderorsak delar en gemensam, innehållsstyrd rubrikrad. Tidsbanorna och klockslagen börjar alltid i samma nästa rad. */
+.schema-daterad-ram .schema-week { grid-template-rows:auto auto; }
+.schema-daterad-ram .schema-hours { grid-column:1; grid-row:2; margin-top:0; }
+.schema-daterad-ram .schema-day { display:grid; grid-template-rows:subgrid; grid-row:1 / span 2; }
+.schema-daterad-ram .schema-day h3 { height:auto; min-height:2rem; padding-bottom:.5rem; }
+.schema-day.schema-utan-undervisning ol { background:var(--muted); }
+.schema-day.schema-utan-undervisning h3 { color:var(--muted-foreground); }
+.schema-dagorsak { font-size:.8125rem; font-weight:400; display:block; white-space:normal; }
+.schema-tillfalleslista { list-style:none; margin:0; padding:0; }
