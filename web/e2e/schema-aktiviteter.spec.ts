@@ -3,6 +3,10 @@ import { test, expect, type Page } from '@playwright/test';
 import rawForslag from './fixtures/schema-forslag.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaPlacement, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { aktivitetsPassId } from '../lib/schema-aktiviteter.ts';
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/schema/diagnos', route => route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
+});
+
 const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };
 const base = { ...rawForslag, contractVersion: SCHEMA_CONTRACT_VERSION } as unknown as SchemaForslag;
 function forslag(villkor: SchemaVillkor, placements?: SchemaPlacement[]): SchemaForslag {

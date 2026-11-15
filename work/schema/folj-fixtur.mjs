@@ -112,11 +112,18 @@ try {
   for (const [namn, x] of Object.entries(direkt)) assert.ok(x.kontroll.total > 0 && x.kontroll.violations.every(v => v.code === 'outside_allowed'), `${namn}: kontrollen prövar inte villkoret`);
   writeFileSync(join(fixtures, 'schema-kontroll.json'), JSON.stringify({ move, clash, lifted, direkt }));
   // Matematik i klass 1 under hösten, som designvyn. Eleven: första eleven i klass 1 med Spanska.
-  const lesson = forslag.lessons.find(l => l.title === 'Matematik' && l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.term === 'ht' && l.day !== null);
+  const candidates = forslag.lessons.filter(l => l.title === 'Matematik' && l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.term === 'ht' && l.day !== null);
+  // En tidsbegränsad flertrådskörning kan ge andra placeringar. Välj ett faktiskt
+  // matematikpass med en annan fri tid, i stället för att anta att första passet har en.
+  let lesson, alla, fri;
+  for (const candidate of candidates) {
+    const positions = await lagen(candidate.id, forslag.lessons);
+    const available = positions.positions.find(p => p.state === 'fri' && !(p.day === candidate.day && p.startMin === candidate.startMin));
+    if (available) { lesson = candidate; alla = positions; fri = available; break; }
+  }
+  assert.ok(lesson && alla && fri, 'inget matematikpass i klass 1 har en annan fri tid');
   const pupilId = pupils[0].id;
-  const alla = await lagen(lesson.id, forslag.lessons), elev = await lagen(lesson.id, forslag.lessons, pupilId);
-  const fri = alla.positions.find(p => p.state === 'fri' && !(p.day === lesson.day && p.startMin === lesson.startMin));
-  assert.ok(fri, 'ingen annan fri tid');
+  const elev = await lagen(lesson.id, forslag.lessons, pupilId);
   const flyttad = forslag.lessons.map(l => l.id === lesson.id ? { ...l, day: fri.day, startMin: fri.startMin } : l), efter = await lagen(lesson.id, flyttad);
   const folj = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, null))), underlag.grundFingerprint, lesson.id);
   const foljElev = parseSchemaFolj(JSON.parse(JSON.stringify(schemaFolj(plan, underlag, basis.members, names, lesson.id, pupilId))), underlag.grundFingerprint, lesson.id);

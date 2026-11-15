@@ -11,7 +11,8 @@ import { join } from 'node:path';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
-import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund } from '../../web/lib/schema-contract.ts';
+import { schemaDiagnos } from '../../web/lib/schema-diagnos.ts';
+import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, parseSchemaEngineDiagnoses, sammaGrund } from '../../web/lib/schema-contract.ts';
 import { schemaAktivitetsAndring, schemaAktivitetsPlaceringar, schemaAktivitetsSvar } from '../../web/lib/schema-aktiviteter-underlag.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
@@ -66,10 +67,23 @@ try {
   }
   const underlag = buildSchemaUnderlag(plan, request, basis), body = JSON.stringify(underlag.problem);
   assert.equal((await fetch(`${url}/v1/solve`, { method: 'POST', body })).status, 401);
+  // SM-DIAGNOS: verklig förkontroll över HTTP utan sökning, med samma anonyma underlag.
+  assert.equal((await fetch(`${url}/v1/diagnose`, { method: 'POST', body })).status, 401);
+  const preflight = await fetch(`${url}/v1/diagnose`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body });
+  assert.equal(preflight.status, 200);
+  const preflightRaw = await preflight.json(), findings = schemaDiagnos(underlag, parseSchemaEngineDiagnoses(preflightRaw.diagnoses, underlag.problem));
+  assert.equal(preflightRaw.version, underlag.problem.version);
+  assert.ok(findings.some(f => f.code === 'group_without_teacher'), 'vakant undervisning saknas i fördiagnosen');
+  assert.ok(findings.every(f => f.action.label && f.message), 'fördiagnosen saknar text och åtgärd');
   const response = await fetch(`${url}/v1/solve?time_ms=10000`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body });
   assert.equal(response.status, 200);
   const raw = await response.json(), solution = parseSchemaSolution(raw, underlag.problem);
   const forslag = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, request, underlag, solution))), request);
+  assert.ok(solution.statistics.lessons.length > 0 && solution.statistics.lessons.length <= 20);
+  assert.ok(solution.statistics.bottlenecks.length > 0 && solution.statistics.bottlenecks.length <= 20);
+  assert.ok(forslag.statistics.lessons.every(s => forslag.lessons.some(l => l.id === s.lesson && l.title === s.title)));
+  assert.ok(forslag.statistics.bottlenecks.some(b => b.resource && !b.resource.label.startsWith('larare-')), 'statistikens resursnamn har inte avkodats');
+  console.log(JSON.stringify({ diagnos: { fynd: findings.length, koder: [...new Set(findings.map(f => f.code))], svarastePass: solution.statistics.lessons.length, flaskhalsar: solution.statistics.bottlenecks.length } }));
   const dir = mkdtempSync(join(tmpdir(), 'schema-koppling-'));
   writeFileSync(join(dir, 'underlag.json'), body); writeFileSync(join(dir, 'resultat.json'), JSON.stringify(raw));
   const check = spawnSync(join(bin, 'schemamotor'), ['validate', join(dir, 'underlag.json'), join(dir, 'resultat.json')], { encoding: 'utf8' });
@@ -154,6 +168,24 @@ try {
   const smallRequest = { ...request, period: 'ht', villkor: { ...defaultSchemaVillkor(), breakMin: 0, lunch: null } };
   const smallUnderlag = buildSchemaUnderlag(smallPlan, smallRequest, basis), smallSolution = await solve(smallUnderlag);
   const smallForslag = schemaForslag(smallPlan, smallRequest, smallUnderlag, smallSolution);
+  // SM-BYT: lås bevaras vid en ny riktig beräkning; två oförenliga lås ger diagnos och flyttas aldrig tyst.
+  const lockRequest = { ...smallRequest, locks: { grundFingerprint: smallUnderlag.grundFingerprint, placements: smallSolution.placements } };
+  const lockedUnderlag = buildSchemaUnderlag(smallPlan, lockRequest, basis), lockedSolution = await solve(lockedUnderlag);
+  assert.equal(lockedSolution.status, 'complete');
+  assert.deepEqual(lockedSolution.placements, smallSolution.placements, 'en låst klass flyttades vid ny beräkning');
+  const lockedForslag = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(smallPlan, lockRequest, lockedUnderlag, lockedSolution))), lockRequest);
+  assert.deepEqual(lockedForslag.locks, lockRequest.locks.placements);
+  assert.equal((await kontroll(lockedForslag.lessons, lockedUnderlag, lockedForslag)).total, 0);
+  const [firstLock, secondLock] = smallSolution.placements;
+  const impossibleLocks = { ...lockRequest, locks: { ...lockRequest.locks, placements: [firstLock, { ...secondLock, day: firstLock.day, startMin: firstLock.startMin }] } };
+  const impossibleUnderlag = buildSchemaUnderlag(smallPlan, impossibleLocks, basis), impossibleSolution = await solve(impossibleUnderlag);
+  assert.equal(impossibleSolution.status, 'infeasible');
+  const lockPreflight = await fetch(`${url}/v1/diagnose`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(impossibleUnderlag.problem) });
+  const lockFindings = parseSchemaEngineDiagnoses((await lockPreflight.json()).diagnoses, impossibleUnderlag.problem);
+  assert.ok(lockFindings.some(d => d.code === 'locked_conflict' && d.proof), 'fördiagnosen saknar bevis för motstridiga lås');
+  assert.ok(impossibleSolution.diagnoses.some(d => d.code === 'locked_conflict'), 'motorn saknar diagnos för lås som krockar');
+  assert.ok(impossibleSolution.placements.every(p => { const lock = impossibleLocks.locks.placements.find(l => l.lesson === p.lesson); return !lock || lock.day === p.day && lock.startMin === p.startMin; }), 'motorn flyttade ett oförenligt lås');
+  console.log(JSON.stringify({ las: { bevarade: lockedSolution.placements.length, fullstandig: lockedSolution.status, oforenligt: impossibleSolution.status, diagnos: 'locked_conflict' } }));
   const meeting = { id: 'aktivitet-1', typId: 'typ-mote', typ: 'Arbetslagsmöte', name: 'Arbetslagsmöte prov', classRefs: [], groupRefs: [],
     teacherRefs: [plan.teachers[0].personId, plan.teachers[1].personId], rooms: [], durationMin: 60, veckor: { typ: 'alla' }, visibleFor: 'personal', margin: null,
     tid: { typ: 'motor', days: [1, 2, 3], startMin: 840, endMin: 990 } };
@@ -325,19 +357,34 @@ try {
     utpekade: [...utpekade], annat: annat.id, sparradeLagen: underSparr.length, flyttIn: inSparr.violations.filter(v => v.code === 'outside_allowed').length, nyttForslag: fSparr.status } }));
   // Längsta dag per lärare (05.2-SM-VILLKORSTABELL, Q126): ett eget villkor `dag` för Provlärare 12 når motorn som `teachers[].max_min_per_day` och är ett
   // tidsvillkor. Lärarens undervisning räknas per termin och veckodag, som kontrollanten räknar den (pass som går hela läsåret räknas båda terminerna).
-  // Läraren har 820 min i veckan på hösten och en dag på 285 min i grundförslaget, så gränsen 240 min biter men går att hålla (5 × 240 = 1 200).
+  // Läraren har 820 min i veckan på hösten; 240 min per dag går att hålla (5 × 240 = 1 200).
+  // En tidsbegränsad flertrådskörning kan redan hålla gränsen. Då skapas ett uttryckligt syntetiskt motexempel för den negativa kontrollen.
   // Provlärare 1 (1 120 min i veckan, pass om 45–70 min) är för fullbokad: motorn hittar inget fullständigt schema på 10 s, utan att det är bevisat omöjligt.
   const dagar = (f, id) => { const out = {}; for (const l of f.lessons) if (l.day !== null && l.teacherIds.includes(id)) for (const t of l.term ? [l.term] : ['ht', 'vt']) out[`${t} ${l.day}`] = (out[`${t} ${l.day}`] ?? 0) + l.durationMin; return out; };
-  const tolvan = forslag.teachers.find(t => t.name === 'Provlärare 12').id, foreDag = Math.max(...Object.values(dagar(forslag, tolvan)));
+  const tolvan = forslag.teachers.find(t => t.name === 'Provlärare 12').id;
+  const grundDag = Math.max(...Object.values(dagar(forslag, tolvan)));
+  let dagProv = forslag.lessons, konstrueratDagbrott = false;
+  if (grundDag <= 240) {
+    const samle = new Map(); let min = 0, start = forslag.days[0].startMin;
+    for (const l of forslag.lessons.filter(l => l.teacherIds.includes(tolvan) && (l.term === 'ht' || l.term === null))) {
+      assert.ok(start + l.durationMin <= forslag.days[0].endMin, 'det syntetiska motexemplet ryms inte i skoldagen');
+      samle.set(l.id, start); min += l.durationMin; start += l.durationMin + forslag.villkor.breakMin;
+      if (min > 240) break;
+    }
+    assert.ok(min > 240, 'saknar undervisning för det syntetiska motexemplet');
+    dagProv = forslag.lessons.map(l => samle.has(l.id) ? { ...l, day: 0, startMin: samle.get(l.id) } : l);
+    konstrueratDagbrott = true;
+  }
+  const foreDag = Math.max(...Object.values(dagar({ lessons: dagProv }, tolvan)));
   const dagVillkor = { ...defaultSchemaVillkor(), egna: [{ slag: 'larare', ref: uid(211), typ: 'dag', maxMin: 240 }] }, dagRequest = { ...request, villkor: dagVillkor };
   const uDag = buildSchemaUnderlag(plan, dagRequest, basis);
   assert.deepEqual(uDag.problem.teachers.map(t => t.max_min_per_day ?? null), Array.from({ length: TEACHERS }, (_, i) => i === 11 ? 240 : null), 'längsta dag når inte motorn');
   assert.ok(sammaGrund(dagVillkor, request.villkor) && uDag.grundFingerprint === underlag.grundFingerprint, 'längsta dag ska vara ett tidsvillkor');
   assert.ok(!JSON.stringify(uDag.problem).includes('52a10000'), 'appens ID nådde motorn med längsta dag');
-  // Direkt prövning mot det första förslaget: en dag över 240 min redovisas för läraren.
-  const dagDirekt = await kontroll(forslag.lessons, schemaProvUnderlag(plan, { ...dagRequest, grundFingerprint: forslag.grundFingerprint }, basis));
+  // Direkt prövning: en dag över 240 min redovisas för läraren, även när grundförslaget redan råkade hålla gränsen.
+  const dagDirekt = await kontroll(dagProv, schemaProvUnderlag(plan, { ...dagRequest, grundFingerprint: forslag.grundFingerprint }, basis));
   const forLang = dagDirekt.violations.filter(v => v.code === 'teacher_day_too_long');
-  assert.ok(foreDag > 240, 'gränsen biter inte i grundförslaget');
+  assert.ok(foreDag > 240, 'det negativa provet måste faktiskt överskrida gränsen');
   assert.ok(forLang.length > 0 && forLang.every(v => v.message.startsWith('Lärare Provlärare 12 har ')), 'kontrollen prövar inte längsta dag');
   // Ett nytt förslag med villkoret: ingen dag över 240 min för läraren, och kontrollanten godkänner det.
   const fDag = parseSchemaForslag(JSON.parse(JSON.stringify(schemaForslag(plan, dagRequest, uDag, await solve(uDag)))), dagRequest);
@@ -345,7 +392,7 @@ try {
   const efterDag = Math.max(...Object.values(dagar(fDag, tolvan)));
   assert.ok(efterDag <= 240, `Provlärare 12 har ${efterDag} min en dag`);
   assert.equal((await kontroll(fDag.lessons, uDag, fDag)).total, 0, 'förslaget med längsta dag ska vara utan avvikelser');
-  console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 12', maxMin: 240, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
+  console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 12', maxMin: 240, langstaGrund: grundDag, konstrueratDagbrott, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
   const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};

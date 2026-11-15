@@ -4,7 +4,7 @@
  * Varken underlag, svar eller token loggas.
  */
 import { env as bindings } from 'cloudflare:workers';
-import { parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
+import { SCHEMA_MOTOR_VERSION, SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
 
@@ -52,4 +52,14 @@ export function validateSchema(problem: SchemaProblem, placements: SchemaPlaceme
 /** Läget för varje starttid för ett pass (05.2-SM-LAGEN). `pupil` är ett elevkluster ur underlaget, aldrig ett elev-ID. */
 export function positionsSchema(problem: SchemaProblem, placements: SchemaPlacement[], lesson: string, pupil: string | null): Promise<SchemaPositions> {
   return call('/v1/positions', { problem, placements: engineAt(placements), lesson, ...(pupil === null ? {} : { pupil }) }, 0, value => parseSchemaPositions(value, problem, lesson));
+}
+
+/** Förkontroller utan motorsökning. Underlaget hålls inom samma behöriga serverväg som förslaget. */
+export function diagnoseSchema(problem: SchemaProblem) {
+  return call('/v1/diagnose', problem, 0, value => {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) throw new SchemaContractError();
+    const d = value as Record<string, unknown>;
+    if (d.version !== SCHEMA_MOTOR_VERSION || d.problem_id !== problem.id) throw new SchemaContractError();
+    return parseSchemaEngineDiagnoses(d.diagnoses, problem);
+  });
 }

@@ -4,6 +4,10 @@ import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
 import { samlingResurser, type SchemaSamlingData } from '../lib/schema-samling.ts';
 
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/schema/diagnos', route => route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
+});
+
 const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };
 const f = { ...proposal, contractVersion: SCHEMA_CONTRACT_VERSION, rooms: [{ id: 'sal-1', name: 'Provsal 1' }], villkor: { ...proposal.villkor, salar: ['Provsal 1'] } } as SchemaForslag;
 async function setup(page: Page, pupils = false) {

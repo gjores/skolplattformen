@@ -3,6 +3,10 @@ import { test, expect, type Page } from '@playwright/test';
 import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/schema/diagnos', route => route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
+});
+
 const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };
 
 async function start(page: Page) {

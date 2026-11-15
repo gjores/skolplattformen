@@ -5,10 +5,16 @@ import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
 import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
 // En flytt som motorns kontrollant har prövat: passet läggs där klassen redan har ett annat pass.
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
+test.beforeEach(async ({ page }) => {
+  await page.route('**/api/schema/diagnos', route => route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
+});
+
 const URL = '/e2e/fixtures/schema-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
 const shots = process.env.SCHEMA_SHOTS;
 async function mock(page: Page, reply: (body: Record<string, unknown>) => { status?: number; json: unknown }) {
+  // Även looparnas unrouteAll ska följas av en ny uttrycklig fördiagnosmock.
+  await page.route('**/api/schema/diagnos', route => route.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
   const bodies: Record<string, unknown>[] = [];
   await page.route('**/api/schema/forslag', route => {
     const body = route.request().postDataJSON() as Record<string, unknown>;
@@ -181,7 +187,7 @@ test('svar för en annan period än den begärda visas inte', async ({ page }) =
   await mock(page, () => ({ json: { ...forslag, period: 'vt' } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByRole('alert')).toHaveText('Schemaförslaget kunde inte tas fram. Försök igen.');
+  await expect(page.getByRole('alert')).toHaveText('Schemamotorns svar kunde inte kontrolleras. Läs om sidan och försök igen.');
 });
 
 test('villkor sparade med det gamla terminsvalet läses in utan valet', async ({ page }) => {
@@ -320,8 +326,10 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
     expect(bodies[0].placements).toHaveLength(forslag.lessons.length - 1);
     return;
   }
-  // Hela veckan och viloytan ska rymmas i fönstret medan passet dras.
-  await page.setViewportSize({ width: 1440, height: 2200 });
+  // Hela veckan och viloytan ska rymmas medan passet dras; hjälptexten ovanför veckan har nu en reserverad plats.
+  await page.setViewportSize({ width: 1440, height: 3000 });
+  await expect(page.locator('.schema-week')).toBeInViewport();
+  await expect(rest).toBeInViewport();
   const center = async (target: typeof lesson) => { const b = (await target.boundingBox())!; return { x: b.x + b.width / 2, y: b.y + b.height / 2 }; };
   const from = await center(lesson), to = await center(rest);
   await page.mouse.move(from.x, from.y);
@@ -339,6 +347,7 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
 
   // Från viloytan ut på onsdagen: släppmarkeringen visar tiden och passet hamnar på startrutnätet.
   const item = rest.getByRole('listitem').first(), column = page.getByRole('region', { name: 'Onsdag' }).locator('ol');
+  await expect(item).toBeInViewport({ ratio: 1 });
   const start = await center(item), box = (await column.boundingBox())!;
   await page.mouse.move(start.x - 40, start.y);
   await page.mouse.down();
@@ -792,9 +801,9 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
   const bodies = await meny.start(page);
   await expect(meny.verktyg(page, 'Markera')).toHaveAttribute('aria-pressed', 'true');
-  await expect(meny.verktyg(page, 'Lås')).toBeDisabled();
-  await expect(meny.verktyg(page, 'Byt')).toBeDisabled();
-  await expect(page.getByText('Lås och Byt kommer i en senare version.')).toBeVisible();
+  await expect(meny.verktyg(page, 'Lås')).toBeEnabled();
+  await expect(meny.verktyg(page, 'Byt')).toBeEnabled();
+  await expect(page.getByText('Lås och Byt kommer i en senare version.')).toHaveCount(0);
   await meny.verktyg(page, 'Spärra').click();
   await expect(meny.verktyg(page, 'Spärra')).toHaveAttribute('aria-pressed', 'true');
   const from = await meny.punkt(page, 3, 840), to = await meny.punkt(page, 3, 990);
@@ -916,8 +925,8 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await pass.click({ button: 'right' });
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Programämne · torsdag 10:00–11:05');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…']);
-  for (const senare of ['Lås här', 'Byt med', 'Varför inte här', 'Föreslå placering']) await expect(menu.getByText(senare)).toHaveCount(0);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…', 'Öppna i nytt fönster']);
+  for (const senare of ['Varför inte här', 'Föreslå placering']) await expect(menu.getByText(senare)).toHaveCount(0);
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
   await expect(menu).toBeHidden();
@@ -1087,7 +1096,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await expect(panel.locator('.folj-chip')).toHaveText(['Klass 1', 'Provlärare 4', 'Spanska (delar 10 elever)', 'Tyska (delar 10 elever)']);
     await expect(panel.getByText('klass · 25 elever')).toBeVisible();
     await expect(panel.getByText('grupp · delar 10 elever')).toHaveCount(2);
-    await expect(panel.getByRole('list', { name: 'Klass 1, Måndag' }).getByText('Matematik, 11:10–12:20 (passet som följs)')).toBeAttached();
+    await expect(panel.getByRole('list', { name: `Klass 1, ${DAYS[own.day!]}` }).getByText(`Matematik, ${tid(own.startMin!)}–${tid(own.startMin! + own.durationMin)} (passet som följs)`)).toBeAttached();
     // Möjliga starttider: ett tabbstopp, fokus visar varför.
     const start = panel.locator('.folj-start[tabindex="0"]');
     await expect(start).toHaveAttribute('aria-label', `${at(own as { day: number; startMin: number })}: fri. Välj för att flytta passet hit.`);
@@ -1104,7 +1113,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await expect(page.getByRole('tooltip')).toHaveCount(0);
     // Pil ner går till samma tid nästa dag; Home till dagens första tid.
     await page.keyboard.press('ArrowDown');
-    await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', new RegExp(`^${DAYS[own.day! + 1]} 11:20`));
+    await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', new RegExp(`^${DAYS[own.day! + 1]} ${tid(own.startMin! + 10)}`));
     await page.keyboard.press('Home');
     await expect(panel.locator('.folj-start:focus')).toHaveAttribute('aria-label', new RegExp(`^${DAYS[own.day! + 1]} 08:00`));
     // Regelbrott flyttar inte; fri tid flyttar passet med samma kontroll som annars.
@@ -1117,7 +1126,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     expect(kontrollBodies.at(-1)!.placements).toContainEqual({ lesson: folj.lesson, day: folj.fri.day, startMin: folj.fri.startMin, room: null });
     // Panelen står kvar och lägena hämtas om med den nya placeringen.
     await expect.poll(() => calls.lagen.some(b => b.placements.some(p => p.lesson === folj.lesson && p.startMin === folj.fri.startMin))).toBe(true);
-    await expect(panel.getByRole('list', { name: 'Klass 1, Måndag' }).getByText('Matematik, 10:40–11:50 (passet som följs)')).toBeAttached();
+    await expect(panel.getByRole('list', { name: `Klass 1, ${DAYS[folj.fri.day]}` }).getByText(`Matematik, ${tid(folj.fri.startMin)}–${tid(folj.fri.startMin + own.durationMin)} (passet som följs)`)).toBeAttached();
     await expect(panel.locator('.folj-start[tabindex="0"]')).toHaveAttribute('aria-label', `${at(folj.fri)}: fri. Välj för att flytta passet hit.`);
     if (shots) await page.screenshot({ path: `${shots}/schema-folj-${width}.png`, fullPage: true });
 
@@ -1130,7 +1139,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await page.getByRole('button', { name: 'Avbryt' }).click();
     await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
     await page.locator(`[data-lesson="${folj.lesson}"]`).click();
-    await page.getByRole('button', { name: 'Följ passet', exact: true }).click();
+    await page.locator('.schema-undo').getByRole('button', { name: 'Följ passet', exact: true }).click();
     const lock = page.getByRole('button', { name: 'Lås till detta pass' });
     await lock.click();
     await expect(lock).toHaveAttribute('aria-pressed', 'true');
@@ -1417,7 +1426,9 @@ test('villkorstabell: redigera med bara tangentbordet, längsta dag per lärare 
   const bodies = await meny.start(page);
   await page.getByRole('button', { name: 'Villkor i tabell' }).focus();
   await page.keyboard.press('Enter');
-  // Flikarna: fokus på vald flik, pilar och Enter.
+  // Rubrikens fönsterknapp är nåbar före flikarnas gemensamma tabbstopp.
+  await page.keyboard.press('Tab');
+  await expect(page.getByRole('button', { name: 'Öppna Villkor i tabell i nytt fönster', exact: true })).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(page.getByRole('tab', { name: 'Hela skolan' })).toBeFocused();
   await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight'); await page.keyboard.press('ArrowRight');
@@ -1655,7 +1666,7 @@ test('passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell
     await expect(tabell.cell(page, own.id, 7)).toHaveText(fore);
     await tabell.cell(page, own.id, 2).click({ button: 'right' });
     const menu = page.getByRole('menu');
-    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Visa i veckan']);
+    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Öppna i nytt fönster', 'Visa i veckan']);
     await menu.getByRole('menuitem', { name: 'Följ passet' }).click();
     const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
     await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();

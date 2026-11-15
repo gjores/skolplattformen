@@ -27,6 +27,7 @@ const fake = globalThis.__schemaRoutesTest = {
       proofProfileId: 'local-keycloak-admin', proofProfileVersion: 1, acr: '2', amr: state.noMfa ? ['pwd'] : ['pwd', 'otp'], authTime: now, proofCheckedAt: now } };
   },
   async login(_corr, fn) { return fn(fake.tx); },
+  async parseRequest(request, parse) { try { return await parse(await request.json()); } catch (error) { throw new Deny('bad_request', 400, error.reason ? { reason: error.reason } : undefined); } },
   async sessionContext(ctx, fn, ErrorClass) {
     if (state.liveDeny) throw new ErrorClass('assignment_ended', 403);
     const events = state.events.length;
@@ -59,6 +60,7 @@ const fake = globalThis.__schemaRoutesTest = {
     return { status: 'complete', placements: problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: l.rooms?.allowed[0] ?? null })), unplaced: [], diagnoses: [],
       metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: 0 };
   },
+  async diagnose(problem) { state.diagnoses.push(structuredClone(problem)); return []; },
   async validate(problem, placements) { state.validations.push({ problem: structuredClone(problem), placements: structuredClone(placements) }); return { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } }; },
 };
 fake.tx.json = x => x;
@@ -72,24 +74,27 @@ registerHooks({ load(url, context, next) {
   if (is('session.ts')) source = 'export const readSession=async()=>globalThis.__schemaRoutesTest.session();';
   if (is('env.ts')) source = 'export const serverEnv=()=>globalThis.__schemaRoutesTest.env;';
   if (is('tjanst.ts')) source = `export const planRead=(...a)=>globalThis.__schemaRoutesTest.planRead(...a);export const personalRead=(...a)=>globalThis.__schemaRoutesTest.personalRead(...a);
-    export const tjanstRequest=async(request,parse)=>parse(await request.json());`;
+    export const tjanstRequest=(...a)=>globalThis.__schemaRoutesTest.parseRequest(...a);
+    export { parsePlanReadRequest } from '${new URL('./tjanst-contract.ts', import.meta.url).href}';`;
   if (is('elective-block.ts')) source = 'export const readElectiveBlocks=(...a)=>globalThis.__schemaRoutesTest.elective(...a);';
   if (is('study-groups.ts')) source = 'export const readStudyGroups=(...a)=>globalThis.__schemaRoutesTest.study(...a);';
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaRoutesTest.lasar(...a);';
   if (is('schemamotor.ts')) source = `export class SchemaEngineError extends Error{};export const solveSchema=(...a)=>globalThis.__schemaRoutesTest.solve(...a);
+    export const diagnoseSchema=(...a)=>globalThis.__schemaRoutesTest.diagnose(...a);
     export const validateSchema=(...a)=>globalThis.__schemaRoutesTest.validate(...a);export const positionsSchema=async()=>{throw Error('Motor must not be reached');};`;
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
 const { Deny } = await import('./server/db.ts');
-const routes = Object.fromEntries(await Promise.all(['forslag', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
-const reset = () => { state = { role: 'rektor', seePupils: true, reads: [], events: [], solves: [], validations: [] }; };
+const routes = Object.fromEntries(await Promise.all(['forslag', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter', 'diagnos', 'fonster'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
+const reset = () => { state = { role: 'rektor', seePupils: true, reads: [], events: [], solves: [], validations: [], diagnoses: [] }; };
 const scope = villkor => ({ unitId: id(1), schoolYear: 2026, period: 'ht', villkor: villkor ?? defaultSchemaVillkor() });
 const basis = () => ({ members: { pupils: pupils().map(p => ({ id: p.id, classIds: p.classIds })), memberships: [] }, time: defaultSchemaTime(),
   ...(state.role === 'rektor' ? { personer: [{ ref: id(20), name: 'Provlärare' }] } : {}) });
 function body(name, villkor = defaultSchemaVillkor()) {
   const input = scope(villkor), u = buildSchemaUnderlag(plan, input, basis());
   const placements = u.problem.lessons.filter(l => !l.id.startsWith('pass-9')).map((l, i) => ({ lesson: l.id, day: 1, startMin: 600 + i * 120, room: null }));
-  if (name === 'forslag') return input;
+  if (name === 'forslag' || name === 'diagnos') return input;
+  if (name === 'fonster') return { unitId: input.unitId, schoolYear: input.schoolYear };
   const request = { ...input, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: u.grundFingerprint, placements };
   if (name === 'lagen' || name === 'folj') return { ...request, lesson: u.problem.lessons[0].id, pupilId: null };
   return name === 'aktiviteter' ? { ...request, previousVillkor: villkor } : request;
@@ -107,7 +112,7 @@ test('alla schemarutter stoppar saknad/återkallad session, inaktuellt mandat, f
     reset(); const value = body(name); Object.assign(state, c.change);
     const res = await POST(request(name, value, c.headers));
     assert.equal(res.status, c.status, `${name}: ${c.code}`); assert.equal((await res.json()).code, c.code);
-    assert.equal(state.reads.length, 0); assert.equal(state.solves.length + state.validations.length, 0);
+    assert.equal(state.reads.length, 0); assert.equal(state.solves.length + state.validations.length + state.diagnoses.length, 0);
     assert.ok(state.events.some(e => e.outcome === 'denied')); assert.equal(res.headers.get('Cache-Control'), 'no-store');
   }
 });
@@ -124,11 +129,11 @@ test('obligatorisk audit måste lyckas innan samlings- eller aktivitetsdata och 
     reset(); const value = body(name); state.auditFails = true; state.auditAction = 'tjanst_plan_read';
     const res = await routes[name](request(name, value));
     assert.equal(res.status, 500); assert.equal((await res.json()).code, 'audit_unavailable');
-    assert.equal(state.solves.length + state.validations.length, 0); assert.ok(!state.events.some(e => e.outcome === 'ok'));
+    assert.equal(state.solves.length + state.validations.length + state.diagnoses.length, 0); assert.ok(!state.events.some(e => e.outcome === 'ok'));
     // Även en tidigare extra källäsningshändelse måste stoppa utfallet. Den befintliga felvägen ger generellt bad_request/500.
     reset(); const earlier = body(name); state.auditFails = true; state.auditAction = 'elective_blocks_read';
     const failedRead = await routes[name](request(name, earlier));
-    assert.equal(failedRead.status, 500); assert.equal(state.solves.length + state.validations.length, 0);
+    assert.equal(failedRead.status, 500); assert.equal(state.solves.length + state.validations.length + state.diagnoses.length, 0);
     assert.ok(!(await failedRead.text()).includes('Syntetisk provelev'));
   }
 });
@@ -147,11 +152,11 @@ test('personalens separata läsmandat utvidgas inte för administratören', asyn
 });
 
 test('främmande aktivitetsresurs ger kontrollerat 400 på alla beräknings- och läsrutter', async () => {
-  for (const [name, POST] of Object.entries(routes)) {
+  for (const [name, POST] of Object.entries(routes).filter(([name]) => name !== 'fonster')) {
     reset(); const value = body(name), villkor = { ...value.villkor, aktiviteter: [own({ teacherRefs: [id(999)] })] };
     const res = await POST(request(name, { ...value, villkor }));
     assert.equal(res.status, 400, name); assert.equal((await res.json()).code, 'bad_request');
-    assert.equal(state.solves.length + state.validations.length, 0);
+    assert.equal(state.solves.length + state.validations.length + state.diagnoses.length, 0);
   }
 });
 
@@ -160,7 +165,7 @@ test('gammalt kontrakt stoppas före källäsning och gammal grund stoppas före
     reset(); let res = await routes[name](request(name, { ...body(name), contractVersion: SCHEMA_CONTRACT_VERSION - 1 }));
     assert.equal(res.status, 400); assert.equal((await res.json()).details.reason, 'schema_contract_version'); assert.equal(state.reads.length, 0);
     reset(); res = await routes[name](request(name, { ...body(name), grundFingerprint: 'a'.repeat(28) }));
-    assert.equal(res.status, 409); assert.equal((await res.json()).code, 'schema_underlag_changed'); assert.equal(state.solves.length + state.validations.length, 0);
+    assert.equal(res.status, 409); assert.equal((await res.json()).code, 'schema_underlag_changed'); assert.equal(state.solves.length + state.validations.length + state.diagnoses.length, 0);
   }
 });
 
@@ -187,4 +192,34 @@ test('en ny motorplacerad aktivitet lämnar tidigare parkerad undervisning och a
   assert.ok(data.forslag.lessons.filter(l => !l.egenAktivitet).every(l => l.day === null && l.startMin === null));
   assert.equal(data.forslag.metrics.unplaced, data.forslag.lessons.filter(l => !l.egenAktivitet).length);
   assert.ok(data.forslag.lessons.some(l => l.egenAktivitet && l.day !== null));
+});
+
+
+test('fördiagnos och fönster prövar skolmandat och obligatorisk audit före data och motor', async () => {
+  for (const name of ['diagnos', 'fonster']) {
+    reset(); const denied = await routes[name](request(name, { ...body(name), unitId: id(99) }));
+    assert.equal(denied.status, 403, name); assert.deepEqual(state.reads.map(r => r.type), ['plan']); assert.equal(state.diagnoses.length, 0);
+    reset(); const input = body(name); state.auditFails = true; state.auditAction = 'tjanst_plan_read';
+    const failed = await routes[name](request(name, input));
+    assert.equal(failed.status, 500, name); assert.equal(state.diagnoses.length, 0); assert.ok(!(await failed.text()).includes('Provlärare'));
+  }
+});
+
+test('fönster ger bara kontrollerat skolurval och sessionsavgränsning; ingen överförd roll eller elevlista', async () => {
+  reset(); const response = await routes.fonster(request('fonster', body('fonster')));
+  assert.equal(response.status, 200); const data = await response.json();
+  assert.deepEqual(data, { unitId: id(1), schoolYear: 2026, scopeKey: `1:${id(7)}:${id(6)}` });
+  assert.deepEqual(state.reads.map(r => r.type), ['plan']); assert.equal(state.diagnoses.length + state.solves.length, 0);
+  reset(); const bad = await routes.fonster(request('fonster', { ...body('fonster'), scopeKey: 'påhittat-mandat', role: 'rektor' }));
+  assert.equal(bad.status, 400); assert.equal(state.reads.length, 0);
+});
+
+test('fördiagnos anropar motorn efter auditen med anonymt underlag och utan sökning', async () => {
+  reset(); const response = await routes.diagnos(request('diagnos', body('diagnos')));
+  assert.equal(response.status, 200); const data = await response.json();
+  assert.equal(data.version, SCHEMA_CONTRACT_VERSION); assert.ok(Array.isArray(data.findings));
+  assert.equal(state.diagnoses.length, 1); assert.equal(state.solves.length, 0);
+  const sent = JSON.stringify(state.diagnoses[0]);
+  assert.ok(!sent.includes('Syntetisk') && !sent.includes(id(30)) && !sent.includes(id(20)));
+  assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'));
 });

@@ -1,15 +1,15 @@
 import { aktivitetsPassId, aktiviteternasFel, parseAktiviteter, type SchemaAktivitet, type SchemaAktivitetsMeta } from './schema-aktiviteter.ts';
 /**
- * Schemamotorns kontrakt v2 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). Typerna speglar `schemamotor/crates/model`;
+ * Schemamotorns kontrakt v3 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). v3 lägger till faktisk sökstatistik. Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
-export const SCHEMA_MOTOR_VERSION = 2 as const;
+export const SCHEMA_MOTOR_VERSION = 3 as const;
 /**
  * Appens kontrakt mellan webbläsaren och schemarutterna. v3 (05.2-SM-VILLKOR-DIREKT): kontroll, möjliga starttider och Följ passet bär nuvarande villkor och
  * grundens fingeravtryck, och prövar tidsvillkor direkt. v4 (05.2-SM-VILLKORSTABELL): ny villkorstyp `dag`, längsta dag per lärare. Motorns kontrakt
  * (`SCHEMA_MOTOR_VERSION`) är oförändrat; fältet `teachers[].max_min_per_day` fanns redan.
  */
-export const SCHEMA_CONTRACT_VERSION = 5 as const;
+export const SCHEMA_CONTRACT_VERSION = 6 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
 /** Det schemat gäller: hela läsåret eller en termin (05.2-SM-LASAR-VILLKOR, L1). */
@@ -45,9 +45,14 @@ export type SchemaProblem = {
 };
 /** `room`: salens löpnummer när passet ska ha en sal (05.2-SM-VILLKOR-PER-RESURS, R6). */
 export type SchemaPlacement = { lesson: string; day: number; startMin: number; room: string | null };
-export type SchemaDiagnosis = { code: string; message: string; proof: boolean };
+export type SchemaDiagnosis = { code: string; message: string; proof: boolean; lessons?: string[]; resources?: string[] };
+export type SchemaDiagnosResurs = { typ: 'larare' | 'klass' | 'grupp' | 'sal' | 'undervisning'; id: string; label: string };
+export type SchemaSearchStatistics = { lessons: { lesson: string; title: string; attempts: number; moves: number; backtracks: number; ejections: number }[];
+  bottlenecks: { code: string; count: number; resource: SchemaDiagnosResurs | null }[]; iterations: number };
+export type SchemaMotorStatistics = { lessons: Omit<SchemaSearchStatistics['lessons'][number], 'title'>[];
+  bottlenecks: { code: string; count: number; resource: string | null }[]; iterations: number };
 export type SchemaSolution = { status: SchemaStatus; placements: SchemaPlacement[]; unplaced: string[]; diagnoses: SchemaDiagnosis[];
-  metrics: { studentGapMin: number; teacherGapMin: number }; elapsedMs: number };
+  metrics: { studentGapMin: number; teacherGapMin: number }; elapsedMs: number; statistics?: SchemaMotorStatistics };
 
 /**
  * Villkoren för schemat, satta av den som tar fram förslaget (05.2-SM-LASAR-VILLKOR, V1–V2). Alla tider är minuter efter midnatt
@@ -173,7 +178,8 @@ export function checkSchemaVillkor(v: SchemaVillkor): string[] {
   });
   return issues;
 }
-export type SchemaForslagRequest = { unitId: string; schoolYear: number; period: SchemaPeriod; villkor: SchemaVillkor };
+export type SchemaLas = { grundFingerprint: string; placements: SchemaPlacement[] };
+export type SchemaForslagRequest = { unitId: string; schoolYear: number; period: SchemaPeriod; villkor: SchemaVillkor; locks?: SchemaLas };
 /** Elever och gruppmedlemskap som underlag för elevkluster. Stannar på servern; motorn får bara klustrens storlek. */
 export type SchemaMembers = { pupils: { id: string; classIds: string[] }[]; memberships: { groupId: string; pupilId: string; startsOn: string; endsOn: string | null }[] };
 /**
@@ -190,7 +196,7 @@ export type SchemaDatedCalendar = { start: string; end: string; days: SchemaDate
 export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null; status: string | null; current: boolean; terms: Record<SchemaTerm, SchemaTermTime>;
   /** Faktiska dagar inklusive lov och helger. Saknas i äldre eller antaget underlag; då visas bara grundschemat. */
   dates?: SchemaDatedDay[] };
-export type SchemaForslagLesson = { egenAktivitet?: SchemaAktivitetsMeta; id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
+export type SchemaForslagLesson = { locked?: boolean; egenAktivitet?: SchemaAktivitetsMeta; id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
   /** Den längsta marginalen efter och före passet för någon av passets parter (05.2-SM-MARGINAL). Passet och marginalen ska rymmas i skoldagen. */
   marginMin: number; marginBeforeMin: number;
   /** Salar passet får ligga i (tom: passet har ingen sal) och salen det ligger i. */
@@ -235,6 +241,8 @@ export type SchemaForslagTeaching = { title: string; classes: string[]; needMin:
 /** Det egna villkor kan ställas för. `ref` är det villkoret bär; namnet visas. */
 export type SchemaResurs = { ref: string; name: string };
 export type SchemaForslag = {
+  /** Lås som prövats av servern; bevaras även om förslaget inte går att lägga. */
+  locks?: SchemaPlacement[];
   contractVersion: typeof SCHEMA_CONTRACT_VERSION; unitId: string; schoolYear: number; period: SchemaPeriod; schoolName: string;
   /** Villkoren förslaget räknades med. */
   villkor: SchemaVillkor;
@@ -257,6 +265,7 @@ export type SchemaForslag = {
   status: SchemaStatus; days: { startMin: number; endMin: number }[];
   classes: { id: string; name: string }[]; teachers: { id: string; name: string }[];
   lessons: SchemaForslagLesson[]; omitted: SchemaOmission[]; diagnoses: { message: string; proof: boolean }[];
+  statistics?: SchemaSearchStatistics;
   metrics: { lessons: number; placed: number; unplaced: number; studentGapMin: number; teacherGapMin: number }; elapsedMs: number;
 };
 
@@ -324,11 +333,27 @@ export function parseSchemaVillkor(value: unknown): SchemaVillkor {
 }
 export function parseSchemaForslagRequest(value: unknown, keys = 4): SchemaForslagRequest {
   const r = record(value);
-  if (Object.keys(r).length !== keys) bad();
+  const hasLocks = Object.hasOwn(r, 'locks');
+  if (Object.keys(r).length !== keys + Number(hasLocks)) bad();
+  const locks = hasLocks ? parseSchemaLas(r.locks) : undefined;
   const unitId = text(r.unitId, 36).toLowerCase();
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u.test(unitId)) bad();
   const period = SCHEMA_PERIODS.find(p => p === r.period) ?? bad();
-  return { unitId, schoolYear: int(r.schoolYear, 2000, 2100), period, villkor: parseSchemaVillkor(r.villkor) };
+  return { unitId, schoolYear: int(r.schoolYear, 2000, 2100), period, villkor: parseSchemaVillkor(r.villkor), ...(locks ? { locks } : {}) };
+}
+
+/** Lås är utkastets metadata, aldrig en klientangiven ändring av undervisningsunderlaget. */
+export function parseSchemaLas(value: unknown): SchemaLas {
+  const r = record(value);
+  if (Object.keys(r).length !== 2 || typeof r.grundFingerprint !== 'string' || !FINGERPRINT.test(r.grundFingerprint)) bad();
+  const seen = new Set<string>();
+  const placements = list(r.placements, SCHEMA_LIMITS.lessons).map(raw => {
+    const p = record(raw), lesson = text(p.lesson, 100);
+    if (Object.keys(p).length !== 4 || !/^pass-\d{1,10}$/u.test(lesson) || seen.has(lesson) || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
+    seen.add(lesson);
+    return { lesson, day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null };
+  });
+  return { grundFingerprint: r.grundFingerprint, placements };
 }
 
 function trims(value: unknown, lessons: Set<string> | null): SchemaTrim[] {
@@ -451,6 +476,7 @@ export function parseSchemaSolution(value: unknown, problem: SchemaProblem): Sch
   const s = record(value);
   if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id) bad();
   const status = SCHEMA_STATUSES.find(x => x === s.status) ?? bad();
+  const locks = new Map(problem.lessons.filter(l => l.locked).map(l => [l.id, l.locked!]));
   const duration = new Map(problem.lessons.map(l => [l.id, l.duration_min])), wanted = new Map(problem.lessons.map(l => [l.id, l.rooms?.allowed])), seen = new Set<string>();
   const placements = list(s.placements, SCHEMA_LIMITS.lessons).map(raw => {
     const p = record(raw), lesson = text(p.lesson, 100), length = duration.get(lesson);
@@ -458,9 +484,12 @@ export function parseSchemaSolution(value: unknown, problem: SchemaProblem): Sch
     seen.add(lesson);
     const day = int(p.day, 0, problem.time.days.length - 1), frame = problem.time.days[day];
     const startMin = int(p.start_min, frame.start_min, frame.end_min - length);
+    const locked = locks.get(lesson);
+    if (locked && (day !== locked.day || startMin !== locked.start_min)) bad();
     // Sal: precis en av de tillåtna när passet ska ha en sal, annars ingen.
     const rooms = list(p.rooms ?? [], 1).map(id => text(id, 10)), allowed = wanted.get(lesson);
     if (allowed ? rooms.length !== 1 || !allowed.includes(rooms[0]) : rooms.length !== 0) bad();
+    if (locked?.rooms?.length && JSON.stringify(rooms) !== JSON.stringify(locked.rooms)) bad();
     return { lesson, day, startMin, room: rooms[0] ?? null };
   });
   const unplaced = list(s.unplaced, SCHEMA_LIMITS.lessons).map(raw => {
@@ -470,14 +499,40 @@ export function parseSchemaSolution(value: unknown, problem: SchemaProblem): Sch
     return lesson;
   });
   if (seen.size !== duration.size) bad();
-  const diagnoses = list(s.diagnoses, SCHEMA_LIMITS.diagnoses).map(raw => {
-    const d = record(raw);
-    return { code: text(d.code, 100), message: text(d.message, SCHEMA_LIMITS.message), proof: d.proof === true };
-  });
+  const diagnoses = parseSchemaEngineDiagnoses(s.diagnoses, problem);
+  const statistics = parseSchemaMotorStatistics(s.search_statistics, problem);
   const m = record(s.metrics), stats = record(s.stats);
-  return { status, placements, unplaced, diagnoses,
+  return { status, placements, unplaced, diagnoses, statistics,
     metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER) },
     elapsedMs: int(stats.elapsed_ms, 0, Number.MAX_SAFE_INTEGER) };
+}
+
+/** Motorns diagnoser binds till just det skickade underlagets pass och resurser. */
+export function parseSchemaEngineDiagnoses(value: unknown, problem: SchemaProblem): SchemaDiagnosis[] {
+  const lessons = new Set(problem.lessons.map(l => l.id));
+  const resources = new Set([...problem.teachers, ...problem.groups, ...problem.clusters, ...problem.rooms ?? [], ...problem.activities, ...problem.periods ?? []].map(r => r.id));
+  return list(value, SCHEMA_LIMITS.diagnoses).map(raw => {
+    const d = record(raw);
+    const refs = (v: unknown, known: Set<string>) => list(v ?? [], SCHEMA_LIMITS.lessons).map(x => { const id = text(x, 100); if (!known.has(id)) bad(); return id; });
+    if (typeof d.proof !== 'boolean') bad();
+    return { code: text(d.code, 100), message: text(d.message, SCHEMA_LIMITS.message), proof: d.proof, lessons: refs(d.lessons, lessons), resources: refs(d.resources, resources) };
+  });
+}
+export function parseSchemaMotorStatistics(value: unknown, problem: SchemaProblem): SchemaMotorStatistics {
+  const s = record(value), known = new Set(problem.lessons.map(l => l.id)), seen = new Set<string>();
+  const resources = new Set([...problem.teachers, ...problem.groups, ...problem.clusters, ...problem.rooms ?? []].map(r => r.id));
+  const lessons = list(s.lessons, 20).map(raw => {
+    const l = record(raw), lesson = text(l.lesson, 100);
+    if (!known.has(lesson) || seen.has(lesson)) bad(); seen.add(lesson);
+    return { lesson, attempts: int(l.attempts, 0, Number.MAX_SAFE_INTEGER), moves: int(l.moves, 0, Number.MAX_SAFE_INTEGER),
+      backtracks: int(l.backtracks, 0, Number.MAX_SAFE_INTEGER), ejections: int(l.ejections, 0, Number.MAX_SAFE_INTEGER) };
+  });
+  const bottlenecks = list(s.bottlenecks, 20).map(raw => {
+    const b = record(raw), resource = b.resource === null ? null : text(b.resource, 100);
+    if (resource !== null && !resources.has(resource)) bad();
+    return { code: text(b.code, 100), resource, count: int(b.count, 1, Number.MAX_SAFE_INTEGER) };
+  });
+  return { lessons, bottlenecks, iterations: int(s.iterations, 0, Number.MAX_SAFE_INTEGER) };
 }
 
 /** Klientens tolkning av ruttens svar: formen prövas så att vyn aldrig ritar ett halvt förslag. */
@@ -486,6 +541,18 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   if (f.contractVersion !== SCHEMA_CONTRACT_VERSION || f.unitId !== expected.unitId || f.schoolYear !== expected.schoolYear
     || f.period !== expected.period || JSON.stringify(parseSchemaVillkor(f.villkor)) !== JSON.stringify(parseSchemaVillkor(expected.villkor)) || !SCHEMA_STATUSES.includes(f.status)) bad();
   for (const key of ['days', 'classes', 'teachers', 'lessons', 'omitted', 'diagnoses', 'teachings', 'rooms', 'egnaUtanTraff'] as const) list(f[key], SCHEMA_LIMITS.lessons);
+  const statistics = record(f.statistics);
+  const statSeen = new Set<string>();
+  for (const raw of list(statistics.lessons, 20)) {
+    const st = record(raw), lesson = text(st.lesson, 100);
+    if (!f.lessons.some(l => l.id === lesson) || statSeen.has(lesson)) bad(); statSeen.add(lesson); text(st.title, 2000);
+    for (const k of ['attempts', 'moves', 'backtracks', 'ejections'] as const) int(st[k], 0, Number.MAX_SAFE_INTEGER);
+  }
+  for (const raw of list(statistics.bottlenecks, 20)) {
+    const b = record(raw); text(b.code, 100); int(b.count, 1, Number.MAX_SAFE_INTEGER);
+    if (b.resource !== null) { const r = record(b.resource); if (!['larare','klass','grupp','sal','undervisning'].includes(text(r.typ, 30))) bad(); text(r.id, 100); text(r.label, 2000); }
+  }
+  int(statistics.iterations, 0, Number.MAX_SAFE_INTEGER);
   const resurser = record(f.resurser);
   for (const slag of ['klass', 'grupp', 'amne', 'larare', 'pass'] as const) for (const x of list(resurser[slag], SCHEMA_LIMITS.lessons)) { text(record(x).ref, SCHEMA_VILLKOR_LIMITS.ref); text(record(x).name, 2000); }
   for (const x of f.rooms) { if (!ROOM.test(text(record(x).id, 10))) bad(); text(x.name, SCHEMA_VILLKOR_LIMITS.salNamn); }
@@ -516,5 +583,11 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
     if (l.term !== null && !SCHEMA_TERMS.includes(l.term)) bad();
     if (l.day !== null) { int(l.day, 0, f.days.length - 1); int(l.startMin, 0, 1440); }
   }
+  if (f.locks !== undefined) {
+    const locks = parseSchemaLas({ grundFingerprint: f.grundFingerprint, placements: f.locks }).placements;
+    const expectedLocks = expected.locks?.placements ?? [];
+    if (JSON.stringify(locks) !== JSON.stringify(expectedLocks) || locks.some(p => !f.lessons.some(l => l.id === p.lesson))) bad();
+    f.locks = locks;
+  } else if (expected.locks?.placements.length) bad();
   return f;
 }

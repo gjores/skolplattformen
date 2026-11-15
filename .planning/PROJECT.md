@@ -1,8 +1,8 @@
 # Skolplattformen
 
-## Aktuellt 2026-11-15 — schemats våg 5 genomförd
+## Aktuellt 2026-11-15 — schemats våg 6 genomförd
 
-Samlingsvy med lokala arbetsvyer och direkt dagval, egna återkommande aktiviteter utan ändrad timplanetid samt faktiska veckor/datum och daterad passtabell är implementerade. [Vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-5-VERIFICATION.md) skiljer121 Node,35 Rust, verklig lokal syntetisk motorkedja och simulerade UI-/routeprov från riktig skyddad drift. Hela schemasviten120/120 och berörda slutomprov passerar; typ/lint/bygge gröna och bilder granskade. Skolplattans tillägg är uttryckligen godkänt, sparat och omladdningskontrollerat. Inga migrationer eller installationer på3012/3013, ingen ny mänsklig acceptans eller standardiserad kommunanslutning. Nästa är våg6 enligt [arbetsflödet](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md). Handbok, lagring, publicering och T1:s daterade aktivitetsundantag följer sina egna planer. Äldre lägesnoteringar nedan är historik.
+Byte av två pass, pass-/dag-/klasslås och gemensam ändring av flera pass är implementerade. Flera fönster delar samma utkast, markering och ångra med egen sessions-/skolkontroll. Fördiagnos visar orimligt underlag före sökning; efter beräkning syns svåra pass och räknade flaskhalsar. [Vågkontrollen](phases/05.2-schemamodul/05.2-SM-WAVE-6-VERIFICATION.md) redovisar 153 Node, 44 Rust, verklig lokal syntetisk motorkedja samt UI-serie och slutomprov på 1280/1600. Typ/lint/bygge gröna, bilder granskade och Skolplattan synkad. Appkontrakt 6, motor 3. Inga migrationer eller installationer på 3012/3013, ingen ny mänsklig acceptans eller standardiserad kommunanslutning. Nästa är våg 7, SM-PLACERING, enligt [arbetsflödet](phases/05.2-schemamodul/05.2-SM-UTVECKLING-WORKFLOW.md). Handbok, lagring, publicering och T1:s daterade aktivitetsundantag följer sina egna planer. Äldre lägesnoteringar nedan är historik.
 
 ## Aktuellt 2026-10-30 — klassorganisation inventerad
 
