@@ -1,5 +1,9 @@
 # Skolplattformen
 
+## Aktuellt 2026-11-15 — schemats våg 4–7 installerad
+
+På användarens **”Ja gör det.”** kör appen på 3012 och motor 4 på 3013 samma frysta `4267daf7`. [Installationen](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md) har **31/31 efterkontroller PASS**, oförändrade 1 460 produktfiler och inga migrationer eller ombyggnader. Hälsa, skydd utan session/token, syntetiska motorförslag och inloggningssidan verifierade; föregående app-/motorpar är bevarat efter två verifierade automatiska återgångar vid rättade provantaganden. Nästa är [användarprov U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md), därefter handboken enligt [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md). Våg 8 är inte klar och ingen ny mänsklig acceptans eller full fasacceptans påstås. Installationsgodkännandet är redan lämnat. Äldre lägesnoteringar nedan är historik.
+
 ## Aktuellt 2026-11-15 — handboksvågen förberedd
 
 [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md) är påbörjad med färdig [installationskandidat och återgång](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) samt [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md). Fryst `4267daf7`, skyddad app/motor 4 och 1 460 inventerade filer har nya 180 Node, 65 Rust, riktig lokal syntetisk motorkedja/workerd och 20 start-/skydds-/bevarandekontroller PASS. Appen/motorn på 3012/3013 är fortfarande `8b6b9968`. Nästa är uttryckligt installationsbeslut, därefter användarprov och handbok med dokumentationsbygge enligt planens ordning. **Våg 8 är inte klar.** Inga migrationer, ingen installation eller ny mänsklig acceptans; handboken och formella pilotantal är oförändrade. Äldre lägesnoteringar nedan är historik.

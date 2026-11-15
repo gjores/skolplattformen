@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "våg 8 förberedd – inväntar installation och användarprov före SM-HANDBOK"
+current_plan: "våg 8 installerad – inväntar U1–U12 före handbok"
 status: in_progress
-stopped_at: "Våg 8 förberedd 2026-11-15. Ren fryst kandidat 4267daf7 med skyddad app/motor, 1460 inventerade filer, 180 Node, 65 Rust, syntetisk motorkedja/workerd och 20 start-/bevarandekontroller PASS. Installation kräver ja; U1–U12 och handbok återstår."
+stopped_at: "Godkänd kandidat 4267daf7 installerad på 3012/3013 2026-11-15. 31/31 efterkontroller PASS; 1460 produktfiler oförändrade, ingen migration/ombyggnad. Två tidigare provskriptavbrott återgick verifierat; slutkörning PASS. U1–U12 och handbok återstår."
 last_updated: "2026-11-15"
 last_activity: 2026-11-15
-last_activity_desc: "SM-HANDBOK:s installations- och provförberedelse klar. Ingen installation på 3012/3013; kandidat och återgång konkreta, användarprov ej utfört."
+last_activity_desc: "App-/motorbyte genomfört efter Ja gör det. och efterkontrollerat. Nästa är användarprovet, sedan handbok/docsbygge; våg 8 inte klar."
 state_head: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
 progress:
   total_phases: 8
@@ -21,9 +21,14 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-user_trial_status: schema_wave8_candidate_prepared_awaiting_installation_and_u1_u12
+schema_runtime_revision: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
+schema_motor_contract_version: 4
+schema_installation_status: passed_31_checks_no_migration
+user_trial_status: schema_wave8_installed_awaiting_u1_u12
 milestone_name: milestone
 ---
+
+**05.2-SM installerad 2026-11-15:** Användaren godkände den frysta kandidaten med **”Ja gör det.”** Appen på 3012 och motor 4 på 3013 kör nu `4267daf7` ur `runtime/schema-4267daf75b/`. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md), [leveransunderlag](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) och [körningsrapport](../work/schema/results/wave8-4267daf75b-install.json): **31/31 PASS**, alla 1 460 filhashar oförändrade, 571 installerade beroendeversioner kontrollerade, ingen migration eller ombyggnad. Hälsa, nio nekande apprutter, fem motorgrindar, syntetisk kort kedja med separat kontroll och inloggningssidan verifierade. Två föregående provskriptavbrott gav automatisk återgång PASS; de rättade bara provantaganden. Föregående app/motor `8b6b9968` och privat konfiguration är bevarade. **Nästa: [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md), därefter handbok och dokumentationsbygge. Installationsgodkännandet ska inte återfrågas för denna kandidat. Våg 8 är inte klar.** Ingen inloggad verksamhetskedja eller mänsklig acceptans påstås; ordinarie säkerhetsloggning används vid nekade provanrop. Äldre kalender-/Worker-metadata och formella pilotantal består. Äldre lägesnoteringar nedan är historik.
 
 **05.2-SM våg 8 förberedd 2026-11-15:** Användarens ”Kör nästa våg” har påbörjat [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md). Planen kräver installation och användarprov innan handboken skrivs. [Leveransunderlaget](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) har ren fryst kandidat `4267daf7`, skyddad app och motor 4, 1 460 inventerade filer och återgång till det fortfarande aktiva paret `8b6b9968`. Nya 180 Node, 65 Rust, riktig lokal syntetisk motorkedja/workerd och 20/20 start-/skydds-/bevarandekontroller PASS; privata provfiler och processer städade. Nekade anrop använder ordinarie säkerhetsloggning; inga verksamhetsdata har skrivits. [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md) är förberedda men inte provade. **Nästa: uttryckligt ja till att installera den frysta kandidaten på 3012/3013, därefter användarprov och handbok med dokumentationsbygge. Våg 8 är inte klar.** Ingen migration, installation, handboksändring, ny mänsklig acceptans eller verifierad standardanslutning. Äldre kalender-/Worker-metadata och formella pilotantal består.
 

@@ -1,0 +1,187 @@
+{
+  "kind": "schema-wave8-approved-local-installation",
+  "sourceRevision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef",
+  "approval": "Ja gör det.",
+  "approvedAction": "Install frozen 4267daf7 app on 3012 and motor on 3013",
+  "startedAt": "2026-11-15T18:09:23.589Z",
+  "status": "FAIL",
+  "installation": "not_performed",
+  "stage": "work/pilot/targets/protected/runtime/schema-4267daf75b",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-8b6b9968dd",
+  "artifactSha256": "2f43bdeb662ac7d92e440b0e5ec1e6e5874d5ee6c27d9120ab53dffae964f96f",
+  "migrations": 0,
+  "checks": [
+    {
+      "name": "frozen files and inventory before installation",
+      "status": "PASS",
+      "files": 1460
+    },
+    {
+      "name": "new protected build and previous rollback build identities",
+      "status": "PASS"
+    },
+    {
+      "name": "shared dependency versions and package manifests",
+      "status": "PASS",
+      "installedPackagesChecked": 571
+    },
+    {
+      "name": "no migration changes in approved source range",
+      "status": "PASS",
+      "migrations": 0
+    },
+    {
+      "name": "old running pair and private rollback configuration",
+      "status": "PASS"
+    },
+    {
+      "name": "configured Docker test identity provider discovery before runtime change",
+      "status": "PASS",
+      "httpStatus": 200,
+      "host": "host.docker.internal"
+    },
+    {
+      "name": "previous app stopped gracefully and private runtime files cleaned",
+      "status": "PASS"
+    },
+    {
+      "name": "previous motor stopped gracefully",
+      "status": "PASS"
+    },
+    {
+      "name": "new installed motor health and contract",
+      "status": "PASS",
+      "httpStatus": 200,
+      "contractVersion": 4
+    },
+    {
+      "name": "new installed protected app start page and owner",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "installed motor solve without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "installed motor validate without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "installed motor positions without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "installed motor diagnose without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "installed motor suggest without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "installed app forslag without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app kontroll without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app lagen without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app folj without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app samling without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app aktiviteter without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app diagnos without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app placering without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed app fonster without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "installed motor diagnose with anonymous synthetic problem",
+      "status": "PASS",
+      "contractVersion": 4
+    },
+    {
+      "name": "installed motor suggest produces a short synthetic placement chain",
+      "status": "PASS",
+      "changedLessons": 3
+    },
+    {
+      "name": "independent installed motor validation of full synthetic candidate",
+      "status": "PASS",
+      "violations": 0
+    },
+    {
+      "name": "login redirects to responding local identity provider without account login",
+      "status": "PASS",
+      "redirectStatus": 302,
+      "providerStatus": 200
+    },
+    {
+      "name": "private engine binding and file permissions; previous token preserved",
+      "status": "PASS"
+    }
+  ],
+  "rollback": {
+    "performed": true,
+    "status": "PASS"
+  },
+  "previousAttempt": "work/schema/results/wave8-4267daf75b-install-attempt-01.json",
+  "limits": [
+    "No login with user credentials or OTP; no authenticated workflow acceptance",
+    "No migration or business-data write; denied requests use ordinary security logging",
+    "No handbook, publication or verified SS12000 exchange"
+  ],
+  "previousProcesses": {
+    "appRoot": 44425,
+    "appListener": 44441,
+    "motorListener": 44414
+  },
+  "failure": {
+    "name": "AssertionError",
+    "message": "runtime error found in new app log"
+  },
+  "completedAt": "2026-11-15T18:09:28.946Z"
+}
