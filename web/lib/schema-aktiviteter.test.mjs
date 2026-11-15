@@ -99,3 +99,35 @@ test('skolans behörigt lästa övriga personal kan delta med samma person-ID ut
   assert.deepEqual(u.problem.lessons.at(-1).teachers, ['larare-2']); assert.deepEqual(u.resurser.larare.at(-1), { ref: uid(21), name: 'Provpersonal' });
   assert.deepEqual(u.problem.lessons[0].teachers, ['larare-1']); assert.equal(u.labels.teachers.at(-1).name, 'Provpersonal');
 });
+/** Ett olösbart motorförslag kan ha lämnat också ett låst aktivitetspass på viloytan. */
+function olagdFastAktivitet(next) {
+  const own = a(), r = req({ villkor: { ...v(), aktiviteter: [own] } }), fore = buildSchemaUnderlag(plan(), r), f = proposal(fore, r);
+  const placements = f.lessons.filter(l => !l.egenAktivitet).map(l => ({ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }));
+  return { ...r, contractVersion: SCHEMA_CONTRACT_VERSION, previousVillkor: r.villkor, villkor: { ...v(), aktiviteter: next }, grundFingerprint: fore.grundFingerprint, placements };
+}
+test('olagt fast aktivitetspass kan tas bort efter olösbart förslag utan att undervisningen ändras', () => {
+  const input = olagdFastAktivitet([]), change = schemaAktivitetsAndring(plan(), input);
+  assert.ok(change); assert.deepEqual(change.preserved, input.placements);
+  assert.deepEqual(schemaAktivitetsPlaceringar(change, null), input.placements);
+  assert.ok(!change.efter.problem.lessons.some(l => l.id === 'pass-900001'));
+});
+test('olagt fast aktivitetspass kan ersättas med rättad tid och återfår sitt nya lås', () => {
+  const own = a({ tid: { typ: 'fast', day: 2, startMin: 540 } }), input = olagdFastAktivitet([own]);
+  const change = schemaAktivitetsAndring(plan(), input); assert.ok(change);
+  const placements = schemaAktivitetsPlaceringar(change, null);
+  assert.deepEqual(placements.filter(p => p.lesson !== 'pass-900001'), input.placements);
+  assert.deepEqual(placements.find(p => p.lesson === 'pass-900001'), { lesson: 'pass-900001', day: 2, startMin: 540, room: 'sal-1' });
+  assert.deepEqual(change.efter.problem.lessons.find(l => l.id === 'pass-900001').locked, { day: 2, start_min: 540 });
+});
+test('oförändrat fast aktivitetspass får inte parkeras eller flyttas genom aktivitetsvägen och okända pass nekas', () => {
+  const own = a(), other = a({ id: 'aktivitet-2', tid: { typ: 'fast', day: 3, startMin: 600 } });
+  // Även när en annan aktivitet läggs till måste det oförändrade fasta passet finnas på sin låsta tid.
+  const unchanged = olagdFastAktivitet([own, other]);
+  assert.throws(() => schemaAktivitetsAndring(plan(), unchanged));
+  const reordered = Object.fromEntries(Object.entries(own).reverse());
+  assert.throws(() => schemaAktivitetsAndring(plan(), { ...unchanged, villkor: { ...v(), aktiviteter: [reordered, other] } }));
+  assert.throws(() => schemaAktivitetsAndring(plan(), { ...unchanged, villkor: { ...v(), aktiviteter: [{ ...own, name: 'Nytt namn, samma fasta tid' }, other] } }));
+  assert.throws(() => schemaAktivitetsAndring(plan(), { ...unchanged, placements: [...unchanged.placements, { lesson: 'pass-900001', day: 1, startMin: 480, room: 'sal-1' }] }));
+  const removed = olagdFastAktivitet([]);
+  assert.throws(() => schemaAktivitetsAndring(plan(), { ...removed, placements: [...removed.placements, { lesson: 'pass-899999', day: 0, startMin: 480, room: null }] }));
+});

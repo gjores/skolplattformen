@@ -1,5 +1,5 @@
 /** Serverns säkra ändring av aktivitetslistan utan att undervisningens pass flyttas. */
-import { SCHEMA_CONTRACT_VERSION, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest, parseSchemaVillkor, type SchemaForslag, type SchemaKontroll,
+import { SCHEMA_CONTRACT_VERSION, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest, parseSchemaVillkor, villkorNyckel, type SchemaForslag, type SchemaKontroll,
   type SchemaKontrollRequest, type SchemaPlacement, type SchemaSolution, type SchemaVillkor } from './schema-contract.ts';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll, type SchemaBasis, type SchemaUnderlag } from './schema-underlag.ts';
 import type { TjanstPlanRead } from './tjanst-contract.ts';
@@ -18,7 +18,23 @@ export function schemaAktivitetsAndring(plan: TjanstPlanRead, input: SchemaAktiv
   // Bara aktivitetslistan får ändras. Övriga villkor måste redan vara prövade som nuvarande underlag.
   const without = (v: SchemaVillkor) => { const { aktiviteter: _, ...rest } = v; return JSON.stringify(rest); };
   if (without(input.previousVillkor) !== without(input.villkor)) throw new SchemaContractError();
-  const efter = buildSchemaUnderlag(plan, input, basis), previous = checkSchemaPlacements(input.placements, fore.problem);
+  const efter = buildSchemaUnderlag(plan, input, basis);
+  const nextLessons = new Map(efter.problem.lessons.map(l => [l.id, l]));
+  const oldActivities = new Map((input.previousVillkor.aktiviteter ?? []).map(a => [a.id, a]));
+  const nextActivities = new Map((input.villkor.aktiviteter ?? []).map(a => [a.id, a]));
+  const own = new Map(fore.labels.lessons.flatMap(l => l.egenAktivitet ? [[l.id, l.egenAktivitet.id]] : []));
+  // Ett olösbart förslag kan ha lämnat en fast aktivitet olagd. Just den aktiviteten måste kunna tas bort eller rättas.
+  // Släpp bara dess GAMLA lås när aktivitetsdefinitionen uttryckligen ersätts och dess motorpass ändras/försvinner.
+  // Namn-/metadataändring eller annan aktivitets ändring ger inte rätt att parkera ett oförändrat låst pass.
+  const foreKontroll = { ...fore.problem, lessons: fore.problem.lessons.map(l => {
+    const id = own.get(l.id), next = id === undefined ? undefined : nextActivities.get(id);
+    const changed = id !== undefined && (next === undefined || villkorNyckel(oldActivities.get(id)) !== villkorNyckel(next))
+      && JSON.stringify(l) !== JSON.stringify(nextLessons.get(l.id));
+    if (!changed || !l.locked) return l;
+    const { locked: _, ...withoutOldLock } = l;
+    return withoutOldLock;
+  }) };
+  const previous = checkSchemaPlacements(input.placements, foreKontroll);
   const ids = new Set(efter.problem.lessons.map(l => l.id)), preserved = previous.filter(p => ids.has(p.lesson));
   const old = new Map(fore.problem.lessons.map(l => [l.id, l])), added = efter.problem.lessons.filter(l => !old.has(l.id) || JSON.stringify(l) !== JSON.stringify(old.get(l.id))).map(l => l.id);
   // En ändrad aktivitets fasta tid får en ny placering; undervisningar påverkas aldrig.
