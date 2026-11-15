@@ -12,7 +12,8 @@ import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll, schemaProvUnderlag } from '../../web/lib/schema-underlag.ts';
 import { schemaTime } from '../../web/lib/schema-kalender.ts';
 import { schemaDiagnos } from '../../web/lib/schema-diagnos.ts';
-import { SCHEMA_CONTRACT_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, parseSchemaEngineDiagnoses, sammaGrund } from '../../web/lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, checkSchemaPlacements, defaultSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, parseSchemaEngineDiagnoses, sammaGrund } from '../../web/lib/schema-contract.ts';
+import { parseSchemaMotorPlacering, parseSchemaPlacering, sammaSchemaPlaceringar } from '../../web/lib/schema-placering.ts';
 import { schemaAktivitetsAndring, schemaAktivitetsPlaceringar, schemaAktivitetsSvar } from '../../web/lib/schema-aktiviteter-underlag.ts';
 import { parseSchemaLagen, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from '../../web/lib/schema-lagen.ts';
 
@@ -186,6 +187,51 @@ try {
   assert.ok(impossibleSolution.diagnoses.some(d => d.code === 'locked_conflict'), 'motorn saknar diagnos för lås som krockar');
   assert.ok(impossibleSolution.placements.every(p => { const lock = impossibleLocks.locks.placements.find(l => l.lesson === p.lesson); return !lock || lock.day === p.day && lock.startMin === p.startMin; }), 'motorn flyttade ett oförenligt lås');
   console.log(JSON.stringify({ las: { bevarade: lockedSolution.placements.length, fullstandig: lockedSolution.status, oforenligt: impossibleSolution.status, diagnos: 'locked_conflict' } }));
+  // SM-PLACERING: riktig lokal /suggest och fristående kontroll av HELA varje kandidat. Ingen skyddad apprutt eller databas ingår.
+  const engineAt = at => at.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] }));
+  const suggest = async (problem, placements, val) => {
+    const response = await fetch(`${url}/v1/suggest`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ problem, placements: engineAt(placements),
+      mode: val.mode, lesson: val.lesson, depth: val.depth, target: val.target ? { day: val.target.day, start_min: val.target.startMin, rooms: val.target.room ? [val.target.room] : [] } : null }) });
+    const raw = await response.json(); assert.equal(response.status, 200, JSON.stringify(raw));
+    const result = parseSchemaMotorPlacering(raw, problem, { ...val, placements });
+    for (const alternative of result.suggestions) {
+      const check = await fetch(`${url}/v1/validate`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify({ problem, placements: engineAt(alternative.placements) }) });
+      assert.equal(check.status, 200); assert.deepEqual(parseSchemaCheck(await check.json(), problem).violations, [], 'placeringsförslaget har regelbrott');
+    }
+    return result;
+  };
+  const parkedId = solution.placements[0].lesson, parked = solution.placements.filter(p => p.lesson !== parkedId), val = { mode: 'lesson', lesson: parkedId, target: null, depth: 1 };
+  const one = await suggest(underlag.problem, parked, val);
+  assert.ok(one.suggestions.length > 0, 'den ursprungliga giltiga tiden hittas inte för ett parkerat pass');
+  assert.equal(one.suggestions[0].placements.length, solution.placements.length);
+  assert.equal(one.suggestions[0].changes.filter(c => c.from !== null).length, 0, 'direktfallet flyttade andra pass');
+  const clientInput = { ...request, ...val, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: underlag.grundFingerprint, placements: parked };
+  assert.equal(parseSchemaPlacering({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: underlag.grundFingerprint, ...one }, clientInput, underlag.problem.lessons.map(l => l.id)).suggestions.length, one.suggestions.length);
+
+  const chainProblem = { version: SCHEMA_MOTOR_VERSION, id: 'placeringskedja-prov', time: { step_min: 5, start_grid_min: 60, days: [{ start_min: 480, end_min: 660 }] },
+    teachers: [{ id: 'larare-1' }], groups: [{ id: 'grupp-1', clusters: ['kluster-1'] }], clusters: [{ id: 'kluster-1', size: 25 }], rooms: [], activities: [],
+    lessons: [1, 2, 3].map(n => ({ id: `pass-${n}`, duration_min: 60, teachers: ['larare-1'], groups: ['grupp-1'],
+      allowed: [{ day: 0, start_min: n === 3 ? 540 : 480, end_min: n === 1 ? 540 : n === 2 ? 600 : 660 }] })),
+    rules: { break_min: 0, lunch: null, same_day: 'allow' }, weights: { late_after_min: null } };
+  const at = (n, startMin) => ({ lesson: `pass-${n}`, day: 0, startMin, room: null }), chainAt = [at(2, 480), at(3, 540)];
+  const aimed = { mode: 'target', lesson: 'pass-1', target: { day: 0, startMin: 480, room: null }, depth: 1 };
+  const shallow = await suggest(chainProblem, chainAt, aimed), deep = await suggest(chainProblem, chainAt, { ...aimed, depth: 2 });
+  assert.equal(shallow.suggestions.length, 0, 'kedjan ska kräva två följdflyttar');
+  assert.ok(deep.suggestions.length > 0); assert.equal(deep.suggestions[0].changes.length, 3);
+  assert.ok(sammaSchemaPlaceringar(deep.suggestions[0].placements, [at(1, 480), at(2, 540), at(3, 600)]));
+  // Konstruerat jämförelsefall: samma tre utbytbara pass. Referensen väljs som en giltig rotation av just nollberäkningens resultat,
+  // så provet inte antar en viss tidsbegränsad lösningsordning. Ett pass parkeras därefter. Rest-förslaget behöver då inga följdflyttar.
+  const restProblem = { ...chainProblem, id: 'viloyta-prov', lessons: chainProblem.lessons.map(({ allowed: _, ...l }) => l) };
+  const zeroResponse = await fetch(`${url}/v1/solve?time_ms=100`, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(restProblem) });
+  assert.equal(zeroResponse.status, 200); const zero = parseSchemaSolution(await zeroResponse.json(), restProblem); assert.equal(zero.placements.length, 3);
+  const ordered = [...zero.placements].sort((a, b) => a.lesson.localeCompare(b.lesson)), rotated = ordered.map((p, i) => ({ ...ordered[(i + 1) % ordered.length], lesson: p.lesson }));
+  const restAt = rotated.filter(p => p.lesson !== 'pass-1'), placedRest = await suggest(restProblem, restAt, { mode: 'rest', lesson: null, target: null, depth: 1 });
+  assert.ok(placedRest.suggestions.length > 0); assert.equal(placedRest.suggestions[0].placements.length, restProblem.lessons.length);
+  const movedRest = placedRest.suggestions[0].changes.filter(c => c.from !== null).length;
+  const movedZero = restAt.filter(p => { const q = zero.placements.find(q => q.lesson === p.lesson); return p.day !== q.day || p.startMin !== q.startMin || p.room !== q.room; }).length;
+  assert.equal(movedRest, 0); assert.ok(movedRest < movedZero);
+  console.log(JSON.stringify({ placering: { stortDirektfall: one.suggestions.length, bevarade: parked.length, kedjaDjup1: shallow.suggestions.length, kedjaDjup2: deep.suggestions[0].changes.length,
+    viloytaAllaLagda: true, foljdflyttarRest: movedRest, flyttarFranNoll: movedZero, valdReferens: 'konstruerad giltig rotation', regelbrott: 0 } }));
   const meeting = { id: 'aktivitet-1', typId: 'typ-mote', typ: 'Arbetslagsmöte', name: 'Arbetslagsmöte prov', classRefs: [], groupRefs: [],
     teacherRefs: [plan.teachers[0].personId, plan.teachers[1].personId], rooms: [], durationMin: 60, veckor: { typ: 'alla' }, visibleFor: 'personal', margin: null,
     tid: { typ: 'motor', days: [1, 2, 3], startMin: 840, endMin: 990 } };
@@ -395,16 +441,19 @@ try {
   console.log(JSON.stringify({ langstaDag: { larare: 'Provlärare 12', maxMin: 240, langstaGrund: grundDag, konstrueratDagbrott, langstaFore: foreDag, langstaEfter: efterDag, direktAvvikelser: forLang.length, nyttForslag: fDag.status } }));
   // Appens eget motoranrop (web/lib/server/schemamotor.ts) i workerd, samma körmiljö som den byggda appen: det nodens fetch godtar är inte säkert giltigt där.
   const fromWeb = createRequire(new URL('../../web/package.json', import.meta.url)), { Miniflare, convertV4MiniflareOptions } = createRequire(fromWeb.resolve('wrangler'))('miniflare');
-  const entry = `import { positionsSchema, solveSchema, validateSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};
+  const entry = `import { positionsSchema, solveSchema, validateSchema, suggestSchema } from ${JSON.stringify(new URL('../../web/lib/server/schemamotor.ts', import.meta.url).pathname)};
     export default { async fetch(request) { try { const problem = await request.json(), solved = await solveSchema(problem), check = await validateSchema(problem, solved.placements);
       const lagen = await positionsSchema(problem, solved.placements, solved.placements[0].lesson, null);
-      return Response.json({ status: solved.status, placed: solved.placements.length, violations: check.violations.length, free: lagen.positions.some(p => p.state === 'fri') }); } catch (error) { return Response.json({ error: error.reason ?? String(error) }); } } };`;
+      const proposed = await suggestSchema(problem, solved.placements.slice(1), { mode: 'lesson', lesson: solved.placements[0].lesson, target: null, depth: 1, unitId: 'ska-stanna-i-appen' });
+      const proposalCheck = proposed.suggestions.length ? await validateSchema(problem, proposed.suggestions[0].placements) : null;
+      return Response.json({ status: solved.status, placed: solved.placements.length, violations: check.violations.length, free: lagen.positions.some(p => p.state === 'fri'),
+        suggestion: proposed.suggestions.length > 0, suggestionViolations: proposalCheck?.violations.length ?? null }); } catch (error) { return Response.json({ error: error.reason ?? String(error) }); } } };`;
   const built = await fromWeb('esbuild').build({ stdin: { contents: entry, resolveDir: dir, loader: 'ts' }, bundle: true, format: 'esm', external: ['cloudflare:workers'], write: false, logLevel: 'silent' });
   const worker = new Miniflare(convertV4MiniflareOptions({ workers: [{ modules: true, script: built.outputFiles[0].text, compatibilityDate: '2025-09-01', compatibilityFlags: ['nodejs_compat'],
     bindings: { SCHEMAMOTOR_URL: url, SCHEMAMOTOR_TOKEN: token } }] }));
   try {
     const viaWorker = await (await worker.dispatchFetch('http://app.invalid/', { method: 'POST', body })).json();
-    assert.deepEqual(viaWorker, { status: 'complete', placed: solution.placements.length, violations: 0, free: true }, 'appens motoranrop fungerar inte i workerd');
+    assert.deepEqual(viaWorker, { status: 'complete', placed: solution.placements.length, violations: 0, free: true, suggestion: true, suggestionViolations: 0 }, 'appens motoranrop fungerar inte i workerd');
     console.log(JSON.stringify({ workerd: viaWorker }));
   } finally { await worker.dispose(); }
 } finally { service.kill(); }

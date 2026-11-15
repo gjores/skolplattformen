@@ -6,6 +6,7 @@
 
 use schemamotor_model::*;
 use std::collections::{BTreeMap, BTreeSet, HashMap};
+use std::time::Instant;
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Violation {
@@ -81,6 +82,21 @@ fn hits(ivs: &[Interval], day: u32, start: u32, end: u32) -> bool {
 
 /// Kontrollera placeringarna mot underlagets hårda regler och räkna utfallet.
 pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
+    validate_until(problem, placements, None).expect("utan tidsgräns")
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ValidationTimeout;
+
+/// Samma oberoende regelkontroll med avbrott. Ett avbrott lämnar aldrig ett delvis grönt Report.
+pub fn validate_before(problem: &Problem, placements: &[Placement], deadline: Instant) -> Result<Report, ValidationTimeout> {
+    validate_until(problem, placements, Some(deadline))
+}
+fn check_deadline(deadline: Option<Instant>) -> Result<(), ValidationTimeout> {
+    if deadline.is_some_and(|d| Instant::now() >= d) { Err(ValidationTimeout) } else { Ok(()) }
+}
+fn validate_until(problem: &Problem, placements: &[Placement], deadline: Option<Instant>) -> Result<Report, ValidationTimeout> {
+    check_deadline(deadline)?;
     let mut v: Vec<Violation> = Vec::new();
     let lessons: HashMap<&str, &Lesson> = problem.lessons.iter().map(|l| (l.id.as_str(), l)).collect();
     let rooms: HashMap<&str, &Room> = problem.rooms.iter().map(|r| (r.id.as_str(), r)).collect();
@@ -92,6 +108,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
 
     let mut placed: BTreeMap<&str, Placed> = BTreeMap::new();
     for p in placements {
+        check_deadline(deadline)?;
         let Some(lesson) = lessons.get(p.lesson.as_str()).copied() else {
             v.push(Violation { code: "unknown_lesson", message: format!("Placeringen gäller okänt pass {}.", p.lesson), lessons: vec![p.lesson.clone()], resources: vec![] });
             continue;
@@ -104,6 +121,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
 
     // Varje pass för sig.
     for p in placed.values() {
+        check_deadline(deadline)?;
         let l = p.lesson;
         let id = || vec![l.id.clone()];
         let Some(day) = problem.time.days.get(p.day as usize) else {
@@ -178,6 +196,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
     let mut by_cluster: BTreeMap<String, Vec<&Placed>> = BTreeMap::new();
     let mut by_room: BTreeMap<&str, Vec<&Placed>> = BTreeMap::new();
     for p in placed.values() {
+        check_deadline(deadline)?;
         for t in &p.lesson.teachers {
             by_teacher.entry(t.as_str()).or_default().push(p);
         }
@@ -201,9 +220,10 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
         }
     }
 
-    let clash = |kind: &'static str, code: &'static str, res: &str, list: &[&Placed], part: usize, gap: u32, v: &mut Vec<Violation>| {
+    let clash = |kind: &'static str, code: &'static str, res: &str, list: &[&Placed], part: usize, gap: u32, v: &mut Vec<Violation>| -> Result<(), ValidationTimeout> {
         for (i, a) in list.iter().enumerate() {
             for b in &list[i + 1..] {
+                check_deadline(deadline)?;
                 if a.day == b.day && share_period(a.lesson, b.lesson) && conflict(a, b, part, gap) {
                     let what = if overlaps(a.start, a.end, b.start, b.end) {
                         "krockar"
@@ -216,18 +236,20 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
                 }
             }
         }
+        Ok(())
     };
     for (t, list) in &by_teacher {
-        clash("lärare", "teacher_clash", t, list, TEACHERS, brk, &mut v);
+        clash("lärare", "teacher_clash", t, list, TEACHERS, brk, &mut v)?;
     }
     for (c, list) in &by_cluster {
-        clash("elever i", "student_clash", c, list, STUDENTS, brk, &mut v);
+        clash("elever i", "student_clash", c, list, STUDENTS, brk, &mut v)?;
     }
     for (r, list) in &by_room {
-        clash("sal", "room_clash", r, list, ROOMS, 0, &mut v);
+        clash("sal", "room_clash", r, list, ROOMS, 0, &mut v)?;
     }
 
     for (i, link) in problem.links.iter().enumerate() {
+        check_deadline(deadline)?;
         let members: Vec<Option<&Placed>> = link.lessons.iter().map(|id| placed.get(id.as_str())).collect();
         match link.kind {
             LinkKind::Simultaneous => {
@@ -242,6 +264,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
                 let some: Vec<&Placed> = members.iter().flatten().copied().collect();
                 for (k, a) in some.iter().enumerate() {
                     for b in &some[k + 1..] {
+                        check_deadline(deadline)?;
                         if a.day == b.day && share_period(a.lesson, b.lesson) && overlaps(a.start, a.end, b.start, b.end) {
                             v.push(Violation { code: "overlap_forbidden", message: format!("Pass {} och {} får inte överlappa.", a.lesson.id, b.lesson.id), lessons: vec![a.lesson.id.clone(), b.lesson.id.clone()], resources: vec![] });
                         }
@@ -309,8 +332,10 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
     };
 
     for &period in &period_ids {
+        check_deadline(deadline)?;
         for day in 0..n_days {
             for (t, list) in &by_teacher {
+                check_deadline(deadline)?;
                 let ivs = busy(list, TEACHERS, period, day);
                 if ivs.is_empty() {
                     continue;
@@ -328,6 +353,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
                 m.teacher_gap_min += gaps(&ivs, with_lunch) as u64;
             }
             for (c, list) in &by_cluster {
+                check_deadline(deadline)?;
                 let ivs = busy(list, STUDENTS, period, day);
                 if ivs.is_empty() {
                     continue;
@@ -354,6 +380,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
         // Samma aktivitet flera gånger samma dag.
         let mut per_activity: BTreeMap<(&str, u32), Vec<&str>> = BTreeMap::new();
         for p in placed.values() {
+        check_deadline(deadline)?;
             if let (Some(a), true) = (&p.lesson.activity, in_period(p.lesson, period)) {
                 per_activity.entry((a.as_str(), p.day)).or_default().push(p.lesson.id.as_str());
             }
@@ -372,6 +399,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
     }
     // Aktiviteternas tid, när alla deras pass i perioden är placerade.
     for a in &problem.activities {
+        check_deadline(deadline)?;
         for t in &a.time {
             let own: Vec<&Lesson> = problem.lessons.iter().filter(|l| l.activity.as_deref() == Some(a.id.as_str()) && in_period(l, t.period.as_deref())).collect();
             if own.is_empty() || own.iter().any(|l| !placed.contains_key(l.id.as_str())) {
@@ -395,6 +423,7 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
 
     let reference: HashMap<&str, &Placement> = problem.reference.iter().map(|p| (p.lesson.as_str(), p)).collect();
     for l in &problem.lessons {
+        check_deadline(deadline)?;
         match placed.get(l.id.as_str()) {
             Some(p) => {
                 m.placed_lessons += 1;
@@ -424,7 +453,8 @@ pub fn validate(problem: &Problem, placements: &[Placement]) -> Report {
         + m.moved_lessons as i64 * w.moved
         + m.room_moved_lessons as i64 * w.room_moved;
 
-    Report { violations: v, metrics: m }
+    check_deadline(deadline)?;
+    Ok(Report { violations: v, metrics: m })
 }
 
 /// Kontrollera ett helt resultat: placeringarna, att resultatet hör till

@@ -7,9 +7,10 @@ import { env as bindings } from 'cloudflare:workers';
 import { SCHEMA_MOTOR_VERSION, SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
+import { parseSchemaMotorPlacering, type SchemaPlaceringFailure, type SchemaPlaceringVal } from '../schema-placering.ts';
 
 const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
-export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply';
+export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply' | SchemaPlaceringFailure;
 export class SchemaEngineError extends Error {
   public reason: SchemaEngineFailure;
   constructor(reason: SchemaEngineFailure) { super(reason); this.name = 'SchemaEngineError'; this.reason = reason; }
@@ -35,6 +36,11 @@ async function call<T>(path: string, body: unknown, timeMs: number, parse: (valu
   if (response.status === 429) throw new SchemaEngineError('schema_engine_busy');
   // 401 betyder fel token i konfigurationen: motorn är då inte ansluten på ett användbart sätt.
   if (response.status === 401) throw new SchemaEngineError('schema_engine_unconfigured');
+  if (path === '/v1/suggest' && response.status === 400 && text.length <= REPLY_BYTES) {
+    let code: unknown; try { code = JSON.parse(text)?.error; } catch { /* ogiltigt motorsvar hanteras nedan */ }
+    const known: Record<string, SchemaPlaceringFailure> = { invalid_baseline: 'schema_placement_invalid_baseline', locked_lesson: 'schema_placement_locked_lesson', bad_target: 'schema_placement_bad_target' };
+    if (typeof code === 'string' && Object.hasOwn(known, code)) throw new SchemaEngineError(known[code]);
+  }
   if (!response.ok || text.length > REPLY_BYTES) throw new SchemaEngineError('schema_engine_bad_reply');
   try { return parse(JSON.parse(text)); } catch { throw new SchemaEngineError('schema_engine_bad_reply'); }
 }
@@ -62,4 +68,12 @@ export function diagnoseSchema(problem: SchemaProblem) {
     if (d.version !== SCHEMA_MOTOR_VERSION || d.problem_id !== problem.id) throw new SchemaContractError();
     return parseSchemaEngineDiagnoses(d.diagnoses, problem);
   });
+}
+
+/** Begränsad placeringssökning, högst två sekunder. Resultatet är ett förslag, aldrig en skrivning. */
+export function suggestSchema(problem: SchemaProblem, placements: SchemaPlacement[], val: SchemaPlaceringVal) {
+  const { target, mode, lesson, depth } = val;
+  return call('/v1/suggest', { problem, placements: engineAt(placements), mode, lesson, depth,
+    target: target ? { day: target.day, start_min: target.startMin, rooms: target.room ? [target.room] : [] } : null }, 2_000,
+  value => parseSchemaMotorPlacering(value, problem, { ...val, placements }));
 }

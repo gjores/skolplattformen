@@ -12,11 +12,11 @@ cargo run --release -- bench --time 10000 --seeds 3 --out bench/out
 
 ## Delar
 
-- `crates/model` – kontraktet: underlag (`Problem`) och resultat (`Solution`), version 3. V3 lägger till `search_statistics` i resultatet; äldre underlag och svar godtas inte som V3. Okända fält nekas.
+- `crates/model` – kontraktet: underlag (`Problem`) och resultat (`Solution`), version 4. V3 lade till `search_statistics`; V4 lägger till det strikta kontraktet för placeringsförslag. Äldre underlag och svar godtas inte som V4. Okända fält nekas.
 - `crates/solve` – lösaren. Besked: `complete`, `time_limit`, `infeasible` (med bevis), `input_missing`, `cancelled`.
 - `crates/validate` – fristående granskning som räknar i minuter och inte delar kod med lösaren. Bygger även för `wasm32-unknown-unknown`.
 - `crates/cli` – kommandorad, syntetiska skolor och mätning.
-- `crates/service` – `schemamotor-tjanst`, HTTP-tjänst för appens server: `GET /v1/health`, `POST /v1/solve[?time_ms=N]`, `POST /v1/diagnose`, `POST /v1/validate` och `POST /v1/positions` med `Authorization: Bearer`. Gränser för storlek, räknetid och samtidiga körningar; innehåll loggas inte.
+- `crates/service` – `schemamotor-tjanst`, HTTP-tjänst för appens server: `GET /v1/health`, `POST /v1/solve[?time_ms=N]`, `POST /v1/diagnose`, `POST /v1/validate` och `POST /v1/positions` och `POST /v1/suggest` med `Authorization: Bearer`. Gränser för storlek, räknetid och samtidiga körningar; innehåll loggas inte.
 
 ```sh
 SCHEMAMOTOR_TOKEN=<minst 16 tecken> cargo run --release -p schemamotor-tjanst   # lyssnar på 127.0.0.1:8787
@@ -44,6 +44,20 @@ Elever räknas i kluster: elever som har exakt samma grupper. Två grupper krock
 `Solution.search_statistics` bär `lessons`, `bottlenecks` och `iterations`. Passlistan har högst 20 poster med `lesson`, `attempts` (prövade starttider), `moves` (utförda flyttförsök i sökningen), `backtracks` (nekade placeringsförsök och återgångar) och `ejections` (undanträngningar). Flaskhalslistan har högst 20 villkor/resurser med `code`, valfri `resource` och `count`. En orsak/resurs räknas högst en gång per placeringsförsök. Sökprov kan återgå; antalen är sökhändelser, inte antal ändringar i slutresultatet. Samplacerade pass ärver sin enhets händelser. Alla söktrådars händelser summeras och sorteras stabilt; virtuella kopplingar redovisas utan påhittade resurs-ID:n.
 
 Med en tråd och iterationsgräns ger samma underlag och frö samma schema och sökstatistik. Körning med tidsgräns eller flera trådar ger inga motsvarande determinismlöften.
+
+## Lokal placeringshjälp
+
+`POST /v1/suggest` tar `{problem, placements, mode, lesson, target, depth}`. `mode` är `lesson`, `target` eller `rest`; `lesson` ska vara ett känt pass i de två första lägena och null i `rest`. `target` är `{day, start_min, rooms}` endast i `target`, annars null. Tom salslista låter motorn välja, en angiven salslista binder det valda passets sal i just förslaget. `depth` är 1–3 och räknar redan lagda blockerande **pass**, även om några är samplacerade, utöver det uttryckligt valda passet eller viloytans nya mål. Djup 1 tillåter direkt placering och tvåpassbyte; två respektive tre redan lagda blockerare kräver djup 2 respektive 3.
+
+Svaret är `{version, problem_id, depth, timed_out, elapsed_ms, suggestions}` med högst fem unika förslag. Varje förslag har hela `placements`, en exakt `changes`-lista (`lesson`, `from: Placement|null`, `to: Placement`), `metrics_before`, `metrics_after` och `cost` som är exakt `metrics_after.cost`. `from:null` betyder ett tidigare parkerat pass. Ingen tidigare lagd rad får försvinna. Alla mål i `rest` måste vara lagda i varje kandidat; en halv viloyta presenteras aldrig som ett helt förslag. I `lesson` och `target` får andra ursprungligen parkerade pass ligga kvar.
+
+Referensen sätts i en lokal kopia till just insända placeringar; vikterna är oförändrade. Rangordningen är färre ändrade redan lagda pass, kortare total tidsförskjutning (veckodag × 1440 + startminut), lägre kostnad och stabil placeringsordning. Ett salbyte räknas som ett ändrat pass och kan ske utan tidsförskjutning. De bästa hittade alternativen är inte ett globalt optimalitetsbevis. Inga alternativ är inte ett olösbarhetsbevis.
+
+Sökningen använder en gemensam tvåsekundersbudget för hela anropet inklusive kontroller, inte två sekunder per kandidat eller mål. Den prövar djupet stegvis och använder en explicit heapstack med kompakta tidsiteratorer för även stora viloytor. Det finns ingen separat 512-målsgräns eller rekursion per viloytemål. `timed_out` betyder en faktiskt nådd deadline. Redan helt kontrollerade alternativ kan följa med när budgeten tar slut; delvis prövade alternativ följer aldrig med. Den oberoende kontrollanten har fått `validate_before` för avbrott vid samma deadline; vanliga `validate` är fortsatt utan tidsgräns och oförändrad i regelbedömningen.
+
+Ett låst redan lagt pass eller en samplacerad enhet med låst del flyttas aldrig. En olagd fast aktivitet i `rest` kan bara läggas på sin låsta tid. Samplacerade pass hanteras som en sökenhet och alla dess pass följer med i kandidaten. Delvis lagda samplacerade enheter nekas som en hård avvikelse, precis som i den befintliga kontrollanten. Samma kontrollant prövar ursprungsplaceringen och varje hel kandidat, inklusive tidskrav, elevkluster, perioder, salar, marginaler, lunch och dagsgränser. Medvetna krockmarkeringar hör till appen och ändrar aldrig denna regelkontroll.
+
+Felkoder: 400 `bad_request` (inklusive mode/djup/nullkombinationer och okända fält), `bad_problem`, `version_mismatch`, `unknown_lesson`, `locked_lesson`, `bad_target` eller `invalid_baseline`. Det sista svaret har `details.violations` med kod, text och referenser; inga förbättringsförslag returneras för ett utkast med hårda brott. HTTP-grindarna är samma som för övriga motorvägar: 401 utan rätt token, 405 för fel metod, 413 över kroppsstorleksgränsen och 429 vid upptagen kapacitet. Queryparametrar godtas inte. Tid anges i verkliga `elapsed_ms`, även vid avbruten förkontroll. Inget sparas eller installeras av placeringshjälpen.
 
 ## Inte med
 

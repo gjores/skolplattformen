@@ -13,7 +13,7 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 
-pub const CONTRACT_VERSION: u32 = 3;
+pub const CONTRACT_VERSION: u32 = 4;
 /// Lösaren håller en dag i ett 128-bitarsord.
 pub const MAX_SLOTS_PER_DAY: u32 = 128;
 pub const MAX_PERIODS: usize = 32;
@@ -529,6 +529,70 @@ pub struct Solution {
     pub metrics: Metrics,
     pub stats: Stats,
     pub search_statistics: SearchStatistics,
+}
+
+/// Avgränsad lokal placeringshjälp. Den ändrar aldrig problemet eller den insända placeringen.
+#[derive(Clone, Copy, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum SuggestionMode { Lesson, Target, Rest }
+
+/// Alla målfält är obligatoriska på HTTP-vägen, även den uttryckliga salslistan.
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SuggestionTarget {
+    pub day: u32,
+    pub start_min: u32,
+    pub rooms: Vec<String>,
+}
+fn required_nullable<'de, D, T>(deserializer: D) -> Result<Option<T>, D::Error>
+where D: serde::Deserializer<'de>, T: Deserialize<'de> {
+    Option::<T>::deserialize(deserializer)
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct SuggestionRequest {
+    pub problem: Problem,
+    pub placements: Vec<Placement>,
+    pub mode: SuggestionMode,
+    #[serde(deserialize_with = "required_nullable")]
+    pub lesson: Option<String>,
+    #[serde(deserialize_with = "required_nullable")]
+    pub target: Option<SuggestionTarget>,
+    /// Antal redan lagda, undanträngda pass utöver det valda passet (1–3).
+    pub depth: u8,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct SuggestionChange {
+    pub lesson: String,
+    pub from: Option<Placement>,
+    pub to: Placement,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Suggestion {
+    /// Hela resulterande placeringen, inklusive alla oförändrade redan lagda pass.
+    pub placements: Vec<Placement>,
+    pub changes: Vec<SuggestionChange>,
+    pub metrics_before: Metrics,
+    pub metrics_after: Metrics,
+    /// Samma tal som metrics_after.cost; reference är insända placements.
+    pub cost: i64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct Suggestions {
+    pub version: u32,
+    pub problem_id: String,
+    pub depth: u8,
+    /// Budgeten tog slut. Inga delvis kontrollerade alternativ returneras.
+    pub timed_out: bool,
+    pub elapsed_ms: u64,
+    pub suggestions: Vec<Suggestion>,
 }
 
 impl Problem {

@@ -81,6 +81,7 @@ fn busy_service_answers_429_and_time_is_capped() {
     let slow = std::thread::spawn(move || call(&a, "POST", "/v1/solve?time_ms=999999", Some(TOKEN), &b));
     std::thread::sleep(std::time::Duration::from_millis(300));
     assert_eq!(call(&addr, "POST", "/v1/solve", Some(TOKEN), &body).0, 429);
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&suggestion_body(body.clone())).0,429);
     let (status, _) = slow.join().unwrap();
     assert_eq!(status, 200);
     assert!(started.elapsed().as_millis() < 5000);
@@ -131,4 +132,62 @@ fn preflight_requires_authorization_and_reports_without_searching() {
     let (_,text)=call(&addr,"POST","/v1/diagnose",Some(TOKEN),&old);
     let out:serde_json::Value=serde_json::from_str(&text).unwrap();
     assert_eq!(out["diagnoses"][0]["code"],"version");
+}
+
+fn suggestion_body(body:String)->String {
+    serde_json::json!({"problem":serde_json::from_str::<serde_json::Value>(&body).unwrap(),"placements":[],"mode":"lesson","lesson":"pass-0","target":null,"depth":1}).to_string()
+}
+
+#[test]
+fn suggest_preserves_http_grinds_and_returns_the_exact_new_contract() {
+    let addr=start(Config::new(TOKEN.into()));
+    let body=suggestion_body(problem(2));
+    let mut extra:serde_json::Value=serde_json::from_str(&body).unwrap();extra["unknown"]=serde_json::json!(true);
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&extra.to_string()).0,400);
+    extra.as_object_mut().unwrap().remove("unknown");extra.as_object_mut().unwrap().remove("target");
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&extra.to_string()).0,400);
+    assert_eq!(call(&addr,"POST","/v1/suggest",None,&body).0,401);
+    assert_eq!(call(&addr,"GET","/v1/suggest",Some(TOKEN),"").0,405);
+    assert_eq!(call(&addr,"POST","/v1/suggest?time_ms=90000",Some(TOKEN),&body).0,400);
+    let mut raw:serde_json::Value=serde_json::from_str(&body).unwrap();raw["depth"]=serde_json::json!(0);
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&raw.to_string()),(400,"{\"error\":\"bad_request\"}".into()));
+    raw["depth"]=serde_json::json!(1);raw["problem"]["version"]=serde_json::json!(schemamotor_model::CONTRACT_VERSION-1);
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&raw.to_string()),(400,"{\"error\":\"version_mismatch\"}".into()));
+    let (status,text)=call(&addr,"POST","/v1/suggest",Some(TOKEN),&body);
+    assert_eq!(status,200);
+    let out:schemamotor_model::Suggestions=serde_json::from_str(&text).unwrap();
+    assert_eq!(out.version,schemamotor_model::CONTRACT_VERSION);assert_eq!(out.depth,1);
+    assert!(!out.suggestions.is_empty()&&out.suggestions.len()<=5);
+    assert!(out.suggestions.iter().all(|s|s.placements.len()==1&&s.changes.len()==1&&s.changes[0].from.is_none()&&s.cost==s.metrics_after.cost));
+    let mut cfg=Config::new(TOKEN.into());cfg.max_body_bytes=100;
+    let small=start(cfg);assert_eq!(call(&small,"POST","/v1/suggest",Some(TOKEN),&body).0,413);
+}
+
+#[test]
+fn suggest_refuses_a_hard_violation_without_silently_changing_the_input() {
+    let addr=start(Config::new(TOKEN.into()));
+    let mut raw:serde_json::Value=serde_json::from_str(&suggestion_body(problem(2))).unwrap();
+    raw["placements"]=serde_json::json!([{"lesson":"pass-0","day":0,"start_min":480},{"lesson":"pass-1","day":0,"start_min":480}]);
+    let (status,text)=call(&addr,"POST","/v1/suggest",Some(TOKEN),&raw.to_string());
+    assert_eq!(status,400);let out:serde_json::Value=serde_json::from_str(&text).unwrap();
+    assert_eq!(out["error"],"invalid_baseline");
+    assert!(out["details"]["violations"].as_array().unwrap().iter().any(|v|v["code"]=="teacher_clash"));
+    assert!(out.get("suggestions").is_none());
+}
+
+#[test]
+fn suggest_has_a_real_two_second_budget_instead_of_an_unbounded_rest_search() {
+    let addr=start(Config::new(TOKEN.into()));
+    let lessons:Vec<_>=(0..10).map(|i|serde_json::json!({"id":format!("p{i}"),"duration_min":60,"teachers":["t"],"activity":"a"})).collect();
+    let p=serde_json::json!({"version":schemamotor_model::CONTRACT_VERSION,"id":"budget","time":{"step_min":5,"start_grid_min":60,"days":[{"start_min":480,"end_min":1080}]},"teachers":[{"id":"t"}],"activities":[{"id":"a"}],"lessons":lessons,"rules":{"same_day":"avoid"}});
+    let body=serde_json::json!({"problem":p,"placements":[],"mode":"rest","lesson":null,"target":null,"depth":3});
+    let now=std::time::Instant::now();
+    let (status,text)=call(&addr,"POST","/v1/suggest",Some(TOKEN),&body.to_string());
+    assert_eq!(status,200);let out:schemamotor_model::Suggestions=serde_json::from_str(&text).unwrap();
+    assert!(out.timed_out);assert!(out.elapsed_ms<=2250);assert!(now.elapsed()<std::time::Duration::from_secs(3));
+    for s in out.suggestions {
+        assert_eq!(s.placements.len(),10);
+        let p:Problem=serde_json::from_value(p.clone()).unwrap();
+        assert!(schemamotor_validate::validate(&p,&s.placements).ok());
+    }
 }

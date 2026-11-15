@@ -1,15 +1,16 @@
 import { aktivitetsPassId, aktiviteternasFel, parseAktiviteter, type SchemaAktivitet, type SchemaAktivitetsMeta } from './schema-aktiviteter.ts';
 /**
- * Schemamotorns kontrakt v3 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). v3 lägger till faktisk sökstatistik. Typerna speglar `schemamotor/crates/model`;
+ * Schemamotorns kontrakt v4 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). v3 tillförde sökstatistik, v4 placeringsförslag. Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
-export const SCHEMA_MOTOR_VERSION = 3 as const;
+export const SCHEMA_MOTOR_VERSION = 4 as const;
 /**
  * Appens kontrakt mellan webbläsaren och schemarutterna. v3 (05.2-SM-VILLKOR-DIREKT): kontroll, möjliga starttider och Följ passet bär nuvarande villkor och
  * grundens fingeravtryck, och prövar tidsvillkor direkt. v4 (05.2-SM-VILLKORSTABELL): ny villkorstyp `dag`, längsta dag per lärare. Motorns kontrakt
- * (`SCHEMA_MOTOR_VERSION`) är oförändrat; fältet `teachers[].max_min_per_day` fanns redan.
+ * (`SCHEMA_MOTOR_VERSION`) var oförändrat; fältet `teachers[].max_min_per_day` fanns redan. v5 tillförde aktiviteter och datum, v6 lås och sökstatistik.
+ * v7 (05.2-SM-PLACERING) tillför begärda placeringsförslag; motorns v4 har ett separat strikt förslagskontrakt.
  */
-export const SCHEMA_CONTRACT_VERSION = 6 as const;
+export const SCHEMA_CONTRACT_VERSION = 7 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
 /** Det schemat gäller: hela läsåret eller en termin (05.2-SM-LASAR-VILLKOR, L1). */
@@ -25,6 +26,9 @@ export type SchemaProblem = {
   version: typeof SCHEMA_MOTOR_VERSION; id: string;
   time: { step_min: number; start_grid_min: number; days: { start_min: number; end_min: number }[] };
   periods?: { id: string }[];
+  /** Interna samplaceringskopplingar och referensschema, aldrig externa personidentiteter. */
+  links?: { kind: 'simultaneous' | 'no_overlap'; lessons: string[] }[];
+  reference?: { lesson: string; day: number; start_min: number; rooms?: string[] }[];
   teachers: { id: string; max_min_per_day?: number }[];
   rooms?: { id: string; unavailable?: SchemaInterval[] }[];
   clusters: { id: string; size: number }[];
@@ -211,7 +215,7 @@ export type SchemaKontrollRequest = SchemaForslagRequest & { contractVersion: ty
 export type SchemaRawViolation = { code: string; message: string; lessons: string[]; resources: string[] };
 export type SchemaViolation = { code: string; message: string; lessons: string[] };
 /** Regelbrott i hela schemat efter en flytt. `total` kan vara större än antalet som visas. */
-export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] };
+export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] & { cost?: number } };
 /** `fingerprint` gäller underlaget med villkoren kontrollen prövade, `grundFingerprint` grunden (samma som förslagets). */
 export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string; violations: SchemaViolation[]; total: number;
   teachings: SchemaForslagTeaching[]; trims: SchemaTrim[]; metrics: SchemaForslag['metrics'];
@@ -241,6 +245,8 @@ export type SchemaForslagTeaching = { title: string; classes: string[]; needMin:
 /** Det egna villkor kan ställas för. `ref` är det villkoret bär; namnet visas. */
 export type SchemaResurs = { ref: string; name: string };
 export type SchemaForslag = {
+  /** Serverhärledda samplaceringskopplingar. Behövs för att klienten ska kunna pröva hela roten till ett placeringsförslag. */
+  links?: SchemaProblem['links'];
   /** Lås som prövats av servern; bevaras även om förslaget inte går att lägga. */
   locks?: SchemaPlacement[];
   contractVersion: typeof SCHEMA_CONTRACT_VERSION; unitId: string; schoolYear: number; period: SchemaPeriod; schoolName: string;
@@ -451,7 +457,8 @@ export function parseSchemaCheck(value: unknown, problem: SchemaProblem): Schema
     if (lessons.some(id => !known.has(id))) bad();
     return { code: text(v.code, 100), message: text(v.message, SCHEMA_LIMITS.message), lessons, resources: list(v.resources, SCHEMA_LIMITS.lessons).map(id => text(id, 100)) };
   });
-  return { violations, metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER) } };
+  return { violations, metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER),
+    ...(m.cost === undefined ? {} : { cost: int(m.cost, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) }) } };
 }
 /** Klientens tolkning av kontrollruttens svar: grunden ska vara förslagets. */
 export function parseSchemaKontroll(value: unknown, grundFingerprint: string): SchemaKontroll {
@@ -582,6 +589,13 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
     if (l.roomId !== null && !rooms.includes(l.roomId)) bad();
     if (l.term !== null && !SCHEMA_TERMS.includes(l.term)) bad();
     if (l.day !== null) { int(l.day, 0, f.days.length - 1); int(l.startMin, 0, 1440); }
+  }
+  const linkedLessons = new Set(f.lessons.map(l => l.id));
+  if (f.links !== undefined) for (const raw of list(f.links, SCHEMA_LIMITS.lessons)) {
+    const link = record(raw);
+    if (link.kind !== 'simultaneous' && link.kind !== 'no_overlap') bad();
+    const ids = list(link.lessons, SCHEMA_LIMITS.lessons).map(x => text(x, 100));
+    if (ids.length < 2 || new Set(ids).size !== ids.length || ids.some(id => !linkedLessons.has(id))) bad();
   }
   if (f.locks !== undefined) {
     const locks = parseSchemaLas({ grundFingerprint: f.grundFingerprint, placements: f.locks }).placements;

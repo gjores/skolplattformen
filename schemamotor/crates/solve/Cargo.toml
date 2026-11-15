@@ -9,6 +9,4 @@ publish.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 schemamotor-model = { path = "../model" }
-
-[dev-dependencies]
 schemamotor-validate = { path = "../validate" }

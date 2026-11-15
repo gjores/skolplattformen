@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseSchemaLagen, parseSchemaLagenRequest, parseSchemaPositions, schemaElevKluster, schemaLagen, schemaPassKluster, varfor } from './schema-lagen.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
-import { defaultSchemaVillkor, SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
+import { defaultSchemaVillkor, SCHEMA_MOTOR_VERSION, SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 
 /** Syntetisk tjänstefördelning: två klasser, ett valbart block med Spanska och Tyska, sex elever. Inga verkliga personer eller skolor. */
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -29,7 +29,7 @@ const underlag = buildSchemaUnderlag(plan, request, basis), p = underlag.problem
 const lessonOf = title => underlag.labels.lessons.find(l => l.title === title && l.classIds.includes('grupp-1')).id;
 const ma = lessonOf('Matematik'), idh = lessonOf('Idrott och hälsa');
 
-const reply = positions => ({ version: 3, problem_id: p.id, lesson: ma, positions });
+const reply = positions => ({ version: SCHEMA_MOTOR_VERSION, problem_id: p.id, lesson: ma, positions });
 const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_min, rooms: ['sal-1'], state, cost_delta: 0, reasons, ...extra });
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 

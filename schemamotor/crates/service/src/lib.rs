@@ -8,10 +8,11 @@
 //! `POST /v1/positions` tar underlag, placeringar och ett pass och svarar med
 //! läget för varje starttid i veckan (05.2-SM-LAGEN), prövat med samma kontrollant.
 //! `POST /v1/diagnose` ger förkontroller utan motorsökning (05.2-SM-DIAGNOS).
+//! `POST /v1/suggest` föreslår direkta placeringar och korta kedjor inom två sekunder.
 //! Kö, jobbstatus och avbryt återstår.
 
-use schemamotor_model::{Placement, Problem, CONTRACT_VERSION};
-use schemamotor_solve::{diagnose, solve, Options};
+use schemamotor_model::{Placement, Problem, SuggestionRequest, CONTRACT_VERSION};
+use schemamotor_solve::{diagnose, solve, suggest, Options};
 use schemamotor_validate::{positions, validate, PositionsError};
 use serde::Deserialize;
 use std::io::Read;
@@ -98,7 +99,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return reply(request, 200, format!("{{\"contract_version\":{CONTRACT_VERSION}}}"));
     }
     let check = path == "/v1/validate" || path == "/v1/positions";
-    if path != "/v1/solve" && path != "/v1/diagnose" && !check {
+    if path != "/v1/solve" && path != "/v1/diagnose" && path != "/v1/suggest" && !check {
         return error(request, 404, "not_found");
     }
     if *request.method() != Method::Post {
@@ -110,7 +111,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         return error(request, 401, "unauthorized");
     }
     let Ok(limit) = time_ms(request.url(), cfg) else { return error(request, 400, "bad_request") };
-    if (check || path == "/v1/diagnose") && request.url().contains('?') {
+    if (check || path == "/v1/diagnose" || path == "/v1/suggest") && request.url().contains('?') {
         return error(request, 400, "bad_request");
     }
     if request.body_length().is_some_and(|n| n > cfg.max_body_bytes) {
@@ -122,6 +123,22 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     }
     if body.len() > cfg.max_body_bytes {
         return error(request, 413, "too_large");
+    }
+    if path == "/v1/suggest" {
+        let Ok(input) = serde_json::from_slice::<SuggestionRequest>(&body) else { return error(request, 400, "bad_request") };
+        if running.fetch_add(1, Ordering::SeqCst) >= cfg.max_concurrent {
+            running.fetch_sub(1, Ordering::SeqCst);
+            return error(request, 429, "busy");
+        }
+        let _guard = Running(running);
+        return match suggest(&input) {
+            Ok(suggestions) => reply(request, 200, serde_json::to_string(&suggestions).expect("placeringsförslag")),
+            Err(e) if e.code == "invalid_baseline" => {
+                let violations: Vec<_> = e.violations.into_iter().map(|v| serde_json::json!({"code":v.code,"message":v.message,"lessons":v.lessons,"resources":v.resources})).collect();
+                reply(request, 400, serde_json::json!({"error":"invalid_baseline","details":{"violations":violations}}).to_string())
+            }
+            Err(e) => error(request, 400, e.code),
+        };
     }
     if path == "/v1/positions" {
         let Ok(input) = serde_json::from_slice::<Positions>(&body) else { return error(request, 400, "bad_problem") };

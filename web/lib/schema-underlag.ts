@@ -75,6 +75,7 @@ export function schemaFingerprint(problem: SchemaProblem, labels: SchemaLabels):
  */
 export function schemaGrundFingerprint(problem: SchemaProblem, labels: SchemaLabels): string {
   const grund = { version: problem.version, id: problem.id, step: problem.time.step_min, days: problem.time.days.length, periods: problem.periods ?? null,
+    links: problem.links ?? [],
     teachers: problem.teachers.map(t => t.id), rooms: (problem.rooms ?? []).map(r => r.id), clusters: problem.clusters, groups: problem.groups, activities: problem.activities,
     lessons: problem.lessons.map(l => [l.id, l.activity, l.duration_min, l.teachers, l.groups, l.periods ?? null, l.locked ?? null]) };
   const names = { classes: labels.classes, teachers: labels.teachers, rooms: labels.rooms, names: labels.names,
@@ -593,6 +594,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
   const { teachings, trims } = plannedTeachings(underlag, at);
   const usedTeachers = new Set(lessons.flatMap(l => l.teacherIds)), usedClasses = new Set(lessons.flatMap(l => l.classIds));
   return {
+    ...(underlag.problem.links?.length ? { links: underlag.problem.links } : {}),
     ...(request.locks ? { locks: request.locks.placements } : {}),
     contractVersion: SCHEMA_CONTRACT_VERSION, unitId: request.unitId, schoolYear: request.schoolYear, period: underlag.period, schoolName: plan.schoolName, villkor: underlag.villkor,
     fingerprint: underlag.fingerprint, grundFingerprint: underlag.grundFingerprint, startGridMin: underlag.problem.time.start_grid_min,

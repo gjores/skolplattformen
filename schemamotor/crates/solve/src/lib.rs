@@ -8,6 +8,8 @@ mod compile;
 mod proof;
 mod search;
 mod state;
+mod suggest;
+pub use suggest::{suggest, suggest_with_budget, SuggestError};
 
 use schemamotor_model::*;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
