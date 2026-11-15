@@ -1,0 +1,44 @@
+/* SM-SAMLINGSVY: återanvänder Följ passets rader och designsystemets lager. Resursmatrisen är samma rad i kompakt höjd. */
+.schema-workspace .samling { min-width: 0; }
+.samling .schema-filter { align-items: end; margin: 0; }
+.samling .schema-filter > label { min-width: min(100%, 10rem); }
+.samling .schema-filter > label:has(input[type="checkbox"]) { min-width: 0; }
+.samling input:not([type="checkbox"]), .samling select { min-height: var(--control-height); max-width: 100%; }
+.samling button:not(.folj-pass, .samling-tid) { height: auto; min-height: var(--control-height); white-space: normal; overflow-wrap: anywhere; }
+.samling .folj-chips .schema-chip { display: inline-flex; align-items: center; gap: .375rem; }
+.samling .folj-chips .schema-chip svg { width: 1rem; height: 1rem; flex-shrink: 0; }
+.samling .samling-arbetsvy, .samling .samling-filter, .samling .samling-ledigsok, .samling .samling-matris { padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.samling .samling-arbetsvy > p { flex-basis: 100%; margin: 0; }
+.samling .schema-check { display: flex; flex-direction: row; align-items: center; gap: .5rem; min-height: var(--control-height); color: var(--foreground); }
+.samling .schema-check input { width: 1rem; height: 1rem; flex-shrink: 0; accent-color: var(--primary); }
+.samling .samling-ram, .samling .samling-matris-ram { min-width: 0; overflow: auto; max-height: 48rem; border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem; }
+.samling .folj-rutnat { min-width: 44rem; }
+.samling .folj-dag { min-height: 5.5rem; }
+.samling .folj-dagar { position: sticky; top: 0; z-index: 3; background: var(--card); padding: .25rem 0; }
+.samling .folj-dagar small { display: block; font-size: .6875rem; color: var(--muted-foreground); font-weight: 400; }
+.samling .folj-pass { z-index: 2; font-size: .75rem; white-space: normal; text-align: left; cursor: pointer; }
+.samling .folj-pass > span[aria-hidden] { overflow-wrap: normal; word-break: normal; }
+.samling .folj-pass > .samling-kort-text { white-space: nowrap; text-overflow: ellipsis; }
+.samling .folj-pass:focus-visible { outline: 3px solid var(--ring); outline-offset: -3px; }
+.samling .samling-kompakt .folj-dag, .samling .samling-matris-rad .folj-dag { min-height: 3rem; }
+.samling .samling-kompakt .folj-pass { font-size: .625rem; }
+.samling .samling-gemensam .folj-dag, .samling .samling-lunchtryck .folj-dag { min-height: 3rem; }
+.samling .samling-lager { pointer-events: none; z-index: 1; }
+.samling .samling-tider { list-style: none; }
+.samling .samling-tid { position: absolute; top: 0; bottom: 0; z-index: 0; left: calc(100% * var(--at) / var(--span)); width: calc(100% * var(--length) / var(--span)); border: 0; background: transparent; cursor: crosshair; padding: 0; }
+.samling .samling-tid:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; z-index: 3; }
+.samling .samling-farg-0 { background: var(--accent); border-style: solid; }
+.samling .samling-farg-1 { background: var(--secondary); border-color: var(--secondary-foreground); border-style: dashed; }
+.samling .samling-farg-2 { background: var(--info-surface); color: var(--info-foreground); border-color: var(--info-foreground); border-style: dotted; }
+.samling .samling-farg-3 { background: var(--success-surface); color: var(--success-foreground); border-color: var(--success-foreground); border-style: solid; }
+.samling .samling-farg-neutral { background: var(--card); border-color: var(--border); }
+.samling .samling-last { background: var(--secondary); border: 2px solid var(--secondary-foreground); font-weight: 600; }
+.samling .samling-upptagen { background: var(--secondary); border: 1px solid var(--secondary-foreground); }
+.samling .samling-matris { display: grid; gap: .75rem; min-width: 0; }
+.samling .samling-matris-rad .folj-namn button { width: 100%; justify-content: start; text-align: left; }
+.samling .samling-ledigsok > summary { min-height: var(--control-height); cursor: pointer; display: flex; align-items: center; font-weight: 600; }
+.samling .samling-ledigsok[open] > summary { margin-bottom: .75rem; }
+.samling .samling-lediga { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; margin: .75rem 0 0; }
+.samling-resurssok [cmdk-item] { min-height: var(--control-height); white-space: normal; overflow-wrap: anywhere; }
+.samling-resurssok input { min-height: var(--control-height); }
+.samling-resurssok [data-slot="command-input-wrapper"] [data-slot="input-group"] { height: auto !important; }
