@@ -518,6 +518,8 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 
 ### Phase 05.2: Schemaläggning med Rust-schemamotor (INSERTED)
 
+**Våg 8 förberedd 2026-11-15:** [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md) inväntar installation och användarprov innan sidan skrivs. [Fryst kandidat `4267daf7` och återgång](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) är förkontrollerade: skyddat bygge, 180 Node, 65 Rust, riktig lokal syntetisk motorkedja/workerd samt 20 start-/skydds-/bevarandekontroller PASS. [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md) är förberedda. Våg 8 är inte klar; inget installerat, inga nya handbokssidor, kravrutor eller fasgodkännanden.
+
 **Goal**: Behörig schemaläggare kan beräkna, granska och publicera skolans schema från plan-, tjänste- och kalenderunderlag. Beräkningen körs i en egen Rust-tjänst; resten av appen ligger kvar i TypeScript.
 **Depends on**: Phase 05.1 (tjänsteunderlag), Phase 05.1.1 (fastställd läsårskalender), Phase 05.3:s förberedande klassunderlag enligt användarprioritering2026-10-30; inte full acceptans av den ännu framtida schemakopplingen iKLASS-04
 **Requirements**: SCHEMA-01, SCHEMA-02, SCHEMA-03, SCHEMA-04, SCHEMA-05, SCHEMA-07, SCHEMA-08

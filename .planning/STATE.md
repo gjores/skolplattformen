@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "våg 7 klar – nästa SM-HANDBOK efter installation och användarprov"
+current_plan: "våg 8 förberedd – inväntar installation och användarprov före SM-HANDBOK"
 status: in_progress
-stopped_at: "Våg 7 klar 2026-11-15. Placeringsförslag, kedjor, målpunkt, lägg viloytan och medvetna krockar. 180 Node, 65 Rust, lokal syntetisk motorkedja och alla 184 UI-profilfall verifierade via helserie/riktat omprov. Typ/lint/bygge gröna, 14 bilder granskade, Skolplattan synkad. Ingen installation."
+stopped_at: "Våg 8 förberedd 2026-11-15. Ren fryst kandidat 4267daf7 med skyddad app/motor, 1460 inventerade filer, 180 Node, 65 Rust, syntetisk motorkedja/workerd och 20 start-/bevarandekontroller PASS. Installation kräver ja; U1–U12 och handbok återstår."
 last_updated: "2026-11-15"
 last_activity: 2026-11-15
-last_activity_desc: "Våg 7 automatiskt verifierad mot syntetiska data. Appkontrakt 7, motor 4. Installation, mänsklig acceptans och fulla faskrav återstår."
-state_head: 5a73a6a9
+last_activity_desc: "SM-HANDBOK:s installations- och provförberedelse klar. Ingen installation på 3012/3013; kandidat och återgång konkreta, användarprov ej utfört."
+state_head: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,9 +21,11 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-user_trial_status: schema_wave7_not_installed_no_new_human_acceptance
+user_trial_status: schema_wave8_candidate_prepared_awaiting_installation_and_u1_u12
 milestone_name: milestone
 ---
+
+**05.2-SM våg 8 förberedd 2026-11-15:** Användarens ”Kör nästa våg” har påbörjat [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md). Planen kräver installation och användarprov innan handboken skrivs. [Leveransunderlaget](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) har ren fryst kandidat `4267daf7`, skyddad app och motor 4, 1 460 inventerade filer och återgång till det fortfarande aktiva paret `8b6b9968`. Nya 180 Node, 65 Rust, riktig lokal syntetisk motorkedja/workerd och 20/20 start-/skydds-/bevarandekontroller PASS; privata provfiler och processer städade. Nekade anrop använder ordinarie säkerhetsloggning; inga verksamhetsdata har skrivits. [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md) är förberedda men inte provade. **Nästa: uttryckligt ja till att installera den frysta kandidaten på 3012/3013, därefter användarprov och handbok med dokumentationsbygge. Våg 8 är inte klar.** Ingen migration, installation, handboksändring, ny mänsklig acceptans eller verifierad standardanslutning. Äldre kalender-/Worker-metadata och formella pilotantal består.
 
 **05.2-SM våg 7 klar 2026-11-15:** [SM-PLACERING](phases/05.2-schemamodul/05.2-SM-PLACERING-SUMMARY.md) ger placeringsförslag med byten/korta kedjor, önskad målpunkt och lägg hela viloytan. Samtliga ändringar granskas före Godkänn, kontrolleras på nytt och kan ångras som ett steg i alla anslutna fönster. Medvetna krockar är exakt bunden metadata; regelbrotten ligger kvar. [Slutkontroll](phases/05.2-schemamodul/05.2-SM-WAVE-7-VERIFICATION.md): 180/180 Node, 65/65 Rust, riktig lokal syntetisk motorkedja/workerdtransport och typ/lint/bygge PASS. Alla 184 UI-profilfall verifierade via 182 PASS i helserie och 2/2 riktade omprov efter ett rättat äldre menyantagande, inga skip/automatiska omprov. 14 bilder granskade, [oberoende granskning](phases/05.2-schemamodul/05.2-SM-WAVE-7-REVIEW.md) utan öppna blockerande kodfynd och [Skolplattan synkad](phases/05.2-schemamodul/05.2-SM-WAVE-7-SKOLPLATTAN.md). Appkontrakt 7, motor 4. Våg 4–7 är inte installerade. Ingen ny faktisk skyddad OIDC/PostgreSQL-kedja, mänsklig acceptans eller verifierat standardutbyte. **Nästa: SM-HANDBOK efter installation och användarprov.** Ingen installation startas automatiskt. Äldre Worker-/kalenderbevis är historik och pilotens formella antal består.
 

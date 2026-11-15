@@ -1,0 +1,185 @@
+{
+  "kind": "schema-wave8-built-candidate-readonly-probe",
+  "sourceRevision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef",
+  "artifactSha256": "2f43bdeb662ac7d92e440b0e5ec1e6e5874d5ee6c27d9120ab53dffae964f96f",
+  "startedAt": "2026-11-15T17:22:36.517Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "frozen inventory before preview",
+      "status": "PASS",
+      "files": 1460
+    },
+    {
+      "name": "staged motor health",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "motor solve without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "motor validate without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "motor positions without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "motor diagnose without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "motor suggest without token",
+      "status": "PASS",
+      "httpStatus": 401
+    },
+    {
+      "name": "staged built protected app start page",
+      "status": "PASS",
+      "httpStatus": 200
+    },
+    {
+      "name": "app forslag without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app kontroll without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app lagen without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app folj without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app samling without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app aktiviteter without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app diagnos without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app placering without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "app fonster without session",
+      "status": "PASS",
+      "httpStatus": 401,
+      "code": "no_session"
+    },
+    {
+      "name": "temporary private vars and lock removed",
+      "status": "PASS"
+    },
+    {
+      "name": "frozen inventory after preview",
+      "status": "PASS",
+      "files": 1460
+    },
+    {
+      "name": "active 3012 and 3013 listeners unchanged",
+      "status": "PASS"
+    }
+  ],
+  "limits": [
+    "No authenticated workflow or business-data write; standard denied-request security logging may occur",
+    "No installation or listener change on 3012/3013",
+    "Separate temporary engine and built workerd preview only"
+  ],
+  "temporaryPorts": {
+    "app": 55301,
+    "motor": 55300
+  },
+  "completedAt": "2026-11-15T17:22:38.644Z",
+  "additionalChecks": {
+    "node": {
+      "status": "PASS",
+      "passed": 180,
+      "failed": 0,
+      "skipped": 0
+    },
+    "rust": {
+      "status": "PASS",
+      "passed": 65,
+      "failed": 0,
+      "ignored": 0
+    },
+    "protectedBuild": {
+      "status": "PASS",
+      "mode": "protected",
+      "sourceRevision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef"
+    },
+    "motorBuild": {
+      "status": "PASS",
+      "profile": "release",
+      "offline": true,
+      "locked": true,
+      "stripOverride": "none"
+    },
+    "syntheticLocalMotorAndWorkerd": {
+      "status": "complete",
+      "placed": 588,
+      "violations": 0,
+      "free": true,
+      "suggestion": true,
+      "suggestionViolations": 0
+    }
+  },
+  "logHashes": [
+    {
+      "path": "/private/tmp/schema-wave8-protected-build.log",
+      "sha256": "0ccc3b8aaa175825f27c163efe430bd04ab7e50834ae3302e1473b113ce9fc98"
+    },
+    {
+      "path": "/private/tmp/schema-wave8-motor-build.log",
+      "sha256": "19c4f20357eb531e03236edc67c87bbbf2045452420b61500ae277c62ce0bcda"
+    },
+    {
+      "path": "/private/tmp/schema-wave8-node.log",
+      "sha256": "83c50780ca9d5cfec0336ba740eb9ef2c0f3a2709aae9f3c780113ea52cfcaad"
+    },
+    {
+      "path": "/private/tmp/schema-wave8-rust-tests-final.log",
+      "sha256": "f9bef5c2041840d4012411001bb535bee9f60e62ef61dfe33812d91d9f214e4d"
+    },
+    {
+      "path": "/private/tmp/schema-wave8-koppling-final.log",
+      "sha256": "76e0712e3d4850d6e7be1684293aa81de64e805aecc9c8be055fbf1e61f5c8cc"
+    }
+  ],
+  "stage": "work/pilot/targets/protected/runtime/schema-4267daf75b",
+  "installation": "not_performed",
+  "userAcceptance": "not_performed"
+}
