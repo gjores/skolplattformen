@@ -120,6 +120,15 @@ const placeringsBasNyckel = (r: SchemaKontrollRequest): string => JSON.stringify
 
 type Props = { unitId: string | null; schoolYear: number; scopeKey: string; onSessionLost: () => void; fonster?: SchemaFonsterTarget; personalLookup?: boolean };
 type FlyttAtgard = Extract<SchemaUtkastAtgard, { type: 'move' | 'park' | 'swap' | 'lock' | 'undo' | 'redo' }>;
+// Bara vyvalet lagras här. Själva utkastet hämtas alltid från servern för den valda perioden.
+const periodKey = (unitId: string, schoolYear: number) => `schema-period:${unitId}:${schoolYear}`;
+function storedPeriod(unitId: string, schoolYear: number): SchemaPeriod {
+  try { const value = window.localStorage.getItem(periodKey(unitId, schoolYear)); return value === 'ht' || value === 'vt' ? value : 'lasar'; }
+  catch { return 'lasar'; }
+}
+function rememberPeriod(unitId: string, schoolYear: number, period: SchemaPeriod) {
+  try { window.localStorage.setItem(periodKey(unitId, schoolYear), period); } catch { /* Utan lokal lagring kan perioden väljas igen; utkastet finns på servern. */ }
+}
 export default function SchemaWorkspace(props: Props) {
   if (!props.unitId) return <section className="valplan-workspace schema-workspace"><div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1></div></div><p className="empty-state">Välj en skola för att ta fram ett schemaförslag.</p></section>;
   return <Workspace key={`${props.scopeKey}-${props.unitId}-${props.schoolYear}`} {...props} unitId={props.unitId}/>;
@@ -134,7 +143,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const dateSequence = useRef(0);
   const [activityTypes, setActivityTypes] = useState<SchemaAktivitetsTyp[]>(aktivitetsTyper);
   const [remoteSave, setRemoteSave] = useState<SchemaSparstatus>({ phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null });
-  const [period, setPeriod] = useState<SchemaPeriod>('lasar'), [villkor, setVillkorLocal] = useState(() => storedVillkor(unitId) ?? defaultSchemaVillkor()), [shownTerm, setShownTerm] = useState<SchemaTerm>('ht');
+  const [period, setPeriod] = useState<SchemaPeriod>(() => storedPeriod(unitId, schoolYear)), [villkor, setVillkorLocal] = useState(() => storedVillkor(unitId) ?? defaultSchemaVillkor()), [shownTerm, setShownTerm] = useState<SchemaTerm>('ht');
   const [visning, setVisning] = useState<SchemaVeckaVal>(grundschemaVal);
   const issues = checkSchemaVillkor(villkor);
   // Förslaget som motorn räknade fram; tid och mått uppdateras efter varje kontroll. Var passen ligger står i utkastet.
@@ -214,6 +223,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   async function bytPeriod(next: SchemaPeriod) {
     if (next === period || busy || checking || !spara.ready) return;
     if (!await spara.flush()) return;
+    rememberPeriod(unitId, schoolYear, next);
     setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setPeriod(next);
   }
   async function lasServerversion() {

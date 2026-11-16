@@ -14,7 +14,7 @@ function input(extra: Partial<SchemaDraftSave> = {}): SchemaDraftSave {
     name: 'Serverns schema', basisVillkor: null, workingVillkor: defaultSchemaVillkor(), grundFingerprint: null, placements: [], locks: [], intentional: [], datedOverrides: [], activityTypes: [], ...extra });
 }
 async function seed(server: SchemaDraftTestServer, value = input()) {
-  const { draft } = await schemaTestDraft(value, source); server.drafts.set(key(value.schoolYear), draft); return draft;
+  const { draft } = await schemaTestDraft(value, source); server.drafts.set(`${value.unitId}:${value.schoolYear}:${value.period}`, draft); return draft;
 }
 async function setup(page: Page) {
   await page.route('**/api/schema/diagnos', route => route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
@@ -53,6 +53,44 @@ test('ett beräknat schema autosparas och återöppnas efter omladdning utan ny 
   await page.evaluate(() => localStorage.clear()); await page.reload();
   await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible(); await settled(page, server);
   expect(solves).toBe(1); expect(server.saves.length).toBe(writes); expect(server.reads).toBe(2);
+});
+
+test('valt HT-utkast autosparas och återöppnas direkt efter omladdning utan nytt periodval', async ({ page, schemaDraftServer: server }) => {
+  const htKey = `${source.unitId}:2026:ht`, placements = source.lessons.filter(l => l.day !== null && l.startMin !== null)
+    .map(l => ({ lesson: l.id, day: l.day!, startMin: l.startMin!, room: l.roomId }));
+  const reads: { schoolYear: number; period: string }[] = [];
+  page.on('request', request => { if (request.url().endsWith('/api/schema/utkast/las')) reads.push(request.postDataJSON()); });
+  await seed(server, input({ period: 'ht', name: 'Höstterminens sparade schema', basisVillkor: source.villkor, workingVillkor: source.villkor,
+    grundFingerprint: source.grundFingerprint, placements, locks: [placements.find(p => p.lesson === 'pass-7')!] }));
+  await setup(page); const period = page.getByRole('combobox', { name: 'Schemat gäller', exact: true });
+  await expect(period).toBeEnabled(); await period.selectOption('ht'); await expect(name(page)).toHaveValue('Höstterminens sparade schema');
+  await name(page).fill('Höstterminens rättade namn'); await expect.poll(() => server.drafts.get(htKey)?.name).toBe('Höstterminens rättade namn');
+  await expect(saved(page).getByText('Sparat på servern', { exact: true })).toBeVisible();
+  const readIndex = reads.length, writes = server.saves.filter(s => s.period === 'ht').length;
+  await page.reload();
+  // Ingen selectOption efter reload: den första serverläsningen ska öppna det ihågkomna HT-utkastet.
+  await expect(period).toHaveValue('ht'); await expect(name(page)).toHaveValue('Höstterminens rättade namn');
+  await expect(page.locator('[data-lesson="pass-7"]').first()).toContainText('Låst');
+  expect(reads.slice(readIndex).map(r => r.period)).toEqual(['ht']);
+  expect(server.drafts.get(htKey)?.placements).toEqual(placements); expect(server.saves.filter(s => s.period === 'ht')).toHaveLength(writes);
+});
+
+test('periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret', async ({ page, schemaDraftServer: server }) => {
+  await seed(server, input({ name: 'Hela 2026' }));
+  await seed(server, input({ period: 'ht', name: 'HT2026' }));
+  await seed(server, input({ schoolYear: 2027, name: 'Hela 2027' }));
+  await seed(server, input({ schoolYear: 2027, period: 'ht', name: 'Fel HT2027' }));
+  await seed(server, input({ schoolYear: 2027, period: 'vt', name: 'VT2027' }));
+  await setup(page); const period = page.getByRole('combobox', { name: 'Schemat gäller', exact: true });
+  await expect(period).toBeEnabled(); await period.selectOption('ht'); await expect(name(page)).toHaveValue('HT2026');
+  await page.getByRole('button', { name: 'Byt läsår', exact: true }).click();
+  await expect(name(page)).toHaveValue('Hela 2027'); await expect(period).toHaveValue('lasar');
+  await period.selectOption('vt'); await expect(name(page)).toHaveValue('VT2027');
+  // Testskalet återgår till 2026 vid reload; produktens workspace ska läsa det årets eget periodval.
+  await page.reload(); await expect(period).toHaveValue('ht'); await expect(name(page)).toHaveValue('HT2026');
+  await page.getByRole('button', { name: 'Byt läsår', exact: true }).click();
+  await expect(period).toHaveValue('vt'); await expect(name(page)).toHaveValue('VT2027');
+  await expect(page.getByText('Fel HT2027', { exact: true })).toHaveCount(0);
 });
 
 test('serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och aktivitetstyper efter rensad lokal lagring', async ({ page, schemaDraftServer: server }, info) => {
