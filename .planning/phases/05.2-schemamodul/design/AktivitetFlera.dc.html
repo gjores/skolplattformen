@@ -80,12 +80,25 @@ td select{min-height:40px;padding:0 10px;border-radius:8px;border:1px solid #cbd
         </fieldset>
 
         <div style="display: flex; flex-direction: column; gap: 8px;">
-          <span style="font-size: 14px; font-weight: 600;">Vilka klasser?</span>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
-            <button type="button" class="chip" aria-pressed="false">Alla klasser (18)</button>
-            <button type="button" class="chip" aria-pressed="true">Årskurs 1 (6)</button>
-            <button type="button" class="chip" aria-pressed="false">Arbetslag Natur (5)</button>
-            <button type="button" class="chip" aria-pressed="false">Välj enskilda…</button>
+          <label for="klassok" style="font-size: 14px; font-weight: 600;">Vilka klasser?</label>
+          <div style="position: relative;">
+            <input id="klassok" type="search" role="combobox" aria-expanded="true" aria-controls="klasslista" value="27" placeholder="Sök klass, årskurs eller program" class="in" style="width: 100%; box-sizing: border-box;">
+            <div id="klasslista" role="listbox" aria-multiselectable="true" aria-label="Träffar" style="margin-top: 4px; border: 1px solid #cbd2df; border-radius: 10px; background: #fff; box-shadow: 0 4px 16px #284ab509; overflow: hidden;">
+              <button type="button" class="seg" style="width: 100%; border-right: 0; border-bottom: 1px solid #e3e7ee; color: #2d4cc1;">Välj alla 6 träffar</button>
+              <div role="option" aria-selected="true" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; font-size: 14px;"><span>NA27A</span><span style="color: #2d4cc1; font-size: 13px;">Vald</span></div>
+              <div role="option" aria-selected="true" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; font-size: 14px;"><span>NA27B</span><span style="color: #2d4cc1; font-size: 13px;">Vald</span></div>
+              <div role="option" aria-selected="true" style="display: flex; justify-content: space-between; align-items: center; min-height: 40px; padding: 0 12px; font-size: 14px; background: #edf1ff;"><span>TE27</span><span style="color: #2d4cc1; font-size: 13px;">Vald</span></div>
+              <div style="padding: 6px 12px 8px; font-size: 13px; color: #657185;">+ 3 träffar till</div>
+            </div>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center;">
+            <span style="font-size: 13px; color: #657185;">6 valda:</span>
+            <button type="button" class="chip" aria-label="Ta bort NA27A" style="min-height: 36px;">NA27A ×</button>
+            <button type="button" class="chip" aria-label="Ta bort NA27B" style="min-height: 36px;">NA27B ×</button>
+            <button type="button" class="chip" aria-label="Ta bort TE27" style="min-height: 36px;">TE27 ×</button>
+            <button type="button" class="chip" aria-label="Ta bort EK27" style="min-height: 36px;">EK27 ×</button>
+            <button type="button" class="chip" aria-label="Ta bort SA27" style="min-height: 36px;">SA27 ×</button>
+            <button type="button" class="chip" aria-label="Ta bort ES27" style="min-height: 36px;">ES27 ×</button>
           </div>
         </div>
 

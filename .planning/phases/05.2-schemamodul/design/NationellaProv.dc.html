@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Välj nationella prov</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.seg{min-height:44px;padding:8px 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.seg[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+.muted{color:#657185}
+.tag{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 10px;border-radius:8px;border:1px solid #365ce6;background:#edf1ff;color:#2d4cc1;font-size:13px}
+.tag.q{border:1px dashed #8a95a8;background:#fff;color:#4f5b6e}
+.pv{display:grid;grid-template-columns:28px minmax(0,1.3fr) minmax(0,1fr) minmax(0,1.6fr) 150px;gap:8px 16px;align-items:start;padding:14px 0;border-top:1px solid #e3e7ee;font-size:14px}
+.pv input[type="checkbox"]{width:20px;height:20px;margin:2px 0 0;accent-color:#365ce6}
+.pv small{display:block;font-size:13px;color:#657185}
+.hd{font-size:12px;font-weight:600;color:#4f688b;padding:0 0 8px;border-top:0}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <span style="font-size: 13px; color: #657185;">Läsår och skoldagar · Exempelskolan</span>
+      <span style="font-size: 16px; font-weight: 600;">Läsårskalender 2027/28 · version 3, utkast</span>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+      <span class="badge ok">Sparat på servern 15:20</span>
+      <span class="badge neutral">Version 2 gäller tills version 3 är fastställd</span>
+    </div>
+  </header>
+
+  <main style="padding: 24px 48px 0; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div class="eyebrow">LÄSÅRSPLANERING · NATIONELLA PROV · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
+      <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Välj nationella prov<span style="color: #365ce6;">.</span></h1>
+      <p style="margin: 0; font-size: 15px; color: #657185; max-width: 84ch;">Proven och datumen kommer från Skolverkets underlag. Välj vilka prov skolan genomför och vilka grupper som skriver. Valda prov blir bokningar i läsårskalendern och blockerar schemat.</p>
+    </div>
+
+    <section aria-labelledby="kalla" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 520px;">
+        <h2 id="kalla" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Skolverkets provdatum 2027/28</h2>
+        <p style="margin: 0; font-size: 14px;">Hämtat 12 nov 2026 · 14 prov på skolans nivåer · <strong style="font-weight: 600;">1 datum ändrat sedan förra hämtningen</strong></p>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Källa, format och uppdateringstakt är inte kontrollerade. Proven, datumen och kraven här är exempel.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn">Visa ändringen</button>
+        <button type="button" class="btn">Hämta igen</button>
+      </div>
+    </section>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 360px); gap: 24px; align-items: start;">
+
+      <section aria-labelledby="prov" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px 8px; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: flex-end; justify-content: space-between; margin-bottom: 12px;">
+          <h2 id="prov" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Prov</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <div role="group" aria-label="Visa prov" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+              <button type="button" class="seg" aria-pressed="true">Skolans nivåer (14)</button>
+              <button type="button" class="seg" aria-pressed="false">Valda (8)</button>
+              <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Att ta ställning till (3)</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="pv hd"><span></span><span>Prov</span><span>När</span><span>Vilka skriver</span><span>Status</span></div>
+
+        <div style="font-size: 13px; font-weight: 600; color: #4f688b; padding: 8px 0;">Hösttermin</div>
+        <div class="pv">
+          <input type="checkbox" checked="checked" aria-label="Genomför Engelska nivå 2, muntligt delprov">
+          <div><strong style="font-weight: 500;">Engelska nivå 2</strong><small>Muntligt delprov · <span class="badge info" style="padding: 1px 6px;">Obligatoriskt</span></small></div>
+          <div>30 nov–11 dec<small>Skolan väljer dag per grupp</small></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span class="tag">En2 NA26A</span><span class="tag">En2 NA26B</span><span class="tag">En2 TE26</span></div>
+          <span class="badge ok">Valt · 3 grupper</span>
+        </div>
+
+        <div style="font-size: 13px; font-weight: 600; color: #4f688b; padding: 8px 0;">Vårtermin</div>
+        <div class="pv">
+          <input type="checkbox" checked="checked" aria-label="Genomför Svenska nivå 1, delprov B">
+          <div><strong style="font-weight: 500;">Svenska nivå 1</strong><small>Delprov B, skriftligt · <span class="badge info" style="padding: 1px 6px;">Obligatoriskt</span></small></div>
+          <div>Tis 16 mars<small>08:30–12:00</small></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span class="tag">Sv1 NA27A</span><span class="tag">Sv1 NA27B</span><span class="tag">Sv1 TE27</span><span class="tag">Sv1 EK27</span></div>
+          <span class="badge ok">Valt · 4 grupper</span>
+        </div>
+        <div class="pv" style="background: #fbf7ef;">
+          <input type="checkbox" checked="checked" aria-label="Genomför Matematik nivå 1">
+          <div><strong style="font-weight: 500;">Matematik nivå 1</strong><small>Skriftligt · <span class="badge info" style="padding: 1px 6px;">Obligatoriskt</span></small></div>
+          <div>Tis 13 april<small>08:30–12:30 · <span style="color: #86601f;">ändrat från 6 april</span></small></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span class="tag">Ma1c grupp A</span><span class="tag">Ma1c grupp B</span><span class="tag q">Ma1b ES27 ?</span></div>
+          <span class="badge warn">Ta ställning: 1 grupp osäker</span>
+        </div>
+        <div class="pv">
+          <input type="checkbox" aria-label="Genomför Engelska nivå 3">
+          <div><strong style="font-weight: 500;">Engelska nivå 3</strong><small>Skriftligt · <span class="badge neutral" style="padding: 1px 6px;">Frivilligt</span></small></div>
+          <div>Tor 22 april<small>08:30–11:30</small></div>
+          <div style="font-size: 13px; color: #657185;">2 grupper läser nivån: En3 NA25A, En3 SA25</div>
+          <span class="badge neutral">Inte valt</span>
+        </div>
+        <div class="pv" style="background: #fbf7ef;">
+          <input type="checkbox" checked="checked" aria-label="Genomför Svenska nivå 3">
+          <div><strong style="font-weight: 500;">Svenska nivå 3</strong><small>Skriftligt · <span class="badge info" style="padding: 1px 6px;">Obligatoriskt</span></small></div>
+          <div>Ons 21 april<small>08:30–12:30</small></div>
+          <div style="display: flex; flex-wrap: wrap; gap: 6px;"><span class="tag">Sv3 NA25A</span><span class="tag">Sv3 TE25</span></div>
+          <span class="badge warn">Krock: TE25 har studiebesök</span>
+        </div>
+        <div class="pv" style="color: #657185;">
+          <input type="checkbox" disabled="disabled" aria-label="Genomför Moderna språk nivå 4" aria-describedby="ms4">
+          <div><strong style="font-weight: 500;">Moderna språk nivå 4</strong><small>Skriftligt · Frivilligt</small></div>
+          <div>Ons 12 maj</div>
+          <div id="ms4" style="font-size: 13px;">Ingen grupp läser nivån i år</div>
+          <span class="badge neutral">Ej aktuellt</span>
+        </div>
+        <p style="margin: 0; padding: 12px 0; border-top: 1px solid #e3e7ee; font-size: 13px; color: #657185;">Grupperna föreslås utifrån vilka som läser ämnet och nivån enligt timplanen och undervisningsgrupperna. Streckad grupp är osäker och väljs av dig. Obligatoriskt och frivilligt anges som i Skolverkets underlag.</p>
+      </section>
+
+      <aside aria-labelledby="insp" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 4px 16px #284ab509; min-width: 0;">
+        <span class="eyebrow">ATT TA STÄLLNING TILL</span>
+        <h2 id="insp" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.025em;">Matematik nivå 1 · tis 13 april</h2>
+        <div style="display: flex; flex-direction: column; gap: 10px; font-size: 14px;">
+          <div style="padding: 10px 12px; border-radius: 10px; background: #f6efe2; color: #86601f;">Skolverket har flyttat provet från 6 april. Bokningarna flyttas först när du godkänner det.</div>
+          <div>
+            <strong style="font-weight: 500;">Ma1b ES27 ?</strong>
+            <p style="margin: 4px 0 0; color: #657185;">Läser Matematik nivå 1 i en annan kurskombination. Kontrollera om gruppen ska skriva provet.</p>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+              <button type="button" class="btn">Ska skriva</button>
+              <button type="button" class="btn">Ska inte skriva</button>
+            </div>
+          </div>
+          <dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 6px 10px; padding-top: 10px; border-top: 1px solid #e3e7ee;">
+            <dt class="muted">Elever</dt><dd style="margin: 0;">58 i grupp A och B</dd>
+            <dt class="muted">Sal</dt><dd style="margin: 0;">Aula (förslag)</dd>
+            <dt class="muted">Provvakter</dt><dd style="margin: 0;">2 att tilldela</dd>
+            <dt class="muted">I schemat</dt><dd style="margin: 0;">Ställer in 6 pass</dd>
+          </dl>
+        </div>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: 1px solid #e3e7ee;">
+          <button type="button" class="btn">Godkänn nytt datum</button>
+          <button type="button" class="btn">Visa i kalendern</button>
+        </div>
+      </aside>
+    </div>
+
+    <section aria-labelledby="sum" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 560px;">
+        <h2 id="sum" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">8 prov valda · 18 bokningar · 3 att ta ställning till</h2>
+        <p style="margin: 0; font-size: 14px;">Bokningarna läggs i läsårskalenderns utkast och blockerar schemat för de valda grupperna. Inställda pass får förslag på kompensation i schemat.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <button type="button" class="btn btn-p" disabled="disabled" aria-disabled="true" aria-describedby="sum-skal" style="opacity: 0.6;">Lägg 18 bokningar i kalendern</button>
+        <span id="sum-skal" style="font-size: 13px; color: #86601f;">Ta ställning till 3 frågor först.</span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
