@@ -54,6 +54,14 @@ export function schemaDiagnos(u: SchemaUnderlag, diagnoses: SchemaDiagnosis[]): 
     findings.push({ code: 'indivisible_time', message: `${a.title}: timplanetiden kan inte fördelas på de tillåtna passlängderna och veckodagarna. Se över passlängd eller antal pass.`, proof: true,
       lessons: u.labels.lessons.filter(l => l.activity === a.id).map(l => l.id), resources, action: diagnosAction('indivisible_time', resources) });
   }
+  // Salbehov som ingen sal uppfyller (05.2-SM-UXF-21): ett fynd per undervisning, med kraven i klartext. Passen läggs då utan sal.
+  for (const a of u.labels.activities) {
+    const utan = u.labels.lessons.filter(l => l.activity === a.id && l.sal?.hinder);
+    if (!utan.length) continue;
+    const resources: SchemaDiagnosResurs[] = [{ typ: 'undervisning', id: a.title, label: a.title }];
+    findings.push({ code: 'sal_saknas', message: `${a.title}${a.classes.length ? ` (${a.classes.join(', ')})` : ''} har ingen lämplig sal. ${utan[0].sal!.hinder} Passen läggs utan sal tills salbehovet eller salregistret ändras.`,
+      proof: false, lessons: utan.map(l => l.id), resources, action: diagnosAction('sal_saknas', resources) });
+  }
   for (const o of u.omitted) {
     if (o.reason === 'no_time') continue; // Ingen undervisning beställd i perioden är inget fel.
     findings.push({ code: o.reason, message: `${o.title}${o.classes.length ? ` (${o.classes.join(', ')})` : ''}: ${o.reason === 'no_days' ? 'perioden saknar skoldagar.' : 'tiden räcker inte till ett pass med vald passlängd.'}`,

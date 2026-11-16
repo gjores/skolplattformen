@@ -11,7 +11,7 @@ export type SchemaLage = {
   kapacitet: { kontrollerad: number; forLiten: number; ejKontrollerad: number };
 };
 export type SchemaLagesBricka = { omrade: 'tid' | 'sal' | 'kapacitet'; ton: 'success' | 'warning' | ''; text: string };
-type Pass = Pick<SchemaForslagLesson, 'day' | 'roomIds' | 'roomId' | 'egenAktivitet'> & { sal?: { lage: 'allman' | 'sarskild' | 'ingen' | 'aldre' | 'obesvarat'; hinder?: boolean; kapacitet?: Record<string, 'racker' | 'for_liten' | 'okand'> } };
+type Pass = Pick<SchemaForslagLesson, 'day' | 'roomIds' | 'roomId' | 'egenAktivitet'> & { sal?: { lage: 'allman' | 'sarskild' | 'ingen' | 'aldre' | 'obesvarat'; hinder?: string | boolean; kapacitet?: Record<string, 'racker' | 'for_liten' | 'okand'> } };
 
 export function schemaLage(lessons: Pass[]): SchemaLage {
   const lage: SchemaLage = { tid: { lagda: 0, alla: lessons.length }, sal: { skaHaSal: 0, medSal: 0, utanSalbehov: 0, hinder: 0 }, kapacitet: { kontrollerad: 0, forLiten: 0, ejKontrollerad: 0 } };

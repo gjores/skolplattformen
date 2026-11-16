@@ -12,6 +12,7 @@ export type SchemaMotorVersion = 4 | typeof SCHEMA_MOTOR_VERSION;
  * (`SCHEMA_MOTOR_VERSION`) var oförändrat; fältet `teachers[].max_min_per_day` fanns redan. v5 tillförde aktiviteter och datum, v6 lås och sökstatistik.
  * v7 (05.2-SM-PLACERING) tillför begärda placeringsförslag; motorns v4 har ett separat strikt förslagskontrakt. v8 tillför stabil undervisningsfördelning.
  */
+import { checkSalregister, parseSalbehov, parseSalregister, type SchemaSalKapacitet, type SchemaSalbehov, type SchemaSalregister } from './schema-salregister.ts';
 export const SCHEMA_CONTRACT_VERSION = 8 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
 export type SchemaTerm = typeof SCHEMA_TERMS[number];
@@ -32,7 +33,8 @@ export type SchemaProblem = {
   links?: { kind: 'simultaneous' | 'no_overlap'; lessons: string[] }[];
   reference?: { lesson: string; day: number; start_min: number; rooms?: string[] }[];
   teachers: { id: string; max_min_per_day?: number }[];
-  rooms?: { id: string; unavailable?: SchemaInterval[] }[];
+  /** `capacity` och `features` kommer från salregistret (05.2-SM-UXF-21); motorn prövar dem mot passets krav. */
+  rooms?: { id: string; capacity?: number; features?: string[]; unavailable?: SchemaInterval[] }[];
   clusters: { id: string; size: number }[];
   groups: { id: string; clusters: string[] }[];
   /** Utan budget: oberoende termrad. Med budget (v5): periodradernas bidrag summeras till samma intervall inom aktiviteten. */
@@ -45,7 +47,7 @@ export type SchemaProblem = {
     locked?: { day: number; start_min: number; rooms?: string[] };
     margin?: Record<'students' | 'teachers' | 'rooms', { before_min: number; after_min: number }>;
     /** Tillåtna fönster: passet ska ligga helt inom ett av dem. Saknas fältet gäller hela skoldagen. */
-    allowed?: SchemaInterval[]; rooms?: { count: 1; allowed: string[] } }[];
+    allowed?: SchemaInterval[]; rooms?: { count: 1; allowed: string[]; features?: string[]; min_capacity?: number } }[];
   rules: { student_max_min_per_day?: number; break_min: number; lunch: { window_start_min: number; window_end_min: number; length_min: number; teachers: boolean } | null; same_day: 'forbid' | 'avoid' | 'allow' };
   weights: { late_after_min: number | null };
 };
@@ -77,8 +79,11 @@ export type SchemaVillkor = {
   lunch: { startMin: number; endMin: number; lengthMin: number; teachers: boolean } | null;
   maxLessonMin: number; minLessonMin: number; sameDay: 'forbid' | 'avoid' | 'allow';
   lateAfterMin: number | null; studentMaxMinPerDay: number | null; teacherMaxMinPerDay: number | null;
-  /** Skolans salar, som namn. Motorn får dem som löpnummer i listans ordning. */
+  /** Skolans salar, som namn. Utan salregister får motorn dem som löpnummer i listans ordning; med register följer listan registrets namn. */
   salar: string[];
+  /** Salregister med stabila ID, platser och utrustning, och salbehov per ämne eller undervisning (05.2-SM-UXF-21). Valfria: äldre utkast saknar dem. */
+  salregister?: SchemaSalregister;
+  salbehov?: SchemaSalbehov[];
   /** Egna villkor för en klass, en grupp, ett ämne, en lärare eller en sal. */
   egna: SchemaRegel[];
 };
@@ -118,7 +123,8 @@ export type SchemaRegelTyp = SchemaRegel['typ'];
 export const SCHEMA_GRUND_TYPER: readonly SchemaRegelTyp[] = ['langd', 'antal'];
 export function schemaGrund(v: SchemaVillkor): Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin' | 'salar' | 'egna' | 'aktiviteter' | 'fordelning' | 'timeBasis'> {
   return { ...(v.timeBasis === 'lasar' ? { timeBasis: v.timeBasis } : {}), ...(v.aktiviteter?.length ? { aktiviteter: v.aktiviteter } : {}), ...(v.fordelning?.length ? { fordelning: [...v.fordelning].sort((a, b) => a.ref.localeCompare(b.ref)) } : {}),
-    maxLessonMin: v.maxLessonMin, minLessonMin: v.minLessonMin, salar: v.salar,
+    // Med salregister är grunden de överförda äldre namnen (`arv`): varken överföringen eller ändringar i registret ändrar vilka pass som finns.
+    maxLessonMin: v.maxLessonMin, minLessonMin: v.minLessonMin, salar: v.salregister ? v.salregister.arv : v.salar,
     egna: v.egna.filter(r => SCHEMA_GRUND_TYPER.includes(r.typ)).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) };
 }
 /** Samma grund: villkoren skiljer sig bara i tidsvillkor och kan prövas mot förslagets pass. */
@@ -181,6 +187,8 @@ export function checkSchemaVillkor(v: SchemaVillkor): string[] {
   const names = (value: unknown, limit: number): value is string[] => Array.isArray(value) && value.length <= limit
     && value.every(x => typeof x === 'string' && x.length > 0 && x.length <= L.salNamn && x === x.trim()) && new Set(value.map(x => (x as string).toLowerCase())).size === value.length;
   if (!names(v.salar, L.salar)) return [...issues, `Salar ska ha olika namn om högst ${L.salNamn} tecken, och vara högst ${L.salar}.`];
+  const salfel = checkSalregister(v.salregister, v.salbehov, v.salar);
+  if (salfel.length) return [...issues, ...salfel];
   if (!Array.isArray(v.egna) || v.egna.length > L.egna) return [...issues, `Egna villkor får vara högst ${L.egna}.`];
   v.egna.forEach((r, i) => {
     const issue = (text: string) => issues.push(`Eget villkor ${i + 1}: ${text}`);
@@ -222,11 +230,18 @@ export type SchemaDatedCalendar = { start: string; end: string; days: SchemaDate
 export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null; status: string | null; current: boolean; terms: Record<SchemaTerm, SchemaTermTime>;
   /** Faktiska dagar inklusive lov och helger. Saknas i äldre eller antaget underlag; då visas bara grundschemat. */
   dates?: SchemaDatedDay[] };
+/**
+ * `aldre`: salarna kommer från ett äldre salvillkor. `obesvarat`: undervisningen har inget salbehov. `elever`: elever i passets grupper, `null` när det inte går att räkna.
+ * `hinder`: ingen sal uppfyller kraven, i klartext. `kapacitet`: per tillåten sal om platserna räcker, är för få eller inte går att kontrollera.
+ */
+export type SchemaPassSal = { /** Undervisningens referens, samma som i `fordelning`. */ undervisning: string; lage: SchemaSalbehov['lage'] | 'aldre' | 'obesvarat'; kalla: 'eget' | 'amne' | null; elever: number | null; hinder?: string; kapacitet?: Record<string, SchemaSalKapacitet> };
 export type SchemaForslagLesson = { locked?: boolean; egenAktivitet?: SchemaAktivitetsMeta; id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
   /** Den längsta marginalen efter och före passet för någon av passets parter (05.2-SM-MARGINAL). Passet och marginalen ska rymmas i skoldagen. */
   marginMin: number; marginBeforeMin: number;
   /** Salar passet får ligga i (tom: passet har ingen sal) och salen det ligger i. */
   roomIds: string[]; roomId: string | null;
+  /** Salbehovet bakom `roomIds`, bara när skolan har salregister (05.2-SM-UXF-21). */
+  sal?: SchemaPassSal;
   /** Terminen passet går, när det inte går hela den valda perioden. */
   term: SchemaTerm | null; day: number | null; startMin: number | null };
 /**
@@ -350,7 +365,7 @@ function regel(value: unknown): SchemaRegel {
 /** Villkoren i fast form: okända eller saknade fält och värden utanför gränserna nekas. */
 export function parseSchemaVillkor(value: unknown): SchemaVillkor {
   const r = record(value), keys = Object.keys(defaultSchemaVillkor()).filter(k => k !== 'timeBasis');
-  if (keys.some(key => !Object.hasOwn(r, key)) || Object.keys(r).some(k => !keys.includes(k) && !['aktiviteter', 'fordelning', 'timeBasis'].includes(k))) bad();
+  if (keys.some(key => !Object.hasOwn(r, key)) || Object.keys(r).some(k => !keys.includes(k) && !['aktiviteter', 'fordelning', 'timeBasis', 'salregister', 'salbehov'].includes(k))) bad();
   const minutes = (n: unknown) => n === null ? null : int(n, 0, 1440);
   const days = list(r.days, 5).map(raw => { const day = record(raw); if (Object.keys(day).length !== 2) bad(); return { startMin: int(day.startMin, 0, 1440), endMin: int(day.endMin, 0, 1440) }; });
   let lunch: SchemaVillkor['lunch'] = null;
@@ -364,6 +379,8 @@ export function parseSchemaVillkor(value: unknown): SchemaVillkor {
     salar: list(r.salar, SCHEMA_VILLKOR_LIMITS.salar).map(x => text(x, SCHEMA_VILLKOR_LIMITS.salNamn)), egna: list(r.egna, SCHEMA_VILLKOR_LIMITS.egna).map(regel) };
   if (Object.hasOwn(r, 'timeBasis')) { if (r.timeBasis !== 'lasar') bad(); villkor.timeBasis = 'lasar'; }
   if (Object.hasOwn(r, 'aktiviteter')) { try { villkor.aktiviteter = parseAktiviteter(r.aktiviteter); } catch { bad(); } }
+  if (Object.hasOwn(r, 'salregister')) { try { villkor.salregister = parseSalregister(r.salregister); } catch { bad(); } }
+  if (Object.hasOwn(r, 'salbehov')) { try { villkor.salbehov = parseSalbehov(r.salbehov); } catch { bad(); } }
   if (Object.hasOwn(r, 'fordelning')) {
     const values = list(r.fordelning, SCHEMA_VILLKOR_LIMITS.fordelning).map(raw => {
       const item = record(raw); if (Object.keys(item).length !== 2) bad();
