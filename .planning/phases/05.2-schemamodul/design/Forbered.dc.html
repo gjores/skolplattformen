@@ -75,7 +75,7 @@ button,select,input{font-family:inherit}
         <section aria-labelledby="omraden" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px 8px;">
           <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between;">
             <h2 id="omraden" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Checklista</h2>
-            <span style="font-size: 14px; font-weight: 500;">2 av 4 genomgångna</span>
+            <span style="font-size: 14px; font-weight: 500;">3 av 6 genomgångna</span>
           </div>
           <div aria-hidden="true" style="margin-top: 10px; height: 8px; border-radius: 999px; background: #edf0f6; overflow: hidden; display: flex;">
             <div style="width: 50%; background: #29704c;"></div>
@@ -97,7 +97,7 @@ button,select,input{font-family:inherit}
               <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#29704c"></circle><path d="M8 14.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
               <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
                 <h3><span class="namn">Lektioner och block</span><span class="badge ok">Genomgånget</span></h3>
-                <p>Hela läsårets minuter styr, samma mönster HT och VT · 3 block från valmoduler, 1 eget block</p>
+                <p>Hela läsårets minuter styr, samma mönster HT och VT · samma ämne högst en gång per dag · 3 block från valmoduler, 1 eget block</p>
                 <span class="kontroll">Av Exempelrektor 10 nov · Kontroll: Språkblocket har 2 gemensamma starttider</span>
               </div>
               <button type="button" class="btn">Visa</button>
@@ -116,11 +116,31 @@ button,select,input{font-family:inherit}
             <li class="ci">
               <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#fff" stroke="#8a95a8" stroke-width="2"></circle></svg>
               <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
-                <h3>Regler och önskemål<span class="badge neutral">Återstår</span></h3>
-                <p>Skoldag 08:00–16:30 · 12 önskemål, 6 obligatoriska krav · <strong style="font-weight: 600;">4 lärartider saknas</strong></p>
+                <h3>Lärartider och fasta tider<span class="badge neutral">Återstår</span></h3>
+                <p>31 lärare besvarade, 2 ”inte aktuellt” · 3 gemensamma möten · 14 låsta pass · <strong style="font-weight: 600;">4 lärare saknar svar</strong></p>
                 <span class="kontroll">Saknat svar räknas inte som ledig tid · Kontroll: ännu inte bedömbart</span>
               </div>
               <button type="button" class="btn">Komplettera</button>
+            </li>
+
+            <li class="ci klar">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#29704c"></circle><path d="M8 14.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3><span class="namn">Regler och önskemål</span><span class="badge ok">Genomgånget</span></h3>
+                <p>Skoldag 08:00–16:30, lunch 11:00–13:00 · marginaler och spärrar · 6 obligatoriska krav, 12 önskemål</p>
+                <span class="kontroll">Av Exempelrektor 12 nov · Kontroll: inga motstridiga krav</span>
+              </div>
+              <button type="button" class="btn">Visa</button>
+            </li>
+
+            <li class="ci">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#fff" stroke="#8a95a8" stroke-width="2"></circle></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3>Mål för schemat<span class="badge neutral">Återstår</span></h3>
+                <p>Vad är viktigast: elevernas håltid, lärarnas håltid, sena pass, spridning över veckan eller förflyttningar? <strong style="font-weight: 600;">Ingen prioritering vald</strong></p>
+                <span class="kontroll">Tills ni väljer används standardordningen · Obligatoriska krav påverkas inte</span>
+              </div>
+              <button type="button" class="btn">Välj prioritering</button>
             </li>
           </ol>
           <p style="margin: 0; padding: 12px 0 8px; border-top: 1px solid #e3e7ee; font-size: 13px; color: #657185;">Ändras innehållet i ett avbockat område tas bocken bort och raden visar Ändrat sedan genomgången.</p>
@@ -168,7 +188,7 @@ button,select,input{font-family:inherit}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1140}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1280}}'>
 class Component extends DCLogic {
   renderVals() { return {}; }
 }
