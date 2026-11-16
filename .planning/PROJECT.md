@@ -1,5 +1,9 @@
 # Skolplattformen
 
+## Aktuellt 2026-11-16 — research om salar och förarbete
+
+Användaren rapporterar salfria pass och oläsliga små informationsfält och beställer research/förslag för att fånga förutsättningarna före placering. [Samlad research](phases/05.2-schemamodul/05.2-SM-FORARBETE-RESEARCH.md) och [kodfynd](phases/05.2-schemamodul/05.2-SM-FORARBETE-KOD-RESEARCH.md) rekommenderar sex förberedelseområden, salsättning i första förslaget, versionerad genomgång och begränsade omtag. Förslag, inte beslutad genomförandeplan; inga nya produkt-/måländringar eller tester. Installerad årsmodell7e38ba67 består. Nya användarfynd är registrerade och ingen full schemaacceptans har lämnats.
+
 ## Aktuellt 2026-11-16 — gemensamt läsårsmönster installerat
 
 På användarens senare beslut beräknas undervisningstiden nu över läsåret och samma undervisning/lärarfördelning får gemensamma veckopass på HT/VT. Fryst `7e38ba67` är installerad på3012/3013, app8/motor5 med stöd för gamla problem4. [Sammanfattning](phases/05.2-schemamodul/05.2-SM-LASARSMONSTER-SUMMARY.md), [oberoende verifiering](phases/05.2-schemamodul/05.2-SM-LASARSMONSTER-VERIFICATION.md):1402 Node,81 Rust,282 unika UI-profilfall täckta och faktisk egen skyddad kedja9 kontroller inklusive8 API-basfall/full cleanup PASS. Installation5/5 kontrollgrupper PASS,0 nya SQL, samma169-journal och alla14 tidigare utkastrevisioner bevarade. Äldre utkast ändras först genom **Ta fram gemensamt läsårsmönster**. Liten handboksinstruktion och docs-bygge klara; nytt användarprov, full schemahandbok och full fasacceptans återstår. Äldre noteringar nedan är historik.
