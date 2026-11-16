@@ -65,9 +65,9 @@ function envelope(raw: unknown, authority: TjanstAuthority): unknown {
 }
 
 /** Bound actual streamed bytes even when Content-Length is absent or dishonest. */
-export async function tjanstRequest<T>(request: Request, parse: (value: unknown) => T | Promise<T>): Promise<T> {
+export async function tjanstRequest<T>(request: Request, parse: (value: unknown) => T | Promise<T>, maxBytes = TJANST_REQUEST_BYTES): Promise<T> {
   const length = request.headers.get('Content-Length');
-  if (length !== null && Number(length) > TJANST_REQUEST_BYTES) throw new Deny('bad_request', 400, { reason: 'payload_too_large' });
+  if (length !== null && Number(length) > maxBytes) throw new Deny('bad_request', 400, { reason: 'payload_too_large' });
   if (!request.body) throw new Deny('bad_request', 400);
   const reader = request.body.getReader(), chunks: Uint8Array[] = [];
   let count = 0, value: unknown;
@@ -76,7 +76,7 @@ export async function tjanstRequest<T>(request: Request, parse: (value: unknown)
       const next = await reader.read();
       if (next.done) break;
       count += next.value.byteLength;
-      if (count > TJANST_REQUEST_BYTES) {
+      if (count > maxBytes) {
         await reader.cancel();
         throw new Deny('bad_request', 400, { reason: 'payload_too_large' });
       }

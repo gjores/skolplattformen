@@ -1,0 +1,109 @@
+{
+  "kind": "schema-drafts-ephemeral-postgresql",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "migration rollback preserves all existing rows and removes its objects",
+      "status": "PASS"
+    },
+    {
+      "name": "additive migration preserves every existing business table",
+      "status": "PASS"
+    },
+    {
+      "name": "forced RLS and no direct table privileges for client or Worker roles",
+      "status": "PASS"
+    },
+    {
+      "name": "separate grant opens only intended RPCs to Worker, not browser roles",
+      "status": "PASS"
+    },
+    {
+      "name": "JavaScript and PostgreSQL agree on fractional weeks, calculated minutes, exponent notation and Unicode",
+      "status": "PASS"
+    },
+    {
+      "name": "current rector sees explicit empty draft for own school",
+      "status": "PASS"
+    },
+    {
+      "name": "other school and other customer are denied before content",
+      "status": "PASS"
+    },
+    {
+      "name": "first save and reopen preserve exact server document and canonical content hash",
+      "status": "PASS"
+    },
+    {
+      "name": "same command replays exact receipt without a second revision",
+      "status": "PASS"
+    },
+    {
+      "name": "status distinguishes committed command from unknown command",
+      "status": "PASS"
+    },
+    {
+      "name": "changed replay payload and concurrent initial save cannot replace existing work",
+      "status": "PASS"
+    },
+    {
+      "name": "CAS appends new revision and preserves earlier revision",
+      "status": "PASS"
+    },
+    {
+      "name": "stale revision is denied without a write",
+      "status": "PASS"
+    },
+    {
+      "name": "saved revisions and receipts are immutable",
+      "status": "PASS"
+    },
+    {
+      "name": "school administrator can reopen school draft but not reuse another identity command",
+      "status": "PASS"
+    },
+    {
+      "name": "principal organizer role and teacher do not gain draft access",
+      "status": "PASS"
+    },
+    {
+      "name": "audit failure rolls back draft, revision and receipt atomically",
+      "status": "PASS"
+    },
+    {
+      "name": "revoked session cannot read saved draft",
+      "status": "PASS"
+    },
+    {
+      "name": "two simultaneous initial writers create exactly one draft revision",
+      "status": "PASS"
+    },
+    {
+      "name": "simultaneous CAS writers append exactly one new revision without overwriting the winner",
+      "status": "PASS"
+    },
+    {
+      "name": "simultaneous identical command produces one immutable receipt and an exact replay",
+      "status": "PASS"
+    }
+  ],
+  "startedAt": "2026-11-16T10:29:21.279Z",
+  "limits": [
+    "Own ephemeral PostgreSQL with synthetic identities only",
+    "No actual Worker/OIDC/browser claim",
+    "No active target reads or writes"
+  ],
+  "database": {
+    "kind": "ephemeral-migrated-postgresql",
+    "serverVersion": "18.3 (Homebrew)",
+    "stubs": "work/pilot/ephemeral-supabase-stubs.sql",
+    "applied": 168,
+    "appliedChainSha256": "a66e8dd5122662024e065d8a456cba9d6047ce2ed056e635ec513a9c9d8ab29a",
+    "excluded": [
+      "20261116100000_schema_drafts.sql",
+      "20261116101000_schema_drafts_worker_access.sql"
+    ]
+  },
+  "cleanup": "complete",
+  "completedAt": "2026-11-16T10:29:25.411Z"
+}

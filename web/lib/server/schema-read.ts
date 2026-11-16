@@ -18,8 +18,9 @@ import { mergeSchemaMembers, type SchemaBasis } from '../schema-underlag.ts';
  * Begäran till kontroll, möjliga starttider och Följ passet (05.2-SM-VILLKOR-DIREKT): samma läsning och storleksgräns som övriga schemarutter.
  * En annan kontraktsversion nekas med orsaken `schema_contract_version`, så att en sida från en äldre version inte prövas mot nya regler.
  */
+export const SCHEMA_REQUEST_BYTES = 8 * 1024 * 1024;
 export async function schemaBegaran<T>(request: Request, parse: (value: unknown) => T): Promise<T> {
-  const value = await tjanstRequest(request, raw => raw);
+  const value = await tjanstRequest(request, raw => raw, SCHEMA_REQUEST_BYTES);
   try { return parse(value); } catch (error) {
     throw error instanceof SchemaVersionError ? new Deny('bad_request', 400, { reason: 'schema_contract_version' }) : new Deny('bad_request', 400);
   }
@@ -46,5 +47,7 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   }
   // Elevernas namn, bara de som läsningarna gav med användarens egen behörighet (Följ passet, 05.2-SM-FOLJ). Stannar på servern utom i elevväljaren.
   const pupilNames = new Map([...elective.body.pupils ?? [], ...study.body.pupils].map(p => [p.id, p.name] as const));
-  return { plan: result.body, basis, event: result.event, pupilNames };
+  // Stabil källidentitet för serverlagrade utkast. Inget elevnamn eller nytt klientfält tillförs motorunderlaget.
+  const sourceRefs = { calendarVersionId: lasar.body.calendar?.versionId ?? null };
+  return { plan: result.body, basis, event: result.event, pupilNames, sourceRefs };
 }
