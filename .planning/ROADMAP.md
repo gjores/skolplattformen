@@ -518,6 +518,8 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 
 ### Phase 05.2: Schemaläggning med Rust-schemamotor (INSERTED)
 
+**UAT-fynd 2026-11-16:** [C1–C13/R1–R4](phases/05.2-schemamodul/05.2-SM-UAT-2026-11-16-CONTEXT.md) styr [åtgärdspaketet](phases/05.2-schemamodul/05.2-SM-UAT-ATGARDER-PLAN.md) och [serverutkast/datum](phases/05.2-schemamodul/05.2-SM-SPARA-DATUM-PLAN.md). Serverlagrat utkast uttryckligen valt. Genomförande och verifiering pågår, installerad 4267daf7 består. Inga faskrav eller UAT-rader markeras godkända av detta. Våg 8/handbok återstår.
+
 **Installerad 2026-11-15 efter ”Ja gör det.”:** app och motor 4 kör `4267daf7` på 3012/3013. [Installationen](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md) har 31/31 efterkontroller PASS och oförändrade 1 460 produktfiler, utan migration/ombyggnad. [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md) och handbok återstår; våg 8 och fulla faskrav är inte klara. Tidigare förberedelse- och vågnoteringar nedan är historik.
 
 **Våg 8 förberedd 2026-11-15:** [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md) inväntar installation och användarprov innan sidan skrivs. [Fryst kandidat `4267daf7` och återgång](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) är förkontrollerade: skyddat bygge, 180 Node, 65 Rust, riktig lokal syntetisk motorkedja/workerd samt 20 start-/skydds-/bevarandekontroller PASS. [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md) är förberedda. Våg 8 är inte klar; inget installerat, inga nya handbokssidor, kravrutor eller fasgodkännanden.

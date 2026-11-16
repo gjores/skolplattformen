@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "våg 8 installerad – inväntar U1–U12 före handbok"
+current_plan: "UAT-fynd 2026-11-16 – rättningar, serverutkast och datumundantag"
 status: in_progress
-stopped_at: "Godkänd kandidat 4267daf7 installerad på 3012/3013 2026-11-15. 31/31 efterkontroller PASS; 1460 produktfiler oförändrade, ingen migration/ombyggnad. Två tidigare provskriptavbrott återgick verifierat; slutkörning PASS. U1–U12 och handbok återstår."
-last_updated: "2026-11-15"
-last_activity: 2026-11-15
-last_activity_desc: "App-/motorbyte genomfört efter Ja gör det. och efterkontrollerat. Nästa är användarprovet, sedan handbok/docsbygge; våg 8 inte klar."
+stopped_at: "Användarprov har rapporterat C1–C13/R1–R4. Användaren valde serverlagrat utkast och angav lokal Skolplattan-guide. Åtgärdspaket och spar-/datumplan genomförs; installerad 4267daf7 är oförändrad. Ny verifiering och exakt installationskandidat återstår."
+last_updated: "2026-11-16"
+last_activity: 2026-11-16
+last_activity_desc: "UAT-fynd registrerade, orsaker felsökta och åtgärdspaket under genomförande. Serverutkast uttryckligen valt; inget nytt installerat eller godkänt användarprov."
 state_head: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
 progress:
   total_phases: 8
@@ -24,9 +24,11 @@ verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
 schema_motor_contract_version: 4
 schema_installation_status: passed_31_checks_no_migration
-user_trial_status: schema_wave8_installed_awaiting_u1_u12
+user_trial_status: schema_wave8_issues_reported_fixing
 milestone_name: milestone
 ---
+
+**05.2-SM användarfynd 2026-11-16:** Användarens [C1–C13/R1–R4](phases/05.2-schemamodul/05.2-SM-UAT-2026-11-16-CONTEXT.md) och svar på sparfrågan styr [åtgärdspaketet](phases/05.2-schemamodul/05.2-SM-UAT-ATGARDER-PLAN.md) samt [serverutkast/datum](phases/05.2-schemamodul/05.2-SM-SPARA-DATUM-PLAN.md). Serverlagrat utkast är uttryckligen valt. Lokal Skolplattan-guide finns och är läst. Felsökningen skiljer diskret tomt underlag, klientstopp vid ändrade grundvillkor och felaktig prioritet för antal pass. Genomförande och nya prov pågår. **Installerad kandidat 4267daf7 på 3012/3013 består; inga nya migrationer eller ny installation.** UAT är inte godkänt, handbok/våg 8 och full fasacceptans återstår. Äldre status nedan är historik.
 
 **05.2-SM installerad 2026-11-15:** Användaren godkände den frysta kandidaten med **”Ja gör det.”** Appen på 3012 och motor 4 på 3013 kör nu `4267daf7` ur `runtime/schema-4267daf75b/`. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md), [leveransunderlag](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) och [körningsrapport](../work/schema/results/wave8-4267daf75b-install.json): **31/31 PASS**, alla 1 460 filhashar oförändrade, 571 installerade beroendeversioner kontrollerade, ingen migration eller ombyggnad. Hälsa, nio nekande apprutter, fem motorgrindar, syntetisk kort kedja med separat kontroll och inloggningssidan verifierade. Två föregående provskriptavbrott gav automatisk återgång PASS; de rättade bara provantaganden. Föregående app/motor `8b6b9968` och privat konfiguration är bevarade. **Nästa: [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md), därefter handbok och dokumentationsbygge. Installationsgodkännandet ska inte återfrågas för denna kandidat. Våg 8 är inte klar.** Ingen inloggad verksamhetskedja eller mänsklig acceptans påstås; ordinarie säkerhetsloggning används vid nekade provanrop. Äldre kalender-/Worker-metadata och formella pilotantal består. Äldre lägesnoteringar nedan är historik.
 

@@ -1,5 +1,9 @@
 # Skolplattformen
 
+## Aktuellt 2026-11-16 — användarfynd för Schema
+
+Användaren har rapporterat [C1–C13/R1–R4](phases/05.2-schemamodul/05.2-SM-UAT-2026-11-16-CONTEXT.md) efter installationen och valt **sparat utkast på servern**. [Åtgärdspaketet](phases/05.2-schemamodul/05.2-SM-UAT-ATGARDER-PLAN.md) och [spar-/datumplanen](phases/05.2-schemamodul/05.2-SM-SPARA-DATUM-PLAN.md) genomförs med ny verifiering; lokal Skolplattan-guide är tillgänglig och läst. Befintlig 4267daf7 på 3012/3013 är oförändrad. Inget nytt installerat, inget godkänt UAT eller full fasacceptans. Handbok och slutligt avgränsat användarprov följer verifierat beteende.
+
 ## Aktuellt 2026-11-15 — schemats våg 4–7 installerad
 
 På användarens **”Ja gör det.”** kör appen på 3012 och motor 4 på 3013 samma frysta `4267daf7`. [Installationen](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md) har **31/31 efterkontroller PASS**, oförändrade 1 460 produktfiler och inga migrationer eller ombyggnader. Hälsa, skydd utan session/token, syntetiska motorförslag och inloggningssidan verifierade; föregående app-/motorpar är bevarat efter två verifierade automatiska återgångar vid rättade provantaganden. Nästa är [användarprov U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md), därefter handboken enligt [SM-HANDBOK](phases/05.2-schemamodul/05.2-SM-HANDBOK-PLAN.md). Våg 8 är inte klar och ingen ny mänsklig acceptans eller full fasacceptans påstås. Installationsgodkännandet är redan lämnat. Äldre lägesnoteringar nedan är historik.
