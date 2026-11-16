@@ -337,7 +337,7 @@ test('läsårsschema: terminerna är motorns perioder och timplanens tid per ter
   assert.deepEqual(lessonsOf(buildSchemaUnderlag(one(h(54), 0), lasarRequest)), Array(3).fill([60, ['ht'], 'ht']));
   assert.deepEqual(lessonsOf(buildSchemaUnderlag(one(null, h(60)), lasarRequest)), Array(3).fill([60, ['vt'], 'vt']));
   // Terminsschema: samma undervisning utan perioder, och inget alls den termin timplanen saknar tid.
-  assert.deepEqual(lessonsOf(buildSchemaUnderlag(one(h(54), 0), request)), Array(3).fill([60, null, null]));
+  assert.deepEqual(lessonsOf(buildSchemaUnderlag(one(h(54), 0), request)), Array(3).fill([60, null, 'ht']));
   assert.deepEqual(buildSchemaUnderlag(one(h(54), 0), { ...request, period: 'vt' }).omitted, [{ title: 'Matematik', classes: ['1A'], reason: 'no_time' }]);
 });
 

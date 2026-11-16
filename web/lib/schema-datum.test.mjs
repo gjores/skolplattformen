@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 import { buildSchemaUnderlag, schemaForslag } from './schema-underlag.ts';
 import { datumFixture } from './schema-datum-fixture.mjs';
-import { parseSchemaDatumAndringar, parseSchemaDatumRequest, parseSchemaDatumSvar, schemaDatumErsatt, schemaDatumNyckel, schemaDatumOriginal, schemaDatumTillfallen, schemaDatumTidsandringar } from './schema-datum.ts';
+import { kontrolleraSchemaDatum, parseSchemaDatumAndringar, parseSchemaDatumRequest, parseSchemaDatumSvar, schemaDatumErsatt, schemaDatumNyckel, schemaDatumOriginal, schemaDatumTermTillaten, schemaDatumTillfallen, schemaDatumTidsandringar } from './schema-datum.ts';
 import { parseSchemaDatedBasis, schemaDatumUnderlag } from './schema-datum-underlag.ts';
 const interval = (from, to = from) => ({ mode: 'intervall', monday: '', from, to });
 const graph = (day, lesson) => day.problem.lessons.find(l => day.occurrences.get(l.id).lesson.id === lesson);
@@ -57,6 +57,20 @@ test('flytt mellan terminer redovisar båda tidsavvikelserna utan ändrad timpla
   for (const d of deltas) assert.equal(d.needMin, x.f.teachings.find(t => t.ref === ref).terms.find(t => t.term === d.term).needMin);
   assert.ok(deltas.some(d => d.deviation));
   assert.throws(() => schemaDatumTidsandringar(x.f, [a], []), e => e.reason === 'schema_datum_source_unknown');
+});
+
+test('en terminsgrund skapar inga original i andra terminen och nekar terminsflytt eller kontroll utanför sin grund', () => {
+  const x = datumFixture(), request = { ...x.request, period: 'ht' }, u = buildSchemaUnderlag(x.plan, request, x.basis);
+  const placements = u.labels.lessons.map(l => ({ lesson: l.id, day: l.title === 'Franska' ? 1 : 0, startMin: 480, room: 'sal-2' }));
+  const f = schemaForslag(x.plan, request, u, { status: 'complete', placements, unplaced: [], diagnoses: [], elapsedMs: 0, metrics: { studentGapMin: 0, teacherGapMin: 0 } });
+  assert.ok(f.lessons.every(l => l.term === 'ht')); assert.equal(u.problem.periods, undefined); assert.ok(u.problem.lessons.every(l => l.periods === undefined));
+  const l = f.lessons.find(l => l.title === 'Franska'), original = schemaDatumOriginal(f, { lesson: l.id, originalDate: '2026-11-03' }); assert.ok(original);
+  assert.equal(schemaDatumOriginal(f, { lesson: l.id, originalDate: '2027-01-12' }), null); assert.deepEqual(schemaDatumTillfallen(f, interval('2027-01-12')), []);
+  const a = { lesson: l.id, originalDate: original.originalDate, date: '2027-01-12', startMin: 480, room: 'sal-2', durationMin: original.length };
+  assert.throws(() => kontrolleraSchemaDatum(f, [a]), e => e.reason === 'schema_datum_date_invalid');
+  assert.throws(() => schemaDatumUnderlag(x.plan, u, f, x.datedBasis, [], ['2027-01-12']), e => e.reason === 'schema_datum_date_invalid');
+  assert.equal(schemaDatumTermTillaten('ht', 'vt'), false); assert.equal(schemaDatumTermTillaten('vt', 'ht'), false);
+  assert.equal(schemaDatumTermTillaten('lasar', 'ht'), true); assert.equal(schemaDatumTermTillaten('lasar', 'vt'), true);
 });
 
 test('exakta start-/slutdagar och placeringsrelation avgör dagens kluster, utan elev-ID i motorproblem', () => {

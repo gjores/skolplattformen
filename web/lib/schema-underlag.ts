@@ -434,7 +434,8 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
         problem.lessons.push({ id, activity, duration_min: durationMin, teachers: teacherIds, groups, ...(term === null ? {} : { periods: [term] }),
           ...(allowed === null ? {} : { allowed: allowed.length ? allowed : [{ day: 0, start_min: problem.time.days[0].start_min, end_min: problem.time.days[0].start_min + d.stepMin }] }),
           ...(roomIds.length ? { rooms: { count: 1 as const, allowed: roomIds } } : {}), ...(margin ? { margin } : {}) });
-        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin: outer.efter, marginBeforeMin: outer.fore, roomIds, vacant: t.vacant, term });
+        labels.lessons.push({ id, activity, title: t.title, classIds: shown, teacherIds, durationMin, marginMin: outer.efter, marginBeforeMin: outer.fore, roomIds, vacant: t.vacant,
+          term: term ?? (terms.length === 1 ? terms[0] : null) });
       });
     }
   });
@@ -480,7 +481,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),
     amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: selectableTeachers.map(t => ({ ref: t.personId, name: t.displayName })),
     // Enskilda pass, för marginal på ett pass: ämnet, klasserna och passets nummer inom undervisningen. Numreringen följer underlaget.
-    pass: labels.lessons.map(l => ({ ref: l.id, name: `${l.title}, ${l.classIds.map(id => labels.classes.find(c => c.id === id)?.name ?? id).join(', ')}, pass ${labels.lessons.filter(x => x.activity === l.activity && x.term === l.term).indexOf(l) + 1}${l.term ? ` (${l.term.toUpperCase()})` : ''}` })) };
+    pass: labels.lessons.map(l => ({ ref: l.id, name: `${l.title}, ${l.classIds.map(id => labels.classes.find(c => c.id === id)?.name ?? id).join(', ')}, pass ${labels.lessons.filter(x => x.activity === l.activity && x.term === l.term).indexOf(l) + 1}${l.term && terms.length > 1 ? ` (${l.term.toUpperCase()})` : ''}` })) };
   const grundFingerprint = schemaGrundFingerprint(problem, labels);
   for (const row of fordelning) {
     const activity = labels.activities.find(a => a.ref === row.ref);

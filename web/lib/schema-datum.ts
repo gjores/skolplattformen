@@ -18,6 +18,10 @@ export class SchemaDatumError extends SchemaContractError {
   constructor(reason: SchemaDatumReason = 'schema_datum_invalid') { super(); this.name = 'SchemaDatumError'; this.reason = reason; }
 }
 const bad = (reason?: SchemaDatumReason): never => { throw new SchemaDatumError(reason); };
+/** En terminsgrund innehåller inte den andra terminens pass. Bara Hela läsåret kan kontrollera flytt mellan terminer. */
+export const schemaDatumTermTillaten = (period: SchemaForslag['period'] | undefined, term: SchemaTerm | null): boolean =>
+  term !== null && (period === undefined || period === 'lasar' || period === term);
+type DatumPeriod = Partial<Pick<SchemaForslag, 'period'>>;
 export const schemaDatumNyckel = (key: SchemaDatumNyckel): string => `${key.lesson}@${key.originalDate}`;
 export function schemaDatumDate(value: unknown): string {
   if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/u.test(value) || !Number.isFinite(Date.parse(`${value}T00:00:00Z`))
@@ -47,33 +51,33 @@ export function parseSchemaDatumRequest(raw: unknown): SchemaDatumRequest {
 }
 
 /** Ett grundtillfälle kan vara kortat eller helt borttaget av timplansjusteringen. */
-export function schemaDatumOriginal(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims'>, key: SchemaDatumNyckel): SchemaDatumTillfalle | null {
+export function schemaDatumOriginal(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims'> & DatumPeriod, key: SchemaDatumNyckel): SchemaDatumTillfalle | null {
   const l = f.lessons.find(x => x.id === key.lesson), day = f.time.calendar?.days.find(d => d.date === key.originalDate);
-  if (!l || !day || l.day !== schemaWeekday(day.date) || l.startMin === null || l.term !== null && l.term !== day.term) return null;
+  if (!l || !day || !schemaDatumTermTillaten(f.period, day.term) || l.day !== schemaWeekday(day.date) || l.startMin === null || l.term !== null && l.term !== day.term) return null;
   if (!l.egenAktivitet && (!day.schoolDay || l.classIds.some(id => !schemaDagStatus(day, id).schoolDay))) return null;
   const length = l.egenAktivitet ? l.durationMin : schemaTillfallesLangd(l, day, f.trims);
   return length > 0 ? { key: schemaDatumNyckel(key), originalDate: key.originalDate, date: key.originalDate, term: day.term, lesson: l, length, changed: false } : null;
 }
 /** Fysiska datum och originalets längd prövas innan ett undantag används. Regelavvikelser i tid/sal prövas därefter av motorn. */
-export function kontrolleraSchemaDatum(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims' | 'rooms'>, raw: SchemaDatumAndring[]): SchemaDatumAndring[] {
+export function kontrolleraSchemaDatum(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims' | 'rooms'> & DatumPeriod, raw: SchemaDatumAndring[]): SchemaDatumAndring[] {
   const changes = parseSchemaDatumAndringar(raw);
   if (changes.length && !f.time.calendar) return bad('schema_datum_calendar_missing');
   for (const a of changes) {
     const original = schemaDatumOriginal(f, a), day = f.time.calendar!.days.find(d => d.date === a.date);
     if (!original) return bad('schema_datum_original_missing');
     if (a.durationMin !== original.length) return bad('schema_datum_duration_changed');
-    if (!day || !day.schoolDay || day.term === null || schemaWeekday(day.date) > 4 || original.lesson.classIds.some(id => !schemaDagStatus(day, id).schoolDay)) return bad('schema_datum_date_invalid');
+    if (!day || !day.schoolDay || !schemaDatumTermTillaten(f.period, day.term) || schemaWeekday(day.date) > 4 || original.lesson.classIds.some(id => !schemaDagStatus(day, id).schoolDay)) return bad('schema_datum_date_invalid');
     if (a.room !== null && !f.rooms.some(r => r.id === a.room)) return bad();
   }
   return changes;
 }
 /** Även en inflyttning från ett originaldatum utanför intervallet visas exakt en gång. */
-export function schemaDatumTillfallen(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims' | 'rooms'>, val: SchemaVeckaVal, overrides: SchemaDatumAndring[] = []): SchemaDatumTillfalle[] {
+export function schemaDatumTillfallen(f: Pick<SchemaForslag, 'lessons' | 'time' | 'trims' | 'rooms'> & DatumPeriod, val: SchemaVeckaVal, overrides: SchemaDatumAndring[] = []): SchemaDatumTillfalle[] {
   if (val.mode === 'grundschema') return [];
   const visibleDays = new Set(schemaVisningsDagar(f.time.calendar, val).map(d => d.date));
   if (!visibleDays.size) return [];
   const changes = kontrolleraSchemaDatum(f, overrides), replaced = new Set(changes.map(schemaDatumNyckel));
-  const out = schemaTillfallen(f, val).filter(o => !replaced.has(o.key)).map(o => ({ ...o, originalDate: o.date, changed: false }));
+  const out = schemaTillfallen(f, val).filter(o => schemaDatumTermTillaten(f.period, o.term) && !replaced.has(o.key)).map(o => ({ ...o, originalDate: o.date, changed: false }));
   for (const a of changes) {
     if (!visibleDays.has(a.date)) continue;
     const original = schemaDatumOriginal(f, a)!, day = f.time.calendar!.days.find(d => d.date === a.date)!;

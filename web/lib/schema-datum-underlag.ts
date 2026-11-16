@@ -2,7 +2,7 @@
 import type { TjanstPlanRead } from './tjanst-contract.ts';
 import type { SchemaForslag, SchemaInterval, SchemaPlacement, SchemaProblem, SchemaRegel } from './schema-contract.ts';
 import type { SchemaUnderlag } from './schema-underlag.ts';
-import { SchemaDatumError, kontrolleraSchemaDatum, schemaDatumDate, schemaDatumOriginal, schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumAvvikelse, type SchemaDatumTillfalle } from './schema-datum.ts';
+import { SchemaDatumError, kontrolleraSchemaDatum, schemaDatumDate, schemaDatumOriginal, schemaDatumTermTillaten, schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumAvvikelse, type SchemaDatumTillfalle } from './schema-datum.ts';
 import { schemaWeekday } from './schema-vecka.ts';
 
 type Period = { startsOn: string; endsOn: string | null };
@@ -104,7 +104,7 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
   const weekly = new Map(u.problem.lessons.map(l => [l.id, l]));
   const days = dates.map(date => {
     const calendarDay = f.time.calendar!.days.find(d => d.date === date), day = schemaWeekday(date);
-    if (!calendarDay || calendarDay.term === null || !calendarDay.schoolDay || day > 4) fail('schema_datum_date_invalid');
+    if (!calendarDay || !schemaDatumTermTillaten(f.period, calendarDay.term) || !calendarDay.schoolDay || day > 4) fail('schema_datum_date_invalid');
     const validPlacements = new Map(basis.placements.filter(p => active(p, date)).map(p => [p.id, p.pupilId]));
     const registered = new Set(validPlacements.values()), ofPupil = new Map<string, Set<string>>();
     const mark = (pupil: string, ref: string) => { const id = ids.get(ref); if (id) ofPupil.set(pupil, (ofPupil.get(pupil) ?? new Set()).add(id)); };

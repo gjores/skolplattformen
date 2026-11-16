@@ -6,8 +6,10 @@ import { parseSchemaDatedBasis } from '../schema-datum-underlag.ts';
 type Authority = Pick<SessionContext, 'identityId' | 'assignmentId' | 'accessFunction'>;
 export async function readSchemaDatedBasis(tx: Tx, ctx: Authority, scope: { unitId: string; schoolYear: number }) {
   if (!ctx.identityId || !ctx.assignmentId || !['rektor', 'administrator'].includes(ctx.accessFunction ?? '')) throw new Deny('forbidden', 403);
+  // En typad anropare kan bära fler fält. SQL-ingången ska alltid få exakt sitt skolurval.
+  const input = { unitId: scope.unitId, schoolYear: scope.schoolYear };
   let rows: { result: unknown }[];
-  try { rows = await tx<{ result: unknown }[]>`select public.schema_dated_basis(${tx.json(scope)}) as result`; }
+  try { rows = await tx<{ result: unknown }[]>`select public.schema_dated_basis(${tx.json(input)}) as result`; }
   catch (error) {
     const e = error as { code?: string };
     if (e.code === '42501') throw new Deny('forbidden', 403);
