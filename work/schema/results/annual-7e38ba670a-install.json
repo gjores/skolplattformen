@@ -1,0 +1,47 @@
+{
+  "kind": "schema-requested-annual-pattern-installation",
+  "revision": "7e38ba670a4cef400c203390a094ad96d5e5b75c",
+  "request": "Det ska vara så lite ändringar mellan VT och ht som möjlgt och eventuella skillnader för varje änmne på vår och höst behöver beräknas utifrån hela läsåret istället.",
+  "startedAt": "2026-11-16T15:43:17.071Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "exact old product files, unchanged SQL and mandate gate; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "requested annual model on3012 and compatible motor5 on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all15protected schema paths retain session gate",
+      "status": "PASS"
+    },
+    {
+      "name": "same169journal, all prior draft revisions, session secret and exact new product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "preservedRevisions": {
+    "count": 14,
+    "sha256": "af771a23d86060701fe50cf4a2077162f15347b003a73a4c6e342b581f23cd7a"
+  },
+  "manifestSha256": "e97f88b02595405a3051b5068cff848ba0ffba87d43d38321a5c68d92a06dffe",
+  "inventorySha256": "d319c5400ecfbad30f53ea875838bc2fd14091083bf636b5e3be52f2c9b9940b",
+  "stage": "work/pilot/targets/protected/runtime/schema-7e38ba670a",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-69c5923a24",
+  "processes": {
+    "appRoot": 52098,
+    "appListener": 52118,
+    "motorListener": 52089
+  },
+  "finishedAt": "2026-11-16T15:43:29.536Z"
+}

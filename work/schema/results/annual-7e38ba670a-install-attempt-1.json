@@ -1,0 +1,40 @@
+{
+  "kind": "schema-requested-annual-pattern-installation",
+  "revision": "7e38ba670a4cef400c203390a094ad96d5e5b75c",
+  "request": "Det ska vara så lite ändringar mellan VT och ht som möjlgt och eventuella skillnader för varje änmne på vår och höst behöver beräknas utifrån hela läsåret istället.",
+  "startedAt": "2026-11-16T15:41:24.378Z",
+  "status": "FAIL",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "exact old product files, unchanged SQL and mandate gate; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "requested annual model on3012 and compatible motor5 on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all15protected schema paths retain session gate",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": true,
+    "status": "PASS"
+  },
+  "preservedRevisions": {
+    "count": 14,
+    "sha256": "af771a23d86060701fe50cf4a2077162f15347b003a73a4c6e342b581f23cd7a"
+  },
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "messageSha256": "c60179e1aab083aad9f480e8675b2e8325290907a8a4f457334bf5623c18653e"
+  },
+  "finishedAt": "2026-11-16T15:41:38.870Z"
+}

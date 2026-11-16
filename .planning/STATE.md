@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UAT-rättningar och serverutkast installerade — nytt användarprov återstår"
+current_plan: "Gemensamt läsårsmönster installerat — nytt användarprov återstår"
 status: in_progress
-stopped_at: "693d6313 installerad med tre migrationer, därefter kompakt sökstatistik 69c5923a. 3012/3013 kör nya paret. Nytt användarprov och schemahandbok återstår."
+stopped_at: "Årsmodell7e38ba67 installerad på3012/3013 utan nya SQL. Alla14 tidigare utkastrevisioner bevarade. Nytt användarprov och hela schemahandboken återstår."
 last_updated: "2026-11-16"
 last_activity: 2026-11-16
-last_activity_desc: "23 installationskontroller PASS; 166→169 journalposter; 174 ursprungliga tabeller bevarade. Hopfälld sökstatistik 8/8 UI PASS och separat kodinstallation utan SQL."
-state_head: 69c5923a2439a854a054e1cb095bb99364bc2784
+last_activity_desc: "Årsmodell:1402 Node,81 Rust,282 unika UI-profilfall täckta; faktisk egen skyddad API-kedja9 kontroller inklusive8 basfall och full cleanup PASS. Installation5 kontrollgrupper PASS,0 nya SQL,14 revisioner bevarade."
+state_head: 7e38ba670a4cef400c203390a094ad96d5e5b75c
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,14 +21,16 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 69c5923a2439a854a054e1cb095bb99364bc2784
-schema_candidate_revision: 69c5923a2439a854a054e1cb095bb99364bc2784
+schema_runtime_revision: 7e38ba670a4cef400c203390a094ad96d5e5b75c
+schema_candidate_revision: 7e38ba670a4cef400c203390a094ad96d5e5b75c
 schema_candidate_status: installed_awaiting_user_retrial
-schema_motor_contract_version: 4
-schema_installation_status: passed_23_checks_three_migrations_then_statistics_update_without_sql
-user_trial_status: schema_uat_fixes_installed_awaiting_user_retrial
+schema_motor_contract_version: 5
+schema_installation_status: annual_model_passed_5_groups_zero_new_sql_14_prior_revisions_preserved
+user_trial_status: schema_uat_fixes_and_annual_model_installed_awaiting_user_retrial
 milestone_name: milestone
 ---
+
+**05.2-SM gemensamt läsårsmönster installerat2026-11-16:** Senare användarbeslut är genomfört i fryst `7e38ba67`: samma undervisning/lärarfördelning får gemensamma HT/VT-pass och tid beräknad över läsåret. [Sammanfattning och bevis](phases/05.2-schemamodul/05.2-SM-LASARSMONSTER-SUMMARY.md), [oberoende verifiering](phases/05.2-schemamodul/05.2-SM-LASARSMONSTER-VERIFICATION.md).1402 Node och81 Rust PASS,282 unika UI-profilfall täckta med riktade omprov; typ/lint/byggen PASS. Faktisk egen skyddad kedja:9 utökade kontroller inklusive8 API-basfall och full cleanup PASS. [Installation](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-16.md):5/5 kontrollgrupper PASS,0 nya SQL, samma169-journal, alla14 tidigare utkastrevisioner bevarade.3012/3013 kör app8/motor5, med stöd för gamla problem4. Första kontrollskriptfelet gav verifierad automatisk återgång; rättad jämförelse passerade. Äldre utkast räknas inte om; välj **Hela läsåret → Ta fram gemensamt läsårsmönster**. **Nästa: nytt avgränsat användarprov, sedan hela schemahandboken.** Liten årsinstruktion och docs-bygge klara. Formella krav-/fasantal, äldre Worker-metadata och mänsklig acceptans ändras inte.
 
 **05.2-SM installerat 2026-11-16:** C1–C13/R1–R4 och serverutkast installerades på användarens **”ja installera där nu”** med fryst `693d6313`, tre additiva migrationer och **23/23 efterkontroller PASS**. Journalen gick 166→169; de 174 befintliga public/auth-tabellernas innehåll bevarades. Därefter installerades den separat beställda visningsrättningen `69c5923a`: **Svårast att lägga** är hopfälld från början. Samma backend, SQL och motorbytes; inga ytterligare migrationer. Appen på **3012** och motor 4 på **3013** kör ur `runtime/schema-69c5923a24/`, med 1 482 verifierade produktfiler. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-16.md). Tidigare [UAT-verifiering](phases/05.2-schemamodul/05.2-SM-UAT-VERIFICATION.md) gäller rättningskandidaten: 274 UI-profilfall med riktade omprov, 1 403 passerade Node-fall, 43 faktiska C5/C12-motorfall, 8/8 faktiska skyddade API-fall och faktiskt eget UI-prov av autosave/reload/Bakåt/tvåfönster/aktivitet. Visningsrättningen har nya **8/8 UI-fall** på 1280/1600 inklusive 200 % text, typ/lint och handboksbygge PASS. **Nästa: nytt avgränsat användarprov, därefter hela schemahandboken.** Ingen mänsklig acceptans, full fasacceptans eller extern standardanslutning härleds från installationen.
 

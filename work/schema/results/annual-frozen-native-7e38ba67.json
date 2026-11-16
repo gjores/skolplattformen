@@ -1,0 +1,14 @@
+{
+  "kind": "schema-annual-exact-frozen-native",
+  "status": "PASS",
+  "revision": "7e38ba670a4cef400c203390a094ad96d5e5b75c",
+  "manifestSha256": "e97f88b02595405a3051b5068cff848ba0ffba87d43d38321a5c68d92a06dffe",
+  "motorSha256": "33cdaa805321c020784f3ae3a1be38012751a45723fa03603a158b31ea8059fe",
+  "passed": 28,
+  "failed": 0,
+  "skipped": 0,
+  "logSha256": "02ae8299456bc782b506b4cd917285e29ce1876933fc734fc8f9d6b49b379c45",
+  "syntheticOnly": true,
+  "targetTouched": false,
+  "cleanup": "complete"
+}
