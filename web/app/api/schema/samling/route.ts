@@ -1,3 +1,4 @@
+import { SchemaFordelningError } from '../../../../lib/schema-fordelning.ts';
 import { protectedRoute, requireSameOrigin } from '../../../../lib/server/authz.ts';
 import { json } from '../../../../lib/server/http.ts';
 import { readSchemaBasis, schemaBegaran } from '../../../../lib/server/schema-read.ts';
@@ -23,5 +24,6 @@ export async function POST(request: Request): Promise<Response> {
     if (!u) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
     checkSchemaPlacements(read.input.placements, u.problem); return json(schemaSamlingData(read.plan, u, read.basis.members, read.names), init);
   }
-  catch (error) { if (error instanceof SchemaContractError) return json({ code: 'bad_request', correlationId }, { ...init, status: 400 }); throw error; }
+  catch (error) { if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });
+    if (error instanceof SchemaContractError) return json({ code: 'bad_request', correlationId }, { ...init, status: 400 }); throw error; }
 }

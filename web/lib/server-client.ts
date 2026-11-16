@@ -9,6 +9,8 @@ export class ApiError extends Error {
   public hasExplicitCode: boolean;
   /** Vitlistad felorsak från tjänstefördelningens, valplanernas, gruppernas eller läsårskalenderns SQL (details.reason, t.ex. tjanst_capacity_exceeded); aldrig fri text. */
   public reason: string | null;
+  /** Validerade verksamhetsfel för undervisningens uppdelning. */
+  public issues: string[];
   constructor(
     code: string,
     status: number,
@@ -16,6 +18,7 @@ export class ApiError extends Error {
     details: ConflictDetails | null = null,
     hasExplicitCode = false,
     reason: string | null = null,
+    issues: string[] = [],
   ) {
     super(messageText(code));
     this.name = 'ApiError';
@@ -25,6 +28,7 @@ export class ApiError extends Error {
     this.details = details;
     this.hasExplicitCode = hasExplicitCode;
     this.reason = reason;
+    this.issues = issues;
   }
 }
 
@@ -131,7 +135,12 @@ async function request<T>(
       const reason = !unexpectedEpoch && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
         && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group|lasar|schema)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
         ? (error.details as { reason: string }).reason : null;
-      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason);
+      const rawIssues = !unexpectedEpoch && code === 'schema_fordelning_invalid' && response.status === 400
+        && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
+        ? (error.details as { issues?: unknown }).issues : null;
+      const issues = Array.isArray(rawIssues) && rawIssues.length > 0 && rawIssues.length <= 20
+        && rawIssues.every(x => typeof x === 'string' && x.length > 0 && x.length <= 4000 && !Array.from(x).some(c => c.charCodeAt(0) < 32 && !['\t', '\n', '\r'].includes(c))) ? rawIssues as string[] : [];
+      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason, issues);
     }
     if (unexpectedEpoch) {
       throw new DOMException('Begäran tillhör en tidigare kontext.', 'AbortError');

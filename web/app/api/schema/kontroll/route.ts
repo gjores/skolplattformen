@@ -1,3 +1,4 @@
+import { SchemaFordelningError } from '../../../../lib/schema-fordelning.ts';
 import { protectedRoute, requireSameOrigin } from '../../../../lib/server/authz.ts';
 import { json } from '../../../../lib/server/http.ts';
 import { readSchemaBasis, schemaBegaran } from '../../../../lib/server/schema-read.ts';
@@ -29,6 +30,7 @@ export async function POST(request: Request): Promise<Response> {
     const placements = checkSchemaPlacements(read.input.placements, underlag.problem);
     return json(schemaKontroll(underlag, placements, await validateSchema(underlag.problem, placements)), init);
   } catch (error) {
+    if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });
     if (error instanceof SchemaContractError) return json({ code: 'bad_request', correlationId }, { ...init, status: 400 });
     if (!(error instanceof SchemaEngineError)) throw error;
     return json({ code: 'schema_engine_unavailable', correlationId, details: { reason: error.reason } }, { ...init, status: 503 });

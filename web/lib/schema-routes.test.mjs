@@ -291,3 +291,12 @@ test('hård baslinje stoppas redan av appruttens oberoende kontroll före sökni
   assert.equal(response.status, 409); assert.equal(data.details.reason, 'schema_placement_invalid_baseline');
   assert.equal(state.validations.length, 1); assert.equal(state.suggests.length, 0);
 });
+
+test('fördiagnos och förslag visar en omöjlig lektionsfördelning utan att anropa motorn', async()=>{
+  for(const name of ['diagnos','forslag']){
+    reset();const villkor={...defaultSchemaVillkor(),egna:[{slag:'klass',ref:id(10),typ:'antal',count:10}]};
+    const response=await routes[name](request(name,scope(villkor))),result=await response.json();
+    assert.equal(response.status,400);assert.equal(result.code,'schema_fordelning_invalid');assert.ok(result.details.issues.length>0);assert.match(result.details.issues.join(' '),/lektion|pass/i);
+    assert.equal(state.solves.length+state.diagnoses.length,0);
+  }
+});

@@ -143,3 +143,16 @@ test('arbetsytans abortsignal stoppar sena resultat utan att låsa andra begära
   globalThis.fetch = async () => response({ ok: true });
   assert.deepEqual(await api.get('/api/current'), { ok: true });
 });
+
+test('endast schemats specificerade fördelningsfel bär validerade verksamhetsmeddelanden', async () => {
+  setKnownEpoch(1);
+  const issue='Matematik: tio lektioner ryms inte inom timplanens tid.';
+  for (const [code, status, issues, expected] of [
+    ['schema_fordelning_invalid',400,[issue],[issue]], ['bad_request',400,[issue],[]],
+    ['schema_fordelning_invalid',503,[issue],[]], ['schema_fordelning_invalid',400,[42],[]],
+    ['schema_fordelning_invalid',400,['x'.repeat(4001)],[]], ['schema_fordelning_invalid',400,['\u0000'],[]],
+  ]) {
+    globalThis.fetch=async()=>response({code,details:{issues}},status);
+    await assert.rejects(api.post('/api/schema/forslag',{}),e=>e instanceof ApiError&&assert.deepEqual(e.issues,expected)===undefined);
+  }
+});
