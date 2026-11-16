@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UAT-rättningar 693d6313 verifierade — väntar på installationsbeslut"
+current_plan: "UAT-rättningar och serverutkast installerade — nytt användarprov återstår"
 status: in_progress
-stopped_at: "Serverutkast och C1–C13/R1–R4 verifierade i fryst693d6313, inklusive faktisk Bakåt/tvåfönster/aktivitet. 4267daf7 är fortsatt installerad. Konkret nytt installationsbeslut, användarprov och handbok återstår."
+stopped_at: "693d6313 installerad med tre migrationer, därefter kompakt sökstatistik 69c5923a. 3012/3013 kör nya paret. Nytt användarprov och schemahandbok återstår."
 last_updated: "2026-11-16"
 last_activity: 2026-11-16
-last_activity_desc: "274 UI-profilfall, verklig API8/8 och kandidatbundet faktiskt UI PASS. Ny serverlagring har tre additiva migrationer; inget nytt målskrivet eller installerat."
-state_head: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
+last_activity_desc: "23 installationskontroller PASS; 166→169 journalposter; 174 ursprungliga tabeller bevarade. Hopfälld sökstatistik 8/8 UI PASS och separat kodinstallation utan SQL."
+state_head: 69c5923a2439a854a054e1cb095bb99364bc2784
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,16 +21,16 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef
-schema_candidate_revision: 693d63138e9b5a96c5e25c0130385d5e31ff7d5f
-schema_candidate_status: verified_awaiting_concrete_installation_approval
+schema_runtime_revision: 69c5923a2439a854a054e1cb095bb99364bc2784
+schema_candidate_revision: 69c5923a2439a854a054e1cb095bb99364bc2784
+schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 4
-schema_installation_status: passed_31_checks_no_migration
-user_trial_status: schema_uat_fix_candidate_verified_awaiting_installation
+schema_installation_status: passed_23_checks_three_migrations_then_statistics_update_without_sql
+user_trial_status: schema_uat_fixes_installed_awaiting_user_retrial
 milestone_name: milestone
 ---
 
-**05.2-SM användarfynd 2026-11-16 — verifierade rättningar:** C1–C13/R1–R4 är implementerade i fryst kandidat `693d6313`: serverutkast, rätt termin efter Bakåt, synlig ångring, antal per undervisningsgrupp, tydliga hinder, regelborttagning, salssök, granskade villkorsförslag, aktiviteter och separata datumundantag. [UAT-verifieringen](phases/05.2-schemamodul/05.2-SM-UAT-VERIFICATION.md) binder 274 UI-profilfall med riktade omprov,1 403 passerade Node-fall (två gated fall separat prövade),43 verkliga C5/C12-motorfall,8/8 faktiska skyddade API-fall och faktiskt UI på 1280/1600 med autosave/reload/Bakåt/tvåfönster samt aktivitetsskapning och återöppning. Kandidaten har 1 482 filer och tre additiva migrationer; [leverans och återgång](phases/05.2-schemamodul/05.2-SM-UAT-RELEASE.md) innehåller exakta hashar. **3012/3013 kör fortsatt 4267daf7; inget nytt är installerat. Nästa är konkret installationsbeslut, därefter nytt användarprov och handbok/docs-bygge.** Inga hela faskrav, mänskligt UAT eller extern standardanslutning markeras godkända.
+**05.2-SM installerat 2026-11-16:** C1–C13/R1–R4 och serverutkast installerades på användarens **”ja installera där nu”** med fryst `693d6313`, tre additiva migrationer och **23/23 efterkontroller PASS**. Journalen gick 166→169; de 174 befintliga public/auth-tabellernas innehåll bevarades. Därefter installerades den separat beställda visningsrättningen `69c5923a`: **Svårast att lägga** är hopfälld från början. Samma backend, SQL och motorbytes; inga ytterligare migrationer. Appen på **3012** och motor 4 på **3013** kör ur `runtime/schema-69c5923a24/`, med 1 482 verifierade produktfiler. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-16.md). Tidigare [UAT-verifiering](phases/05.2-schemamodul/05.2-SM-UAT-VERIFICATION.md) gäller rättningskandidaten: 274 UI-profilfall med riktade omprov, 1 403 passerade Node-fall, 43 faktiska C5/C12-motorfall, 8/8 faktiska skyddade API-fall och faktiskt eget UI-prov av autosave/reload/Bakåt/tvåfönster/aktivitet. Visningsrättningen har nya **8/8 UI-fall** på 1280/1600 inklusive 200 % text, typ/lint och handboksbygge PASS. **Nästa: nytt avgränsat användarprov, därefter hela schemahandboken.** Ingen mänsklig acceptans, full fasacceptans eller extern standardanslutning härleds från installationen.
 
 **05.2-SM installerad 2026-11-15:** Användaren godkände den frysta kandidaten med **”Ja gör det.”** Appen på 3012 och motor 4 på 3013 kör nu `4267daf7` ur `runtime/schema-4267daf75b/`. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-12.md), [leveransunderlag](phases/05.2-schemamodul/05.2-SM-WAVE-8-RELEASE.md) och [körningsrapport](../work/schema/results/wave8-4267daf75b-install.json): **31/31 PASS**, alla 1 460 filhashar oförändrade, 571 installerade beroendeversioner kontrollerade, ingen migration eller ombyggnad. Hälsa, nio nekande apprutter, fem motorgrindar, syntetisk kort kedja med separat kontroll och inloggningssidan verifierade. Två föregående provskriptavbrott gav automatisk återgång PASS; de rättade bara provantaganden. Föregående app/motor `8b6b9968` och privat konfiguration är bevarade. **Nästa: [U1–U12](phases/05.2-schemamodul/05.2-SM-WAVE-8-UAT.md), därefter handbok och dokumentationsbygge. Installationsgodkännandet ska inte återfrågas för denna kandidat. Våg 8 är inte klar.** Ingen inloggad verksamhetskedja eller mänsklig acceptans påstås; ordinarie säkerhetsloggning används vid nekade provanrop. Äldre kalender-/Worker-metadata och formella pilotantal består. Äldre lägesnoteringar nedan är historik.
 

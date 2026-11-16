@@ -1,0 +1,40 @@
+{
+  "kind": "schema-requested-statistics-ui-update",
+  "revision": "69c5923a2439a854a054e1cb095bb99364bc2784",
+  "approval": "ja installera där nu",
+  "userComment": "Vet inte vad det här tillför. Kanske ska gömma i menyer eller så.",
+  "startedAt": "2026-11-16T13:47:56.843Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "same backend and motor bytes; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "requested compact UI running on3012; identical motor on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all15protected schema paths retain session gate",
+      "status": "PASS"
+    },
+    {
+      "name": "same169journal, session secret and exact new product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "manifestSha256": "f1faac725cac88ce0379f9c63737b452a31d42a98686bef733f59c40fc2be601",
+  "inventorySha256": "9d08b991d3f31820d370aa5497e9b2c4d220cf84e67afeb52c4c34abda6c298f",
+  "stage": "work/pilot/targets/protected/runtime/schema-69c5923a24",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-693d63138e",
+  "processes": {
+    "appRoot": 33825,
+    "appListener": 33845,
+    "motorListener": 33809
+  },
+  "finishedAt": "2026-11-16T13:48:13.044Z"
+}

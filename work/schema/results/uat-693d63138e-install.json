@@ -1,0 +1,222 @@
+{
+  "kind": "schema-uat-approved-installation",
+  "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+  "approval": "ja installera där nu",
+  "startedAt": "2026-11-16T13:41:02.117Z",
+  "status": "PASS",
+  "stage": "work/pilot/targets/protected/runtime/schema-693d63138e",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-4267daf75b",
+  "phase": "complete",
+  "checks": [
+    {
+      "name": "approved frozen artifact and installed dependencies",
+      "status": "PASS",
+      "files": 1482
+    },
+    {
+      "name": "same reviewed local target, old pair and exact legacy journal",
+      "status": "PASS"
+    },
+    {
+      "name": "new stage and private rollback configuration prepared",
+      "status": "PASS"
+    },
+    {
+      "name": "old app stopped with identity verified",
+      "status": "PASS"
+    },
+    {
+      "name": "three migrations rehearsed, rolled back and atomically committed; original rows retained",
+      "status": "PASS",
+      "journalBefore": 166,
+      "journalAfter": 169
+    },
+    {
+      "name": "approved app and motor running on3012/3013",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint forslag",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint kontroll",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint lagen",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint folj",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint samling",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint aktiviteter",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint diagnos",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint placering",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint fonster",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint datum",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint salar",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint villkorsforslag",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint utkast/las",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint utkast/spara",
+      "status": "PASS"
+    },
+    {
+      "name": "protected endpoint utkast/status",
+      "status": "PASS"
+    },
+    {
+      "name": "all five motor token gates",
+      "status": "PASS"
+    },
+    {
+      "name": "identity provider, unchanged session secret and final product inventory",
+      "status": "PASS"
+    }
+  ],
+  "migrationsCommitted": true,
+  "rollback": {
+    "performed": false
+  },
+  "limits": [
+    "No account/password/OTP login on the active target",
+    "Denied HTTP probes use normal security audit",
+    "Not human acceptance or external integration"
+  ],
+  "manifestSha256": "23410c8cd33f60d6c03edb691abd268330940642a4c015711abf622942f2daba",
+  "inventorySha256": "3267857b81a1cd6827c9022643d60a94be667dea73fb201905e9364aa7f2f14d",
+  "sql": [
+    {
+      "file": "20261116100000_schema_drafts.sql",
+      "version": "20261116100000",
+      "name": "schema_drafts",
+      "bytes": 20589,
+      "sha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "executionSha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116101000_schema_drafts_worker_access.sql",
+      "version": "20261116101000",
+      "name": "schema_drafts_worker_access",
+      "bytes": 320,
+      "sha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "executionSha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116102000_schema_dated_basis.sql",
+      "version": "20261116102000",
+      "name": "schema_dated_basis",
+      "bytes": 4973,
+      "sha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "executionSha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "wrapper": "none"
+    }
+  ],
+  "preflight": {
+    "journal": "ad19fe0d7e412d52dc8dec2d43bc8e355befe09977486cab38c39c384a410b9c",
+    "schema": "a6d6076e27418096ea2a06d349cf722fbd81fc2db966539ee379458f3542364d",
+    "legacyStrictFlagPreserved": true
+  },
+  "database": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "a6d6076e27418096ea2a06d349cf722fbd81fc2db966539ee379458f3542364d",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "f3921460bf4dbeb550ba8911e5be5a2fb9988375d6a86f2af9bdf75544c4af82",
+      "inventory": {
+        "newFunctions": 11,
+        "newTables": 3,
+        "newIndexes": 5,
+        "newTriggers": 2,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 3,
+        "workerEntries": 4,
+        "privateHelpers": 7
+      },
+      "journalCount": 169,
+      "journalSha256": "98e2d2e98bcdfbc6018d896963a66f9a29f00db20646ebc29d71ef63d8be168d",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "a6d6076e27418096ea2a06d349cf722fbd81fc2db966539ee379458f3542364d"
+    },
+    "committed": true,
+    "installed": {
+      "fingerprint": "f3921460bf4dbeb550ba8911e5be5a2fb9988375d6a86f2af9bdf75544c4af82",
+      "inventory": {
+        "newFunctions": 11,
+        "newTables": 3,
+        "newIndexes": 5,
+        "newTriggers": 2,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 3,
+        "workerEntries": 4,
+        "privateHelpers": 7
+      },
+      "journalCount": 169,
+      "journalSha256": "98e2d2e98bcdfbc6018d896963a66f9a29f00db20646ebc29d71ef63d8be168d",
+      "auditId": "292171"
+    },
+    "preservedTables": 174,
+    "preservedRowsSha256": "c335740153983b5138416f8429dfd1e773b243fd72e262a3e07546c322ce7954",
+    "journalBefore": 166,
+    "journalAfter": 169
+  },
+  "processes": {
+    "appRoot": 33135,
+    "appListener": 33178,
+    "motorListener": 33119
+  },
+  "finishedAt": "2026-11-16T13:42:25.006Z"
+}

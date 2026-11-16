@@ -1,0 +1,53 @@
+{
+  "kind": "schema-statistics-disclosure",
+  "sourceHashes": {
+    "web/app/schema/diagnos.tsx": "5dc6533e6dd01cf5c8af7872311902aed1a1b7def85f033d28889bb788a5a4a7",
+    "web/e2e/schema-diagnos.spec.ts": "b12c20e73a275fda9e3c75737431b952775c438f71e3306e5a29e7cb068f8d46",
+    "docs/handbok/planering.md": "cfc6c8de639f96a3031f59623e880e0ac95382d8d850458b8ce3f023b5eb7923"
+  },
+  "images": [
+    {
+      "file": "/private/tmp/schema-statistics-disclosure-evidence-20261116/diagnos-statistik-hopfalld-200-1280.png",
+      "sha256": "980f89cf8dda693fa0a03b4fa3abb77aff71afb2c03b553d31df9994afc11888"
+    },
+    {
+      "file": "/private/tmp/schema-statistics-disclosure-evidence-20261116/diagnos-statistik-200-1280.png",
+      "sha256": "06c77b56fd0469962524ea5e1888c5bb60e315aae23765b121f84c908a921889"
+    },
+    {
+      "file": "/private/tmp/schema-statistics-disclosure-evidence-20261116/diagnos-statistik-hopfalld-200-1600.png",
+      "sha256": "1e8a8994cb258b31af40bd728c174380139ba8090f8c23aece2be69269899898"
+    },
+    {
+      "file": "/private/tmp/schema-statistics-disclosure-evidence-20261116/diagnos-statistik-200-1600.png",
+      "sha256": "13bdbc39d5c0690d5ea69586ac4aab1505ca9f305d16599a2341365b968ac1a6"
+    }
+  ],
+  "checks": {
+    "browser": {
+      "passed": 8,
+      "failed": 0,
+      "skipped": 0,
+      "durationSeconds": 16.7,
+      "profiles": [
+        1280,
+        1600
+      ],
+      "textPercent": 200
+    },
+    "typescript": "PASS",
+    "lint": "PASS",
+    "documentationBuild": "PASS",
+    "diffCheck": "PASS"
+  },
+  "limits": [
+    "Synthetic API UI fixture; no authenticated live-target browser test",
+    "No API/contract/motor/SQL changes",
+    "Installation is reported separately in statistics-69c5923a24-install.json"
+  ],
+  "source_revision": "69c5923a2439a854a054e1cb095bb99364bc2784",
+  "stage": "isolated_component_verification_before_installation",
+  "referenceHashes": {
+    "Skolplattan/project/README.md": "ecaa84066dd4dbd25387837f0a24f8f65457068048937ce8d7126190e5581015"
+  }
+}
