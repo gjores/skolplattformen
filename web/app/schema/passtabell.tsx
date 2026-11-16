@@ -14,6 +14,7 @@ import { PASS_FILTER, PASS_KOLUMNER, PASS_STATUS, dagText, filterVal, filtreraPa
   type PassFilter, type PassGrupp, type PassKolumn, type PassRad, type PassSortering } from '@/lib/schema-passtabell.ts';
 import { hoursText } from './delat.ts';
 import type { SchemaVeckaVal } from '@/lib/schema-vecka.ts';
+import type { SchemaDatumAndring } from '@/lib/schema-datum.ts';
 import { PassMenypunkter, oppnaMenyVid, passMenyHandelser, type PassAtgarder } from './meny.tsx';
 
 /** Tabellens val. Hålls i arbetsytan, så att filter och sortering står kvar när man byter till veckan och tillbaka. */
@@ -37,6 +38,8 @@ type Props = {
   /** Terminen veckan visar: ett pass som går hela läsåret visas med sin längd den terminen. */
   term: SchemaTerm;
   visning?: SchemaVeckaVal;
+  datedOverrides?: SchemaDatumAndring[];
+  onDatum?: (key: { lesson: string; originalDate: string }) => void;
   picked: string | null; checking: boolean; intentional?: string[];
   val: PassTabellVal; onVal: (next: PassTabellVal) => void;
   /** Passmenyns åtgärder för ett pass (samma som i veckan), med Visa i veckan. */
@@ -52,9 +55,9 @@ type Props = {
   tabellRef: RefObject<HTMLDivElement | null>;
 };
 
-export function Passtabell({ forslag, violations, egna, term, visning, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef, intentional = [] }: Props) {
+export function Passtabell({ forslag, violations, egna, term, visning, datedOverrides = [], onDatum, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef, intentional = [] }: Props) {
   const id = useId();
-  const rader = useMemo(() => passRader(forslag, term, violations, egna, visning), [forslag, term, violations, egna, visning]);
+  const rader = useMemo(() => passRader(forslag, term, violations, egna, visning, datedOverrides), [forslag, term, violations, egna, visning, datedOverrides]);
   const val_ = useMemo(() => filterVal(rader), [rader]);
   const synliga = useMemo(() => sorteraPass(filtreraPass(rader, val.filter, val.sok), val.sortering), [rader, val.filter, val.sok, val.sortering]);
   const grupper = useMemo(() => val.gruppera ? grupperaPass(synliga, forslag.teachings) : null, [val.gruppera, synliga, forslag.teachings]);
@@ -125,6 +128,7 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
     return next;
   }), []);
   function parkeraValda() {
+    if (visning && visning.mode !== 'grundschema') return;
     const ids = [...new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id))];
     if (!ids.length || checking) return;
     onParkera(ids); setValda(new Set());
@@ -160,6 +164,9 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
       if (synligaValda.length) { e.preventDefault(); setValda(new Set()); } else if (picked) { e.preventDefault(); onAvbryt(); }
     } else if (!l || ctrl) {
       return;
+    } else if (rad?.datum && rad.originalDate) {
+      if (e.key === 'Enter' && !checkbox) { e.preventDefault(); onDatum?.({ lesson: rad.lessonId!, originalDate: rad.originalDate }); }
+      else if (['p', 'b', 'l'].includes(e.key.toLowerCase())) e.preventDefault();
     } else if (e.key === 'Enter' && !checkbox) {
       e.preventDefault();
       atgarder(l).flytta();
@@ -214,7 +221,7 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
     <div className="passtabell-rad">
       <p className="schema-note" aria-live="polite">Visar {ordning.length} av {rader.length} {visning && visning.mode !== 'grundschema' ? 'tillfällen' : 'pass'}{grupper ? ` i ${grupper.length} ${grupper.length === 1 ? 'undervisning' : 'undervisningar'}` : ''}.
         {synligaValda.length > 0 && ` ${synligaValda.length} ${visning && visning.mode !== 'grundschema' ? synligaValda.length === 1 ? 'tillfälle valt' : 'tillfällen valda' : synligaValda.length === 1 ? 'pass valt' : 'pass valda'}.`}</p>
-      {synligaValda.length > 0 && <div className="passtabell-knappar">
+      {synligaValda.length > 0 && (!visning || visning.mode === 'grundschema') && <div className="passtabell-knappar">
         <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={parkeraValda}>Lägg valda på viloytan</Button>
         {onLas && <><Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id))], true)}>Lås valda</Button>
           <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.last)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.last).map(r => r.lessonId ?? r.id))], false)}>Lås upp valda</Button></>}
@@ -248,14 +255,14 @@ export function Passtabell({ forslag, violations, egna, term, visning, picked, c
           </div>
         </ContextMenuTrigger>
         <ContextMenuContent className="schema-meny" finalFocus={() => { const keep = !menyFokus.current; menyFokus.current = false; return keep; }}>
-          {malLesson && <PassMenypunkter pass={malLesson} rubrik={rubrik(malLesson)} flyttarFokus={flyttarFokus} {...passMenyHandelser(atgarder(malLesson))}/>}
-          {flera > 1 && <><ContextMenuSeparator/><ContextMenuItem onClick={parkeraValda}>Lägg {flera} valda pass på viloytan</ContextMenuItem></>}
+          {malRad?.datum && malRad.originalDate ? <ContextMenuItem onClick={flyttarFokus(() => onDatum?.({ lesson: malRad.lessonId!, originalDate: malRad.originalDate! }))}>Ändra detta tillfälle · {malRad.datum}</ContextMenuItem> : malLesson && <PassMenypunkter pass={malLesson} rubrik={rubrik(malLesson)} flyttarFokus={flyttarFokus} {...passMenyHandelser(atgarder(malLesson))}/>}
+          {flera > 1 && !malRad?.datum && <><ContextMenuSeparator/><ContextMenuItem onClick={parkeraValda}>Lägg {flera} valda pass på viloytan</ContextMenuItem></>}
         </ContextMenuContent>
       </ContextMenu>}
   </section>;
 
   function radFor(r: PassRad, index: number) {
-    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === (r.lessonId ?? r.id)} intentional={intentional.includes(r.lessonId ?? r.id)} onVald={valj}/>;
+    return <Rad key={r.id} rad={r} aktivCol={rubrikAktiv === null && index === aktivIndex ? aktiv.col : null} vald={valda.has(r.id)} markerad={picked === (r.lessonId ?? r.id)} intentional={intentional.includes(r.lessonId ?? r.id)} onVald={valj} onDatum={onDatum}/>;
   }
 }
 
@@ -267,8 +274,9 @@ function Grupprad({ grupp: g }: { grupp: PassGrupp }) {
 }
 
 // Raden får inte sin plats som prop: vid sortering flyttas raderna utan att ritas om.
-const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald, intentional }: {
+const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald, intentional, onDatum }: {
   rad: PassRad; aktivCol: number | null; vald: boolean; markerad: boolean; intentional: boolean; onVald: (id: string, utoka: boolean) => void;
+  onDatum?: (key: { lesson: string; originalDate: string }) => void;
 }) {
   const tab = (c: number) => aktivCol === c ? 0 : -1;
   const veckor = veckorText(r), marginal = marginalText(r);
@@ -276,7 +284,7 @@ const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald, intent
     className={`${markerad ? 'passtabell-markerad' : ''}${r.status === 'avvikelse' ? ' passtabell-avvikelse' : ''}`}>
     <TableCell className="passtabell-valruta"><input type="checkbox" data-col={0} tabIndex={tab(0)} checked={vald} aria-label={`Välj ${radNamn(r)}`}
       onClick={e => onVald(r.id, e.shiftKey)} onChange={() => undefined}/></TableCell>
-    <TableCell data-col={1} tabIndex={tab(1)}><strong>{r.undervisning}</strong>{r.aktivitetTyp && <span className="schema-note"> · {r.aktivitetTyp}{r.datum ? " · Grundschemaaktivitet" : ""}</span>}{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
+    <TableCell data-col={1} tabIndex={tab(1)}>{r.datum && onDatum ? <Button type="button" variant="link" className="h-auto min-h-11 whitespace-normal p-0 text-left" onClick={() => onDatum({ lesson: r.lessonId!, originalDate: r.originalDate! })}>{r.undervisning}</Button> : <strong>{r.undervisning}</strong>}{r.datumAndrat && <span className="status-badge">Ändrat tillfälle</span>}{r.aktivitetTyp && <span className="schema-note"> · {r.aktivitetTyp}{r.datum ? " · Grundschemaaktivitet" : ""}</span>}{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
     <TableCell data-col={2} tabIndex={tab(2)}>{lista(r.klasser) || '–'}</TableCell>
     <TableCell data-col={3} tabIndex={tab(3)}>{lista(r.grupper) || '–'}</TableCell>
     <TableCell data-col={4} tabIndex={tab(4)}>{r.vakant ? 'Ingen lärare' : lista(r.larare) || '–'}</TableCell>

@@ -54,6 +54,7 @@
 .schema-workspace details.schema-list[open] summary { margin-bottom: .5rem; }
 
 .schema-workspace .schema-moves { display: flex; flex-wrap: wrap; gap: .5rem 1rem; align-items: center; justify-content: space-between; }
+.schema-workspace .schema-moves { position: sticky; top: .5rem; z-index: 10; }
 .schema-workspace .schema-moves p { flex: 1 1 20rem; }
 .schema-workspace .schema-moves button, .schema-workspace .schema-move button, .schema-workspace .schema-unplaced button { min-height: var(--control-height); height: auto; white-space: normal; }
 /* Flyttpanelen följer skärmens nederkant medan schemat visas, så att den nås utan att rulla förbi veckan. */

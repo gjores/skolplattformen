@@ -1,8 +1,9 @@
 'use client';
 // Möjlighetskartan (05.2-SM-FOLJ): översta raden i Följ passet. Var passet kan ligga i veckan och varför inte, ur motorns lägen (05.2-SM-LAGEN).
 // Raden är ett tabbstopp; piltangenterna går mellan starttiderna. Pekning eller fokus visar "Varför inte …?". En fri tid flyttar passet dit.
-import { useId, useState, type CSSProperties, type KeyboardEvent } from 'react';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
 import type { SchemaForslag } from '@/lib/schema-contract.ts';
 import { lagesStrackor } from '@/lib/schema-folj.ts';
 import { varfor, type SchemaLage, type SchemaLagen, type SchemaLagenKontext, type SchemaLagenPosition } from '@/lib/schema-lagen.ts';
@@ -29,6 +30,10 @@ export function Mojligt({ days, span, step, lesson, title, lengthMin, lagen, loa
   const here = kontext.placements.find(p => p.lesson === lesson);
   const start = Math.max(0, positions.findIndex(p => here ? p.day === here.day && p.startMin === here.startMin : p.state === 'fri'));
   const [focus, setFocus] = useState<number | null>(null), [aktiv, setAktiv] = useState<number | null>(null), [inne, setInne] = useState(false);
+  const [pinned, setPinned] = useState<number | null>(null), closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null), moveButton = useRef<HTMLButtonElement | null>(null);
+  const keepOpen = () => { if (closeTimer.current) clearTimeout(closeTimer.current); closeTimer.current = null; };
+  const closeLater = () => { keepOpen(); closeTimer.current = setTimeout(() => { if (!inne && pinned === null) setAktiv(null); }, 180); };
+  useEffect(() => () => { if (closeTimer.current) clearTimeout(closeTimer.current); }, []);
   const current = focus !== null && focus < positions.length ? focus : start;
   const strackor = lagesStrackor(positions, step);
   const pos = (from: number, to: number) => ({ '--at': from - span.start, '--length': to - from }) as CSSProperties;
@@ -52,25 +57,30 @@ export function Mojligt({ days, span, step, lesson, title, lengthMin, lagen, loa
     else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { const d = dayAfter(e.key === 'ArrowDown' ? 1 : -1); if (d !== null) go(nearest(d), e); else e.preventDefault(); }
     else if (e.key === 'Home') go(sameDay[0], e);
     else if (e.key === 'End') go(sameDay.at(-1)!, e);
-    else if (e.key === 'Escape' && shown !== null) { e.preventDefault(); setAktiv(null); }
+    else if (e.key === 'Tab' && !e.shiftKey && shown !== null) { e.preventDefault(); moveButton.current?.focus(); }
+    else if (e.key === 'Escape' && shown !== null) { e.preventDefault(); setPinned(null); setAktiv(null); }
   }
 
-  return <div className="folj-rad folj-mojligt" onPointerLeave={() => setAktiv(inne ? current : null)}
-    onFocus={() => setInne(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null)) { setInne(false); setAktiv(null); } }}>
+  return <div className="folj-rad folj-mojligt" onPointerLeave={closeLater}
+    onFocus={() => setInne(true)} onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget as Node | null) && !(e.relatedTarget as HTMLElement | null)?.closest('[data-schema-why]')) { setInne(false); closeLater(); } }}>
     <div className="folj-namn"><b>Möjliga starttider</b><small>{title}, {lengthMin} min</small></div>
     {days.map((_, day) => <div key={day} className="folj-dag">
       {strackor.filter(s => s.day === day).map(s => <span key={s.from} aria-hidden="true" className={`folj-lage ${LAGE_KLASS[s.state]}`} style={pos(s.from, s.to)}/>)}
       {positions.map((p, i) => p.day !== day ? null : <button key={i} type="button" data-start={i} className="folj-start" style={pos(p.startMin, p.startMin + step)}
-        tabIndex={i === current ? 0 : -1} aria-disabled={p.state !== 'fri' || disabled} data-aktiv={shown === i ? '' : undefined}
+        tabIndex={i === current ? 0 : -1} aria-disabled={disabled} data-aktiv={shown === i ? '' : undefined}
+        aria-haspopup="dialog" aria-expanded={shown === i} aria-controls={shown === i ? tip : undefined}
         aria-label={`${dayName(day)} ${clock(p.startMin)}: ${KORT[p.state]}${p.state === 'fri' ? '. Välj för att flytta passet hit.' : ''}`}
-        aria-describedby={shown === i ? tip : undefined}
-        onPointerEnter={() => setAktiv(i)} onFocus={() => { setFocus(i); setAktiv(i); }} onKeyDown={e => key(e, i)}
-        onClick={() => { if (p.state === 'fri' && !disabled) onMove(p); }}/>)}
-      {shown !== null && positions[shown].day === day && <Tooltip open onOpenChange={() => undefined}>
-        <TooltipTrigger render={<span aria-hidden="true" className="folj-ankare" style={pos(positions[shown].startMin, positions[shown].startMin + step)}/>}/>
-        <TooltipContent id={tip} role="tooltip" side="bottom" className="folj-varfor">{varfor(lesson, positions[shown], kontext).map((line, n, all) =>
-          <span key={n} className={n === 0 ? 'rubrik' : n === all.length - 1 ? 'lage' : undefined}>{line}</span>)}</TooltipContent>
-      </Tooltip>}
+        onPointerEnter={() => { keepOpen(); setPinned(null); setAktiv(i); }} onFocus={() => { keepOpen(); setFocus(i); setAktiv(i); }} onKeyDown={e => key(e, i)}
+        onClick={() => { if (p.state === 'fri' && !disabled) onMove(p); else { setPinned(i); setAktiv(i); } }}/>)}
+      {shown !== null && positions[shown].day === day && <Popover open onOpenChange={open => { if (!open) { setPinned(null); setAktiv(null); } }}>
+        <PopoverTrigger nativeButton={false} render={<span aria-hidden="true" tabIndex={-1} className="folj-ankare" style={pos(positions[shown].startMin, positions[shown].startMin + step)}/>}/>
+        <PopoverContent id={tip} data-schema-why aria-label={`Varför inte ${dayName(day)} ${clock(positions[shown].startMin)}?`} initialFocus={false} finalFocus={false}
+          side="bottom" className="folj-varfor" onPointerEnter={keepOpen} onPointerLeave={closeLater}>
+          {varfor(lesson, positions[shown], kontext).map((line, n, all) => <span key={n} className={n === 0 ? 'rubrik' : n === all.length - 1 ? 'lage' : undefined}>{line}</span>)}
+          <p className="text-sm text-muted-foreground">Flytten kontrolleras. Eventuella regelavvikelser visas i utkastet.</p>
+          <Button ref={moveButton} type="button" disabled={disabled} className="min-h-(--control-height) whitespace-normal" onClick={() => { onMove(positions[shown]); setPinned(null); setAktiv(null); }}>Lägg här</Button>
+        </PopoverContent>
+      </Popover>}
       {!positions.some(p => p.day === day) && !loading && lagen && <span className="folj-tom">Ingen starttid</span>}
     </div>)}
     {(loading || !lagen) && <p className="folj-laddar schema-note" aria-hidden="true">{loading ? 'Räknar möjliga starttider…' : ''}</p>}

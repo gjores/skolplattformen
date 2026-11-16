@@ -1,8 +1,9 @@
 // Utkastet för arbetsytan i Schema (05.2-SM-YTA): var passen ligger just nu, markerat pass, verktyg, synliga lager och ångra/gör om.
 // Ren reducer utan React och utan sidoeffekter. Tillståndet är vanlig JSON (krävs för att flera fönster ska kunna dela utkastet, SM-FONSTER).
-// Inget sparas: utkastet lever i webbläsaren tills sidan lämnas eller ett nytt förslag tas fram.
+// Reducern gör inga sidoeffekter. Arbetsytans skrivkö sparar beständiga fält på servern; markeringar och historik hör till det öppna arbetspasset.
 import type { SchemaAktivitetsSnapshot } from './schema-aktiviteter.ts';
-import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement, SchemaRegel, SchemaRegelSlag, SchemaViolation } from './schema-contract.ts';
+import type { SchemaDatumAndring } from './schema-datum.ts';
+import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement, SchemaRegel, SchemaRegelSlag, SchemaViolation, SchemaVillkor } from './schema-contract.ts';
 
 /** Var ett pass ligger. `day` och `startMin` är null när passet ligger på viloytan. */
 export type SchemaUtkastPlats = { day: number | null; startMin: number | null; room: string | null };
@@ -17,11 +18,16 @@ export type SchemaFlyttSteg = { lesson: string; placements: SchemaUtkastPlatser;
  * Villkoren hålls i arbetsytans villkorsformulär; steget bär båda listorna så att ångra och gör om kan sätta tillbaka rätt lista.
  */
 export type SchemaVillkorSteg = { villkor: SchemaRegel[]; efter: SchemaRegel[]; text: string; intentional?: SchemaMedveten[] };
+/** Hela skolans inställningar och undervisningens uppdelning ska kunna ångras som cellernas egna villkor. */
+export type SchemaArbetsvillkorSteg = { arbetsvillkor: { fore: SchemaVillkor; efter: SchemaVillkor }; platser?: { fore: SchemaUtkastPlatser; efter: SchemaUtkastPlatser }; text: string; intentional?: SchemaMedveten[] };
 export type SchemaAktivitetsSteg = { aktiviteter: { fore: SchemaAktivitetsSnapshot; efter: SchemaAktivitetsSnapshot }; text: string; intentional?: SchemaMedveten[] };
 export type SchemaMedvetenSteg = { medvetna: SchemaMedveten[]; text: string };
-export type SchemaUtkastSteg = SchemaFlyttSteg | SchemaVillkorSteg | SchemaAktivitetsSteg | SchemaMedvetenSteg;
+export type SchemaDatumSteg = { datum: { fore: SchemaDatumAndring[]; efter: SchemaDatumAndring[] }; text: string };
+export type SchemaUtkastSteg = SchemaFlyttSteg | SchemaVillkorSteg | SchemaArbetsvillkorSteg | SchemaAktivitetsSteg | SchemaMedvetenSteg | SchemaDatumSteg;
+export const datumSteg = (step: SchemaUtkastSteg | undefined): step is SchemaDatumSteg => step !== undefined && 'datum' in step;
 export const aktivitetsSteg = (step: SchemaUtkastSteg | undefined): step is SchemaAktivitetsSteg => step !== undefined && 'aktiviteter' in step;
 export const villkorSteg = (step: SchemaUtkastSteg | undefined): step is SchemaVillkorSteg => step !== undefined && 'villkor' in step;
+export const arbetsvillkorSteg = (step: SchemaUtkastSteg | undefined): step is SchemaArbetsvillkorSteg => step !== undefined && 'arbetsvillkor' in step;
 export const medvetenSteg = (step: SchemaUtkastSteg | undefined): step is SchemaMedvetenSteg => step !== undefined && 'medvetna' in step;
 export type SchemaUtkast = {
   placements: SchemaUtkastPlatser;
@@ -56,6 +62,8 @@ export type SchemaUtkastAtgard =
   | { type: 'redo'; rooms?: SchemaUtkastSalar }
   | { type: 'reset'; forslag: { lessons: Pick<SchemaForslagLesson, 'id' | 'day' | 'startMin' | 'roomId'>[]; locks?: SchemaPlacement[] } }
   | { type: 'villkor'; fore: SchemaRegel[]; efter: SchemaRegel[]; text: string }
+  | { type: 'arbetsvillkor'; fore: SchemaVillkor; efter: SchemaVillkor; text: string; placements?: SchemaPlacement[] }
+  | { type: 'datum'; fore: SchemaDatumAndring[]; efter: SchemaDatumAndring[]; text: string }
   /** Salarna efter en kontroll som kördes om för ändrade villkor (05.2-SM-VILLKOR-DIREKT): inget pass flyttas och inget ångra-steg läggs till. */
   | { type: 'salar'; rooms: SchemaUtkastSalar }
   | { type: 'tool'; tool: SchemaVerktyg }
@@ -114,7 +122,7 @@ const withRooms = (placements: SchemaUtkastPlatser, rooms?: SchemaUtkastSalar): 
   return Object.fromEntries(Object.entries(placements).map(([id, p]) => [id, { ...p, room: p.day === null ? null : rooms[id] ?? null }]));
 };
 const push = (list: SchemaUtkastSteg[], step: SchemaUtkastSteg) => [...list, step].slice(-SCHEMA_UTKAST_STEG);
-const flyttSteg = (step: SchemaUtkastSteg | undefined) => step && !villkorSteg(step) && !aktivitetsSteg(step) && !medvetenSteg(step) ? step : null;
+const flyttSteg = (step: SchemaUtkastSteg | undefined) => step && !datumSteg(step) && !villkorSteg(step) && !arbetsvillkorSteg(step) && !aktivitetsSteg(step) && !medvetenSteg(step) ? step : null;
 
 /**
  * Placeringarna som en flytt, parkering, ångra eller gör om skulle ge, utan att ändra utkastet. Används för att låta kontrollen pröva ändringen först.
@@ -212,6 +220,7 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
       const from = action.type === 'undo' ? state.undo : state.redo, to = action.type === 'undo' ? state.redo : state.undo;
       const step = from.at(-1);
       if (!step) return state;
+      if (datumSteg(step)) return { ...state, undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       if (medvetenSteg(step)) return { ...state, intentional: step.medvetna,
         undo: action.type === 'undo' ? from.slice(0, -1) : push(to, { medvetna: state.intentional ?? [], text: step.text }),
         redo: action.type === 'undo' ? push(to, { medvetna: state.intentional ?? [], text: step.text }) : from.slice(0, -1) };
@@ -221,7 +230,9 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
         return { ...state, placements: withRooms(placements, action.rooms), picked: null, intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       }
       // Ett villkorssteg bär villkoren före och efter och flyttar inget pass; arbetsytan sätter tillbaka villkoren.
-      if (villkorSteg(step)) return { ...state, intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
+      if (villkorSteg(step) || arbetsvillkorSteg(step)) return { ...state,
+        placements: arbetsvillkorSteg(step) && step.platser ? withRooms(step.platser[action.type === 'undo' ? 'fore' : 'efter'], action.rooms) : state.placements,
+        intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       const moved = { lesson: step.lesson, placements: state.placements, locked: state.locked, intentional: state.intentional ?? [] };
       return { ...state, placements: withRooms(step.placements, action.rooms), locked: step.locked ?? state.locked, picked: null, selected: [], intentional: step.intentional ?? [],
         undo: action.type === 'undo' ? from.slice(0, -1) : push(to, moved), redo: action.type === 'undo' ? push(to, moved) : from.slice(0, -1) };
@@ -234,6 +245,14 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
     }
     case 'villkor':
       return { ...state, intentional: [], undo: push(state.undo, { villkor: action.fore, efter: action.efter, text: action.text, intentional: state.intentional ?? [] }), redo: [] };
+    case 'arbetsvillkor': {
+      const next = action.placements ? schemaUtkast(state, { type: 'placement', lesson: '', placements: action.placements }) : state;
+      if (action.placements && next === state) return state;
+      return { ...state, placements: next.placements, picked: null, selected: [], intentional: [], undo: push(state.undo, { arbetsvillkor: { fore: action.fore, efter: action.efter },
+        ...(action.placements ? { platser: { fore: state.placements, efter: next.placements } } : {}), text: action.text, intentional: state.intentional ?? [] }), redo: [] };
+    }
+    case 'datum':
+      return { ...state, undo: push(state.undo, { datum: { fore: action.fore, efter: action.efter }, text: action.text }), redo: [] };
     case 'tool':
       return { ...state, tool: action.tool };
     case 'layer':
@@ -365,9 +384,16 @@ type Tid = Extract<SchemaRegel, { typ: 'sparrad' | 'tillaten' }>;
 const tid = (r: SchemaRegel): r is Tid => r.typ === 'sparrad' || r.typ === 'tillaten';
 /** Om ett eget villkor gäller passet: klassens, gruppens eller lärarens pass, ämnets pass eller passen i salen. */
 function galler(f: Underlag, refs: Map<string, SchemaSparrResurs>, r: SchemaRegel, l: Lagt): boolean {
+  if (r.slag === 'pass') return r.ref === l.id;
   if (r.slag === 'amne') return l.title === r.ref;
   if (r.slag === 'sal') return f.rooms.find(x => x.id === l.roomId)?.name === r.ref;
   return (r.slag === 'larare' ? l.teacherIds : l.classIds).some(id => { const x = refs.get(id); return x?.slag === r.slag && x.ref === r.ref; });
+}
+
+/** Alla egna regler för passets resurser, även när passet ännu ligger på viloytan. */
+export function passetsVillkor(f: Underlag, egna: SchemaRegel[], lesson: Lagt): SchemaRegel[] {
+  const refs = resursRefs(f);
+  return egna.filter(r => galler(f, refs, r, lesson));
 }
 
 /**

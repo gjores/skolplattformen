@@ -1,6 +1,6 @@
 'use client';
 // Förslag visas före ändring. Varje berört pass redovisas från → till, med skolans namn på resurserna.
-import { useEffect, useId, useRef } from 'react';
+import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { SchemaForslag, SchemaPlacement } from '@/lib/schema-contract.ts';
@@ -8,9 +8,9 @@ import type { SchemaPlacering, SchemaPlaceringRequest } from '@/lib/schema-place
 import { clock, dayName, names } from './delat';
 
 export type PlaceringSokning = { request: SchemaPlaceringRequest; key: string; inputKey: string; result: SchemaPlacering | null; loading: boolean; error: string | null };
-export function Placeringsforslag({ search, forslag, stale, checking, onDepth, onApply, onClose }: {
+export function Placeringsforslag({ search, forslag, stale, checking, onDepth, onApply, onClose, children }: {
   search: PlaceringSokning; forslag: SchemaForslag; stale: boolean; checking: boolean;
-  onDepth: (depth: 1 | 2 | 3) => void; onApply: (index: number, key: string) => void; onClose: () => void;
+  onDepth: (depth: 1 | 2 | 3) => void; onApply: (index: number, key: string) => void; onClose: () => void; children?: ReactNode;
 }) {
   const heading = useId(), headingRef = useRef<HTMLHeadingElement | null>(null);
   useEffect(() => { headingRef.current?.focus(); headingRef.current?.scrollIntoView({ block: 'start' }); }, [search.key]);
@@ -30,6 +30,7 @@ export function Placeringsforslag({ search, forslag, stale, checking, onDepth, o
     {search.error && <p className="valplan-alert" role="alert">{search.error}</p>}
     {search.result?.timedOut && <p className="schema-note">Söktiden tog slut. Det kan finnas fler lösningar än de som visas här.</p>}
     {!search.loading && search.result && suggestions.length === 0 && <p className="empty-state">Inget fullständigt förslag hittades på detta sökdjup. {search.request.depth < 3 ? 'Öka sökdjupet eller se över reglerna och de låsta passen.' : 'Se över reglerna och de låsta passen.'}</p>}
+    {children}
     <ol className="grid min-w-0 gap-4">{suggestions.slice(0, 5).map((suggestion, index) => <li key={index} className="min-w-0 rounded-lg border border-border bg-card p-4">
       <h3 className="section-heading">Förslag {index + 1} · {suggestion.changes.length} pass ändras</h3>
       <p>{suggestion.changes.filter(c => c.from === null).length} {suggestion.changes.filter(c => c.from === null).length === 1 ? 'ny placering' : 'nya placeringar'} · {suggestion.changes.filter(c => c.from !== null).length} {suggestion.changes.filter(c => c.from !== null).length === 1 ? 'redan lagt pass flyttas' : 'redan lagda pass flyttas'}.</p>

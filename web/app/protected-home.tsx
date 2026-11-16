@@ -918,7 +918,7 @@ function ProtectedShell() {
             {view === 'undervisningsgrupper' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
               onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <ProtectedStudyGroups unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'schema' && !isSelf(session) && TJANST_FUNCTIONS.includes(session.context!.function) && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice
-              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <SchemaWorkspace unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
+              onChange={rememberTjanstPlanning} onSessionLost={clearSession}>{selection => <SchemaWorkspace personalLookup={session.context!.function === 'rektor'} unitId={selection.unitId} schoolYear={selection.schoolYear} scopeKey={contextKey} onSessionLost={clearSession}/>}</TjanstPlanningArea>}
             {view === 'personal' && session.context!.function === 'huvudman' && <PersonalWorkspace context={session.context!} epoch={session.epoch} identityKey={tjanstIdentityKey}
               today={session.today} onSessionLost={clearSession}/>}
             {view === 'bemanning' && session.context!.function === 'huvudman' && <TjanstPlanningArea contextKey={contextKey} initial={tjanstPlanning()} schoolChoice={false}

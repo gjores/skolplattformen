@@ -1,5 +1,5 @@
 // SM-AKTIVITETER: användarbeteende mot uttryckligt simulerade rutter och syntetiska uppgifter.
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './schema-test';
 import rawForslag from './fixtures/schema-forslag.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaPlacement, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { aktivitetsPassId } from '../lib/schema-aktiviteter.ts';
@@ -100,14 +100,16 @@ test('nekad aktivitetsbegäran lämnar det befintliga utkastet orört', async ({
   await expect(page.locator('.schema-lesson.aktivitet')).toHaveCount(0); expect(requests).toHaveLength(1);
   await page.screenshot({ path: info.outputPath('aktivitet-nekat-svar.png'), fullPage: false });
 });
-test('typer kan grupperas och döpas om, aktiviteter och datumfunktioner lagras inte', async ({ page }, info) => {
+test('typer kan grupperas, döpas om och återöppnas från serverutkastet', async ({ page, schemaDraftServer }, info) => {
   test.skip(info.project.name === 'phone', 'Arbetsytan är beslutad för dator.'); await page.setViewportSize({ width: 1280, height: 1000 }); await setup(page);
   await page.getByRole('button', { name: 'Hantera typer', exact: true }).click(); const types = page.getByRole('dialog', { name: 'Hantera aktivitetstyper' });
   await types.getByLabel('Typens namn', { exact: true }).fill('Planeringstid'); await types.getByRole('combobox', { name: 'Grupp', exact: true }).fill('Planering');
   await types.getByRole('button', { name: 'Lägg till typ', exact: true }).click(); await expect(types.getByRole('row', { name: /Planeringstid Planering/ })).toBeVisible();
   await types.getByRole('button', { name: 'Ändra typen Planeringstid' }).click(); await types.getByLabel('Typens namn', { exact: true }).fill('Gemensam planering');
   await types.getByRole('button', { name: 'Spara typen', exact: true }).click(); await types.getByRole('button', { name: 'Stäng', exact: true }).click();
-  await page.reload(); await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click(); await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
+  await expect.poll(() => schemaDraftServer.saves.at(-1)?.activityTypes.some(t => t.name === 'Gemensam planering')).toBe(true);
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
+  await page.reload(); await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const form = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
   await expect(form.getByRole('option', { name: 'Gemensam planering' })).toHaveCount(1); await expect(form.getByRole('button', { name: 'Datum', exact: true })).toBeDisabled();
   await page.evaluate(() => document.documentElement.style.fontSize = '200%');
@@ -117,7 +119,7 @@ test('typer kan grupperas och döpas om, aktiviteter och datumfunktioner lagras 
 });
 
 // Aktivitetshistoriken återställer aktivitetslistan, inte senare tidsvillkor.
-test('ångra borttagen aktivitet bevarar senast valda rast och prövar det sammansatta underlaget', async ({ page }, info) => {
+test('gemensam ångring återställer rast och aktivitet i rätt ordning', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'Arbetsytan är beslutad för dator.');
   await page.setViewportSize({ width: 1280, height: 1000 });
   const controls: Record<string, unknown>[] = []; await setup(page, false, controls); await laggTill(page, false);
@@ -134,10 +136,55 @@ test('ångra borttagen aktivitet bevarar senast valda rast och prövar det samma
   await expect(page.locator('.schema-lesson.aktivitet')).toHaveCount(0);
   const checked = page.waitForResponse(r => r.url().includes('/api/schema/kontroll') && r.request().postDataJSON().villkor.breakMin === 15);
   await rast.selectOption('15'); await checked;
+  await page.getByRole('button', { name: 'Ångra senaste villkor', exact: true }).click();
+  await expect(rast).toHaveValue('5');
   await expect(page.getByRole('button', { name: 'Ångra senaste aktivitet', exact: true })).toBeEnabled();
   await page.getByRole('button', { name: 'Ångra senaste aktivitet', exact: true }).click();
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
-  await expect(rast).toHaveValue('15');
+  await expect(rast).toHaveValue('5');
   const sent = controls.at(-1)!.villkor as SchemaVillkor;
-  expect(sent.breakMin).toBe(15); expect(sent.aktiviteter).toHaveLength(1); expect(sent.aktiviteter![0].name).toBe('Mentorstid prov');
+  expect(sent.breakMin).toBe(5); expect(sent.aktiviteter).toHaveLength(1); expect(sent.aktiviteter![0].name).toBe('Mentorstid prov');
+});
+
+test('ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn och deltagare försvinner', async ({ page }, info) => {
+  const requests = await setup(page);
+  await page.locator('details.schema-villkor > summary').click();
+  await page.locator('details.schema-villkor').getByRole('combobox', { name: 'Längsta pass', exact: true }).selectOption('100');
+  const dialog = await laggTill(page, false);
+  await expect(dialog.getByRole('alert')).toContainText('längsta lektion');
+  await expect(dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true })).toBeVisible();
+  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true }).click();
+  await expect(dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeEnabled();
+  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked();
+  await expect(dialog.getByLabel(base.resurser.larare[0].name, { exact: true })).toBeChecked();
+  await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
+  await expect(dialog).toHaveCount(0);
+  await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
+  expect((requests.at(-1)?.villkor as SchemaVillkor | undefined)?.maxLessonMin).toBe(100);
+  await page.screenshot({ path: info.outputPath('aktivitet-efter-aterhamtning.png'), fullPage: false });
+});
+
+test('aktivitetens återhämtning släpper lås först efter ett lyckat nytt förslag och behåller formuläret vid motorfel', async ({ page }, info) => {
+  await setup(page);
+  const node = page.locator('[data-lesson="pass-7"]').first(); await node.focus(); await page.keyboard.press('l');
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1);
+  await page.locator('details.schema-villkor > summary').click();
+  await page.locator('details.schema-villkor').getByRole('combobox', { name: 'Längsta pass', exact: true }).selectOption('100');
+  const dialog = await laggTill(page, false);
+  const recover = dialog.getByRole('button', { name: 'Lås upp 1 pass och ta fram nytt förslag', exact: true }); await expect(recover).toBeVisible();
+  let failures = 0;
+  await page.route('**/api/schema/forslag', route => {
+    const body = route.request().postDataJSON(); expect(body.locks).toBeUndefined();
+    if (failures++ === 0) return route.fulfill({ headers, status: 503, json: { code: 'schema_engine_unavailable', details: { reason: 'schema_engine_unreachable' } } });
+    return route.fulfill({ headers, json: forslag(body.villkor) });
+  });
+  await recover.click(); await expect(dialog.getByRole('alert')).toContainText('Schemamotorn svarar inte');
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked(); await expect(recover).toBeEnabled();
+  await page.screenshot({ path: info.outputPath('aktivitet-las-motorfel-bevarat.png'), fullPage: false });
+  await recover.click(); await expect(dialog.getByText('Nytt schemaförslag är klart.', { exact: false })).toBeVisible();
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(0); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click(); await expect(dialog).toHaveCount(0); await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
 });

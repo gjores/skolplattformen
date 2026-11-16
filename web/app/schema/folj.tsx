@@ -9,7 +9,8 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { SCHEMA_CONTRACT_VERSION, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaPlacement, type SchemaVillkor } from '@/lib/schema-contract.ts';
 import { elevKrockar, foljRader, parseSchemaFolj, type SchemaFolj } from '@/lib/schema-folj.ts';
 import { SCHEMA_LAGEN, parseSchemaLagen, type SchemaLagen, type SchemaLagenPosition } from '@/lib/schema-lagen.ts';
-import { dayName, names } from './delat.ts';
+import { clock, dayName, names, ruleText } from './delat.ts';
+import { passetsVillkor } from '@/lib/schema-utkast.ts';
 import { LAGE, LAGE_KLASS, Mojligt } from './mojligt.tsx';
 import { veckansSpann } from './vecka.tsx';
 import { OppnaFonster } from './fonster';
@@ -37,10 +38,10 @@ type Props = {
   onLock: (locked: boolean) => void; onClose: () => void; onMove: (p: SchemaLagenPosition) => void; onSessionLost: () => void;
   onPick?: (lesson: string) => void;
   /** Terminen veckan visar; passets egen termin går före. */
-  term: 'ht' | 'vt'; onOpen?: () => void; onSuggest?: () => void; intentional?: string[];
+  term: 'ht' | 'vt'; onOpen?: () => void; onSuggest?: () => void; onSwap?: () => void; intentional?: string[];
 };
 
-export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen, onSuggest, intentional = [] }: Props) {
+export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen, onSuggest, onSwap, intentional = [] }: Props) {
   const heading = useId(), pupilLabel = useId();
   const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
@@ -98,6 +99,7 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
       </div>
       <div className="folj-knappar">
         {onSuggest && <Button type="button" variant="outline" disabled={checking || lesson.locked} onClick={onSuggest}>Föreslå placering</Button>}
+        {onSwap && <Button type="button" variant="outline" disabled={checking || lesson.locked || lesson.day === null} onClick={onSwap}>Byt med ett annat pass…</Button>}
         <OppnaFonster onOpen={onOpen} label="Följ passet"/>
         <Button type="button" variant={locked ? 'secondary' : 'outline'} aria-pressed={locked} onClick={() => onLock(!locked)}>
           {locked ? <LockIcon aria-hidden="true"/> : <LockOpenIcon aria-hidden="true"/>}Lås till detta pass</Button>
@@ -106,6 +108,13 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
     </div>
     <div className="folj-chips"><span className="schema-note" id={`${heading}-visas`}>Visas:</span>
       <ul aria-labelledby={`${heading}-visas`}>{rader.map(r => <li key={r.key} className="folj-chip">{r.chip}</li>)}</ul></div>
+    <details className="rounded-lg border border-border bg-card p-3" open>
+      <summary className="cursor-pointer font-medium">Villkor för passet</summary>
+      <p className="schema-note">Skolans ramar: {villkor.startGridMin} min mellan möjliga starter, {villkor.minLessonMin}–{villkor.maxLessonMin} min per lektion och {villkor.breakMin} min rast.</p>
+      <p className="schema-note">{forslag.days.map((d, i) => `${dayName(i)} ${clock(d.startMin)}–${clock(d.endMin)}`).join(' · ')}</p>
+      {passetsVillkor(forslag, villkor.egna, lesson).length ? <ul className="list-disc pl-5">{passetsVillkor(forslag, villkor.egna, lesson).map((r, i) => <li key={i}>{ruleText(r, forslag.resurser)}</li>)}</ul> : <p className="schema-note">Inga egna resursvillkor för passet.</p>}
+      <p className="schema-note">Möjliga starttider tar också hänsyn till övriga pass, elevgrupper, salar och låsta placeringar.</p>
+    </details>
     <div className="folj-for">
       {elever && elever.length > 0
         ? <label htmlFor={pupilLabel}>Möjliga starttider räknas för</label>

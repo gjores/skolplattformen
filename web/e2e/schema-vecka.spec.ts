@@ -1,5 +1,5 @@
 // Datumvyn mot syntetiskt kalenderunderlag och mockade appanrop; ingen inloggad Worker eller verklig anslutning.
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './schema-test';
 import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
@@ -25,7 +25,7 @@ test('SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas m
   await expect(page.locator('.schema-week .schema-lesson')).toHaveCount(0);
   await expect(page.locator('.schema-utan-undervisning')).toHaveCount(5);
   await expect(page.getByRole('heading', { name: /Måndag 26 okt/u })).toContainText('Lovdag');
-  await expect(val.getByRole('status')).toContainText('Flytten gäller alla veckor');
+  await expect(val.getByRole('status')).toContainText('Ändringar här gäller ett enskilt tillfälle');
   await val.getByRole('combobox', { name: 'Vecka', exact: true }).selectOption('2026-11-09');
   await expect(page.locator('[data-date="2026-11-11"]')).toContainText('Studiedag');
   await expect(page.locator('[data-date="2026-11-11"] .schema-lesson')).toHaveCount(0);
@@ -40,7 +40,7 @@ test('SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas m
   if (process.env.SCHEMA_SHOTS) await page.screenshot({ path: `${process.env.SCHEMA_SHOTS}/vecka-kalender-${info.project.name}.png`, fullPage: true });
 });
 
-test('SM-VECKOVY: datumintervallet och passtabellen visar faktiska tillfällen men flyttar grundschemat', async ({ page }, info) => {
+test('SM-VECKOVY: datumintervallet och passtabellen öppnar ändring av just ett tillfälle', async ({ page }, info) => {
   const val = await start(page);
   await val.getByRole('button', { name: 'Datumintervall', exact: true }).click();
   await val.getByLabel('Från', { exact: true }).fill('2026-11-06');
@@ -54,8 +54,10 @@ test('SM-VECKOVY: datumintervallet och passtabellen visar faktiska tillfällen m
   await expect(rows.first().locator('[data-col="6"]')).toContainText(/nov/u);
   await rows.first().locator('[data-col="1"]').focus();
   await page.keyboard.press('Enter');
-  await expect(page.getByRole('form', { name: 'Flytta pass' })).toBeVisible();
-  await expect(val.getByRole('status')).toContainText('Flytten gäller alla veckor');
+  await expect(page.getByRole('dialog', { name: 'Ändra ett tillfälle' })).toBeVisible();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toHaveCount(0);
+  await page.getByRole('dialog', { name: 'Ändra ett tillfälle' }).getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(val.getByRole('status')).toContainText('Ändringar här gäller ett enskilt tillfälle');
   await expect(val.getByLabel('Till', { exact: true })).toHaveAttribute('max', '2026-12-03');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
   if (process.env.SCHEMA_SHOTS) await page.screenshot({ path: `${process.env.SCHEMA_SHOTS}/vecka-tabell-${info.project.name}.png`, fullPage: true });

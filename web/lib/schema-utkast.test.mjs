@@ -319,3 +319,30 @@ test('grundfingeravtryck är en explicit del av markeringen och den framtida pub
   const all = [violation, { code: 'off_grid', message: 'Fel startrutnät.', lessons: ['c'] }], before = structuredClone(all);
   assert.equal(medvetenPubliceringssparr(marked, all, 'villkor', 'grund-1').count, 1); assert.deepEqual(all, before);
 });
+
+test('skolans hela arbetsvillkor kan ångras mellan flyttar utan att förväxlas med en flytt', () => {
+  const fore={egna:[],fordelning:[]},efter={egna:[],fordelning:[{ref:'undervisning:prov',antal:3}]};
+  const moved=run(start(),{type:'move',lesson:'a',day:2,startMin:660});
+  const changed=run(moved,{type:'arbetsvillkor',fore,efter,text:'Antal lektioner'});
+  assert.equal(utkastSteg(changed,'undo'),null);assert.deepEqual(changed.placements,moved.placements);
+  assert.deepEqual(changed.undo.at(-1).arbetsvillkor,{fore,efter});
+  const undone=run(changed,{type:'undo'});assert.deepEqual(undone.placements,moved.placements);assert.equal(utkastSteg(undone,'undo'),'a');
+  assert.deepEqual(run(undone,{type:'redo'}).undo.at(-1).arbetsvillkor,{fore,efter});
+});
+test('ett godkänt villkors- och placeringsförslag ångras tillsammans och behåller låsta tider',()=>{
+  const locked=run(start(),{type:'lock',lesson:'b',locked:true}),fore={egna:[{typ:'sparrad'}]},efter={egna:[]};
+  const placements=[{lesson:'a',day:2,startMin:660,room:null},{lesson:'b',day:0,startMin:600,room:'sal-1'},{lesson:'c',day:1,startMin:540,room:null},{lesson:'d',day:4,startMin:800,room:null}];
+  const changed=run(locked,{type:'arbetsvillkor',fore,efter,text:'En spärr tas bort',placements});
+  assert.equal(changed.undo.length,locked.undo.length+1);assert.deepEqual(changed.locked,locked.locked);assert.equal(changed.placements.d.day,4);
+  const undone=run(changed,{type:'undo'});assert.deepEqual(undone.placements,locked.placements);assert.deepEqual(undone.redo.at(-1).arbetsvillkor,{fore,efter});
+  assert.deepEqual(run(undone,{type:'redo'}).placements,changed.placements);
+  const illegal=placements.map(p=>p.lesson==='b'?{...p,startMin:900}:p);
+  assert.equal(run(locked,{type:'arbetsvillkor',fore,efter,text:'nej',placements:illegal}),locked);
+});
+test('datumändring har egen historik och ändrar aldrig återkommande placeringar eller lås',()=>{
+  const original=run(start(),{type:'lock',lesson:'b',locked:true}),after=[{lesson:'a',originalDate:'2027-09-06',date:'2027-09-07',startMin:660,room:null,durationMin:60}];
+  const changed=run(original,{type:'datum',fore:[],efter:after,text:'Tillfälle'});
+  assert.deepEqual(changed.placements,original.placements);assert.deepEqual(changed.locked,original.locked);assert.equal(utkastSteg(changed,'undo'),null);
+  const undone=run(changed,{type:'undo'});assert.deepEqual(undone.redo.at(-1).datum,{fore:[],efter:after});assert.deepEqual(undone.placements,original.placements);
+  assert.deepEqual(run(undone,{type:'redo'}).undo.at(-1).datum,{fore:[],efter:after});
+});

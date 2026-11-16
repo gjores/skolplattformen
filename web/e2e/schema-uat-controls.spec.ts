@@ -1,5 +1,5 @@
 // Användarens C2/C3/C4/C6/C8: verkliga komponenter, syntetiskt underlag och uttryckligt simulerade schemarutter.
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './schema-test';
 import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaRegel, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { samlingResurser } from '../lib/schema-samling.ts';

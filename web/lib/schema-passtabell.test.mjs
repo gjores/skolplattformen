@@ -155,3 +155,13 @@ test('Låst finns i status och filter även när låset har en regelavvikelse el
   assert.deepEqual(ids(filtreraPass(rader, [{ typ: 'status', varde: 'last' }])), lessons.slice(0, 3).map(l => l.id));
   assert.ok(filterVal(rader).status.some(s => s.varde === 'last' && s.namn === 'Låst'));
 });
+
+test('daterad sökning och salfilter använder tillfällets nya tid och sal, inte grundschemats', async()=>{
+  const {datumFixture}=await import('./schema-datum-fixture.mjs'),x=datumFixture(),change=x.change('2026-11-02',{startMin:660});
+  x.f.rooms=x.f.rooms.map(r=>({...r,name:r.id==='sal-1'?'Musikstudio':'Laborationssal'}));
+  const rows=passRader(x.f,'ht',null,[],{mode:'intervall',monday:'',from:'2026-11-02',to:'2026-11-02'},[change]);
+  const row=rows.find(r=>r.id===`${change.lesson}@${change.originalDate}`);
+  assert.equal(row.sal,'Laborationssal');assert.equal(row.salId,'sal-2');assert.equal(row.start,660);assert.equal(row.dag,0);
+  assert.equal(filtreraPass([row],[],'Laborationssal 11:00').length,1);assert.equal(filtreraPass([row],[],'Musikstudio').length,0);
+  assert.equal(filtreraPass([row],[{typ:'sal',varde:'sal-2'}],'').length,1);
+});

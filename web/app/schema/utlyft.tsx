@@ -6,10 +6,12 @@ import { api, ApiError, onEpochChange, setKnownEpoch } from '@/lib/server-client
 import { onSessionMessage } from '@/lib/session-channel.ts';
 import { parseFonsterTarget } from '@/lib/schema-synk.ts';
 import SchemaWorkspace from '../schema-workspace';
+import { UnsavedChangesProvider } from '@/lib/unsaved-changes.tsx';
 
 type Target = NonNullable<ReturnType<typeof parseFonsterTarget>>;
 type Access = { unitId: string; schoolYear: number; scopeKey: string };
-export function UtlyftSchema() {
+export function UtlyftSchema() { return <UnsavedChangesProvider><UtlyftWorkspace/></UnsavedChangesProvider>; }
+function UtlyftWorkspace() {
   const search = useSyncExternalStore(callback => { window.addEventListener('popstate', callback); return () => window.removeEventListener('popstate', callback); }, () => window.location.search, () => '');
   const target: Target | null = useMemo(() => parseFonsterTarget(new URLSearchParams(search)), [search]);
   const [access, setAccess] = useState<Access | null>(null), [error, setError] = useState(''), [loading, setLoading] = useState(true), [retry, setRetry] = useState(0);

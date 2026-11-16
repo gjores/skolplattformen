@@ -1,5 +1,5 @@
 // SM-DIAGNOS: faktiskt användarbeteende mot uttryckligt simulerade rutter, syntetiska uppgifter.
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './schema-test';
 import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
 import folj from './fixtures/schema-folj.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';

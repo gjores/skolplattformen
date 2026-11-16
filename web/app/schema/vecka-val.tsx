@@ -41,7 +41,7 @@ export function VeckaVal({ forslag, term, value, onChange }: {
     </div>
     {!calendar && <p id={`${id}-saknas`} className="schema-note">Faktiska datum saknas i underlaget. Grundschemat visar det återkommande mönstret.</p>}
     {val.mode === 'grundschema' ? <p className="schema-note">Grundschemat visar mönstret som upprepas varje vecka. Vecka och Datumintervall visar kalenderns faktiska undervisningstillfällen.</p>
-      : <><output className="schema-note schema-flytt-alla">Flytten gäller alla veckor. I datumvyn flyttar du med passmenyn eller Enter; ändringar för en enskild vecka kommer senare.</output>
+      : <><output className="schema-note schema-flytt-alla">Ändringar här gäller ett enskilt tillfälle. Välj en lektion för att ändra datum, tid eller sal. Grundschemat ändras bara när du uttryckligen väljer det.</output>
         {forslag.lessons.some(l => 'egenAktivitet' in l && l.egenAktivitet) && <p className="schema-note">Egna aktiviteter visas från grundschemat. Deras faktiska veckor och kalenderavvikelser är ännu inte fastställda.</p>}</>}
   </section>;
 }

@@ -242,7 +242,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
                 {x.text}
                 {redigera && 'falt' in redigera && redigera.falt === x.falt && <Anker onClose={stang} label={x.namn}>
                   <SkolaRedigerare falt={x.falt} villkor={villkor} onAvbryt={stang} onSpara={patch => {
-                    // Hela skolans fält är villkoren för schemat, inte egna villkor: de ändras som i formuläret, utan eget ångra-steg.
+                    // Hela skolans fält är villkoren för schemat, inte egna villkor: de ändras som i formuläret, med ett gemensamt ångra-steg.
                     setVillkor({ ...villkor, ...patch });
                     setStatus(`${x.namn} ändrad. ${x.grund ? 'Ändringen kräver ett nytt förslag.' : 'Kontrollen prövar villkoren direkt.'}`); stang();
                   }}/></Anker>}
@@ -256,7 +256,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
       </div>}
       </TabsContent>
     </Tabs>
-    <p id={`${id}-hjalp`} className="schema-note vt-hjalp">Med tangentbord: piltangenterna flyttar mellan cellerna, Enter ändrar cellen, Esc avbryter. {slag ? 'Mellanslag väljer en rad, Skift+pil upp eller ned väljer flera.' : ''} Hela skolans villkor ändras som i formuläret och har inget eget ångra-steg.</p>
+    <p id={`${id}-hjalp`} className="schema-note vt-hjalp">Med tangentbord: piltangenterna flyttar mellan cellerna, Enter ändrar cellen, Esc avbryter. {slag ? 'Mellanslag väljer en rad, Skift+pil upp eller ned väljer flera.' : ''} Alla ändringar kan ångras med Ångra senaste villkor ovanför arbetsvyn.</p>
   </section>;
 }
 

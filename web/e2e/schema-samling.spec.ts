@@ -1,5 +1,5 @@
 // Samlingsvy mot syntetiskt förslag och simulerade lässvar. Dessa prov påstår inte faktisk serverbehörighet eller kommunanslutning.
-import { test, expect, type Page } from '@playwright/test';
+import { test, expect, type Page } from './schema-test';
 import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
 import { samlingResurser, type SchemaSamlingData } from '../lib/schema-samling.ts';

@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { SchemaDatedCalendar, SchemaForslag, SchemaForslagLesson, SchemaTerm, SchemaTrim } from '@/lib/schema-contract.ts';
+import { schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumTillfalle } from '@/lib/schema-datum.ts';
 import { schemaDagStatus, schemaTillfallen, schemaVisningsDagar, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import './vecka-val.css';
 import './byt.css';
@@ -56,6 +57,8 @@ export type VeckaProps = {
   detail: (l: SchemaForslagLesson) => string;
   onGrab: (e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson) => void;
   onPick: (l: SchemaForslagLesson, utoka?: boolean) => void;
+  datum?: { forslag: SchemaForslag; overrides: SchemaDatumAndring[] };
+  onOccurrence?: (o: SchemaDatumTillfalle) => void;
   selected?: string[];
   onSelect?: (ids: string[]) => void;
   onLockDay?: (day: number, locked?: boolean) => void;
@@ -102,12 +105,12 @@ export const somRutnat = (week: HTMLElement | null) => !!week?.querySelector<HTM
 const at = (from: number, to: number, origin: number) => ({ '--start': from - origin, '--length': to - from }) as CSSProperties;
 
 export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {},
-  selected = [], onSelect, onLockDay, verktyg = 'markera', markering = null, markeringNamn, markeringHjalp, onMarkera, kalender, visning, trims = [], classId = null }: VeckaProps) {
+  selected = [], onSelect, onLockDay, verktyg = 'markera', markering = null, markeringNamn, markeringHjalp, onMarkera, kalender, visning, trims = [], classId = null, datum, onOccurrence }: VeckaProps) {
   const { start, end, hours } = veckansSpann(days);
   const [ram, setRam] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
   const daterad = !!kalender && !!visning && visning.mode !== 'grundschema';
   const datedDays = daterad ? schemaVisningsDagar(kalender, visning!) : [];
-  const occasions = daterad ? schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!) : [];
+  const occasions = daterad ? datum ? schemaDatumTillfallen(datum.forslag, visning!, datum.overrides).filter(o => all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
   const columns = daterad ? datedDays.map(d => ({ day: d.weekday, heading: d.heading, date: d.date, ...schemaDagStatus(d, classId) }))
     : days.map((_, day) => ({ day, heading: dayName(day), date: null, schoolDay: true, reason: null }));
   // Dra över tom tid med Spärra eller Tillåt bara (05.2-SM-MENY): från punkten där musen trycktes ned till där den släpps, på 5-minutersrutnätet.
@@ -145,14 +148,14 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
   const grid = <div ref={gridRef} className={`schema-week verktyg-${daterad ? 'markera' : verktyg}`} style={{ '--days': columns.length || 1, '--span': end - start, '--first-hour': (hours[0] ?? start) - start } as CSSProperties}>
     <div className="schema-hours" aria-hidden="true">{hours.map(h => <span key={h} style={{ '--at': h - start } as CSSProperties}>{clock(h)}</span>)}</div>
     {columns.map(({ day, date, heading, schoolDay, reason }) => {
-      const actual = new Map(occasions.filter(o => o.date === date).map(o => [o.lesson.id, o.length]));
-      const lessons = all.filter(l => daterad ? actual.has(l.id) : l.day === day && l.startMin !== null).sort((a, b) => a.startMin! - b.startMin! || a.id.localeCompare(b.id));
-      const shownLength = (l: SchemaForslagLesson) => daterad ? actual.get(l.id) ?? l.durationMin : length(l);
+      const actual = new Map(occasions.filter(o => o.date === date).map(o => [o.key, o]));
+      const lessons = (daterad ? [...actual.values()].map(o => ({ ...o.lesson, id: o.key })) : all.filter(l => l.day === day && l.startMin !== null)).sort((a, b) => a.startMin! - b.startMin! || a.id.localeCompare(b.id));
+      const shownLength = (l: SchemaForslagLesson) => daterad ? actual.get(l.id)?.length ?? l.durationMin : length(l);
       const lane = lanes(lessons.map(l => ({ ...l, durationMin: shownLength(l) })));
       // Lunchfönstret ligger underst, så att spärrad tid och andra fält syns ovanpå det (Main).
       const fields = overlays.filter(o => o.day === day && (!daterad || schoolDay)).map(clip).filter(o => o.startMin < o.endMin).sort((a, b) => Number(b.kind === 'lunch') - Number(a.kind === 'lunch'));
       const dim = dimmed.filter(x => x.day === day && (!daterad || schoolDay)).map(clip).filter(x => x.startMin < x.endMin);
-      const beside = bands.flatMap(b => { const l = lessons.find(x => x.id === b.lesson); return l && b.minutes > 0 ? [{ b, l }] : []; });
+      const beside = bands.flatMap(b => b.minutes > 0 ? lessons.filter(x => (actual.get(x.id)?.lesson.id ?? x.id) === b.lesson).map(l => ({ b, l })) : []);
       const typ = (kind: SchemaFaltTyp) => namn[kind] ?? FALT[kind];
       // Passen står först i dagen, så att tangentbordet når dem före fälten; fälten ritas ändå under passen (z-index i schema.css).
       return <section className={`schema-day${daterad && !schoolDay ? ' schema-utan-undervisning' : ''}`} key={date ?? day} aria-label={heading} data-date={date ?? undefined}>
@@ -162,11 +165,13 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
             <button type="button" data-markering="" aria-label={markeringNamn?.(markering) ?? `Markerad tid ${dayName(day).toLowerCase()} ${clock(markering.startMin)}–${clock(markering.endMin)}`}
               aria-describedby={markeringHjalp}><span>{clock(markering.startMin)}–{clock(markering.endMin)}</span></button></li>}
           {lessons.map(l => {
+            const o = actual.get(l.id), original = o?.lesson ?? l;
             const rader = daterad ? [...(shownLength(l) !== l.durationMin ? [`${shownLength(l)} min · ${l.durationMin} i grundschemat`] : []),
-              ...(extra?.(l) ?? []).filter(x => !x.startsWith('kortare ') && !x.includes('i grundschemat')),
+              ...(o?.changed ? ['Ändrat tillfälle'] : []),
+              ...(extra?.(original) ?? []).filter(x => !x.startsWith('kortare ') && !x.includes('i grundschemat')),
               ...('egenAktivitet' in l && l.egenAktivitet ? ['Grundschemaaktivitet'] : [])] : extra?.(l);
-            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={picked === l.id || selected.includes(l.id)} flagged={flagged.has(l.id)}
-              dragging={!daterad && drop?.lesson === l.id} disabled={disabled} detail={detail(l)} rader={rader} locked={locked?.(l)} onGrab={daterad ? () => undefined : onGrab} onPick={onPick}/>;
+            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={picked === original.id || selected.includes(original.id)} flagged={flagged.has(original.id)}
+              dragging={!daterad && drop?.lesson === l.id} disabled={disabled} detail={detail(original)} rader={rader} occurrence={o} locked={locked?.(original)} onGrab={daterad ? () => undefined : onGrab} onPick={o && onOccurrence ? () => onOccurrence(o) : onPick}/>;
           })}
           {beside.map(({ b, l }, i) => {
             const from = b.side === 'fore' ? l.startMin! - b.minutes : l.startMin! + shownLength(l), place = lane.get(l.id)!;

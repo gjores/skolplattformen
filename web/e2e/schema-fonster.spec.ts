@@ -1,5 +1,5 @@
 // Flera riktiga fönster och BroadcastChannel, med simulerad session/skolbehörighet och syntetiska schemauppgifter.
-import { test, expect, type BrowserContext, type Page } from '@playwright/test';
+import { test, expect, type BrowserContext, type Page } from './schema-test';
 import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 import following from './fixtures/schema-folj.json' with { type: 'json' };

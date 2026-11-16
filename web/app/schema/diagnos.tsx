@@ -1,14 +1,17 @@
 'use client';
 /** Fördiagnos och sökstatistik enligt Regelavvikelser-listans mönster (SM-DIAGNOS). */
 import { Button } from '@/components/ui/button';
+import { useEffect, useRef } from 'react';
 import { FLASKHALS, type SchemaDiagnosAction, type SchemaDiagnosFynd, type SchemaDiagnosResurs, type SchemaSearchStatistics } from '@/lib/schema-diagnos.ts';
 
 export function ForeBerakning({ findings, busy, onContinue, onTarget }: {
   findings: SchemaDiagnosFynd[]; busy: boolean; onContinue: () => void; onTarget: (action: SchemaDiagnosAction) => void;
 }) {
+  const heading = useRef<HTMLHeadingElement | null>(null);
+  useEffect(() => { if (findings.length) { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'center' }); } }, [findings]);
   if (!findings.length) return null;
   return <section aria-label="Före beräkning" className="rounded-lg border border-border bg-card p-4 space-y-3" aria-busy={busy}>
-    <h2 className="section-heading">Före beräkning</h2>
+    <h2 ref={heading} tabIndex={-1} className="section-heading">Före beräkning</h2>
     <p className="schema-note">Underlaget har {findings.length} {findings.length === 1 ? 'punkt' : 'punkter'} att se över. Du kan rätta villkoren eller ta fram ett förslag med pass kvar på viloytan.</p>
     <ul className="divide-y divide-border">
       {findings.map((f, i) => <li key={`${f.code}-${i}`} className="py-3 space-y-2">

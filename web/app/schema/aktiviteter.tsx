@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -9,17 +9,19 @@ import { AktivitetForm, type NyAktivitetsTid } from './aktivitet-form.tsx';
 import './aktiviteter.css';
 
 export type AktiviteterProps = { forslag: SchemaForslag; villkor: SchemaVillkor; lessons: SchemaForslagLesson[]; busy: boolean; saveError?: string | null;
+  recoveryAction?: ReactNode; activityTypes?: SchemaAktivitetsTyp[]; onTypesChange?: (types: SchemaAktivitetsTyp[]) => void;
+  personalLookup?: boolean; onSessionLost?: () => void;
   onChange: (next: SchemaAktivitet[], text: string) => Promise<boolean>; start?: NyAktivitetsTid | null; onStartHandled?: () => void };
 function lokalaTyper(unitId: string): SchemaAktivitetsTyp[] {
   try { return readAktivitetsTyper(window.localStorage, unitId); } catch { return aktivitetsTyper(); }
 }
-export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, onChange, start, onStartHandled }: AktiviteterProps) {
+export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, recoveryAction, activityTypes, onTypesChange, personalLookup, onSessionLost, onChange, start, onStartHandled }: AktiviteterProps) {
   const [typeState, setTypeState] = useState(() => ({ unitId: f.unitId, types: lokalaTyper(f.unitId) }));
   if (typeState.unitId !== f.unitId) setTypeState({ unitId: f.unitId, types: lokalaTyper(f.unitId) });
-  const types = typeState.types, setTypes = (next: SchemaAktivitetsTyp[]) => setTypeState({ unitId: f.unitId, types: next });
+  const types = activityTypes ?? typeState.types, setTypes = (next: SchemaAktivitetsTyp[]) => { if (onTypesChange) onTypesChange(next); else setTypeState({ unitId: f.unitId, types: next }); };
   const [form, setForm] = useState<{ aktivitet?: SchemaAktivitet; tid?: NyAktivitetsTid } | null>(null), [manage, setManage] = useState(false);
   const activities = villkor.aktiviteter ?? [];
-  useEffect(() => { if (typeState.unitId !== f.unitId) return; try { writeAktivitetsTyper(window.localStorage, f.unitId, types); } catch { /* även lagringens getter kan nekas */ } }, [types, typeState.unitId, f.unitId]);
+  useEffect(() => { if (activityTypes || typeState.unitId !== f.unitId) return; try { writeAktivitetsTyper(window.localStorage, f.unitId, types); } catch { /* även lagringens getter kan nekas */ } }, [types, typeState.unitId, f.unitId, activityTypes]);
   const [handledStart, setHandledStart] = useState<NyAktivitetsTid | null>(null);
   if (start && start !== handledStart) { setHandledStart(start); setForm({ tid: start }); }
   useEffect(() => { if (start) onStartHandled?.(); }, [start, onStartHandled]);
@@ -27,7 +29,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, onC
   const name = (ref: string) => [...f.resurser.klass, ...f.resurser.grupp, ...f.resurser.larare].find(r => r.ref === ref)?.name ?? 'Resursen finns inte i underlaget';
   return <section className="aktiviteter" aria-labelledby="aktiviteter-rubrik">
     <div className="akt-rubrik"><div><p className="eyebrow">Schema · Egna aktiviteter</p><h3 id="aktiviteter-rubrik" className="section-heading">Aktiviteter utanför tjänstefördelningen</h3>
-      <p className="text-muted-foreground">Möten, mentorstid och tillsyn upptar deltagarna. Undervisningens tid och placeringar bevaras när du lägger till en aktivitet. Inget sparas på servern.</p></div>
+      <p className="text-muted-foreground">Möten, mentorstid och tillsyn upptar deltagarna. Undervisningens tid och placeringar bevaras när du lägger till en aktivitet. Aktiviteterna sparas tillsammans med schemautkastet.</p></div>
       <div className="akt-segment"><Button disabled={busy} variant="outline" onClick={() => setForm({})}>Ny aktivitet</Button><Button variant="outline" disabled={busy} onClick={() => setManage(true)}>Hantera typer</Button></div></div>
     <h4>Aktiviteter läsåret {f.schoolYear}/{String(f.schoolYear + 1).slice(2)} ({activities.length})</h4>
     {!activities.length ? <div className="empty-state"><p>Inga egna aktiviteter ännu. Lägg till en aktivitet eller högerklicka på en tid i veckan.</p></div>
@@ -40,18 +42,18 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, onC
             <TableCell>Upptar deltagarna{a.rooms.length ? ' och salen' : ''}. Ingen timplanetid.</TableCell><TableCell><div className="akt-segment"><Button variant="outline" disabled={busy} onClick={() => setForm({ aktivitet: a })} aria-label={`Ändra aktiviteten ${a.name}`}>Ändra</Button>
               <Button variant="outline" disabled={busy} onClick={() => void onChange(activities.filter(x => x.id !== a.id), `Aktiviteten ${a.name} är borttagen`)} aria-label={`Ta bort aktiviteten ${a.name}`}>Ta bort</Button></div></TableCell></TableRow>;
         })}</TableBody></Table>}
-    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError}
+    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} personalLookup={personalLookup} onSessionLost={onSessionLost}
       onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
-    {manage && <AktivitetsTyper typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
+    {manage && <AktivitetsTyper serverSaved={!!activityTypes} typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;
 }
 
-function AktivitetsTyper({ typer, onChange, onClose }: { typer: SchemaAktivitetsTyp[]; onChange: (t: SchemaAktivitetsTyp[]) => void; onClose: () => void }) {
+function AktivitetsTyper({ typer, onChange, onClose, serverSaved }: { serverSaved: boolean; typer: SchemaAktivitetsTyp[]; onChange: (t: SchemaAktivitetsTyp[]) => void; onClose: () => void }) {
   const fresh = (): SchemaAktivitetsTyp => ({ id: `typ-${crypto.randomUUID()}`, name: '', group: 'Övrigt', participants: 'personal', visibleFor: 'personal', margin: null });
   const [edit, setEdit] = useState<SchemaAktivitetsTyp>(fresh), [error, setError] = useState('');
   const patch = (value: Partial<SchemaAktivitetsTyp>) => setEdit(e => ({ ...e, ...value }));
   const save = () => { try { onChange(aktivitetTypAndra(typer, edit)); setEdit(fresh()); setError(''); } catch (e) { setError(e instanceof Error ? e.message : 'Typen kunde inte sparas.'); } };
-  return <Dialog open onOpenChange={open => { if (!open) onClose(); }}><DialogContent className="akt-dialog"><DialogHeader><DialogTitle>Hantera aktivitetstyper</DialogTitle><DialogDescription>Skolans typlista sparas i den här webbläsaren. Redan inlagda aktiviteter behåller typnamn och förval när listan ändras.</DialogDescription></DialogHeader>
+  return <Dialog open onOpenChange={open => { if (!open) onClose(); }}><DialogContent className="akt-dialog"><DialogHeader><DialogTitle>Hantera aktivitetstyper</DialogTitle><DialogDescription>{serverSaved ? 'Skolans typlista sparas med schemautkastet.' : 'Skolans typlista sparas i den här webbläsaren.'} Redan inlagda aktiviteter behåller typnamn och förval när listan ändras.</DialogDescription></DialogHeader>
     <div className="akt-form"><div className="akt-tidfalt"><label className="akt-field">Typens namn<input maxLength={80} value={edit.name} onChange={e => patch({ name: e.target.value })}/></label>
       <label className="akt-field">Grupp<input maxLength={60} value={edit.group} onChange={e => patch({ group: e.target.value })} list="akt-typgrupper"/><datalist id="akt-typgrupper" aria-label="Grupper i typlistan">{[...new Set(typer.map(t => t.group))].map(g => <option key={g} value={g}>{g}</option>)}</datalist></label>
       <label className="akt-field">Deltagare som förval<select value={edit.participants} onChange={e => patch({ participants: e.target.value as SchemaAktivitetsTyp['participants'] })}><option value="personal">Personal</option><option value="elever">Elever och ansvariga</option><option value="sal">Sal</option></select></label>

@@ -3,17 +3,21 @@
 import type { Ref } from 'react';
 import { Button } from '@/components/ui/button';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
+import type { SchemaSalScope } from '@/lib/schema-salar.ts';
 import { DAYS, clock, dayName, names, startTimes } from './delat.ts';
+import { SalSok } from './sal-sok.tsx';
 
 export type FlyttMal = { day: number; startMin: number; room: string | null };
 
-export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest }: {
+export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, salRequest, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest, onSessionLost }: {
   lesson: SchemaForslagLesson; forslag: SchemaForslag; target: FlyttMal; checking: boolean; locked?: string;
   shownMin: number;
   /** Kortning vissa veckor och termin, i samma text som i passrutan. */
   extra: { someWeeks: string; termTag: string };
   roomName: (id: string | null) => string;
   dayRef?: Ref<HTMLSelectElement>;
+  salRequest?: SchemaSalScope;
+  onSessionLost?: () => void;
   onTarget: (next: FlyttMal) => void; onMove: () => void; onPark: () => void; onCancel: () => void;
   onSuggest?: () => void; onTargetSuggest?: () => void;
 }) {
@@ -29,6 +33,7 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
       {starts(target.day).map(m => <option key={m} value={m}>{clock(m)}–{clock(m + l.durationMin)}</option>)}</select></label>
     {l.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} disabled={blocked} onChange={e => onTarget({ ...target, room: e.target.value || null })}>
       <option value="">Första lediga</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
+    {salRequest && <SalSok scope={salRequest} lesson={l.id} target={target} rooms={forslag.rooms} disabled={blocked} onSelect={room => onTarget({ ...target, room })} onSessionLost={onSessionLost}/>}
     <Button type="submit" disabled={blocked || target.day === l.day && target.startMin === l.startMin && target.room === l.roomId}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
     {onTargetSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onTargetSuggest}>Lägg här och flytta det som krockar</Button>}
     {onSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onSuggest}>Föreslå placering</Button>}

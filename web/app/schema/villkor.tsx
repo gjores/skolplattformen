@@ -39,7 +39,7 @@ export function Villkor({ value: v, disabled, issues, resurser, forslag = null, 
   const changed = JSON.stringify(v) !== JSON.stringify(defaultSchemaVillkor());
   return <details className="schema-list schema-villkor schema-wide">
     <summary><h2>Villkor för schemat</h2><span className="schema-note">{changed ? 'Ändrade' : 'Förval'}: skoldag {daysText(v.days)}, pass högst {v.maxLessonMin} min, {v.lunch ? `lunch ${v.lunch.lengthMin} min` : 'ingen lunch'}{v.egna.length > 0 && `, ${v.egna.length} egna villkor`}.</span></summary>
-    <p className="schema-note">Villkoren gäller nästa förslag. De sparas inte i systemet; den här webbläsaren minns dem för skolan när ett förslag har tagits fram.</p>
+    <p className="schema-note">Villkoren sparas i schemautkastet. Tidsvillkor prövas mot de befintliga placeringarna. Ändrad uppdelning i lektioner kräver ett nytt förslag.</p>
     {issues.length > 0 && <div className="valplan-alert" role="alert"><p>Rätta villkoren för att kunna ta fram ett förslag:</p><ul>{issues.map(x => <li key={x}>{x}</li>)}</ul></div>}
     <div className="schema-villkor-groups">
       <fieldset disabled={disabled}><legend>Skoldag</legend>
