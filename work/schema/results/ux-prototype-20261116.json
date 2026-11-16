@@ -1,0 +1,76 @@
+{
+  "kind": "schema-ux-research-prototype-only",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "förberedelse uppdaterar salskrav och aktuell exempelåterkoppling",
+      "status": "PASS"
+    },
+    {
+      "name": "formulär och tabell visar samma salskrav",
+      "status": "PASS"
+    },
+    {
+      "name": "fäst inspektör behåller objektet när annat pass markeras",
+      "status": "PASS"
+    },
+    {
+      "name": "osparat salsval bevaras vid byte mellan huvudytor och bedömning märks gammal",
+      "status": "PASS"
+    },
+    {
+      "name": "förhandsgranskning och avbryt ändrar inget pass",
+      "status": "PASS"
+    },
+    {
+      "name": "mänsklig genomgång kan vara klar medan ett känt salsproblem kvarstår",
+      "status": "PASS"
+    },
+    {
+      "name": "ändrad genomgång och otillåten redan tilldelad sal får aktuellt avvikelsebesked",
+      "status": "PASS"
+    },
+    {
+      "name": "använd och ångra visar samma data i vecka och granskning med alla tider bevarade",
+      "status": "PASS"
+    },
+    {
+      "name": "uttrycklig Visa passet-handling öppnar rätt objekt även efter fäst annan panel",
+      "status": "PASS"
+    },
+    {
+      "name": "ingen sidöverrinning i skissens tre vyer vid 1600px",
+      "status": "PASS"
+    },
+    {
+      "name": "ingen sidöverrinning i skissens tre vyer vid 1280px",
+      "status": "PASS"
+    },
+    {
+      "name": "ingen sidöverrinning i skissens tre vyer vid 1024px",
+      "status": "PASS"
+    },
+    {
+      "name": "ingen sidöverrinning i skissens tre vyer vid 736px",
+      "status": "PASS"
+    },
+    {
+      "name": "ingen sidöverrinning i skissens tre vyer vid 320px",
+      "status": "PASS"
+    },
+    {
+      "name": "skissens tre vyer omflödar vid 200 procent grundtext på 1280px",
+      "status": "PASS"
+    },
+    {
+      "name": "inga JavaScript-körfel i prototypen",
+      "status": "PASS"
+    }
+  ],
+  "productTesting": false,
+  "realUserTesting": false,
+  "targetTouched": false,
+  "startedAt": "2026-11-16T19:45:55.938Z",
+  "sourceSha256": "714503be636aa88f689eb817e51aae4c3d685b3c2be432f0f9306037902225ff",
+  "completedAt": "2026-11-16T19:45:59.709Z"
+}

@@ -34,3 +34,9 @@ Skisserna använder hexvärden. I koden används bara variabler (AGENTS.md, Skol
 | `#c3cff5` | passets kant | befintlig `color-mix(in srgb, var(--primary) 35%, var(--card))` i `schema.css` |
 
 Mönster som inte bara bygger på färg (krav M86 och designsystemets tillgänglighetsregler): spärrad tid = diagonal skuggning + streckad kant; regelbrott = vågräta ränder + röd kant + text; går med byte = diagonala ränder; marginal = prickad kant + etikett; aktivitet = grå yta, mörk kant + typens namn; inställt pass = överstruket + streckad kant.
+
+## Senare forskningsskiss 2026-11-16
+
+[schema-ux-research-20261116.html](schema-ux-research-20261116.html) är en ny interaktiv principskiss till [den fördjupade UX-researchen](../05.2-SM-UX-RESEARCH.md). Den är inte en kopia från den äldre designytan ovan och ersätter inte de redan beslutade vyerna med en godkänd implementation. Den använder Skolplattans lästa färger, typografi och mått men kopplar inte till någon riktig app, motor eller databas.
+
+Fragmentet visar Förbered/Lägg schema/Granska, ett salskrav via formulär/tabell, inaktuell bedömning och granskat/ångringsbart salbyte i samma exempelutkast. Chattens kopia har identisk källhash. [Klick-/layoutkontrollen](../../../../work/schema/results/ux-prototype-20261116.json) har 16/16 PASS och beskriver uttryckligen att det inte är produkt- eller användartestning. Full tillgänglighets- och användbarhetsverifiering återstår. Bara syntetiska exempeldata finns i filen; den ska inte importeras i handboksbygge eller publiceras automatiskt.
