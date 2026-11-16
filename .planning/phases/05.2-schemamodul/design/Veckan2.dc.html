@@ -65,7 +65,15 @@ button,select,input{font-family:inherit}
     <div class="eyebrow">LÄGG SCHEMA · VECKAN · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
 
     <div style="display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; padding: 12px 16px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
-      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 180px;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span id="vy" style="font-size: 14px; color: #657185;">Vy</span>
+        <div role="group" aria-labelledby="vy" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+          <button type="button" class="seg" aria-pressed="true">Vecka</button>
+          <a href="Oversikt.dc.html" class="seg" style="display: inline-flex; align-items: center; text-decoration: none;">Översikt</a>
+          <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Pass i tabell</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
         <span style="font-size: 13px; color: #657185;">Arbetsgrund</span>
         <span style="font-size: 15px; font-weight: 600;">Hela läsåret</span>
       </div>
