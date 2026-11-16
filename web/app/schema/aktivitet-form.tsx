@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { SchemaForslag } from '@/lib/schema-contract.ts';
@@ -10,8 +10,8 @@ const DAGAR = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 const time = (m: number) => `${Math.floor(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}`;
 const minutes = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 type Props = { forslag: SchemaForslag; typer: SchemaAktivitetsTyp[]; activities: SchemaAktivitet[]; tid?: NyAktivitetsTid | null; aktivitet?: SchemaAktivitet | null;
-  busy: boolean; saveError?: string | null; onSave: (a: SchemaAktivitet) => Promise<boolean>; onClose: () => void; onTypes: () => void };
-export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, busy, saveError, onSave, onClose, onTypes }: Props) {
+  busy: boolean; saveError?: string | null; recoveryAction?: ReactNode; onSave: (a: SchemaAktivitet) => Promise<boolean>; onClose: () => void; onTypes: () => void };
+export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, busy, saveError, recoveryAction, onSave, onClose, onTypes }: Props) {
   const first = typer.find(t => t.name === 'Mentorstid') ?? typer[0] ?? aktivitetsTyper()[0];
   const [draft, setDraft] = useState<SchemaAktivitet>(() => aktivitet ?? {
     id: nyAktivitetId(activities), typId: first.id, typ: first.name, name: first.name, classRefs: tid?.resurs?.slag === 'klass' ? [tid.resurs.ref] : [],
@@ -20,7 +20,7 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
   });
   const [error, setError] = useState(''), [attempted, setAttempted] = useState(false), [weeks, setWeeks] = useState(draft.veckor.typ === 'valda' ? draft.veckor.veckor.join(', ') : '35, 36, 37');
   const shownError = error || (attempted && !busy ? saveError ?? 'Aktiviteten kunde inte kontrolleras. Dina val står kvar. Försök igen.' : '');
-  const patch = (value: Partial<SchemaAktivitet>) => setDraft(d => ({ ...d, ...value }));
+  const patch = (value: Partial<SchemaAktivitet>) => { setDraft(d => ({ ...d, ...value })); setError(''); setAttempted(false); };
   const chooseType = (id: string) => {
     if (id === '__ny__') { onTypes(); return; }
     const t = typer.find(t => t.id === id); if (!t) return;
@@ -33,7 +33,15 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
       {!items.length && <p className="text-muted-foreground">Inga {label.toLowerCase()} i underlaget.</p>}</div></fieldset>;
   const save = async () => {
     const a = { ...draft, name: draft.name.trim(), ...(draft.veckor.typ === 'valda' ? { veckor: { typ: 'valda' as const, veckor: weeks.split(/[\s,;]+/u).filter(Boolean).map(Number) } } : {}) };
-    const errors = aktiviteternasFel([a]);
+    const errors = aktiviteternasFel([a]).map(message => {
+      if (message === 'Aktiviteten ska ha typ och namn.' && !a.name) return 'Skriv ett namn på aktiviteten.';
+      if (message.endsWith('välj minst en deltagare eller sal.')) return 'Välj minst en klass, grupp, ansvarig eller sal som aktiviteten ska uppta.';
+      if (message.endsWith('tidsfönstret ska rymma aktiviteten.')) return a.tid.typ === 'motor' && !a.tid.days.length
+        ? 'Markera minst en tillåten veckodag för aktiviteten.'
+        : `Tiden mellan Tidigast och Senast slut ska vara minst ${a.durationMin} minuter, så att hela aktiviteten ryms.`;
+      if (message.endsWith('välj giltiga veckor (1–53).')) return 'Skriv veckonummer mellan 1 och 53, separerade med komma. Varje vecka får bara anges en gång.';
+      return message;
+    });
     if (errors.length) { setError(errors.join(' ')); return; }
     setError(''); setAttempted(true);
     if (await onSave(a)) onClose();
@@ -45,7 +53,6 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
       {!typer.some(t => t.id === draft.typId) && <option value={draft.typId}>{draft.typ} (tidigare typ)</option>}<option value="__ny__">Ny typ…</option></select></label>
       <Button variant="outline" onClick={onTypes}>Hantera typer</Button></div>
       <p className="text-muted-foreground">Typerna är skolans egen lista, med förval för deltagare, marginal och vem som ser aktiviteten.</p>
-      <p className="akt-info">Nationella prov hör till läsårsplaneringen. Provdatum hämtas inte i denna arbetsyta.</p>
       <label className="akt-field">Namn<input value={draft.name} maxLength={120} onChange={e => patch({ name: e.target.value })}/></label>
       <div className="akt-deltagare">{values('classRefs', 'Klasser', f.resurser.klass)}{values('groupRefs', 'Grupper', f.resurser.grupp)}{values('teacherRefs', 'Ansvariga', f.resurser.larare)}
         <fieldset className="akt-val"><legend>Salar</legend><label className="akt-field">Sal<select value={draft.rooms[0] ?? ''} onChange={e => patch({ rooms: e.target.value ? [e.target.value] : [] })}><option value="">Ingen sal</option>{f.rooms.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select></label>
@@ -63,12 +70,12 @@ export function AktivitetForm({ forslag: f, typer, activities, tid, aktivitet, b
       {draft.tid.typ === 'motor' && <fieldset className="akt-nar"><legend>Tillåtna veckodagar</legend><div className="akt-segment">{DAGAR.map((d, i) => <label className="akt-check" key={d}><input type="checkbox" checked={draft.tid.typ === 'motor' && draft.tid.days.includes(i)} onChange={() => { if (draft.tid.typ === 'motor') patch({ tid: { ...draft.tid, days: draft.tid.days.includes(i) ? draft.tid.days.filter(n => n !== i) : [...draft.tid.days, i] } }); }}/>{d}</label>)}</div></fieldset>}
       <div className="akt-tidfalt"><label className="akt-field">Veckor<select value={draft.veckor.typ} onChange={e => patch({ veckor: e.target.value === 'valda' ? { typ: 'valda', veckor: [35] } : { typ: e.target.value as 'alla' | 'udda' | 'jamna' } })}>
         <option value="alla">Varje vecka</option><option value="udda">Udda veckor (A)</option><option value="jamna">Jämna veckor (B)</option><option value="valda">Vissa veckor</option></select></label>
-        {draft.veckor.typ === 'valda' && <label className="akt-field">Veckonummer, separerade med komma<input value={weeks} onChange={e => setWeeks(e.target.value)}/></label>}
+        {draft.veckor.typ === 'valda' && <label className="akt-field">Veckonummer, separerade med komma<input value={weeks} onChange={e => { setWeeks(e.target.value); setError(''); setAttempted(false); }}/></label>}
         <label className="akt-field">Visas för<select value={draft.visibleFor} onChange={e => patch({ visibleFor: e.target.value as 'personal' | 'alla' })}><option value="personal">Personal</option><option value="alla">Elever, vårdnadshavare och personal</option></select></label></div>
       {draft.veckor.typ !== 'alla' && <p className="akt-info">Aktiviteten upptar alla veckor i grundschemat. Veckovalet är en märkning tills schema i tid finns.</p>}
       {draft.margin && <p className="text-muted-foreground">{draft.margin.label}: {draft.margin.beforeMin} min före och {draft.margin.afterMin} min efter, från aktivitetstypen.</p>}
-      <p className="text-muted-foreground">Synligheten är ett förval för ett framtida publicerat schema. Inget publiceras eller sparas på servern här.</p>
-      {shownError && <p role="alert" className="text-destructive">{shownError}</p>}
+      <p className="text-muted-foreground">Synligheten är ett förval för ett framtida publicerat schema. Aktiviteten publiceras inte när du lägger till den.</p>
+      {shownError && <div className="akt-fel"><p role="alert" className="text-destructive">{shownError}</p>{recoveryAction}<p className="text-muted-foreground">{aktivitet ? 'Ändringen har inte sparats.' : 'Aktiviteten har inte lagts till.'} Dina val finns kvar i formuläret.</p></div>}
       <div className="akt-segment"><Button disabled={busy} onClick={() => void save()}>{busy ? 'Prövar aktiviteten…' : aktivitet ? 'Ändra aktiviteten' : 'Lägg till aktivitet'}</Button><Button disabled={busy} variant="outline" onClick={onClose}>Avbryt</Button></div>
     </div>
   </DialogContent></Dialog>;

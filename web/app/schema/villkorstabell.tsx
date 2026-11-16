@@ -168,7 +168,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
   return <section className="villkorstabell schema-wide" aria-labelledby={`${id}-rubrik`}>
     <div className="vt-huvud">
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 id={`${id}-rubrik`}>Villkor i tabell</h2><OppnaFonster onOpen={onOpen} label="Villkor i tabell"/></div>
-      <p className="schema-note">Samma egna villkor som i Villkor för schemat och i veckan. Välj en cell och tryck Enter, eller dubbelklicka, för att ändra. Ändringar kan ångras med Ångra senaste villkor och prövas direkt mot schemat; de sparas inte i systemet.</p>
+      <p className="schema-note">Samma egna villkor som i Villkor för schemat och i veckan. Välj en cell och tryck Enter, eller dubbelklicka, för att ändra. Ändringar kan ångras med Ångra senaste villkor och prövas direkt mot schemat.</p>
     </div>
     <Tabs value={flik} onValueChange={v => { setFlik(v as VtFlik); setAktiv({ r: 0, c: 1 }); setRedigera(null); setLaggPa(false); setSort(null); }}>
       <TabsList className="vt-flikar" aria-label="Resurstyp">{VT_FLIKAR.map(x => <TabsTrigger key={x.id} value={x.id}>{x.namn}</TabsTrigger>)}</TabsList>
@@ -213,7 +213,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
       : slag && rader.length === 0 ? <p className="empty-state">{slag === 'sal' ? 'Inga salar än. Lägg till salar i Villkor för schemat.' : `Underlaget har inga ${ord[1]}.`}</p>
       : <div className="vt-ram">
         <Table ref={grid} role="grid" aria-labelledby={`${id}-rubrik`} aria-rowcount={antalRader + 1} aria-colcount={kolumner.length} onKeyDown={onKeyDown}
-          aria-describedby={`${id}-hjalp`} className="vt-tabell">
+          aria-describedby={`${id}-hjalp`} className="vt-tabell" data-vt-scope={slag ?? 'skola'}>
           <TableHeader><TableRow>{kolumner.map(rubrik)}</TableRow></TableHeader>
           <TableBody>
             {slag ? visade.map((rad, r) => <TableRow key={rad.ref} aria-selected={mina.includes(rad.ref)} data-state={mina.includes(rad.ref) ? 'selected' : undefined}>
@@ -286,7 +286,10 @@ function VillkorRedigerare({ typ, rules, villkor, rubrik, ny = false, onSpara, o
     if (typ === 'langd' || typ === 'dag') return varde === null ? [] : [{ typ, maxMin: varde }];
     if (typ === 'antal') return varde === null ? [] : [{ typ, count: varde }];
     if (typ === 'sal') return salar.length ? [{ typ, rooms: villkor.salar.filter(x => salar.includes(x)) }] : [];
-    if (!m.occupies.length || m.beforeMin + m.afterMin === 0) return null;
+    // Ingen tid före eller efter betyder att den redigerade marginalen tas bort.
+    // Övriga marginaler i samma cell står kvar, precis som vid en vanlig ändring.
+    if (m.beforeMin + m.afterMin === 0) return rules.slice(1).map(({ slag: _s, ref: _r, ...x }) => x as VtMall);
+    if (!m.occupies.length) return null;
     // Marginal: den första ändras; fler marginaler för resursen står kvar och ändras i Marginaler.
     const egen: VtMall = { typ: 'marginal', beforeMin: m.beforeMin, afterMin: m.afterMin, occupies: SCHEMA_MARGINAL_DELAR.filter(d => m.occupies.includes(d)), label: m.label,
       visibleFor: marg?.visibleFor ?? ['elever'], when: 'alltid' };
@@ -321,9 +324,11 @@ function VillkorRedigerare({ typ, rules, villkor, rubrik, ny = false, onSpara, o
         onChange={e => setM({ ...m, occupies: e.target.checked ? [...m.occupies, d] : m.occupies.filter(x => x !== d) })}/>{MARGINAL_DEL_NAMN[d]}</label>)}</fieldset>
       {rules.length > 1 && <p className="schema-note">Raden har {rules.length} marginaler. Här ändras den första; övriga ändras i Marginaler.</p>}
     </div>}
-    {resultat === null && <p className="schema-note" role="alert">Välj tid före eller efter passet och vad marginalen upptar.</p>}
+    {resultat === null && <p className="schema-note" role="alert">Välj minst en part under Upptar: eleverna, läraren eller salen.</p>}
+    {typ === 'marginal' && m.beforeMin + m.afterMin === 0 && rules.length > 0 && <p className="schema-note">Ingen tid före eller efter. Spara tar bort den här marginalen{rules.length > 1 ? '; övriga marginaler i cellen står kvar' : ''}.</p>}
     <div className="vt-knappar">
-      <Button type="submit" disabled={resultat === null || ny && tom}>{ny ? 'Lägg på valda' : tom && rules.length ? 'Ta bort villkoret' : 'Spara'}</Button>
+      <Button type="submit" disabled={resultat === null || ny && tom}>{ny ? 'Lägg på valda' : 'Spara'}</Button>
+      {!ny && rules.length > 0 && <Button type="button" variant="outline" onClick={() => onSpara([])}>{rules.length > 1 ? 'Ta bort villkoren i cellen' : 'Ta bort villkoret'}</Button>}
       {tid && <Button type="button" variant="outline" onClick={() => { setRutor(vtMarkerade([], g)); setRord(true); }}>Rensa</Button>}
       <Button type="button" variant="outline" onClick={onAvbryt}>Avbryt</Button>
     </div>

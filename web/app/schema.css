@@ -293,6 +293,7 @@
 .villkorstabell .vt-tabell .vt-val { position: sticky; left: 0; z-index: 1; box-sizing: border-box; width: 2.75rem; min-width: 2.75rem; max-width: 2.75rem; padding-inline: .875rem 0; background: var(--card); }
 .villkorstabell .vt-val input { width: 1rem; height: 1rem; margin-top: .125rem; accent-color: var(--primary); }
 .villkorstabell .vt-namn { position: sticky; left: 2.75rem; z-index: 1; min-width: 8rem; background: var(--card); font-weight: 600; }
+.villkorstabell .vt-tabell[data-vt-scope="skola"] .vt-namn { left: 0; }
 .villkorstabell .vt-tabell thead .vt-val, .villkorstabell .vt-tabell thead .vt-namn { background: var(--secondary); }
 .villkorstabell tr[data-state="selected"] .vt-val, .villkorstabell tr[data-state="selected"] .vt-namn { background: var(--muted); }
 .villkorstabell .vt-vem { min-width: 9rem; color: var(--muted-foreground); }
@@ -307,7 +308,7 @@
 .villkorstabell .vt-lank { min-height: 0; height: auto; padding: 0; }
 .villkorstabell .vt-hjalp { margin: 0; font-size: .8125rem; }
 .vt-anker { position: absolute; inset: 0; pointer-events: none; }
-.vt-redigera { width: auto; max-width: min(34rem, calc(100vw - 2rem)); max-height: min(44rem, calc(100vh - 2rem)); overflow: auto; padding: 1rem; }
+.vt-redigera { width: auto; max-width: min(34rem, calc(100vw - 2rem), var(--available-width, 100vw)); max-height: min(44rem, calc(100vh - 2rem), var(--available-height, 100vh)); overflow: auto; padding: 1rem; }
 .vt-redigerare { display: grid; gap: .75rem; }
 .vt-redigerare .schema-note, .vt-redigera .schema-note { margin: 0; color: var(--muted-foreground); font-size: .8125rem; line-height: 1.45; }
 .vt-redigera .vt-grund { color: var(--warning-foreground); }
@@ -322,6 +323,15 @@
 .vt-redigera .vt-knappar button { min-height: var(--control-height); height: auto; white-space: normal; }
 /* Tidsrutnätet: dagar × tid i startrutnätet, timlinjer som i veckan. Spärrad tid med `falt-sparrad`, tid utanför tillåten tid med `falt-tillaten-ute`. */
 .vt-redigera [data-slot="table-container"] { overflow: visible; }
+
+/* Resursnamnet får hela radens textyta; typen står redan i gruppens rubrik. */
+.samling-resurssok { max-height: calc(100dvh - 2rem); }
+.samling-resurssok [data-slot="command-list"] { max-height: min(18rem, calc(100dvh - 8rem)); }
+.samling-resurssok .samling-resursval { align-items: start; }
+.samling-resurssok .samling-resursnamn { flex: 1; min-width: 0; white-space: normal; overflow-wrap: anywhere; line-height: 1.5; }
+.samling-resurssok .samling-resursval > svg { flex: 0 0 auto; margin-top: .125rem; }
+.akt-dialog .akt-fel { display: grid; gap: .5rem; padding: .75rem; border: 1px solid var(--destructive); border-radius: var(--radius); background: var(--destructive-surface); }
+.akt-dialog .akt-fel p { margin: 0; }
 .tidsrutnat { width: auto; border-collapse: separate; border-spacing: 2px 0; font-size: .75rem; touch-action: none; user-select: none; }
 .tidsrutnat tr, .tidsrutnat tr:hover { border: 0; background: none; }
 .tidsrutnat thead th { height: auto; padding: 0 0 .25rem; text-align: center; font-weight: 600; color: var(--foreground); }
