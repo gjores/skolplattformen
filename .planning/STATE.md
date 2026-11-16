@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "Fördjupad UX-research och principskiss klara — designhypotes inför användarprov"
+current_plan: "UX-research kompletterad och designvyer omgång 1 granskade av användaren — genomförandeplan saknas"
 status: in_progress
-stopped_at: "Grundlig UX-research omprövar sexstegslistan till Förbered/Lägg schema/Granska med samma utkast. Principskiss med exempeldata och 16 klick-/layoutkontroller PASS. Ingen produktombyggnad; 7e38ba67 består."
+stopped_at: "Designytan har vyer för Förbered (checklista 7 punkter), salar, saltabell, återkoppling, salsättning med fasta tider, veckan med inspektör, översikt över många resurser, aktivitet för flera klasser och läsåret med nationella prov. Ingen GSD-genomförandeplan, ingen kod, migration eller installation. 7e38ba67 består."
 last_updated: "2026-11-16"
 last_activity: 2026-11-16
-last_activity_desc: "35 manualartiklar, UX-primärkällor, fyra kodvandringar/tolv fynd och interaktiv principskiss dokumenterade.16 skisskontroller PASS; inget riktigt användarprov, produktprov eller måländring."
+last_activity_desc: "Luckor i UX-researchen inskrivna; nio designvyer ritade och justerade efter användarens kommentarer; användarbeslut om nationella prov som undervisning och prov/aktiviteter före första förslaget."
 state_head: 93e9081a5d5674ffa0df5768333c5a4459fe2953
 progress:
   total_phases: 8
@@ -29,6 +29,8 @@ schema_installation_status: annual_model_passed_5_groups_zero_new_sql_14_prior_r
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**05.2-SM designvyer och beslut 2026-11-16 (kväll):** [UX-researchen](phases/05.2-schemamodul/05.2-SM-UX-RESEARCH.md) har avsnittet *Kompletterande genomgång* med tappade detaljer, öppna frågor och användarfynd. Designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) har efter användarens kommentarer: Förbered med avbockningsbar checklista i sju punkter (Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Aktiviteter och nationella prov, Regler och önskemål, Mål för schemat), salregister/salbehov (Lämplig/Olämplig), saltabell med massändring, Förutsättningar just nu, Tilldela salar och behåll tiderna, veckan med inspektör, Översikt över många resurser med verktygsfält (rader, period/vecka, dag, urval), Aktivitet för flera klasser (sökval av klasser, en per klass, serie, lunch i matsal) samt den valda läsårsvyn för nationella prov. **Användarbeslut:** nationella prov är undervisning enligt timplan i provets ämne och nivå; prov och skolans aktiviteter läggs in före första schemaförslaget så att schemat läggs runt dem och timplanstiden bevaras. Användaren har flyttat vyerna till en egen sida i designytan; repokopian i `design/` ska synkas när den sparats. **Ingen GSD-genomförandeplan finns ännu** för ombyggnaden; öppna frågor (ytans namn Granska, mandat för genomgång, provmodell i kalender/årsmodell, Skolverkets källa, matsal som delad kapacitet, gränsen 100 aktiviteter, övergång från äldre utkast och sal-ID) behöver avgöras eller antas uttryckligen i planeringen. Inga app-/SQL-/driftändringar; 7e38ba67 består.
 
 **Fördjupad UX-research klar 2026-11-16:** På användarens beställning **”Gör riktig ordentlig research … enkelt och avancerat samtidigt”** har 35 manualartiklar från schemaverktyg, primära UX-/tillgänglighetskällor och aktuell kod analyserats. [Samlad riktning och metod](phases/05.2-schemamodul/05.2-SM-UX-RESEARCH.md) länkar jämförelse, principer och tolv prioriterade nulägesfynd. Rekommendationen är fria förberedelseområden i **Förbered**, sammanhängande **Lägg schema** och **Granska**, gemensam formulär-/tabellmodell, läsbar inspektör och förhandsgranskad ändring. En interaktiv principskiss med exempeldata har 16/16 sammansatta klick-/layoutkontroller PASS och tre visuellt granskade bilder. Det är skisskontroll, inte produkt-, motor-, behörighets- eller mänskligt användarprov. Den äldre sexdelade innehållslistan är omprövad, ingen låst guide beslutad. **Researchuppdraget är klart; designhypotes och föreslagna användarprov återstår att värdera före en ny genomförandeplan.** Inga app-/SQL-/drift-/handboksändringar, inga nya kravgodkännanden eller ändrade formella antal. Installerad7e38ba67 består.
 
