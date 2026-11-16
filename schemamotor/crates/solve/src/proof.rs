@@ -179,20 +179,20 @@ pub fn presolve(p: &Problem, inst: &Inst) -> Vec<Diagnosis> {
         let (mut lo, mut hi) = (0i64, 0i64);
         let mut lessons = Vec::new();
         for (u, unit) in inst.units.iter().enumerate() {
-            let Some(&(_, m)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
-            let days: Vec<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| rule.days[d]).collect();
+            let Some((_, amounts)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
+            let days: Vec<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| amounts[d]).collect();
             if days.is_empty() {
                 continue;
             }
-            lo += m * days.iter().min().unwrap();
-            hi += m * days.iter().max().unwrap();
+            lo += days.iter().min().unwrap();
+            hi += days.iter().max().unwrap();
             lessons.extend(inst.unit_lessons(p, u));
         }
         if lessons.is_empty() {
             continue;
         }
         let act = &p.activities[rule.act].id;
-        let period = rule.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+        let period = rule.scope();
         if hi < rule.min {
             out.push(diag("activity_time", format!("Aktivitet {act} kan få högst {hi} min{period} men ska ha minst {} min.", rule.min), lessons, vec![act.clone()], true));
         } else if lo > rule.max {
@@ -203,8 +203,8 @@ pub fn presolve(p: &Problem, inst: &Inst) -> Vec<Diagnosis> {
             let mut sums = BTreeSet::from([0i64]);
             let mut capped = false;
             for unit in &inst.units {
-                let Some(&(_, m)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
-                let amounts: BTreeSet<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| m * rule.days[d]).collect();
+                let Some((_, contributions)) = unit.time.iter().find(|x| x.0 == r as u32) else { continue };
+                let amounts: BTreeSet<i64> = (0..inst.days).filter(|&d| unit.dom[d] != 0).map(|d| contributions[d]).collect();
                 if amounts.is_empty() { capped = true; break; }
                 let mut next = BTreeSet::new();
                 for a in &sums {

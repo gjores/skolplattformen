@@ -1,0 +1,17 @@
+{
+  "kind": "schema-annual-cli-compatibility",
+  "status": "PASS",
+  "at": "2026-11-16T14:38:36.544Z",
+  "oldBinarySha256": "a7cd1a49bf88a90d6c2f465eec31ded9bed25acf5b663be6c686e0fc138a62ee",
+  "newBinarySha256": "b251d4d7157a3652a3f47a655a2a01037d3bafa5065602dbf1db8c2e5416ae9a",
+  "legacyFieldsIdentical": true,
+  "legacyProblemHash": "a912cee0715ef3b6ce4d1648edce8183ca94b28d8937222f8d3c87ed3ff8f715",
+  "annualProblemHash": "880c1cd9e2bf6a987e6a216e4d2733ca417d66e75dca147bacf3f1ddbf78fafb",
+  "versions": [
+    4,
+    5
+  ],
+  "independentValidation": "PASS zero violations for all3results",
+  "targetContact": false,
+  "cleanup": "complete"
+}

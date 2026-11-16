@@ -419,7 +419,7 @@ fn invalid_baseline_and_parameters_stop_before_a_suggestion_is_made() {
     );
     assert_eq!(suggest(&r).unwrap_err().code, "unknown_lesson");
     let mut p = p;
-    p.version = CONTRACT_VERSION - 1;
+    p.version = 3;
     let r = request(p, vec![], SuggestionMode::Lesson, Some("a"), None, 1);
     assert_eq!(suggest(&r).unwrap_err().code, "version_mismatch");
 }

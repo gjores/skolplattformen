@@ -97,6 +97,16 @@ fn check_deadline(deadline: Option<Instant>) -> Result<(), ValidationTimeout> {
 }
 fn validate_until(problem: &Problem, placements: &[Placement], deadline: Option<Instant>) -> Result<Report, ValidationTimeout> {
     check_deadline(deadline)?;
+    // Legacyv4:s placeringssemantik består. Nya budgetfält/versioner får däremot inte
+    // passera grönt genom en kontrollväg som annars inte behöver kompilera underlaget.
+    if problem.version != 4 || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some())) {
+        let errors = problem.check();
+        if !errors.is_empty() {
+            return Ok(Report { violations: errors.into_iter().map(|d| Violation { code: match d.code.as_str() {
+                "version" => "version", "activity_time" | "activity_time_budget" => "activity_time", _ => "bad_problem"
+            }, message:d.message, lessons:d.lessons, resources:d.resources }).collect(), metrics:Metrics::default() });
+        }
+    }
     let mut v: Vec<Violation> = Vec::new();
     let lessons: HashMap<&str, &Lesson> = problem.lessons.iter().map(|l| (l.id.as_str(), l)).collect();
     let rooms: HashMap<&str, &Room> = problem.rooms.iter().map(|r| (r.id.as_str(), r)).collect();
@@ -400,14 +410,19 @@ fn validate_until(problem: &Problem, placements: &[Placement], deadline: Option<
     // Aktiviteternas tid, när alla deras pass i perioden är placerade.
     for a in &problem.activities {
         check_deadline(deadline)?;
+        let mut checked_budgets = BTreeSet::new();
         for t in &a.time {
-            let own: Vec<&Lesson> = problem.lessons.iter().filter(|l| l.activity.as_deref() == Some(a.id.as_str()) && in_period(l, t.period.as_deref())).collect();
+            if let Some(budget) = &t.budget { if !checked_budgets.insert(budget.as_str()) { continue; } }
+            let rows: Vec<&ActivityTime> = if let Some(budget) = &t.budget { a.time.iter().filter(|row| row.budget.as_ref() == Some(budget)).collect() } else { vec![t] };
+            let own: Vec<&Lesson> = problem.lessons.iter().filter(|l| l.activity.as_deref() == Some(a.id.as_str()) && rows.iter().any(|row| in_period(l, row.period.as_deref()))).collect();
             if own.is_empty() || own.iter().any(|l| !placed.contains_key(l.id.as_str())) {
                 continue;
             }
-            let sum = t.minutes(own.iter().map(|l| (l.counted(), placed[l.id.as_str()].day)));
+            // Oberoende av lösarens kompilerade koefficienter: varje rå rad räknar
+            // endast sina giltiga pass med just den radens veckodagsantal.
+            let sum: u64 = rows.iter().map(|row| row.minutes(own.iter().filter(|l| in_period(l,row.period.as_deref())).map(|l| (l.counted(), placed[l.id.as_str()].day)))).sum();
             if sum < t.min_min || sum > t.max_min {
-                let period = t.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+                let period = if t.budget.is_some() { " i årsbudgeten".to_string() } else { t.period.as_ref().map_or(String::new(), |x| format!(" i period {x}")) };
                 v.push(Violation {
                     code: "activity_time",
                     message: format!("Aktivitet {} får {sum} min{period} men ska ha {}–{} min.", a.id, t.min_min, t.max_min),
@@ -463,6 +478,7 @@ pub fn validate_solution(problem: &Problem, solution: &Solution) -> Report {
     let mut report = validate(problem, &solution.placements);
     let time_broken = report.violations.iter().any(|x| x.code == "activity_time");
     let mut push = |code: &'static str, message: String| report.violations.push(Violation { code, message, lessons: vec![], resources: vec![] });
+    if solution.version != problem.version { push("version_mismatch", "Resultatets version stämmer inte med underlaget.".into()); }
     if solution.problem_hash != problem.hash() {
         push("stale", "Resultatet är beräknat på ett annat underlag.".into());
     }
@@ -535,6 +551,7 @@ pub struct Position {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum PositionsError {
+    BadProblem,
     UnknownLesson,
     /// Klustret finns inte, eller dess elever har inte passet.
     BadPupil,
@@ -671,6 +688,9 @@ fn preference_reasons(now: &Metrics, then: &Metrics, w: &Weights) -> Vec<Reason>
 /// Pröva varje starttid på startrutnätet där passet och dess marginal ryms i skoldagen, mot övriga pass som de ligger.
 /// `pupil` är ett kluster: då räknas elevernas brott bara för det klustret.
 pub fn positions(problem: &Problem, placements: &[Placement], lesson: &str, pupil: Option<&str>) -> Result<Vec<Position>, PositionsError> {
+    if (problem.version != 4 || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some()))) && !problem.check().is_empty() {
+        return Err(PositionsError::BadProblem);
+    }
     let l = problem.lessons.iter().find(|x| x.id == lesson).ok_or(PositionsError::UnknownLesson)?;
     if let Some(c) = pupil {
         if !problem.clusters.iter().any(|x| x.id == c) || !lesson_clusters(problem, l).contains(c) {

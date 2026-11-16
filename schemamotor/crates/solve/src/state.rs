@@ -511,11 +511,11 @@ impl<'a> State<'a> {
                 }
             }
         }
-        for &(r, m) in &unit.time {
-            let rule = &inst.times[r as usize];
-            let i = r as usize;
+        for (r, amounts) in &unit.time {
+            let rule = &inst.times[*r as usize];
+            let i = *r as usize;
             let old = rule.cost(self.time_sum[i]);
-            self.time_sum[i] += if add { m * rule.days[du] } else { -m * rule.days[du] };
+            self.time_sum[i] += if add { amounts[du] } else { -amounts[du] };
             self.time_dev += rule.cost(self.time_sum[i]) - old;
         }
         let moved = self.moved_cost(u, d, s, &self.rooms[u]);

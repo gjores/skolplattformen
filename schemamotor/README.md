@@ -12,11 +12,13 @@ cargo run --release -- bench --time 10000 --seeds 3 --out bench/out
 
 ## Delar
 
-- `crates/model` – kontraktet: underlag (`Problem`) och resultat (`Solution`), version 4. V3 lade till `search_statistics`; V4 lägger till det strikta kontraktet för placeringsförslag. Äldre underlag och svar godtas inte som V4. Okända fält nekas.
+- `crates/model` – kontraktet: underlag (`Problem`) och resultat (`Solution`), version5 med uttryckligt stöd för version4. V4 lade till det strikta kontraktet för placeringsförslag. V5 tillför aktivitetens gemensamma årsbudget. Okända fält nekas; v4 med budgetfält nekas. Alla problemsvar återger begärans version, medan hälsosvaret anger5 och `supported_problem_versions:[4,5]`.
 - `crates/solve` – lösaren. Besked: `complete`, `time_limit`, `infeasible` (med bevis), `input_missing`, `cancelled`.
 - `crates/validate` – fristående granskning som räknar i minuter och inte delar kod med lösaren. Bygger även för `wasm32-unknown-unknown`.
 - `crates/cli` – kommandorad, syntetiska skolor och mätning.
 - `crates/service` – `schemamotor-tjanst`, HTTP-tjänst för appens server: `GET /v1/health`, `POST /v1/solve[?time_ms=N]`, `POST /v1/diagnose`, `POST /v1/validate` och `POST /v1/positions` och `POST /v1/suggest` med `Authorization: Bearer`. Gränser för storlek, räknetid och samtidiga körningar; innehåll loggas inte.
+
+I motor5 kan `activities[].time` ha `budget:"arsbudget-1"` på flera periodrader. Samma budget inom **samma aktivitet** har identiska min/max och unika, befintliga perioder. Bidragen summeras till ett gemensamt intervall, med varje rads egna `weekday_days` och bara de pass som gäller i den perioden. Ett gemensamt pass bidrar i båda terminerna, separata termpass bara i sin termin. Samma budgetsträng i en annan aktivitet är en separat budget. Compile/state/sökning/bevis använder bidrag per enhet och veckodag; den oberoende kontrollanten summerar direkt från originalraderna. Utan budget gäller tidigare separata radregler både i v4 och v5. Budget-ID är1–200 UTF8-byte utan trimavvikelse/kontrolltecken, `null` nekas, högst32 rader per budgetbärande aktivitet, dagräknare högst366 och minutgräns högst10^9; den totala interna kostnaden storlekskontrolleras före kompilering. Ingen personinformation behövs.
 
 ```sh
 SCHEMAMOTOR_TOKEN=<minst 16 tecken> cargo run --release -p schemamotor-tjanst   # lyssnar på 127.0.0.1:8787

@@ -11,7 +11,7 @@
 //! `POST /v1/suggest` föreslår direkta placeringar och korta kedjor inom två sekunder.
 //! Kö, jobbstatus och avbryt återstår.
 
-use schemamotor_model::{Placement, Problem, SuggestionRequest, CONTRACT_VERSION};
+use schemamotor_model::{Placement, Problem, SuggestionRequest, CONTRACT_VERSION, SUPPORTED_PROBLEM_VERSIONS};
 use schemamotor_solve::{diagnose, solve, suggest, Options};
 use schemamotor_validate::{positions, validate, PositionsError};
 use serde::Deserialize;
@@ -96,7 +96,7 @@ impl Drop for Running<'_> {
 fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     let path = request.url().split('?').next().unwrap_or("").to_string();
     if path == "/v1/health" && *request.method() == Method::Get {
-        return reply(request, 200, format!("{{\"contract_version\":{CONTRACT_VERSION}}}"));
+        return reply(request, 200, serde_json::json!({"contract_version":CONTRACT_VERSION,"supported_problem_versions":SUPPORTED_PROBLEM_VERSIONS}).to_string());
     }
     let check = path == "/v1/validate" || path == "/v1/positions";
     if path != "/v1/solve" && path != "/v1/diagnose" && path != "/v1/suggest" && !check {
@@ -149,11 +149,12 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         let _guard = Running(running);
         return match positions(&input.problem, &input.placements, &input.lesson, input.pupil.as_deref()) {
             Ok(list) => {
-                let out = serde_json::json!({"version": CONTRACT_VERSION, "problem_id": input.problem.id, "lesson": input.lesson, "positions": list});
+                let out = serde_json::json!({"version": input.problem.version, "problem_id": input.problem.id, "lesson": input.lesson, "positions": list});
                 reply(request, 200, out.to_string())
             }
             Err(PositionsError::UnknownLesson) => error(request, 400, "unknown_lesson"),
             Err(PositionsError::BadPupil) => error(request, 400, "bad_pupil"),
+            Err(PositionsError::BadProblem) => error(request, 400, "bad_problem"),
         };
     }
     if check {
@@ -169,7 +170,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
             .iter()
             .map(|v| serde_json::json!({"code": v.code, "message": v.message, "lessons": v.lessons, "resources": v.resources}))
             .collect();
-        let out = serde_json::json!({"version": CONTRACT_VERSION, "problem_id": input.problem.id, "violations": violations, "metrics": report.metrics});
+        let out = serde_json::json!({"version": input.problem.version, "problem_id": input.problem.id, "violations": violations, "metrics": report.metrics});
         return reply(request, 200, out.to_string());
     }
     let Ok(problem) = serde_json::from_slice::<Problem>(&body) else { return error(request, 400, "bad_problem") };
@@ -179,7 +180,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     }
     let _guard = Running(running);
     if path == "/v1/diagnose" {
-        let out = serde_json::json!({"version": CONTRACT_VERSION, "problem_id": problem.id, "diagnoses": diagnose(&problem)});
+        let out = serde_json::json!({"version": problem.version, "problem_id": problem.id, "diagnoses": diagnose(&problem)});
         return reply(request, 200, out.to_string());
     }
     let options = Options { time_limit_ms: Some(limit), max_iters: None, threads: cfg.threads, seed: 1 };

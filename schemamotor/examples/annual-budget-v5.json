@@ -1,0 +1,13 @@
+{
+  "version": 5,
+  "id": "annual-budget-example",
+  "time": { "step_min": 5, "days": [{ "start_min": 480, "end_min": 600 }, { "start_min": 480, "end_min": 600 }] },
+  "periods": [{ "id": "ht" }, { "id": "vt" }],
+  "teachers": [{ "id": "teacher-1" }],
+  "activities": [{ "id": "activity-1", "time": [
+    { "period": "ht", "budget": "arsbudget-1", "weekday_days": [2, 5], "min_min": 270, "max_min": 270 },
+    { "period": "vt", "budget": "arsbudget-1", "weekday_days": [7, 3], "min_min": 270, "max_min": 270 }
+  ] }],
+  "lessons": [{ "id": "lesson-1", "activity": "activity-1", "duration_min": 30, "teachers": ["teacher-1"] }],
+  "rules": { "same_day": "allow" }
+}

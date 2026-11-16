@@ -37,6 +37,53 @@ fn problem(lessons: usize) -> String {
     .to_string()
 }
 
+fn annual_problem() -> serde_json::Value {
+    let mut p:serde_json::Value=serde_json::from_str(&problem(1)).unwrap();
+    p["version"]=serde_json::json!(5);p["periods"]=serde_json::json!([{"id":"ht"},{"id":"vt"}]);
+    p["lessons"][0]["duration_min"]=serde_json::json!(30);p["lessons"][0]["activity"]=serde_json::json!("year");
+    p["activities"]=serde_json::json!([{"id":"year","time":[
+        {"period":"ht","budget":"arsbudget-1","weekday_days":[2,5],"min_min":270,"max_min":270},
+        {"period":"vt","budget":"arsbudget-1","weekday_days":[7,3],"min_min":270,"max_min":270}]}]);p
+}
+
+#[test]
+fn v4_and_v5_return_the_requested_version_across_all_five_http_endpoints() {
+    let mut config=Config::new(TOKEN.into());config.threads=1;let addr=start(config);
+    let health:serde_json::Value=serde_json::from_str(&call(&addr,"GET","/v1/health",None,"").1).unwrap();
+    assert_eq!(health["contract_version"],5);assert_eq!(health["supported_problem_versions"],serde_json::json!([4,5]));
+    for version in [4,5] {
+        let mut p:serde_json::Value=if version==5 {annual_problem()} else {serde_json::from_str(&problem(1)).unwrap()};p["version"]=serde_json::json!(version);
+        let (status,text)=call(&addr,"POST","/v1/solve?time_ms=200",Some(TOKEN),&p.to_string());assert_eq!(status,200);
+        let solution:Solution=serde_json::from_str(&text).unwrap();assert_eq!(solution.version,version);assert_eq!(solution.status,Status::Complete);
+        let placements=serde_json::to_value(&solution.placements).unwrap();
+        for (endpoint,body) in [
+            ("validate",serde_json::json!({"problem":p,"placements":placements})),
+            ("positions",serde_json::json!({"problem":p,"placements":placements,"lesson":"pass-0"})),
+            ("diagnose",p.clone()),
+            ("suggest",serde_json::json!({"problem":p,"placements":[],"mode":"lesson","lesson":"pass-0","target":null,"depth":1})),
+        ] {
+            let (status,text)=call(&addr,"POST",&format!("/v1/{endpoint}"),Some(TOKEN),&body.to_string());assert_eq!(status,200,"v{version} {endpoint}: {text}");
+            let answer:serde_json::Value=serde_json::from_str(&text).unwrap();assert_eq!(answer["version"],version,"{endpoint}");
+            if endpoint=="validate" {assert!(answer["violations"].as_array().unwrap().is_empty());}
+        }
+    }
+}
+
+#[test]
+fn annual_http_validation_and_positions_detect_the_wrong_weekday_and_v4_budget_is_never_green() {
+    let addr=start(Config::new(TOKEN.into()));let p=annual_problem();
+    let wrong=serde_json::json!([{"lesson":"pass-0","day":1,"start_min":480}]);
+    let (_,text)=call(&addr,"POST","/v1/validate",Some(TOKEN),&serde_json::json!({"problem":p,"placements":wrong}).to_string());
+    let answer:serde_json::Value=serde_json::from_str(&text).unwrap();assert!(answer["violations"].as_array().unwrap().iter().any(|v|v["code"]=="activity_time"&&v["message"].as_str().unwrap().contains("240")));
+    let (_,text)=call(&addr,"POST","/v1/positions",Some(TOKEN),&serde_json::json!({"problem":p,"placements":[],"lesson":"pass-0"}).to_string());
+    let answer:serde_json::Value=serde_json::from_str(&text).unwrap();assert!(answer["positions"].as_array().unwrap().iter().any(|v|v["day"]==1&&v["state"]=="violation"));
+    let mut old=p;old["version"]=serde_json::json!(4);
+    let (_,text)=call(&addr,"POST","/v1/solve?time_ms=10",Some(TOKEN),&old.to_string());let solution:Solution=serde_json::from_str(&text).unwrap();assert_eq!(solution.version,4);assert_eq!(solution.status,Status::InputMissing);
+    let (_,text)=call(&addr,"POST","/v1/validate",Some(TOKEN),&serde_json::json!({"problem":old,"placements":[]}).to_string());let report:serde_json::Value=serde_json::from_str(&text).unwrap();assert!(!report["violations"].as_array().unwrap().is_empty());
+    assert_eq!(call(&addr,"POST","/v1/positions",Some(TOKEN),&serde_json::json!({"problem":old,"placements":[],"lesson":"pass-0"}).to_string()).0,400);
+    assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&serde_json::json!({"problem":old,"placements":[],"mode":"lesson","lesson":"pass-0","target":null,"depth":1}).to_string()).0,400);
+}
+
 #[test]
 fn solve_requires_token_and_returns_a_valid_schedule() {
     let addr = start(Config::new(TOKEN.into()));
@@ -151,7 +198,7 @@ fn suggest_preserves_http_grinds_and_returns_the_exact_new_contract() {
     assert_eq!(call(&addr,"POST","/v1/suggest?time_ms=90000",Some(TOKEN),&body).0,400);
     let mut raw:serde_json::Value=serde_json::from_str(&body).unwrap();raw["depth"]=serde_json::json!(0);
     assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&raw.to_string()),(400,"{\"error\":\"bad_request\"}".into()));
-    raw["depth"]=serde_json::json!(1);raw["problem"]["version"]=serde_json::json!(schemamotor_model::CONTRACT_VERSION-1);
+    raw["depth"]=serde_json::json!(1);raw["problem"]["version"]=serde_json::json!(3);
     assert_eq!(call(&addr,"POST","/v1/suggest",Some(TOKEN),&raw.to_string()),(400,"{\"error\":\"version_mismatch\"}".into()));
     let (status,text)=call(&addr,"POST","/v1/suggest",Some(TOKEN),&body);
     assert_eq!(status,200);

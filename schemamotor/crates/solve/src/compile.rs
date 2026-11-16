@@ -43,8 +43,8 @@ pub struct Unit {
     pub locked: bool,
     pub dur_min: u32,
     pub nrooms: usize,
-    /// Tidsregler som enheten bidrar till, med enhetens minuter i aktiviteten.
-    pub time: Vec<(u32, i64)>,
+    /// Tidsregel och hela enhetens bidrag i minuter per möjlig veckodag.
+    pub time: Vec<(u32, Vec<i64>)>,
     /// Enheten bryter mot en regel i sig själv (text för diagnos).
     pub self_conflict: Option<String>,
 }
@@ -53,12 +53,15 @@ pub struct Unit {
 pub struct TimeRule {
     pub act: usize,
     pub period: Option<String>,
-    pub days: Vec<i64>,
+    pub budget: Option<String>,
     pub min: i64,
     pub max: i64,
 }
 
 impl TimeRule {
+    pub fn scope(&self) -> String {
+        if self.budget.is_some() { " i årsbudgeten".into() } else { self.period.as_ref().map_or(String::new(), |x| format!(" i period {x}")) }
+    }
     /// Minuter utanför det tillåtna intervallet.
     pub fn dev(&self, sum: i64) -> i64 {
         (self.min - sum).max(0) + (sum - self.max).max(0)
@@ -374,34 +377,40 @@ pub fn compile(p: &Problem) -> Inst {
 
     // Tidsregler: varje enhet bidrar med sina pass i aktiviteten, i de perioder den går.
     let mut times: Vec<TimeRule> = Vec::new();
-    let mut act_times: Vec<Vec<(usize, u32)>> = vec![Vec::new(); p.activities.len()];
+    let mut act_times: Vec<Vec<(usize, u32, &[u32])>> = vec![Vec::new(); p.activities.len()];
     for (a, act) in p.activities.iter().enumerate() {
+        let mut budgets: HashMap<&str, usize> = HashMap::new();
         for t in &act.time {
             let pm = t.period.as_ref().map_or(all_periods, |x| 1 << period_ix[x.as_str()]);
-            act_times[a].push((times.len(), pm));
-            times.push(TimeRule { act: a, period: t.period.clone(), days: t.weekday_days.iter().map(|&n| n as i64).collect(), min: t.min_min as i64, max: t.max_min as i64 });
+            let r = t.budget.as_ref().and_then(|b| budgets.get(b.as_str())).copied().unwrap_or_else(|| {
+                let r = times.len();
+                if let Some(b) = &t.budget { budgets.insert(b.as_str(), r); }
+                times.push(TimeRule { act: a, period: if t.budget.is_some() { None } else { t.period.clone() }, budget: t.budget.clone(), min: t.min_min as i64, max: t.max_min as i64 });
+                r
+            });
+            act_times[a].push((r, pm, &t.weekday_days));
         }
     }
     for unit in units.iter_mut() {
         for part in &unit.parts {
             let Some(a) = p.lessons[part.lesson].activity.as_ref().map(|a| act_ix[a.as_str()]) else { continue };
-            for &(r, pm) in &act_times[a] {
+            for &(r, pm, weekday_days) in &act_times[a] {
                 if unit.pm & pm == 0 {
                     continue;
                 }
                 let dur = p.lessons[part.lesson].counted() as i64;
-                match unit.time.iter_mut().find(|x| x.0 == r as u32) {
-                    Some(x) => x.1 += dur,
-                    None => unit.time.push((r as u32, dur)),
-                }
+                let contributions: Vec<i64> = weekday_days.iter().map(|&n| dur * n as i64).collect();
+                if let Some((_, amounts)) = unit.time.iter_mut().find(|x| x.0 == r as u32) {
+                    for (sum, amount) in amounts.iter_mut().zip(contributions) { *sum += amount; }
+                } else { unit.time.push((r as u32, contributions)); }
             }
         }
     }
 
     let mut time_units: Vec<Vec<u32>> = vec![Vec::new(); times.len()];
     for (u, unit) in units.iter().enumerate() {
-        for &(r, _) in &unit.time {
-            time_units[r as usize].push(u as u32);
+        for (r, _) in &unit.time {
+            time_units[*r as usize].push(u as u32);
         }
     }
 

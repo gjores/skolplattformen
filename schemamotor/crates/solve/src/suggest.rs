@@ -450,14 +450,14 @@ pub fn suggest_with_budget(
     let start = Instant::now();
     let deadline = start + budget.min(SEARCH_BUDGET);
     let mut out = Suggestions {
-        version: CONTRACT_VERSION,
+        version: input.problem.version,
         problem_id: input.problem.id.clone(),
         depth: input.depth,
         timed_out: false,
         elapsed_ms: 0,
         suggestions: vec![],
     };
-    if input.problem.version != CONTRACT_VERSION {
+    if !supported_problem_version(input.problem.version) {
         return Err(SuggestError::code("version_mismatch"));
     }
     if !(1..=3).contains(&input.depth)

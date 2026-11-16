@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 use std::collections::{HashMap, HashSet};
 
-pub const CONTRACT_VERSION: u32 = 4;
+pub const CONTRACT_VERSION: u32 = 5;
+pub const SUPPORTED_PROBLEM_VERSIONS: [u32; 2] = [4, 5];
+pub fn supported_problem_version(version: u32) -> bool { SUPPORTED_PROBLEM_VERSIONS.contains(&version) }
 /// Lösaren håller en dag i ett 128-bitarsord.
 pub const MAX_SLOTS_PER_DAY: u32 = 128;
 pub const MAX_PERIODS: usize = 32;
@@ -159,10 +161,18 @@ pub struct ActivityTime {
     /// Perioden. Utan värde: alla pass, oavsett period.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub period: Option<String>,
+    /// Gemensamt tidsintervall för flera periodrader, avgränsat till samma aktivitet (motor5).
+    #[serde(default, skip_serializing_if = "Option::is_none", deserialize_with = "optional_budget")]
+    pub budget: Option<String>,
     /// Skoldagar per veckodag i perioden, en post per dag i `time.days`.
     pub weekday_days: Vec<u32>,
     pub min_min: u64,
     pub max_min: u64,
+}
+
+fn optional_budget<'de, D: serde::Deserializer<'de>>(deserializer: D) -> Result<Option<String>, D::Error> {
+    // Saknat fält är legacy. Ett uttryckligt null är inte ett giltigt budget-ID.
+    String::deserialize(deserializer).map(Some)
 }
 
 impl ActivityTime {
@@ -621,8 +631,8 @@ impl Problem {
         let mut err = |code: &str, message: String, lessons: Vec<String>, resources: Vec<String>| {
             out.push(Diagnosis { code: code.to_string(), message, lessons, resources, proof: false });
         };
-        if self.version != CONTRACT_VERSION {
-            err("version", format!("Underlaget har kontraktsversion {}, motorn läser {}.", self.version, CONTRACT_VERSION), vec![], vec![]);
+        if !supported_problem_version(self.version) {
+            err("version", format!("Underlaget har kontraktsversion {}, motorn läser 4 och {}.", self.version, CONTRACT_VERSION), vec![], vec![]);
         }
         let step = self.time.step_min;
         if step == 0 {
@@ -702,7 +712,12 @@ impl Problem {
         let groups: HashSet<&str> = self.groups.iter().map(|g| g.id.as_str()).collect();
         let rooms: HashSet<&str> = self.rooms.iter().map(|r| r.id.as_str()).collect();
         let activities: HashSet<&str> = self.activities.iter().map(|a| a.id.as_str()).collect();
+        let mut budget_max_total = 0u128;
         for a in &self.activities {
+            let mut budgets: HashMap<&str, (u64, u64, HashSet<&str>)> = HashMap::new();
+            if a.time.iter().any(|t| t.budget.is_some()) && a.time.len() > MAX_PERIODS {
+                err("activity_time_budget", format!("Aktivitet {} har fler än {MAX_PERIODS} tidsrader i årsbudgeten.", a.id), vec![], vec![a.id.clone()]);
+            }
             for t in &a.time {
                 if t.weekday_days.len() != days as usize {
                     err("activity_time", format!("Aktivitet {} har skoldagar för {} veckodagar men underlaget har {days}.", a.id, t.weekday_days.len()), vec![], vec![a.id.clone()]);
@@ -715,7 +730,37 @@ impl Problem {
                         err("unknown_ref", format!("Aktivitet {} hänvisar till okänd period {p}.", a.id), vec![], vec![a.id.clone(), p.clone()]);
                     }
                 }
+                if let Some(budget) = &t.budget {
+                    let mut invalid = self.version != 5 || budget.is_empty() || budget.len() > 200 || budget.trim() != budget
+                        || budget.chars().any(char::is_control) || t.weekday_days.iter().any(|&n| n > 366)
+                        || t.max_min > 1_000_000_000;
+                    if let Some(period) = t.period.as_deref() {
+                        if !budgets.contains_key(budget.as_str()) { budget_max_total += t.max_min as u128; }
+                        let entry = budgets.entry(budget.as_str()).or_insert_with(|| (t.min_min, t.max_min, HashSet::new()));
+                        invalid |= entry.0 != t.min_min || entry.1 != t.max_min || !entry.2.insert(period);
+                    } else { invalid = true; }
+                    if invalid {
+                        err("activity_time_budget", format!("Aktivitet {} har en ogiltig årsbudget: motor5, giltigt budget-ID, unik period och samma min/max krävs.", a.id), vec![], vec![a.id.clone()]);
+                    }
+                }
             }
+        }
+        // Lämna marginal för den interna avvikelsekostnaden (4 × minuter ×10^7).
+        if budget_max_total > i64::MAX as u128 / 100_000_000 {
+            err("activity_time_budget", "Årsbudgeternas sammanlagda minutgräns är för stor för säker beräkning.".into(), vec![], vec![]);
+        }
+        let budget_rows: HashMap<&str, Vec<&ActivityTime>> = self.activities.iter().map(|a|
+            (a.id.as_str(), a.time.iter().filter(|t| t.budget.is_some()).collect())).collect();
+        let mut contribution_bound = 0u128;
+        for lesson in &self.lessons {
+            if let Some(rows) = lesson.activity.as_deref().and_then(|a| budget_rows.get(a)) {
+                for row in rows.iter().filter(|row| row.period.as_ref().is_none_or(|p| lesson.periods.is_empty() || lesson.periods.contains(p))) {
+                    contribution_bound += lesson.counted() as u128 * row.weekday_days.iter().max().copied().unwrap_or(0) as u128;
+                }
+            }
+        }
+        if contribution_bound > i64::MAX as u128 / 100_000_000 {
+            err("activity_time_budget", "Årsbudgeternas möjliga minutbidrag är för stora för säker beräkning.".into(), vec![], vec![]);
         }
         for g in &self.groups {
             if g.unavailable.iter().any(|iv| !check_iv(iv)) {

@@ -175,14 +175,16 @@ impl<'a, 'b> Search<'a, 'b> {
         let r = (0..n).map(|i| (first + i) % n).find(|&r| inst.times[r].dev(self.st.time_of(r)) > 0)?;
         let rule = &inst.times[r];
         let units = &inst.time_units[r];
+        if units.is_empty() { return None; }
         let u = units[self.rng.below(units.len())] as usize;
         let unit = &inst.units[u];
         if unit.locked || unit.self_conflict.is_some() {
             return None;
         }
         let (now, _) = self.st.pos[u]?;
-        let (here, up) = (rule.days[now as usize], self.st.time_of(r) < rule.min);
-        let days: Vec<usize> = (0..inst.days).filter(|&d| unit.dom[d] != 0 && if up { rule.days[d] > here } else { rule.days[d] < here }).collect();
+        let amounts = &unit.time.iter().find(|x| x.0 == r as u32)?.1;
+        let (here, up) = (amounts[now as usize], self.st.time_of(r) < rule.min);
+        let days: Vec<usize> = (0..inst.days).filter(|&d| unit.dom[d] != 0 && if up { amounts[d] > here } else { amounts[d] < here }).collect();
         if days.is_empty() {
             return None;
         }
@@ -508,8 +510,9 @@ impl<'a, 'b> Search<'a, 'b> {
                     if unit.locked || unit.self_conflict.is_some() {
                         continue;
                     }
-                    let here = rule.days[now as usize];
-                    for d in (0..inst.days).filter(|&d| if up { rule.days[d] > here } else { rule.days[d] < here }) {
+                    let amounts = &unit.time.iter().find(|x| x.0 == r as u32).expect("time_units").1;
+                    let here = amounts[now as usize];
+                    for d in (0..inst.days).filter(|&d| if up { amounts[d] > here } else { amounts[d] < here }) {
                         let mut m = unit.dom[d];
                         while m != 0 {
                             let s = m.trailing_zeros();

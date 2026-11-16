@@ -50,7 +50,7 @@ fn bounded_diagnoses(mut findings: Vec<Diagnosis>) -> Vec<Diagnosis> {
 
 fn empty(p: &Problem, status: Status, diagnoses: Vec<Diagnosis>, opt: &Options, start: Instant) -> Solution {
     Solution {
-        version: CONTRACT_VERSION,
+        version: p.version,
         problem_id: p.id.clone(),
         problem_hash: p.hash(),
         status,
@@ -186,7 +186,7 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
         }
         time_broken = true;
         let act = &p.activities[rule.act].id;
-        let period = rule.period.as_ref().map_or(String::new(), |x| format!(" i period {x}"));
+        let period = rule.scope();
         let lessons = p.lessons.iter().filter(|l| l.activity.as_deref() == Some(act.as_str())).map(|l| l.id.clone()).collect();
         diagnoses.push(Diagnosis {
             code: "activity_time".into(),
@@ -207,7 +207,7 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
     };
     let first = first_complete.load(Ordering::Relaxed);
     Solution {
-        version: CONTRACT_VERSION,
+        version: p.version,
         problem_id: p.id.clone(),
         problem_hash: p.hash(),
         status,
