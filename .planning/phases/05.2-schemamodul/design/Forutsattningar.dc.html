@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Förutsättningar just nu</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+.col{background:#fff;border:1px solid #e3e7ee;border-radius:12px;padding:20px;display:flex;flex-direction:column;gap:0;min-width:0}
+.st{display:flex;flex-direction:column;gap:6px;padding:14px 0;border-top:1px solid #e3e7ee;font-size:14px;line-height:1.45}
+.st p{margin:0}
+.lim{font-size:13px;color:#657185}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 40px 48px 48px; display: flex; flex-direction: column; gap: 24px;">
+  <div style="display: flex; flex-direction: column; gap: 6px;">
+    <div class="eyebrow">FÖRBERED · ÅTERKOPPLING · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
+    <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Förutsättningar just nu<span style="color: #365ce6;">.</span></h1>
+    <p style="margin: 0; font-size: 15px; color: #657185; max-width: 80ch;">Fyra skilda frågor med egna besked. Varje besked säger vad det bygger på och vad det inte visar. Inga procentsatser om chansen att få ett bra schema.</p>
+  </div>
+
+  <section aria-labelledby="kort" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 24px; box-shadow: 0 4px 16px #284ab509; display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px;">
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <h2 id="kort" style="margin: 0; font-size: 18px; font-weight: 600; letter-spacing: -0.025em;">Handlingsutrymme: Begränsat</h2>
+        <span class="badge ok">Aktuellt · underlag sparat 14:32</span>
+      </div>
+      <p style="margin: 0; font-size: 15px; line-height: 1.5;">Efter den senaste ändringen har Språkblocket <strong style="font-weight: 600;">2 gemensamma starttider</strong>, jämfört med 8 tidigare. Två grupper behöver samtidigt varsin sal; bara 201 och 202 uppfyller kraven.</p>
+      <p style="margin: 0; font-size: 13px; color: #657185;">Bygger på: kända obligatoriska krav, salkrav och lärartider. Omfattar inte: 4 lärare utan svar och 8 obesvarade salbehov. Hela schemat är ännu inte prövat.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn">Visa Språkblocket</button>
+        <button type="button" class="btn">Vad ändrades?</button>
+      </div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #f7f8fa; border: 1px solid #e3e7ee;">
+      <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Prova ett alternativ</h3>
+      <p style="margin: 0; font-size: 14px;">Om även A102 tillåts för Språkblocket: <strong style="font-weight: 600;">5 gemensamma starttider</strong>.</p>
+      <p style="margin: 0; font-size: 13px; color: #657185;">Prövat på samma underlag. Regeln är inte ändrad. Hela schemat är inte prövat med alternativet.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn">Använd alternativet</button>
+        <button type="button" class="btn">Behåll nuvarande regel</button>
+      </div>
+    </div>
+  </section>
+
+  <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; align-items: start;">
+
+    <section class="col" aria-labelledby="q1">
+      <h2 id="q1" style="margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">1. Finns uppgifterna?</h2>
+      <p class="lim" style="margin: 0 0 8px;">Vad finns, vad saknas, vad har ändrats</p>
+      <div class="st"><span class="badge warn" style="align-self: flex-start;">Behöver kompletteras</span><p>8 salbehov obesvarade. Antal platser saknas för Musiksal.</p><p class="lim">Saknad uppgift räknas inte som fritt utrymme.</p></div>
+      <div class="st"><span class="badge warn" style="align-self: flex-start;">Ändrat sedan genomgången</span><p>Tjänstefördelningen ändrades 12 nov: Provlärare 7 har ny undervisning.</p><p class="lim">Bara området Underlag behöver gås igenom igen.</p></div>
+      <div class="st"><span class="badge ok" style="align-self: flex-start;">Uppgifterna finns</span><p>Alla områden har svar, även uttryckliga ”inte aktuellt”.</p><p class="lim">Säger inget om att schemat går att lägga.</p></div>
+    </section>
+
+    <section class="col" aria-labelledby="q2">
+      <h2 id="q2" style="margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">2. Hur stort är utrymmet?</h2>
+      <p class="lim" style="margin: 0 0 8px;">Antal möjliga tider och salar under kända krav</p>
+      <div class="st"><span class="badge neutral" style="align-self: flex-start;">Ännu inte bedömbart</span><p>Salar och lärartider saknas för att bedöma.</p></div>
+      <div class="st"><span class="badge ok" style="align-self: flex-start;">Gott</span><p>Alla block har minst 6 gemensamma starttider och flera lämpliga salar.</p></div>
+      <div class="st"><span class="badge warn" style="align-self: flex-start;">Begränsat</span><p>Språkblocket: 2 gemensamma starttider.</p><p class="lim">Få alternativ är inte samma sak som ett dåligt schema.</p></div>
+      <div class="st"><span class="badge warn" style="align-self: flex-start;">Mycket begränsat</span><p>Kemi i 7 grupper delar 1 lämplig sal under 6 möjliga dagpass.</p></div>
+      <div class="st"><span class="badge err" style="align-self: flex-start;">Hinder</span><p>Språkblocket kräver samma start, men Provlärare 7 undervisar i två av dess pass.</p><p class="lim">Ett block ger ingen rätt att dubbelboka.</p><button type="button" class="btn" style="align-self: flex-start;">Öppna blocket</button></div>
+    </section>
+
+    <section class="col" aria-labelledby="q3">
+      <h2 id="q3" style="margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">3. Vad har prövats?</h2>
+      <p class="lim" style="margin: 0 0 8px;">Omfattning, underlag och resultat</p>
+      <div class="st"><span class="badge neutral" style="align-self: flex-start;">Inte prövat</span><p>Hela schemat är ännu inte prövat.</p></div>
+      <div class="st"><span class="badge ok" style="align-self: flex-start;">Kontrollerat, inga påvisade hinder</span><p>Snabbkontroll av lärartider, salkrav och block 14:32.</p><p class="lim">Bevisar inte att hela schemat går att lägga.</p></div>
+      <div class="st"><span class="badge warn" style="align-self: flex-start;">Tidsgräns nådd</span><p>Provsökningen stoppades efter 2 minuter med 31 pass olagda.</p><p class="lim">Inte ett bevis på att kraven är omöjliga.</p></div>
+      <div class="st"><span class="badge err" style="align-self: flex-start;">Tekniskt fel</span><p>Provsökningen kunde inte köras. Inget resultat finns.</p><button type="button" class="btn" style="align-self: flex-start;">Försök igen</button></div>
+      <div class="st"><span class="badge neutral" style="align-self: flex-start;">Inaktuellt</span><p>Resultatet från 11:05 bygger på äldre underlag och visas bara som jämförelse.</p></div>
+    </section>
+
+    <section class="col" aria-labelledby="q4">
+      <h2 id="q4" style="margin: 0 0 4px; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">4. Hur bra blev kandidaten?</h2>
+      <p class="lim" style="margin: 0 0 8px;">Bara efter en provsökning på aktuellt underlag</p>
+      <div class="st"><span class="badge neutral" style="align-self: flex-start;">Kvaliteten är inte prövad</span><p>Kör en provsökning för att se mått.</p></div>
+      <div class="st">
+        <span class="badge info" style="align-self: flex-start;">Provsökning 14:40 · ofullständigt underlag</span>
+        <dl style="margin: 4px 0 0; display: grid; gap: 6px;">
+          <div><dt class="lim">Pass med tid och lämplig sal</dt><dd style="margin: 0; font-weight: 600;">412 av 420</dd></div>
+          <div><dt class="lim">Brutna obligatoriska krav</dt><dd style="margin: 0; font-weight: 600;">0</dd></div>
+          <div><dt class="lim">Elevernas håltid</dt><dd style="margin: 0; font-weight: 600;">1 840 elevminuter</dd></div>
+          <div><dt class="lim">Ouppfyllda önskemål</dt><dd style="margin: 0; font-weight: 600;">5 av 12</dd></div>
+        </dl>
+        <p style="margin: 6px 0 0; font-size: 14px; padding: 8px 10px; border-radius: 8px; background: #f6efe2; color: #86601f;">Sämre för Provlärare 4: 3 håltimmar mer än i referensschemat.</p>
+        <button type="button" class="btn" style="align-self: flex-start;">Visa berörda</button>
+      </div>
+    </section>
+  </div>
+
+  <section aria-labelledby="prov" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; gap: 4px; flex: 1 1 520px;">
+      <h2 id="prov" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Provsöka med ofullständigt underlag</h2>
+      <p style="margin: 0; font-size: 14px;">8 salbehov och 4 lärartider saknas. Provet märks ofullständigt och ändrar inte utkastet.</p>
+    </div>
+    <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;">
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Tidsgräns
+        <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>2 minuter</option><option>5 minuter</option></select></label>
+      <button type="button" class="btn">Starta provsökning</button>
+    </div>
+  </section>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

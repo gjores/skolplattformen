@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Salbehov som tabell</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.seg{min-height:44px;padding:8px 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.seg[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:1px solid #365ce6;border-radius:10px;background:#edf1ff;color:#2d4cc1;font-size:14px;cursor:pointer}
+.nav{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.nav[aria-current="page"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;font-weight:600;color:#4f688b;text-align:left;padding:10px 12px;background:#edf0f6;position:sticky;top:0;white-space:nowrap}
+td{padding:10px 12px;border-top:1px solid #e3e7ee;vertical-align:top}
+td input[type="checkbox"]{width:20px;height:20px;accent-color:#365ce6;margin:0}
+tr.sel td{background:#edf1ff}
+tr.exc td{background:#fff}
+.muted{color:#657185}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 13px; color: #657185;">Exempelskolan · Läsår 2027/28</span>
+        <span style="font-size: 16px; font-weight: 600;">Utkast: Schema 2027/28</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+        <span class="badge ok">Sparat på servern 14:40 · revision 43</span>
+        <span class="badge neutral">Inte publicerat</span>
+        <button type="button" class="btn">Ångra: salbehov för Kemi 1</button>
+        <button type="button" class="btn" disabled="disabled" aria-disabled="true" style="color: #657185;">Gör om</button>
+      </div>
+    </div>
+    <nav aria-label="Arbetsytor i schemaläggningen" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button type="button" class="nav" aria-current="page">Förbered</button>
+      <button type="button" class="nav">Lägg schema</button>
+      <button type="button" class="nav">Granska</button>
+    </nav>
+  </header>
+
+  <main style="padding: 24px 48px 0; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="eyebrow">FÖRBERED · SALAR · TABELL · SKISS, INTE BYGGT</div>
+        <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Salbehov per undervisning<span style="color: #365ce6;">.</span></h1>
+        <p style="margin: 0; font-size: 15px; color: #657185; max-width: 76ch;">Samma salbehov som i formuläret, i tabellform för att jämföra och ändra många samtidigt.</p>
+      </div>
+      <div role="group" aria-label="Visa som" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+        <button type="button" class="seg" aria-pressed="false">Formulär</button>
+        <button type="button" class="seg" aria-pressed="true" style="border-right: 0;">Tabell</button>
+      </div>
+    </div>
+
+    <section aria-labelledby="tabell" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px;">
+      <h2 id="tabell" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Undervisningar</h2>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: flex-end;">
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Sök
+          <input type="search" value="" placeholder="Undervisning, grupp eller lärare" style="min-height: 44px; min-width: 260px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; font-size: 14px; color: #202b3b;"></label>
+        <button type="button" class="btn">Lägg till filter</button>
+        <button type="button" class="chip">Ämne: Naturvetenskap <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span style="position: absolute; left: -9999px;">Ta bort filtret</span></button>
+        <button type="button" class="chip">Salbehov: alla <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg><span style="position: absolute; left: -9999px;">Ta bort filtret</span></button>
+        <button type="button" class="btn">Rensa filter</button>
+      </div>
+      <p style="margin: 0; font-size: 14px;">Visar 22 av 140 undervisningar.</p>
+
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 16px; border: 1px solid #365ce6; border-radius: 10px; background: #edf1ff;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 24px; align-items: center;">
+          <strong style="font-size: 15px; font-weight: 600; color: #2d4cc1;">20 valda</strong>
+          <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px;">
+            <legend style="position: absolute; left: -9999px;">Urvalets omfattning</legend>
+            <label style="display: flex; gap: 8px; align-items: center; min-height: 44px;"><input type="radio" name="omf" checked="checked" style="width: 20px; height: 20px; accent-color: #365ce6;">De 20 markerade raderna</label>
+            <label style="display: flex; gap: 8px; align-items: center; min-height: 44px;"><input type="radio" name="omf" style="width: 20px; height: 20px; accent-color: #365ce6;">Alla 22 filtrerade träffar</label>
+          </fieldset>
+          <button type="button" class="btn">Avmarkera alla</button>
+        </div>
+        <p style="margin: 0; font-size: 14px;">Nuvarande värden bland de valda: <strong style="font-weight: 600;">blandade</strong> (14 obesvarade, 4 Lämplig allmän sal, 2 Särskilda salskrav). 2 rader är undantag och omarkerade.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end;">
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <span id="typ" style="font-size: 14px; color: #657185;">Ändring</span>
+            <div role="group" aria-labelledby="typ" style="display: flex; flex-wrap: wrap; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden; background: #fff;">
+              <button type="button" class="seg" aria-pressed="true">Sätt salbehov</button>
+              <button type="button" class="seg" aria-pressed="false">Lägg till salalternativ</button>
+              <button type="button" class="seg" aria-pressed="false">Ersätt salalternativ</button>
+              <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Ta bort salalternativ</button>
+            </div>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Nytt värde
+            <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>Lämplig allmän sal</option><option>Särskilda salskrav…</option><option>Sal behövs inte…</option></select></label>
+          <p style="flex: 1 1 280px; margin: 0; font-size: 13px; color: #657185;">Gäller befintliga undervisningar. Ämnets grundvärde för nya undervisningar ändras inte.</p>
+          <button type="button" class="btn">Förhandsgranska ändringen</button>
+        </div>
+      </div>
+
+      <div style="overflow: auto; max-height: 520px; border: 1px solid #e3e7ee; border-radius: 10px;">
+        <table>
+          <thead><tr><th scope="col">Välj</th><th scope="col">Undervisning</th><th scope="col">Grupp</th><th scope="col">Elever</th><th scope="col">Salbehov</th><th scope="col">Varifrån</th><th scope="col">Lämpliga salar</th></tr></thead>
+          <tbody>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Biologi 1, NA27A"></td><td>Biologi 1</td><td>NA27A</td><td>30</td><td><span class="badge neutral">Obesvarat</span></td><td class="muted">–</td><td class="muted">Inte bedömt</td></tr>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Biologi 1, NA27B"></td><td>Biologi 1</td><td>NA27B</td><td>29</td><td><span class="badge neutral">Obesvarat</span></td><td class="muted">–</td><td class="muted">Inte bedömt</td></tr>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Fysik 1a, NA27A"></td><td>Fysik 1a</td><td>NA27A</td><td>30</td><td>Lämplig allmän sal</td><td class="muted">Ärvt från ämnet</td><td>9</td></tr>
+            <tr class="exc"><td><input type="checkbox" aria-label="Välj Kemi 1, NA27A grupp 1"></td><td>Kemi 1</td><td>NA27A grupp 1</td><td>22</td><td>Särskilda salskrav</td><td><span class="badge info">Eget undantag</span></td><td>1</td></tr>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Kemi 1, NA27A grupp 2"></td><td>Kemi 1</td><td>NA27A grupp 2</td><td>8</td><td><span class="badge neutral">Obesvarat</span></td><td class="muted">–</td><td class="muted">Inte bedömt</td></tr>
+            <tr class="exc"><td><input type="checkbox" aria-label="Välj Naturkunskap 1b, TE27"></td><td>Naturkunskap 1b</td><td>TE27</td><td>31</td><td>Sal behövs inte · fältstudier</td><td><span class="badge info">Eget undantag</span></td><td class="muted">–</td></tr>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Naturkunskap 1b, EK27"></td><td>Naturkunskap 1b</td><td>EK27</td><td><span class="badge warn">Okänt</span></td><td><span class="badge neutral">Obesvarat</span></td><td class="muted">–</td><td class="muted">Kapacitet ej kontrollerad</td></tr>
+            <tr class="sel"><td><input type="checkbox" checked="checked" aria-label="Välj Biologi 2, NA26A"></td><td>Biologi 2</td><td>NA26A</td><td>28</td><td>Särskilda salskrav</td><td class="muted">Ärvt från ämnet</td><td>2</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185;">Rad 9–22 i ramen. Tabellen rullar i sin ram; namnkolumnen och rubrikraden står kvar.</p>
+    </section>
+
+    <section aria-labelledby="forhand" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px;">
+      <h2 id="forhand" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Förhandsgranskning: sätt Lämplig allmän sal</h2>
+      <dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 20px; font-size: 14px;">
+        <div><dt class="muted" style="font-size: 13px;">Ändras</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">16</dd><dd style="margin: 0;">14 obesvarade och 2 med annat värde</dd></div>
+        <div><dt class="muted" style="font-size: 13px;">Har redan värdet</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">4</dd><dd style="margin: 0;">Ändras inte</dd></div>
+        <div><dt class="muted" style="font-size: 13px;">Undantag, omarkerade</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">2</dd><dd style="margin: 0;">Kemi 1 grupp 1, Naturkunskap 1b TE27</dd></div>
+        <div><dt class="muted" style="font-size: 13px;">Rader utanför filtret</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">0</dd><dd style="margin: 0;">Ingen dold rad följer med</dd></div>
+      </dl>
+      <p style="margin: 0; font-size: 14px; padding: 10px 12px; border-radius: 10px; background: #f6efe2; color: #86601f;">2 rader med Särskilda salskrav byts till allmän sal: Biologi 2 NA26A och Biologi 2 NA26B. Deras ärvda utrustningskrav ersätts av ett eget undantag.</p>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <button type="button" class="btn btn-p">Ändra 16 undervisningar</button>
+        <button type="button" class="btn">Avbryt</button>
+        <span style="font-size: 13px; color: #657185;">Ändringen blir ett steg i Ångra.</span>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

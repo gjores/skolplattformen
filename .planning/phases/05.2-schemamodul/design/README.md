@@ -1,6 +1,6 @@
 # Designvyer för schemaläggningen (kopia)
 
-Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
+Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794861092-ef28`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
 
 Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. De renderas inte fristående (de hänvisar till designytans `support.js`), men strukturen, texterna och CSS-värdena går att läsa direkt.
 
@@ -15,6 +15,21 @@ Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. 
 | `Fonster.dc.html` | Flera fönster som uppdateras live | SM-FONSTER | O105–O109 |
 | `Aktiviteter.dc.html` | Aktiviteter utanför tjänstefördelningen | SM-AKTIVITETER (återkommande, formulär, lista, visning); förslagstabellen för inställda pass hör till senare paket med schema i tid | P110–P118 |
 | `Lasar.dc.html` | Läsåret med nationella prov | Inte i denna spree: hör till läsårskalendern (05.1.1), kräver kontroll av Skolverkets underlag | P119–P120 |
+
+### Omgång 1 till UX-researchen (2026-11-16, designytans version `1794861092-ef28`)
+
+Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomförandeföljd 1–2. Designhypotes, inte beslutad navigation eller implementation. Ytan Granska är inte ritad än (omgång 2).
+
+| Fil | Vy | Vad den prövar |
+|---|---|---|
+| `Forbered.dc.html` | Förbered – överblick | Gemensam överdel (sparstatus, vad Ångra avser), nästa uppgift, fyra områden med människans genomgång skild från maskinens kontroll, föregående läsår som förslag, verkliga beroenden |
+| `Salar.dc.html` | Salar – register och salbehov | Stabilt sal-ID, tre lägen för salbehov plus obesvarat, krav som snitt, önskemål skilt från krav, varför en sal faller bort, okänd kapacitet, namngivet hinder |
+| `Saltabell.dc.html` | Salbehov som tabell med massändring | Urval markerade rader eller alla filtrerade, blandade värden, undantag, ändringstyp, grundvärde skilt från befintliga, förhandsgranskning med antal |
+| `Forutsattningar.dc.html` | Förutsättningar just nu – alla tillstånd | Fyra frågor med egna besked (uppgifter, utrymme, prövning, kvalitet), vad beskedet inte visar, prova alternativ utan att ändra regeln, ofullständig provsökning |
+| `Salsattning.dc.html` | Tilldela salar och behåll tiderna | Omfattning, oförändrade tider/lås/datum, hinder när salar inte räcker, blockets salar, begränsat omtag med budget, helförslag åtskilt med hållpunkt |
+| `Veckan2.dc.html` | Lägg schema – veckan med inspektör | Arbetsgrund Hela läsåret, visning HT/VT/faktiska datum, klick visar passet, sammanhängande lägesfält, exakt start 10:35 med 44px-stegning, inspektör som följer/fästs |
+
+Statusytor `warning-surface` och `destructive-surface` används som i tabellen nedan. Inspektör, uppgiftsöversikt, återkopplingskort och Vad händer om är nya mönster som ska föras in i Skolplattan när beteendet bestäms.
 
 ## Färger i skisserna → appens variabler
 
