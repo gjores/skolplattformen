@@ -120,6 +120,11 @@ test('markerade pass flyttas med samma tidsförskjutning och ramen markerar dage
   await expect(page.getByRole('button', { name: 'Ångra senaste flytt' })).toBeDisabled();
   const own = page.locator(`.schema-week ol[data-day="${day}"]`);
   await own.scrollIntoViewIfNeeded();
+  // Hela dagen ska ligga nedanför den fasta ångraraden, som kan täcka en punkt inom viewporten.
+  await own.evaluate(el => {
+    const bar = document.querySelector('.schema-moves')?.getBoundingClientRect();
+    if (bar) window.scrollBy(0, el.getBoundingClientRect().top - bar.bottom - 8);
+  });
   await expect(own).toBeInViewport({ ratio: 1 });
   const b = (await own.boundingBox())!;
   const from = { x: b.x + b.width - 1, y: b.y + 2 }, to = { x: b.x + 1, y: b.y + b.height - 2 };
