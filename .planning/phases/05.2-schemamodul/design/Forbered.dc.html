@@ -21,7 +21,11 @@ button,select,input{font-family:inherit}
 .ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
 .eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
 .muted{color:#657185}
-.row{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1.3fr) minmax(0,1fr) auto;gap:12px 20px;align-items:start;padding:16px 0;border-top:1px solid #e3e7ee}
+.ci{display:grid;grid-template-columns:32px minmax(0,1fr) auto;gap:4px 16px;align-items:start;padding:16px 0;border-top:1px solid #e3e7ee}
+.ci h3{margin:0;font-size:16px;font-weight:600;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.ci p{margin:0;font-size:14px;line-height:1.5}
+.ci .kontroll{font-size:13px;color:#657185}
+.ci.klar h3 span.namn{color:#657185}
 </style>
 </helmet>
 <div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
@@ -69,83 +73,56 @@ button,select,input{font-family:inherit}
 
         <section aria-labelledby="omraden" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px 8px;">
           <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between;">
-            <h2 id="omraden" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Områden</h2>
-            <span style="font-size: 13px; color: #657185;">Genomgång = en person har tagit ställning. Kontroll = maskinens prövning. De påverkar inte varandra.</span>
+            <h2 id="omraden" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Checklista</h2>
+            <span style="font-size: 14px; font-weight: 500;">2 av 4 genomgångna</span>
           </div>
-          <div class="row" style="margin-top: 16px; border-top: 0; padding-top: 0; font-size: 12px; color: #4f688b; font-weight: 600;">
-            <span>Område och innehåll</span><span>Aktuella värden</span><span>Genomgång och kontroll</span><span></span>
+          <div aria-hidden="true" style="margin-top: 10px; height: 8px; border-radius: 999px; background: #edf0f6; overflow: hidden; display: flex;">
+            <div style="width: 50%; background: #29704c;"></div>
           </div>
+          <p style="margin: 10px 0 0; font-size: 13px; color: #657185;">En bock betyder att en person har gått igenom området. Maskinens kontroll står under och bockar inte av något.</p>
 
-          <div class="row">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Underlag</h3>
-              <span style="font-size: 13px; color: #657185;">Kalender, timplaner, klasskopplingar, grupper och tjänstefördelning</span>
-            </div>
-            <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5;">
-              <li>Läsårskalender version 2, fastställd</li>
-              <li>Timplaner för 6 program, 18 klasser</li>
-              <li>2 undervisningar saknar lärare och visas som obesatta</li>
-            </ul>
-            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
-              <span class="badge warn">Ändrat sedan genomgången</span>
-              <span style="font-size: 13px;">Tjänstefördelningen ändrades 12 nov. Genomgånget av Exempelrektor 3 nov.</span>
-              <span class="badge neutral">Kontroll: inga hinder i underlaget</span>
-            </div>
-            <button type="button" class="btn">Visa ändringen</button>
-          </div>
+          <ol style="list-style: none; margin: 16px 0 0; padding: 0;">
+            <li class="ci klar">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#29704c"></circle><path d="M8 14.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3><span class="namn">Underlag</span><span class="badge ok">Genomgånget</span></h3>
+                <p>Kalender version 2 · timplaner för 18 klasser · 2 obesatta undervisningar</p>
+                <span class="kontroll">Av Exempelrektor 14 nov · Kontroll: inga hinder i underlaget</span>
+              </div>
+              <button type="button" class="btn">Visa</button>
+            </li>
 
-          <div class="row">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Lektioner och block</h3>
-              <span style="font-size: 13px; color: #657185;">Antal och längd per grupp, samtidighetsblock</span>
-            </div>
-            <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5;">
-              <li>Hela läsårets minuter styr; samma mönster HT och VT</li>
-              <li>3 block från valmoduler, 1 eget block (Språkblock)</li>
-            </ul>
-            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
-              <span class="badge ok">Genomgånget</span>
-              <span style="font-size: 13px;">Av Exempelrektor 10 nov.</span>
-              <span class="badge warn">Kontroll: Språkblocket har 2 gemensamma starttider</span>
-            </div>
-            <button type="button" class="btn">Ändra</button>
-          </div>
+            <li class="ci klar">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="13" fill="#29704c"></circle><path d="M8 14.5l4 4 8-9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3><span class="namn">Lektioner och block</span><span class="badge ok">Genomgånget</span></h3>
+                <p>Hela läsårets minuter styr, samma mönster HT och VT · 3 block från valmoduler, 1 eget block</p>
+                <span class="kontroll">Av Exempelrektor 10 nov · Kontroll: Språkblocket har 2 gemensamma starttider</span>
+              </div>
+              <button type="button" class="btn">Visa</button>
+            </li>
 
-          <div class="row">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Salar</h3>
-              <span style="font-size: 13px; color: #657185;">Salregister och salbehov per undervisning</span>
-            </div>
-            <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5;">
-              <li>24 salar, 1 utan antal platser</li>
-              <li>132 av 140 undervisningar har salbehov</li>
-              <li>8 obesvarade</li>
-            </ul>
-            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
-              <span class="badge neutral">Återstår</span>
-              <span style="font-size: 13px;">Ansvarig: Exempeladministratör</span>
-              <span class="badge warn">Kontroll: kapacitet ej kontrollerad för Musiksal</span>
-            </div>
-            <button type="button" class="btn">Ändra</button>
-          </div>
+            <li class="ci">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#fff" stroke="#8a95a8" stroke-width="2"></circle></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3>Salar<span class="badge neutral">Återstår</span></h3>
+                <p>24 salar · 132 av 140 undervisningar har salbehov · <strong style="font-weight: 600;">8 obesvarade</strong></p>
+                <span class="kontroll">Ansvarig: Exempeladministratör · Kontroll: kapacitet ej kontrollerad för Musiksal</span>
+              </div>
+              <button type="button" class="btn">Ange salbehov</button>
+            </li>
 
-          <div class="row">
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-              <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Regler och önskemål</h3>
-              <span style="font-size: 13px; color: #657185;">Skoldag, lunch, lärartider, marginaler, spärrar och aktiviteter</span>
-            </div>
-            <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5;">
-              <li>Skoldag 08:00–16:30, lunch 11:00–13:00</li>
-              <li>Lärartider: 31 besvarade, 4 saknas, 2 ”inte aktuellt”</li>
-              <li>12 önskemål, 6 obligatoriska krav</li>
-            </ul>
-            <div style="display: flex; flex-direction: column; gap: 6px; align-items: flex-start;">
-              <span class="badge neutral">Återstår</span>
-              <span style="font-size: 13px;">4 lärares tillgänglighet saknas. Saknat svar räknas inte som ledig tid.</span>
-              <span class="badge neutral">Kontroll: ännu inte bedömbart</span>
-            </div>
-            <button type="button" class="btn">Ändra</button>
-          </div>
+            <li class="ci">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#fff" stroke="#8a95a8" stroke-width="2"></circle></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3>Regler och önskemål<span class="badge neutral">Återstår</span></h3>
+                <p>Skoldag 08:00–16:30 · 12 önskemål, 6 obligatoriska krav · <strong style="font-weight: 600;">4 lärartider saknas</strong></p>
+                <span class="kontroll">Saknat svar räknas inte som ledig tid · Kontroll: ännu inte bedömbart</span>
+              </div>
+              <button type="button" class="btn">Komplettera</button>
+            </li>
+          </ol>
+          <p style="margin: 0; padding: 12px 0 8px; border-top: 1px solid #e3e7ee; font-size: 13px; color: #657185;">Ändras innehållet i ett avbockat område tas bocken bort och raden visar Ändrat sedan genomgången.</p>
         </section>
       </div>
 
