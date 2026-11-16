@@ -2,7 +2,7 @@
 
 ## Aktuellt 2026-11-16 — användarfynd för Schema
 
-Användaren har rapporterat [C1–C13/R1–R4](phases/05.2-schemamodul/05.2-SM-UAT-2026-11-16-CONTEXT.md) efter installationen och valt **sparat utkast på servern**. [Åtgärdspaketet](phases/05.2-schemamodul/05.2-SM-UAT-ATGARDER-PLAN.md) och [spar-/datumplanen](phases/05.2-schemamodul/05.2-SM-SPARA-DATUM-PLAN.md) genomförs med ny verifiering; lokal Skolplattan-guide är tillgänglig och läst. Befintlig 4267daf7 på 3012/3013 är oförändrad. Inget nytt installerat, inget godkänt UAT eller full fasacceptans. Handbok och slutligt avgränsat användarprov följer verifierat beteende.
+Användaren valde uttryckligen **sparat utkast på servern**. C1–C13/R1–R4 är implementerade i fryst kandidat `693d6313`: serverutkast, rätt termin efter Bakåt, synlig ångring, antal per undervisningsgrupp, tydliga hinder, regelborttagning, salssök, granskade villkorsförslag, aktiviteter och separata datumundantag. [UAT-verifieringen](phases/05.2-schemamodul/05.2-SM-UAT-VERIFICATION.md) binder 274 UI-profilfall med riktade omprov,1 403 passerade Node-fall (två gated fall separat prövade),43 verkliga C5/C12-motorfall,8/8 faktiska skyddade API-fall och faktiskt UI på 1280/1600 med autosave/reload/Bakåt/tvåfönster samt aktivitetsskapning och återöppning. Kandidaten har 1 482 filer och tre additiva migrationer; [leverans och återgång](phases/05.2-schemamodul/05.2-SM-UAT-RELEASE.md) innehåller exakta hashar. **3012/3013 kör fortsatt 4267daf7; inget nytt är installerat. Nästa är konkret installationsbeslut, därefter nytt användarprov och handbok/docs-bygge.** Inga hela faskrav, mänskligt UAT eller extern standardanslutning markeras godkända.
 
 ## Aktuellt 2026-11-15 — schemats våg 4–7 installerad
 
