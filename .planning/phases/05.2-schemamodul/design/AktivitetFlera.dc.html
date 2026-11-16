@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Aktivitet för många klasser</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.nav{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.nav[aria-current="page"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.seg{min-height:44px;padding:8px 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer;text-align:left}
+.seg[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+.chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:1px solid #cbd2df;border-radius:10px;background:#fff;font-size:14px;color:#202b3b;cursor:pointer}
+.chip[aria-pressed="true"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+.muted{color:#657185}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid #cbd2df;border-radius:10px;font-size:14px;cursor:pointer}
+.opt input{width:20px;height:20px;margin:2px 0 0;accent-color:#365ce6;flex-shrink:0}
+.lbl{display:flex;flex-direction:column;gap:6px;font-size:14px;color:#657185}
+.in{min-height:44px;padding:0 12px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;color:#202b3b}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;font-weight:600;color:#4f688b;text-align:left;padding:10px 12px;background:#edf0f6;position:sticky;top:0}
+td{padding:8px 12px;border-top:1px solid #e3e7ee;vertical-align:middle}
+td select{min-height:40px;padding:0 10px;border-radius:8px;border:1px solid #cbd2df;background:#fff;font-size:14px;color:#202b3b}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 13px; color: #657185;">Exempelskolan · Läsår 2027/28</span>
+        <span style="font-size: 16px; font-weight: 600;">Utkast: Schema 2027/28</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+        <span class="badge ok">Sparat på servern 14:20 · revision 39</span>
+        <span class="badge neutral">Inte publicerat</span>
+        <button type="button" class="btn">Ångra: lunchfönster</button>
+        <button type="button" class="btn" disabled="disabled" aria-disabled="true" style="color: #657185;">Gör om</button>
+      </div>
+    </div>
+    <nav aria-label="Arbetsytor i schemaläggningen" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button type="button" class="nav" aria-current="page">Förbered</button>
+      <button type="button" class="nav">Lägg schema</button>
+      <button type="button" class="nav">Granska</button>
+    </nav>
+  </header>
+
+  <main style="padding: 24px 48px 0; display: flex; flex-direction: column; gap: 20px;">
+    <button type="button" class="btn" style="align-self: flex-start;">‹ Lärartider och fasta tider</button>
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div class="eyebrow">FÖRBERED · AKTIVITETER · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
+      <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Aktivitet för flera klasser<span style="color: #365ce6;">.</span></h1>
+      <p style="margin: 0; font-size: 15px; color: #657185; max-width: 80ch;">Lägg in mentorstid, klassråd eller lunch för många klasser på en gång. Varje klass får sin egen aktivitet med egen ansvarig och sal.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); gap: 24px; align-items: start;">
+
+      <section aria-labelledby="installning" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <h2 id="installning" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Mentorstid</h2>
+        <label class="lbl">Typ av aktivitet
+          <select class="in"><option>Mentorstid</option><option>Klassråd</option><option>Lunch i matsal</option></select></label>
+
+        <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+          <legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Hur ska den gälla?</legend>
+          <label class="opt"><input type="radio" name="hur"><span><strong style="font-weight: 500;">En gemensam aktivitet</strong><br><span class="muted" style="font-size: 13px;">Alla valda deltar samtidigt, i samma sal.</span></span></label>
+          <label class="opt" style="border-color: #365ce6; background: #edf1ff;"><input type="radio" name="hur" checked="checked"><span><strong style="font-weight: 500;">En per klass</strong><br><span class="muted" style="font-size: 13px;">Varje klass får egen ansvarig, sal och kontroll.</span></span></label>
+          <label class="opt"><input type="radio" name="hur"><span><strong style="font-weight: 500;">En per lärare</strong><br><span class="muted" style="font-size: 13px;">Till exempel planeringstid eller lunchvärd.</span></span></label>
+        </fieldset>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 14px; font-weight: 600;">Vilka klasser?</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="chip" aria-pressed="false">Alla klasser (18)</button>
+            <button type="button" class="chip" aria-pressed="true">Årskurs 1 (6)</button>
+            <button type="button" class="chip" aria-pressed="false">Arbetslag Natur (5)</button>
+            <button type="button" class="chip" aria-pressed="false">Välj enskilda…</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span id="tidval" style="font-size: 14px; font-weight: 600;">Tid</span>
+          <div role="group" aria-labelledby="tidval" style="display: flex; flex-wrap: wrap; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+            <button type="button" class="seg" aria-pressed="true">Samma för alla</button>
+            <button type="button" class="seg" aria-pressed="false">Motorn väljer per klass</button>
+            <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Egen per klass</button>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px 12px;">
+            <label class="lbl">Dag<select class="in"><option>Måndag</option></select></label>
+            <label class="lbl">Start<input class="in" type="time" step="300" value="08:00" style="width: 120px;"></label>
+            <label class="lbl">Längd<select class="in"><option>20 min</option></select></label>
+            <label class="lbl">Veckor<select class="in"><option>Varje vecka</option></select></label>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Mentorstid räknas inte som undervisningstid i timplanen.</p>
+      </section>
+
+      <section aria-labelledby="forhand" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 16px #284ab509; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; justify-content: space-between;">
+          <h2 id="forhand" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Förhandsgranskning: 6 aktiviteter</h2>
+          <span style="font-size: 14px;">4 utan anmärkning · <strong style="font-weight: 600;">2 behöver åtgärd</strong></span>
+        </div>
+        <div style="overflow: auto; border: 1px solid #e3e7ee; border-radius: 10px;">
+          <table>
+            <thead><tr><th scope="col">Klass</th><th scope="col">Ansvarig</th><th scope="col">Sal</th><th scope="col">Tid</th><th scope="col">Kontroll</th></tr></thead>
+            <tbody>
+              <tr><td>NA27A</td><td><select aria-label="Ansvarig för NA27A"><option>Provlärare 4 · mentor</option></select></td><td><select aria-label="Sal för NA27A"><option>A101</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge ok">Fungerar</span></td></tr>
+              <tr><td>NA27B</td><td><select aria-label="Ansvarig för NA27B"><option>Provlärare 9 · mentor</option></select></td><td><select aria-label="Sal för NA27B"><option>A102</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge ok">Fungerar</span></td></tr>
+              <tr style="background: #fbf7ef;"><td>TE27</td><td><select aria-label="Ansvarig för TE27"><option>Provlärare 15 · mentor</option></select></td><td><select aria-label="Sal för TE27"><option>201</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge warn">Krock: Provlärare 15 har låst pass med EK27</span></td></tr>
+              <tr style="background: #fbf7ef;"><td>EK27</td><td><select aria-label="Ansvarig för EK27"><option>Välj ansvarig</option></select></td><td><select aria-label="Sal för EK27"><option>202</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge warn">Saknar ansvarig</span></td></tr>
+              <tr><td>SA27</td><td><select aria-label="Ansvarig för SA27"><option>Provlärare 30 · mentor</option></select></td><td><select aria-label="Sal för SA27"><option>B204</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge ok">Fungerar</span></td></tr>
+              <tr><td>ES27</td><td><select aria-label="Ansvarig för ES27"><option>Provlärare 21 · mentor</option></select></td><td><select aria-label="Sal för ES27"><option>Aula</option></select></td><td>Mån 08:00–08:20</td><td><span class="badge ok">Fungerar</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Ansvarig och sal föreslås från klassens mentor och hemsal när de finns i underlaget. Ändra per rad.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid #e3e7ee;">
+          <button type="button" class="btn btn-p">Skapa 6 aktiviteter</button>
+          <button type="button" class="btn">Avbryt</button>
+          <span style="font-size: 13px; color: #657185;">Sparas som en serie: senare kan du ändra alla eller en. Krockarna står kvar som regelavvikelser tills de är lösta.</span>
+        </div>
+      </section>
+    </div>
+
+    <section aria-labelledby="lunch" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: grid; grid-template-columns: minmax(340px, 420px) minmax(0, 1fr); gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <h2 id="lunch" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Lunch i matsal</h2>
+          <span class="badge neutral">Kräver nytt motorstöd</span>
+        </div>
+        <p style="margin: 0; font-size: 14px;">Klasserna äter i sittningar. Motorn fördelar klasserna inom lunchfönstret så att matsalens platser räcker.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 12px;">
+          <label class="lbl">Matsal<select class="in"><option>Matsal · 180 platser</option></select></label>
+          <label class="lbl">Sittning<select class="in"><option>25 min</option></select></label>
+          <label class="lbl">Lunchfönster<select class="in"><option>10:45–12:45</option></select></label>
+        </div>
+        <label class="opt" style="align-items: center;"><input type="checkbox" checked="checked"><span>En lunchvärd per sittning bland lärarna som äter samtidigt</span></label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; min-width: 0;">
+        <p style="margin: 0; font-size: 14px;">18 klasser, 520 elever. Minst <strong style="font-weight: 600;">3 sittningar</strong> behövs med 180 platser. Exempel på fördelning:</p>
+        <div style="overflow: auto; border: 1px solid #e3e7ee; border-radius: 10px;">
+          <table>
+            <thead><tr><th scope="col">Sittning</th><th scope="col">Klasser</th><th scope="col">Elever</th><th scope="col">Lunchvärd</th></tr></thead>
+            <tbody>
+              <tr><td>10:50–11:15</td><td>NA27A, NA27B, TE27, EK27, SA27, ES27</td><td>176 av 180</td><td>Provlärare 4</td></tr>
+              <tr><td>11:25–11:50</td><td>NA26A, NA26B, TE26, EK26, SA26, ES26</td><td>170 av 180</td><td>Provlärare 12</td></tr>
+              <tr><td>12:00–12:25</td><td>NA25A, NA25B, TE25, EK25, SA25, ES25</td><td>174 av 180</td><td><span class="badge warn">Ingen ledig</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Dagens lunchvillkor ger bara varje klass och lärare en lunchrast i fönstret; matsalens platser räknas inte. Fördelningen ovan är en skiss av ny funktion.</p>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

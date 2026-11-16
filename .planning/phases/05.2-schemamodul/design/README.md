@@ -1,6 +1,6 @@
 # Designvyer för schemaläggningen (kopia)
 
-Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794863868-40ef`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
+Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794864128-5ec1`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
 
 Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. De renderas inte fristående (de hänvisar till designytans `support.js`), men strukturen, texterna och CSS-värdena går att läsa direkt.
 
@@ -28,6 +28,9 @@ Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomför
 | `Forutsattningar.dc.html` | Förutsättningar just nu – alla tillstånd | Fyra frågor med egna besked (uppgifter, utrymme, prövning, kvalitet), vad beskedet inte visar, prova alternativ utan att ändra regeln, ofullständig provsökning |
 | `Salsattning.dc.html` | Tilldela salar och behåll tiderna | Omfattning, oförändrade tider/lås/datum, hinder när salar inte räcker, blockets salar, begränsat omtag med budget, helförslag åtskilt med hållpunkt |
 | `Veckan2.dc.html` | Lägg schema – veckan med inspektör | Arbetsgrund Hela läsåret, visning HT/VT/faktiska datum, klick visar passet, sammanhängande lägesfält, exakt start 10:35 med 44px-stegning, inspektör som följer/fästs |
+| `AktivitetFlera.dc.html` | Aktivitet för flera klasser | Gemensam aktivitet, en per klass eller en per lärare; urval av klasser; samma tid, motorn per klass eller egen tid; förhandsgranskning per klass med ansvarig, sal och krock; serie; lunch i matsal med sittningar och platser (kräver nytt motorstöd). Användarfynd 2026-11-16 |
+
+Förbereds checklista har efter användarens granskning sex punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Regler och önskemål samt Mål för schemat.
 
 Statusytor `warning-surface` och `destructive-surface` används som i tabellen nedan. Inspektör, uppgiftsöversikt, återkopplingskort och Vad händer om är nya mönster som ska föras in i Skolplattan när beteendet bestäms.
 
