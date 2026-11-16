@@ -33,6 +33,14 @@ const reply = positions => ({ version: SCHEMA_MOTOR_VERSION, problem_id: p.id, l
 const pos = (day, start_min, state, reasons = [], extra = {}) => ({ day, start_min, rooms: ['sal-1'], state, cost_delta: 0, reasons, ...extra });
 const reason = (code, resource_kind, resource, lessons = []) => ({ code, resource_kind, resource, lessons });
 
+test('möjliga starttiders svarsversion följer faktiskt problem4 eller5', () => {
+  for (const version of [4, 5]) {
+    const problem = { ...p, version }, result = { ...reply([pos(0, 480, 'free')]), version };
+    assert.equal(parseSchemaPositions(result, problem, ma).positions.length, 1);
+    assert.throws(() => parseSchemaPositions({ ...result, version: version === 4 ? 5 : 4 }, problem, ma));
+  }
+});
+
 test('begäran: kontrollens fält, passet och en elev eller ingen', () => {
   const base = { contractVersion: SCHEMA_CONTRACT_VERSION, ...request, grundFingerprint: underlag.grundFingerprint, placements: [{ lesson: ma, day: 0, startMin: 480, room: null }] };
   assert.deepEqual(parseSchemaLagenRequest({ ...base, lesson: ma, pupilId: null }), { ...base, lesson: ma, pupilId: null });

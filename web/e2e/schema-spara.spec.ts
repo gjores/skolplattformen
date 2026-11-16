@@ -4,7 +4,7 @@ import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaForslag } fro
 import { parseSchemaDraftSave, type SchemaDraftSave } from '../lib/schema-draft-contract.ts';
 import { schemaDatumOriginal } from '../lib/schema-datum.ts';
 import { schemaWeekday } from '../lib/schema-vecka.ts';
-import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
+import proposal from './schema-fixture';
 const URL = '/e2e/fixtures/schema-spara-preview.html', source = proposal as unknown as SchemaForslag;
 const key = (year = 2026) => `${source.unitId}:${year}:lasar`;
 const saved = (page: Page) => page.getByRole('region', { name: 'Sparat schemautkast', exact: true });

@@ -1,6 +1,6 @@
 // SM-AKTIVITETER: användarbeteende mot uttryckligt simulerade rutter och syntetiska uppgifter.
 import { test, expect, type Page } from './schema-test';
-import rawForslag from './fixtures/schema-forslag.json' with { type: 'json' };
+import rawForslag from './schema-fixture';
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaPlacement, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { aktivitetsPassId } from '../lib/schema-aktiviteter.ts';
 test.beforeEach(async ({ page }) => {

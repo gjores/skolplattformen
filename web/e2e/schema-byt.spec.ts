@@ -1,7 +1,7 @@
 // SM-BYT: användarbeteende mot syntetiska, simulerade API-svar. Riktig motor verifieras i verify-koppling.mjs.
 import { test, expect, type Page } from './schema-test';
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
-import fixture from './fixtures/schema-forslag.json' with { type: 'json' };
+import fixture from './schema-fixture';
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
 import folj from './fixtures/schema-folj.json' with { type: 'json' };
 const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };

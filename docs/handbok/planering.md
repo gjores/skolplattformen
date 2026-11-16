@@ -70,3 +70,9 @@ Om timplan saknas kan rektor eller skoladministratör välja **Skapa timplan**. 
 ## Sökstatistik i Schema
 
 **Svårast att lägga** är hopfällt från början. Öppna rubrikraden för att se sökstatistik och hinder. Med tangentbord kan du gå till raden med Tab och öppna eller stänga med Enter eller mellanslag. I avsnittet kan du välja **Följ passet** eller gå till de berörda villkoren.
+
+## Samma veckomönster under läsåret
+
+Välj **Hela läsåret** när du tar fram schemat. Ämnenas sammanlagda tid från timplanen fördelas över årets faktiska lektionstillfällen. Samma undervisning med samma lärarfördelning får ett gemensamt veckomönster på hösten och våren, även när terminerna har olika många skoldagar. Undervisning som bara går en termin ligger där. Under **Tid över läsåret** kan du kontrollera årsbehovet och hur mycket som ligger på respektive termin. Ett förslag för bara HT eller VT visar den terminens del och återstående årsbehov.
+
+Ett äldre sparat schema behåller sitt terminsmönster tills du väljer **Ta fram gemensamt läsårsmönster**. Om gamla pass är låsta finns en uttrycklig knapp som låser upp dem för det nya förslaget. Datumändringar och villkor för enskilda gamla pass hanteras i en bekräftelse före omtaget, eftersom det nya mönstret får andra pass. Avbryt eller ett misslyckat förslag behåller det gamla utkastet. Övriga klass-, grupp-, lärar- och ämnesvillkor följer med.

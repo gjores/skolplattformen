@@ -20,7 +20,7 @@ export function Fordelning({ forslag, villkor, kontroll, disabled, onChange }: {
     <label htmlFor={queryId} className="grid gap-1 text-sm">Sök undervisning eller grupp<Input id={queryId} value={query} onChange={event => setQuery(event.target.value)} type="search"/></label>
     {!rows.length ? <p className="empty-state">Ingen undervisning matchar sökningen.</p> : <div className="max-h-96 overflow-auto rounded-md border border-border">
       <Table><TableHeader><TableRow><TableHead>Undervisning och grupp</TableHead><TableHead>Lektioner per vecka</TableHead><TableHead>Tid och nuvarande fördelning</TableHead></TableRow></TableHeader>
-        <TableBody>{rows.map(row => { const current = kontroll?.teachings.find(item => item.ref === row.ref);
+        <TableBody>{rows.map(row => { const current = kontroll?.teachings.find(item => item.ref === row.ref) ?? forslag.teachings.find(item => item.ref === row.ref);
           const selected = villkor.fordelning?.find(item => item.ref === row.ref)?.antal ?? null;
           return <TableRow key={row.ref}><TableCell className="whitespace-normal min-w-48"><strong>{row.title}</strong><p className="schema-note">{row.classes.join(', ')}</p>
             {row.begransning && <p className="text-sm text-muted-foreground">{row.begransning}</p>}</TableCell>
@@ -28,9 +28,9 @@ export function Fordelning({ forslag, villkor, kontroll, disabled, onChange }: {
               onChange={event => change(row.ref, event.target.value ? Number(event.target.value) : null)}>
               <option value="">Automatisk fördelning</option>{Array.from({ length: SCHEMA_VILLKOR_LIMITS.antal[1] }, (_, n) => n + 1).map(n => <option key={n} value={n}>{n} {n === 1 ? 'lektion' : 'lektioner'}</option>)}
             </select></TableCell>
-            <TableCell className="whitespace-normal min-w-48">{row.terms.map(term => { const actual = current?.terms.find(item => item.term === term.term);
+            <TableCell className="whitespace-normal min-w-48">{forslag.villkor.timeBasis === 'lasar' && <p>{forslag.period === 'lasar' ? 'Läsåret' : 'Vald termin'}: {hours(current?.plannedMin ?? row.terms.reduce((n, t) => n + t.plannedMin, 0))} utlagt av årsbehovet {hours(current?.needMin ?? row.terms.reduce((n, t) => n + t.needMin, 0))}.</p>}{row.terms.map(term => { const actual = current?.terms.find(item => item.term === term.term);
               const planned = actual?.plannedMin ?? term.plannedMin;
-              return <p key={term.term}>{term.term.toUpperCase()}: {term.antalPass} lektioner per vecka · {hours(planned)} av {hours(term.needMin)} · {hours(Math.max(0, term.needMin - planned))} kvar</p>;
+              return <p key={term.term}>{term.term.toUpperCase()}: {term.antalPass} lektioner per vecka · {hours(planned)}{forslag.villkor.timeBasis === 'lasar' ? ' utlagt' : ` av ${hours(term.needMin)} · ${hours(Math.max(0, term.needMin - planned))} kvar`}</p>;
             })}</TableCell></TableRow>;
         })}</TableBody></Table>
     </div>}

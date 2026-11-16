@@ -4,7 +4,7 @@ import { createRoot } from 'react-dom/client';
 import { Vecka, Teckenforklaring } from '../../app/schema/vecka';
 import type { SchemaForslag } from '../../lib/schema-contract';
 import type { SchemaBand, SchemaDimmed, SchemaOverlay } from '../../lib/schema-utkast';
-import data from './schema-forslag.json' with { type: 'json' };
+import data from '../schema-fixture';
 import '../../app/globals.css';
 import '../../app/schema.css';
 

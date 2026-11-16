@@ -4,7 +4,7 @@
  * Varken underlag, svar eller token loggas.
  */
 import { env as bindings } from 'cloudflare:workers';
-import { SCHEMA_MOTOR_VERSION, SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
+import { SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
 import { parseSchemaMotorPlacering, type SchemaPlaceringFailure, type SchemaPlaceringVal } from '../schema-placering.ts';
@@ -65,7 +65,7 @@ export function diagnoseSchema(problem: SchemaProblem) {
   return call('/v1/diagnose', problem, 0, value => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new SchemaContractError();
     const d = value as Record<string, unknown>;
-    if (d.version !== SCHEMA_MOTOR_VERSION || d.problem_id !== problem.id) throw new SchemaContractError();
+    if (d.version !== problem.version || d.problem_id !== problem.id) throw new SchemaContractError();
     return parseSchemaEngineDiagnoses(d.diagnoses, problem);
   });
 }

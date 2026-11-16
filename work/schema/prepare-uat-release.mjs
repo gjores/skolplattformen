@@ -122,10 +122,11 @@ async function command(file, args, cwd, log, env) {
   } finally { closeSync(fd); }
 }
 
-export async function prepareSchemaUatRelease({ revision, directory, motorRelease = null, onStage = () => {} }) {
+export async function prepareSchemaUatRelease({ revision, directory, motorRelease = null, previousRuntimeRevision = PREVIOUS_SCHEMA_REVISION, onStage = () => {} }) {
   assert.match(directory ?? '', /^\/private\/tmp\/schema-uat-release-[a-z0-9-]+$/u, 'new owned release directory required');
   assert.equal(realpathSync(path.dirname(directory)), path.dirname(directory)); assert.equal(existsSync(directory), false);
-  const source = assertSchemaReleaseRevision(root, revision); assert.ok(Number(process.versions.node.split('.')[0]) >= 25, 'use the checked Node 25 runtime');
+  const source = assertSchemaReleaseRevision(root, revision); assertSchemaReleaseRevision(root, previousRuntimeRevision);
+  assert.ok(Number(process.versions.node.split('.')[0]) >= 25, 'use the checked Node 25 runtime');
   mkdirSync(directory, { mode: 0o700 });
   const clone = path.join(directory, 'source'), runtime = path.join(directory, 'runtime');
   onStage('cloning-exact-commit'); git(root, ['clone', '--local', '--no-hardlinks', '--no-checkout', root, clone]); git(clone, ['checkout', '--detach', revision]);
@@ -145,7 +146,10 @@ export async function prepareSchemaUatRelease({ revision, directory, motorReleas
     assert.deepEqual(releaseInventory(path.join(web, '.vinext/fonts')), fontInventory, 'font cache changed while copied');
   }
   const contracts = readFileSync(path.join(web, 'lib/schema-contract.ts'), 'utf8'), motor = readFileSync(path.join(clone, 'schemamotor/crates/model/src/lib.rs'), 'utf8');
-  assert.match(contracts, /SCHEMA_CONTRACT_VERSION = 8 as const/u); assert.match(contracts, /SCHEMA_MOTOR_VERSION = 4 as const/u); assert.match(motor, /CONTRACT_VERSION: u32 = 4;/u);
+  assert.match(contracts, /SCHEMA_CONTRACT_VERSION = 8 as const/u);
+  const motorVersion = Number(contracts.match(/SCHEMA_MOTOR_VERSION = ([45]) as const/u)?.[1]);
+  assert.ok([4, 5].includes(motorVersion), 'supported motor contract required');
+  assert.equal(Number(motor.match(/CONTRACT_VERSION: u32 = (\d+);/u)?.[1]), motorVersion, 'app and motor contracts differ');
   onStage('building-protected-app'); const env = buildEnvironment();
   await command(process.execPath, ['scripts/run-mode.mjs', 'build', '--mode', 'protected'], web, path.join(directory, 'app-build.log'), env);
   const mark = readJson(path.join(web, 'dist-protected/build-mode.json'));
@@ -174,11 +178,11 @@ export async function prepareSchemaUatRelease({ revision, directory, motorReleas
   assert.deepEqual(schemaReleaseDependencies(path.join(web, 'package-lock.json'), dependencies), dependencyManifest, 'dependencies changed during frozen build');
   const files = [...releaseInventory(runtime, 'runtime/'), ...releaseInventory(path.join(directory, 'sql'), 'sql/')];
   const artifact = { files: sorted(files), fileCount: files.length, sha256: releaseSha(sorted(files)) };
-  const manifest = { kind: 'schema-uat-release', status: 'PREPARED', preparedAt: new Date().toISOString(), source, contracts: { app: 8, motor: 4 }, build: mark,
+  const manifest = { kind: 'schema-uat-release', status: 'PREPARED', preparedAt: new Date().toISOString(), source, contracts: { app: 8, motor: motorVersion }, build: mark,
     artifact, sql, dependencies: { file: 'dependencies.json', sha256: releaseSha(dependencyManifest), packages: dependencyManifest.packages.length,
       installedPackages: dependencyManifest.packages.filter(item => !item.optionalAbsent).length, contentFiles: dependencyManifest.files.length },
     fontInputsSha256: releaseSha(fontInventory), tools: { node: process.version, ...(motorProvenance.mode === 'built-offline' ? motorProvenance.buildTools : {}) }, motor: motorProvenance,
-    previousRuntimeRevision: PREVIOUS_SCHEMA_REVISION, targetContact: false, authorization: 'pending-concrete-user-approval',
+    previousRuntimeRevision, targetContact: false, authorization: 'pending-concrete-user-approval',
     rollback: { runtime: 'restore both app and motor from previousRuntimeRevision', sqlBeforeCommit: 'transaction rollback', sqlAfterCommit: 'retain additive schema and every saved draft; no DROP, reset or journal deletion' },
     limits: ['No target preflight or installation', 'Release evidence must bind this exact artifact before approval', 'Linked installed dependencies must be rechecked before start', 'No claim of SS 12000 exchange support'] };
   writeFileSync(path.join(directory, 'dependencies.json'), JSON.stringify(dependencyManifest, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
@@ -191,8 +195,9 @@ export async function prepareSchemaUatRelease({ revision, directory, motorReleas
 export function verifySchemaUatRelease(directory, { nodeModules = null } = {}) {
   const manifest = readJson(path.join(directory, 'artifact.json')), dependency = readJson(path.join(directory, 'dependencies.json'));
   assert.equal(manifest.kind, 'schema-uat-release'); assert.equal(manifest.status, 'PREPARED'); assert.equal(manifest.targetContact, false);
-  assert.match(manifest.source.revision, /^[a-f0-9]{40}$/u); assert.deepEqual(manifest.contracts, { app: 8, motor: 4 });
-  assert.equal(manifest.previousRuntimeRevision, PREVIOUS_SCHEMA_REVISION);
+  assert.match(manifest.source.revision, /^[a-f0-9]{40}$/u); assert.equal(manifest.contracts.app, 8);
+  assert.deepEqual(Object.keys(manifest.contracts).sort(), ['app', 'motor']); assert.ok([4, 5].includes(manifest.contracts.motor), 'supported motor contract required');
+  assertSchemaReleaseRevision(root, manifest.previousRuntimeRevision);
   assert.equal(manifest.authorization, 'pending-concrete-user-approval');
   assert.deepEqual(manifest.sql.map(item => item.file), [...SCHEMA_UAT_MIGRATIONS], 'exact three migrations required');
   const files = sorted([...releaseInventory(path.join(directory, 'runtime'), 'runtime/'), ...releaseInventory(path.join(directory, 'sql'), 'sql/')]);
@@ -219,9 +224,15 @@ export function verifySchemaUatRelease(directory, { nodeModules = null } = {}) {
 }
 
 export function parseSchemaReleaseArguments(args) {
-  assert.ok([4, 6].includes(args.length)); assert.equal(args[0], '--revision'); assert.equal(args[2], '--directory');
-  if (args.length === 6) { assert.equal(args[4], '--motor-release'); assert.ok(args[5] && !args[5].startsWith('--')); }
-  return { revision: args[1], directory: args[3], motorRelease: args[5] ?? null };
+  assert.ok([4, 6, 8].includes(args.length)); assert.equal(args[0], '--revision'); assert.equal(args[2], '--directory');
+  const optional = new Map();
+  for (let i = 4; i < args.length; i += 2) {
+    assert.ok(['--motor-release', '--previous-runtime'].includes(args[i]) && !optional.has(args[i]));
+    assert.ok(args[i + 1] && !args[i + 1].startsWith('--')); optional.set(args[i], args[i + 1]);
+  }
+  const previousRuntimeRevision = optional.get('--previous-runtime') ?? PREVIOUS_SCHEMA_REVISION;
+  assert.match(previousRuntimeRevision, /^[a-f0-9]{40}$/u, 'complete previous runtime commit required');
+  return { revision: args[1], directory: args[3], motorRelease: optional.get('--motor-release') ?? null, previousRuntimeRevision };
 }
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const args = process.argv.slice(2);

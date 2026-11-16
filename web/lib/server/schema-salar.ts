@@ -55,7 +55,7 @@ export async function schemaSalSok(read: SchemaSalRead, input: SchemaSalRequest,
           datedOverrides, [input.datedTarget!.originalDate, input.datedTarget!.date], (problem, placements) => bounded(() => validate(problem, placements))));
         reasons = result.violations.map(v => ({ code: v.code, message: named(underlag, v.message), lessons: v.lessons })); total = result.total;
         for (const time of result.timeChanges.filter(t => t.deviation)) {
-          reasons.push({ code: 'activity_time', message: `Flytten ger ${time.plannedMin} min i ${time.term.toUpperCase()}, utanför timplanens ${time.needMin}–${time.maxMin} min. Granska datumändringen.`, lessons: [input.lesson] }); total++;
+          reasons.push({ code: 'activity_time', message: `Flytten ger ${time.plannedMin} min under ${time.term === 'lasar' ? 'hela läsåret' : time.term.toUpperCase()}, utanför timplanens ${time.needMin}–${time.maxMin} min. Granska datumändringen.`, lessons: [input.lesson] }); total++;
         }
       } else {
         const candidate = schemaSalPlaceringar(input, room.id);

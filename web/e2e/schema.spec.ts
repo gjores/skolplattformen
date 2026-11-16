@@ -2,7 +2,7 @@
 // Rutt, behörighet och motoranrop verifieras separat; här prövas bara vad användaren ser.
 import { test, expect, type Page } from './schema-test';
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
-import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
+import forslag from './schema-fixture';
 // En flytt som motorns kontrollant har prövat: passet läggs där klassen redan har ett annat pass.
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
 test.beforeEach(async ({ page }) => {

@@ -21,6 +21,14 @@ const parse = (value = raw(), input = request(), p = problem()) => parseSchemaMo
 const reply = (result, input = request()) => ({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: input.grundFingerprint, ...result });
 const lessonIds = ['pass-1', 'pass-2', 'pass-3'];
 
+test('placeringsförslagets svarsversion följer faktiskt problem4 eller5', () => {
+  for (const version of [4, 5]) {
+    const p = { ...problem(), version }, result = { ...raw(), version };
+    assert.equal(parse(result, request(), p).suggestions.length, 1);
+    assert.throws(() => parse({ ...result, version: version === 4 ? 5 : 4 }, request(), p));
+  }
+});
+
 test('begäran bevarar nuvarande villkor, lås och hela utkastet; strikta lägeskombinationer', () => {
   const input = request({ locks: { grundFingerprint: 'a'.repeat(28), placements: [at(3, 540)] } });
   assert.deepEqual(parseSchemaPlaceringRequest(input), input);

@@ -1,0 +1,35 @@
+{
+  "kind": "annual-legacy-byte-compatibility",
+  "status": "PASS",
+  "baselineRevision": "69c5923a2439a854a054e1cb095bb99364bc2784",
+  "syntheticOnly": true,
+  "fullProblemLabelsAndFingerprintsSha256": "2dc9766be1c00abb2897fde881a0b2b7410bdd1aea880dffbecfb56a56fbf6a3",
+  "cases": [
+    {
+      "name": "ht",
+      "grundFingerprint": "16cce03bb6271005f73d43384f32",
+      "fingerprint": "03dd844f64fd5401ff251860a9b9",
+      "lessons": 11
+    },
+    {
+      "name": "lasar",
+      "grundFingerprint": "0589ae6385251619515fec5d9115",
+      "fingerprint": "139b840d4aa2120eca0ff1624476",
+      "lessons": 22
+    },
+    {
+      "name": "vt",
+      "grundFingerprint": "199332cfc58dc9125f9cae38fca8",
+      "fingerprint": "198a597d6417d31db74ab9ccf61d",
+      "lessons": 11
+    },
+    {
+      "name": "85_95",
+      "grundFingerprint": "04cbd8283a38e2039d4d1a038619",
+      "fingerprint": "1a49c066ed12571f29c4cc5d510c",
+      "lessons": 22
+    }
+  ],
+  "targetContact": false,
+  "independentVerifierCompared": true
+}

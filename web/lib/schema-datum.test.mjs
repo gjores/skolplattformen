@@ -59,6 +59,37 @@ test('flytt mellan terminer redovisar båda tidsavvikelserna utan ändrad timpla
   assert.throws(() => schemaDatumTidsandringar(x.f, [a], []), e => e.reason === 'schema_datum_source_unknown');
 });
 
+test('årsberäknad undervisning kan flyttas mellan terminer utan falska halvårsavvikelser', () => {
+  const x = datumFixture({ year: true }), a = x.change('2027-01-12');
+  const prepared = schemaDatumUnderlag(x.plan, x.underlag, x.f, x.datedBasis, [a]);
+  const ref = prepared.sources.find(s => s.lesson === a.lesson).ref;
+  assert.equal(x.f.teachings.find(t => t.ref === ref).timeBasis, 'lasar');
+  const before = structuredClone(x.f.teachings);
+  assert.deepEqual(schemaDatumTidsandringar(x.f, [a], prepared.sources), []);
+  assert.deepEqual(x.f.teachings, before, 'en datumflytt skriver inte om års- eller terminsfördelningen');
+  const request = { ...x.request, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: x.f.grundFingerprint, placements: x.placements, datedOverrides: [a], dates: [] };
+  const reply = { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: x.f.grundFingerprint, fingerprint: x.f.fingerprint,
+    datedOverrides: [a], checkedDates: prepared.days.map(d => d.date), violations: [], total: 0, timeChanges: [] };
+  assert.deepEqual(parseSchemaDatumSvar(reply, request).timeChanges, []);
+});
+
+test('ett gammalt terminsunderlag accepterar inte en påstådd årsavstämning i datumsvaret', () => {
+  const x = datumFixture(), a = x.change('2027-01-12'), p = schemaDatumUnderlag(x.plan, x.underlag, x.f, x.datedBasis, [a]);
+  const request = { ...x.request, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: x.f.grundFingerprint, placements: x.placements, datedOverrides: [a], dates: [] };
+  const ref = p.sources.find(s => s.lesson === a.lesson).ref;
+  assert.throws(() => parseSchemaDatumSvar({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: x.f.grundFingerprint, fingerprint: x.f.fingerprint,
+    datedOverrides: [a], checkedDates: p.days.map(d => d.date), violations: [], total: 0,
+    timeChanges: [{ ref, term: 'lasar', deltaMin: 5, plannedMin: 1805, needMin: 1800, maxMin: 1800, deviation: true }] }, request));
+});
+
+test('en årsberäknad kurs som bara går på hösten behåller sin aktiva termin vid datumändring', () => {
+  const x = datumFixture({ year: true, onlyTerm: 'ht' }), a = x.change('2027-01-12');
+  const prepared = schemaDatumUnderlag(x.plan, x.underlag, x.f, x.datedBasis, [a]);
+  const ref = prepared.sources.find(s => s.lesson === a.lesson).ref;
+  assert.deepEqual(x.f.teachings.find(t => t.ref === ref).terms.map(t => t.term), ['ht']);
+  assert.throws(() => schemaDatumTidsandringar(x.f, [a], prepared.sources), e => e.reason === 'schema_datum_date_invalid');
+});
+
 test('en terminsgrund skapar inga original i andra terminen och nekar terminsflytt eller kontroll utanför sin grund', () => {
   const x = datumFixture(), request = { ...x.request, period: 'ht' }, u = buildSchemaUnderlag(x.plan, request, x.basis);
   const placements = u.labels.lessons.map(l => ({ lesson: l.id, day: l.title === 'Franska' ? 1 : 0, startMin: 480, room: 'sal-2' }));

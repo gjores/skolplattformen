@@ -1,0 +1,65 @@
+{
+  "syntheticOnly": true,
+  "results": [
+    {
+      "name": "block-common",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "block-inactive-teacher",
+      "version": 5,
+      "lessons": 6,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "block-teacher-replacement",
+      "version": 5,
+      "lessons": 6,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "legacy-block-inactive-teacher",
+      "version": 4,
+      "lessons": 5,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    }
+  ],
+  "sourceEvidenceSha256": "81d847ab56b7e9ccebc5520028be7c76f5a8f37fb45f64f0e1dd7c44e3e9da9d"
+}

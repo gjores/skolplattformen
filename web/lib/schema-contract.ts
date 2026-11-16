@@ -1,9 +1,11 @@
 import { aktivitetsPassId, aktiviteternasFel, parseAktiviteter, type SchemaAktivitet, type SchemaAktivitetsMeta } from './schema-aktiviteter.ts';
 /**
- * Schemamotorns kontrakt v4 sett från appen (05.2-SM-KOPPLING, -ELEVER-KALENDER; v2 med marginal före och efter pass, 05.2-SM-MARGINAL). v3 tillförde sökstatistik, v4 placeringsförslag. Typerna speglar `schemamotor/crates/model`;
+ * Schemamotorns kontrakt v4/v5 sett från appen. v5 tillför gemensamma årsbudgetar; omarkerade äldre underlag använder fortfarande v4.
+ * v2 tillförde marginal, v3 sökstatistik och v4 placeringsförslag. Typerna speglar `schemamotor/crates/model`;
  * motorns svar tolkas strikt mot det skickade underlaget innan något av det används.
  */
-export const SCHEMA_MOTOR_VERSION = 4 as const;
+export const SCHEMA_MOTOR_VERSION = 5 as const;
+export type SchemaMotorVersion = 4 | typeof SCHEMA_MOTOR_VERSION;
 /**
  * Appens kontrakt mellan webbläsaren och schemarutterna. v3 (05.2-SM-VILLKOR-DIREKT): kontroll, möjliga starttider och Följ passet bär nuvarande villkor och
  * grundens fingeravtryck, och prövar tidsvillkor direkt. v4 (05.2-SM-VILLKORSTABELL): ny villkorstyp `dag`, längsta dag per lärare. Motorns kontrakt
@@ -23,7 +25,7 @@ export type SchemaStatus = typeof SCHEMA_STATUSES[number];
 
 export type SchemaInterval = { day: number; start_min: number; end_min: number };
 export type SchemaProblem = {
-  version: typeof SCHEMA_MOTOR_VERSION; id: string;
+  version: SchemaMotorVersion; id: string;
   time: { step_min: number; start_grid_min: number; days: { start_min: number; end_min: number }[] };
   periods?: { id: string }[];
   /** Interna samplaceringskopplingar och referensschema, aldrig externa personidentiteter. */
@@ -33,8 +35,8 @@ export type SchemaProblem = {
   rooms?: { id: string; unavailable?: SchemaInterval[] }[];
   clusters: { id: string; size: number }[];
   groups: { id: string; clusters: string[] }[];
-  /** `time`: undervisningens tid per termin ska ligga inom timplanens minuter och avrundningen uppåt (05.2-SM-TIMPLAN-EXAKT, E2–E3). */
-  activities: { id: string; time?: { period?: string; weekday_days: number[]; min_min: number; max_min: number }[] }[];
+  /** Utan budget: oberoende termrad. Med budget (v5): periodradernas bidrag summeras till samma intervall inom aktiviteten. */
+  activities: { id: string; time?: { period?: string; budget?: string; weekday_days: number[]; min_min: number; max_min: number }[] }[];
   /**
    * `margin`: tid före och efter passet per part (elever, lärare, sal) som följer passet. Den upptar parten men räknas aldrig som undervisning
    * (05.2-SM-MARGINAL). `counted_min` används inte längre av appen.
@@ -63,6 +65,8 @@ export type SchemaSolution = { status: SchemaStatus; placements: SchemaPlacement
  * på 5-minutersrutnätet. `null` betyder att villkoret inte används.
  */
 export type SchemaVillkor = {
+  /** Årsbudget och ett gemensamt veckomönster när resurserna medger det. Frånvaro behåller den äldre termmodellen. */
+  timeBasis?: 'lasar';
   /** Antal lektioner per vecka för en serverhärledd undervisningsreferens. Frånvaro/tom lista återgår till generella villkor och automatisk uppdelning. */
   fordelning?: SchemaFordelningVal[];
   /** Egna återkommande aktiviteter, utan timplanetid. Lever bara i utkastet (05.2-SM-AKTIVITETER). */
@@ -112,8 +116,8 @@ export type SchemaRegelTyp = SchemaRegel['typ'];
  * annat grundfingeravtryck i underlaget och kräver då också ett nytt förslag.
  */
 export const SCHEMA_GRUND_TYPER: readonly SchemaRegelTyp[] = ['langd', 'antal'];
-export function schemaGrund(v: SchemaVillkor): Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin' | 'salar' | 'egna' | 'aktiviteter' | 'fordelning'> {
-  return { ...(v.aktiviteter?.length ? { aktiviteter: v.aktiviteter } : {}), ...(v.fordelning?.length ? { fordelning: [...v.fordelning].sort((a, b) => a.ref.localeCompare(b.ref)) } : {}),
+export function schemaGrund(v: SchemaVillkor): Pick<SchemaVillkor, 'maxLessonMin' | 'minLessonMin' | 'salar' | 'egna' | 'aktiviteter' | 'fordelning' | 'timeBasis'> {
+  return { ...(v.timeBasis === 'lasar' ? { timeBasis: v.timeBasis } : {}), ...(v.aktiviteter?.length ? { aktiviteter: v.aktiviteter } : {}), ...(v.fordelning?.length ? { fordelning: [...v.fordelning].sort((a, b) => a.ref.localeCompare(b.ref)) } : {}),
     maxLessonMin: v.maxLessonMin, minLessonMin: v.minLessonMin, salar: v.salar,
     egna: v.egna.filter(r => SCHEMA_GRUND_TYPER.includes(r.typ)).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))) };
 }
@@ -134,7 +138,7 @@ export const SCHEMA_VILLKOR_LIMITS = { dayFrom: 6 * 60, dayTo: 20 * 60, daySpan:
   maxLesson: [30, 180], minLesson: 10, perDay: [120, 600],
   salar: 100, salNamn: 60, egna: 200, fordelning: 2000, ref: 2000, marginal: [0, 60], etikett: 40, antal: [1, 10] } as const;
 export function defaultSchemaVillkor(): SchemaVillkor {
-  return { days: Array.from({ length: 5 }, () => ({ startMin: 8 * 60, endMin: 16 * 60 + 30 })), breakMin: 10, startGridMin: 10,
+  return { timeBasis: 'lasar', days: Array.from({ length: 5 }, () => ({ startMin: 8 * 60, endMin: 16 * 60 + 30 })), breakMin: 10, startGridMin: 10,
     lunch: { startMin: 10 * 60 + 30, endMin: 13 * 60 + 30, lengthMin: 40, teachers: true }, maxLessonMin: 80, minLessonMin: 20, sameDay: 'avoid',
     lateAfterMin: 15 * 60 + 30, studentMaxMinPerDay: null, teacherMaxMinPerDay: null, salar: [], egna: [] };
 }
@@ -142,6 +146,7 @@ const WEEKDAY_NAMES = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 /** Villkorens gränser i klartext. Tom lista: villkoren kan användas. Samma prövning görs i vyn och på servern. */
 export function checkSchemaVillkor(v: SchemaVillkor): string[] {
   const L = SCHEMA_VILLKOR_LIMITS, issues: string[] = v.aktiviteter === undefined ? [] : aktiviteternasFel(v.aktiviteter);
+  if (Object.hasOwn(v, 'timeBasis') && v.timeBasis !== 'lasar') issues.push('Välj läsårets tid som beräkningsgrund.');
   if (v.fordelning !== undefined) {
     if (!Array.isArray(v.fordelning) || v.fordelning.length > L.fordelning) issues.push(`Lektionsfördelningen får omfatta högst ${L.fordelning} undervisningar.`);
     else {
@@ -257,6 +262,8 @@ export type SchemaTimplanDeviation = 'unplaced' | 'weekly' | 'calendar';
  * slutar tidigare (sammanlagt `trimmedMin`). `perWeek` och `trimPerWeek` följer `time.weekLabels`.
  */
 export type SchemaForslagTeaching = { ref: string; title: string; classes: string[]; needMin: number; weeklyMin: number; plannedMin: number; unplaced: number;
+  /** I årsmodellen är needMin/maxMin läsårets gemensamma intervall; termraderna är enbart fördelning och utfall. */
+  timeBasis?: 'lasar'; maxMin?: number;
   terms: { term: SchemaTerm; needMin: number; maxMin: number; baseMin: number; plannedMin: number; trimmedMin: number; trimmedCount: number }[];
   perWeek: number[]; trimPerWeek: number[]; deviation: SchemaTimplanDeviation | null };
 /** Det egna villkor kan ställas för. `ref` är det villkoret bär; namnet visas. */
@@ -342,8 +349,8 @@ function regel(value: unknown): SchemaRegel {
 }
 /** Villkoren i fast form: okända eller saknade fält och värden utanför gränserna nekas. */
 export function parseSchemaVillkor(value: unknown): SchemaVillkor {
-  const r = record(value), keys = Object.keys(defaultSchemaVillkor());
-  if (Object.keys(r).length !== keys.length + Number(Object.hasOwn(r, 'aktiviteter')) + Number(Object.hasOwn(r, 'fordelning')) || keys.some(key => !Object.hasOwn(r, key))) bad();
+  const r = record(value), keys = Object.keys(defaultSchemaVillkor()).filter(k => k !== 'timeBasis');
+  if (keys.some(key => !Object.hasOwn(r, key)) || Object.keys(r).some(k => !keys.includes(k) && !['aktiviteter', 'fordelning', 'timeBasis'].includes(k))) bad();
   const minutes = (n: unknown) => n === null ? null : int(n, 0, 1440);
   const days = list(r.days, 5).map(raw => { const day = record(raw); if (Object.keys(day).length !== 2) bad(); return { startMin: int(day.startMin, 0, 1440), endMin: int(day.endMin, 0, 1440) }; });
   let lunch: SchemaVillkor['lunch'] = null;
@@ -355,6 +362,7 @@ export function parseSchemaVillkor(value: unknown): SchemaVillkor {
   const villkor: SchemaVillkor = { days, breakMin: int(r.breakMin, 0, 1440), startGridMin: int(r.startGridMin, 1, 1440), lunch, maxLessonMin: int(r.maxLessonMin, 0, 1440), minLessonMin: int(r.minLessonMin, 0, 1440),
     sameDay: r.sameDay as SchemaVillkor['sameDay'], lateAfterMin: minutes(r.lateAfterMin), studentMaxMinPerDay: minutes(r.studentMaxMinPerDay), teacherMaxMinPerDay: minutes(r.teacherMaxMinPerDay),
     salar: list(r.salar, SCHEMA_VILLKOR_LIMITS.salar).map(x => text(x, SCHEMA_VILLKOR_LIMITS.salNamn)), egna: list(r.egna, SCHEMA_VILLKOR_LIMITS.egna).map(regel) };
+  if (Object.hasOwn(r, 'timeBasis')) { if (r.timeBasis !== 'lasar') bad(); villkor.timeBasis = 'lasar'; }
   if (Object.hasOwn(r, 'aktiviteter')) { try { villkor.aktiviteter = parseAktiviteter(r.aktiviteter); } catch { bad(); } }
   if (Object.hasOwn(r, 'fordelning')) {
     const values = list(r.fordelning, SCHEMA_VILLKOR_LIMITS.fordelning).map(raw => {
@@ -436,6 +444,10 @@ function datedCalendar(value: unknown): SchemaDatedCalendar | null {
 function teaching(t: SchemaForslagTeaching): void {
   text(t.ref, SCHEMA_VILLKOR_LIMITS.ref);
   text(t.title, 2000); list(t.classes, 2000); int(t.needMin, 0, 10_000_000); int(t.plannedMin, 0, 10_000_000); int(t.weeklyMin, 0, 10_080); int(t.unplaced, 0, 1000);
+  if (Object.hasOwn(t, 'timeBasis') || Object.hasOwn(t, 'maxMin')) {
+    if (t.timeBasis !== 'lasar') bad();
+    int(t.maxMin, t.needMin, 10_000_000);
+  }
   if (t.deviation !== null && t.deviation !== 'unplaced' && t.deviation !== 'weekly' && t.deviation !== 'calendar') bad();
   for (const x of list(t.terms, 2) as SchemaForslagTeaching['terms']) { if (!SCHEMA_TERMS.includes(record(x).term as SchemaTerm)) bad(); int(x.needMin, 0, 10_000_000); int(x.maxMin, 0, 10_000_000); int(x.plannedMin, 0, 10_000_000);
     int(x.baseMin, 0, 10_000_000); int(x.trimmedMin, 0, 10_000_000); int(x.trimmedCount, 0, 100_000); }
@@ -481,7 +493,7 @@ export function checkSchemaPlacements(placements: SchemaPlacement[], problem: Sc
 /** Kontrollantens svar från motorn: bara pass som finns i underlaget får pekas ut. */
 export function parseSchemaCheck(value: unknown, problem: SchemaProblem): SchemaCheck {
   const s = record(value), known = new Set(problem.lessons.map(l => l.id)), m = record(s.metrics);
-  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id) bad();
+  if (s.version !== problem.version || s.problem_id !== problem.id) bad();
   const violations = list(s.violations, SCHEMA_LIMITS.violations).map(raw => {
     const v = record(raw), lessons = list(v.lessons, SCHEMA_LIMITS.lessons).map(id => text(id, 100));
     if (lessons.some(id => !known.has(id))) bad();
@@ -511,7 +523,7 @@ export function parseSchemaKontroll(value: unknown, grundFingerprint: string): S
  */
 export function parseSchemaSolution(value: unknown, problem: SchemaProblem): SchemaSolution {
   const s = record(value);
-  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id) bad();
+  if (s.version !== problem.version || s.problem_id !== problem.id) bad();
   const status = SCHEMA_STATUSES.find(x => x === s.status) ?? bad();
   const locks = new Map(problem.lessons.filter(l => l.locked).map(l => [l.id, l.locked!]));
   const duration = new Map(problem.lessons.map(l => [l.id, l.duration_min])), wanted = new Map(problem.lessons.map(l => [l.id, l.rooms?.allowed])), seen = new Set<string>();

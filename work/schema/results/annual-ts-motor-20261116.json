@@ -1,0 +1,125 @@
+{
+  "syntheticOnly": true,
+  "results": [
+    {
+      "name": "annual-year",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-ht",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 2835,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-vt",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 3165,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-teacher-change",
+      "version": 5,
+      "lessons": 6,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-concurrent",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "maxMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-ht-only-course",
+      "version": 5,
+      "lessons": 3,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 3000,
+          "maxMin": 3000,
+          "plannedMin": 3000,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "annual-fraction",
+      "version": 5,
+      "lessons": 1,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 2001,
+          "maxMin": 2005,
+          "plannedMin": 2005,
+          "deviation": null
+        }
+      ]
+    },
+    {
+      "name": "legacy-year",
+      "version": 4,
+      "lessons": 5,
+      "status": "complete",
+      "violations": 0,
+      "teaching": [
+        {
+          "needMin": 6000,
+          "plannedMin": 6000,
+          "deviation": null
+        }
+      ]
+    }
+  ],
+  "sourceEvidenceSha256": "21af26180674dbec096da4d0cbfda4e10e7d306972c6a17c48473162ede1ee97"
+}

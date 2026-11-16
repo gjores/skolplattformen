@@ -47,7 +47,7 @@ test('samma ämne får två respektive tre lektioner i olika faktiska klassunder
   assert.deepEqual([antal(u, 10), antal(u, 11)], [2, 3]);
   assert.deepEqual(u.labels.lessons.filter(l => l.classIds.includes('grupp-1')).map(l => l.durationMin), [90, 90]);
   assert.deepEqual(u.labels.lessons.filter(l => l.classIds.includes('grupp-2')).map(l => l.durationMin), [60, 60, 60]);
-  assert.deepEqual(f.teachings.map(t => [t.ref, t.needMin, t.plannedMin]), [[ref(10), 3240, 3240], [ref(11), 3240, 3240]]);
+  assert.deepEqual(f.teachings.map(t => [t.ref, t.needMin, t.plannedMin]), [[ref(10), 6840, 3240], [ref(11), 6840, 3240]]);
   assert.deepEqual(f.fordelning.map(row => [row.ref, row.antal, row.terms[0]]), [
     [ref(10), 2, { term: 'ht', needMin: 3240, plannedMin: 3240, antalPass: 2 }], [ref(11), 3, { term: 'ht', needMin: 3240, plannedMin: 3240, antalPass: 3 }],
   ]);

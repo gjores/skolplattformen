@@ -1,6 +1,6 @@
 // Datumvyn mot syntetiskt kalenderunderlag och mockade appanrop; ingen inloggad Worker eller verklig anslutning.
 import { test, expect, type Page } from './schema-test';
-import forslag from './fixtures/schema-forslag.json' with { type: 'json' };
+import forslag from './schema-fixture';
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
 test.beforeEach(async ({ page }) => {

@@ -4,7 +4,7 @@
  * mot namn och orsakerna blir svenska rader som i designvyn (`design/Samlingsvy.dc.html`). Inget sparas.
  * Elevnivå: motorn får elevens kluster (löpnummer), aldrig elevens ID; bara den som får se eleven kan begära den.
  */
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaForslagRequest, type SchemaKontrollRequest, type SchemaPlacement,
+import { SCHEMA_CONTRACT_VERSION, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaForslagRequest, type SchemaKontrollRequest, type SchemaPlacement,
   type SchemaProblem } from './schema-contract.ts';
 import { buildSchemaUnderlag, type SchemaBasis, type SchemaUnderlag } from './schema-underlag.ts';
 import type { TjanstPlanRead } from './tjanst-contract.ts';
@@ -96,7 +96,7 @@ export function schemaElevKluster(plan: TjanstPlanRead, request: Pick<SchemaFors
 export function parseSchemaPositions(value: unknown, problem: SchemaProblem, lesson: string): SchemaPositions {
   const s = exact(value, ['version', 'problem_id', 'lesson', 'positions']);
   const own = problem.lessons.find(l => l.id === lesson);
-  if (s.version !== SCHEMA_MOTOR_VERSION || s.problem_id !== problem.id || s.lesson !== lesson || !own) bad();
+  if (s.version !== problem.version || s.problem_id !== problem.id || s.lesson !== lesson || !own) bad();
   const known: Record<SchemaOrsakSlag, Set<string>> = {
     larare: new Set(problem.teachers.map(t => t.id)), elever: new Set(problem.clusters.map(c => c.id)), grupp: new Set(problem.groups.map(g => g.id)),
     sal: new Set((problem.rooms ?? []).map(r => r.id)), amne: new Set(problem.activities.map(a => a.id)), pass: new Set() };

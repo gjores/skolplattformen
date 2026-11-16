@@ -1,5 +1,5 @@
 /** Placeringsförslag (05.2-SM-PLACERING). Alla ändringar jämförs med just den begärda utgångspunkten. Inget sparas. */
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, SCHEMA_LIMITS, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest,
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest,
   type SchemaKontrollRequest, type SchemaPlacement, type SchemaProblem } from './schema-contract.ts';
 
 export type SchemaPlaceringVal = { mode: 'lesson' | 'target' | 'rest'; lesson: string | null; target: Omit<SchemaPlacement, 'lesson'> | null; depth: 1 | 2 | 3 };
@@ -130,7 +130,7 @@ function rootsFor(lesson: string | null, links: SchemaProblem['links']): Set<str
 }
 /** Motorresultatet prövas mot serverns eget underlag. Oberoende regelkontroll körs därefter på hela varje kandidat. */
 export function parseSchemaMotorPlacering(value: unknown, problem: SchemaProblem, expected: SchemaPlaceringVal & { placements: SchemaPlacement[] }) {
-  const r = record(value); if (r.version !== SCHEMA_MOTOR_VERSION || r.problem_id !== problem.id) bad();
+  const r = record(value); if (r.version !== problem.version || r.problem_id !== problem.id) bad();
   const lessons = new Map(problem.lessons.map(l => [l.id, l]));
   // Samplacerade pass bildar en uttrycklig rot; orelaterade parkerade pass får aldrig läggas som en gömd sidoeffekt.
   return readResult(r, expected, raw => motorAt(raw, problem, lessons), new Set(lessons.keys()), rootsFor(expected.lesson, problem.links), true);

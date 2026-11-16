@@ -2,7 +2,11 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaGrundFingerprint, schemaKontroll, schemaProvUnderlag, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
-import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel, SCHEMA_CONTRACT_VERSION, SCHEMA_MOTOR_VERSION, SCHEMA_GRUND_TYPER, SCHEMA_REGEL_TYPER } from './schema-contract.ts';
+import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor as annualDefaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel, SCHEMA_CONTRACT_VERSION, SCHEMA_GRUND_TYPER, SCHEMA_REGEL_TYPER } from './schema-contract.ts';
+
+// Regression för den omarkerade termmodellen. Årsmodellen har egna matematiska prov i schema-lasarsmonster.test.mjs.
+const LEGACY_MOTOR_VERSION = 4;
+function defaultSchemaVillkor() { const v = annualDefaultSchemaVillkor(); delete v.timeBasis; return v; }
 
 const uid = n => `52a10000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const h = n => n * 60;
@@ -52,7 +56,7 @@ test('veckotiden avrundas uppåt och delas i lika pass om högst 80 min; under 2
 test('underlaget bär bara löpnummer: inga namn och inga av appens ID:n når motorn', () => {
   const { problem } = buildSchemaUnderlag(plan(), request), sent = JSON.stringify(problem);
   assert.ok(!sent.includes('52a10000') && !sent.includes('Lärare') && !sent.includes('1A') && !sent.includes('Matematik') && !sent.includes('Provskolan'));
-  assert.equal(problem.version, SCHEMA_MOTOR_VERSION);
+  assert.equal(problem.version, LEGACY_MOTOR_VERSION);
   assert.deepEqual(problem.teachers.map(t => t.id), ['larare-1', 'larare-2', 'larare-3', 'larare-4']);
 });
 
@@ -237,7 +241,7 @@ test('utlagd tid är passens längd gånger skoldagarna på passets veckodag; kl
 
 function solved(problem, extra = {}) {
   const slots = problem.lessons.map((l, i) => ({ lesson: l.id, day: i % 5, start_min: 480 + 90 * Math.floor(i / 5), rooms: [] }));
-  return { version: SCHEMA_MOTOR_VERSION, problem_id: problem.id, problem_hash: 'x', status: 'time_limit', placements: slots.slice(1), unplaced: [slots[0].lesson],
+  return { version: LEGACY_MOTOR_VERSION, problem_id: problem.id, problem_hash: 'x', status: 'time_limit', placements: slots.slice(1), unplaced: [slots[0].lesson],
     diagnoses: [{ code: 'unplaced', message: 'Pass pass-1 fick ingen plats. I vägen: lärare larare-1 är upptagen; eleverna i kluster-1.', lessons: ['pass-1'], resources: [], proof: false }],
     metrics: { lessons: slots.length, student_gap_min: 50, teacher_gap_min: 10 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 12 }, ...extra };
 }
@@ -298,7 +302,7 @@ test('fingeravtrycket följer underlaget och kontrollens begäran och svar tolka
     assert.throws(() => checkSchemaPlacements(broken, p));
   for (const ok of [[{ ...placements[0], startMin: 475 }], [{ ...placements[0], startMin: 16 * 60 + 30 - 55 }]]) assert.deepEqual(checkSchemaPlacements(ok, p), ok);
 
-  const reply = { version: SCHEMA_MOTOR_VERSION, problem_id: p.id, violations: [
+  const reply = { version: LEGACY_MOTOR_VERSION, problem_id: p.id, violations: [
     { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
     { code: 'student_clash', message: 'Pass pass-1 och pass-4 krockar för elever i kluster-1.', lessons: ['pass-1', 'pass-4'], resources: ['kluster-1'] },
     { code: 'teacher_no_lunch', message: 'Lärare larare-1 saknar lunch dag 2.', lessons: [], resources: ['larare-1'] }],
@@ -460,7 +464,7 @@ test('egna villkor når motorn som fönster, salar, marginal och uppdelning; vec
 
   // Motorn lägger idrotten i hallen; förslaget bär salens namn och följer timplanen när allt är lagt.
   const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: i % 4, start_min: 720 + 60 * Math.floor(i / 4), rooms: l.rooms ? ['sal-1'] : [] }));
-  const raw = { version: SCHEMA_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
+  const raw = { version: LEGACY_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
   const forslag = schemaForslag(data, req, u, parseSchemaSolution(raw, p));
   assert.deepEqual(forslag.lessons.filter(l => l.title === 'Idrott').map(l => l.roomId), ['sal-1', 'sal-1']);
   assert.deepEqual([forslag.rooms, forslag.egnaUtanTraff, forslag.teachings.filter(t => t.deviation !== null)], [u.labels.rooms, [7], []]);
@@ -496,7 +500,7 @@ test('överskottet justeras tillfälle för tillfälle till timplanens tid', () 
   assert.deepEqual(p.activities[0].time, [{ weekday_days: [17, 18, 18, 18, 19], min_min: 3240, max_min: 195 * 19 }]);
   const at = days => {
     const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
-    const raw = { version: SCHEMA_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
+    const raw = { version: LEGACY_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
     const t = schemaForslag(data, request, u, parseSchemaSolution(raw, p)).teachings[0];
     return [t.deviation, t.plannedMin, t.terms[0].trimmedCount, t.trimPerWeek.filter(n => n > 0).length, new Set(t.perWeek.slice(0, 17)).size];
   };
@@ -508,7 +512,7 @@ test('överskottet justeras tillfälle för tillfälle till timplanens tid', () 
   // och de sista 30 minuterna fördelas på enskilda tillfällen.
   const trimsAt = days => {
     const slots = p.lessons.map((l, i) => ({ lesson: l.id, day: days[i], start_min: 480, rooms: [] }));
-    const raw = { version: SCHEMA_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
+    const raw = { version: LEGACY_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: slots, unplaced: [], diagnoses: [], metrics: { lessons: slots.length, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
     return schemaForslag(data, request, u, parseSchemaSolution(raw, p)).trims;
   };
   assert.deepEqual(trimsAt([1, 2, 3]), p.lessons.map(l => ({ lesson: l.id, term: 'ht', fixedMin: 5, extraCount: 0, extraMin: 0 })));
@@ -539,7 +543,7 @@ test('justeringen sprids jämnt över veckorna och kortar aldrig ett tillfälle 
   // 20 veckor med ett pass om 25 min: 500 min mot timplanens 410. 18 steg om 5 min behövs, men varje tillfälle får bara kortas till 20 min.
   const data = one(410, 0), time = timeWith({ span: HT, perWeekday: [20, 20, 20, 20, 20] }), u = buildSchemaUnderlag(data, request, { members: null, time }), p = u.problem;
   assert.deepEqual(p.lessons.map(l => l.duration_min), [25]);
-  const raw = { version: SCHEMA_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: [{ lesson: p.lessons[0].id, day: 2, start_min: 480, rooms: [] }], unplaced: [], diagnoses: [],
+  const raw = { version: LEGACY_MOTOR_VERSION, problem_id: p.id, problem_hash: 'x', status: 'complete', placements: [{ lesson: p.lessons[0].id, day: 2, start_min: 480, rooms: [] }], unplaced: [], diagnoses: [],
     metrics: { lessons: 1, student_gap_min: 0, teacher_gap_min: 0 }, search_statistics: { lessons: [], bottlenecks: [], iterations: 0 }, stats: { elapsed_ms: 1 } };
   const t = schemaForslag(data, request, u, parseSchemaSolution(raw, p)).teachings[0];
   assert.deepEqual([t.terms[0].baseMin, t.plannedMin, t.terms[0].trimmedCount, t.deviation], [500, 410, 18, null]);

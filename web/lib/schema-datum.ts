@@ -1,5 +1,5 @@
 /** Ett undantag för ett faktiskt tillfälle. Originalnyckeln ändras aldrig när tillfället flyttas. */
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaKontrollRequest, type SchemaTerm } from './schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, SchemaContractError, parseSchemaKontrollRequest, type SchemaForslag, type SchemaKontrollRequest, type SchemaPeriod, type SchemaTerm } from './schema-contract.ts';
 import { schemaDagStatus, schemaTillfallen, schemaTillfallesLangd, schemaVisningsDagar, schemaWeekday, type SchemaTillfalle, type SchemaVeckaVal } from './schema-vecka.ts';
 
 export const SCHEMA_DATUM_LIMIT = 20_000;
@@ -8,7 +8,7 @@ export type SchemaDatumNyckel = Pick<SchemaDatumAndring, 'lesson' | 'originalDat
 export type SchemaDatumTillfalle = SchemaTillfalle & { originalDate: string; changed: boolean };
 export type SchemaDatumRequest = SchemaKontrollRequest & { datedOverrides: SchemaDatumAndring[]; dates: string[] };
 export type SchemaDatumAvvikelse = { date: string; code: string; message: string; lessons: string[]; occurrences: string[] };
-export type SchemaDatumTid = { ref: string; term: SchemaTerm; deltaMin: number; plannedMin: number; needMin: number; maxMin: number; deviation: boolean };
+export type SchemaDatumTid = { ref: string; term: SchemaPeriod; deltaMin: number; plannedMin: number; needMin: number; maxMin: number; deviation: boolean };
 export type SchemaDatumSvar = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string;
   datedOverrides: SchemaDatumAndring[]; checkedDates: string[]; violations: SchemaDatumAvvikelse[]; total: number; timeChanges: SchemaDatumTid[] };
 export type SchemaDatumReason = 'schema_datum_invalid' | 'schema_datum_calendar_missing' | 'schema_datum_original_missing' | 'schema_datum_date_invalid'
@@ -97,15 +97,19 @@ export function schemaDatumTidsandringar(f: Pick<SchemaForslag, 'lessons' | 'tim
   for (const a of kontrolleraSchemaDatum(f, overrides)) {
     if (f.lessons.find(l => l.id === a.lesson)?.egenAktivitet) continue;
     const ref = byLesson.get(a.lesson), original = schemaDatumOriginal(f, a), target = f.time.calendar!.days.find(d => d.date === a.date);
-    if (!ref || !original?.term || !target?.term) return bad('schema_datum_source_unknown');
+    const teaching = f.teachings.find(t => t.ref === ref);
+    if (!ref || !teaching || !original?.term || !target?.term) return bad('schema_datum_source_unknown');
+    if (teaching.timeBasis === 'lasar' && !teaching.terms.some(t => t.term === target.term)) return bad('schema_datum_date_invalid');
     for (const [term, minutes] of [[original.term, -a.durationMin], [target.term, a.durationMin]] as const) {
-      const key = JSON.stringify([ref, term]); delta.set(key, (delta.get(key) ?? 0) + minutes);
+      const key = JSON.stringify([ref, teaching.timeBasis === 'lasar' ? 'lasar' : term]); delta.set(key, (delta.get(key) ?? 0) + minutes);
     }
   }
   return [...delta].filter(([, minutes]) => minutes !== 0).map(([key, deltaMin]) => {
-    const [ref, term] = JSON.parse(key) as [string, SchemaTerm], teaching = f.teachings.find(t => t.ref === ref), range = teaching?.terms.find(t => t.term === term);
+    const [ref, term] = JSON.parse(key) as [string, SchemaPeriod], teaching = f.teachings.find(t => t.ref === ref), range = teaching?.terms.find(t => t.term === term);
     if (!teaching) return bad('schema_datum_source_unknown');
-    const needMin = range?.needMin ?? 0, maxMin = range?.maxMin ?? 0, plannedMin = (range?.plannedMin ?? 0) + deltaMin;
+    const annual = term === 'lasar', needMin = annual ? teaching.needMin : range?.needMin ?? 0;
+    const maxMin = annual ? teaching.maxMin ?? Math.ceil(needMin / 5) * 5 : range?.maxMin ?? 0;
+    const plannedMin = (annual ? teaching.plannedMin : range?.plannedMin ?? 0) + deltaMin;
     return { ref, term, deltaMin, plannedMin, needMin, maxMin, deviation: plannedMin < needMin || plannedMin > maxMin };
   }).sort((a, b) => a.ref.localeCompare(b.ref) || a.term.localeCompare(b.term));
 }
@@ -132,9 +136,9 @@ export function parseSchemaDatumSvar(raw: unknown, expected: SchemaDatumRequest)
   const times = new Set<string>(), timeChanges = r.timeChanges.map(rawT => {
     const t = record(rawT);
     if (Object.keys(t).sort().join() !== 'deltaMin,deviation,maxMin,needMin,plannedMin,ref,term' || typeof t.ref !== 'string' || t.ref.length > 2000 || !/^(?:undervisning|samlasning|valbart-block):[^\p{Cc}]+$/u.test(t.ref)
-      || !['ht', 'vt'].includes(t.term as string) || typeof t.deviation !== 'boolean') return bad();
+      || !['lasar', 'ht', 'vt'].includes(t.term as string) || t.term === 'lasar' && expected.villkor.timeBasis !== 'lasar' || typeof t.deviation !== 'boolean') return bad();
     const key = JSON.stringify([t.ref, t.term]); if (times.has(key)) return bad(); times.add(key);
-    const result = { ref: t.ref, term: t.term as SchemaTerm, deltaMin: int(t.deltaMin, -12_000_000, 12_000_000), plannedMin: int(t.plannedMin, 0, Number.MAX_SAFE_INTEGER), needMin: int(t.needMin, 0, Number.MAX_SAFE_INTEGER), maxMin: int(t.maxMin, 0, Number.MAX_SAFE_INTEGER), deviation: t.deviation };
+    const result = { ref: t.ref, term: t.term as SchemaPeriod, deltaMin: int(t.deltaMin, -12_000_000, 12_000_000), plannedMin: int(t.plannedMin, 0, Number.MAX_SAFE_INTEGER), needMin: int(t.needMin, 0, Number.MAX_SAFE_INTEGER), maxMin: int(t.maxMin, 0, Number.MAX_SAFE_INTEGER), deviation: t.deviation };
     if (result.maxMin < result.needMin || result.deviation !== (result.plannedMin < result.needMin || result.plannedMin > result.maxMin)) return bad();
     return result;
   });

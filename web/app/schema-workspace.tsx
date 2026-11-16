@@ -147,7 +147,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const [visning, setVisning] = useState<SchemaVeckaVal>(grundschemaVal);
   const issues = checkSchemaVillkor(villkor);
   // Förslaget som motorn räknade fram; tid och mått uppdateras efter varje kontroll. Var passen ligger står i utkastet.
-  const [fore, setFore] = useState<{ key: string; findings: SchemaDiagnosFynd[] } | null>(null);
+  const [fore, setFore] = useState<{ key: string; findings: SchemaDiagnosFynd[]; releaseLocks?: boolean } | null>(null);
   const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve'>('diagnos');
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
   // Lagren i veckan (05.2-SM-VILLKOR-SYNS) ligger i utkastet och minns i webbläsaren.
@@ -172,6 +172,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   // går att använda, annars förslagets. Ett ändrat tidsvillkor prövas alltså direkt; en ändrad grund kräver ett nytt förslag.
   const villkorKey = villkorNyckel(villkor), forslagetsKey = base ? villkorNyckel(base.villkor) : villkorKey;
   const grundAndrad = base !== null && (!sammaGrund(villkor, base.villkor) || kraverNytt === villkorKey);
+  // Nya förslag använder årsmodellen. Återöppning och ändringar i ett äldre utkast behåller sin placeringsgrund.
+  const nyttArsvillkor: SchemaVillkor = { ...villkor, timeBasis: 'lasar' };
   const provade = !base || grundAndrad || issues.length ? base?.villkor ?? villkor : villkor, provadeKey = villkorNyckel(provade);
   const kontroll = kontrollSvar && kontrollSvar.villkor === provadeKey ? kontrollSvar.svar : null;
   const [moveError, setMoveErrorState] = useState<string | null>(null), [moved, setMoved] = useState('');
@@ -219,6 +221,9 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     },
   });
   const sparstatus = fonster ? remoteSave : spara.state;
+  const byterGrund = base !== null && (grundAndrad || sparstatus.phase === 'stale' || period !== base.period || !sammaGrund(nyttArsvillkor, base.villkor));
+  const gamlaPassregler = byterGrund ? villkor.egna.filter(r => r.slag === 'pass') : [];
+  const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
   const redigeringStoppad = !spara.ready || sparstatus.phase === 'loading' || sparstatus.phase === 'stale';
   async function bytPeriod(next: SchemaPeriod) {
     if (next === period || busy || checking || !spara.ready) return;
@@ -341,16 +346,19 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     if (fonster) { synk.send({ typ: 'run', continueAnyway, releaseLocks }); return; }
     if (!spara.ready || busy || issues.length || running.current) return;
     const locks = sparstatus.phase === 'stale' || releaseLocks ? [] : utkastLas(utkast);
-    if (locks.length && base && (period !== base.period || !sammaGrund(villkor, base.villkor))) {
+    if (locks.length && base && (period !== base.period || !sammaGrund(berakningsVillkor, base.villkor))) {
       setError('Låsen hör till det tidigare underlaget. Lås upp passen innan du ändrar perioden eller passens uppdelning.'); return;
     }
-    const request: SchemaForslagRequest = { unitId, schoolYear, period, villkor, ...(base && locks.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: locks } } : {}) };
-    const key = JSON.stringify(request), consentKey = JSON.stringify([key, datedOverrides, utkast.placements]);
+    const request: SchemaForslagRequest = { unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && locks.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: locks } } : {}) };
+    const key = JSON.stringify(request), consentKey = JSON.stringify([key, datedOverrides, utkast.placements, gamlaPassregler]);
     const continuing = continueAnyway && fore?.key === key;
     const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('forbereder'); setError(null);
     try {
-      if (datedOverrides.length && (!continuing || generationConsent.current !== consentKey)) {
-        if (!await confirm({ title: 'Räkna om hela grundschemat?', description: `Det nya förslaget ersätter placeringarna och ${datedOverrides.length} datumändringar. Omtaget går inte att ångra i arbetsytan.`, confirmLabel: 'Räkna om schemat', cancelLabel: 'Behåll nuvarande schema' })) return;
+      if ((datedOverrides.length || gamlaPassregler.length) && (!continuing || generationConsent.current !== consentKey)) {
+        const passnamn = gamlaPassregler.slice(0, 5).map(r => base?.lessons.find(l => l.id === r.ref)?.title ?? r.ref).join(', ');
+        const datumtext = datedOverrides.length ? ` och ${datedOverrides.length} datumändringar` : '';
+        const passregeltext = gamlaPassregler.length ? ` ${gamlaPassregler.length} villkor för enskilda pass tas bort eftersom det nya mönstret får nya pass: ${passnamn}${gamlaPassregler.length > 5 ? ', med flera' : ''}. Klassernas, gruppernas, lärarnas och ämnenas villkor behålls.` : '';
+        if (!await confirm({ title: 'Räkna om hela grundschemat?', description: `Det nya förslaget ersätter placeringarna${datumtext}.${passregeltext} Omtaget går inte att ångra i arbetsytan.`, confirmLabel: gamlaPassregler.length ? 'Ta fram utan passregler' : 'Räkna om schemat', cancelLabel: 'Behåll nuvarande schema' })) return;
         generationConsent.current = consentKey;
       }
       if (controller.signal.aborted) return;
@@ -361,14 +369,14 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
         setBerakningssteg('diagnos');
         const findings = parseSchemaDiagnos(await api.post<unknown>('/api/schema/diagnos', request, controller.signal));
         if (controller.signal.aborted) return;
-        setFore({ key, findings });
+        setFore({ key, findings, releaseLocks });
         if (findings.length) return;
       }
       setBerakningssteg('solve');
       const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', request, controller.signal), request);
       if (controller.signal.aborted) return;
       generationConsent.current = null; spara.acceptNewBasis(); setDatedOverrides([]); setDatumPicked(null);
-      setBase(next); dispatch({ type: 'reset', forslag: next }); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
+      setBase(next); setVillkor(next.villkor); dispatch({ type: 'reset', forslag: next }); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
       setVisning(grundschemaVal());
       setKontroll(null); setKraverNytt(null); setMisslyckat(null); setMoveError(null); setMoved('');
     } catch (caught) {
@@ -770,7 +778,9 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const selected = options.some(o => o.id === chosen) ? chosen : options[0]?.id ?? '';
   const selectedRef = forslag ? resursRefs(forslag).get(selected) : undefined;
   const windowResource = selectedRef ? `${selectedRef.slag}:${selectedRef.ref}` : undefined;
-  const byTerm = forslag?.lessons.some(l => l.term !== null) ?? false, termTag = (l: SchemaForslagLesson) => l.term ? ` · ${l.term.toUpperCase()}` : '';
+  const termpass = forslag?.lessons.some(l => l.term !== null) ?? false;
+  const byTerm = termpass || forslag?.villkor.timeBasis === 'lasar' && forslag.time.terms.length > 1;
+  const termTag = (l: SchemaForslagLesson) => l.term ? ` · ${l.term.toUpperCase()}` : '';
   const mine = (l: SchemaForslagLesson) => (l.term === null || l.term === shownTerm) && (by === 'class' ? l.classIds : l.teacherIds).includes(selected);
   // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): det passet kortas alla veckor i den termin som visas syns i veckan; kortning vissa veckor står i text.
   const viewTerm: SchemaTerm = !forslag || forslag.period === 'lasar' ? shownTerm : forslag.period;
@@ -911,9 +921,9 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     return () => controller.abort();
   }, [fonster, redigeringStoppad, datedOverrides.length, datumInputKey, datumKontroll?.key, onSessionLost, setMoveError]);
   const aktivaLas = utkastLas(utkast);
-  const diagnosAktuell = fore?.key === JSON.stringify({ unitId, schoolYear, period, villkor, ...(base && aktivaLas.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: aktivaLas } } : {}) }) ? fore : null;
-  const recoveryLocks = grundAndrad && aktivaLas.length > 0;
-  const recoveryKey = JSON.stringify({ unitId, schoolYear, period, villkor, ...(base && aktivaLas.length && !recoveryLocks ? { locks: { grundFingerprint: base.grundFingerprint, placements: aktivaLas } } : {}) });
+  const recoveryLocks = (grundAndrad || byterGrund) && aktivaLas.length > 0;
+  const recoveryKey = JSON.stringify({ unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && aktivaLas.length && !recoveryLocks ? { locks: { grundFingerprint: base.grundFingerprint, placements: aktivaLas } } : {}) });
+  const diagnosAktuell = fore?.key === recoveryKey ? fore : null;
   const recoveryFore = fore?.key === recoveryKey ? fore : null;
   if (fonster && !synk.live) return <section className="valplan-workspace schema-workspace"><FonsterList synk={synk} title={fonsterVyNamn[fonster.view]}/><p className="empty-state">Väntar på huvudfönstret. Inga ändringar kan göras innan kontakten är tillbaka.</p></section>;
   return <section className="valplan-workspace schema-workspace">
@@ -925,21 +935,29 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       <p className="text-sm text-muted-foreground">Datum, tid och sal gäller bara tillfällena. Grundschemat behåller sina placeringar.</p>
       {!datumSvar && <output>Kontrollerar datumändringar…</output>}
       {datumSvar?.violations.map((v, i) => <p key={i} className="text-destructive" role="alert">{v.date}: {v.message}</p>)}
-      {datumSvar?.timeChanges.map(t => <p key={`${t.ref}:${t.term}`} className={t.deviation ? 'text-destructive' : ''}>{forslag.teachings.find(x => x.ref === t.ref)?.title}: {TERM[t.term]} {t.deltaMin > 0 ? '+' : ''}{t.deltaMin} minuter. {t.plannedMin} av {t.needMin} minuter från timplanen. {t.deviation ? 'Tiden behöver ses över.' : ''}</p>)}
+      {datumSvar?.timeChanges.map(t => <p key={`${t.ref}:${t.term}`} className={t.deviation ? 'text-destructive' : ''}>{forslag.teachings.find(x => x.ref === t.ref)?.title}: {PERIOD[t.term]} {t.deltaMin > 0 ? '+' : ''}{t.deltaMin} minuter. {t.plannedMin} av {t.needMin} minuter från timplanen. {t.deviation ? 'Tiden behöver ses över.' : ''}</p>)}
       <ul className="divide-y divide-border">{datedOverrides.map(a => <li key={schemaDatumNyckel(a)} className="flex flex-wrap items-center justify-between gap-2 py-2"><span>{forslag.lessons.find(l => l.id === a.lesson)?.title} · {a.originalDate} → {a.date} {clock(a.startMin)}</span><Button type="button" variant="outline" disabled={busy || checking || redigeringStoppad} onClick={() => valjDatum(a)}>Ändra tillfället</Button></li>)}</ul>
     </section>}
     {forslag && datumPicked && <DatumFlytt salScope={placeringsBas()} datedOverrides={datedOverrides} onSessionLost={onSessionLost} key={datumPicked.key} occurrence={datumPicked} forslag={forslag} busy={busy || checking} error={moveError} onSave={change => void andraDatum({ lesson: datumPicked.lesson.id, originalDate: datumPicked.originalDate }, change, undefined, datumPicked.expectedInputKey)} onClose={() => setDatumPicked(null)} onBase={() => { const l = forslag.lessons.find(l => l.id === datumPicked.lesson.id); setDatumPicked(null); setVisning(grundschemaVal()); if (l) pick(l); }}/>}
     <fieldset className="contents" disabled={redigeringStoppad}>
     {gemensamt}
+    {forslag && forslag.villkor.timeBasis !== 'lasar' && !fonster && <section aria-label="Gemensamt läsårsmönster" className="rounded-lg border border-border bg-card p-4 space-y-2">
+      <h2 className="section-heading">Gemensamt läsårsmönster</h2>
+      <p>Det här utkastet räknades med separata terminstider. Ett nytt förslag räknar ämnenas tid över hela läsåret och behåller samma veckomönster på hösten och våren när undervisningen och lärarna är desamma.</p>
+      <p className="schema-note">Det sparade utkastet ligger kvar tills ett nytt förslag är framtaget.</p>
+      <Button type="button" variant="outline" disabled={busy || checking || issues.length > 0 || !spara.ready} onClick={() => void run(Boolean(recoveryFore?.findings.length), recoveryLocks)}>
+        {recoveryLocks ? `Lås upp ${aktivaLas.length} pass och ta fram läsårsmönster` : 'Ta fram gemensamt läsårsmönster'}
+      </Button>
+    </section>}
     {!fonster && <form className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
       <label>Schemat gäller<select value={period} disabled={busy || checking || !spara.ready} onChange={e => void bytPeriod(e.target.value as SchemaPeriod)}>
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
       <Button type="submit" variant={sokning || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>
-      <p className="schema-note schema-wide">Hur mycket tid ett ämne har och vilken termin kommer ur timplanen, via tjänstefördelningens behov. Tiden räknas på läsårskalenderns skoldagar. Vilka pass som får gå samtidigt avgörs av elevernas klasser och grupper.</p>
+      <p className="schema-note schema-wide">Ämnenas sammanlagda tid för läsåret kommer från timplanen, via tjänstefördelningen. Ett gemensamt veckomönster används på hösten och våren när undervisningen och lärarna är desamma. Tid och kortningar räknas över årets faktiska lektionstillfällen. Undervisning som bara går en termin ligger kvar där.</p>
       <Villkor value={villkor} disabled={busy || checking} issues={issues} resurser={forslag?.resurser ?? null} forslag={forslag} onChange={andraArbetsvillkor}/>
     </form>}
     <output aria-live="polite" className="schema-note">{busy ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
-    {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true)} onTarget={diagnosMal}/>}
+    {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
     {forslag && forslag.metrics.lessons === 0 && <UnderlagHinder forslag={forslag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>}
@@ -953,7 +971,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
         <span className={`status-badge ${forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'warning' : STATUS[forslag.status].tone}`}>Förslag · {forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'Pass kvar på viloytan' : STATUS[forslag.status].text}</span>
-        {forslag.metrics.lessons > 0 && <span className={`status-badge ${off ? 'warning' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : 'Tiden följer timplanen'}</span>}
+        {forslag.metrics.lessons > 0 && <span className={`status-badge ${off ? 'warning' : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? '' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? 'Årsberäknad terminsdel' : 'Tiden följer timplanen'}</span>}
         {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
         {egnaSyns > 0 && <span className="status-badge">{egnaSyns} {egnaSyns === 1 ? 'eget villkor syns' : 'egna villkor syns'} i veckan</span>}
@@ -980,7 +998,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
             </fieldset>
             <label>{by === 'class' ? 'Klass eller grupp' : 'Lärare'}<select value={selected} onChange={e => { setChosen(e.target.value); setWantedResource(undefined); }}>{options.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>
           </>} vecka={<>
-          {byTerm && <div className="schema-filter"><fieldset><legend className="schema-note">Vissa pass går bara en termin. Visa veckan under</legend>
+          {byTerm && <div className="schema-filter"><fieldset><legend className="schema-note">{termpass ? 'Vissa pass går bara en termin.' : 'Samma grundmönster gäller båda terminerna.'} Visa veckan under</legend>
             {forslag.time.terms.map(t => <Button key={t.term} type="button" variant={shownTerm === t.term ? 'secondary' : 'outline'} aria-pressed={shownTerm === t.term} onClick={() => setShownTerm(t.term)}>{TERM[t.term]}</Button>)}</fieldset></div>}
                 <div className="schema-verktygsrad">{datumVal.mode === 'grundschema' ? meny.verktyg : <p className="schema-note">Välj ett tillfälle för att ändra just den dagens lektion.</p>}
             <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/></div>

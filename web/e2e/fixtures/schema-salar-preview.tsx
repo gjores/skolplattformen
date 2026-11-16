@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Flyttpanel, type FlyttMal } from '../../app/schema/flytt.tsx';
 import type { SchemaForslag, SchemaKontrollRequest } from '../../lib/schema-contract.ts';
 import { setKnownEpoch } from '../../lib/server-client.ts';
-import base from './schema-forslag.json' with { type: 'json' };
+import base from '../schema-fixture';
 import '../../app/globals.css';
 import '../../app/schema.css';
 

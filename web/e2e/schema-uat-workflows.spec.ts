@@ -1,6 +1,6 @@
 // Användarfynd efter våg8: verkliga komponenter med uttryckligt simulerade API-svar. Databas, mandat och motor provas separat.
 import { test, expect, type Page } from './schema-test';
-import raw from './fixtures/schema-forslag.json' with { type: 'json' };
+import raw from './schema-fixture';
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 import following from './fixtures/schema-folj.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaKontrollRequest, type SchemaRegel, type SchemaVillkor } from '../lib/schema-contract.ts';

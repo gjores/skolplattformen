@@ -49,6 +49,9 @@ test('frozen verification rejects changed product, dependency evidence, omitted 
     previousRuntimeRevision: PREVIOUS_SCHEMA_REVISION, authorization: 'pending-concrete-user-approval', sql, artifact: { files, fileCount: files.length, sha256: releaseSha(files) },
     dependencies: { sha256: releaseSha(dependency) }, build };
   write('dependencies.json', dependency); write('artifact.json', manifest); assert.equal(verifySchemaUatRelease(directory).source.revision, revision);
+  write('artifact.json', { ...manifest, contracts: { app: 8, motor: 5 } }); assert.equal(verifySchemaUatRelease(directory).contracts.motor, 5);
+  write('artifact.json', { ...manifest, contracts: { app: 8, motor: 6 } }); assert.throws(() => verifySchemaUatRelease(directory), /supported motor contract/u);
+  write('artifact.json', manifest);
   write('runtime/web/dist-protected/app.js', 'changed'); assert.throws(() => verifySchemaUatRelease(directory), /artifact changed/u); write('runtime/web/dist-protected/app.js', 'synthetic app');
   write('dependencies.json', { changed: true }); assert.throws(() => verifySchemaUatRelease(directory), /dependency manifest changed/u); write('dependencies.json', dependency);
   write('artifact.json', { ...manifest, sql: sql.slice(0, -1) }); assert.throws(() => verifySchemaUatRelease(directory), /exact three migrations/u);
@@ -90,6 +93,8 @@ test('CLI defaults to building and accepts reuse only as the final explicit opti
   const args = ['--revision', 'a'.repeat(40), '--directory', '/private/tmp/schema-uat-release-synthetic'];
   assert.equal(parseSchemaReleaseArguments(args).motorRelease, null);
   assert.equal(parseSchemaReleaseArguments([...args, '--motor-release', '/private/tmp/schema-uat-release-origin']).motorRelease, '/private/tmp/schema-uat-release-origin');
+  assert.equal(parseSchemaReleaseArguments([...args, '--previous-runtime', 'b'.repeat(40)]).previousRuntimeRevision, 'b'.repeat(40));
+  assert.throws(() => parseSchemaReleaseArguments([...args, '--previous-runtime', 'HEAD']));
   for (const invalid of [[...args, '--motor-release'], [...args, '--other', 'anything'], [...args, '--motor-release', '--flag'], [...args, '--motor-release', 'one', '--motor-release', 'two']]) {
     assert.throws(() => parseSchemaReleaseArguments(invalid));
   }

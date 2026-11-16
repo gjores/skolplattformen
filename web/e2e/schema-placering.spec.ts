@@ -1,7 +1,7 @@
 // SM-PLACERING UI med syntetiska scheman och simulerade route-/kontrollsvar.
 // Verklig motorns sökning och servermandat prövas separat; dessa fall prövar granskning, genomförande och ångra i arbetsytan.
 import { test, expect, type BrowserContext, type Page } from './schema-test';
-import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
+import proposal from './schema-fixture';
 import following from './fixtures/schema-folj.json' with { type: 'json' };
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 import { samlingResurser } from '../lib/schema-samling.ts';

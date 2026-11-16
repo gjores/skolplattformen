@@ -1,6 +1,6 @@
 // Smalt regressionsprov: återöppnat/minimerat serverutkast, faktisk arbetsyta, uttryckligt simulerade API-svar.
 import { test, expect, schemaTestDraft, type Page, type SchemaDraftTestServer } from './schema-test';
-import raw from './fixtures/schema-forslag.json' with { type: 'json' };
+import raw from './schema-fixture';
 import { type SchemaForslag, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { parseSchemaDraftSave } from '../lib/schema-draft-contract.ts';
 import { type TjanstPerson, type TjanstPersonalRead } from '../lib/tjanst-contract.ts';

@@ -2,7 +2,7 @@
 import { test as base, expect, type BrowserContext } from '@playwright/test';
 import { parseSchemaDraftSave, schemaDraftHash, type SchemaDraft, type SchemaDraftReceipt, type SchemaDraftSave, type SchemaDraftStatusRequest } from '../lib/schema-draft-contract.ts';
 import { sammaGrund, type SchemaForslag, type SchemaKontroll } from '../lib/schema-contract.ts';
-import proposal from './fixtures/schema-forslag.json' with { type: 'json' };
+import proposal from './schema-fixture';
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 export { expect };
 export type { Page, BrowserContext } from '@playwright/test';
