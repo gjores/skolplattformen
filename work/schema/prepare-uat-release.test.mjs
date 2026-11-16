@@ -1,10 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync, symlinkSync, chmodSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
-import { releaseInventory, schemaReleaseDependencies, assertSchemaReleaseRevision, prepareSchemaUatRelease, verifySchemaUatRelease, PREVIOUS_SCHEMA_REVISION, releaseSha } from './prepare-uat-release.mjs';
+import { randomUUID } from 'node:crypto';
+import { releaseInventory, schemaReleaseDependencies, assertSchemaReleaseRevision, prepareSchemaUatRelease, verifySchemaUatRelease, PREVIOUS_SCHEMA_REVISION, releaseSha,
+  assertIdenticalSchemaMotorTrees, assertSchemaMotorFiles, verifySchemaReusableMotor, parseSchemaReleaseArguments } from './prepare-uat-release.mjs';
 import { schemaUatSources, schemaUatSqlMetadata } from '../pilot/schema-uat-install-core.mjs';
 
 const temporary = fn => { const directory = mkdtempSync(path.join(tmpdir(), 'schema-release-unit-')); try { return fn(directory); } finally { rmSync(directory, { recursive: true, force: true }); } };
@@ -52,3 +54,43 @@ test('frozen verification rejects changed product, dependency evidence, omitted 
   write('artifact.json', { ...manifest, sql: sql.slice(0, -1) }); assert.throws(() => verifySchemaUatRelease(directory), /exact three migrations/u);
   write('artifact.json', { ...manifest, source: { revision: 'd'.repeat(40) } }); assert.throws(() => verifySchemaUatRelease(directory));
 }));
+test('motor reuse accepts a UI-only commit but rejects any change in the entire motor tree or a missing object/tree', () => temporary(directory => {
+  const git = args => execFileSync('git', args, { cwd: directory, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] }).trim();
+  const commit = () => { git(['add', '.']); git(['-c', 'user.name=synthetic', '-c', 'user.email=synthetic@example.invalid', 'commit', '-m', 'synthetic']); return git(['rev-parse', 'HEAD']); };
+  git(['init']); writeFileSync(path.join(directory, 'app.tsx'), 'before'); const missingTree = commit();
+  mkdirSync(path.join(directory, 'schemamotor')); writeFileSync(path.join(directory, 'schemamotor/Cargo.lock'), 'synthetic lock');
+  writeFileSync(path.join(directory, 'schemamotor/README.md'), 'original non-Rust input'); const fromRevision = commit();
+  writeFileSync(path.join(directory, 'app.tsx'), 'UI-only change'); const uiRevision = commit();
+  assert.equal(assertIdenticalSchemaMotorTrees(directory, uiRevision, fromRevision), git(['rev-parse', fromRevision + ':schemamotor']));
+  writeFileSync(path.join(directory, 'schemamotor/README.md'), 'changed non-Rust input'); const changed = commit();
+  assert.throws(() => assertIdenticalSchemaMotorTrees(directory, changed, fromRevision), /entire schemamotor source tree changed/u);
+  assert.throws(() => assertIdenticalSchemaMotorTrees(directory, missingTree, fromRevision));
+  assert.throws(() => assertIdenticalSchemaMotorTrees(directory, 'a'.repeat(40), fromRevision));
+  assert.throws(() => assertIdenticalSchemaMotorTrees(directory, uiRevision.slice(0, 10), fromRevision));
+}));
+test('reused motor inventory refuses changed or missing bytes, non-executable files, links and any third file', () => temporary(directory => {
+  const motor = path.join(directory, 'runtime/motor'); mkdirSync(motor, { recursive: true });
+  const cli = path.join(motor, 'schemamotor'), service = path.join(motor, 'schemamotor-tjanst');
+  writeFileSync(cli, 'original CLI', { mode: 0o755 }); writeFileSync(service, 'original service', { mode: 0o755 });
+  const files = releaseInventory(motor, 'runtime/motor/'); assert.equal(assertSchemaMotorFiles(directory, files).length, 2);
+  writeFileSync(service, 'changed bytes'); assert.throws(() => assertSchemaMotorFiles(directory, files), /inventory changed/u); writeFileSync(service, 'original service');
+  chmodSync(service, 0o644); assert.throws(() => assertSchemaMotorFiles(directory, files), /inventory changed/u); chmodSync(service, 0o755);
+  writeFileSync(path.join(motor, 'third'), 'unexpected'); assert.throws(() => assertSchemaMotorFiles(directory, files), /inventory changed/u); rmSync(path.join(motor, 'third'));
+  rmSync(service); assert.throws(() => assertSchemaMotorFiles(directory, files), /inventory changed/u);
+  symlinkSync(cli, service); assert.throws(() => assertSchemaMotorFiles(directory, files), /symlink refused/u);
+  assert.throws(() => assertSchemaMotorFiles(directory, files.slice(0, 1)), /exact two/u);
+}));
+test('self-described PREPARED release cannot replace the explicitly pinned reusable release', () => {
+  const directory = '/private/tmp/schema-uat-release-unit-' + randomUUID(); mkdirSync(directory, { mode: 0o700 });
+  try { writeFileSync(path.join(directory, 'artifact.json'), JSON.stringify({ kind: 'schema-uat-release', status: 'PREPARED', source: { revision: 'a'.repeat(40) } }));
+    assert.throws(() => verifySchemaReusableMotor({ directory, revision: 'b'.repeat(40), nodeModules: path.join(directory, 'node_modules') }), /unapproved motor release manifest/u);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+test('CLI defaults to building and accepts reuse only as the final explicit optional pair', () => {
+  const args = ['--revision', 'a'.repeat(40), '--directory', '/private/tmp/schema-uat-release-synthetic'];
+  assert.equal(parseSchemaReleaseArguments(args).motorRelease, null);
+  assert.equal(parseSchemaReleaseArguments([...args, '--motor-release', '/private/tmp/schema-uat-release-origin']).motorRelease, '/private/tmp/schema-uat-release-origin');
+  for (const invalid of [[...args, '--motor-release'], [...args, '--other', 'anything'], [...args, '--motor-release', '--flag'], [...args, '--motor-release', 'one', '--motor-release', 'two']]) {
+    assert.throws(() => parseSchemaReleaseArguments(invalid));
+  }
+});
