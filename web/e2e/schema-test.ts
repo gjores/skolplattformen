@@ -47,6 +47,8 @@ export async function mockSchemaDrafts(context: BrowserContext): Promise<SchemaD
   });
   const returnedDraft = (draft: SchemaDraft | null) => server.corruptDocument && draft ? { ...draft, workingVillkor: { ...draft.workingVillkor, breakMin: draft.workingVillkor.breakMin === 10 ? 15 : 10 } } : draft;
   const returnedReceipt = (receipt: SchemaDraftReceipt) => server.corruptReceipt ? { ...receipt, requestHash: `sha256:${'b'.repeat(64)}` } : receipt;
+  // Underlaget före första förslaget (05.2-SM-UXF-11): otillgängligt som standard, så att äldre prov behåller läget "bara salen går att välja". Prov som behöver det lägger en egen rutt.
+  await context.route('**/api/schema/underlag', route => route.fulfill({ headers, status: 503, json: { code: 'unavailable' } }));
   await context.route('**/api/schema/utkast/las', async route => {
     const input = route.request().postDataJSON(); server.reads++;
     if (server.delayRead) await new Promise(r => setTimeout(r, server.delayRead));

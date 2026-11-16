@@ -371,7 +371,8 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, rooms: (body.villkor as typeof forslag.villkor).salar.map((name, i) => ({ id: `sal-${i + 1}`, name })) } }));
   await page.goto(URL);
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
-  await expect(page.getByText('Ta fram ett första förslag för att kunna välja klass, grupp, ämne och lärare.')).toBeVisible();
+  // Underlagsläsningen är otillgänglig i det här provet: villkoren går att ändra ändå.
+  await expect(page.locator('.schema-egna-form, fieldset').getByText('Underlaget kunde inte läsas.', { exact: false }).first()).toBeVisible();
   await expect(page.locator('.schema-egna-form')).toHaveCount(0);
   // Enter i salens fält lägger till salen och skickar inte formuläret.
   await page.getByLabel('Salens namn').fill('Idrottshallen');

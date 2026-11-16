@@ -26,7 +26,8 @@ export function rememberVillkor(unitId: string, villkor: SchemaVillkor): void {
 }
 
 /** Villkoren för schemat (05.2-SM-LASAR-VILLKOR, V2). Värdena prövas här och igen på servern. */
-export function Villkor({ value: v, disabled, issues, resurser, forslag = null, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; resurser: Resurser | null;
+export function Villkor({ value: v, disabled, issues, resurser, forslag = null, resurserBesked, onChange }: { value: SchemaVillkor; disabled: boolean; issues: string[]; resurser: Resurser | null;
+  /** Varför klass, grupp, ämne och lärare inte går att välja ännu (05.2-SM-UXF-11). */ resurserBesked?: string;
   /** Förslaget, för förhandsvisningen av en marginal. */ forslag?: SchemaForslag | null; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS, set = (patch: Partial<SchemaVillkor>) => onChange({ ...v, ...patch });
   const time = (label: string, minutes: number, change: (minutes: number) => void, hidden = false) => <label className={hidden ? 'schema-time bare' : 'schema-time'}><span className={hidden ? 'sr-only' : undefined}>{label}</span>
@@ -69,7 +70,7 @@ export function Villkor({ value: v, disabled, issues, resurser, forslag = null, 
         {choice('Högst undervisning per dag, elever', v.studentMaxMinPerDay, steps(L.perDay[0], L.perDay[1], 30, v.studentMaxMinPerDay), n => set({ studentMaxMinPerDay: n }), hoursText, 'Ingen gräns')}
         {choice('Högst undervisning per dag, lärare', v.teacherMaxMinPerDay, steps(L.perDay[0], L.perDay[1], 30, v.teacherMaxMinPerDay), n => set({ teacherMaxMinPerDay: n }), hoursText, 'Ingen gräns')}
       </fieldset>
-      <Egna value={v} disabled={disabled} resurser={resurser} onChange={onChange}/>
+      <Egna value={v} disabled={disabled} resurser={resurser} resurserBesked={resurserBesked} onChange={onChange}/>
       <Marginaler value={v} disabled={disabled} resurser={resurser} forslag={forslag} onChange={onChange}/>
     </div>
     <div><Button type="button" variant="outline" disabled={disabled || !changed} onClick={() => onChange(defaultSchemaVillkor())}>Återställ förval</Button></div>
@@ -77,7 +78,7 @@ export function Villkor({ value: v, disabled, issues, resurser, forslag = null, 
 }
 
 /** Salar och egna villkor per klass, grupp, ämne, lärare och sal (05.2-SM-VILLKOR-PER-RESURS, R1–R6). */
-function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor; disabled: boolean; resurser: Resurser | null; onChange: (next: SchemaVillkor) => void }) {
+function Egna({ value: v, disabled, resurser, resurserBesked, onChange }: { value: SchemaVillkor; disabled: boolean; resurser: Resurser | null; resurserBesked?: string; onChange: (next: SchemaVillkor) => void }) {
   const L = SCHEMA_VILLKOR_LIMITS;
   const [sal, setSal] = useState('');
   const [draft, setDraft] = useState({ slag: 'klass' as SchemaRegelSlag, ref: '', typ: 'sparrad' as Exclude<SchemaRegelTyp, 'marginal'>, days: [0, 1, 2, 3, 4], startMin: 480, endMin: 720, maxMin: 60, count: 2, dagMin: 360, rooms: [] as string[] });
@@ -114,7 +115,7 @@ function Egna({ value: v, disabled, resurser, onChange }: { value: SchemaVillkor
     </fieldset>
     <fieldset disabled={disabled} className="schema-wide"><legend>Egna villkor</legend>
       <p className="schema-note">Ett eget villkor gäller en klass, en grupp, ett ämne, en lärare eller en sal. Villkoren styr när och var passen läggs och hur veckotiden delas i pass. Hur mycket undervisning som läggs bestäms alltid av timplanen.</p>
-      {resurser === null && <p className="schema-note">Ta fram ett första förslag för att kunna välja klass, grupp, ämne och lärare.</p>}
+      {resurser === null && <p className="schema-note">{resurserBesked ?? 'Klasser, grupper, ämnen och lärare går att välja när underlaget är läst.'}</p>}
       {slag !== null && <div className="schema-egna-form">
         <label>Gäller<select value={slag} onChange={e => setDraft({ ...draft, slag: e.target.value as SchemaRegelSlag, ref: '' })}>{slagen.map(x => <option key={x} value={x}>{SLAG[x]}</option>)}</select></label>
         <label>{SLAG[slag]}<select value={ref} onChange={e => setDraft({ ...draft, ref: e.target.value })}>{choices.map(c => <option key={c.ref} value={c.ref}>{c.name}</option>)}</select></label>

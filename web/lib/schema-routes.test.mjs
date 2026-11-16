@@ -98,7 +98,7 @@ registerHooks({ load(url, context, next) {
 } });
 const { Deny } = await import('./server/db.ts');
 const { SchemaEngineError } = await import('./server/schemamotor.ts');
-const routes = Object.fromEntries(await Promise.all(['forslag', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter', 'diagnos', 'fonster', 'placering'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
+const routes = Object.fromEntries(await Promise.all(['forslag', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter', 'diagnos', 'fonster', 'placering', 'underlag'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
 const reset = () => { state = { role: 'rektor', seePupils: true, reads: [], events: [], solves: [], validations: [], diagnoses: [], suggests: [] }; };
 const scope = villkor => ({ unitId: id(1), schoolYear: 2026, period: 'ht', villkor: villkor ?? defaultSchemaVillkor() });
 const basis = () => ({ members: { pupils: pupils().map(p => ({ id: p.id, classIds: p.classIds })), memberships: [] }, time: defaultSchemaTime(),
@@ -106,7 +106,7 @@ const basis = () => ({ members: { pupils: pupils().map(p => ({ id: p.id, classId
 function body(name, villkor = defaultSchemaVillkor()) {
   const input = scope(villkor), u = buildSchemaUnderlag(plan, input, basis());
   const placements = u.problem.lessons.filter(l => !l.id.startsWith('pass-9')).map((l, i) => ({ lesson: l.id, day: 1, startMin: 600 + i * 120, room: null }));
-  if (name === 'forslag' || name === 'diagnos') return input;
+  if (name === 'forslag' || name === 'diagnos' || name === 'underlag') return input;
   if (name === 'fonster') return { unitId: input.unitId, schoolYear: input.schoolYear };
   const request = { ...input, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: u.grundFingerprint, placements };
   if (name === 'placering') return { ...request, mode: 'lesson', lesson: u.problem.lessons[0].id, target: null, depth: 1 };
@@ -226,6 +226,20 @@ test('fönster ger bara kontrollerat skolurval och sessionsavgränsning; ingen �
   assert.deepEqual(state.reads.map(r => r.type), ['plan']); assert.equal(state.diagnoses.length + state.solves.length, 0);
   reset(); const bad = await routes.fonster(request('fonster', { ...body('fonster'), scopeKey: 'påhittat-mandat', role: 'rektor' }));
   assert.equal(bad.status, 400); assert.equal(state.reads.length, 0);
+});
+
+test('underlaget före första förslaget läses efter auditen utan något motoranrop och utan lagda pass', async () => {
+  reset(); const input = body('underlag'), response = await routes.underlag(request('underlag', input));
+  assert.equal(response.status, 200); const data = await response.json();
+  const { parseSchemaUnderlagslasning } = await import('./schema-underlagslasning.ts');
+  const forslag = parseSchemaUnderlagslasning(data, input);
+  assert.equal(data.beraknat, false); assert.ok(forslag.lessons.length > 0); assert.ok(forslag.lessons.every(l => l.day === null && l.roomId === null));
+  assert.ok(forslag.resurser.klass.length > 0); assert.ok(forslag.fordelning.length > 0);
+  assert.equal(state.solves.length + state.validations.length + state.diagnoses.length + state.suggests.length, 0);
+  assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'));
+  // Ett beräknat förslag godtas aldrig som underlagsläsning.
+  assert.throws(() => parseSchemaUnderlagslasning({ ...data, beraknat: true }, input));
+  assert.throws(() => parseSchemaUnderlagslasning({ ...data, forslag: { ...data.forslag, lessons: data.forslag.lessons.map((l, i) => i ? l : { ...l, day: 0, startMin: 480 }) } }, input));
 });
 
 test('fördiagnos anropar motorn efter auditen med anonymt underlag och utan sökning', async () => {
