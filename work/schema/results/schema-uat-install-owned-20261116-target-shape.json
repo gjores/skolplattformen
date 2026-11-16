@@ -1,0 +1,255 @@
+{
+  "kind": "schema-uat-install-owned",
+  "status": "PASS",
+  "targetContact": false,
+  "protectedCommitted": false,
+  "startedAt": "2026-11-16T11:46:22.040Z",
+  "checks": [
+    {
+      "name": "nonempty synthetic business baseline plus actual older journal versions/names/array-counts with redacted synthetic texts, including two known education gaps",
+      "ok": true
+    },
+    {
+      "name": "three migrations rehearse atomically; rollback restores exact schema, ACL, original journal and all original rows",
+      "ok": true
+    },
+    {
+      "name": "failure after all DDL, grants and three journal rows rolls back the entire package without original changes",
+      "ok": true
+    },
+    {
+      "name": "mandatory installation audit failure atomically removes new objects and journal rows",
+      "ok": true
+    },
+    {
+      "name": "apply repeats rehearsal then commits exactly three bound SQL journal rows and one audit; old business/auth rows and publication unchanged",
+      "ok": true
+    },
+    {
+      "name": "post-commit four narrow Worker entries work by privilege; three forced-RLS tables remain empty and closed to direct access",
+      "ok": true
+    }
+  ],
+  "limits": [
+    "Own migrations-built PostgreSQL only",
+    "No installed target or application rollback claim",
+    "No real pupil or provider data"
+  ],
+  "provenance": {
+    "kind": "ephemeral-migrated-postgresql",
+    "serverVersion": "18.3 (Homebrew)",
+    "stubs": "work/pilot/ephemeral-supabase-stubs.sql",
+    "applied": 168,
+    "appliedChainSha256": "a66e8dd5122662024e065d8a456cba9d6047ce2ed056e635ec513a9c9d8ab29a",
+    "excluded": [
+      "20261116100000_schema_drafts.sql",
+      "20261116101000_schema_drafts_worker_access.sql",
+      "20261116102000_schema_dated_basis.sql"
+    ]
+  },
+  "sql": [
+    {
+      "file": "20261116100000_schema_drafts.sql",
+      "version": "20261116100000",
+      "name": "schema_drafts",
+      "bytes": 20589,
+      "sha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "executionSha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116101000_schema_drafts_worker_access.sql",
+      "version": "20261116101000",
+      "name": "schema_drafts_worker_access",
+      "bytes": 320,
+      "sha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "executionSha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116102000_schema_dated_basis.sql",
+      "version": "20261116102000",
+      "name": "schema_dated_basis",
+      "bytes": 4973,
+      "sha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "executionSha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "wrapper": "none"
+    }
+  ],
+  "installerSources": {
+    "work/pilot/schema-uat-install-core.mjs": "a91fe3d55f824b9c913ce4c089e8a4b607251cf5208d7f523586d9b78208fcb5",
+    "work/pilot/verify-schema-uat-install-owned.mjs": "769ff1e0c087450e2d33ae89dab23ba75f4260bcb9e03ea3189445fcbe109776",
+    "work/pilot/apply-elective-blocks.mjs": "66f567ffee9aa8341e58f4678a7d81e0076c1345e021a76e83775451de1a1dbd",
+    "work/pilot/apply-tjanst.mjs": "210aaf1fbaa75541442c7012a0a87e00915b5b9721c77bea53e1e69ed9b29c3d",
+    "work/pilot/named-timplan-snapshot.mjs": "dafb5a74379b50f09dcfab5452ffe3ddd0dfe89ee40aeb570eba1e86ae217143",
+    "work/pilot/ephemeral-migrated-db.mjs": "ad6badbec4a377c1b44c14ef2ee14acf009692cd0d2c1784fe0cf3ead9ac4585",
+    "work/pilot/ephemeral-supabase-stubs.sql": "51787b89b2db714f33cb7c57ebcd061440b2348702cad4c677b0a110b9bd9e19",
+    "work/pilot/tjanst-fixtures.mjs": "0fc0e7f6d90738e92b8f09a328d4cc4de95306bc991ee00cb5a2486c77498065",
+    "work/pilot/tjanst-year-fixtures.mjs": "f41da3391c2c52dc13133c1fcd1a3b4afcdb7ed296579d80bebc3f6d7a55c7c2"
+  },
+  "metadataBaseline": {
+    "kind": "anonymized-actual-journal-shape",
+    "sourceReportSha256": "2049478c5bd0b43e093d768071feb9bceddc4b3985ff04d277a815a50596ce52",
+    "shapeSha256": "52b7bccde7cdc08ba796c92c5a875e19c411d8a4900cca3c1f54f679af014391",
+    "sourceJournalSha256": "ad19fe0d7e412d52dc8dec2d43bc8e355befe09977486cab38c39c384a410b9c",
+    "count": 166,
+    "latestVersion": "20261112150000",
+    "sourceSqlCopied": false,
+    "businessRowsCopied": false,
+    "expectedUnjournalledEducation": [
+      "20261002120000_phase5_programplan_education.sql",
+      "20261002121000_phase5_worker_programplan_education.sql"
+    ],
+    "statementCounts": [
+      0,
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      9,
+      10,
+      12,
+      13,
+      16,
+      19,
+      24,
+      28,
+      34,
+      37,
+      41,
+      57,
+      61,
+      75,
+      86
+    ]
+  },
+  "rehearsal": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "7383cda1bf560df762e975fcfbe35ad1346cafeee3638ef092b5eedfb6a897c9",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+      "inventory": {
+        "newFunctions": 11,
+        "newTables": 3,
+        "newIndexes": 5,
+        "newTriggers": 2,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 3,
+        "workerEntries": 4,
+        "privateHelpers": 7
+      },
+      "journalCount": 169,
+      "journalSha256": "cb0a1df51f0cb37ffc41a096823c6700ec36fbfaf2743a1df7093b94f31fe0a5",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "7383cda1bf560df762e975fcfbe35ad1346cafeee3638ef092b5eedfb6a897c9"
+    },
+    "committed": false
+  },
+  "apply": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "7383cda1bf560df762e975fcfbe35ad1346cafeee3638ef092b5eedfb6a897c9",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+      "inventory": {
+        "newFunctions": 11,
+        "newTables": 3,
+        "newIndexes": 5,
+        "newTriggers": 2,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 3,
+        "workerEntries": 4,
+        "privateHelpers": 7
+      },
+      "journalCount": 169,
+      "journalSha256": "cb0a1df51f0cb37ffc41a096823c6700ec36fbfaf2743a1df7093b94f31fe0a5",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "7383cda1bf560df762e975fcfbe35ad1346cafeee3638ef092b5eedfb6a897c9"
+    },
+    "committed": true,
+    "installed": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+      "inventory": {
+        "newFunctions": 11,
+        "newTables": 3,
+        "newIndexes": 5,
+        "newTriggers": 2,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 3,
+        "workerEntries": 4,
+        "privateHelpers": 7
+      },
+      "journalCount": 169,
+      "journalSha256": "cb0a1df51f0cb37ffc41a096823c6700ec36fbfaf2743a1df7093b94f31fe0a5",
+      "auditId": "24"
+    }
+  },
+  "baseline": {
+    "fingerprint": "7383cda1bf560df762e975fcfbe35ad1346cafeee3638ef092b5eedfb6a897c9",
+    "journal": {
+      "count": 166,
+      "sha256": "c8da84e59ca1e8de8e0047ce45fce8b6a5724e985de71c25e6d7eb491deedf2b"
+    },
+    "originalRowsSha256": "54837e1fdd5d8d51f1c40a99fd0382e334738db62a31dfc95bc8fe299bac5c40",
+    "tables": 154
+  },
+  "installed": {
+    "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+    "journal": {
+      "count": 169,
+      "sha256": "cb0a1df51f0cb37ffc41a096823c6700ec36fbfaf2743a1df7093b94f31fe0a5"
+    },
+    "oldObjectsUnchanged": true,
+    "originalRowsSha256": "54837e1fdd5d8d51f1c40a99fd0382e334738db62a31dfc95bc8fe299bac5c40",
+    "addedAuditRows": 1,
+    "newTables": 3,
+    "workingEntries": 4
+  },
+  "databaseClosed": true,
+  "cleanup": "complete",
+  "finishedAt": "2026-11-16T11:46:29.332Z"
+}
