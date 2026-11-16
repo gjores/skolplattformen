@@ -125,9 +125,11 @@ test('Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halv
 });
 
 test('en medveten krock behåller regelbrotten, syns i båda fönstren och i passtabellen och kan ångras', async ({ context, page }) => {
+  // Tre synkade fönster och tre bevisbilder tog 54–60 s vid parallell slutverifiering; behåll alla produktkontroller.
+  test.slow();
   await setup(context, page, { clash: true }); const form = await selectTarget(page, checked.move.lesson); await form.getByRole('button', { name: 'Flytta hit', exact: true }).click();
   const list = page.getByRole('heading', { name: `Regelavvikelser (${checked.clash.total})`, exact: true }); await expect(list).toBeVisible();
-  await page.getByRole('button', { name: 'Fönster', exact: true }).click(); const ready = context.waitForEvent('page'); await page.getByRole('menuitem', { name: 'Regelavvikelser', exact: true }).click(); const child = await ready; await popupViewport(child, page);
+  await page.getByRole('button', { name: 'Fönster', exact: true }).click(); const ready = context.waitForEvent('page'); await page.getByRole('menuitem', { name: 'Regelavvikelser', exact: true }).click(); const child = await ready; await popupViewport(child, page); await child.waitForLoadState('domcontentloaded');
   const checkbox = child.getByRole('checkbox', { name: 'Behåll som medveten krock', exact: true }).first(); await expect(checkbox).toBeVisible(); await checkbox.click(); await expect(checkbox).toBeChecked();
   await expect(page.getByText('Medveten krock · regelavvikelse kvar', { exact: true }).first()).toBeVisible();
   await expect(list).toBeVisible(); await expect(child.getByText('Medveten krock · regelavvikelse kvar', { exact: true })).toHaveCount(1);
@@ -142,7 +144,7 @@ test('en medveten krock behåller regelbrotten, syns i båda fönstren och i pas
   await expect(page.locator(`.folj [data-schema-pass="${checked.move.lesson}"]`).first()).toHaveAttribute('title', /Medveten krock/u);
   await expect(page.getByText('Flagga: Medveten krock', { exact: true }).first()).toBeVisible();
   await page.getByRole('region', { name: /^Följ passet:/u }).screenshot({ path: test.info().outputPath('medveten-krock-sma-pass.png') });
-  await page.getByRole('button', { name: 'Fönster', exact: true }).click(); const pupilReady = context.waitForEvent('page'); await page.getByRole('menuitem', { name: 'Elevens schema', exact: true }).click(); const pupil = await pupilReady; await popupViewport(pupil, page);
+  await page.getByRole('button', { name: 'Fönster', exact: true }).click(); const pupilReady = context.waitForEvent('page'); await page.getByRole('menuitem', { name: 'Elevens schema', exact: true }).click(); const pupil = await pupilReady; await popupViewport(pupil, page); await pupil.waitForLoadState('domcontentloaded');
   await pupil.getByRole('combobox', { name: 'Välj elev', exact: true }).selectOption('elev:1');
   await expect(pupil.locator(`[data-schema-pass="${checked.move.lesson}"]`).first()).toHaveAttribute('title', /Medveten krock/u);
   await expect(pupil.getByText('Flagga: Medveten krock', { exact: true }).first()).toBeVisible();

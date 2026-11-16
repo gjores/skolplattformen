@@ -550,6 +550,13 @@ const chip = (page: Page, name: string) => page.getByRole('group', { name: 'Visa
 test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
   await page.setViewportSize({ width: 1280, height: 1000 });
+  // En fördröjd lyckad automatisk kontroll får inte släppa tangentbordsfokus från Ångra.
+  let releaseCheck: (() => void) | undefined;
+  const checkGate = new Promise<void>(resolve => { releaseCheck = resolve; });
+  await page.route('**/api/schema/kontroll', async route => {
+    await checkGate;
+    await route.fulfill({ headers, json: clean });
+  });
   await medVillkor(page);
   const monday = page.getByRole('region', { name: 'Måndag' }), sparr = monday.locator('.schema-falt.falt-sparrad');
   await expect(page.locator('.status-badge', { hasText: '2 egna villkor syns i veckan' })).toBeVisible();
@@ -609,6 +616,11 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   await expect(page.getByText('Villkoret är borttaget: Klass Klass 1: spärrad måndag 08:00–10:00.')).toBeVisible();
   await expect(page.locator('.status-badge', { hasText: '1 eget villkor syns i veckan' })).toBeVisible();
   await expect(page.getByRole('list', { name: 'Egna villkor' }).getByRole('listitem')).toHaveCount(1);
+  await expect(undo).toBeDisabled();
+  await expect(undo).toBeFocused();
+  releaseCheck!();
+  await expect(undo).toBeEnabled();
+  await expect(undo).toBeFocused();
   await page.keyboard.press('Enter');
   await expect(sparr).toHaveCount(1);
   await expect(field).toBeFocused();
@@ -845,8 +857,8 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   await page.getByRole('button', { name: 'Ångra senaste villkor' }).click();
   await expect(falt).toHaveCount(0);
   await expect(pass).not.toContainText('Regelavvikelse');
-  await expect(page.getByRole('heading', { name: /^Regelavvikelser/u })).toHaveCount(0);
   await expect.poll(() => bodies.kontroller.length).toBe(2);
+  await expect(page.getByRole('heading', { name: 'Regelavvikelser (0)', exact: true })).toBeVisible();
   expect(bodies.kontroller[1].villkor.egna).toEqual([]);
   await expect(page.locator('ul[aria-label="Egna villkor"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Gör om' }).click();

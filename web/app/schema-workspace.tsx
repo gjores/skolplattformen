@@ -859,7 +859,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       {meny.meddelande}
     </div>
     {borttaget && <output className="schema-borttaget"><span className="schema-note">Villkoret är borttaget: {ruleText(borttaget.rule, forslag.resurser)}. Det gäller inte nästa förslag.</span>
-      <Button ref={angraVillkor} type="button" variant="outline" disabled={busy || checking} onClick={angra}>Ångra borttagningen</Button></output>}
+      <Button ref={angraVillkor} type="button" variant="outline" disabled={busy || checking} focusableWhenDisabled className="aria-disabled:pointer-events-none aria-disabled:opacity-50" onClick={angra}>Ångra borttagningen</Button></output>}
     {villkorAndrade && <p className="schema-note" data-villkor-andrade={grundAndrad ? 'grund' : issues.length ? 'fel' : 'tid'}>{grundAndrad
       ? kraverNytt === villkorKey
         ? 'Ändringen kräver ett nytt förslag: villkoren ändrar hur passen kan delas på veckans dagar. Flytt, kontroll och möjliga starttider följer förslagets villkor tills du tar fram ett nytt förslag.'
