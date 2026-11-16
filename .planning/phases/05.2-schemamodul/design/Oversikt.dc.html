@@ -80,29 +80,40 @@ button,select,input{font-family:inherit}
           <button type="button" class="seg" aria-pressed="true">Salar</button>
           <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Grupper</button>
         </div></div>
+      <div class="tb"><span id="period">Visa</span>
+        <div role="group" aria-labelledby="period" class="grp">
+          <button type="button" class="seg" aria-pressed="false">Grundschema HT</button>
+          <button type="button" class="seg" aria-pressed="false">Grundschema VT</button>
+          <button type="button" class="seg" aria-pressed="true">Vecka</button>
+          <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Datumintervall</button>
+        </div></div>
+      <div class="tb"><span id="veckaval">Vecka</span>
+        <div style="display: flex; gap: 4px;">
+          <button type="button" class="btn" aria-label="Föregående vecka" style="min-width: 44px; padding: 0; text-align: center;">‹</button>
+          <select aria-labelledby="veckaval" style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>v. 47 · 16–20 nov 2026 (HT)</option><option>v. 44 · 26–30 okt · höstlov</option></select>
+          <button type="button" class="btn" aria-label="Nästa vecka" style="min-width: 44px; padding: 0; text-align: center;">›</button>
+        </div></div>
       <div class="tb"><span id="dag">Dag</span>
         <div role="group" aria-labelledby="dag" class="grp">
-          <button type="button" class="seg" aria-pressed="true">Mån</button>
-          <button type="button" class="seg" aria-pressed="false">Tis</button>
-          <button type="button" class="seg" aria-pressed="false">Ons</button>
-          <button type="button" class="seg" aria-pressed="false">Tor</button>
-          <button type="button" class="seg" aria-pressed="false">Fre</button>
+          <button type="button" class="seg" aria-pressed="true">Mån 16</button>
+          <button type="button" class="seg" aria-pressed="false">Tis 17</button>
+          <button type="button" class="seg" aria-pressed="false">Ons 18</button>
+          <button type="button" class="seg" aria-pressed="false">Tor 19</button>
+          <button type="button" class="seg" aria-pressed="false">Fre 20</button>
           <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Hela veckan</button>
         </div></div>
       <label class="tb"><span>Urval</span>
         <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>Alla salar (11 av 24)</option><option>Laborationssalar</option><option>Allmänna salar</option></select></label>
       <label class="tb"><span>Sparade urval</span>
         <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>Välj…</option><option>NA-salar</option><option>Lärare i arbetslag Natur</option></select></label>
-      <label class="tb"><span>Mönster</span>
-        <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>HT</option><option>VT</option></select></label>
     </div>
-    <p style="margin: -4px 0 0; font-size: 13px; color: #657185;">Rader, dag och urval byts med ett klick och påverkar bara visningen. Markerat pass, ångra och kontroll är samma som i veckan.</p>
+    <p style="margin: -4px 0 0; font-size: 13px; color: #657185;">Rader, period, dag och urval byts med ett klick och påverkar bara visningen. En vecka eller ett datumintervall visar de faktiska tillfällena: lov, studiedagar, inställda pass och datumändringar. Grundschemat visar mönstret som upprepas. Markerat pass, ångra och kontroll är samma som i veckan.</p>
 
     <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 340px); gap: 20px; align-items: start;">
 
-      <section aria-label="Salar måndag, mönster HT" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 12px 16px 16px; min-width: 0;">
+      <section aria-label="Salar måndag 16 november, vecka 47" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 12px 16px 16px; min-width: 0;">
         <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between; margin-bottom: 8px;">
-          <h2 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Salar · måndag</h2>
+          <h2 style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Salar · måndag 16 nov (v. 47)</h2>
           <span style="font-size: 13px; color: #657185;">11 av 24 salar · lunchfönster 11:00–13:00 skuggat</span>
         </div>
         <div class="r" style="border-top: 0; min-height: 28px;"><div></div><div class="ax"><span>08</span><span>09</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span></div></div>
@@ -134,7 +145,7 @@ button,select,input{font-family:inherit}
           <button type="button" class="p" style="left: 6.25%; width: 18.75%;"><b>Idh1</b> NA27B</button>
           <button type="button" class="p" style="left: 28.1%; width: 18.75%;"><b>Idh1</b> EK27</button></div></div>
         <div class="r"><div class="rn">Musiksal<small>Special · platser saknas</small></div><div class="tr"><div class="lunch"></div>
-          <button type="button" class="p" style="left: 62.5%; width: 16.7%;"><b>Mu1</b> ES27</button></div></div>
+          <button type="button" class="p" style="left: 62.5%; width: 16.7%; background: #fff; border: 1px dashed #8a95a8; color: #657185; text-decoration: line-through;"><b>Mu1</b> ES27 · inställt</button></div></div>
         <div class="r"><div class="rn">Aula<small>Special · 200 pl</small></div><div class="tr"><div class="lunch"></div>
           <div class="sp" style="left: 75%; width: 25%;">Spärrad: APT</div></div></div>
         <div class="r" style="background: #fbf7ef;"><div class="rn">Utan sal<small>2 pass måndag</small></div><div class="tr" style="background: transparent;">
@@ -146,6 +157,7 @@ button,select,input{font-family:inherit}
           <span><span style="display: inline-block; width: 22px; height: 12px; border: 1px dashed #c3cff5; background: #edf1ff; border-radius: 4px; vertical-align: middle;"></span> Pass i block</span>
           <span><span style="display: inline-block; width: 22px; height: 12px; border: 1px dashed #86601f; background: #edf1ff; border-radius: 4px; vertical-align: middle;"></span> Pass utan sal</span>
           <span><span style="display: inline-block; width: 22px; height: 12px; border: 1px dashed #8a95a8; background: #eef1f5; border-radius: 4px; vertical-align: middle;"></span> Spärrad tid</span>
+          <span><span style="display: inline-block; width: 22px; height: 12px; border: 1px dashed #8a95a8; background: #fff; border-radius: 4px; vertical-align: middle;"></span> Inställt denna dag (ES27 på studiebesök)</span>
           <span class="muted">Förkortningar har hela namnet i panelen och för skärmläsare.</span>
         </div>
       </section>
