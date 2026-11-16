@@ -75,10 +75,10 @@ button,select,input{font-family:inherit}
         <section aria-labelledby="omraden" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px 8px;">
           <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: baseline; justify-content: space-between;">
             <h2 id="omraden" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Checklista</h2>
-            <span style="font-size: 14px; font-weight: 500;">3 av 6 genomgångna</span>
+            <span style="font-size: 14px; font-weight: 500;">3 av 7 genomgångna</span>
           </div>
           <div aria-hidden="true" style="margin-top: 10px; height: 8px; border-radius: 999px; background: #edf0f6; overflow: hidden; display: flex;">
-            <div style="width: 50%; background: #29704c;"></div>
+            <div style="width: 43%; background: #29704c;"></div>
           </div>
           <p style="margin: 10px 0 0; font-size: 13px; color: #657185;">En bock betyder att en person har gått igenom området. Maskinens kontroll står under och bockar inte av något.</p>
 
@@ -121,6 +121,16 @@ button,select,input{font-family:inherit}
                 <span class="kontroll">Saknat svar räknas inte som ledig tid · Kontroll: ännu inte bedömbart</span>
               </div>
               <button type="button" class="btn">Komplettera</button>
+            </li>
+
+            <li class="ci">
+              <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><circle cx="14" cy="14" r="12" fill="#fff" stroke="#8a95a8" stroke-width="2"></circle></svg>
+              <div style="display: flex; flex-direction: column; gap: 4px; min-width: 0;">
+                <h3>Aktiviteter och nationella prov<span class="badge neutral">Återstår</span></h3>
+                <p>Mentorstid för 18 klasser · lunch i matsal, 3 sittningar · nationella prov: 8 valda · <strong style="font-weight: 600;">3 frågor om prov att ta ställning till</strong></p>
+                <span class="kontroll">Provtiden räknas som undervisning i provets ämne · pass som faller bort räknas in i årsminuterna innan schemat läggs</span>
+              </div>
+              <button type="button" class="btn">Välj prov</button>
             </li>
 
             <li class="ci klar">
@@ -172,23 +182,24 @@ button,select,input{font-family:inherit}
           <h2 id="beroenden" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Väntar på annan uppgift</h2>
           <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5;">
             <li>Kapacitetskontroll väntar på elevantal för 3 grupper.</li>
-            <li>Ta fram schemaförslag väntar på salbehov, eller ett uttryckligt ofullständigt prov.</li>
+            <li>Ta fram schemaförslag väntar på salbehov och valda nationella prov, eller ett uttryckligt ofullständigt prov.</li>
+            <li>Årsminuterna räknas med valda prov och aktiviteter, så att schemat läggs runt dem från början.</li>
           </ul>
           <p style="margin: 0; font-size: 13px; color: #657185;">Övriga områden kan ändras under tiden.</p>
         </section>
 
         <section aria-labelledby="hamtat" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 8px;">
           <h2 id="hamtat" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Ta fram schemaförslag</h2>
-          <p style="margin: 0; font-size: 14px; color: #657185;">Blir möjligt när salbehoven är angivna. Ett första förslag lägger både tid och sal.</p>
+          <p style="margin: 0; font-size: 14px; color: #657185;">Blir möjligt när salbehoven är angivna och de nationella proven är valda. Ett första förslag lägger både tid och sal runt proven och aktiviteterna.</p>
           <button type="button" class="btn" disabled="disabled" aria-disabled="true" aria-describedby="hamtat-skal" style="align-self: flex-start; color: #657185;">Ta fram schemaförslag</button>
-          <span id="hamtat-skal" style="font-size: 13px; color: #86601f;">8 salbehov återstår.</span>
+          <span id="hamtat-skal" style="font-size: 13px; color: #86601f;">8 salbehov och 3 frågor om nationella prov återstår.</span>
         </section>
       </aside>
     </div>
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1280}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1400}}'>
 class Component extends DCLogic {
   renderVals() { return {}; }
 }

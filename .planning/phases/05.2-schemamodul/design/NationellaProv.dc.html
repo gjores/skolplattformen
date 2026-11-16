@@ -46,7 +46,7 @@ button,select,input{font-family:inherit}
     <div style="display: flex; flex-direction: column; gap: 6px;">
       <div class="eyebrow">LÄSÅRSPLANERING · NATIONELLA PROV · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
       <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Välj nationella prov<span style="color: #365ce6;">.</span></h1>
-      <p style="margin: 0; font-size: 15px; color: #657185; max-width: 84ch;">Proven och datumen kommer från Skolverkets underlag. Välj vilka prov skolan genomför och vilka grupper som skriver. Valda prov blir bokningar i läsårskalendern och blockerar schemat.</p>
+      <p style="margin: 0; font-size: 15px; color: #657185; max-width: 84ch;">Proven och datumen kommer från Skolverkets underlag. Välj vilka prov skolan genomför och vilka grupper som skriver. Provtiden är undervisning i provets ämne och nivå enligt timplanen. Proven väljs innan schemat läggs, så att schemat läggs runt dem och varje ämne ändå når sin timplanstid.</p>
     </div>
 
     <section aria-labelledby="kalla" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 16px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
@@ -142,7 +142,8 @@ button,select,input{font-family:inherit}
             <dt class="muted">Elever</dt><dd style="margin: 0;">58 i grupp A och B</dd>
             <dt class="muted">Sal</dt><dd style="margin: 0;">Aula (förslag)</dd>
             <dt class="muted">Provvakter</dt><dd style="margin: 0;">2 att tilldela</dd>
-            <dt class="muted">I schemat</dt><dd style="margin: 0;">Ställer in 6 pass</dd>
+            <dt class="muted">Räknas som</dt><dd style="margin: 0;">Undervisning i Matematik nivå 1, 240 min per grupp</dd>
+            <dt class="muted">Andra ämnen</dt><dd style="margin: 0;">3 pass faller bort per grupp. De är med i årsberäkningen när schemat läggs.</dd>
           </dl>
         </div>
         <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 10px; border-top: 1px solid #e3e7ee;">
@@ -152,10 +153,30 @@ button,select,input{font-family:inherit}
       </aside>
     </div>
 
+    <section aria-labelledby="tim" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 12px;">
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;">
+        <h2 id="tim" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Så påverkas timplanstiden · NA27A</h2>
+        <label style="display: flex; gap: 8px; align-items: center; font-size: 14px; color: #657185;">Grupp
+          <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>NA27A</option><option>TE27</option></select></label>
+      </div>
+      <div style="overflow: auto; border: 1px solid #e3e7ee; border-radius: 10px;">
+        <table style="border-collapse: collapse; width: 100%; font-size: 14px;">
+          <thead><tr style="background: #edf0f6; font-size: 12px; color: #4f688b;"><th scope="col" style="text-align: left; padding: 10px 12px; font-weight: 600;">Ämne och nivå</th><th scope="col" style="text-align: right; padding: 10px 12px; font-weight: 600;">Timplan, läsår</th><th scope="col" style="text-align: right; padding: 10px 12px; font-weight: 600;">Ordinarie pass</th><th scope="col" style="text-align: right; padding: 10px 12px; font-weight: 600;">Nationellt prov</th><th scope="col" style="text-align: right; padding: 10px 12px; font-weight: 600;">Summa</th><th scope="col" style="text-align: left; padding: 10px 12px; font-weight: 600;">Provdagarna</th></tr></thead>
+          <tbody>
+            <tr><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee;">Svenska nivå 1</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">6 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">5 790</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">+210</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;"><span class="badge ok">6 000</span></td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; color: #657185;">Provet ersätter svenskpasset 16 mars</td></tr>
+            <tr><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee;">Matematik nivå 1</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">5 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">4 760</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">+240</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;"><span class="badge ok">5 000</span></td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; color: #657185;">Provet ersätter matematikpasset 13 april</td></tr>
+            <tr><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee;">Fysik nivå 1</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">4 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">4 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">–</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;"><span class="badge ok">4 000</span></td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; color: #657185;">80 min faller bort 16 mars; mönstret är lagt så att det räcker ändå</td></tr>
+            <tr><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee;">Kemi nivå 1</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">3 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">3 000</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;">–</td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; text-align: right;"><span class="badge ok">3 000</span></td><td style="padding: 10px 12px; border-top: 1px solid #e3e7ee; color: #657185;">90 min faller bort 13 april; mönstret är lagt så att det räcker ändå</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; font-size: 13px; color: #657185;">Minuter per läsår. Ordinarie pass räknas på faktiska datum, så pass som faller bort på provdagarna är redan borträknade. Provtiden räknas till provets ämne och nivå bara för de grupper som skriver.</p>
+    </section>
+
     <section aria-labelledby="sum" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 16px 24px; align-items: center; justify-content: space-between;">
       <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 560px;">
         <h2 id="sum" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">8 prov valda · 18 bokningar · 3 att ta ställning till</h2>
-        <p style="margin: 0; font-size: 14px;">Bokningarna läggs i läsårskalenderns utkast och blockerar schemat för de valda grupperna. Inställda pass får förslag på kompensation i schemat.</p>
+        <p style="margin: 0; font-size: 14px;">Bokningarna läggs i läsårskalenderns utkast och följer med till schemats förutsättningar. Schemaförslaget räknar årsminuterna med proven, så att ingen kompensation behövs i efterhand. Ändras ett prov efter att schemat lagts visas påverkan innan något flyttas.</p>
       </div>
       <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
         <button type="button" class="btn btn-p" disabled="disabled" aria-disabled="true" aria-describedby="sum-skal" style="opacity: 0.6;">Lägg 18 bokningar i kalendern</button>
@@ -165,7 +186,7 @@ button,select,input{font-family:inherit}
   </main>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1300}}'>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1640}}'>
 class Component extends DCLogic {
   renderVals() { return {}; }
 }

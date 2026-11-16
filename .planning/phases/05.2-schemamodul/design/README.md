@@ -1,6 +1,6 @@
 # Designvyer för schemaläggningen (kopia)
 
-Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794864525-e753`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
+Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794864723-5786`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
 
 Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. De renderas inte fristående (de hänvisar till designytans `support.js`), men strukturen, texterna och CSS-värdena går att läsa direkt.
 
@@ -32,7 +32,7 @@ Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomför
 | `Oversikt.dc.html` | Lägg schema – översikt över många resurser | Vyval Vecka/Översikt/Pass i tabell; verktygsfält för rader (klasser, lärare, salar, grupper), grundschema HT/VT, vecka eller datumintervall, dag med datum eller hela veckan, urval och sparade urval; faktiska tillfällen i vald vecka; tid i sidled, lediga salar per timme, pass utan sal, gemensam inspektör. Användarfynd 2026-11-16 |
 | `NationellaProv.dc.html` | Välj nationella prov | Skolverkets underlag med hämtning och ändrade datum; prov per termin med krav, datum, föreslagna grupper, osäkra grupper och krockar; panel för det som kräver beslut; bokningar läggs i kalenderns utkast först när frågorna är besvarade. Hör till läsårskalendern (05.1.1). Användarbegäran 2026-11-16 |
 
-Förbereds checklista har efter användarens granskning sex punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Regler och önskemål samt Mål för schemat.
+Förbereds checklista har efter användarens granskning sju punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Aktiviteter och nationella prov, Regler och önskemål samt Mål för schemat. Nationella prov räknas som undervisning i provets ämne och väljs före första schemaförslaget (användarbeslut 2026-11-16).
 
 Statusytor `warning-surface` och `destructive-surface` används som i tabellen nedan. Inspektör, uppgiftsöversikt, återkopplingskort och Vad händer om är nya mönster som ska föras in i Skolplattan när beteendet bestäms.
 
