@@ -1,6 +1,6 @@
 # Designvyer för schemaläggningen (kopia)
 
-Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794863762-9b81`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
+Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794863868-40ef`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
 
 Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. De renderas inte fristående (de hänvisar till designytans `support.js`), men strukturen, texterna och CSS-värdena går att läsa direkt.
 
@@ -23,7 +23,7 @@ Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomför
 | Fil | Vy | Vad den prövar |
 |---|---|---|
 | `Forbered.dc.html` | Förbered – överblick | Gemensam överdel (sparstatus, vad Ångra avser), nästa uppgift, fyra områden med människans genomgång skild från maskinens kontroll, föregående läsår som förslag, verkliga beroenden |
-| `Salar.dc.html` | Salar – register och salbehov | Stabilt sal-ID, tre lägen för salbehov plus obesvarat, krav som snitt, önskemål skilt från krav, varför en sal faller bort, okänd kapacitet, namngivet hinder |
+| `Salar.dc.html` | Salar – register och salbehov | Stabilt sal-ID, tre lägen för salbehov plus obesvarat, krav som snitt, önskemål skilt från krav, varför en sal är olämplig, okänd kapacitet, namngivet hinder |
 | `Saltabell.dc.html` | Salbehov som tabell med massändring | Urval markerade rader eller alla filtrerade, blandade värden, undantag, ändringstyp, grundvärde skilt från befintliga, förhandsgranskning med antal |
 | `Forutsattningar.dc.html` | Förutsättningar just nu – alla tillstånd | Fyra frågor med egna besked (uppgifter, utrymme, prövning, kvalitet), vad beskedet inte visar, prova alternativ utan att ändra regeln, ofullständig provsökning |
 | `Salsattning.dc.html` | Tilldela salar och behåll tiderna | Omfattning, oförändrade tider/lås/datum, hinder när salar inte räcker, blockets salar, begränsat omtag med budget, helförslag åtskilt med hållpunkt |
