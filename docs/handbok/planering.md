@@ -66,3 +66,7 @@ Varje rad visar utbildning, skola och elevkull samt programplanens status och ve
 Om timplan saknas kan rektor eller skoladministratör välja **Skapa timplan**. Då öppnas underlaget med radens programplansversion och skola valda. Inget sparas direkt: komplettera underlaget vid behov och välj **Skapa ny timplan**, ange namn och granska innan du bekräftar. Om ingen programplan är sparad behöver den skapas först. Arkiverade utbildningar får ingen skapaknapp. Huvudmannen kan öppna befintliga timplaner; skolans rektor eller administratör skapar dem.
 
 **Öppna programplan** leder till ämnen och poäng. Under **Visa detaljer** finns årsuppgifter och kopiering till nästa elevkull. Om en timplan bygger på en annan programplansversion står det uttryckligen vid den planen.
+
+## Sökstatistik i Schema
+
+**Svårast att lägga** är hopfällt från början. Öppna rubrikraden för att se sökstatistik och hinder. Med tangentbord kan du gå till raden med Tab och öppna eller stänga med Enter eller mellanslag. I avsnittet kan du välja **Följ passet** eller gå till de berörda villkoren.

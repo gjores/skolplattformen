@@ -36,10 +36,12 @@ test('överbokad lärare visas före beräkning med åtgärdslänk; motorn kör 
   expect(calls.solves()).toBe(1);expect(calls.bodies).toHaveLength(1);
 });
 
-test('svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passet samt lärarens villkorsrad',async({page},info)=>{
+test('hopfälld sökstatistik öppnas med tangentbord och leder till Följ passet samt lärarens villkorsrad',async({page},info)=>{
   await setup(page,{version:SCHEMA_CONTRACT_VERSION,findings:[]});
   await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
   const panel=page.getByRole('region',{name:'Svårast att lägga',exact:true});
+  const disclosure=page.locator('details').filter({has:page.locator('summary',{hasText:'Svårast att lägga'})}),summary=disclosure.locator('summary');
+  await expect(summary).toBeVisible();await expect(panel).toBeHidden();await summary.focus();await page.keyboard.press('Enter');
   await expect(panel).toBeVisible();await expect(panel.getByText('Matematik',{exact:true})).toBeVisible();
   await expect(panel.getByText('120 starttidsförsök · 8 flyttförsök · 24 nekanden eller återgångar · 3 undanträngningar')).toBeVisible();
   await expect(panel.getByText(`Resursen var upptagen: ${teacher.name} · 16 sökförsök`)).toBeVisible();
@@ -54,7 +56,10 @@ test('svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passe
   await expect(page.getByRole('tab',{name:'Lärare',exact:true})).toHaveAttribute('aria-selected','true');
   await page.addStyleTag({content:'html { font-size: 200%; }'});
   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth)).toBe(true);
-  await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('diagnos-statistik-200.png'),fullPage:true});
+  await summary.focus();await page.keyboard.press('Space');await expect(panel).toBeHidden();await expect(summary).toBeFocused();
+  await page.screenshot({path:info.outputPath('diagnos-statistik-hopfalld-200.png'),fullPage:false});
+  await page.keyboard.press('Enter');await expect(panel).toBeVisible();await expect(summary).toBeFocused();
+  await panel.scrollIntoViewIfNeeded();await page.screenshot({path:info.outputPath('diagnos-statistik-200.png'),fullPage:false});
 });
 
 test('nekad fördiagnos visar begripligt fel och kör aldrig förslaget',async({page})=>{

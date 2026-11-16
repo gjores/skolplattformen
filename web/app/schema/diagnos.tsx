@@ -28,8 +28,9 @@ export function SvarastAttLagga({ statistics, onFollow, onCondition }: {
   statistics: SchemaSearchStatistics | undefined; onFollow: (lessonId: string) => void; onCondition: (resource: SchemaDiagnosResurs) => void;
 }) {
   if (!statistics) return null;
-  return <section aria-label="Svårast att lägga" className="rounded-lg border border-border bg-card p-4 space-y-3">
-    <h2 className="section-heading">Svårast att lägga</h2>
+  return <details className="schema-list">
+    <summary><h2>Svårast att lägga</h2><span className="schema-note">Visa sökstatistik och hinder</span></summary>
+    <section aria-label="Svårast att lägga" className="space-y-3">
     <p className="schema-note">De högst 20 pass som oftast nekades, flyttades tillbaka eller trängdes undan i beräkningen. Antalen gäller motorns sökförsök; de ändrar inte ditt utkast.</p>
     {!statistics.lessons.length ? <p className="empty-state">Inga sökhändelser registrerades. Det kan ske när inga pass behöver placeras eller alla pass är låsta.</p> : <ol className="divide-y divide-border">
       {statistics.lessons.map(l => <li key={l.lesson} className="py-3 flex flex-wrap items-center justify-between gap-3">
@@ -44,5 +45,6 @@ export function SvarastAttLagga({ statistics, onFollow, onCondition }: {
         {b.resource && <Button type="button" variant="outline" onClick={() => onCondition(b.resource!)}>{b.resource.id.startsWith('kluster-') ? 'Visa grupperna' : 'Visa villkoren'}</Button>}
       </li>)}
     </ul>}
-  </section>;
+    </section>
+  </details>;
 }
