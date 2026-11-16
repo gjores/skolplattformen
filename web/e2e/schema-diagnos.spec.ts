@@ -32,7 +32,7 @@ test('överbokad lärare visas före beräkning med åtgärdslänk; motorn kör 
   expect(calls.solves()).toBe(0);
   await page.screenshot({path:info.outputPath('diagnos-fore.png'),fullPage:true});
   await panel.getByRole('button',{name:'Ta fram förslag ändå',exact:true}).click();
-  await expect(page.getByText('Förslag · Alla pass lagda',{exact:true})).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid',{exact:true})).toBeVisible();
   expect(calls.solves()).toBe(1);expect(calls.bodies).toHaveLength(1);
 });
 
@@ -66,7 +66,7 @@ test('nekad fördiagnos visar begripligt fel och kör aldrig förslaget',async({
   const calls=await setup(page,{code:'forbidden',correlationId:'syntetiskt-prov'},403);
   await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
   await expect(page.getByRole('alert')).toBeVisible();expect(calls.solves()).toBe(0);
-  await expect(page.getByText('Förslag · Alla pass lagda',{exact:true})).toHaveCount(0);
+  await expect(page.getByText('Tid · Alla pass har tid',{exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Ta fram schemaförslag',exact:true})).toBeEnabled();
 });
 

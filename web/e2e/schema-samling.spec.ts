@@ -28,7 +28,7 @@ async function setup(page: Page, pupils = false) {
   }
   await settings.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Samlingsvy', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Samlingsvy', exact: true })).toBeVisible();
   return data;

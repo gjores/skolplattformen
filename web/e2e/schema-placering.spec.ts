@@ -41,7 +41,7 @@ async function setup(context: BrowserContext, page: Page, options: { partial?: b
       rooms: Object.fromEntries(request.placements.filter(p => p.room !== null).map(p => [p.lesson, p.room])), metrics: { ...proposal.metrics, placed: request.placements.length, unplaced: proposal.lessons.length - request.placements.length } } });
   });
   await page.goto(URL); await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   return { searches, controls };
 }
 const panel = (page: Page) => page.getByRole('region', { name: /^Placeringsförslag/u });

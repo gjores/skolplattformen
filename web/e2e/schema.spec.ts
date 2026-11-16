@@ -65,7 +65,7 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByText('Inget förslag ännu.')).toBeVisible();
   await expect(page.getByText('Schemat utgår från skolans tjänstefördelning och sparas som utkast på servern.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'lasar', villkor: forslag.villkor }]);
   await expect(page.getByText(`Hela läsåret. ${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   await expect(page.getByText('Tid: 182 skoldagar (HT 84, VT 98) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
@@ -226,7 +226,7 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   if (shots) await page.screenshot({ path: `${shots}/schema-villkor-${info.project.name}.png`, fullPage: true });
   await page.getByLabel('Schemat gäller').selectOption('ht');
   await submit.click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   const villkor = { ...forslag.villkor, days: forslag.villkor.days.map((d, i) => i === 4 ? { ...d, endMin: 840 } : d), maxLessonMin: 60, lunch: null, studentMaxMinPerDay: 360 };
   expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor }]);
   await expect(page.getByText('Höstterminen. ')).toBeVisible();
@@ -389,7 +389,7 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await form.getByRole('button', { name: 'Lägg till villkor' }).click();
   await expect(rules).toContainText('Sal Idrottshallen: spärrad fredag 08:00–12:00');
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   const sparr = { slag: 'sal', ref: 'Idrottshallen', typ: 'sparrad', days: [4], startMin: 480, endMin: 720 };
   expect(bodies[0].villkor).toEqual({ ...forslag.villkor, salar: ['Idrottshallen'], egna: [sparr] });
 
@@ -544,7 +544,7 @@ async function medVillkor(page: Page) {
   await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
 }
 const chip = (page: Page, name: string) => page.getByRole('group', { name: 'Visa i veckan:' }).getByRole('button', { name, exact: true });
 
@@ -648,7 +648,7 @@ test('lagren visas och döljs med chipsen, valet minns och utan lager ser veckan
   // Valet minns i webbläsaren.
   await page.reload();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   await expect(chip(page, 'Lunch')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
 });
@@ -682,7 +682,7 @@ test.describe('marginaler för pass', () => {
     const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
     await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
     return { bodies, m: page.locator('.schema-marginaler') };
   }
@@ -804,7 +804,7 @@ const meny = {
     const kontroller = await mockKontroll(page);
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
     return Object.assign(bodies, { kontroller });
   },
 };
@@ -932,7 +932,7 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   const pass = page.locator('[data-lesson="pass-35"]');
   await expect(pass).toContainText('10:00–11:05');
   await pass.click({ button: 'right' });
@@ -1036,7 +1036,7 @@ test('meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg
     await mock(page, () => ({ json: forslag }));
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
     await expect(page.getByRole('group', { name: 'Verktyg i schemat' })).toBeHidden();
     return;
   }
@@ -1088,7 +1088,7 @@ async function foljStart(page: Page, width: number) {
   const kontrollBodies = await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   return kontrollBodies;
 }
 const foljt = folj.alla.positions, own = forslag.lessons.find(l => l.id === folj.lesson)!;
@@ -1575,7 +1575,7 @@ const tabell = {
     const kontroller = await mockKontroll(page);
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-    await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+    await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
     return kontroller;
   },
   vy: (page: Page, name: string) => page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name, exact: true }),

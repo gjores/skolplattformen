@@ -18,7 +18,7 @@ async function setup(page:Page,egna:SchemaRegel[]=[]){
   await page.route('**/api/schema/folj',r=>r.fulfill({headers,json:following.utanElever}));
   await page.route('**/api/schema/lagen',r=>r.fulfill({headers,json:following.alla}));
   await page.goto(URL);await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
-  await expect(page.getByText('Förslag · Alla pass lagda',{exact:true})).toBeVisible();return {controls,solves};
+  await expect(page.getByText('Tid · Alla pass har tid',{exact:true})).toBeVisible();return {controls,solves};
 }
 test('saknat underlag visar ett fokuserat hinder med vägar till tjänstefördelning och timplan',async({page},info)=>{
   await page.route('**/api/schema/diagnos',r=>r.fulfill({headers,json:{version:SCHEMA_CONTRACT_VERSION,findings:[]}}));

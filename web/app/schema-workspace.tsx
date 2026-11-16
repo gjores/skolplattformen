@@ -19,6 +19,7 @@ import { parseSchemaPlacering, type SchemaPlaceringVal } from '@/lib/schema-plac
 import { Placeringsforslag, type PlaceringSokning } from './schema/placering.tsx';
 import { parseSchemaVillkorsforslag, tillampaSchemaVillkorsandring } from '@/lib/schema-villkorsforslag.ts';
 import { Villkorsforslag, type VillkorsSokning } from './schema/villkorsforslag.tsx';
+import { Lagesstatus } from './schema/lagesstatus.tsx';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -56,7 +57,8 @@ import './valplaner.css';
 import './schema.css';
 
 const STATUS: Record<SchemaStatus, { text: string; tone: 'success' | 'warning' }> = {
-  complete: { text: 'Alla pass lagda', tone: 'success' },
+  // Visas inte: ett färdigräknat förslag redovisas som tid, sal och kapacitet var för sig (05.2-SM-UXF-12).
+  complete: { text: 'Beräkningen är klar', tone: 'success' },
   time_limit: { text: 'Räknetiden tog slut', tone: 'warning' },
   infeasible: { text: 'Går inte att lägga', tone: 'warning' },
   input_missing: { text: 'Underlag saknas', tone: 'warning' },
@@ -988,7 +990,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     {forslag && <>
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
-        <span className={`status-badge ${forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'warning' : STATUS[forslag.status].tone}`}>Förslag · {forslag.status === 'complete' && forslag.metrics.unplaced > 0 ? 'Pass kvar på viloytan' : STATUS[forslag.status].text}</span>
+        {forslag.status !== 'complete' && <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>}
+        {forslag.metrics.lessons > 0 && <Lagesstatus lessons={forslag.lessons}/>}
         {forslag.metrics.lessons > 0 && <span className={`status-badge ${off ? 'warning' : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? '' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? 'Årsberäknad terminsdel' : 'Tiden följer timplanen'}</span>}
         {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}

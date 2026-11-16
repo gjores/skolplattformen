@@ -14,7 +14,7 @@ async function start(page: Page) {
   await page.route('**/api/schema/kontroll', route => route.fulfill({ headers, json: { ...kontroll.clash, contractVersion: SCHEMA_CONTRACT_VERSION, violations: [], total: 0 } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda')).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   return page.getByRole('region', { name: 'Grundschema eller faktiska tillfällen' });
 }
 

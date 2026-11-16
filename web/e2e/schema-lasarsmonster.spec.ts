@@ -100,7 +100,7 @@ test('uttryckligt årsbyte sparar det nya gemensamma mönstret och återöppnar 
   await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
   await expect(page.locator('body')).toHaveJSProperty('scrollWidth', await page.evaluate(() => document.documentElement.clientWidth));
   await page.screenshot({ path: info.outputPath('gemensamt-lasarsmonster-200.png'), fullPage: false });
-  await page.reload(); await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await page.reload(); await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   expect(server.drafts.get(scope)?.basisVillkor?.timeBasis).toBe('lasar'); expect(requests).toHaveLength(1);
 });
 

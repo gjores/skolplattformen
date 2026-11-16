@@ -65,7 +65,7 @@ async function setup(context: BrowserContext, page: Page) {
       datedOverrides: input.datedOverrides, checkedDates: [...new Set([...input.dates, ...input.datedOverrides.flatMap(a => [a.originalDate, a.date])])].sort(), violations: [], total: 0, timeChanges: [] } });
   });
   await page.goto(URL); await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   await expect(page.getByText('Sparat på servern', { exact: true })).toBeVisible();
   return { calls, callers, fingerprint: () => current.grundFingerprint };
 }

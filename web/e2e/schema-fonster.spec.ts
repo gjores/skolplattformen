@@ -45,7 +45,7 @@ async function setup(context: BrowserContext, page: Page) {
     return route.fulfill({ headers, json: { ...following.alla, contractVersion: SCHEMA_CONTRACT_VERSION, lesson: body.lesson } });
   });
   await page.goto(URL); await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
 }
 async function open(page: Page, name: string) {
   await page.getByRole('button', { name: 'Fönster', exact: true }).click();

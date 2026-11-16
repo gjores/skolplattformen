@@ -28,7 +28,7 @@ async function setup(page: Page, egna: SchemaRegel[] = []) {
     grundFingerprint: base.grundFingerprint, resources, clusters: [] } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   return controls;
 }
 

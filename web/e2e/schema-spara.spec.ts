@@ -48,10 +48,10 @@ test('ett beräknat schema autosparas och återöppnas efter omladdning utan ny 
   let solves = 0; await setup(page);
   await page.route('**/api/schema/forslag', route => { solves++; const body = route.request().postDataJSON(); return route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { ...source, villkor: body.villkor } }); });
   await expect(name(page)).toBeEnabled(); await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible(); await expect.poll(() => server.drafts.get(key())?.placements.length).toBe(source.lessons.length);
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible(); await expect.poll(() => server.drafts.get(key())?.placements.length).toBe(source.lessons.length);
   await settled(page, server); const writes = server.saves.length;
   await page.evaluate(() => localStorage.clear()); await page.reload();
-  await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible(); await settled(page, server);
+  await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible(); await settled(page, server);
   expect(solves).toBe(1); expect(server.saves.length).toBe(writes); expect(server.reads).toBe(2);
 });
 
