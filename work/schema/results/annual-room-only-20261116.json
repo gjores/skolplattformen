@@ -1,0 +1,34 @@
+{
+  "kind": "schema-year-room-only-fix",
+  "at": "2026-11-16T15:15:56.578Z",
+  "head": "0916af29e68ace4eb85103e1c24fddff6f388ee2",
+  "scope": "Uncommitted working-copy Rust model correction; synthetic isolated tests only; no active target changes",
+  "beforeFix": {
+    "targetedPassed": 1,
+    "targetedFailed": 3
+  },
+  "afterFix": {
+    "domainPassed": 4,
+    "httpPassed": 1,
+    "workspacePassed": 81,
+    "workspaceFailed": 0,
+    "workspaceIgnored": 0,
+    "releaseBuild": "PASS",
+    "nativePass": 28,
+    "nativeFail": 0
+  },
+  "binaries": {
+    "schemamotor": "4f36fdec0c4e8bca4490ed45a5675de1623f534c603158cad3720285f1abdc5c",
+    "schemamotor-tjanst": "b5cf534fc2b770fdd675dcef72533a2472674cf46fb14243b03cc5d776bdafd2"
+  },
+  "sources": {
+    "schemamotor/crates/model/src/lib.rs": "364921505772781677230ea09fb90dd382b4fe719f3a0be7dde14412841320f1",
+    "schemamotor/crates/solve/tests/rooms_only.rs": "8ed5180c8c6e956202022f8a3f0c64cf6830b6cfe4947f960635d4751aaeb095",
+    "schemamotor/crates/service/tests/http.rs": "b59276ae5ba9c51cd8553d77738d4ecf98894165be62acc6e1796bc7539114fa"
+  },
+  "logs": {
+    "/private/tmp/schema-year-room-only-rust-workspace-20261116.log": "73200b1ad85c9dce90aa6c6c373662b176dce7ce6b141b910e9b1feaac4f68e7",
+    "/private/tmp/schema-year-room-only-release-20261116.log": "7e5f1e2a5768a5ab4b095aacb04e1a3bd6ff4b333a51e99d0c6079c9efa24951",
+    "/private/tmp/schema-year-room-condition-native-fixed-20261116.log": "c17dfa6169e34c2774c668a1df14779bbee2bbe679cd702533edba0d2ea3113e"
+  }
+}

@@ -85,6 +85,51 @@ fn annual_http_validation_and_positions_detect_the_wrong_weekday_and_v4_budget_i
 }
 
 #[test]
+fn room_only_booking_over_http_preserves_margin_conflicts_and_free_rooms_in_v4_and_v5() {
+    let mut config = Config::new(TOKEN.into());
+    config.threads = 1;
+    let addr = start(config);
+    for version in [4, 5] {
+        let p = serde_json::json!({
+            "version": version, "id": "room-booking",
+            "time": { "step_min": 5, "days": [{ "start_min": 480, "end_min": 660 }] },
+            "teachers": [{ "id": "t" }], "rooms": [{ "id": "r1" }, { "id": "r2" }],
+            "lessons": [
+                { "id": "booking", "duration_min": 20, "rooms": { "count": 1, "allowed": ["r1"] },
+                  "locked": { "day": 0, "start_min": 540, "rooms": ["r1"] },
+                  "margin": { "rooms": { "before_min": 10 } } },
+                { "id": "teaching", "duration_min": 60, "teachers": ["t"],
+                  "allowed": [{ "day": 0, "start_min": 480, "end_min": 540 }],
+                  "rooms": { "count": 1, "allowed": ["r1", "r2"] } }
+            ], "rules": { "break_min": 0, "same_day": "allow", "lunch": null }
+        });
+        for (room, collision) in [("r1", true), ("r2", false)] {
+            let body = serde_json::json!({ "problem": p, "placements": [
+                { "lesson": "booking", "day": 0, "start_min": 540, "rooms": ["r1"] },
+                { "lesson": "teaching", "day": 0, "start_min": 480, "rooms": [room] }
+            ] });
+            let (status, text) = call(&addr, "POST", "/v1/validate", Some(TOKEN), &body.to_string());
+            assert_eq!(status, 200);
+            let answer: serde_json::Value = serde_json::from_str(&text).unwrap();
+            assert_eq!(answer["version"], version);
+            let violations = answer["violations"].as_array().unwrap();
+            if collision {
+                assert!(violations.iter().any(|v| v["code"] == "room_clash"));
+                assert!(!violations.iter().any(|v| v["code"] == "bad_problem"));
+            } else { assert!(violations.is_empty(), "v{version}: {text}"); }
+        }
+        let (status, text) = call(&addr, "POST", "/v1/solve?time_ms=200", Some(TOKEN), &p.to_string());
+        assert_eq!(status, 200);
+        let solution: Solution = serde_json::from_str(&text).unwrap();
+        assert_eq!(solution.version, version);
+        assert_eq!(solution.status, Status::Complete);
+        let problem: Problem = serde_json::from_value(p).unwrap();
+        assert!(schemamotor_validate::validate_solution(&problem, &solution).ok());
+        assert_eq!(solution.placements.iter().find(|p| p.lesson == "teaching").unwrap().rooms, ["r2"]);
+    }
+}
+
+#[test]
 fn solve_requires_token_and_returns_a_valid_schedule() {
     let addr = start(Config::new(TOKEN.into()));
     assert_eq!(call(&addr, "GET", "/v1/health", None, "").0, 200);

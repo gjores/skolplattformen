@@ -786,8 +786,10 @@ impl Problem {
                     err("time_step", format!("Pass {} har en marginal som inte följer tidssteget {step} min.", l.id), id(), vec![]);
                 }
             }
-            if l.teachers.is_empty() && l.groups.is_empty() {
-                err("empty_lesson", format!("Pass {} har varken lärare eller grupp.", l.id), id(), vec![]);
+            // En salsbokning kan sakna lärare och elevgrupp. Salskravets antal
+            // och referenser kontrolleras nedan även när passet saknar deltagare.
+            if l.teachers.is_empty() && l.groups.is_empty() && l.rooms.as_ref().is_none_or(|req| req.count == 0) {
+                err("empty_lesson", format!("Pass {} behöver lärare, grupp eller ett giltigt salsbehov.", l.id), id(), vec![]);
             }
             for t in &l.teachers {
                 if !teachers.contains(t.as_str()) {

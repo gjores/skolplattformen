@@ -1,0 +1,40 @@
+{
+  "kind": "annual-schema-ui-coverage",
+  "status": "PASS",
+  "productSourceRevision": "0916af29e68ace4eb85103e1c24fddff6f388ee2",
+  "coveredProfileCases": 282,
+  "profiles": [
+    1280,
+    1600
+  ],
+  "textPercent": 200,
+  "fullRun": {
+    "total": 280,
+    "passed": 279,
+    "failed": 1,
+    "skipped": 0,
+    "retries": 0,
+    "reportSha256": "a986471726afaa61eaf58329793d588f6af2fd785878676050726d14d8d5ec15"
+  },
+  "rawFailure": {
+    "case": "schema-spara.spec.ts: ett beräknat schema autosparas och återöppnas efter omladdning utan ny beräkning eller extra revision",
+    "profile": 1280,
+    "cause": "Vite HMR from source write at14:52:29.866575Z caused third document load14:52:29.924Z and extra read14:52:30.765Z; no extra save or revision",
+    "classification": "external source-change interruption",
+    "rawFailurePreserved": true
+  },
+  "finalRecheck": {
+    "total": 12,
+    "passed": 12,
+    "failed": 0,
+    "skipped": 0,
+    "retries": 0,
+    "reportSha256": "0177439f8e63e00034e325ecd885d860a887d96fd22e7578d75073e2f7bc2305",
+    "addedProfileCases": 2
+  },
+  "limits": [
+    "Synthetic UI/API fixtures, not the protected actual API proof",
+    "Only schema-underlag.ts and its new model test changed during the broad run; no UI product/e2e changes",
+    "Final recheck used stable UI source and includes stale annual basis pass-rule protection"
+  ]
+}

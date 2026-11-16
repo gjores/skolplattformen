@@ -18,16 +18,16 @@ function proposal(year: boolean, passRule = false): SchemaForslag {
   const placements = underlag.labels.lessons.map(l => ({ lesson: l.id, day: l.title === 'Franska' ? 1 : l.title === 'Historia' ? 2 : 0, startMin: 480, room: l.title === 'Matematik' ? 'sal-1' : 'sal-2' }));
   return schemaForslag(plan, request, underlag, { status: 'complete', placements, unplaced: [], diagnoses: [], elapsedMs: 0, metrics: { studentGapMin: 0, teacherGapMin: 0 } } as SchemaSolution);
 }
-async function setup(page: Page, server: SchemaDraftTestServer, bindings = false) {
-  const old = proposal(false, bindings), annual = proposal(true), placements = old.lessons.map(l => ({ lesson: l.id, day: l.day!, startMin: l.startMin!, room: l.roomId }));
-  const original = old.lessons.find(l => l.title === 'Franska' && l.term === 'ht')!;
+async function setup(page: Page, server: SchemaDraftTestServer, bindings = false, staleYear = false) {
+  const old = proposal(staleYear, bindings), annual = proposal(true), placements = old.lessons.map(l => ({ lesson: l.id, day: l.day!, startMin: l.startMin!, room: l.roomId }));
+  const original = old.lessons.find(l => l.title === 'Franska' && (l.term === null || l.term === 'ht'))!;
   const occurrence = schemaDatumOriginal(old, { lesson: original.id, originalDate: '2026-11-03' })!;
   const datedOverrides = bindings ? [{ lesson: original.id, originalDate: '2026-11-03', date: '2026-11-04', startMin: 480, room: original.roomId, durationMin: occurrence.length }] : [];
   const locks = bindings ? [placements[0]] : [];
   const input: SchemaDraftSave = parseSchemaDraftSave({ contractVersion: 1, unitId, schoolYear: 2026, period: 'lasar', commandId: crypto.randomUUID(), draftId: null,
     expectedRevision: 0, name: 'Sparat terminsmönster', basisVillkor: old.villkor, workingVillkor: old.villkor, grundFingerprint: old.grundFingerprint,
     placements, locks, intentional: [], datedOverrides, activityTypes: [] });
-  const { draft } = await schemaTestDraft(input, old); server.drafts.set(scope, draft);
+  const { draft } = await schemaTestDraft(input, old); draft.stale = staleYear; server.drafts.set(scope, draft);
   const requests: Record<string, unknown>[] = [], state = { fail: false, findings: false };
   await page.route('**/api/schema/diagnos', route => route.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: state.findings ? [{ code: 'weekly', message: 'Kontrollera den syntetiska ramen.', proof: false, action: { target: 'villkor', label: 'Visa villkoren' } }] : [] } }));
   await page.route('**/api/schema/forslag', route => {
@@ -49,7 +49,8 @@ async function setup(page: Page, server: SchemaDraftTestServer, bindings = false
       violations: [], total: 0, timeChanges: [] } });
   });
   await page.goto(URL);
-  await expect(page.getByRole('region', { name: 'Gemensamt läsårsmönster', exact: true })).toBeVisible();
+  if (staleYear) await expect(page.getByRole('region', { name: 'Sparat schemautkast', exact: true }).getByText('Underlaget har ändrats', { exact: true })).toBeVisible();
+  else await expect(page.getByRole('region', { name: 'Gemensamt läsårsmönster', exact: true })).toBeVisible();
   return { old, annual, draft, requests, state };
 }
 
@@ -101,4 +102,21 @@ test('uttryckligt årsbyte sparar det nya gemensamma mönstret och återöppnar 
   await page.screenshot({ path: info.outputPath('gemensamt-lasarsmonster-200.png'), fullPage: false });
   await page.reload(); await expect(page.getByText('Förslag · Alla pass lagda', { exact: true })).toBeVisible();
   expect(server.drafts.get(scope)?.basisVillkor?.timeBasis).toBe('lasar'); expect(requests).toHaveLength(1);
+});
+
+test('ändrat årsunderlag återanvänder inga gamla passregler utan en uttrycklig bekräftelse', async ({ page, schemaDraftServer: server }) => {
+  const { old, draft, requests } = await setup(page, server, true, true);
+  expect(old.villkor.timeBasis).toBe('lasar');
+  const action = page.getByRole('button', { name: 'Ta fram nytt förslag från aktuellt underlag', exact: true });
+  await action.click(); const dialog = page.getByRole('alertdialog');
+  await expect(dialog).toContainText('1 villkor för enskilda pass tas bort');
+  await dialog.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
+  expect(requests).toHaveLength(0); expect(server.drafts.get(scope)).toEqual(draft);
+  await action.click(); await dialog.getByRole('button', { name: 'Ta fram utan passregler', exact: true }).click();
+  await expect.poll(() => server.drafts.get(scope)?.revision).toBe(2);
+  expect(requests).toHaveLength(1);
+  expect((requests[0].villkor as { egna: { slag: string }[] }).egna.some(r => r.slag === 'pass')).toBe(false);
+  const saved = server.drafts.get(scope)!;
+  expect(saved.locks).toEqual([]); expect(saved.datedOverrides).toEqual([]);
+  expect(saved.workingVillkor.egna.some(r => r.slag === 'pass')).toBe(false);
 });
