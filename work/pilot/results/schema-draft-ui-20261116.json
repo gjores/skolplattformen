@@ -1,0 +1,208 @@
+{
+  "kind": "schema-draft-actual-ui-bound-evidence",
+  "status": "PASS",
+  "syntheticOnly": true,
+  "targetContact": false,
+  "releaseRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+  "releaseManifestSha256": "23410c8cd33f60d6c03edb691abd268330940642a4c015711abf622942f2daba",
+  "releaseArtifactSha256": "3267857b81a1cd6827c9022643d60a94be667dea73fb201905e9364aa7f2f14d",
+  "finalReport": {
+    "sha256": "3a465d1986b9cbbfac405d069526da04538eea34dc964d370c7ced68b9410c34",
+    "status": "PASS",
+    "startedAt": "2026-11-16T13:12:28.390Z",
+    "completedAt": "2026-11-16T13:12:56.957Z"
+  },
+  "reusedR2Report": {
+    "sha256": "4c7f063b47d8cd8e9f6a4212a034464d0c843e70eafdd68ee9ad1cdaee6cf7e1",
+    "overallStatus": "FAIL",
+    "failure": {
+      "code": "ui_flow_failed"
+    },
+    "onlyPassedSectionsReused": true,
+    "profiles": [
+      {
+        "width": 1280,
+        "status": "PASS",
+        "loginRenewed": true,
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        },
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850",
+        "reopenedContentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "receiptVerified": true,
+        "reads": 3,
+        "saves": 1,
+        "statusCounts": {
+          "utkast/las:200": 6,
+          "datum:200": 2,
+          "utkast/spara:200": 1
+        }
+      },
+      {
+        "width": 1600,
+        "status": "PASS",
+        "loginRenewed": false,
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        },
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850",
+        "reopenedContentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "receiptVerified": true,
+        "reads": 3,
+        "saves": 2,
+        "statusCounts": {
+          "utkast/las:200": 5,
+          "datum:200": 3,
+          "utkast/spara:200": 5,
+          "diagnos:200": 1,
+          "forslag:200": 1
+        }
+      }
+    ],
+    "checks": [
+      {
+        "check": "verified_read",
+        "width": 1280,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        }
+      },
+      {
+        "check": "ui_autosave_verified_receipt",
+        "width": 1280,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "reload_after_clear_local_storage",
+        "width": 1280,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "start_then_browser_back",
+        "width": 1280,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "verified_read",
+        "width": 1600,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        }
+      },
+      {
+        "check": "ui_autosave_verified_receipt",
+        "width": 1600,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "reload_after_clear_local_storage",
+        "width": 1600,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "start_then_browser_back",
+        "width": 1600,
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      },
+      {
+        "check": "real_shared_window_name",
+        "status": "PASS",
+        "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+      }
+    ]
+  },
+  "finalC7": {
+    "checks": [
+      {
+        "check": "c7_generation_and_preserved_form",
+        "status": "PASS",
+        "generatedResponses": 1,
+        "startingLocks": 0,
+        "startingDates": 0,
+        "confirmedDateReplacement": 0
+      }
+    ],
+    "activity": {
+      "status": "PASS",
+      "startingCounts": {
+        "lessons": 37,
+        "placed": 37,
+        "parked": 0,
+        "locks": 0,
+        "dated": 0,
+        "activities": 0,
+        "types": 1
+      },
+      "counts": {
+        "lessons": 37,
+        "placed": 37,
+        "parked": 0,
+        "locks": 0,
+        "dated": 0,
+        "activities": 1,
+        "types": 1
+      },
+      "generated": 1,
+      "activityResponses": 1,
+      "confirmedDateReplacement": 0,
+      "contentHash": "sha256:c3b8e53674884375812a33c1402e3a2761d1c0cb1f98ce29ff8502a0f3574d85",
+      "statusCounts": {
+        "utkast/las:200": 4,
+        "utkast/spara:200": 3,
+        "diagnos:200": 1,
+        "forslag:200": 1,
+        "aktiviteter:200": 1
+      }
+    }
+  },
+  "harnessSha256": "1e7b767106f6c48be73743241cadbbcf88d1cbcf50f6b6ae36f4156e34917493",
+  "frozenImagesManifestSha256": "fcffa6a64d6f1b6094258fcb1434f76da490994028f3116315c8b12ab2cb423c",
+  "cleanupEvidence": "schema-draft-final-namespace-20261116.json",
+  "limits": [
+    "Only owned synthetic namespace; genuine product UI and real authenticated HTTP",
+    "Owned IdP transport with ordinary OIDC session registration; no API/auth fixtures or direct application-data SQL writes",
+    "Date preservation verified; no separate date-edit scenario",
+    "Not user acceptance or a real school integration"
+  ]
+}

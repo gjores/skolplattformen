@@ -1,0 +1,1389 @@
+{
+  "kind": "schema-draft-actual-protected-api",
+  "status": "PASS",
+  "startedAt": "2026-11-16T12:10:27.429Z",
+  "checks": [
+    {
+      "name": "actual OIDC callbacks, signed claims, GoTrue registration, MFA and selected live school mandates",
+      "status": "PASS"
+    },
+    {
+      "name": "empty read and explicit unknown command status use real protected APIs",
+      "status": "PASS"
+    },
+    {
+      "name": "wrong school, principal organizer, teacher, weak MFA, CSRF and anonymous requests are denied without a draft",
+      "status": "PASS"
+    },
+    {
+      "name": "response aborted after actual commit recovers by status and exact replay without another revision",
+      "status": "PASS"
+    },
+    {
+      "name": "real Rust proposal, parked lessons and locks persist; administrator reopens/continues and stale CAS cannot overwrite",
+      "status": "PASS"
+    },
+    {
+      "name": "term-only date control rejects the other term and schema control accepts valid JSON above the former 64 KiB limit",
+      "status": "PASS"
+    },
+    {
+      "name": "dated save preserves the foundation and real date-specific Rust problems respect inclusive class-membership periods",
+      "status": "PASS"
+    },
+    {
+      "name": "live revocation denies reopening and both database/Worker audit events exist",
+      "status": "PASS"
+    }
+  ],
+  "limits": [
+    "Exact frozen release; unchanged product security gate, actual protected endpoints and school mandates",
+    "Own initialized PostgreSQL/Keycloak/GoTrue in a previously created owned runtime; a separate new synthetic customer is seeded",
+    "Native Linux workerd with locked binary integrity; only own TCP/HTTP relays inside its network namespace",
+    "Storage helpers are bootstrap facades; no Storage/municipal integration or target installation is claimed",
+    "Product UI acceptance is separate"
+  ],
+  "runtime": {
+    "kind": "exact-release-owned-network-namespace",
+    "noTargetReads": true,
+    "noUserBrowserAuth": true,
+    "health": {
+      "ok": true,
+      "role": "skolplattform_worker",
+      "customers": "0",
+      "runtime": "workerd"
+    },
+    "release": {
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35",
+      "artifactSha256": "9e2e9954117337c0bb2dff3a09b9edd0b0ba689624e3881a4e2a6a5af1ecdac0",
+      "manifestSha256": "fac1e8badd23278b20ac675a3dc09c232147b80b78bd7d2d7ba229992fa45098"
+    },
+    "unchangedGuard": {
+      "revision": "95abc5a1",
+      "sha256": "db83ec53d931c91cfa5e1db7f075662c2e4fde2885836a7875a2568afcfddf99"
+    },
+    "namespace": {
+      "container": "schema-worker-258214a926c243f2b3ac9dad1037e287",
+      "image": "sha256:5b6c2c6cbc90b6085e3f9b3086110b1eccedb643374137bfdcd1d2f5c78f6cd1",
+      "ports": {
+        "postgres": 56322,
+        "auth": 56331
+      },
+      "relays": "real TCP/HTTP; no replacement claims or SQL"
+    },
+    "linux": {
+      "node": {
+        "version": "v25.9.0",
+        "url": "https://nodejs.org/dist/v25.9.0/node-v25.9.0-linux-arm64.tar.xz",
+        "archiveSha256": "bf007bf0dcc2fddd90888fde374a1ad33c1ab2ca2ad324c645dd7aed0f9f1460",
+        "binarySha256": "6ddc7eec8c425db60c217241e2c9207eb299a17c227b9494655b18bb5da5a2e1"
+      },
+      "workerd": {
+        "name": "@cloudflare/workerd-linux-arm64",
+        "version": "1.20260903.1",
+        "url": "https://registry.npmjs.org/@cloudflare/workerd-linux-arm64/-/workerd-linux-arm64-1.20260903.1.tgz",
+        "integrity": "sha512-OWhihGC6KoTXF4u2C1AonfpgXeM4/7p/1IXuALqXESmFUpLLP5gZhRzjSk/gWW+mrCZDfSrvnjifl+lRqselbA==",
+        "binarySha256": "cdbc60977e38316fe5d16c5a69c9a2a77169ae4d6c3a1bd208f12912824ca8ad"
+      },
+      "packageLockSha256": "049041fed97cb867113772a3dc909d51adb85dec8ff4acf53020ea11ba938190",
+      "libatomic": {
+        "version": "12.2.0-14+deb12u1",
+        "arch": "arm64",
+        "archiveSha256": "1693aa13ce2b30d061a519fc28b77b9bab8c8e45804ced5969d99821e1bc2159",
+        "binarySha256": "c90c21008853899dfa102eeaa43b703c2bf41553dd56b13aac6da2803d5884b7"
+      },
+      "esbuild": {
+        "version": "0.28.1",
+        "resolved": "https://registry.npmjs.org/@esbuild/linux-arm64/-/linux-arm64-0.28.1.tgz",
+        "integrity": "sha512-yHs+0uc8+nvEAfAfxrWQKK5peSNzBc4PegcMO0EJ2hT71uA7vB8Ihg2e77R2P7SG5uYjPbHlLLmve4LLLRCf0g==",
+        "cpu": [
+          "arm64"
+        ],
+        "license": "MIT",
+        "optional": true,
+        "os": [
+          "linux"
+        ],
+        "engines": {
+          "node": ">=18"
+        },
+        "binarySha256": "51e829ba36f36be6d9aea6e329ddc4f9350302339b16aaca96a3cb97f64a8ebb"
+      }
+    },
+    "runner": {
+      "sha256": "6b726befa3485e84a30d7858d7e35eced7790d7d8a4ca993a9e74e74f13bff23",
+      "moduleLoaderSha256": "f500d35ce7f7a351fe9b7186a3564795d7ab52214cb977572b7d4e86422ad091"
+    },
+    "migrations": [
+      {
+        "file": "20260905120000_huvudman.sql",
+        "sha256": "f07dae07c32297ec78b25c0e0a764212ee3d5a2c0b2022831329a610d425aa32"
+      },
+      {
+        "file": "20260905130000_demo_bootstrap.sql",
+        "sha256": "de60d0b173064db33e0ccf67ae14e4a14e4318c82f21746d4bf368f9d801988e"
+      },
+      {
+        "file": "20260905170000_timplan_lasar.sql",
+        "sha256": "92882aa74f323069948b1e6cf5d7ac1969601af41d3d2283e09d519932541c7c"
+      },
+      {
+        "file": "20260908120000_cohorts_classes.sql",
+        "sha256": "5f6a431a61c8ebb32c5b9f1a455abf3bde463cc23b84b86576bcf1f28f805df0"
+      },
+      {
+        "file": "20260908150000_school_import.sql",
+        "sha256": "a40b4807a6a9ec66b47393e56f7cb46ac587c69153343e2261d49647a2705a60"
+      },
+      {
+        "file": "20260908170000_principal_teacher_assignments.sql",
+        "sha256": "b8bbd826fa054bf142f43c855d6bb2d379f128030dd1f6f0071f1499c1c47503"
+      },
+      {
+        "file": "20260911120000_quarantine_demo_access.sql",
+        "sha256": "3e495082a0fcbce2b1cbb077ca82ee341417ea59077e2e91a78e66e273c93733"
+      },
+      {
+        "file": "20260913100000_phase2_worker_core.sql",
+        "sha256": "12533aeea804e5c47364e412508528ce22305256aedf90c721697be19b88cd51"
+      },
+      {
+        "file": "20260913200000_phase2_access_model.sql",
+        "sha256": "31a97f60886d0026d69103bcdd2e1b6767e72c5fc5c56c111a7b3097b544cdb3"
+      },
+      {
+        "file": "20260922090000_phase3_access_functions.sql",
+        "sha256": "1d48d6368fa35b4899a7f230a12362bb3d4d721f7c72f8fb62fde11e706b336b"
+      },
+      {
+        "file": "20260922100000_phase3_mandates.sql",
+        "sha256": "c57c1b67fd9f803f6b9d7ebcd6fcf46ea5360d5080a0adab42dee383902a94d3"
+      },
+      {
+        "file": "20260922110000_phase3_mandate_chain.sql",
+        "sha256": "7560a2bd8a0453fac397a9417d22c9ef165c03bbacdf7a5bcae19cb9a805b36a"
+      },
+      {
+        "file": "20260922120000_phase3_staff_bindings.sql",
+        "sha256": "ffcc7b551a63a68e24aac8a32d3c675288fc38e1a44b8546cc745a6951250d92"
+      },
+      {
+        "file": "20260924130000_phase3_mandate_policy.sql",
+        "sha256": "4e9b79a78ea298e5cc7d7b8ffef19ac5ef5b94818f3123a36c6b5436f2df6b2c"
+      },
+      {
+        "file": "20260924140000_phase3_mandate_mutations.sql",
+        "sha256": "9025bafded322b215ef52ffb9c2730bd41f322ed2f4a30d3b7978519b542bc01"
+      },
+      {
+        "file": "20260924150000_phase3_policy_parameter_binding.sql",
+        "sha256": "6780826c456ea67503e6befac77543109c3400d920ef667480071d7247d93738"
+      },
+      {
+        "file": "20260924160000_phase3_invitations.sql",
+        "sha256": "810e5019728317205e8be15ba014ab3be3702297f90ddcfea60f6f2ac5bb99b7"
+      },
+      {
+        "file": "20260924170000_phase3_live_rechecks.sql",
+        "sha256": "568467487a7a11254c2ac07d98ae4dbb48feee0dbe3888feb2375ad9a2c9bf11"
+      },
+      {
+        "file": "20260924180000_phase3_connections.sql",
+        "sha256": "2afd43d2e4bfe501f424e46ae2eb35fbc28de19c0057aa1c77cca2ed1b21d961"
+      },
+      {
+        "file": "20260924183000_phase3_invitation_ttl.sql",
+        "sha256": "86155352ca286bc6f71f0c3babf399a79998c1f8fce02dc3ab289a6ef9f0c5a6"
+      },
+      {
+        "file": "20260924190000_phase3_mandate_cutover.sql",
+        "sha256": "3dda6cbf159a034ee140253e1045ab49d19d218fd323ee49e0e4f715a58302e0"
+      },
+      {
+        "file": "20260924200000_phase3_audit_retention.sql",
+        "sha256": "6c6639d45bfd6b202f755f545a873bd2e2137c812173e455d1de924889e42423"
+      },
+      {
+        "file": "20260924210000_phase3_audit_maintenance_operator.sql",
+        "sha256": "db20d44fdb075def9f42dc878e77b9435a2a905a9d3ca5dabb0ad98a75ad2642"
+      },
+      {
+        "file": "20260924220000_phase3_workspace_metadata.sql",
+        "sha256": "0ef5d8f53d9a8a203271990a1deac747c7964df9e8931ff28fa611aca50b84fe"
+      },
+      {
+        "file": "20260926090000_phase3_workspace_options.sql",
+        "sha256": "0fa37aa27491f78e5a493e8b25d6dcf65353762f310a2e3685b2880de3fe1f9f"
+      },
+      {
+        "file": "20260926100000_phase3_pupil_probe_worker_read.sql",
+        "sha256": "a22eea84364563b6e9adc0fe0f1fb5fc16e7dcef880ae4d54a05b3c631f6ffca"
+      },
+      {
+        "file": "20260926110000_phase3_list_current_mandates.sql",
+        "sha256": "252a7a2a59cab0c3c361e6a0378e38ada6fd27cb0002158f12c42ad7fcab8056"
+      },
+      {
+        "file": "20260927090000_phase3_support_groups.sql",
+        "sha256": "7b5575fac301620f9a4741878b746c0f7b8b9f329ed64e4ae25efda6372e3153"
+      },
+      {
+        "file": "20260929100000_phase4_register_schema.sql",
+        "sha256": "0b8b422472e9c7aba4d0b2f2b62cc6362b7671d24040319072e3ce04e8b54c5a"
+      },
+      {
+        "file": "20260929110000_phase4_register_migrate_probe.sql",
+        "sha256": "f907f383abd3e761d1a134e1baebeaea1b60489a90bdc581f92511ec219aeede"
+      },
+      {
+        "file": "20260929130000_phase4_protected_permission.sql",
+        "sha256": "544da9eff4546a28cf68c7ce243dbe8a437a5467afc1c19386adb527a2581a4e"
+      },
+      {
+        "file": "20260929131000_phase4_permission_worker.sql",
+        "sha256": "eb67dd9275f6704403ae04535c92335bba91fe51cbc2b1f105c35a6bc6dbcef2"
+      },
+      {
+        "file": "20260929140000_phase4_register_reads.sql",
+        "sha256": "e3875c8bb12feca2066fc9f1e9204aff303e45a5178cbc570ab4de3b34a30c2e"
+      },
+      {
+        "file": "20260929141000_phase4_read_worker.sql",
+        "sha256": "221e00f309973a2fb6de08bca1665582d53070f737fd6a8607f152d4d7af7e40"
+      },
+      {
+        "file": "20260929150000_phase4_register_mutations.sql",
+        "sha256": "e48884ceb26ac67a2e09d3dfdd3da613b0237f09b0635574613c022c1de8b3c9"
+      },
+      {
+        "file": "20260929160000_phase4_register_sources.sql",
+        "sha256": "f21a5743595aea97a2312f69db47eaf390a4e2c75217f55c321feeb581b3329d"
+      },
+      {
+        "file": "20260929161000_phase4_register_selection.sql",
+        "sha256": "dda526d252cebcb0ae01c8b70a6ebe74a8bfab65cc819e8f1e8b20f68f47161d"
+      },
+      {
+        "file": "20260929162000_phase4_source_contract_fix.sql",
+        "sha256": "68fdfa954154bbf35c89ee9f33d70f2faca91033729860575f3f2a878d026fad"
+      },
+      {
+        "file": "20260929163000_phase4_source_owned_refresh.sql",
+        "sha256": "6f4cbee7d82596d292cb5216551e435f8480937aff2c7a7c6da6371b62bc99b6"
+      },
+      {
+        "file": "20260929170000_phase4_worker_register_execute.sql",
+        "sha256": "623354db736a730059d9551e0df3e99e96e5244f54bc2a9932aed7bc9da93051"
+      },
+      {
+        "file": "20260929180000_phase4_list_protected_flag.sql",
+        "sha256": "41523d3c5025774a71a47ecada132353fe23127a7d89ef31d335a69b6a05d00d"
+      },
+      {
+        "file": "20260930100000_phase4_retire_probe.sql",
+        "sha256": "c96bb11be4c8e4da5c1248e9f24392f384c7e52542bc4f5d2a14d2eb706027c9"
+      },
+      {
+        "file": "20260930110000_phase5_timplan_draft.sql",
+        "sha256": "20cfc4cc5c28c1c91ca52633db07c08a4ddcc20c2bc67466ef1ae8bad147a9b3"
+      },
+      {
+        "file": "20260930120000_phase5_timplan_session_audit.sql",
+        "sha256": "731bc06d9ccc293eafbc9766affdc7ec59d063011dde6491bae39a6d2855e9da"
+      },
+      {
+        "file": "20260930121000_phase5_timplan_audit_failure.sql",
+        "sha256": "f742daf6f305d36849c9a9dd462cd2e0a37320f3470275c6275ac04e45d9750a"
+      },
+      {
+        "file": "20260930130000_phase5_worker_timplan_execute.sql",
+        "sha256": "7a1100904ca4588864f72f2dd75dcc70093f87801e3b9c7ebd8ee16a96201d75"
+      },
+      {
+        "file": "20260930140000_phase5_timplan_selection.sql",
+        "sha256": "bb3bbae4826164d2fc49a69ae629e1cc08866e34689080d8ee34344a0d9c7d40"
+      },
+      {
+        "file": "20260930150000_phase5_worker_timplan_selection.sql",
+        "sha256": "3af6304cafbb828b796dff247d431153b15ab82c38a6bff6a0da2d684eebfbae"
+      },
+      {
+        "file": "20260930160000_phase5_programplan_catalog.sql",
+        "sha256": "3dbfb0b4721bed32608dd3428b133eaa0c2f56092248f5eb940c9e5ddca9c53a"
+      },
+      {
+        "file": "20260930161000_phase5_programplan_catalog_seed.sql",
+        "sha256": "90b7fb00e290fe2e928dc46c4012ad99e9b699313e6b656831ff09188916d9e5"
+      },
+      {
+        "file": "20260930162000_phase5_programplan_drafts.sql",
+        "sha256": "3e7235d17b5b9305184eb4bb445c5882809a606c783f59986600a2881c2737a7"
+      },
+      {
+        "file": "20261001110000_phase5_worker_programplan_execute.sql",
+        "sha256": "9be5e31c255fc3411352ccc887f82257077cd671cd81656143fe8b2f909f74e1"
+      },
+      {
+        "file": "20261001120000_phase5_programplan_workspace.sql",
+        "sha256": "1f8efa579c5bc27e5e97edcbcbd4fba0538dec8f31af9862d935114c143094fa"
+      },
+      {
+        "file": "20261001121000_phase5_worker_programplan_workspace.sql",
+        "sha256": "944dbc3adbe86aa81c60cdaa5ea1098346ba1b4545494f56883dc619d94198bf"
+      },
+      {
+        "file": "20261002120000_phase5_programplan_education.sql",
+        "sha256": "9754346a6c5f00c02b282725379905e2bc3db8944a5774a9ea7e4dd604847b55"
+      },
+      {
+        "file": "20261002121000_phase5_worker_programplan_education.sql",
+        "sha256": "618c216c1166ec6ddb50febc6fe93ba4104a8e7ca0b976cbafee6f6ff1633fe4"
+      },
+      {
+        "file": "20261003120000_phase5_programplan_terms.sql",
+        "sha256": "628cd5573e9cf3f0d3cbce305c4ac373333ecb23985e4c3569febe3a7bb1ef6e"
+      },
+      {
+        "file": "20261003121000_phase5_worker_programplan_terms.sql",
+        "sha256": "51692a79fbbb4e245a179e787d5129cfb4db666db1856a8084b8df72d8d55a3a"
+      },
+      {
+        "file": "20261004120000_phase5_programplan_lifecycle.sql",
+        "sha256": "2bb8b170cf8c6bcb49b9b4c9d5b5c8d0b7111d4c0c4c3e30f57278b3bb15bdf5"
+      },
+      {
+        "file": "20261004121000_phase5_worker_programplan_lifecycle.sql",
+        "sha256": "acd5895abfe97f9866c40f00d3157261f02b84859ab282be1202a40d8ad16b4e"
+      },
+      {
+        "file": "20261004122000_phase5_programplan_lifecycle_locks.sql",
+        "sha256": "13bc47f6db5815042f4efb5abf1474b069fd591f01a195cd110b5b7636d3fac4"
+      },
+      {
+        "file": "20261004130000_phase5_programplan_units.sql",
+        "sha256": "b5ea67768554e7166daa6fab5522aeb83ed50a18b2996c173656439e19d2bdad"
+      },
+      {
+        "file": "20261004140000_phase5_offering_unit_linkage.sql",
+        "sha256": "6b63de29f85a1a0971fd5d77a9873e284cf6cda2152d9644096c41786c7cbf80"
+      },
+      {
+        "file": "20261004141000_phase5_timplan_units.sql",
+        "sha256": "653fd5fdf8233c29293004da8ab31a91ee750d47688f8519b1f5e368e6db559e"
+      },
+      {
+        "file": "20261004150000_phase5_programplan_choice_blocks.sql",
+        "sha256": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd"
+      },
+      {
+        "file": "20261004150100_phase5_programplan_block_numeric.sql",
+        "sha256": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090"
+      },
+      {
+        "file": "20261004151000_phase5_programplan_block_commands.sql",
+        "sha256": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267"
+      },
+      {
+        "file": "20261004152000_phase5_programplan_shape_upgrade.sql",
+        "sha256": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5"
+      },
+      {
+        "file": "20261004152100_phase5_programplan_block_clone_identity.sql",
+        "sha256": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf"
+      },
+      {
+        "file": "20261004153000_phase5_worker_programplan_blocks.sql",
+        "sha256": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14"
+      },
+      {
+        "file": "20261004154000_phase5_programplan_unit_packages.sql",
+        "sha256": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541"
+      },
+      {
+        "file": "20261004155000_phase5_worker_programplan_unit_packages.sql",
+        "sha256": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2"
+      },
+      {
+        "file": "20261004156000_phase5_programplan_packages.sql",
+        "sha256": "7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38"
+      },
+      {
+        "file": "20261004157000_phase5_worker_programplan_packages.sql",
+        "sha256": "2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2"
+      },
+      {
+        "file": "20261005110000_phase5_gym_timplan_transition.sql",
+        "sha256": "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e"
+      },
+      {
+        "file": "20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "sha256": "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a"
+      },
+      {
+        "file": "20261006120000_phase5_planning_year_reads.sql",
+        "sha256": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71"
+      },
+      {
+        "file": "20261006121000_phase5_worker_planning_year_reads.sql",
+        "sha256": "ef34e6a5f606d940e6851aed591a2cb84ff8af279c94994cbca9655326e2db82"
+      },
+      {
+        "file": "20261006122000_phase5_planning_year_read_performance.sql",
+        "sha256": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997"
+      },
+      {
+        "file": "20261006123000_phase5_planning_year_search_details.sql",
+        "sha256": "b566b7abcce22784b9fe5dc6e4fba691afb4b008b5251b570acc19fef6b3685c"
+      },
+      {
+        "file": "20261012130000_gym_timplan_requires_programplan.sql",
+        "sha256": "5cc0a3edaf4b792205c1a174070c4928821d53b0f8f34bad318af86b2e8b1dc9"
+      },
+      {
+        "file": "20261012150000_created_timplans_only.sql",
+        "sha256": "36855afdc4bf475eaca56dc54bbf681cd5b4338658ade584d0c3417ed6a9cc61"
+      },
+      {
+        "file": "20261012160000_programplan_school_timplan.sql",
+        "sha256": "f274ac5f1472aba3c2b6191d61de5b547cad7c52a5a472d06ecbefa91b3f9eb1"
+      },
+      {
+        "file": "20261012180000_plan_decision_flow.sql",
+        "sha256": "7e42772e0657c00855576fb09764d4e9ad9378a6d292f4ce92b17e5029515b9a"
+      },
+      {
+        "file": "20261012180100_plan_decision_command_fix.sql",
+        "sha256": "a12a4ccddcf460aef51ffaf6605da253bf8857d4fea30353e7383017a35f7167"
+      },
+      {
+        "file": "20261012181000_plan_decision_worker.sql",
+        "sha256": "0ed1450cfaf7486234209b367de95d82c4f9b2905ac21efcd0aaa1cdc91e6d87"
+      },
+      {
+        "file": "20261012200000_plan_decision_vocational.sql",
+        "sha256": "f3a1f8a64f0fd91f16804f5394291d90589c28af002c221b5e71e85bf764404c"
+      },
+      {
+        "file": "20261012210000_class_timplan_flow.sql",
+        "sha256": "ef7c466f86318da2e3f9d8cf1dc3ab2392298ee3139b531b52b3dcc2baace9a5"
+      },
+      {
+        "file": "20261012220000_plan_decision_search.sql",
+        "sha256": "48369549585f6b91502af02a04a9413f0a92e07c023a525ebda9a597dd9a244b"
+      },
+      {
+        "file": "20261012230000_gym_source_content.sql",
+        "sha256": "0a11db00f0fe271595a0c686795600866ab7ee9bebc4c610b3be3ee562098563"
+      },
+      {
+        "file": "20261012240000_class_start_calendar.sql",
+        "sha256": "bc8c85a8f80c6b7cfbfeaf2edf64fdd93dbd16db745ce87b8fc944baf226e50c"
+      },
+      {
+        "file": "20261014100000_phase5_atomic_cohort_copy.sql",
+        "sha256": "1a274c4bd0432c734a7e2e561393483a5d710504ab0c591edc6fc3cbd35a523b"
+      },
+      {
+        "file": "20261014101000_phase5_worker_atomic_cohort_copy.sql",
+        "sha256": "bb7336e15057736a8dfeca693bb256fd6f89b3d76ed38fa2e66e2494621f1857"
+      },
+      {
+        "file": "20261014120000_phase5_school_registry.sql",
+        "sha256": "91d8a8c18995d17da177f5f7fb0b8e00bd52cf71c6ab24e9e76f17998390f1e0"
+      },
+      {
+        "file": "20261014121000_phase5_worker_school_registry.sql",
+        "sha256": "058be315c8b2ac23e56e9fe5decba4c37a60a170671287b64cbcfa28682f0730"
+      },
+      {
+        "file": "20261015100000_class_cohort_dates.sql",
+        "sha256": "a39b5771a357c1b9e0ed2923bd89f2543cc5c0c3ee360a04132c7964e7591f67"
+      },
+      {
+        "file": "20261015101000_class_cohort_link_identity.sql",
+        "sha256": "d20b20fcbc9634ac8deda5c34828f7be03878d34c0398cd504cc050c33f83ccf"
+      },
+      {
+        "file": "20261015102000_class_cohort_commands.sql",
+        "sha256": "7ce69107611d58e539d9e907230af88071c5291a797b71920a4b1da1c8b27486"
+      },
+      {
+        "file": "20261015200000_named_timplan_series.sql",
+        "sha256": "36eda14400bb2f4a94e0cd1f781a3f4b6b95489790d590d26194b794ba5c161e"
+      },
+      {
+        "file": "20261015201000_named_timplan_commands.sql",
+        "sha256": "02c747bef0e60f07593d3c46512185a72701dfb0c0f10991b3602f3d14c773d4"
+      },
+      {
+        "file": "20261015202000_named_timplan_decisions.sql",
+        "sha256": "282ed83f6a14e79c73a4ab12840a4d78da8cc6646f2177031f86f9c44b4c327b"
+      },
+      {
+        "file": "20261015203000_named_timplan_reads.sql",
+        "sha256": "59fdf898e543c1b8eef73ffd36acc2bb0d494d73d040d38859c41eff11ea8679"
+      },
+      {
+        "file": "20261015204000_worker_named_timplans.sql",
+        "sha256": "efa2ea93236e338191552777113f00fc3b064e48765cff5a3f22386e62a9ca89"
+      },
+      {
+        "file": "20261016100000_rector_programplan_creation.sql",
+        "sha256": "f50d8aabd434dcc699fa91186c9b6b75859bf7533d769b5a5523131df769a9dc"
+      },
+      {
+        "file": "20261016120000_apl_planning.sql",
+        "sha256": "e8e11a42b26695fc18c85af7dfed42bfd2ef9a0de90371f31325f6f66756a160"
+      },
+      {
+        "file": "20261016121000_apl_plan_decisions.sql",
+        "sha256": "9f53a253a3f20b7fc23c15f4e4ca865bf2dd8ac9ce7bd9bf1e2e8ae874cba781"
+      },
+      {
+        "file": "20261016122000_apl_worker_access.sql",
+        "sha256": "00160ba5c368d19d6892b4f67c9d58d5aa6aaf6bb8e9bb7220b172923d22ad36"
+      },
+      {
+        "file": "20261016130000_apl_term_intent.sql",
+        "sha256": "d34d97c7ca58d5692c884dada2c4bbe297499e9510302bc8f90d0091c20ee8dc"
+      },
+      {
+        "file": "20261016160000_timplan_time_v2_storage.sql",
+        "sha256": "0afb9056453557c2d9215e08b61dc6be42c5538b269aeac3049b0692ef745183"
+      },
+      {
+        "file": "20261016161000_timplan_time_v2_integration.sql",
+        "sha256": "123cd54dd7688d824443cb31b6a2412d11671beda212603c338d2d6ad7b26718"
+      },
+      {
+        "file": "20261018100000_separate_apl_workflow.sql",
+        "sha256": "b27b555f8e07ab1d698b7236b6e062767fe0522360b835f47da5713b0df7ea78"
+      },
+      {
+        "file": "20261018120000_timplan_minimum_apl_budget.sql",
+        "sha256": "507610b071fdad3e53c213d420435cf39e93dc753110cfdf28753abde50afc95"
+      },
+      {
+        "file": "20261018180000_programplan_examination_review.sql",
+        "sha256": "19120174b65f04360401186c5bd5a1276ff527fe7dce7ee0b2c56f7b807877c4"
+      },
+      {
+        "file": "20261019150000_planning_year_shared_grim_units.sql",
+        "sha256": "fcfbc83ee501200f538d64bcebd61ab1baa2356c480878a63298e4be6e8cecc8"
+      },
+      {
+        "file": "20261019200000_apl_central_content.sql",
+        "sha256": "931e59e6203eccdacaec805424b7e27ac78e424adac7da47466cbb8b237676ac"
+      },
+      {
+        "file": "20261019200100_apl_central_content_seed.sql",
+        "sha256": "d14dd2f232ed49224fc5dcdcaa1ce7a67c9bdea6cab42173ab05fcccba7857c9"
+      },
+      {
+        "file": "20261020100000_grim_class_timplan_link.sql",
+        "sha256": "0bf06b644e5e0025fbe9b6d02b48b9629c652b86b235033e772679719196ada4"
+      },
+      {
+        "file": "20261020100100_grim_class_worker_access.sql",
+        "sha256": "d7d9dca0baec3a23dc1a78380f06474d1507d9a3322fa09f8e714bab20378795"
+      },
+      {
+        "file": "20261020110000_tjanst_personal_self.sql",
+        "sha256": "7a383919d32495848188114e822524f79c88f6f6a585630b8256bbf61f66af4f"
+      },
+      {
+        "file": "20261020120000_tjanst_plan.sql",
+        "sha256": "fc2ae54c157d204d579edab3e63aeebfbce6bcc742ab9baa39bf1abac45eb1a3"
+      },
+      {
+        "file": "20261020130000_tjanst_assignments_feedback.sql",
+        "sha256": "4e28f15c434b2abed8d95e834b73613f8c77334cf8f70111a5946fdff2cc5ef5"
+      },
+      {
+        "file": "20261020140000_tjanst_person_account.sql",
+        "sha256": "70f37d3f3350cad0dd48488bc9616a36fb20ed8550a3589e8817d29d76f5bed5"
+      },
+      {
+        "file": "20261020190000_tjanst_worker_access.sql",
+        "sha256": "3bc080b5180bdc66d0492c6bd664d630bf3ce78ca63f8ea87306f68aa6aea146"
+      },
+      {
+        "file": "20261021120000_tjanst_self_schools_joint_rules.sql",
+        "sha256": "55ef638226b36118578ee007e8e9d70975acea1fa9b26ca9dc3209066e729ccc"
+      },
+      {
+        "file": "20261023100000_tjanst_publish_person_scope.sql",
+        "sha256": "791b116b2959fa8724f2cd0d83d72cb04d517ad574ed57c82135dc1d0e378642"
+      },
+      {
+        "file": "20261023110000_tjanst_year_preview.sql",
+        "sha256": "33ccc9a28144148fca80be9885617dc05d1fea37e02dce92b34b47e78fdea2b2"
+      },
+      {
+        "file": "20261023120000_tjanst_year_commands.sql",
+        "sha256": "1cab1d80c39b672eda6f4a0c552b4bf8bc4f198c18319a14b03498fe5b4ea95e"
+      },
+      {
+        "file": "20261023130000_tjanst_year_worker_access.sql",
+        "sha256": "926aec137deb721811b8a84e6779b580d8cd005564e47cdaf4cab82908e9932f"
+      },
+      {
+        "file": "20261026100000_tjanst_joint_single_teacher.sql",
+        "sha256": "97da3d72923df8873bbe5e7fc2d24c743e2a1b68e763502d335ae3eac499b597"
+      },
+      {
+        "file": "20261026110000_tjanst_class_apl.sql",
+        "sha256": "968ae9ca7972dbd02bc26667e33f7d8ac2c37da7e305c8f80d999a6d023ebe55"
+      },
+      {
+        "file": "20261028100000_tjanst_need_sharing.sql",
+        "sha256": "2267364732b68e7b3b34a3c40fe8b9361225ec22aaae976d70d16937e8141f2b"
+      },
+      {
+        "file": "20261030110000_elective_blocks.sql",
+        "sha256": "020315a66c90be1a5fd8a5347329257688e49d3a0ba7b0c7b1baad3bd94be835"
+      },
+      {
+        "file": "20261030111000_elective_participant_authority.sql",
+        "sha256": "c72f95a605837df84a0b87776f6169ee5d18bd2e79f80c218e70e561b4f5386f"
+      },
+      {
+        "file": "20261030111500_elective_timplan_positions.sql",
+        "sha256": "55ba0cf79267792437868774f5c21f872b2e350ca89445716c102954496b63e0"
+      },
+      {
+        "file": "20261030112000_elective_tjanst_sources.sql",
+        "sha256": "d47f695aee0d969d4d010068fef14c75ff6150b6d821b46181557625603e4953"
+      },
+      {
+        "file": "20261030113000_elective_rounds_choices.sql",
+        "sha256": "dd712589475399347903e1bbad74466ba8cbb3284db1979791417961f5c7e6da"
+      },
+      {
+        "file": "20261030114000_elective_guardian_confirmation.sql",
+        "sha256": "b19e1fb9c62aaeb8cf1986246dd86f1867fe1d83f8e180cf9c1e2e15c9dc95b7"
+      },
+      {
+        "file": "20261030115000_elective_placements.sql",
+        "sha256": "467ccffb99512cf77587154e0234c352fd781030855f4a85a90642969260980d"
+      },
+      {
+        "file": "20261030115100_elective_binding_recovery_reference.sql",
+        "sha256": "3ef83db1e92702726359d593d272f5406c3bfa4aa572583ba57f4b0a0b9a1ab1"
+      },
+      {
+        "file": "20261030115200_elective_frame_exclusivity.sql",
+        "sha256": "14f50a44625b80daa8a6f56bc23e2baf909c4e87f5c468b980c1aaebd140fa4f"
+      },
+      {
+        "file": "20261030115300_elective_participant_account_attestation.sql",
+        "sha256": "8846dadcfdac08bd8515179fdcbb92f107352b586c87314cdd2865141b489767"
+      },
+      {
+        "file": "20261030115400_elective_placement_applied_organization.sql",
+        "sha256": "57f556087ebb66b56c729dcc66266d6e286159be1d7f91cca613f9416b1f0fc8"
+      },
+      {
+        "file": "20261030115500_elective_group_retirement.sql",
+        "sha256": "b7445ddb102e1fcf0638c39e26847b595bab4641cadce9abe7698a44252b2077"
+      },
+      {
+        "file": "20261030115600_elective_applied_pool_intent.sql",
+        "sha256": "5320748cf7558d48d4e11b8d1381b207484784e2bc529850da24c5439a1b0eb4"
+      },
+      {
+        "file": "20261030115700_elective_explicit_privileges.sql",
+        "sha256": "22041ff3b333bbba614d166314b8cc2552f973a60f407d7c36006f99ebac21f3"
+      },
+      {
+        "file": "20261031100000_elective_preparations.sql",
+        "sha256": "7f61304f0999303e92319c7a110928723222479cd09a908ffdbdf091da8afd0d"
+      },
+      {
+        "file": "20261104100000_valplans.sql",
+        "sha256": "2c527aedb2da58e17d06d482f8823da50de6a64a7e576412d6fb072694505e85"
+      },
+      {
+        "file": "20261104110000_study_groups.sql",
+        "sha256": "2867f1a797adf2b30a71a6de32a80f3129721b1f0e295ec66673c653176898e7"
+      },
+      {
+        "file": "20261104120000_valplan_legacy_row_time.sql",
+        "sha256": "0a30a1ac79440118bbac732d3c0aff1291080cadf0ccd7ad3d503b3ebcd8a539"
+      },
+      {
+        "file": "20261105100000_study_group_tjanst.sql",
+        "sha256": "8315190bb58657a8e02958672a815b9bc623fc7ab17bb67633794a365eb0199a"
+      },
+      {
+        "file": "20261105110000_valplan_choices.sql",
+        "sha256": "b21db5515e15bcf41fa62d9c7c5f6b51909d5b978b5829b557c3c8fa1e8a76e0"
+      },
+      {
+        "file": "20261105120000_study_group_read_classes.sql",
+        "sha256": "55e59777f89a817ff07c71a60ad7a2c1fb3b952502c81e0b74edcdfe476d5c21"
+      },
+      {
+        "file": "20261106100000_class_link_following.sql",
+        "sha256": "b3c860ed2699abbfa5e0a4598a235f2da28645cf1f3a4c896c811a8215f107ac"
+      },
+      {
+        "file": "20261107100000_valplan_all_block_kinds.sql",
+        "sha256": "4cf1172ee1562154c729520b60a44f960d17f3e6c08f4447bbced788c0293156"
+      },
+      {
+        "file": "20261107110000_valplan_class_selection.sql",
+        "sha256": "9651bc036017d3e9c6aa893302fa8030a148d2a27d229e754a6316a9fb3c1f16"
+      },
+      {
+        "file": "20261107120000_valplan_open_check.sql",
+        "sha256": "cb3b6a80bb43a9d8a2844711a8b91abdcea93fbb3a3701054765f20d2b3a564d"
+      },
+      {
+        "file": "20261107130000_valplan_held_courses.sql",
+        "sha256": "29378c94806687b68e9485e36677d0f3021f71c1c5c657c108b62516fbb20953"
+      },
+      {
+        "file": "20261110100000_valplan_language_ladders.sql",
+        "sha256": "9f6faed56c136467d9375ce246392f2a7b89d6eed1fa30fb1f3da152cc43fcc5"
+      },
+      {
+        "file": "20261111100000_lasar_versions.sql",
+        "sha256": "10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66"
+      },
+      {
+        "file": "20261111190000_lasar_worker_access.sql",
+        "sha256": "3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c"
+      },
+      {
+        "file": "20261112100000_lasar_groups.sql",
+        "sha256": "6361521a9122d5b3e845efe7e150110a85700ff85c2694467345a749ba122965"
+      },
+      {
+        "file": "20261112110000_lasar_change_requests.sql",
+        "sha256": "ff1b486b2acda0f38e7d94af847339806ed887e8298fbaddf09c28677ac4b581"
+      },
+      {
+        "file": "20261112120000_lasar_frames.sql",
+        "sha256": "11bf09a0aebfe8f013031663e78ed6e1c1836541babe02b71d5b5bea777d8c62"
+      },
+      {
+        "file": "20261112130000_lasar_copy_overview.sql",
+        "sha256": "7481a3924f8235028bcea9a62718e3af41c1a553eb9e2203730814d568b291d6"
+      },
+      {
+        "file": "20261112131000_lasar_overview_worker_access.sql",
+        "sha256": "d110a94a77c14e423017632ba1e7f10646d58ddd61ea29109f54fe94fa829179"
+      },
+      {
+        "file": "20261112140000_lasar_summary.sql",
+        "sha256": "29b6397a3ef7ff56e872e56a1abb3c45df1221999b0b3cbdcbe6829f35dc1901"
+      },
+      {
+        "file": "20261112141000_lasar_summary_worker_access.sql",
+        "sha256": "50801415b79cae0eaf8443150e43557003dee0e54263a43cc0ec7cdf6e28c486"
+      },
+      {
+        "file": "20261112150000_tjanst_need_once.sql",
+        "sha256": "96bd7c660afc8891b9f03e90a5a89c327a1705625a8b9e72a4758023956c5ff5"
+      },
+      {
+        "file": "20261116100000_schema_drafts.sql",
+        "sha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395"
+      },
+      {
+        "file": "20261116101000_schema_drafts_worker_access.sql",
+        "sha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11"
+      },
+      {
+        "file": "20261116102000_schema_dated_basis.sql",
+        "sha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7"
+      }
+    ],
+    "motor": {
+      "binarySha256": "e8fc4c6eecaab183ea1e15faf088b498ed9da1fe30353c97953f435397338023",
+      "source": "exact frozen release Rust HTTP service"
+    }
+  },
+  "logins": [
+    {
+      "role": "principalA",
+      "callbacks": 1,
+      "mfa": true,
+      "acr": "2",
+      "amr": [
+        "pwd",
+        "otp"
+      ]
+    },
+    {
+      "role": "admin",
+      "callbacks": 1,
+      "mfa": true,
+      "acr": "2",
+      "amr": [
+        "pwd",
+        "otp"
+      ]
+    },
+    {
+      "role": "principalB",
+      "callbacks": 1,
+      "mfa": true,
+      "acr": "2",
+      "amr": [
+        "pwd",
+        "otp"
+      ]
+    },
+    {
+      "role": "hm",
+      "callbacks": 1,
+      "mfa": true,
+      "acr": "2",
+      "amr": [
+        "pwd",
+        "otp"
+      ]
+    },
+    {
+      "role": "teacherGroup",
+      "callbacks": 1,
+      "mfa": true,
+      "acr": "2",
+      "amr": [
+        "pwd",
+        "otp"
+      ]
+    },
+    {
+      "role": "principalAB",
+      "callbacks": 1,
+      "mfa": false,
+      "acr": "1",
+      "amr": [
+        "pwd"
+      ]
+    }
+  ],
+  "largeSchemaRequestBytes": 68932,
+  "datedEvidence": {
+    "before": "2027-09-27",
+    "after": "2027-10-04",
+    "anonymousGroupSizesBefore": [
+      1,
+      1
+    ],
+    "anonymousGroupSizesAfter": [
+      0,
+      2
+    ],
+    "motorRequests": 10
+  },
+  "audit": [
+    {
+      "source": "db",
+      "action": "schema_dated_basis_read",
+      "outcome": "ok",
+      "n": 15
+    },
+    {
+      "source": "db",
+      "action": "schema_draft_read",
+      "outcome": "ok",
+      "n": 2
+    },
+    {
+      "source": "db",
+      "action": "schema_draft_saved",
+      "outcome": "ok",
+      "n": 5
+    },
+    {
+      "source": "db",
+      "action": "schema_draft_status",
+      "outcome": "ok",
+      "n": 9
+    },
+    {
+      "source": "worker",
+      "action": "schema_dated_basis_read",
+      "outcome": "ok",
+      "n": 15
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_prepare",
+      "outcome": "ok",
+      "n": 7
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_prepare",
+      "outcome": "denied",
+      "n": 1
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_read",
+      "outcome": "ok",
+      "n": 2
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_read",
+      "outcome": "denied",
+      "n": 6
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_saved",
+      "outcome": "ok",
+      "n": 5
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_saved",
+      "outcome": "denied",
+      "n": 1
+    },
+    {
+      "source": "worker",
+      "action": "schema_draft_status",
+      "outcome": "ok",
+      "n": 2
+    }
+  ],
+  "apiCompletedAt": "2026-11-16T12:15:05.567Z",
+  "ui": {
+    "state": "not_executed",
+    "baseURL": "http://127.0.0.1:50722",
+    "directory": "/private/tmp/schema-draft-final-namespace-01-evidence",
+    "syntheticStorageState": "auth-principalA.json",
+    "note": "Use routeOwnIdp for new OIDC navigations; existing owned app session is already verified."
+  },
+  "cleanup": {
+    "kind": "schema-owned-runtime-cleanup",
+    "status": "PASS",
+    "completedAt": "2026-11-16T13:16:46.448Z",
+    "namespaceRemoved": true,
+    "ownedCoreContainersRemoved": true,
+    "ownedNetworkRemoved": true,
+    "temporaryPostgresRemoved": true,
+    "ownedPortsClosed": [
+      65319,
+      65320,
+      65321,
+      65322,
+      65323,
+      65324,
+      50722,
+      50723
+    ],
+    "credentialJournalsSanitized": 9,
+    "privateSessionCopiesRemoved": true,
+    "rawFailureLogsRemoved": true,
+    "active3012And3013Untouched": true,
+    "targetReadOrWrite": false,
+    "cleanup": "complete",
+    "namespace": {
+      "cleanup": "complete",
+      "stoppedOwnedContainers": [
+        "schema-worker-258214a926c243f2b3ac9dad1037e287"
+      ],
+      "parentRuntimeRetained": true
+    },
+    "ownedCore": {
+      "cleanup": "complete",
+      "postgresRemoved": true,
+      "credentialsRemoved": true
+    }
+  },
+  "completedAt": "2026-11-16T13:15:02.534Z",
+  "auditObservation": {
+    "kind": "namespace-api-audit-scope",
+    "observedAt": "2026-11-16T12:22:16.108Z",
+    "apiCompletedAt": "2026-11-16T12:15:05.567Z",
+    "customerScope": "only-new-namespace-customer",
+    "audit": [
+      {
+        "source": "db",
+        "action": "schema_dated_basis_read",
+        "outcome": "ok",
+        "n": 15
+      },
+      {
+        "source": "db",
+        "action": "schema_draft_read",
+        "outcome": "ok",
+        "n": 2
+      },
+      {
+        "source": "db",
+        "action": "schema_draft_saved",
+        "outcome": "ok",
+        "n": 5
+      },
+      {
+        "source": "db",
+        "action": "schema_draft_status",
+        "outcome": "ok",
+        "n": 9
+      },
+      {
+        "source": "worker",
+        "action": "schema_dated_basis_read",
+        "outcome": "ok",
+        "n": 15
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_prepare",
+        "outcome": "ok",
+        "n": 7
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_prepare",
+        "outcome": "denied",
+        "n": 1
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_read",
+        "outcome": "ok",
+        "n": 2
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_read",
+        "outcome": "denied",
+        "n": 6
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_saved",
+        "outcome": "ok",
+        "n": 5
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_saved",
+        "outcome": "denied",
+        "n": 1
+      },
+      {
+        "source": "worker",
+        "action": "schema_draft_status",
+        "outcome": "ok",
+        "n": 2
+      }
+    ]
+  },
+  "infrastructureObservation": {
+    "kind": "owned-namespace-infrastructure-observation",
+    "observedAt": "2026-11-16T12:21:14.669Z",
+    "images": [
+      {
+        "kind": "idp",
+        "configured": "quay.io/keycloak/keycloak:26.7.3",
+        "image": "sha256:0624e22e9c90fda1b74797f4c3e82911ccbb0005614bdb3739e76823b665f61d",
+        "repoDigests": [
+          "quay.io/keycloak/keycloak@sha256:29be7252db0a106f1cd2ac17b9a56ff2668073da645638a38b9fc67deeb2d6c4"
+        ]
+      },
+      {
+        "kind": "auth",
+        "configured": "public.ecr.aws/supabase/gotrue:v2.187.0",
+        "image": "sha256:bcd84488cb45b9fd45c2226683b20b17e8598e7ed3fdd353c6ab9a1d921fdb9d",
+        "repoDigests": [
+          "public.ecr.aws/supabase/gotrue@sha256:8b0b3f68d9a8667e183b481ff74f5d72eedc1e8b70f6bde2aab1e5d79d16df62"
+        ]
+      }
+    ],
+    "productUnchanged": true,
+    "noTargetReads": true
+  },
+  "uiReleaseBindings": [
+    {
+      "kind": "schema-namespace-exact-ui-release",
+      "at": "2026-11-16T12:40:18.978Z",
+      "previousApiRevision": "211d85a662d6416992c6b4ae731dae8d92250f35",
+      "releaseRevision": "fd3c3eda4db340cb75be4a03a03974539407d234",
+      "releaseManifestSha256": "8fea4d4452c7328d77eabe40d08f6f3ee927917a640f10883ada65c471fda863",
+      "releaseArtifactSha256": "e08629ec394856ae11ce92da6dd62c0f86c20665a1c475def0066b5734413a2c",
+      "apiSourceUnchanged": true,
+      "apiSourceCount": 899,
+      "apiSourceManifestSha256": "2410723f869a6a829f03be1f38f6388fd7f9e040df87b0888a603ec26de44255",
+      "unchangedGuardSha256": "db83ec53d931c91cfa5e1db7f075662c2e4fde2885836a7875a2568afcfddf99",
+      "identicalMotorBytes": true,
+      "motorSha256": "e8fc4c6eecaab183ea1e15faf088b498ed9da1fe30353c97953f435397338023",
+      "sqlUnchanged": true,
+      "bindingsHash": "767ef4545e5ad84014214f3466259054a3d4759ff5bf1c306dae17dc56ef9665",
+      "configSha256": "1f8ad83c9785cbaaa1eeccf80e7b2a30756d4e5ff0f2e3542446bfcc38a9b186",
+      "baseURL": "http://127.0.0.1:50722",
+      "originalApiReportSha256": "eed567f6f48aa86f234dea6701de784f2de650ea1cc575fa1c38a44b7d9de81f",
+      "originalApiChecks": 8,
+      "status": "ready",
+      "noDbWrites": true,
+      "noAuthChanges": true
+    },
+    {
+      "kind": "schema-namespace-exact-ui-release",
+      "at": "2026-11-16T12:59:32.864Z",
+      "previousApiRevision": "211d85a662d6416992c6b4ae731dae8d92250f35",
+      "releaseRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+      "releaseManifestSha256": "23410c8cd33f60d6c03edb691abd268330940642a4c015711abf622942f2daba",
+      "releaseArtifactSha256": "3267857b81a1cd6827c9022643d60a94be667dea73fb201905e9364aa7f2f14d",
+      "apiSourceUnchanged": true,
+      "apiSourceCount": 899,
+      "apiSourceManifestSha256": "2410723f869a6a829f03be1f38f6388fd7f9e040df87b0888a603ec26de44255",
+      "unchangedGuardSha256": "db83ec53d931c91cfa5e1db7f075662c2e4fde2885836a7875a2568afcfddf99",
+      "identicalMotorBytes": true,
+      "motorSha256": "e8fc4c6eecaab183ea1e15faf088b498ed9da1fe30353c97953f435397338023",
+      "sqlUnchanged": true,
+      "bindingsHash": "767ef4545e5ad84014214f3466259054a3d4759ff5bf1c306dae17dc56ef9665",
+      "configSha256": "1f8ad83c9785cbaaa1eeccf80e7b2a30756d4e5ff0f2e3542446bfcc38a9b186",
+      "baseURL": "http://127.0.0.1:50722",
+      "originalApiReportSha256": "eed567f6f48aa86f234dea6701de784f2de650ea1cc575fa1c38a44b7d9de81f",
+      "originalApiChecks": 8,
+      "status": "ready",
+      "noDbWrites": true,
+      "noAuthChanges": true
+    }
+  ],
+  "uiReleaseBinding": {
+    "kind": "schema-namespace-exact-ui-release",
+    "at": "2026-11-16T12:59:32.864Z",
+    "previousApiRevision": "211d85a662d6416992c6b4ae731dae8d92250f35",
+    "releaseRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+    "releaseManifestSha256": "23410c8cd33f60d6c03edb691abd268330940642a4c015711abf622942f2daba",
+    "releaseArtifactSha256": "3267857b81a1cd6827c9022643d60a94be667dea73fb201905e9364aa7f2f14d",
+    "apiSourceUnchanged": true,
+    "apiSourceCount": 899,
+    "apiSourceManifestSha256": "2410723f869a6a829f03be1f38f6388fd7f9e040df87b0888a603ec26de44255",
+    "unchangedGuardSha256": "db83ec53d931c91cfa5e1db7f075662c2e4fde2885836a7875a2568afcfddf99",
+    "identicalMotorBytes": true,
+    "motorSha256": "e8fc4c6eecaab183ea1e15faf088b498ed9da1fe30353c97953f435397338023",
+    "sqlUnchanged": true,
+    "bindingsHash": "767ef4545e5ad84014214f3466259054a3d4759ff5bf1c306dae17dc56ef9665",
+    "configSha256": "1f8ad83c9785cbaaa1eeccf80e7b2a30756d4e5ff0f2e3542446bfcc38a9b186",
+    "baseURL": "http://127.0.0.1:50722",
+    "originalApiReportSha256": "eed567f6f48aa86f234dea6701de784f2de650ea1cc575fa1c38a44b7d9de81f",
+    "originalApiChecks": 8,
+    "status": "ready",
+    "noDbWrites": true,
+    "noAuthChanges": true
+  },
+  "uiVerification": {
+    "status": "PASS",
+    "releaseRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+    "releaseManifestSha256": "23410c8cd33f60d6c03edb691abd268330940642a4c015711abf622942f2daba",
+    "releaseArtifactSha256": "3267857b81a1cd6827c9022643d60a94be667dea73fb201905e9364aa7f2f14d",
+    "report": "/private/tmp/schema-draft-final-namespace-01-evidence/ui-results-2026-11-16T13-12-28.390Z.json",
+    "reportSha256": "3a465d1986b9cbbfac405d069526da04538eea34dc964d370c7ced68b9410c34",
+    "profiles": [
+      {
+        "width": 1280,
+        "status": "PASS",
+        "loginRenewed": true,
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        },
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850",
+        "reopenedContentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "receiptVerified": true,
+        "reads": 3,
+        "saves": 1,
+        "statusCounts": {
+          "utkast/las:200": 6,
+          "datum:200": 2,
+          "utkast/spara:200": 1
+        },
+        "reusedFromPriorProof": true
+      },
+      {
+        "width": 1600,
+        "status": "PASS",
+        "loginRenewed": false,
+        "counts": {
+          "lessons": 49,
+          "placed": 48,
+          "parked": 1,
+          "locks": 1,
+          "dated": 1,
+          "activities": 0,
+          "types": 0
+        },
+        "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850",
+        "reopenedContentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+        "receiptVerified": true,
+        "reads": 3,
+        "saves": 2,
+        "statusCounts": {
+          "utkast/las:200": 5,
+          "datum:200": 3,
+          "utkast/spara:200": 5,
+          "diagnos:200": 1,
+          "forslag:200": 1
+        },
+        "reusedFromPriorProof": true
+      }
+    ],
+    "checks": [
+      {
+        "check": "c7_generation_and_preserved_form",
+        "status": "PASS",
+        "generatedResponses": 1,
+        "startingLocks": 0,
+        "startingDates": 0,
+        "confirmedDateReplacement": 0
+      }
+    ],
+    "activity": {
+      "status": "PASS",
+      "startingCounts": {
+        "lessons": 37,
+        "placed": 37,
+        "parked": 0,
+        "locks": 0,
+        "dated": 0,
+        "activities": 0,
+        "types": 1
+      },
+      "counts": {
+        "lessons": 37,
+        "placed": 37,
+        "parked": 0,
+        "locks": 0,
+        "dated": 0,
+        "activities": 1,
+        "types": 1
+      },
+      "generated": 1,
+      "activityResponses": 1,
+      "confirmedDateReplacement": 0,
+      "contentHash": "sha256:c3b8e53674884375812a33c1402e3a2761d1c0cb1f98ce29ff8502a0f3574d85",
+      "statusCounts": {
+        "utkast/las:200": 4,
+        "utkast/spara:200": 3,
+        "diagnos:200": 1,
+        "forslag:200": 1,
+        "aktiviteter:200": 1
+      }
+    },
+    "limits": [
+      "Only owned synthetic namespace; genuine product UI and real authenticated HTTP",
+      "Owned IdP transport with ordinary OIDC session registration; no API/auth fixtures or direct application-data SQL writes",
+      "Date preservation verified; no separate date-edit scenario",
+      "Not user acceptance or a real school integration"
+    ],
+    "priorPartialProof": {
+      "report": "/private/tmp/schema-draft-final-namespace-01-evidence/ui-results-2026-11-16T13-03-39.122Z.json",
+      "sha256": "4c7f063b47d8cd8e9f6a4212a034464d0c843e70eafdd68ee9ad1cdaee6cf7e1",
+      "overallStatus": "FAIL",
+      "reusedPassingChecks": [
+        {
+          "check": "verified_read",
+          "width": 1280,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "counts": {
+            "lessons": 49,
+            "placed": 48,
+            "parked": 1,
+            "locks": 1,
+            "dated": 1,
+            "activities": 0,
+            "types": 0
+          }
+        },
+        {
+          "check": "ui_autosave_verified_receipt",
+          "width": 1280,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "reload_after_clear_local_storage",
+          "width": 1280,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "start_then_browser_back",
+          "width": 1280,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "verified_read",
+          "width": 1600,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "counts": {
+            "lessons": 49,
+            "placed": 48,
+            "parked": 1,
+            "locks": 1,
+            "dated": 1,
+            "activities": 0,
+            "types": 0
+          }
+        },
+        {
+          "check": "ui_autosave_verified_receipt",
+          "width": 1600,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "reload_after_clear_local_storage",
+          "width": 1600,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "start_then_browser_back",
+          "width": 1600,
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        },
+        {
+          "check": "real_shared_window_name",
+          "status": "PASS",
+          "contentHash": "sha256:e6cfb6613ef054058814354acce945bc8b1c56c7f55f870c2698195b052d2b48",
+          "preservationHash": "sha256:44a287523dad28ccc8edd916d21c933d2e92f5817dfff4ab86bfccf686d79850"
+        }
+      ],
+      "explanation": "Both width profiles and shared-window checks passed in this partial run; its failing activity step is retained in the original report and replaced only by the separately passing final C7 run."
+    }
+  },
+  "namespaceCleanup": {
+    "cleanup": "complete",
+    "stoppedOwnedContainers": [
+      "schema-worker-258214a926c243f2b3ac9dad1037e287"
+    ],
+    "parentRuntimeRetained": true
+  },
+  "originalApiReportSha256": "4532bfa228c1803b76049c44ab9e7e076ac5e5dd2e750cc54806f59e9025639b",
+  "snapshotAt": "2026-11-16T13:19:24.866Z",
+  "snapshotKind": "final_sanitized_api_ui_binding_and_owned_cleanup",
+  "deployment": {
+    "performed": false,
+    "active3012And3013Untouched": true,
+    "targetReadOrWrite": false
+  }
+}

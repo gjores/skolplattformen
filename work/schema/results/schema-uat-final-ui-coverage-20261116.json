@@ -1,0 +1,2829 @@
+{
+  "kind": "schema-uat-ui-coverage",
+  "status": "PASS_WITH_TARGETED_RECHECKS",
+  "sourceRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+  "scope": "synthetic component fixtures with explicit API mocks; not actual server or human acceptance",
+  "profiles": [
+    "desktop-1280",
+    "desktop-1600"
+  ],
+  "uniqueCases": 274,
+  "allCasesHavePassingEvidence": true,
+  "automaticRetries": 0,
+  "runs": [
+    {
+      "report": "schema-uat-final-browser-results.json",
+      "sha256": "751a9a55aaf3b8086480a44601a409dd00ac013c8fe67ec1c454e59657d27e90",
+      "sourceRevision": "211d85a662d6416992c6b4ae731dae8d92250f35",
+      "stats": {
+        "startTime": "2026-11-16T12:03:59.359Z",
+        "duration": 1593286.928,
+        "expected": 252,
+        "skipped": 0,
+        "unexpected": 18,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "schema-uat-final-regression-results.json",
+      "sha256": "fa548fba3517b75ac7ac1dbcb142305ab4f669438cc736f74b7527432f19fad5",
+      "sourceRevision": "fd3c3eda4db340cb75be4a03a03974539407d234",
+      "stats": {
+        "startTime": "2026-11-16T12:31:38.647Z",
+        "duration": 394452.854,
+        "expected": 28,
+        "skipped": 0,
+        "unexpected": 2,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "schema-uat-final-last-results.json",
+      "sha256": "b226a62ea6021649b3da3d8bb3223e4a3a03cb094415cbcd294707d2fc1d04ac",
+      "sourceRevision": "fd3c3eda4db340cb75be4a03a03974539407d234",
+      "stats": {
+        "startTime": "2026-11-16T12:38:59.975Z",
+        "duration": 24775.152000000002,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    },
+    {
+      "report": "schema-uat-period-fix-results.json",
+      "sha256": "a699aae86b1899560d0f378312bb7bd0bfe2cf3d430fc626d7b8d186e165c7aa",
+      "sourceRevision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f",
+      "stats": {
+        "startTime": "2026-11-16T12:54:04.870Z",
+        "duration": 171540.098,
+        "expected": 42,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      }
+    }
+  ],
+  "finalProductSourceFilesCompared": 1280,
+  "finalSourceManifestSha256": "298c927abd1308700786e9e78bf00eabd28c0238e0d16b52abb9afd18cd1f238",
+  "runtimeChangeAfterBaseRun": "Only the dedicated undo button keeps focus while disabled; delayed successful validation checked in both profiles",
+  "testCorrections": [
+    "drag starts below sticky undo bar",
+    "long three-window scenario waits for DOMContentLoaded and has measured local test.slow budget",
+    "successful zero-violation heading asserted after completed control",
+    "delayed control exercises retained undo focus instead of missing 404 fixture"
+  ],
+  "failedRunsPreserved": true,
+  "passedCases": [
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | aktivitetens återhämtning släpper lås först efter ett lyckat nytt förslag och behåller formuläret vid motorfel | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "aktivitetens återhämtning släpper lås först efter ett lyckat nytt förslag och behåller formuläret vid motorfel",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | aktivitetens återhämtning släpper lås först efter ett lyckat nytt förslag och behåller formuläret vid motorfel | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "aktivitetens återhämtning släpper lås först efter ett lyckat nytt förslag och behåller formuläret vid motorfel",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | gemensam ångring återställer rast och aktivitet i rätt ordning | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "gemensam ångring återställer rast och aktivitet i rätt ordning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | gemensam ångring återställer rast och aktivitet i rätt ordning | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "gemensam ångring återställer rast och aktivitet i rätt ordning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1280) | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1280)",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1280) | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1280)",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1600) | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1600)",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1600) | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "mentorstid via tom tid syns för klass och lärare, tas bort och ångras (1600)",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | nekad aktivitetsbegäran lämnar det befintliga utkastet orört | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "nekad aktivitetsbegäran lämnar det befintliga utkastet orört",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | nekad aktivitetsbegäran lämnar det befintliga utkastet orört | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "nekad aktivitetsbegäran lämnar det befintliga utkastet orört",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | typer kan grupperas, döpas om och återöppnas från serverutkastet | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "typer kan grupperas, döpas om och återöppnas från serverutkastet",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | typer kan grupperas, döpas om och återöppnas från serverutkastet | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "typer kan grupperas, döpas om och återöppnas från serverutkastet",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn och deltagare försvinner | desktop-1280",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn och deltagare försvinner",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-aktiviteter.spec.ts |  | schema-aktiviteter.spec.ts | ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn och deltagare försvinner | desktop-1600",
+      "file": "schema-aktiviteter.spec.ts",
+      "title": "ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn och deltagare försvinner",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | Byt-verktyget byter två pass när ett pass släpps på det andra | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "Byt-verktyget byter två pass när ett pass släpps på det andra",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | Byt-verktyget byter två pass när ett pass släpps på det andra | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "Byt-verktyget byter två pass när ett pass släpps på det andra",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | dagmenyn låser dagens pass och stor text behåller arbetsytans bredd | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "dagmenyn låser dagens pass och stor text behåller arbetsytans bredd",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | dagmenyn låser dagens pass och stor text behåller arbetsytans bredd | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "dagmenyn låser dagens pass och stor text behåller arbetsytans bredd",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | klassens lås följer nästa begäran och visas i passtabellens filter | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "klassens lås följer nästa begäran och visas i passtabellens filter",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | klassens lås följer nästa begäran och visas i passtabellens filter | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "klassens lås följer nästa begäran och visas i passtabellens filter",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | låst pass har tydligt besked och markeringen kan avbrytas utan upplåsning | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "låst pass har tydligt besked och markeringen kan avbrytas utan upplåsning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | låst pass har tydligt besked och markeringen kan avbrytas utan upplåsning | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "låst pass har tydligt besked och markeringen kan avbrytas utan upplåsning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | markerade pass flyttas med samma tidsförskjutning och ramen markerar dagens pass | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "markerade pass flyttas med samma tidsförskjutning och ramen markerar dagens pass",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | markerade pass flyttas med samma tidsförskjutning och ramen markerar dagens pass | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "markerade pass flyttas med samma tidsförskjutning och ramen markerar dagens pass",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | möjlighetskartan syns vid tangentbordsflytt och under ett drag | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "möjlighetskartan syns vid tangentbordsflytt och under ett drag",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | möjlighetskartan syns vid tangentbordsflytt och under ett drag | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "möjlighetskartan syns vid tangentbordsflytt och under ett drag",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | passmenyn byter två pass och ett ångra återställer båda | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "passmenyn byter två pass och ett ångra återställer båda",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | passmenyn byter två pass och ett ångra återställer båda | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "passmenyn byter två pass och ett ångra återställer båda",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | tre pass markeras med skift, parkeras och återställs i ett steg | desktop-1280",
+      "file": "schema-byt.spec.ts",
+      "title": "tre pass markeras med skift, parkeras och återställs i ett steg",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-byt.spec.ts |  | schema-byt.spec.ts | tre pass markeras med skift, parkeras och återställs i ett steg | desktop-1600",
+      "file": "schema-byt.spec.ts",
+      "title": "tre pass markeras med skift, parkeras och återställs i ett steg",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-datum-dialog.spec.ts |  | schema-datum-dialog.spec.ts | läsårsutkast kan förbereda flytt över terminsgränsen med originalets längd | desktop-1280",
+      "file": "schema-datum-dialog.spec.ts",
+      "title": "läsårsutkast kan förbereda flytt över terminsgränsen med originalets längd",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-dialog.spec.ts |  | schema-datum-dialog.spec.ts | läsårsutkast kan förbereda flytt över terminsgränsen med originalets längd | desktop-1600",
+      "file": "schema-datum-dialog.spec.ts",
+      "title": "läsårsutkast kan förbereda flytt över terminsgränsen med originalets längd",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-dialog.spec.ts |  | schema-datum-dialog.spec.ts | terminsutkast förklarar att terminsflytt kräver ett läsårsutkast och behåller datumvalet | desktop-1280",
+      "file": "schema-datum-dialog.spec.ts",
+      "title": "terminsutkast förklarar att terminsflytt kräver ett läsårsutkast och behåller datumvalet",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-dialog.spec.ts |  | schema-datum-dialog.spec.ts | terminsutkast förklarar att terminsflytt kräver ett läsårsutkast och behåller datumvalet | desktop-1600",
+      "file": "schema-datum-dialog.spec.ts",
+      "title": "terminsutkast förklarar att terminsflytt kräver ett läsårsutkast och behåller datumvalet",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | en äldre datumdialog och dess kvarhållna avsikt kan inte ändra återanvänt passnummer i ny grund | desktop-1280",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "en äldre datumdialog och dess kvarhållna avsikt kan inte ändra återanvänt passnummer i ny grund",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | en äldre datumdialog och dess kvarhållna avsikt kan inte ändra återanvänt passnummer i ny grund | desktop-1600",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "en äldre datumdialog och dess kvarhållna avsikt kan inte ändra återanvänt passnummer i ny grund",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | ett child-tillfälle synkas, sparas och ångras som datumändring medan grundschema och nästa vecka behålls | desktop-1280",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "ett child-tillfälle synkas, sparas och ångras som datumändring medan grundschema och nästa vecka behålls",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | ett child-tillfälle synkas, sparas och ångras som datumändring medan grundschema och nästa vecka behålls | desktop-1600",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "ett child-tillfälle synkas, sparas och ångras som datumändring medan grundschema och nästa vecka behålls",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | stale sparstatus stänger en redan öppen child-dialog och visar varför fortsatt datumredigering stoppas | desktop-1280",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "stale sparstatus stänger en redan öppen child-dialog och visar varför fortsatt datumredigering stoppas",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-datum-fonster.spec.ts |  | schema-datum-fonster.spec.ts | stale sparstatus stänger en redan öppen child-dialog och visar varför fortsatt datumredigering stoppas | desktop-1600",
+      "file": "schema-datum-fonster.spec.ts",
+      "title": "stale sparstatus stänger en redan öppen child-dialog och visar varför fortsatt datumredigering stoppas",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | gammal diagnostikversion godtas inte som fyndfri beräkning | desktop-1280",
+      "file": "schema-diagnos.spec.ts",
+      "title": "gammal diagnostikversion godtas inte som fyndfri beräkning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | gammal diagnostikversion godtas inte som fyndfri beräkning | desktop-1600",
+      "file": "schema-diagnos.spec.ts",
+      "title": "gammal diagnostikversion godtas inte som fyndfri beräkning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | nekad fördiagnos visar begripligt fel och kör aldrig förslaget | desktop-1280",
+      "file": "schema-diagnos.spec.ts",
+      "title": "nekad fördiagnos visar begripligt fel och kör aldrig förslaget",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | nekad fördiagnos visar begripligt fel och kör aldrig förslaget | desktop-1600",
+      "file": "schema-diagnos.spec.ts",
+      "title": "nekad fördiagnos visar begripligt fel och kör aldrig förslaget",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passet samt lärarens villkorsrad | desktop-1280",
+      "file": "schema-diagnos.spec.ts",
+      "title": "svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passet samt lärarens villkorsrad",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passet samt lärarens villkorsrad | desktop-1600",
+      "file": "schema-diagnos.spec.ts",
+      "title": "svåraste pass och räknade flaskhalsar visar namn och öppnar Följ passet samt lärarens villkorsrad",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | överbokad lärare visas före beräkning med åtgärdslänk; motorn kör först efter uttryckligt fortsätt | desktop-1280",
+      "file": "schema-diagnos.spec.ts",
+      "title": "överbokad lärare visas före beräkning med åtgärdslänk; motorn kör först efter uttryckligt fortsätt",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-diagnos.spec.ts |  | schema-diagnos.spec.ts | överbokad lärare visas före beräkning med åtgärdslänk; motorn kör först efter uttryckligt fortsätt | desktop-1600",
+      "file": "schema-diagnos.spec.ts",
+      "title": "överbokad lärare visas före beräkning med åtgärdslänk; motorn kör först efter uttryckligt fortsätt",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | Följ passet uppdateras från huvudfönstret och delar markering och ångra | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "Följ passet uppdateras från huvudfönstret och delar markering och ångra",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | Följ passet uppdateras från huvudfönstret och delar markering och ångra | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "Följ passet uppdateras från huvudfönstret och delar markering och ångra",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | fönsterarbetsvy sparar och öppnar två vyer igen utan elevurval | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "fönsterarbetsvy sparar och öppnar två vyer igen utan elevurval",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | fönsterarbetsvy sparar och öppnar två vyer igen utan elevurval | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "fönsterarbetsvy sparar och öppnar två vyer igen utan elevurval",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkastet orört | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkastet orört",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkastet orört | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkastet orört",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | klassfönster använder stabil klassreferens och saknad lärarreferens ersätts inte med första läraren | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "klassfönster använder stabil klassreferens och saknad lärarreferens ersätts inte med första läraren",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | klassfönster använder stabil klassreferens och saknad lärarreferens ersätts inte med första läraren | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "klassfönster använder stabil klassreferens och saknad lärarreferens ersätts inte med första läraren",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | nekad egen behörighet ansluter inte till synk och visar inga schemauppgifter | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "nekad egen behörighet ansluter inte till synk och visar inga schemauppgifter",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | nekad egen behörighet ansluter inte till synk och visar inga schemauppgifter | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "nekad egen behörighet ansluter inte till synk och visar inga schemauppgifter",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | resursfönster läser egna listor: lärare, salstomläge och elev med lokal namngräns | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "resursfönster läser egna listor: lärare, salstomläge och elev med lokal namngräns",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | resursfönster läser egna listor: lärare, salstomläge och elev med lokal namngräns | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "resursfönster läser egna listor: lärare, salstomläge och elev med lokal namngräns",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | rubrikens fönsterknapp öppnar den befintliga vyn Vecka för vecka | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "rubrikens fönsterknapp öppnar den befintliga vyn Vecka för vecka",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | rubrikens fönsterknapp öppnar den befintliga vyn Vecka för vecka | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "rubrikens fönsterknapp öppnar den befintliga vyn Vecka för vecka",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | villkor i barnfönstret ångras där och görs om i huvudfönstret som ett gemensamt steg | desktop-1280",
+      "file": "schema-fonster.spec.ts",
+      "title": "villkor i barnfönstret ångras där och görs om i huvudfönstret som ett gemensamt steg",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-fonster.spec.ts |  | schema-fonster.spec.ts | villkor i barnfönstret ångras där och görs om i huvudfönstret som ett gemensamt steg | desktop-1600",
+      "file": "schema-fonster.spec.ts",
+      "title": "villkor i barnfönstret ångras där och görs om i huvudfönstret som ett gemensamt steg",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | 401 från personaluppslaget går till arbetsytans sessionshantering | desktop-1280",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "401 från personaluppslaget går till arbetsytans sessionshantering",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | 401 från personaluppslaget går till arbetsytans sessionshantering | desktop-1600",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "401 från personaluppslaget går till arbetsytans sessionshantering",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | fel och fel skolkontext i personaluppslaget bevarar namn och planens val; återförsök kan lägga till personal | desktop-1280",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "fel och fel skolkontext i personaluppslaget bevarar namn och planens val; återförsök kan lägga till personal",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | fel och fel skolkontext i personaluppslaget bevarar namn och planens val; återförsök kan lägga till personal | desktop-1600",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "fel och fel skolkontext i personaluppslaget bevarar namn och planens val; återförsök kan lägga till personal",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | utan rektors tips gör aktivitetsdialogen inget personaluppslag | desktop-1280",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "utan rektors tips gör aktivitetsdialogen inget personaluppslag",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | utan rektors tips gör aktivitetsdialogen inget personaluppslag | desktop-1600",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "utan rektors tips gör aktivitetsdialogen inget personaluppslag",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | återöppnat utkast får valbar extra personal utan att ändra grund, radordning eller sparversion | desktop-1280",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "återöppnat utkast får valbar extra personal utan att ändra grund, radordning eller sparversion",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-personal-aktiviteter.spec.ts |  | schema-personal-aktiviteter.spec.ts | återöppnat utkast får valbar extra personal utan att ändra grund, radordning eller sparversion | desktop-1600",
+      "file": "schema-personal-aktiviteter.spec.ts",
+      "title": "återöppnat utkast får valbar extra personal utan att ändra grund, radordning eller sparversion",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Alt-dra öppnar målsökning och flyttar inget före Godkänn | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "Alt-dra öppnar målsökning och flyttar inget före Godkänn",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Alt-dra öppnar målsökning och flyttar inget före Godkänn | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "Alt-dra öppnar målsökning och flyttar inget före Godkänn",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Föreslå placering från Följ passet öppnar samma granskning med fullständiga passnamn | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "Föreslå placering från Följ passet öppnar samma granskning med fullständiga passnamn",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Föreslå placering från Följ passet öppnar samma granskning med fullständiga passnamn | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "Föreslå placering från Följ passet öppnar samma granskning med fullständiga passnamn",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halvresultat | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halvresultat",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halvresultat | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halvresultat",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | anslutet barnfönster söker, granskar, genomför och ångrar hela placeringsförslaget via huvudfönstret | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "anslutet barnfönster söker, granskar, genomför och ångrar hela placeringsförslaget via huvudfönstret",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | anslutet barnfönster söker, granskar, genomför och ångrar hela placeringsförslaget via huvudfönstret | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "anslutet barnfönster söker, granskar, genomför och ångrar hela placeringsförslaget via huvudfönstret",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | en medveten krock behåller regelbrotten, syns i båda fönstren och i passtabellen och kan ångras | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "en medveten krock behåller regelbrotten, syns i båda fönstren och i passtabellen och kan ångras",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | en medveten krock behåller regelbrotten, syns i båda fönstren och i passtabellen och kan ångras | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "en medveten krock behåller regelbrotten, syns i båda fönstren och i passtabellen och kan ångras",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | förslagslistan nås med tangentbord och rullar i egen tabell vid 200 procent text | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "förslagslistan nås med tangentbord och rullar i egen tabell vid 200 procent text",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | förslagslistan nås med tangentbord och rullar i egen tabell vid 200 procent text | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "förslagslistan nås med tangentbord och rullar i egen tabell vid 200 procent text",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | minsta störning från flyttpanelen visar vald tid och kontrollerar hela kandidaten före ändring | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "minsta störning från flyttpanelen visar vald tid och kontrollerar hela kandidaten före ändring",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | minsta störning från flyttpanelen visar vald tid och kontrollerar hela kandidaten före ändring | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "minsta störning från flyttpanelen visar vald tid och kontrollerar hela kandidaten före ändring",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | nekad sökning bevarar utkast och låst pass erbjuder inga flyttförslag | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "nekad sökning bevarar utkast och låst pass erbjuder inga flyttförslag",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | nekad sökning bevarar utkast och låst pass erbjuder inga flyttförslag | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "nekad sökning bevarar utkast och låst pass erbjuder inga flyttförslag",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | parkera → föreslå från viloytan → granska → genomför alla placeringar → ångra ett steg | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "parkera → föreslå från viloytan → granska → genomför alla placeringar → ångra ett steg",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | parkera → föreslå från viloytan → granska → genomför alla placeringar → ångra ett steg | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "parkera → föreslå från viloytan → granska → genomför alla placeringar → ångra ett steg",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | sökdjup ökar till tre och ett nytt lås gör tidigare förslag omöjliga att godkänna | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "sökdjup ökar till tre och ett nytt lås gör tidigare förslag omöjliga att godkänna",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | sökdjup ökar till tre och ett nytt lås gör tidigare förslag omöjliga att godkänna | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "sökdjup ökar till tre och ett nytt lås gör tidigare förslag omöjliga att godkänna",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | tidsregler och andra icke-krockar kan inte markeras som medvetna | desktop-1280",
+      "file": "schema-placering.spec.ts",
+      "title": "tidsregler och andra icke-krockar kan inte markeras som medvetna",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-placering.spec.ts |  | schema-placering.spec.ts | tidsregler och andra icke-krockar kan inte markeras som medvetna | desktop-1600",
+      "file": "schema-placering.spec.ts",
+      "title": "tidsregler och andra icke-krockar kan inte markeras som medvetna",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | alla salar och handlingar ryms vid 200 procent text och tangentbordet kan stänga dialogen | desktop-1280",
+      "file": "schema-salar.spec.ts",
+      "title": "alla salar och handlingar ryms vid 200 procent text och tangentbordet kan stänga dialogen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | alla salar och handlingar ryms vid 200 procent text och tangentbordet kan stänga dialogen | desktop-1600",
+      "file": "schema-salar.spec.ts",
+      "title": "alla salar och handlingar ryms vid 200 procent text och tangentbordet kan stänga dialogen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | inaktuellt svar kan inte väljas och en ny sökning binder den ändrade tiden | desktop-1280",
+      "file": "schema-salar.spec.ts",
+      "title": "inaktuellt svar kan inte väljas och en ny sökning binder den ändrade tiden",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | inaktuellt svar kan inte väljas och en ny sökning binder den ändrade tiden | desktop-1600",
+      "file": "schema-salar.spec.ts",
+      "title": "inaktuellt svar kan inte väljas och en ny sökning binder den ändrade tiden",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | läsfel visar en konkret ny handling och beskriver aldrig en sal som fri | desktop-1280",
+      "file": "schema-salar.spec.ts",
+      "title": "läsfel visar en konkret ny handling och beskriver aldrig en sal som fri",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | läsfel visar en konkret ny handling och beskriver aldrig en sal som fri | desktop-1600",
+      "file": "schema-salar.spec.ts",
+      "title": "läsfel visar en konkret ny handling och beskriver aldrig en sal som fri",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | låst pass kan inte börja söka eller genomföra en flytt | desktop-1280",
+      "file": "schema-salar.spec.ts",
+      "title": "låst pass kan inte börja söka eller genomföra en flytt",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | låst pass kan inte börja söka eller genomföra en flytt | desktop-1600",
+      "file": "schema-salar.spec.ts",
+      "title": "låst pass kan inte börja söka eller genomföra en flytt",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | sök gäller exakt mål och visar orsaker; salval lämnar passet kvar tills Flytta hit väljs | desktop-1280",
+      "file": "schema-salar.spec.ts",
+      "title": "sök gäller exakt mål och visar orsaker; salval lämnar passet kvar tills Flytta hit väljs",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-salar.spec.ts |  | schema-salar.spec.ts | sök gäller exakt mål och visar orsaker; salval lämnar passet kvar tills Flytta hit väljs | desktop-1600",
+      "file": "schema-salar.spec.ts",
+      "title": "sök gäller exakt mål och visar orsaker; salval lämnar passet kvar tills Flytta hit väljs",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | elevresurser saknas utan behörigt lässvar och elevval sparas aldrig i arbetsvyn | desktop-1280",
+      "file": "schema-samling.spec.ts",
+      "title": "elevresurser saknas utan behörigt lässvar och elevval sparas aldrig i arbetsvyn",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | elevresurser saknas utan behörigt lässvar och elevval sparas aldrig i arbetsvyn | desktop-1600",
+      "file": "schema-samling.spec.ts",
+      "title": "elevresurser saknas utan behörigt lässvar och elevval sparas aldrig i arbetsvyn",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | filter ändrar visning men ledigsök beskriver ämnesuppdrag och salarnas begränsning | desktop-1280",
+      "file": "schema-samling.spec.ts",
+      "title": "filter ändrar visning men ledigsök beskriver ämnesuppdrag och salarnas begränsning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | filter ändrar visning men ledigsök beskriver ämnesuppdrag och salarnas begränsning | desktop-1600",
+      "file": "schema-samling.spec.ts",
+      "title": "filter ändrar visning men ledigsök beskriver ämnesuppdrag och salarnas begränsning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | gemensam ledig tid, lager och resursmatris visas tillsammans utan sidledsrullning | desktop-1280",
+      "file": "schema-samling.spec.ts",
+      "title": "gemensam ledig tid, lager och resursmatris visas tillsammans utan sidledsrullning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | gemensam ledig tid, lager och resursmatris visas tillsammans utan sidledsrullning | desktop-1600",
+      "file": "schema-samling.spec.ts",
+      "title": "gemensam ledig tid, lager och resursmatris visas tillsammans utan sidledsrullning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar sparad arbetsvy efter omladdning | desktop-1280",
+      "file": "schema-samling.spec.ts",
+      "title": "samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar sparad arbetsvy efter omladdning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar sparad arbetsvy efter omladdning | desktop-1600",
+      "file": "schema-samling.spec.ts",
+      "title": "samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar sparad arbetsvy efter omladdning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | samlingsvyn fungerar när åtkomst till localStorage är blockerad och säger att arbetsvyn inte sparades | desktop-1280",
+      "file": "schema-samling.spec.ts",
+      "title": "samlingsvyn fungerar när åtkomst till localStorage är blockerad och säger att arbetsvyn inte sparades",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-samling.spec.ts |  | schema-samling.spec.ts | samlingsvyn fungerar när åtkomst till localStorage är blockerad och säger att arbetsvyn inte sparades | desktop-1600",
+      "file": "schema-samling.spec.ts",
+      "title": "samlingsvyn fungerar när åtkomst till localStorage är blockerad och säger att arbetsvyn inte sparades",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | en ny fältändring skyddar läsårsbyte direkt innan autosparandet har börjat | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "en ny fältändring skyddar läsårsbyte direkt innan autosparandet har börjat",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | en ny fältändring skyddar läsårsbyte direkt innan autosparandet har börjat | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "en ny fältändring skyddar läsårsbyte direkt innan autosparandet har börjat",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | en ändring under pågående sparande blir nästa version och får ingen för tidig Sparat-status | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "en ändring under pågående sparande blir nästa version och får ingen för tidig Sparat-status",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | en ändring under pågående sparande blir nästa version och får ingen för tidig Sparat-status | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "en ändring under pågående sparande blir nästa version och får ingen för tidig Sparat-status",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett beräknat schema autosparas och återöppnas efter omladdning utan ny beräkning eller extra revision | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "ett beräknat schema autosparas och återöppnas efter omladdning utan ny beräkning eller extra revision",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett beräknat schema autosparas och återöppnas efter omladdning utan ny beräkning eller extra revision | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "ett beräknat schema autosparas och återöppnas efter omladdning utan ny beräkning eller extra revision",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett försenat svar efter avslutat uppdrag kan inte återställa gammalt innehåll i nästa läsår | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "ett försenat svar efter avslutat uppdrag kan inte återställa gammalt innehåll i nästa läsår",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett försenat svar efter avslutat uppdrag kan inte återställa gammalt innehåll i nästa läsår | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "ett försenat svar efter avslutat uppdrag kan inte återställa gammalt innehåll i nästa läsår",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett saknat namn kan rättas utan falsk sparstatus eller förlorat lokalt arbete | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "ett saknat namn kan rättas utan falsk sparstatus eller förlorat lokalt arbete",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett saknat namn kan rättas utan falsk sparstatus eller förlorat lokalt arbete | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "ett saknat namn kan rättas utan falsk sparstatus eller förlorat lokalt arbete",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett tappat svar följs upp med samma kommando och visar Sparat först efter en verifierad serverversion | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "ett tappat svar följs upp med samma kommando och visar Sparat först efter en verifierad serverversion",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ett tappat svar följs upp med samma kommando och visar Sparat först efter en verifierad serverversion | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "ett tappat svar följs upp med samma kommando och visar Sparat först efter en verifierad serverversion",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | felaktig kvittens ger aldrig falskt Sparat; en ny verifiering skapar ingen revision | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "felaktig kvittens ger aldrig falskt Sparat; en ny verifiering skapar ingen revision",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | felaktig kvittens ger aldrig falskt Sparat; en ny verifiering skapar ingen revision | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "felaktig kvittens ger aldrig falskt Sparat; en ny verifiering skapar ingen revision",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | okänt utfall utan registrerat kommando kan kontrolleras och återförsökas med samma kommando | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "okänt utfall utan registrerat kommando kan kontrolleras och återförsökas med samma kommando",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | okänt utfall utan registrerat kommando kan kontrolleras och återförsökas med samma kommando | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "okänt utfall utan registrerat kommando kan kontrolleras och återförsökas med samma kommando",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | oläst eller felaktigt utkast blockerar redigering och kan läsas igen utan att skriva över servern | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "oläst eller felaktigt utkast blockerar redigering och kan läsas igen utan att skriva över servern",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | oläst eller felaktigt utkast blockerar redigering och kan läsas igen utan att skriva över servern | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "oläst eller felaktigt utkast blockerar redigering och kan läsas igen utan att skriva över servern",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | pågående och misslyckat sparande skyddar navigering; stanna kvar behåller namnet | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "pågående och misslyckat sparande skyddar navigering; stanna kvar behåller namnet",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | pågående och misslyckat sparande skyddar navigering; stanna kvar behåller namnet | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "pågående och misslyckat sparande skyddar navigering; stanna kvar behåller namnet",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | samtidig serverändring behåller lokalt arbete och ersätts bara efter uttryckligt val | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "samtidig serverändring behåller lokalt arbete och ersätts bara efter uttryckligt val",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | samtidig serverändring behåller lokalt arbete och ersätts bara efter uttryckligt val | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "samtidig serverändring behåller lokalt arbete och ersätts bara efter uttryckligt val",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | serverläsning slutförs före redigering; namnet autosparas och stabilt innehåll skapar ingen revisionsloop | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "serverläsning slutförs före redigering; namnet autosparas och stabilt innehåll skapar ingen revisionsloop",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | serverläsning slutförs före redigering; namnet autosparas och stabilt innehåll skapar ingen revisionsloop | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "serverläsning slutförs före redigering; namnet autosparas och stabilt innehåll skapar ingen revisionsloop",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och aktivitetstyper efter rensad lokal lagring | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och aktivitetstyper efter rensad lokal lagring",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och aktivitetstyper efter rensad lokal lagring | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och aktivitetstyper efter rensad lokal lagring",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | valt HT-utkast autosparas och återöppnas direkt efter omladdning utan nytt periodval | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "valt HT-utkast autosparas och återöppnas direkt efter omladdning utan nytt periodval",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | valt HT-utkast autosparas och återöppnas direkt efter omladdning utan nytt periodval | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "valt HT-utkast autosparas och återöppnas direkt efter omladdning utan nytt periodval",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ändrad dokumenthash ger aldrig falskt Sparat; en ny verifiering skapar ingen revision | desktop-1280",
+      "file": "schema-spara.spec.ts",
+      "title": "ändrad dokumenthash ger aldrig falskt Sparat; en ny verifiering skapar ingen revision",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-spara.spec.ts |  | schema-spara.spec.ts | ändrad dokumenthash ger aldrig falskt Sparat; en ny verifiering skapar ingen revision | desktop-1600",
+      "file": "schema-spara.spec.ts",
+      "title": "ändrad dokumenthash ger aldrig falskt Sparat; en ny verifiering skapar ingen revision",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-period-fix-results.json",
+      "revision": "693d63138e9b5a96c5e25c0130385d5e31ff7d5f"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | aktivitetsformuläret visar vad som saknas och behåller valen, utan notis om nationella prov | desktop-1280",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "aktivitetsformuläret visar vad som saknas och behåller valen, utan notis om nationella prov",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | aktivitetsformuläret visar vad som saknas och behåller valen, utan notis om nationella prov | desktop-1600",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "aktivitetsformuläret visar vad som saknas och behåller valen, utan notis om nationella prov",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | en marginal kan sparas som ingen och tas bort uttryckligt, båda går att ångra | desktop-1280",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "en marginal kan sparas som ingen och tas bort uttryckligt, båda går att ångra",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | en marginal kan sparas som ingen och tas bort uttryckligt, båda går att ångra | desktop-1600",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "en marginal kan sparas som ingen och tas bort uttryckligt, båda går att ångra",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | hela skolans värden överlappas inte av den fasta namnkolumnen, även vid 200 procent text | desktop-1280",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "hela skolans värden överlappas inte av den fasta namnkolumnen, även vid 200 procent text",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | hela skolans värden överlappas inte av den fasta namnkolumnen, även vid 200 procent text | desktop-1600",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "hela skolans värden överlappas inte av den fasta namnkolumnen, även vid 200 procent text",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | resurssök visar rena namnrader med grupprubrik och fungerar med tangentbord vid stor text | desktop-1280",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "resurssök visar rena namnrader med grupprubrik och fungerar med tangentbord vid stor text",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-controls.spec.ts |  | schema-uat-controls.spec.ts | resurssök visar rena namnrader med grupprubrik och fungerar med tangentbord vid stor text | desktop-1600",
+      "file": "schema-uat-controls.spec.ts",
+      "title": "resurssök visar rena namnrader med grupprubrik och fungerar med tangentbord vid stor text",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | Följ passet går att öppna från viloytan och byte finns i följpanelen | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "Följ passet går att öppna från viloytan och byte finns i följpanelen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | Följ passet går att öppna från viloytan och byte finns i följpanelen | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "Följ passet går att öppna från viloytan och byte finns i följpanelen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | Varför inte har Lägg här som går att nå med tangentbord och kontrollerar vald tid | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "Varför inte har Lägg här som går att nå med tangentbord och kontrollerar vald tid",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | Varför inte har Lägg här som går att nå med tangentbord och kontrollerar vald tid | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "Varför inte har Lägg här som går att nå med tangentbord och kontrollerar vald tid",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumflytt ger ett undantag och lämnar grundschema och andra tillfällen orörda; ångra återställer | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumflytt ger ett undantag och lämnar grundschema och andra tillfällen orörda; ångra återställer",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumflytt ger ett undantag och lämnar grundschema och andra tillfällen orörda; ångra återställer | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumflytt ger ett undantag och lämnar grundschema och andra tillfällen orörda; ångra återställer",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumundantag kräver bekräftelse även efter tidigare diagnos (aktivitetsdialog) | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumundantag kräver bekräftelse även efter tidigare diagnos (aktivitetsdialog)",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumundantag kräver bekräftelse även efter tidigare diagnos (aktivitetsdialog) | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumundantag kräver bekräftelse även efter tidigare diagnos (aktivitetsdialog)",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumundantag kräver bekräftelse även efter tidigare diagnos (fortsätt beräkningen) | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumundantag kräver bekräftelse även efter tidigare diagnos (fortsätt beräkningen)",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | datumundantag kräver bekräftelse även efter tidigare diagnos (fortsätt beräkningen) | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "datumundantag kräver bekräftelse även efter tidigare diagnos (fortsätt beräkningen)",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | ny fördiagnos visas och får fokus även när en gammal placeringssökning står öppen | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "ny fördiagnos visas och får fokus även när en gammal placeringssökning står öppen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | ny fördiagnos visas och får fokus även när en gammal placeringssökning står öppen | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "ny fördiagnos visas och får fokus även när en gammal placeringssökning står öppen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | olika undervisningar får egna antal; Ångra är synlig också i villkorstabellen | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "olika undervisningar får egna antal; Ångra är synlig också i villkorstabellen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | olika undervisningar får egna antal; Ångra är synlig också i villkorstabellen | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "olika undervisningar får egna antal; Ångra är synlig också i villkorstabellen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | saknat underlag visar ett fokuserat hinder med vägar till tjänstefördelning och timplan | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "saknat underlag visar ett fokuserat hinder med vägar till tjänstefördelning och timplan",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | saknat underlag visar ett fokuserat hinder med vägar till tjänstefördelning och timplan | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "saknat underlag visar ett fokuserat hinder med vägar till tjänstefördelning och timplan",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | utebliven placering ger ett granskat villkorsalternativ som godkänns och ångras tillsammans | desktop-1280",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "utebliven placering ger ett granskat villkorsalternativ som godkänns och ångras tillsammans",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-uat-workflows.spec.ts |  | schema-uat-workflows.spec.ts | utebliven placering ger ett granskat villkorsalternativ som godkänns och ångras tillsammans | desktop-1600",
+      "file": "schema-uat-workflows.spec.ts",
+      "title": "utebliven placering ger ett granskat villkorsalternativ som godkänns och ångras tillsammans",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: datumintervallet och passtabellen öppnar ändring av just ett tillfälle | desktop-1280",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: datumintervallet och passtabellen öppnar ändring av just ett tillfälle",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: datumintervallet och passtabellen öppnar ändring av just ett tillfälle | desktop-1600",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: datumintervallet och passtabellen öppnar ändring av just ett tillfälle",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas med datum och orsak | desktop-1280",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas med datum och orsak",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas med datum och orsak | desktop-1600",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: lov, studiedag och klassens egen dag utan undervisning visas med datum och orsak",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: tangentbord och 200 procent text ryms på dator | desktop-1280",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: tangentbord och 200 procent text ryms på dator",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema-vecka.spec.ts |  | schema-vecka.spec.ts | SM-VECKOVY: tangentbord och 200 procent text ryms på dator | desktop-1600",
+      "file": "schema-vecka.spec.ts",
+      "title": "SM-VECKOVY: tangentbord och 200 procent text ryms på dator",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid, markeringen följer och kan låsas | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid, markeringen följer och kan låsas",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid, markeringen följer och kan låsas | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid, markeringen följer och kan låsas",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet nås från passmenyn med högerklick och med Skift+F10 | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "Följ passet nås från passmenyn med högerklick och med Skift+F10",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet nås från passmenyn med högerklick och med Skift+F10 | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "Följ passet nås från passmenyn med högerklick och med Skift+F10",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet vid 200 % textstorlek | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "Följ passet vid 200 % textstorlek",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Följ passet vid 200 % textstorlek | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "Följ passet vid 200 % textstorlek",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | elevnivå: väljaren syns för behörig, elevens rad och lägen för eleven; utan elevbehörighet ingen väljare | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "elevnivå: väljaren syns för behörig, elevens rad och lägen för eleven; utan elevbehörighet ingen väljare",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | elevnivå: väljaren syns för behörig, elevens rad och lägen för eleven; utan elevbehörighet ingen väljare | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "elevnivå: väljaren syns för behörig, elevens rad och lägen för eleven; utan elevbehörighet ingen väljare",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan ångras | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan ångras",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan ångras | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan ångras",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ett pass på viloytan läggs ut för hand och kan tas tillbaka | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "ett pass på viloytan läggs ut för hand och kan tas tillbaka",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ett pass på viloytan läggs ut för hand och kan tas tillbaka | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "ett pass på viloytan läggs ut för hand och kan tas tillbaka",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | flera flyttar ångras i omvänd ordning och görs om | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "flera flyttar ångras i omvänd ordning och görs om",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | flera flyttar ångras i omvänd ordning och görs om | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "flera flyttar ångras i omvänd ordning och görs om",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | flyttpanelen ligger över passen när veckan rullar under den | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "flyttpanelen ligger över passen när veckan rullar under den",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | flyttpanelen ligger över passen när veckan rullar under den | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "flyttpanelen ligger över passen när veckan rullar under den",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | förslaget visas som vecka per klass och per lärare, utan sidledsrullning | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | förslaget visas som vecka per klass och per lärare, utan sidledsrullning | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | lagren visas och döljs med chipsen, valet minns och utan lager ser veckan ut som förut | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "lagren visas och döljs med chipsen, valet minns och utan lager ser veckan ut som förut",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | lagren visas och döljs med chipsen, valet minns och utan lager ser veckan ut som förut | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "lagren visas och döljs med chipsen, valet minns och utan lager ser veckan ut som förut",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | formuläret och listan vid 200 % textstorlek, utan sidledsrullning | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "formuläret och listan vid 200 % textstorlek, utan sidledsrullning",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | formuläret och listan vid 200 % textstorlek, utan sidledsrullning | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "formuläret och listan vid 200 % textstorlek, utan sidledsrullning",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | marginal för idrotten syns före och efter passet i klassens vy men inte i lärarens, och kan ändras, tas bort och ångras | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "marginal för idrotten syns före och efter passet i klassens vy men inte i lärarens, och kan ändras, tas bort och ångras",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | marginal för idrotten syns före och efter passet i klassens vy men inte i lärarens, och kan ändras, tas bort och ångras | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "marginal för idrotten syns före och efter passet i klassens vy men inte i lärarens, och kan ändras, tas bort och ångras",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | marginaler för pass | marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, passet där märks och spärren kan ångras | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, passet där märks och spärren kan ångras",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, passet där märks och spärren kan ångras | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, passet där märks och spärren kan ångras",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lägger inte passet där | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lägger inte passet där",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lägger inte passet där | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lägger inte passet där",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkerar | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkerar",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkerar | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkerar",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "meny: verktyg och panel vid 200 % textstorlek; telefonen får inga verktyg",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | motor som inte är ansluten ger ett tydligt besked och inget schema | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "motor som inte är ansluten ger ett tydligt besked och inget schema",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | motor som inte är ansluten ger ett tydligt besked och inget schema | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "motor som inte är ansluten ger ett tydligt besked och inget schema",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | olagda pass, förklaring och utelämnade behov redovisas i text | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | olagda pass, förklaring och utelämnade behov redovisas i text | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | pass dras till viloytan och tillbaka ut i veckan; på telefon används flyttpanelen | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "pass dras till viloytan och tillbaka ut i veckan; på telefon används flyttpanelen",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | pass dras till viloytan och tillbaka ut i veckan; på telefon används flyttpanelen | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "pass dras till viloytan och tillbaka ut i veckan; på telefon används flyttpanelen",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte sidan | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte sidan",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte sidan | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte sidan",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördröjning (mått) | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördröjning (mått)",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-last-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördröjning (mått) | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: 1 000 pass ritas, filtreras och sorteras utan märkbar fördröjning (mått)",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: Visa i veckan markerar passet, och markerat pass är markerat i båda vyerna | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: Visa i veckan markerar passet, och markerat pass är markerat i båda vyerna",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: Visa i veckan markerar passet, och markerat pass är markerat i båda vyerna | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: Visa i veckan markerar passet, och markerat pass är markerat i båda vyerna",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: bara tangentbord | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: bara tangentbord",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: bara tangentbord | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: bara tangentbord",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: filtrera på en lärare och sortera på dag; valet av vy minns | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: filtrera på en lärare och sortera på dag; valet av vy minns",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: filtrera på en lärare och sortera på dag; valet av vy minns | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: filtrera på en lärare och sortera på dag; valet av vy minns",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: flyttpanelen öppnad från tabellen ligger över raderna | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: flyttpanelen öppnad från tabellen ligger över raderna",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: flyttpanelen öppnad från tabellen ligger över raderna | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: flyttpanelen öppnad från tabellen ligger över raderna",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell och vecka, och ångra återställer båda | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell och vecka, och ångra återställer båda",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-last-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell och vecka, och ångra återställer båda | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell och vecka, och ångra återställer båda",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: tre valda rader läggs på viloytan och ångras som ett steg | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "passtabell: tre valda rader läggs på viloytan och ångras som ett steg",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | passtabell: tre valda rader läggs på viloytan och ångras som ett steg | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "passtabell: tre valda rader läggs på viloytan och ångras som ett steg",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | svar för en annan period än den begärda visas inte | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "svar för en annan period än den begärda visas inte",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | svar för en annan period än den begärda visas inte | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "svar för en annan period än den begärda visas inte",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | veckan med villkor vid 200 % textstorlek | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "veckan med villkor vid 200 % textstorlek",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | veckan med villkor vid 200 % textstorlek | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "veckan med villkor vid 200 % textstorlek",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | veckan ritar fält, nedtoning och band under och intill passen, med teckenförklaring | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "veckan ritar fält, nedtoning och band under och intill passen, med teckenförklaring",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | veckan ritar fält, nedtoning och band under och intill passen, med teckenförklaring | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "veckan ritar fält, nedtoning och band under och intill passen, med teckenförklaring",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: Följ passet visar den nya spärren som spärrad tid i möjlighetskartan | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: Följ passet visar den nya spärren som spärrad tid i möjlighetskartan",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: Följ passet visar den nya spärren som spärrad tid i möjlighetskartan | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: Följ passet visar den nya spärren som spärrad tid i möjlighetskartan",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: ett tidsvillkor som servern ändå svarar 409 för kräver ett nytt förslag | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: ett tidsvillkor som servern ändå svarar 409 för kräver ett nytt förslag",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: ett tidsvillkor som servern ändå svarar 409 för kräver ett nytt förslag | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: ett tidsvillkor som servern ändå svarar 409 för kräver ett nytt förslag",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: ändrad passlängd kräver ett nytt förslag, och flytt prövas mot förslagets villkor | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: ändrad passlängd kräver ett nytt förslag, och flytt prövas mot förslagets villkor",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor direkt: ändrad passlängd kräver ett nytt förslag, och flytt prövas mot förslagets villkor | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkor direkt: ändrad passlängd kräver ett nytt förslag, och flytt prövas mot förslagets villkor",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor sparade med det gamla terminsvalet läses in utan valet | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkor sparade med det gamla terminsvalet läses in utan valet",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkor sparade med det gamla terminsvalet läses in utan valet | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkor sparade med det gamla terminsvalet läses in utan valet",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkoren prövas i vyn, skickas med begäran och finns kvar för skolan | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkoren prövas i vyn, skickas med begäran och finns kvar för skolan | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkoren syns i veckan med text, villkoret nås med tangentbord och kan tas bort och ångras",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell (1280): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell (1280): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell (1280): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell (1280): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell (1600): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell (1600): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell (1600): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell (1600): spärra fredag eftermiddag för tre lärare på en gång; passen märks direkt och ångra tar bort alla tre",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell vid 200 % text: tabellen rullar i sidled i sin ram, inte sidan | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell vid 200 % text: tabellen rullar i sidled i sin ram, inte sidan",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell vid 200 % text: tabellen rullar i sidled i sin ram, inte sidan | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell vid 200 % text: tabellen rullar i sidled i sin ram, inte sidan",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell: \"Ändra\" på ett fält i veckan öppnar rätt rad, och grundvillkor märks | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell: \"Ändra\" på ett fält i veckan öppnar rätt rad, och grundvillkor märks",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell: \"Ändra\" på ett fält i veckan öppnar rätt rad, och grundvillkor märks | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell: \"Ändra\" på ett fält i veckan öppnar rätt rad, och grundvillkor märks",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell: redigera med bara tangentbordet, längsta dag per lärare och Esc som återställer fokus | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell: redigera med bara tangentbordet, längsta dag per lärare och Esc som återställer fokus",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | villkorstabell: redigera med bara tangentbordet, längsta dag per lärare och Esc som återställer fokus | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "villkorstabell: redigera med bara tangentbordet, längsta dag per lärare och Esc som återställer fokus",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-regression-results.json",
+      "revision": "fd3c3eda4db340cb75be4a03a03974539407d234"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "Ändra i villkorsfältets meny öppnar villkorets rad i Villkor i tabell",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ändrat underlag nekar flytten och passet står kvar | desktop-1280",
+      "file": "schema.spec.ts",
+      "title": "ändrat underlag nekar flytten och passet står kvar",
+      "project": "desktop-1280",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    },
+    {
+      "key": "schema.spec.ts |  | schema.spec.ts | ändrat underlag nekar flytten och passet står kvar | desktop-1600",
+      "file": "schema.spec.ts",
+      "title": "ändrat underlag nekar flytten och passet står kvar",
+      "project": "desktop-1600",
+      "passed": true,
+      "status": "expected",
+      "run": "schema-uat-final-browser-results.json",
+      "revision": "211d85a662d6416992c6b4ae731dae8d92250f35"
+    }
+  ],
+  "previousSourceRevision": "fd3c3eda4db340cb75be4a03a03974539407d234",
+  "latePeriodFix": {
+    "actualBug": "Back reopened whole-year instead of saved HT scope",
+    "productChanges": [
+      "web/app/schema-workspace.tsx"
+    ],
+    "scope": "Only enum preference per unit and year; no schedule document in browser storage",
+    "sourceManifestSha256": "56ce2183d441afebb70641fbe94f28121d6b36122c878bd44613016ed494b2a9",
+    "verifiedCases": 42
+  }
+}

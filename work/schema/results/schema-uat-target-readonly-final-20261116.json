@@ -1,0 +1,2065 @@
+{
+  "kind": "schema-uat-target-readonly-preflight",
+  "status": "FAIL",
+  "startedAt": "2026-11-16T12:43:28.147Z",
+  "checks": [
+    {
+      "name": "private known local target manifest accepted without CLI or cache writes",
+      "ok": true
+    },
+    {
+      "name": "3012/3013 identified as frozen 4267daf7 pair; all1460 old files and motor4 health unchanged",
+      "ok": true
+    },
+    {
+      "name": "metadata connection belongs to the existing known local protected database container",
+      "ok": true
+    },
+    {
+      "name": "explicit repeatable-read READ ONLY transaction and known actual database identity",
+      "ok": true
+    },
+    {
+      "name": "all three new migration versions absent",
+      "ok": true
+    },
+    {
+      "name": "all earlier repository migrations exactly journalled with no unknown versions",
+      "ok": false
+    },
+    {
+      "name": "no partial new schema RPC/helper/table objects exist",
+      "ok": true
+    },
+    {
+      "name": "guarded actor/scope/audit and real dated-membership source prerequisites exist",
+      "ok": true
+    },
+    {
+      "name": "known unjournalled education objects retain forced RLS, required actor columns and only three narrow Worker entries",
+      "ok": true
+    },
+    {
+      "name": "original process identities, product files and private manifest unchanged after metadata read",
+      "ok": true
+    }
+  ],
+  "readsOnly": true,
+  "migrationsApplied": 0,
+  "processesChanged": false,
+  "businessRowsRead": false,
+  "auditRpcCalled": false,
+  "limits": [
+    "No business values, auth rows or runtime secrets read into output",
+    "No app/API workflow exercised",
+    "Metadata preflight is not installation approval"
+  ],
+  "target": {
+    "name": "protected",
+    "manifestSha256": "64cfb2847a15b422c342e12c8dfe0c276b611dbead8084067dd6b50cc768fde7",
+    "manifestMigrationCount": 42,
+    "databaseContainerBinding": "existing-wildcard"
+  },
+  "runtime": {
+    "app": {
+      "port": 3012,
+      "role": "web",
+      "runtimeRevision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef",
+      "processSha256": "d1556c888527ae296b11b0cb8628c6cb205ae9e611825586d63f70c75e2a1533"
+    },
+    "motor": {
+      "port": 3013,
+      "role": "motor",
+      "runtimeRevision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef",
+      "processSha256": "09523b7ad8dcb849694e5d220470aa97fb9719bd7bac39996f173fc5ffac5a18"
+    },
+    "artifact": {
+      "revision": "4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef",
+      "appContract": 7,
+      "motorContract": 4,
+      "artifactSha256": "2f43bdeb662ac7d92e440b0e5ec1e6e5874d5ee6c27d9120ab53dffae964f96f",
+      "fileCount": 1460,
+      "productFilesSha256": "0fcd5104aa4c268c889f3445cce684884825604b096c863549b2541914a10fc9",
+      "buildMarkSha256": "ae7c61e210fd9368bcd764c0c8520e4d36711bfe3f618d1ef2eafe0b24b1e5c8"
+    }
+  },
+  "database": {
+    "identitySha256": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "transactionReadOnly": true,
+    "isolation": "repeatable read",
+    "schemaFingerprint": "a6d6076e27418096ea2a06d349cf722fbd81fc2db966539ee379458f3542364d"
+  },
+  "journal": {
+    "count": 166,
+    "latestVersion": "20261112150000",
+    "journalSha256": "ad19fe0d7e412d52dc8dec2d43bc8e355befe09977486cab38c39c384a410b9c",
+    "shape": [
+      {
+        "version": "20260905120000",
+        "name": "huvudman",
+        "statementCount": 75,
+        "statementsSha256": "cc03235dd9e0760916d898f8fd91b57e3dd95687c8aa8929a3d76cb0d990b14f"
+      },
+      {
+        "version": "20260905130000",
+        "name": "demo_bootstrap",
+        "statementCount": 4,
+        "statementsSha256": "28599bbe1c0a9add09e9cefd6c7c6f90b2f7685c5d11dfa2dce0005f4b4be1fe"
+      },
+      {
+        "version": "20260905170000",
+        "name": "timplan_lasar",
+        "statementCount": 61,
+        "statementsSha256": "f7cd029cd03ee4383d4d7124afde3fa2596334d9b0e5a0b6579c84d4aa7fed77"
+      },
+      {
+        "version": "20260908120000",
+        "name": "cohorts_classes",
+        "statementCount": 9,
+        "statementsSha256": "80b4462b2cfabae6f8cbb630fa9bf6d164b3aaaf4977bc6fa91b255bef32e39c"
+      },
+      {
+        "version": "20260908150000",
+        "name": "school_import",
+        "statementCount": 7,
+        "statementsSha256": "29b7fcc1a7b15f2e2d568bd41172ff21196c85ed127321b21b9029430c160abf"
+      },
+      {
+        "version": "20260908170000",
+        "name": "principal_teacher_assignments",
+        "statementCount": 2,
+        "statementsSha256": "8ad4cbcc5daf6957adc065b6e36ab2c93c7eae36effe78cc8e37dc7c8a45f2d5"
+      },
+      {
+        "version": "20260911120000",
+        "name": "quarantine_demo_access",
+        "statementCount": 19,
+        "statementsSha256": "c4796e4fa53335960edee5016a558c5fbe665bd62072ca8f0031c4e3c807bca3"
+      },
+      {
+        "version": "20260913100000",
+        "name": "phase2_worker_core",
+        "statementCount": 37,
+        "statementsSha256": "a05388b26b056e71ff66d98ca3bed08d1c54aa2e7c533f843053f0a58f43560a"
+      },
+      {
+        "version": "20260913200000",
+        "name": "phase2_access_model",
+        "statementCount": 86,
+        "statementsSha256": "440e70c71af0595ea0e11a8023283ec6d06a43eadcf4ec363c1aec5dd9eaf028"
+      },
+      {
+        "version": "20260922090000",
+        "name": "phase3_access_functions",
+        "statementCount": 4,
+        "statementsSha256": "07d3a12c8911ff9bc87925160a642e4f6a2f7be16dc29400d679455e92d56b49"
+      },
+      {
+        "version": "20260922100000",
+        "name": "phase3_mandates",
+        "statementCount": 41,
+        "statementsSha256": "a74c96f2bdd2279e2159c36eb1b8ff6711358c6a0228712ccb946d3e79591e3c"
+      },
+      {
+        "version": "20260922110000",
+        "name": "phase3_mandate_chain",
+        "statementCount": 2,
+        "statementsSha256": "d58164f888cff94a4e2f0951a2df34ae3a451a6b4a4490692249bbb7db0d8c86"
+      },
+      {
+        "version": "20260922120000",
+        "name": "phase3_staff_bindings",
+        "statementCount": 6,
+        "statementsSha256": "94c91758f04b81fd0c451c46fe5878aa2d77a50bba11685391319b36a5f2cd35"
+      },
+      {
+        "version": "20260924130000",
+        "name": "phase3_mandate_policy",
+        "statementCount": 7,
+        "statementsSha256": "d19563ea5efc4fbbfb40bec598fa8aa1f26dcb9bca2dd70e91c3bf0bfb8891ab"
+      },
+      {
+        "version": "20260924140000",
+        "name": "phase3_mandate_mutations",
+        "statementCount": 7,
+        "statementsSha256": "f614186e3a8b96ea9df4b7381fc59c71de18b0a141f68efd5cb33f849d3b289e"
+      },
+      {
+        "version": "20260924150000",
+        "name": "phase3_policy_parameter_binding",
+        "statementCount": 1,
+        "statementsSha256": "fc90927bd9e2ffa91787757413f07962d10274a8154c2d3923f21fe0cf284a7c"
+      },
+      {
+        "version": "20260924160000",
+        "name": "phase3_invitations",
+        "statementCount": 5,
+        "statementsSha256": "0b54845af53e7142bdd42ae117b9f22b9d0765ac38c74f25e430c37b62eb6de2"
+      },
+      {
+        "version": "20260924170000",
+        "name": "phase3_live_rechecks",
+        "statementCount": 2,
+        "statementsSha256": "b44972ce5645edd0de04a4536dbd3ab47bbddb22bc6743a2fe065b508220175f"
+      },
+      {
+        "version": "20260924180000",
+        "name": "phase3_connections",
+        "statementCount": 2,
+        "statementsSha256": "0535cb46564c896a3d018b342528b87ac86c401db2608e95cc1b68abf307a1cc"
+      },
+      {
+        "version": "20260924183000",
+        "name": "phase3_invitation_ttl",
+        "statementCount": 1,
+        "statementsSha256": "38b473bebd9ec13c976508e4183110f871f25e9a6c172f064135e7e9f09fe661"
+      },
+      {
+        "version": "20260924190000",
+        "name": "phase3_mandate_cutover",
+        "statementCount": 10,
+        "statementsSha256": "bb817b20dec46385f2d5e32df651602b30ac213abc67e9c861803e76a1163b45"
+      },
+      {
+        "version": "20260924200000",
+        "name": "phase3_audit_retention",
+        "statementCount": 12,
+        "statementsSha256": "073f37ad78ac5bd5b2e93ee7d5eac781221d08fd0f48d859eb530cb12a590678"
+      },
+      {
+        "version": "20260924210000",
+        "name": "phase3_audit_maintenance_operator",
+        "statementCount": 1,
+        "statementsSha256": "4e7c7e5838bfdb178ae9ee6cd96b188700c56b23e452151d72a257ce9b2d4838"
+      },
+      {
+        "version": "20260924220000",
+        "name": "phase3_workspace_metadata",
+        "statementCount": 4,
+        "statementsSha256": "bcdbe84f3e873abe30ede9c7116338b9a62229dd8f68cb811284821aa5923602"
+      },
+      {
+        "version": "20260926090000",
+        "name": "phase3_workspace_options",
+        "statementCount": 4,
+        "statementsSha256": "93dd75f35286b3ee049bbb652fb851e0ba39eed84bc78347828be5644df9eac3"
+      },
+      {
+        "version": "20260926100000",
+        "name": "phase3_pupil_probe_worker_read",
+        "statementCount": 2,
+        "statementsSha256": "efdeede73b32d9b85b0714f0e73ec47c95d633391cc77231fc182b8f0e0d989d"
+      },
+      {
+        "version": "20260926110000",
+        "name": "phase3_list_current_mandates",
+        "statementCount": 1,
+        "statementsSha256": "f8bdd08856325ee82cc598a0ccd37af5ebda5a3302145687100ff0fd5f4d4cef"
+      },
+      {
+        "version": "20260927090000",
+        "name": "phase3_support_groups",
+        "statementCount": 7,
+        "statementsSha256": "993b4f15186b26a9726ba0cc88935f512b4449bac5e919fe613fefc59044ca51"
+      },
+      {
+        "version": "20260929100000",
+        "name": "phase4_register_schema",
+        "statementCount": 57,
+        "statementsSha256": "b1777ed4a8aff7a2ae9bd7f32e360132b24f96cb1bd7e2b2121ee0d27f16f7fc"
+      },
+      {
+        "version": "20260929110000",
+        "name": "phase4_register_migrate_probe",
+        "statementCount": 24,
+        "statementsSha256": "e83d65e9c34390f1f8544bdc937ed9e59c929ae96ac23f5c93e909347c734355"
+      },
+      {
+        "version": "20260929130000",
+        "name": "phase4_protected_permission",
+        "statementCount": 13,
+        "statementsSha256": "7beca7c1271e1d5eb64e52fbd6ef8054c6a72de037419f2652c67065a4d908c9"
+      },
+      {
+        "version": "20260929131000",
+        "name": "phase4_permission_worker",
+        "statementCount": 3,
+        "statementsSha256": "6704efc90d9f8e927b4ca7d702f2ef40903e7c8546b5b2da36aa46dacaaf0c49"
+      },
+      {
+        "version": "20260929140000",
+        "name": "phase4_register_reads",
+        "statementCount": 34,
+        "statementsSha256": "7e3f9ee44eebd38efa4487b339a450272ee156451322f72687480c733a1262fd"
+      },
+      {
+        "version": "20260929141000",
+        "name": "phase4_read_worker",
+        "statementCount": 3,
+        "statementsSha256": "5499585e8e1754dab4e4bb6a4bb134a33c3c53dc85a7c24269992f88271166ad"
+      },
+      {
+        "version": "20260929150000",
+        "name": "phase4_register_mutations",
+        "statementCount": 28,
+        "statementsSha256": "a702f018af82a14a169a160dda6b817ee1a2a217c9e60094a2e07ec582c32b2b"
+      },
+      {
+        "version": "20260929160000",
+        "name": "phase4_register_sources",
+        "statementCount": 16,
+        "statementsSha256": "ba8a7e5ab22728eaa20eb8f5b9a877d802ce713f5d763823c8de740b978e9ff3"
+      },
+      {
+        "version": "20260929161000",
+        "name": "phase4_register_selection",
+        "statementCount": 5,
+        "statementsSha256": "cadfe4600d93580090724a5cddbb06822f79918cd34262c7690910ce59a2d70c"
+      },
+      {
+        "version": "20260929162000",
+        "name": "phase4_source_contract_fix",
+        "statementCount": 5,
+        "statementsSha256": "25d3036b3a51241cc3b62f952a2f15b71725e199b00e72824ececa61bb6aa97b"
+      },
+      {
+        "version": "20260929163000",
+        "name": "phase4_source_owned_refresh",
+        "statementCount": 4,
+        "statementsSha256": "b6898ee4ed4cd9884be7a902b445f194c7a0923dc744f8707d49ca5d992066f7"
+      },
+      {
+        "version": "20260929170000",
+        "name": "phase4_worker_register_execute",
+        "statementCount": 4,
+        "statementsSha256": "d570a06847550f55fec5778ffa30db94fb7817519d89642ad5cb324962a0ea15"
+      },
+      {
+        "version": "20260929180000",
+        "name": "phase4_list_protected_flag",
+        "statementCount": 5,
+        "statementsSha256": "4d44320c1fb632b62777713997b726943960bd48fdb16c597e9665ba2ed1b5b5"
+      },
+      {
+        "version": "20260930100000",
+        "name": "phase4_retire_probe",
+        "statementCount": 9,
+        "statementsSha256": "a307e3187138b86b63f5d923c5cdd0cb97803d0fded0ae9a6d40968bdf9ecd76"
+      },
+      {
+        "version": "20260930110000",
+        "name": "phase5_timplan_draft",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930120000",
+        "name": "phase5_timplan_session_audit",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930121000",
+        "name": "phase5_timplan_audit_failure",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930130000",
+        "name": "phase5_worker_timplan_execute",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930140000",
+        "name": "phase5_timplan_selection",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930150000",
+        "name": "phase5_worker_timplan_selection",
+        "statementCount": 0,
+        "statementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "version": "20260930160000",
+        "name": "phase5_programplan_catalog",
+        "statementCount": 1,
+        "statementsSha256": "c7c09feadd093d6b81513eb691a9512372a7806aec37d94c516a00354f209660"
+      },
+      {
+        "version": "20260930161000",
+        "name": "phase5_programplan_catalog_seed",
+        "statementCount": 1,
+        "statementsSha256": "9bf46ada0df676c8267ae3209ec0901c098221f4bcf0a5eaed814fa0f4b0c1d0"
+      },
+      {
+        "version": "20260930162000",
+        "name": "phase5_programplan_drafts",
+        "statementCount": 1,
+        "statementsSha256": "252c86571506ae35fbfceccd7bd77a6000c0f61b40aa3863af934a328ede502d"
+      },
+      {
+        "version": "20261001110000",
+        "name": "phase5_worker_programplan_execute",
+        "statementCount": 1,
+        "statementsSha256": "0fb34e3c5f5533c858723dd6c98105e942c3ce9f92ea89c8eed5815aae9cb84d"
+      },
+      {
+        "version": "20261001120000",
+        "name": "phase5_programplan_workspace",
+        "statementCount": 1,
+        "statementsSha256": "02852ba28f06437afbb8c2b0974e9a1380a5c191d8f2684145dadefb70fd7036"
+      },
+      {
+        "version": "20261001121000",
+        "name": "phase5_worker_programplan_workspace",
+        "statementCount": 1,
+        "statementsSha256": "f0480c23a90cdab8e2ef48335720f6d3797a3e2f65faa5818bf2dcd009e80570"
+      },
+      {
+        "version": "20261003120000",
+        "name": "phase5_programplan_terms",
+        "statementCount": 1,
+        "statementsSha256": "e03a6c90ba2951026cc428bf8d4ed780db8a8839488aff6fad9076367610585d"
+      },
+      {
+        "version": "20261003121000",
+        "name": "phase5_worker_programplan_terms",
+        "statementCount": 1,
+        "statementsSha256": "459ac724afdcb85953150496d56640efab3ecc1a892264cf5e7d4338e88afb2a"
+      },
+      {
+        "version": "20261004120000",
+        "name": "phase5_programplan_lifecycle",
+        "statementCount": 1,
+        "statementsSha256": "b8cb94d514336280eb9ffb2ec4db2c71babca7dd02d9de862ef5eae07d8469ee"
+      },
+      {
+        "version": "20261004121000",
+        "name": "phase5_worker_programplan_lifecycle",
+        "statementCount": 1,
+        "statementsSha256": "ca82b8c583131c8c7eeab60749a15f88f7c32b07126693d9ab406aa69768f875"
+      },
+      {
+        "version": "20261004122000",
+        "name": "phase5_programplan_lifecycle_locks",
+        "statementCount": 1,
+        "statementsSha256": "246466f31f47e45f49362d19cb88679a5b9d40fa011429fb9c8b64e2bd404877"
+      },
+      {
+        "version": "20261004130000",
+        "name": "phase5_programplan_units",
+        "statementCount": 1,
+        "statementsSha256": "bf16c56d87ead9f5f5d04040efe1801b7e3b5043379db0f050b27f95db867c11"
+      },
+      {
+        "version": "20261004140000",
+        "name": "phase5_offering_unit_linkage",
+        "statementCount": 1,
+        "statementsSha256": "edb896ee6f1fa7dc02883672a60fa4c1bb5613413dfcf0a4af9aa99350efef8d"
+      },
+      {
+        "version": "20261004141000",
+        "name": "phase5_timplan_units",
+        "statementCount": 1,
+        "statementsSha256": "d8f4ed583478e8f4925ada9355c835aa3c1603a7ffcf8222e50aed5da250fc95"
+      },
+      {
+        "version": "20261004150000",
+        "name": "phase5_programplan_choice_blocks",
+        "statementCount": 1,
+        "statementsSha256": "c1d4f089fead8c3650a02524da2347a81ced0adaab86a3f00143efc5f01a3e5f"
+      },
+      {
+        "version": "20261004150100",
+        "name": "phase5_programplan_block_numeric",
+        "statementCount": 1,
+        "statementsSha256": "a70dc1ffd383eaacbc7425d5677599dda5cfe6b24e0369be1f6233ba93894c72"
+      },
+      {
+        "version": "20261004151000",
+        "name": "phase5_programplan_block_commands",
+        "statementCount": 1,
+        "statementsSha256": "4802d4e109952de1fd4e92fe851bdf9f378472ba0d9bbbe8a727a35f82bb80ce"
+      },
+      {
+        "version": "20261004152000",
+        "name": "phase5_programplan_shape_upgrade",
+        "statementCount": 1,
+        "statementsSha256": "2184db2962f48bbab91e49f8066816d2dd6042db0ec74e1849a3275aa065aff2"
+      },
+      {
+        "version": "20261004152100",
+        "name": "phase5_programplan_block_clone_identity",
+        "statementCount": 1,
+        "statementsSha256": "a689a0b42d48f6556e36500638939cd36aeb08d2b2dc4be652dd10c10db3749c"
+      },
+      {
+        "version": "20261004153000",
+        "name": "phase5_worker_programplan_blocks",
+        "statementCount": 1,
+        "statementsSha256": "20aa9e39dccf47ac13e9724b6fabcac78f32fd199a93efc6568e15c11a66f9ee"
+      },
+      {
+        "version": "20261004154000",
+        "name": "phase5_programplan_unit_packages",
+        "statementCount": 1,
+        "statementsSha256": "58b46da5d12e26906942121d7dec98e1dc386f594369e742a431384a211d8bd0"
+      },
+      {
+        "version": "20261004155000",
+        "name": "phase5_worker_programplan_unit_packages",
+        "statementCount": 1,
+        "statementsSha256": "189b87930e45f0b5c3ebb2a0e5a7611e77e6fad7fa6b96c16ae57f9e85a4eca3"
+      },
+      {
+        "version": "20261004156000",
+        "name": "phase5_programplan_packages",
+        "statementCount": 1,
+        "statementsSha256": "b73f92fe469cd3255c5dad8f33b607b8203c01abcfe2b7c6d3673932aa9a911a"
+      },
+      {
+        "version": "20261004157000",
+        "name": "phase5_worker_programplan_packages",
+        "statementCount": 1,
+        "statementsSha256": "bb150f19e99052ead9288d2df94ea8f774e144b57e032221e1379691970cd9b8"
+      },
+      {
+        "version": "20261005110000",
+        "name": "phase5_gym_timplan_transition",
+        "statementCount": 1,
+        "statementsSha256": "0243418935d94b1e21b6bc2fa4ce8202ff652b96bbfecfec3e5a8cda0ff7c2bf"
+      },
+      {
+        "version": "20261005111000",
+        "name": "phase5_worker_gym_timplan_transition",
+        "statementCount": 1,
+        "statementsSha256": "9ad25918bb43b0dbf0453d458c06f9e0afe93ed6ca1788cc63c8bed28cafaaad"
+      },
+      {
+        "version": "20261006120000",
+        "name": "phase5_planning_year_reads",
+        "statementCount": 1,
+        "statementsSha256": "f3d8ce965a23ecf3421daf3978dd99eaf6c0bf64c0f11be63d95b4510ef4f8ee"
+      },
+      {
+        "version": "20261006121000",
+        "name": "phase5_worker_planning_year_reads",
+        "statementCount": 1,
+        "statementsSha256": "80e39ec92461580b5555b52bf7b41af33b85b16d997bec4c8cb87e9145f0973e"
+      },
+      {
+        "version": "20261006122000",
+        "name": "phase5_planning_year_read_performance",
+        "statementCount": 1,
+        "statementsSha256": "134405e5f5505ebeb31cb7ad3736fb89418a07cd97f6918d87d3656a6034d96d"
+      },
+      {
+        "version": "20261006123000",
+        "name": "phase5_planning_year_search_details",
+        "statementCount": 1,
+        "statementsSha256": "a5cd373c26597e742bd3e4ac04367733ab11c95d34d3db3924f719b20b2c6948"
+      },
+      {
+        "version": "20261012130000",
+        "name": "gym_timplan_requires_programplan",
+        "statementCount": 1,
+        "statementsSha256": "1b80b8a95b81081d3a9c2eba4296f4526513a1e8324698c09774ffb48099397f"
+      },
+      {
+        "version": "20261012150000",
+        "name": "created_timplans_only",
+        "statementCount": 1,
+        "statementsSha256": "72c107f1c40140d2beefe426475d1cb4e3662eb514aa967e88e74d58670ad772"
+      },
+      {
+        "version": "20261012160000",
+        "name": "programplan_school_timplan",
+        "statementCount": 1,
+        "statementsSha256": "127bf2a0cf3a8b1b8f9b93e9d555e49abac4d88bfd7e0bd25b570cf7b23f9f6b"
+      },
+      {
+        "version": "20261012180000",
+        "name": "plan_decision_flow",
+        "statementCount": 1,
+        "statementsSha256": "a49a819bdf312533d9c2aa93f69c3f8d1e7b99e7c19a178e70c09364fc6e309b"
+      },
+      {
+        "version": "20261012180100",
+        "name": "plan_decision_command_fix",
+        "statementCount": 1,
+        "statementsSha256": "e843c48468bdfa76fd918f1e51e54b562b81b06fa0760d952355448afe2db7da"
+      },
+      {
+        "version": "20261012181000",
+        "name": "plan_decision_worker",
+        "statementCount": 1,
+        "statementsSha256": "03d88f8a2c1249e96b37ca62e743eb5b9fc65adfaf9114896a900e703de7312f"
+      },
+      {
+        "version": "20261012200000",
+        "name": "plan_decision_vocational",
+        "statementCount": 1,
+        "statementsSha256": "90231c6a87c22c8cf4b5a86d7eeedbb3439156a73bde4d048d611b764701b0ef"
+      },
+      {
+        "version": "20261012210000",
+        "name": "class_timplan_flow",
+        "statementCount": 1,
+        "statementsSha256": "0e9318fa60931998503c5117906233c9c20d55224a9f61576e5494811587da11"
+      },
+      {
+        "version": "20261012220000",
+        "name": "plan_decision_operational",
+        "statementCount": 1,
+        "statementsSha256": "a0f0fe2f137d5eac7e43794eb873c4a953ebf94e7dc1526b1f90314135be0cd4"
+      },
+      {
+        "version": "20261012230000",
+        "name": "gym_source_content",
+        "statementCount": 1,
+        "statementsSha256": "70f79571144c3edf82ae73182334e4c802ac73b9fbe5ac61efdc87a95f294419"
+      },
+      {
+        "version": "20261012240000",
+        "name": "class_start_calendar",
+        "statementCount": 1,
+        "statementsSha256": "8d7e6a70e221d8daf1ff6dec192a282401794538cbd9c5227315b11bd994b9a1"
+      },
+      {
+        "version": "20261014100000",
+        "name": "phase5_atomic_cohort_copy",
+        "statementCount": 1,
+        "statementsSha256": "94f59fb677f9441b8ae72fcce1c6cbd94f806818ef6cf7b6ddfff15d77ee3ea9"
+      },
+      {
+        "version": "20261014101000",
+        "name": "phase5_worker_atomic_cohort_copy",
+        "statementCount": 1,
+        "statementsSha256": "ea52b17cb53f8196fafc6a585c7ad62875d968a1d75a3439e5b207369521cb62"
+      },
+      {
+        "version": "20261014120000",
+        "name": "phase5_school_registry",
+        "statementCount": 1,
+        "statementsSha256": "8db5375849a3d77541fe07a0125343318972827d5609de4f8bf2b9f6e5a53317"
+      },
+      {
+        "version": "20261014121000",
+        "name": "phase5_worker_school_registry",
+        "statementCount": 1,
+        "statementsSha256": "b576b00daae2e334fa4cd2c5aa14c029bf4876cb727045f2f11fe4f36a4016b7"
+      },
+      {
+        "version": "20261015100000",
+        "name": "class_cohort_dates",
+        "statementCount": 1,
+        "statementsSha256": "b549eb1245d2797c2eab12546b34112dba43efb3f4c0a0ed6631d49866b4b843"
+      },
+      {
+        "version": "20261015101000",
+        "name": "class_cohort_link_identity",
+        "statementCount": 1,
+        "statementsSha256": "611f991cdc6d21edcf857f737a10ceee18255e3d9396b11b2f18ae0cd7d564d8"
+      },
+      {
+        "version": "20261015102000",
+        "name": "class_cohort_commands",
+        "statementCount": 1,
+        "statementsSha256": "98c86f5104cf4130c7ca4445235ea5bd6f47a5b052489f60247a32eb7a2fc1a2"
+      },
+      {
+        "version": "20261015200000",
+        "name": "named_timplan_series",
+        "statementCount": 1,
+        "statementsSha256": "1fd2d892c1874a3640ebce7376cd6252287d6a154a3e47bd6814e9986c6f7c65"
+      },
+      {
+        "version": "20261015201000",
+        "name": "named_timplan_commands",
+        "statementCount": 1,
+        "statementsSha256": "b91dd471c7d148798247deaff189394f845d5832fab29ff2a837d4740d48b442"
+      },
+      {
+        "version": "20261015202000",
+        "name": "named_timplan_decisions",
+        "statementCount": 1,
+        "statementsSha256": "0b65c26b74c0e5b3273c765d8a8af98d8a679d7adf770579ea72e47e9e3d071a"
+      },
+      {
+        "version": "20261015203000",
+        "name": "named_timplan_reads",
+        "statementCount": 1,
+        "statementsSha256": "5182c2f15c237d6d4985135a5f71ae0a1da476ee26a756985e98d34ef6bd877b"
+      },
+      {
+        "version": "20261015204000",
+        "name": "worker_named_timplans",
+        "statementCount": 1,
+        "statementsSha256": "24745d6b363933519aa2b8813c2dd5e64266f77696dd826c0e1a0cee4d683fd8"
+      },
+      {
+        "version": "20261016100000",
+        "name": "rector_programplan_creation",
+        "statementCount": 1,
+        "statementsSha256": "efb2f5aae044db83c3bf87db08df4805bff35491ff1c8c1daef4ee4c72adb11d"
+      },
+      {
+        "version": "20261016120000",
+        "name": "apl_planning",
+        "statementCount": 1,
+        "statementsSha256": "97865438a4ea52da8668b36a74c79996abb6b49deb7ff7de34eb9b70cb08acb7"
+      },
+      {
+        "version": "20261016121000",
+        "name": "apl_plan_decisions",
+        "statementCount": 1,
+        "statementsSha256": "fcc01e326a546c5aab553f0b36004f2affb78293a948aa8b6948a8a5894fa740"
+      },
+      {
+        "version": "20261016122000",
+        "name": "apl_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "640044717e502b8a4fa8353ce9c0ddc43b95d5d7b3027536cdb8f89c6cb984a8"
+      },
+      {
+        "version": "20261016130000",
+        "name": "apl_term_intent",
+        "statementCount": 1,
+        "statementsSha256": "3200eba8ba796a787d3004fc2986972ab8ae37bef719ec0991a7c0e98cc1d217"
+      },
+      {
+        "version": "20261016160000",
+        "name": "timplan_time_v2_storage",
+        "statementCount": 1,
+        "statementsSha256": "62dcc1735326a2db33e8cbf06d5b4a2a102427ccc76125f986a561fd5562df70"
+      },
+      {
+        "version": "20261016161000",
+        "name": "timplan_time_v2_integration",
+        "statementCount": 1,
+        "statementsSha256": "53a9b49c150bd899421fa0123b40bec1c7e7f9bf75bb5f9b40984ff25ecebee0"
+      },
+      {
+        "version": "20261018100000",
+        "name": "separate_apl_workflow",
+        "statementCount": 1,
+        "statementsSha256": "1a1be89879999f7d0ba236d8c29b4db4a7c277bd0cc8a4f3db2103ff8fe30b8f"
+      },
+      {
+        "version": "20261018120000",
+        "name": "timplan_minimum_apl_budget",
+        "statementCount": 1,
+        "statementsSha256": "04d2e237a5463243fa239f1b7454ebff8afbcebc84ac809a3a681979df20b363"
+      },
+      {
+        "version": "20261018180000",
+        "name": "programplan_examination_review",
+        "statementCount": 1,
+        "statementsSha256": "e39b34354e2e74ec121327123cdb8e2cd866f4ccda23442470055e9970517173"
+      },
+      {
+        "version": "20261019150000",
+        "name": "planning_year_shared_grim_units",
+        "statementCount": 1,
+        "statementsSha256": "5840a07c7d30c4bf398b9c7648f9a50e8bdd9a34f5baf76ff6c6b91780c32321"
+      },
+      {
+        "version": "20261019200000",
+        "name": "apl_central_content",
+        "statementCount": 1,
+        "statementsSha256": "90cc2f5f6ad2cee0b9fa3af5b2f3d850c1f9d84ac4663bcd94655923b749108b"
+      },
+      {
+        "version": "20261019200100",
+        "name": "apl_central_content_seed",
+        "statementCount": 1,
+        "statementsSha256": "ae6d1d24201e492163f9d6ec0f2be0ad70cceb0257a7a3832de26aab08f206d2"
+      },
+      {
+        "version": "20261020100000",
+        "name": "grim_class_timplan_link",
+        "statementCount": 1,
+        "statementsSha256": "6ef5c36add89b0258b3a85a675a3ba009adc1caaadd9da4888530c1fec83a45c"
+      },
+      {
+        "version": "20261020100100",
+        "name": "grim_class_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "29065af92191219f76561e22a03318f521433ede0c9d178274f02342a46492f7"
+      },
+      {
+        "version": "20261020110000",
+        "name": "tjanst_personal_self",
+        "statementCount": 1,
+        "statementsSha256": "61c245071861f60e95f13c5b16a65ede7e28fc6a374bcd04c05c4091b65f9875"
+      },
+      {
+        "version": "20261020120000",
+        "name": "tjanst_plan",
+        "statementCount": 1,
+        "statementsSha256": "79bf0f3a2f317187bb2fc45ea859571b4818facbdbd3071ba4adf6a37abfa7d1"
+      },
+      {
+        "version": "20261020130000",
+        "name": "tjanst_assignments_feedback",
+        "statementCount": 1,
+        "statementsSha256": "d911a801c7009345ccf38ae7470c929cdcbc9d944b6f290e0d924dc4fd90c5d5"
+      },
+      {
+        "version": "20261020140000",
+        "name": "tjanst_person_account",
+        "statementCount": 1,
+        "statementsSha256": "a18d381737c6078efd774fe6fe4ed504833f0c255bc0d0b7700b1bf554820f1c"
+      },
+      {
+        "version": "20261020190000",
+        "name": "tjanst_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "b469f26c3b6849f715d328c68c5dfbb1f0fb53c3e46c20a1f770cb8cbfe5a5c9"
+      },
+      {
+        "version": "20261021120000",
+        "name": "tjanst_self_schools_joint_rules",
+        "statementCount": 1,
+        "statementsSha256": "63cf45641ed5926d5dda1925a62b1928d358c957dd77cd1ac5d765e18f9277ee"
+      },
+      {
+        "version": "20261023100000",
+        "name": "tjanst_publish_person_scope",
+        "statementCount": 1,
+        "statementsSha256": "65c0437f391ba7d48c3665a58db3fe16eb310f5e5c0bb797b50f3d4014997e75"
+      },
+      {
+        "version": "20261023110000",
+        "name": "tjanst_year_preview",
+        "statementCount": 1,
+        "statementsSha256": "d82f6612986dfb566e8788a85ad52ce222a38f00f72c469ea88c2bf61fa3becb"
+      },
+      {
+        "version": "20261023120000",
+        "name": "tjanst_year_commands",
+        "statementCount": 1,
+        "statementsSha256": "0b7b74794b60517d18cefda3e9217e908c0d9a13016eb447120776bd6c7c73d9"
+      },
+      {
+        "version": "20261023130000",
+        "name": "tjanst_year_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "f1b0b4280585c2e444353031a9ab78d0a1de032c54610ad29d23f7340f5810a1"
+      },
+      {
+        "version": "20261026100000",
+        "name": "tjanst_joint_single_teacher",
+        "statementCount": 1,
+        "statementsSha256": "c74fa633d40af7e82ed8d853ac6774bbbecc95300ff12a31005c604b19ddd053"
+      },
+      {
+        "version": "20261026110000",
+        "name": "tjanst_class_apl",
+        "statementCount": 1,
+        "statementsSha256": "4809a2684559d0e92cda86dca9669bcac409df02cb0199d4b737e024d8bbfd0a"
+      },
+      {
+        "version": "20261028100000",
+        "name": "tjanst_need_sharing",
+        "statementCount": 1,
+        "statementsSha256": "7af675ddebbc452c48edd57d56524df71795f8b12e8b5a98efbaa1b6202502a5"
+      },
+      {
+        "version": "20261030110000",
+        "name": "elective_blocks",
+        "statementCount": 1,
+        "statementsSha256": "7f87d101944f178d9ea1222a4533ef032c47aefbb4e5600a8870580618f007e1"
+      },
+      {
+        "version": "20261030111000",
+        "name": "elective_participant_authority",
+        "statementCount": 1,
+        "statementsSha256": "3a675f93738bb20849310e6fe69985edc76aa37b317a06a393d6812745819989"
+      },
+      {
+        "version": "20261030111500",
+        "name": "elective_timplan_positions",
+        "statementCount": 1,
+        "statementsSha256": "494c38317fc637a6b7357c0aa85544c78aff212b4aab3bf44b0c504f33182989"
+      },
+      {
+        "version": "20261030112000",
+        "name": "elective_tjanst_sources",
+        "statementCount": 1,
+        "statementsSha256": "204969bac6bc9cefb566d211cdc34251ac9f4d7eb156ea00321da76129a1c9f9"
+      },
+      {
+        "version": "20261030113000",
+        "name": "elective_rounds_choices",
+        "statementCount": 1,
+        "statementsSha256": "1a823df21408d959ba39789300bd38fd8c40b08167c618193bf7fed620fde81f"
+      },
+      {
+        "version": "20261030114000",
+        "name": "elective_guardian_confirmation",
+        "statementCount": 1,
+        "statementsSha256": "de7e9b0a646a12efeba3a309ae8cd610baa02bf5e20535ea869c23b8c96580ae"
+      },
+      {
+        "version": "20261030115000",
+        "name": "elective_placements",
+        "statementCount": 1,
+        "statementsSha256": "af3cdf2522303825f0f163a2b9bfae062c89c0295e1db233ec0e919317d6d359"
+      },
+      {
+        "version": "20261030115100",
+        "name": "elective_binding_recovery_reference",
+        "statementCount": 1,
+        "statementsSha256": "d5b1891f716767b0d8279f97bb950d2b470f0859675b5e41d88cac1969b60ac9"
+      },
+      {
+        "version": "20261030115200",
+        "name": "elective_frame_exclusivity",
+        "statementCount": 1,
+        "statementsSha256": "4af5c794ce7482dc96b3b51c4d26a1aeb93e47f1e7233377f807d9d9aded3aa3"
+      },
+      {
+        "version": "20261030115300",
+        "name": "elective_participant_account_attestation",
+        "statementCount": 1,
+        "statementsSha256": "0d07216019386c8c287fba8195ab582ee6e6885557af887d9660dbb9e4544ecb"
+      },
+      {
+        "version": "20261030115400",
+        "name": "elective_placement_applied_organization",
+        "statementCount": 1,
+        "statementsSha256": "c4ab4118532421eccadd5913b3fffc07a045b6f0325361976ce4b4807278adc8"
+      },
+      {
+        "version": "20261030115500",
+        "name": "elective_group_retirement",
+        "statementCount": 1,
+        "statementsSha256": "87820b70724b8e43edbdbc11a149716a6b4c8149936d9d2cf4a409efbc73ea6e"
+      },
+      {
+        "version": "20261030115600",
+        "name": "elective_applied_pool_intent",
+        "statementCount": 1,
+        "statementsSha256": "fd4698e9afb9f2046e49220fdded0a63a57169494f5168704409931917cde6d4"
+      },
+      {
+        "version": "20261030115700",
+        "name": "elective_explicit_privileges",
+        "statementCount": 1,
+        "statementsSha256": "b1caba35c555611cd4886c65ccd0d8f2beda3c87a664786c9e7954890c0210b4"
+      },
+      {
+        "version": "20261031100000",
+        "name": "elective_preparations",
+        "statementCount": 1,
+        "statementsSha256": "c59a51101dcb03ddee5715321c3d57d02ded5b72578b025c993799d44f53ddd0"
+      },
+      {
+        "version": "20261104100000",
+        "name": "valplans",
+        "statementCount": 1,
+        "statementsSha256": "69ccccebd84e55f63aeb9bac78157e329b51cb08d58ada98b1f3ba4644b7ab23"
+      },
+      {
+        "version": "20261104110000",
+        "name": "study_groups",
+        "statementCount": 1,
+        "statementsSha256": "63a26d10bbce419d13070f397960531d31b5a86d1705ac42c7bb19cfab500784"
+      },
+      {
+        "version": "20261104120000",
+        "name": "valplan_legacy_row_time",
+        "statementCount": 1,
+        "statementsSha256": "6145cfaa30782b309e7c98f3d0f2ddc885d88af3b43d1296135e18c7dac7f0fe"
+      },
+      {
+        "version": "20261105100000",
+        "name": "study_group_tjanst",
+        "statementCount": 1,
+        "statementsSha256": "0830290382507f7dfb48a78fa857530558288c51ab669ca5f4ab9ca65022db06"
+      },
+      {
+        "version": "20261105110000",
+        "name": "valplan_choices",
+        "statementCount": 1,
+        "statementsSha256": "4daa6c3e4074367adf288663af8e8da9fb061581a44ac0052e309dc365466c52"
+      },
+      {
+        "version": "20261105120000",
+        "name": "study_group_read_classes",
+        "statementCount": 1,
+        "statementsSha256": "05fe72f4ed186548eb4784c378cfb2554acee02a32ba7804ea856ca2427e4d12"
+      },
+      {
+        "version": "20261106100000",
+        "name": "class_link_following",
+        "statementCount": 1,
+        "statementsSha256": "e8c924d74f2fce26baf69af28c34bcb6337aa9aba9044391b727f331432821f5"
+      },
+      {
+        "version": "20261107100000",
+        "name": "valplan_all_block_kinds",
+        "statementCount": 1,
+        "statementsSha256": "95492c0bc171d6d29e87364a580a923a1c2dd2d0ce97a72a07b148ff554a20c2"
+      },
+      {
+        "version": "20261107110000",
+        "name": "valplan_class_selection",
+        "statementCount": 1,
+        "statementsSha256": "6b8e83202af126bc4d0c16f9a8e42e6cd84c99f04ae85acdecc5b72b2ca19e4d"
+      },
+      {
+        "version": "20261107120000",
+        "name": "valplan_open_check",
+        "statementCount": 1,
+        "statementsSha256": "ecfc502565c0af1e0cec029825012c8952dfa2167cc5237cb4dcecca85e35110"
+      },
+      {
+        "version": "20261107130000",
+        "name": "valplan_held_courses",
+        "statementCount": 1,
+        "statementsSha256": "c53c412afdcbebd8ebd0b853c478a4bc6cb2ac71c6777aaace5c8823071b006c"
+      },
+      {
+        "version": "20261110100000",
+        "name": "valplan_language_ladders",
+        "statementCount": 1,
+        "statementsSha256": "011b97039d4332d1b72221f0f29c03b2f9aaf283b23eed01868159fa2b7f55ef"
+      },
+      {
+        "version": "20261111100000",
+        "name": "lasar_versions",
+        "statementCount": 1,
+        "statementsSha256": "1e8f50a57da67c746021859e749f51490b4f0fbc63d0729404077cf73fc3cbfb"
+      },
+      {
+        "version": "20261111190000",
+        "name": "lasar_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "bcf1b9aba7a358e0cd0feb35ad95383f09ca8ed5ac15fe6dc4f6725d09a946e3"
+      },
+      {
+        "version": "20261112100000",
+        "name": "lasar_groups",
+        "statementCount": 1,
+        "statementsSha256": "1153df7f8fbeab91ebb7b2271142ead44a4a5beaf092bcb4ba4900d7f8ff4061"
+      },
+      {
+        "version": "20261112110000",
+        "name": "lasar_change_requests",
+        "statementCount": 1,
+        "statementsSha256": "99436b95c84a94dc6e224a02d29295b4f93937e3e42bfa8ea83562f18d19fa07"
+      },
+      {
+        "version": "20261112120000",
+        "name": "lasar_frames",
+        "statementCount": 1,
+        "statementsSha256": "a63a408c648041098a9c29f26072338a461e24f8c440a78df4f6c39095a6649f"
+      },
+      {
+        "version": "20261112130000",
+        "name": "lasar_copy_overview",
+        "statementCount": 1,
+        "statementsSha256": "43ec23f9f3e618fbbc8f5194e17652fad2411a9fa053e8084109255fb90feef8"
+      },
+      {
+        "version": "20261112131000",
+        "name": "lasar_overview_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "01d5b531156f55a831744b4e77392ed0921b796fabec68624bcdcfd76d8db789"
+      },
+      {
+        "version": "20261112140000",
+        "name": "lasar_summary",
+        "statementCount": 1,
+        "statementsSha256": "234e6321611487aa52fc33b01ac58a3210d4077427d0d0714bab13de8cd97c2c"
+      },
+      {
+        "version": "20261112141000",
+        "name": "lasar_summary_worker_access",
+        "statementCount": 1,
+        "statementsSha256": "15434fd58fdcd56951e0f201efcc5a928ca586acb8aa00c8cb38e11a17464897"
+      },
+      {
+        "version": "20261112150000",
+        "name": "tjanst_need_once",
+        "statementCount": 1,
+        "statementsSha256": "3067118fd37d65eaef88fa8cdc3051bcfd46769bbd28082e2de6fe563ddcc4e2"
+      }
+    ],
+    "shapeSha256": "52b7bccde7cdc08ba796c92c5a875e19c411d8a4900cca3c1f54f679af014391",
+    "matched": [
+      {
+        "file": "20260930160000_phase5_programplan_catalog.sql",
+        "sha256": "3dbfb0b4721bed32608dd3428b133eaa0c2f56092248f5eb940c9e5ddca9c53a"
+      },
+      {
+        "file": "20260930161000_phase5_programplan_catalog_seed.sql",
+        "sha256": "90b7fb00e290fe2e928dc46c4012ad99e9b699313e6b656831ff09188916d9e5"
+      },
+      {
+        "file": "20260930162000_phase5_programplan_drafts.sql",
+        "sha256": "3e7235d17b5b9305184eb4bb445c5882809a606c783f59986600a2881c2737a7"
+      },
+      {
+        "file": "20261001110000_phase5_worker_programplan_execute.sql",
+        "sha256": "9be5e31c255fc3411352ccc887f82257077cd671cd81656143fe8b2f909f74e1"
+      },
+      {
+        "file": "20261001120000_phase5_programplan_workspace.sql",
+        "sha256": "1f8efa579c5bc27e5e97edcbcbd4fba0538dec8f31af9862d935114c143094fa"
+      },
+      {
+        "file": "20261001121000_phase5_worker_programplan_workspace.sql",
+        "sha256": "944dbc3adbe86aa81c60cdaa5ea1098346ba1b4545494f56883dc619d94198bf"
+      },
+      {
+        "file": "20261003120000_phase5_programplan_terms.sql",
+        "sha256": "628cd5573e9cf3f0d3cbce305c4ac373333ecb23985e4c3569febe3a7bb1ef6e"
+      },
+      {
+        "file": "20261003121000_phase5_worker_programplan_terms.sql",
+        "sha256": "51692a79fbbb4e245a179e787d5129cfb4db666db1856a8084b8df72d8d55a3a"
+      },
+      {
+        "file": "20261004120000_phase5_programplan_lifecycle.sql",
+        "sha256": "2bb8b170cf8c6bcb49b9b4c9d5b5c8d0b7111d4c0c4c3e30f57278b3bb15bdf5"
+      },
+      {
+        "file": "20261004121000_phase5_worker_programplan_lifecycle.sql",
+        "sha256": "acd5895abfe97f9866c40f00d3157261f02b84859ab282be1202a40d8ad16b4e"
+      },
+      {
+        "file": "20261004122000_phase5_programplan_lifecycle_locks.sql",
+        "sha256": "13bc47f6db5815042f4efb5abf1474b069fd591f01a195cd110b5b7636d3fac4"
+      },
+      {
+        "file": "20261004130000_phase5_programplan_units.sql",
+        "sha256": "b5ea67768554e7166daa6fab5522aeb83ed50a18b2996c173656439e19d2bdad"
+      },
+      {
+        "file": "20261004140000_phase5_offering_unit_linkage.sql",
+        "sha256": "6b63de29f85a1a0971fd5d77a9873e284cf6cda2152d9644096c41786c7cbf80"
+      },
+      {
+        "file": "20261004141000_phase5_timplan_units.sql",
+        "sha256": "653fd5fdf8233c29293004da8ab31a91ee750d47688f8519b1f5e368e6db559e"
+      },
+      {
+        "file": "20261004150000_phase5_programplan_choice_blocks.sql",
+        "sha256": "69690e798774c50bc5f5adfe20e20678772399d422ec7b6df794ac633fb7d9dd"
+      },
+      {
+        "file": "20261004150100_phase5_programplan_block_numeric.sql",
+        "sha256": "c0f2ae427407b18ea5c02126c33367f67306ef854b7cb3d7ce62b31f9364f090"
+      },
+      {
+        "file": "20261004151000_phase5_programplan_block_commands.sql",
+        "sha256": "1c5b41f877d5a464138de6eaae226b12f429d3ad07d3bdb650ba163f81785267"
+      },
+      {
+        "file": "20261004152000_phase5_programplan_shape_upgrade.sql",
+        "sha256": "4d24e8367fed0480c95ed621af5c65e5a6e0b466f52f5539bbd0272b1ae34de5"
+      },
+      {
+        "file": "20261004152100_phase5_programplan_block_clone_identity.sql",
+        "sha256": "26cff31f00878ed5c84983e427ce1fde4885fd11d46764575a4416fa942717cf"
+      },
+      {
+        "file": "20261004153000_phase5_worker_programplan_blocks.sql",
+        "sha256": "166bf45c4cd6bc2f8cf25d73dc4fc26ea84d08738f02bfe9996046a2e9579c14"
+      },
+      {
+        "file": "20261004154000_phase5_programplan_unit_packages.sql",
+        "sha256": "443a8e4a3f56872491cb13b29cad88e12765d47dac71f536bbcf8cd299483541"
+      },
+      {
+        "file": "20261004155000_phase5_worker_programplan_unit_packages.sql",
+        "sha256": "fb873b7f1041dd8c2598c7c135a36f19da9b12b1256837289b33dc610d5a19f2"
+      },
+      {
+        "file": "20261004156000_phase5_programplan_packages.sql",
+        "sha256": "7e087cfd70c589fc979817a489ea0d52512be1f4ca85523baf8798caf20cfa38"
+      },
+      {
+        "file": "20261004157000_phase5_worker_programplan_packages.sql",
+        "sha256": "2e236c16180f539722e7098d88a8d2a2575824d9804a2a51f07594fe71956ea2"
+      },
+      {
+        "file": "20261005110000_phase5_gym_timplan_transition.sql",
+        "sha256": "0159e6d1e3f9cddc4885c7ab1b51d1ddd077f85535db0a125e298edd2e79171e"
+      },
+      {
+        "file": "20261005111000_phase5_worker_gym_timplan_transition.sql",
+        "sha256": "ab088cffafdb79bc6699cc07190f2511b9a611229c187c947702ed0f5fcd973a"
+      },
+      {
+        "file": "20261006120000_phase5_planning_year_reads.sql",
+        "sha256": "e014d63bca3a1f71d41054216f97c1b02f6cdf93f2e45baff40fe7afd7c2aa71"
+      },
+      {
+        "file": "20261006121000_phase5_worker_planning_year_reads.sql",
+        "sha256": "ef34e6a5f606d940e6851aed591a2cb84ff8af279c94994cbca9655326e2db82"
+      },
+      {
+        "file": "20261006122000_phase5_planning_year_read_performance.sql",
+        "sha256": "83c12579fc275b4353f014ea749ca2af297e4825d04bd0c26a9311d219ffc997"
+      },
+      {
+        "file": "20261006123000_phase5_planning_year_search_details.sql",
+        "sha256": "b566b7abcce22784b9fe5dc6e4fba691afb4b008b5251b570acc19fef6b3685c"
+      },
+      {
+        "file": "20261012130000_gym_timplan_requires_programplan.sql",
+        "sha256": "5cc0a3edaf4b792205c1a174070c4928821d53b0f8f34bad318af86b2e8b1dc9"
+      },
+      {
+        "file": "20261012150000_created_timplans_only.sql",
+        "sha256": "36855afdc4bf475eaca56dc54bbf681cd5b4338658ade584d0c3417ed6a9cc61"
+      },
+      {
+        "file": "20261012160000_programplan_school_timplan.sql",
+        "sha256": "f274ac5f1472aba3c2b6191d61de5b547cad7c52a5a472d06ecbefa91b3f9eb1"
+      },
+      {
+        "file": "20261012180000_plan_decision_flow.sql",
+        "sha256": "7e42772e0657c00855576fb09764d4e9ad9378a6d292f4ce92b17e5029515b9a"
+      },
+      {
+        "file": "20261012180100_plan_decision_command_fix.sql",
+        "sha256": "a12a4ccddcf460aef51ffaf6605da253bf8857d4fea30353e7383017a35f7167"
+      },
+      {
+        "file": "20261012181000_plan_decision_worker.sql",
+        "sha256": "0ed1450cfaf7486234209b367de95d82c4f9b2905ac21efcd0aaa1cdc91e6d87"
+      },
+      {
+        "file": "20261012200000_plan_decision_vocational.sql",
+        "sha256": "f3a1f8a64f0fd91f16804f5394291d90589c28af002c221b5e71e85bf764404c"
+      },
+      {
+        "file": "20261012210000_class_timplan_flow.sql",
+        "sha256": "ef7c466f86318da2e3f9d8cf1dc3ab2392298ee3139b531b52b3dcc2baace9a5"
+      },
+      {
+        "file": "20261012230000_gym_source_content.sql",
+        "sha256": "0a11db00f0fe271595a0c686795600866ab7ee9bebc4c610b3be3ee562098563"
+      },
+      {
+        "file": "20261012240000_class_start_calendar.sql",
+        "sha256": "bc8c85a8f80c6b7cfbfeaf2edf64fdd93dbd16db745ce87b8fc944baf226e50c"
+      },
+      {
+        "file": "20261014100000_phase5_atomic_cohort_copy.sql",
+        "sha256": "1a274c4bd0432c734a7e2e561393483a5d710504ab0c591edc6fc3cbd35a523b"
+      },
+      {
+        "file": "20261014101000_phase5_worker_atomic_cohort_copy.sql",
+        "sha256": "bb7336e15057736a8dfeca693bb256fd6f89b3d76ed38fa2e66e2494621f1857"
+      },
+      {
+        "file": "20261014120000_phase5_school_registry.sql",
+        "sha256": "91d8a8c18995d17da177f5f7fb0b8e00bd52cf71c6ab24e9e76f17998390f1e0"
+      },
+      {
+        "file": "20261014121000_phase5_worker_school_registry.sql",
+        "sha256": "058be315c8b2ac23e56e9fe5decba4c37a60a170671287b64cbcfa28682f0730"
+      },
+      {
+        "file": "20261015100000_class_cohort_dates.sql",
+        "sha256": "a39b5771a357c1b9e0ed2923bd89f2543cc5c0c3ee360a04132c7964e7591f67"
+      },
+      {
+        "file": "20261015101000_class_cohort_link_identity.sql",
+        "sha256": "d20b20fcbc9634ac8deda5c34828f7be03878d34c0398cd504cc050c33f83ccf"
+      },
+      {
+        "file": "20261015102000_class_cohort_commands.sql",
+        "sha256": "7ce69107611d58e539d9e907230af88071c5291a797b71920a4b1da1c8b27486"
+      },
+      {
+        "file": "20261015200000_named_timplan_series.sql",
+        "sha256": "36eda14400bb2f4a94e0cd1f781a3f4b6b95489790d590d26194b794ba5c161e"
+      },
+      {
+        "file": "20261015201000_named_timplan_commands.sql",
+        "sha256": "02c747bef0e60f07593d3c46512185a72701dfb0c0f10991b3602f3d14c773d4"
+      },
+      {
+        "file": "20261015202000_named_timplan_decisions.sql",
+        "sha256": "282ed83f6a14e79c73a4ab12840a4d78da8cc6646f2177031f86f9c44b4c327b"
+      },
+      {
+        "file": "20261015203000_named_timplan_reads.sql",
+        "sha256": "59fdf898e543c1b8eef73ffd36acc2bb0d494d73d040d38859c41eff11ea8679"
+      },
+      {
+        "file": "20261015204000_worker_named_timplans.sql",
+        "sha256": "efa2ea93236e338191552777113f00fc3b064e48765cff5a3f22386e62a9ca89"
+      },
+      {
+        "file": "20261016100000_rector_programplan_creation.sql",
+        "sha256": "f50d8aabd434dcc699fa91186c9b6b75859bf7533d769b5a5523131df769a9dc"
+      },
+      {
+        "file": "20261016120000_apl_planning.sql",
+        "sha256": "e8e11a42b26695fc18c85af7dfed42bfd2ef9a0de90371f31325f6f66756a160"
+      },
+      {
+        "file": "20261016121000_apl_plan_decisions.sql",
+        "sha256": "9f53a253a3f20b7fc23c15f4e4ca865bf2dd8ac9ce7bd9bf1e2e8ae874cba781"
+      },
+      {
+        "file": "20261016122000_apl_worker_access.sql",
+        "sha256": "00160ba5c368d19d6892b4f67c9d58d5aa6aaf6bb8e9bb7220b172923d22ad36"
+      },
+      {
+        "file": "20261016130000_apl_term_intent.sql",
+        "sha256": "d34d97c7ca58d5692c884dada2c4bbe297499e9510302bc8f90d0091c20ee8dc"
+      },
+      {
+        "file": "20261016160000_timplan_time_v2_storage.sql",
+        "sha256": "0afb9056453557c2d9215e08b61dc6be42c5538b269aeac3049b0692ef745183"
+      },
+      {
+        "file": "20261016161000_timplan_time_v2_integration.sql",
+        "sha256": "123cd54dd7688d824443cb31b6a2412d11671beda212603c338d2d6ad7b26718"
+      },
+      {
+        "file": "20261018100000_separate_apl_workflow.sql",
+        "sha256": "b27b555f8e07ab1d698b7236b6e062767fe0522360b835f47da5713b0df7ea78"
+      },
+      {
+        "file": "20261018120000_timplan_minimum_apl_budget.sql",
+        "sha256": "507610b071fdad3e53c213d420435cf39e93dc753110cfdf28753abde50afc95"
+      },
+      {
+        "file": "20261018180000_programplan_examination_review.sql",
+        "sha256": "19120174b65f04360401186c5bd5a1276ff527fe7dce7ee0b2c56f7b807877c4"
+      },
+      {
+        "file": "20261019150000_planning_year_shared_grim_units.sql",
+        "sha256": "fcfbc83ee501200f538d64bcebd61ab1baa2356c480878a63298e4be6e8cecc8"
+      },
+      {
+        "file": "20261019200000_apl_central_content.sql",
+        "sha256": "931e59e6203eccdacaec805424b7e27ac78e424adac7da47466cbb8b237676ac"
+      },
+      {
+        "file": "20261019200100_apl_central_content_seed.sql",
+        "sha256": "d14dd2f232ed49224fc5dcdcaa1ce7a67c9bdea6cab42173ab05fcccba7857c9"
+      },
+      {
+        "file": "20261020100000_grim_class_timplan_link.sql",
+        "sha256": "0bf06b644e5e0025fbe9b6d02b48b9629c652b86b235033e772679719196ada4"
+      },
+      {
+        "file": "20261020100100_grim_class_worker_access.sql",
+        "sha256": "d7d9dca0baec3a23dc1a78380f06474d1507d9a3322fa09f8e714bab20378795"
+      },
+      {
+        "file": "20261020110000_tjanst_personal_self.sql",
+        "sha256": "7a383919d32495848188114e822524f79c88f6f6a585630b8256bbf61f66af4f"
+      },
+      {
+        "file": "20261020120000_tjanst_plan.sql",
+        "sha256": "fc2ae54c157d204d579edab3e63aeebfbce6bcc742ab9baa39bf1abac45eb1a3"
+      },
+      {
+        "file": "20261020130000_tjanst_assignments_feedback.sql",
+        "sha256": "4e28f15c434b2abed8d95e834b73613f8c77334cf8f70111a5946fdff2cc5ef5"
+      },
+      {
+        "file": "20261020140000_tjanst_person_account.sql",
+        "sha256": "70f37d3f3350cad0dd48488bc9616a36fb20ed8550a3589e8817d29d76f5bed5"
+      },
+      {
+        "file": "20261020190000_tjanst_worker_access.sql",
+        "sha256": "3bc080b5180bdc66d0492c6bd664d630bf3ce78ca63f8ea87306f68aa6aea146"
+      },
+      {
+        "file": "20261021120000_tjanst_self_schools_joint_rules.sql",
+        "sha256": "55ef638226b36118578ee007e8e9d70975acea1fa9b26ca9dc3209066e729ccc"
+      },
+      {
+        "file": "20261023100000_tjanst_publish_person_scope.sql",
+        "sha256": "791b116b2959fa8724f2cd0d83d72cb04d517ad574ed57c82135dc1d0e378642"
+      },
+      {
+        "file": "20261023110000_tjanst_year_preview.sql",
+        "sha256": "33ccc9a28144148fca80be9885617dc05d1fea37e02dce92b34b47e78fdea2b2"
+      },
+      {
+        "file": "20261023120000_tjanst_year_commands.sql",
+        "sha256": "1cab1d80c39b672eda6f4a0c552b4bf8bc4f198c18319a14b03498fe5b4ea95e"
+      },
+      {
+        "file": "20261023130000_tjanst_year_worker_access.sql",
+        "sha256": "926aec137deb721811b8a84e6779b580d8cd005564e47cdaf4cab82908e9932f"
+      },
+      {
+        "file": "20261026100000_tjanst_joint_single_teacher.sql",
+        "sha256": "97da3d72923df8873bbe5e7fc2d24c743e2a1b68e763502d335ae3eac499b597"
+      },
+      {
+        "file": "20261026110000_tjanst_class_apl.sql",
+        "sha256": "968ae9ca7972dbd02bc26667e33f7d8ac2c37da7e305c8f80d999a6d023ebe55"
+      },
+      {
+        "file": "20261028100000_tjanst_need_sharing.sql",
+        "sha256": "2267364732b68e7b3b34a3c40fe8b9361225ec22aaae976d70d16937e8141f2b"
+      },
+      {
+        "file": "20261030110000_elective_blocks.sql",
+        "sha256": "020315a66c90be1a5fd8a5347329257688e49d3a0ba7b0c7b1baad3bd94be835"
+      },
+      {
+        "file": "20261030111000_elective_participant_authority.sql",
+        "sha256": "c72f95a605837df84a0b87776f6169ee5d18bd2e79f80c218e70e561b4f5386f"
+      },
+      {
+        "file": "20261030111500_elective_timplan_positions.sql",
+        "sha256": "55ba0cf79267792437868774f5c21f872b2e350ca89445716c102954496b63e0"
+      },
+      {
+        "file": "20261030112000_elective_tjanst_sources.sql",
+        "sha256": "d47f695aee0d969d4d010068fef14c75ff6150b6d821b46181557625603e4953"
+      },
+      {
+        "file": "20261030113000_elective_rounds_choices.sql",
+        "sha256": "dd712589475399347903e1bbad74466ba8cbb3284db1979791417961f5c7e6da"
+      },
+      {
+        "file": "20261030114000_elective_guardian_confirmation.sql",
+        "sha256": "b19e1fb9c62aaeb8cf1986246dd86f1867fe1d83f8e180cf9c1e2e15c9dc95b7"
+      },
+      {
+        "file": "20261030115000_elective_placements.sql",
+        "sha256": "467ccffb99512cf77587154e0234c352fd781030855f4a85a90642969260980d"
+      },
+      {
+        "file": "20261030115100_elective_binding_recovery_reference.sql",
+        "sha256": "3ef83db1e92702726359d593d272f5406c3bfa4aa572583ba57f4b0a0b9a1ab1"
+      },
+      {
+        "file": "20261030115200_elective_frame_exclusivity.sql",
+        "sha256": "14f50a44625b80daa8a6f56bc23e2baf909c4e87f5c468b980c1aaebd140fa4f"
+      },
+      {
+        "file": "20261030115300_elective_participant_account_attestation.sql",
+        "sha256": "8846dadcfdac08bd8515179fdcbb92f107352b586c87314cdd2865141b489767"
+      },
+      {
+        "file": "20261030115400_elective_placement_applied_organization.sql",
+        "sha256": "57f556087ebb66b56c729dcc66266d6e286159be1d7f91cca613f9416b1f0fc8"
+      },
+      {
+        "file": "20261030115500_elective_group_retirement.sql",
+        "sha256": "b7445ddb102e1fcf0638c39e26847b595bab4641cadce9abe7698a44252b2077"
+      },
+      {
+        "file": "20261030115600_elective_applied_pool_intent.sql",
+        "sha256": "5320748cf7558d48d4e11b8d1381b207484784e2bc529850da24c5439a1b0eb4"
+      },
+      {
+        "file": "20261030115700_elective_explicit_privileges.sql",
+        "sha256": "22041ff3b333bbba614d166314b8cc2552f973a60f407d7c36006f99ebac21f3"
+      },
+      {
+        "file": "20261031100000_elective_preparations.sql",
+        "sha256": "7f61304f0999303e92319c7a110928723222479cd09a908ffdbdf091da8afd0d"
+      },
+      {
+        "file": "20261104100000_valplans.sql",
+        "sha256": "2c527aedb2da58e17d06d482f8823da50de6a64a7e576412d6fb072694505e85"
+      },
+      {
+        "file": "20261104110000_study_groups.sql",
+        "sha256": "2867f1a797adf2b30a71a6de32a80f3129721b1f0e295ec66673c653176898e7"
+      },
+      {
+        "file": "20261104120000_valplan_legacy_row_time.sql",
+        "sha256": "0a30a1ac79440118bbac732d3c0aff1291080cadf0ccd7ad3d503b3ebcd8a539"
+      },
+      {
+        "file": "20261105100000_study_group_tjanst.sql",
+        "sha256": "8315190bb58657a8e02958672a815b9bc623fc7ab17bb67633794a365eb0199a"
+      },
+      {
+        "file": "20261105110000_valplan_choices.sql",
+        "sha256": "b21db5515e15bcf41fa62d9c7c5f6b51909d5b978b5829b557c3c8fa1e8a76e0"
+      },
+      {
+        "file": "20261105120000_study_group_read_classes.sql",
+        "sha256": "55e59777f89a817ff07c71a60ad7a2c1fb3b952502c81e0b74edcdfe476d5c21"
+      },
+      {
+        "file": "20261106100000_class_link_following.sql",
+        "sha256": "b3c860ed2699abbfa5e0a4598a235f2da28645cf1f3a4c896c811a8215f107ac"
+      },
+      {
+        "file": "20261107100000_valplan_all_block_kinds.sql",
+        "sha256": "4cf1172ee1562154c729520b60a44f960d17f3e6c08f4447bbced788c0293156"
+      },
+      {
+        "file": "20261107110000_valplan_class_selection.sql",
+        "sha256": "9651bc036017d3e9c6aa893302fa8030a148d2a27d229e754a6316a9fb3c1f16"
+      },
+      {
+        "file": "20261107120000_valplan_open_check.sql",
+        "sha256": "cb3b6a80bb43a9d8a2844711a8b91abdcea93fbb3a3701054765f20d2b3a564d"
+      },
+      {
+        "file": "20261107130000_valplan_held_courses.sql",
+        "sha256": "29378c94806687b68e9485e36677d0f3021f71c1c5c657c108b62516fbb20953"
+      },
+      {
+        "file": "20261110100000_valplan_language_ladders.sql",
+        "sha256": "9f6faed56c136467d9375ce246392f2a7b89d6eed1fa30fb1f3da152cc43fcc5"
+      },
+      {
+        "file": "20261111100000_lasar_versions.sql",
+        "sha256": "10961843a52192d38c962d0c9311d97538e9f8f4bba446868b02505ccb3f3f66"
+      },
+      {
+        "file": "20261111190000_lasar_worker_access.sql",
+        "sha256": "3b95e261bc48e8df8f8bbcdedbf9005050658ac6419c0e123208436e7216027c"
+      },
+      {
+        "file": "20261112100000_lasar_groups.sql",
+        "sha256": "6361521a9122d5b3e845efe7e150110a85700ff85c2694467345a749ba122965"
+      },
+      {
+        "file": "20261112110000_lasar_change_requests.sql",
+        "sha256": "ff1b486b2acda0f38e7d94af847339806ed887e8298fbaddf09c28677ac4b581"
+      },
+      {
+        "file": "20261112120000_lasar_frames.sql",
+        "sha256": "11bf09a0aebfe8f013031663e78ed6e1c1836541babe02b71d5b5bea777d8c62"
+      },
+      {
+        "file": "20261112130000_lasar_copy_overview.sql",
+        "sha256": "7481a3924f8235028bcea9a62718e3af41c1a553eb9e2203730814d568b291d6"
+      },
+      {
+        "file": "20261112131000_lasar_overview_worker_access.sql",
+        "sha256": "d110a94a77c14e423017632ba1e7f10646d58ddd61ea29109f54fe94fa829179"
+      },
+      {
+        "file": "20261112140000_lasar_summary.sql",
+        "sha256": "29b6397a3ef7ff56e872e56a1abb3c45df1221999b0b3cbdcbe6829f35dc1901"
+      },
+      {
+        "file": "20261112141000_lasar_summary_worker_access.sql",
+        "sha256": "50801415b79cae0eaf8443150e43557003dee0e54263a43cc0ec7cdf6e28c486"
+      },
+      {
+        "file": "20261112150000_tjanst_need_once.sql",
+        "sha256": "96bd7c660afc8891b9f03e90a5a89c327a1705625a8b9e72a4758023956c5ff5"
+      }
+    ],
+    "missing": [
+      "20261002120000_phase5_programplan_education.sql",
+      "20261002121000_phase5_worker_programplan_education.sql",
+      "20261116100000_schema_drafts.sql",
+      "20261116101000_schema_drafts_worker_access.sql",
+      "20261116102000_schema_dated_basis.sql"
+    ],
+    "mismatched": [
+      {
+        "file": "20260905120000_huvudman.sql",
+        "nameMatches": true,
+        "statementCount": 75,
+        "name": "huvudman",
+        "sourceMatches": false,
+        "sourceSha256": "f07dae07c32297ec78b25c0e0a764212ee3d5a2c0b2022831329a610d425aa32",
+        "journalStatementsSha256": "cc03235dd9e0760916d898f8fd91b57e3dd95687c8aa8929a3d76cb0d990b14f"
+      },
+      {
+        "file": "20260905130000_demo_bootstrap.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "demo_bootstrap",
+        "sourceMatches": false,
+        "sourceSha256": "de60d0b173064db33e0ccf67ae14e4a14e4318c82f21746d4bf368f9d801988e",
+        "journalStatementsSha256": "28599bbe1c0a9add09e9cefd6c7c6f90b2f7685c5d11dfa2dce0005f4b4be1fe"
+      },
+      {
+        "file": "20260905170000_timplan_lasar.sql",
+        "nameMatches": true,
+        "statementCount": 61,
+        "name": "timplan_lasar",
+        "sourceMatches": false,
+        "sourceSha256": "92882aa74f323069948b1e6cf5d7ac1969601af41d3d2283e09d519932541c7c",
+        "journalStatementsSha256": "f7cd029cd03ee4383d4d7124afde3fa2596334d9b0e5a0b6579c84d4aa7fed77"
+      },
+      {
+        "file": "20260908120000_cohorts_classes.sql",
+        "nameMatches": true,
+        "statementCount": 9,
+        "name": "cohorts_classes",
+        "sourceMatches": false,
+        "sourceSha256": "5f6a431a61c8ebb32c5b9f1a455abf3bde463cc23b84b86576bcf1f28f805df0",
+        "journalStatementsSha256": "80b4462b2cfabae6f8cbb630fa9bf6d164b3aaaf4977bc6fa91b255bef32e39c"
+      },
+      {
+        "file": "20260908150000_school_import.sql",
+        "nameMatches": true,
+        "statementCount": 7,
+        "name": "school_import",
+        "sourceMatches": false,
+        "sourceSha256": "a40b4807a6a9ec66b47393e56f7cb46ac587c69153343e2261d49647a2705a60",
+        "journalStatementsSha256": "29b7fcc1a7b15f2e2d568bd41172ff21196c85ed127321b21b9029430c160abf"
+      },
+      {
+        "file": "20260908170000_principal_teacher_assignments.sql",
+        "nameMatches": true,
+        "statementCount": 2,
+        "name": "principal_teacher_assignments",
+        "sourceMatches": false,
+        "sourceSha256": "b8bbd826fa054bf142f43c855d6bb2d379f128030dd1f6f0071f1499c1c47503",
+        "journalStatementsSha256": "8ad4cbcc5daf6957adc065b6e36ab2c93c7eae36effe78cc8e37dc7c8a45f2d5"
+      },
+      {
+        "file": "20260911120000_quarantine_demo_access.sql",
+        "nameMatches": true,
+        "statementCount": 19,
+        "name": "quarantine_demo_access",
+        "sourceMatches": false,
+        "sourceSha256": "3e495082a0fcbce2b1cbb077ca82ee341417ea59077e2e91a78e66e273c93733",
+        "journalStatementsSha256": "c4796e4fa53335960edee5016a558c5fbe665bd62072ca8f0031c4e3c807bca3"
+      },
+      {
+        "file": "20260913100000_phase2_worker_core.sql",
+        "nameMatches": true,
+        "statementCount": 37,
+        "name": "phase2_worker_core",
+        "sourceMatches": false,
+        "sourceSha256": "12533aeea804e5c47364e412508528ce22305256aedf90c721697be19b88cd51",
+        "journalStatementsSha256": "a05388b26b056e71ff66d98ca3bed08d1c54aa2e7c533f843053f0a58f43560a"
+      },
+      {
+        "file": "20260913200000_phase2_access_model.sql",
+        "nameMatches": true,
+        "statementCount": 86,
+        "name": "phase2_access_model",
+        "sourceMatches": false,
+        "sourceSha256": "31a97f60886d0026d69103bcdd2e1b6767e72c5fc5c56c111a7b3097b544cdb3",
+        "journalStatementsSha256": "440e70c71af0595ea0e11a8023283ec6d06a43eadcf4ec363c1aec5dd9eaf028"
+      },
+      {
+        "file": "20260922090000_phase3_access_functions.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "phase3_access_functions",
+        "sourceMatches": false,
+        "sourceSha256": "1d48d6368fa35b4899a7f230a12362bb3d4d721f7c72f8fb62fde11e706b336b",
+        "journalStatementsSha256": "07d3a12c8911ff9bc87925160a642e4f6a2f7be16dc29400d679455e92d56b49"
+      },
+      {
+        "file": "20260922100000_phase3_mandates.sql",
+        "nameMatches": true,
+        "statementCount": 41,
+        "name": "phase3_mandates",
+        "sourceMatches": false,
+        "sourceSha256": "c57c1b67fd9f803f6b9d7ebcd6fcf46ea5360d5080a0adab42dee383902a94d3",
+        "journalStatementsSha256": "a74c96f2bdd2279e2159c36eb1b8ff6711358c6a0228712ccb946d3e79591e3c"
+      },
+      {
+        "file": "20260922110000_phase3_mandate_chain.sql",
+        "nameMatches": true,
+        "statementCount": 2,
+        "name": "phase3_mandate_chain",
+        "sourceMatches": false,
+        "sourceSha256": "7560a2bd8a0453fac397a9417d22c9ef165c03bbacdf7a5bcae19cb9a805b36a",
+        "journalStatementsSha256": "d58164f888cff94a4e2f0951a2df34ae3a451a6b4a4490692249bbb7db0d8c86"
+      },
+      {
+        "file": "20260922120000_phase3_staff_bindings.sql",
+        "nameMatches": true,
+        "statementCount": 6,
+        "name": "phase3_staff_bindings",
+        "sourceMatches": false,
+        "sourceSha256": "ffcc7b551a63a68e24aac8a32d3c675288fc38e1a44b8546cc745a6951250d92",
+        "journalStatementsSha256": "94c91758f04b81fd0c451c46fe5878aa2d77a50bba11685391319b36a5f2cd35"
+      },
+      {
+        "file": "20260924130000_phase3_mandate_policy.sql",
+        "nameMatches": true,
+        "statementCount": 7,
+        "name": "phase3_mandate_policy",
+        "sourceMatches": false,
+        "sourceSha256": "4e9b79a78ea298e5cc7d7b8ffef19ac5ef5b94818f3123a36c6b5436f2df6b2c",
+        "journalStatementsSha256": "d19563ea5efc4fbbfb40bec598fa8aa1f26dcb9bca2dd70e91c3bf0bfb8891ab"
+      },
+      {
+        "file": "20260924140000_phase3_mandate_mutations.sql",
+        "nameMatches": true,
+        "statementCount": 7,
+        "name": "phase3_mandate_mutations",
+        "sourceMatches": false,
+        "sourceSha256": "9025bafded322b215ef52ffb9c2730bd41f322ed2f4a30d3b7978519b542bc01",
+        "journalStatementsSha256": "f614186e3a8b96ea9df4b7381fc59c71de18b0a141f68efd5cb33f849d3b289e"
+      },
+      {
+        "file": "20260924150000_phase3_policy_parameter_binding.sql",
+        "nameMatches": true,
+        "statementCount": 1,
+        "name": "phase3_policy_parameter_binding",
+        "sourceMatches": false,
+        "sourceSha256": "6780826c456ea67503e6befac77543109c3400d920ef667480071d7247d93738",
+        "journalStatementsSha256": "fc90927bd9e2ffa91787757413f07962d10274a8154c2d3923f21fe0cf284a7c"
+      },
+      {
+        "file": "20260924160000_phase3_invitations.sql",
+        "nameMatches": true,
+        "statementCount": 5,
+        "name": "phase3_invitations",
+        "sourceMatches": false,
+        "sourceSha256": "810e5019728317205e8be15ba014ab3be3702297f90ddcfea60f6f2ac5bb99b7",
+        "journalStatementsSha256": "0b54845af53e7142bdd42ae117b9f22b9d0765ac38c74f25e430c37b62eb6de2"
+      },
+      {
+        "file": "20260924170000_phase3_live_rechecks.sql",
+        "nameMatches": true,
+        "statementCount": 2,
+        "name": "phase3_live_rechecks",
+        "sourceMatches": false,
+        "sourceSha256": "568467487a7a11254c2ac07d98ae4dbb48feee0dbe3888feb2375ad9a2c9bf11",
+        "journalStatementsSha256": "b44972ce5645edd0de04a4536dbd3ab47bbddb22bc6743a2fe065b508220175f"
+      },
+      {
+        "file": "20260924180000_phase3_connections.sql",
+        "nameMatches": true,
+        "statementCount": 2,
+        "name": "phase3_connections",
+        "sourceMatches": false,
+        "sourceSha256": "2afd43d2e4bfe501f424e46ae2eb35fbc28de19c0057aa1c77cca2ed1b21d961",
+        "journalStatementsSha256": "0535cb46564c896a3d018b342528b87ac86c401db2608e95cc1b68abf307a1cc"
+      },
+      {
+        "file": "20260924183000_phase3_invitation_ttl.sql",
+        "nameMatches": true,
+        "statementCount": 1,
+        "name": "phase3_invitation_ttl",
+        "sourceMatches": false,
+        "sourceSha256": "86155352ca286bc6f71f0c3babf399a79998c1f8fce02dc3ab289a6ef9f0c5a6",
+        "journalStatementsSha256": "38b473bebd9ec13c976508e4183110f871f25e9a6c172f064135e7e9f09fe661"
+      },
+      {
+        "file": "20260924190000_phase3_mandate_cutover.sql",
+        "nameMatches": true,
+        "statementCount": 10,
+        "name": "phase3_mandate_cutover",
+        "sourceMatches": false,
+        "sourceSha256": "3dda6cbf159a034ee140253e1045ab49d19d218fd323ee49e0e4f715a58302e0",
+        "journalStatementsSha256": "bb817b20dec46385f2d5e32df651602b30ac213abc67e9c861803e76a1163b45"
+      },
+      {
+        "file": "20260924200000_phase3_audit_retention.sql",
+        "nameMatches": true,
+        "statementCount": 12,
+        "name": "phase3_audit_retention",
+        "sourceMatches": false,
+        "sourceSha256": "6c6639d45bfd6b202f755f545a873bd2e2137c812173e455d1de924889e42423",
+        "journalStatementsSha256": "073f37ad78ac5bd5b2e93ee7d5eac781221d08fd0f48d859eb530cb12a590678"
+      },
+      {
+        "file": "20260924210000_phase3_audit_maintenance_operator.sql",
+        "nameMatches": true,
+        "statementCount": 1,
+        "name": "phase3_audit_maintenance_operator",
+        "sourceMatches": false,
+        "sourceSha256": "db20d44fdb075def9f42dc878e77b9435a2a905a9d3ca5dabb0ad98a75ad2642",
+        "journalStatementsSha256": "4e7c7e5838bfdb178ae9ee6cd96b188700c56b23e452151d72a257ce9b2d4838"
+      },
+      {
+        "file": "20260924220000_phase3_workspace_metadata.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "phase3_workspace_metadata",
+        "sourceMatches": false,
+        "sourceSha256": "0ef5d8f53d9a8a203271990a1deac747c7964df9e8931ff28fa611aca50b84fe",
+        "journalStatementsSha256": "bcdbe84f3e873abe30ede9c7116338b9a62229dd8f68cb811284821aa5923602"
+      },
+      {
+        "file": "20260926090000_phase3_workspace_options.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "phase3_workspace_options",
+        "sourceMatches": false,
+        "sourceSha256": "0fa37aa27491f78e5a493e8b25d6dcf65353762f310a2e3685b2880de3fe1f9f",
+        "journalStatementsSha256": "93dd75f35286b3ee049bbb652fb851e0ba39eed84bc78347828be5644df9eac3"
+      },
+      {
+        "file": "20260926100000_phase3_pupil_probe_worker_read.sql",
+        "nameMatches": true,
+        "statementCount": 2,
+        "name": "phase3_pupil_probe_worker_read",
+        "sourceMatches": false,
+        "sourceSha256": "a22eea84364563b6e9adc0fe0f1fb5fc16e7dcef880ae4d54a05b3c631f6ffca",
+        "journalStatementsSha256": "efdeede73b32d9b85b0714f0e73ec47c95d633391cc77231fc182b8f0e0d989d"
+      },
+      {
+        "file": "20260926110000_phase3_list_current_mandates.sql",
+        "nameMatches": true,
+        "statementCount": 1,
+        "name": "phase3_list_current_mandates",
+        "sourceMatches": false,
+        "sourceSha256": "252a7a2a59cab0c3c361e6a0378e38ada6fd27cb0002158f12c42ad7fcab8056",
+        "journalStatementsSha256": "f8bdd08856325ee82cc598a0ccd37af5ebda5a3302145687100ff0fd5f4d4cef"
+      },
+      {
+        "file": "20260927090000_phase3_support_groups.sql",
+        "nameMatches": true,
+        "statementCount": 7,
+        "name": "phase3_support_groups",
+        "sourceMatches": false,
+        "sourceSha256": "7b5575fac301620f9a4741878b746c0f7b8b9f329ed64e4ae25efda6372e3153",
+        "journalStatementsSha256": "993b4f15186b26a9726ba0cc88935f512b4449bac5e919fe613fefc59044ca51"
+      },
+      {
+        "file": "20260929100000_phase4_register_schema.sql",
+        "nameMatches": true,
+        "statementCount": 57,
+        "name": "phase4_register_schema",
+        "sourceMatches": false,
+        "sourceSha256": "0b8b422472e9c7aba4d0b2f2b62cc6362b7671d24040319072e3ce04e8b54c5a",
+        "journalStatementsSha256": "b1777ed4a8aff7a2ae9bd7f32e360132b24f96cb1bd7e2b2121ee0d27f16f7fc"
+      },
+      {
+        "file": "20260929110000_phase4_register_migrate_probe.sql",
+        "nameMatches": true,
+        "statementCount": 24,
+        "name": "phase4_register_migrate_probe",
+        "sourceMatches": false,
+        "sourceSha256": "f907f383abd3e761d1a134e1baebeaea1b60489a90bdc581f92511ec219aeede",
+        "journalStatementsSha256": "e83d65e9c34390f1f8544bdc937ed9e59c929ae96ac23f5c93e909347c734355"
+      },
+      {
+        "file": "20260929130000_phase4_protected_permission.sql",
+        "nameMatches": true,
+        "statementCount": 13,
+        "name": "phase4_protected_permission",
+        "sourceMatches": false,
+        "sourceSha256": "544da9eff4546a28cf68c7ce243dbe8a437a5467afc1c19386adb527a2581a4e",
+        "journalStatementsSha256": "7beca7c1271e1d5eb64e52fbd6ef8054c6a72de037419f2652c67065a4d908c9"
+      },
+      {
+        "file": "20260929131000_phase4_permission_worker.sql",
+        "nameMatches": true,
+        "statementCount": 3,
+        "name": "phase4_permission_worker",
+        "sourceMatches": false,
+        "sourceSha256": "eb67dd9275f6704403ae04535c92335bba91fe51cbc2b1f105c35a6bc6dbcef2",
+        "journalStatementsSha256": "6704efc90d9f8e927b4ca7d702f2ef40903e7c8546b5b2da36aa46dacaaf0c49"
+      },
+      {
+        "file": "20260929140000_phase4_register_reads.sql",
+        "nameMatches": true,
+        "statementCount": 34,
+        "name": "phase4_register_reads",
+        "sourceMatches": false,
+        "sourceSha256": "e3875c8bb12feca2066fc9f1e9204aff303e45a5178cbc570ab4de3b34a30c2e",
+        "journalStatementsSha256": "7e3f9ee44eebd38efa4487b339a450272ee156451322f72687480c733a1262fd"
+      },
+      {
+        "file": "20260929141000_phase4_read_worker.sql",
+        "nameMatches": true,
+        "statementCount": 3,
+        "name": "phase4_read_worker",
+        "sourceMatches": false,
+        "sourceSha256": "221e00f309973a2fb6de08bca1665582d53070f737fd6a8607f152d4d7af7e40",
+        "journalStatementsSha256": "5499585e8e1754dab4e4bb6a4bb134a33c3c53dc85a7c24269992f88271166ad"
+      },
+      {
+        "file": "20260929150000_phase4_register_mutations.sql",
+        "nameMatches": true,
+        "statementCount": 28,
+        "name": "phase4_register_mutations",
+        "sourceMatches": false,
+        "sourceSha256": "e48884ceb26ac67a2e09d3dfdd3da613b0237f09b0635574613c022c1de8b3c9",
+        "journalStatementsSha256": "a702f018af82a14a169a160dda6b817ee1a2a217c9e60094a2e07ec582c32b2b"
+      },
+      {
+        "file": "20260929160000_phase4_register_sources.sql",
+        "nameMatches": true,
+        "statementCount": 16,
+        "name": "phase4_register_sources",
+        "sourceMatches": false,
+        "sourceSha256": "f21a5743595aea97a2312f69db47eaf390a4e2c75217f55c321feeb581b3329d",
+        "journalStatementsSha256": "ba8a7e5ab22728eaa20eb8f5b9a877d802ce713f5d763823c8de740b978e9ff3"
+      },
+      {
+        "file": "20260929161000_phase4_register_selection.sql",
+        "nameMatches": true,
+        "statementCount": 5,
+        "name": "phase4_register_selection",
+        "sourceMatches": false,
+        "sourceSha256": "dda526d252cebcb0ae01c8b70a6ebe74a8bfab65cc819e8f1e8b20f68f47161d",
+        "journalStatementsSha256": "cadfe4600d93580090724a5cddbb06822f79918cd34262c7690910ce59a2d70c"
+      },
+      {
+        "file": "20260929162000_phase4_source_contract_fix.sql",
+        "nameMatches": true,
+        "statementCount": 5,
+        "name": "phase4_source_contract_fix",
+        "sourceMatches": false,
+        "sourceSha256": "68fdfa954154bbf35c89ee9f33d70f2faca91033729860575f3f2a878d026fad",
+        "journalStatementsSha256": "25d3036b3a51241cc3b62f952a2f15b71725e199b00e72824ececa61bb6aa97b"
+      },
+      {
+        "file": "20260929163000_phase4_source_owned_refresh.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "phase4_source_owned_refresh",
+        "sourceMatches": false,
+        "sourceSha256": "6f4cbee7d82596d292cb5216551e435f8480937aff2c7a7c6da6371b62bc99b6",
+        "journalStatementsSha256": "b6898ee4ed4cd9884be7a902b445f194c7a0923dc744f8707d49ca5d992066f7"
+      },
+      {
+        "file": "20260929170000_phase4_worker_register_execute.sql",
+        "nameMatches": true,
+        "statementCount": 4,
+        "name": "phase4_worker_register_execute",
+        "sourceMatches": false,
+        "sourceSha256": "623354db736a730059d9551e0df3e99e96e5244f54bc2a9932aed7bc9da93051",
+        "journalStatementsSha256": "d570a06847550f55fec5778ffa30db94fb7817519d89642ad5cb324962a0ea15"
+      },
+      {
+        "file": "20260929180000_phase4_list_protected_flag.sql",
+        "nameMatches": true,
+        "statementCount": 5,
+        "name": "phase4_list_protected_flag",
+        "sourceMatches": false,
+        "sourceSha256": "41523d3c5025774a71a47ecada132353fe23127a7d89ef31d335a69b6a05d00d",
+        "journalStatementsSha256": "4d44320c1fb632b62777713997b726943960bd48fdb16c597e9665ba2ed1b5b5"
+      },
+      {
+        "file": "20260930100000_phase4_retire_probe.sql",
+        "nameMatches": true,
+        "statementCount": 9,
+        "name": "phase4_retire_probe",
+        "sourceMatches": false,
+        "sourceSha256": "c96bb11be4c8e4da5c1248e9f24392f384c7e52542bc4f5d2a14d2eb706027c9",
+        "journalStatementsSha256": "a307e3187138b86b63f5d923c5cdd0cb97803d0fded0ae9a6d40968bdf9ecd76"
+      },
+      {
+        "file": "20260930110000_phase5_timplan_draft.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_timplan_draft",
+        "sourceMatches": false,
+        "sourceSha256": "20cfc4cc5c28c1c91ca52633db07c08a4ddcc20c2bc67466ef1ae8bad147a9b3",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20260930120000_phase5_timplan_session_audit.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_timplan_session_audit",
+        "sourceMatches": false,
+        "sourceSha256": "731bc06d9ccc293eafbc9766affdc7ec59d063011dde6491bae39a6d2855e9da",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20260930121000_phase5_timplan_audit_failure.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_timplan_audit_failure",
+        "sourceMatches": false,
+        "sourceSha256": "f742daf6f305d36849c9a9dd462cd2e0a37320f3470275c6275ac04e45d9750a",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20260930130000_phase5_worker_timplan_execute.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_worker_timplan_execute",
+        "sourceMatches": false,
+        "sourceSha256": "7a1100904ca4588864f72f2dd75dcc70093f87801e3b9c7ebd8ee16a96201d75",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20260930140000_phase5_timplan_selection.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_timplan_selection",
+        "sourceMatches": false,
+        "sourceSha256": "bb3bbae4826164d2fc49a69ae629e1cc08866e34689080d8ee34344a0d9c7d40",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20260930150000_phase5_worker_timplan_selection.sql",
+        "nameMatches": true,
+        "statementCount": 0,
+        "name": "phase5_worker_timplan_selection",
+        "sourceMatches": false,
+        "sourceSha256": "3af6304cafbb828b796dff247d431153b15ab82c38a6bff6a0da2d684eebfbae",
+        "journalStatementsSha256": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+      },
+      {
+        "file": "20261012220000_plan_decision_search.sql",
+        "nameMatches": false,
+        "statementCount": 1,
+        "name": "plan_decision_operational",
+        "sourceMatches": true,
+        "sourceSha256": "48369549585f6b91502af02a04a9413f0a92e07c023a525ebda9a597dd9a244b",
+        "journalStatementsSha256": "a0f0fe2f137d5eac7e43794eb873c4a953ebf94e7dc1526b1f90314135be0cd4"
+      }
+    ],
+    "unknown": [],
+    "missingBaseline": [
+      "20261002120000_phase5_programplan_education.sql",
+      "20261002121000_phase5_worker_programplan_education.sql"
+    ]
+  },
+  "sql": [
+    {
+      "file": "20261116100000_schema_drafts.sql",
+      "version": "20261116100000",
+      "name": "schema_drafts",
+      "bytes": 20589,
+      "sha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "executionSha256": "4b21dc36dde6c50256cda782c1679b3d07b0069829885094069887c74fa8c395",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116101000_schema_drafts_worker_access.sql",
+      "version": "20261116101000",
+      "name": "schema_drafts_worker_access",
+      "bytes": 320,
+      "sha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "executionSha256": "4b9df8ec6f4ba16e130062a30c66e7ce813ce5faa975542e60ad6cc43e22cb11",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261116102000_schema_dated_basis.sql",
+      "version": "20261116102000",
+      "name": "schema_dated_basis",
+      "bytes": 4973,
+      "sha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "executionSha256": "19e65a3c0045f8d5f8bd17cd3feedce7037b2cece7e61fa07df198d6a5558ef7",
+      "wrapper": "none"
+    }
+  ],
+  "packageObjects": {
+    "functionNames": [],
+    "tableNames": []
+  },
+  "prerequisites": {
+    "missingFunctions": [],
+    "missingColumns": []
+  },
+  "educationBaseline": {
+    "status": "PASS",
+    "functions": 6,
+    "workerEntrypoints": 3
+  },
+  "databaseClosed": true,
+  "finishedAt": "2026-11-16T12:43:30.438Z"
+}
