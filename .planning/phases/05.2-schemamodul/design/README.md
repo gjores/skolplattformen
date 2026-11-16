@@ -1,6 +1,6 @@
 # Designvyer för schemaläggningen (kopia)
 
-Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794864789-fff3`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
+Kopia 2026-11-13 av designytan [Schemaläggning – vyer](https://claude.ai/artifact/WhNPFpntdZs9eT3tZyAcfL) (version `1794591829-ef0b`), kompletterad 2026-11-16 med omgång 1 (version `1794864912-f83d`). Designytan är källan; kopian finns här så att den som bygger kan läsa markup, mått och texter utan inloggning. Syntetiska namn och exempeldatum. Skisser, inte byggt. Ändras designytan ska kopian uppdateras i samma förändring.
 
 Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. De renderas inte fristående (de hänvisar till designytans `support.js`), men strukturen, texterna och CSS-värdena går att läsa direkt.
 
@@ -14,7 +14,7 @@ Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. 
 | `Regler.dc.html` | Marginaler för pass | SM-MARGINAL | N95–N104 |
 | `Fonster.dc.html` | Flera fönster som uppdateras live | SM-FONSTER | O105–O109 |
 | `Aktiviteter.dc.html` | Aktiviteter utanför tjänstefördelningen | SM-AKTIVITETER (återkommande, formulär, lista, visning); förslagstabellen för inställda pass hör till senare paket med schema i tid | P110–P118 |
-| `Lasar.dc.html` | Läsåret med nationella prov | Inte i denna spree: hör till läsårskalendern (05.1.1), kräver kontroll av Skolverkets underlag | P119–P120 |
+| `Lasar.dc.html` | Läsåret med nationella prov (vald vy för att välja prov; provtid räknas som undervisning enligt beslut 2026-11-16) | Inte i denna spree: hör till läsårskalendern (05.1.1), kräver kontroll av Skolverkets underlag | P119–P120 |
 
 ### Omgång 1 till UX-researchen (2026-11-16, designytans version `1794861092-ef28`)
 
@@ -30,7 +30,7 @@ Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomför
 | `Veckan2.dc.html` | Lägg schema – veckan med inspektör | Arbetsgrund Hela läsåret, visning HT/VT/faktiska datum, klick visar passet, sammanhängande lägesfält, exakt start 10:35 med 44px-stegning, inspektör som följer/fästs |
 | `AktivitetFlera.dc.html` | Aktivitet för flera klasser | Gemensam aktivitet, en per klass eller en per lärare; urval av klasser; samma tid, motorn per klass eller egen tid; förhandsgranskning per klass med ansvarig, sal och krock; serie; klasser väljs med sökfält; lunch i matsal med sittningar och platser (kräver nytt motorstöd). Användarfynd 2026-11-16 |
 | `Oversikt.dc.html` | Lägg schema – översikt över många resurser | Vyval Vecka/Översikt/Pass i tabell; verktygsfält för rader (klasser, lärare, salar, grupper), grundschema HT/VT, vecka eller datumintervall, dag med datum eller hela veckan, urval och sparade urval; faktiska tillfällen i vald vecka; tid i sidled, lediga salar per timme, pass utan sal, gemensam inspektör. Användarfynd 2026-11-16 |
-| `NationellaProv.dc.html` | Välj nationella prov | Skolverkets underlag med hämtningstid; prov per termin med krav, datum, föreslagna grupper, osäkra grupper och krockar; panel för det som kräver beslut; bokningar läggs i kalenderns utkast först när frågorna är besvarade. Hör till läsårskalendern (05.1.1). Användarbegäran 2026-11-16 |
+| `NationellaProv.dc.html` | Välj nationella prov | Skolverkets underlag med hämtningstid; prov per termin med krav, datum, föreslagna grupper, osäkra grupper och krockar; panel för det som kräver beslut; bokningar läggs i kalenderns utkast först när frågorna är besvarade. Hör till läsårskalendern (05.1.1). Användarbegäran 2026-11-16; alternativ som inte valts, användaren föredrar `Lasar.dc.html` |
 
 Förbereds checklista har efter användarens granskning sju punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Aktiviteter och nationella prov, Regler och önskemål samt Mål för schemat. Nationella prov räknas som undervisning i provets ämne och väljs före första schemaförslaget (användarbeslut 2026-11-16).
 
