@@ -34,7 +34,7 @@ const weeksOf = (perWeekday, classes = {}) => Array.from({ length: Math.max(...p
 const termWith = (base, extra) => { const t = { ...base, ...extra }; return extra.perWeekday || extra.classes ? { ...t, weeks: weeksOf(t.perWeekday, t.classes) } : t; };
 const timeWith = (ht = {}, vt = {}) => { const t = defaultSchemaTime(); return { ...t, terms: { ht: termWith(t.terms.ht, ht), vt: termWith(t.terms.vt, vt) } }; };
 /** Undervisningens tid utan veckolistorna; summan av veckorna prövas för sig. */
-const core = ({ perWeek, trimPerWeek, ...rest }) => { assert.equal(perWeek.reduce((n, x) => n + x, 0), rest.plannedMin); assert.equal(trimPerWeek.reduce((n, x) => n + x, 0), rest.terms.reduce((n, x) => n + x.trimmedMin, 0)); return rest; };
+const core = ({ ref, perWeek, trimPerWeek, ...rest }) => { assert.match(ref, /^(?:undervisning|samlasning|valbart-block):/u); assert.equal(perWeek.reduce((n, x) => n + x, 0), rest.plannedMin); assert.equal(trimPerWeek.reduce((n, x) => n + x, 0), rest.terms.reduce((n, x) => n + x.trimmedMin, 0)); return rest; };
 const term = (t, needMin, baseMin, trimmedMin = 0, trimmedCount = 0) => ({ term: t, needMin, maxMin: Math.ceil(needMin / 5) * 5, baseMin, plannedMin: baseMin - trimmedMin, trimmedMin, trimmedCount });
 
 test('veckotiden avrundas uppåt och delas i lika pass om högst 80 min; under 20 min i veckan ger inget pass', () => {
@@ -54,6 +54,20 @@ test('underlaget bär bara löpnummer: inga namn och inga av appens ID:n når mo
   assert.ok(!sent.includes('52a10000') && !sent.includes('Lärare') && !sent.includes('1A') && !sent.includes('Matematik') && !sent.includes('Provskolan'));
   assert.equal(problem.version, SCHEMA_MOTOR_VERSION);
   assert.deepEqual(problem.teachers.map(t => t.id), ['larare-1', 'larare-2', 'larare-3', 'larare-4']);
+});
+
+test('oanvänd valbar personal ändrar inte schemats grund, pass eller lärarlöpnummer', () => {
+  const data = plan(), original = buildSchemaUnderlag(data, request), person = { ref: uid(90), name: 'Valbar provpersonal' };
+  const available = buildSchemaUnderlag(data, request, { time: defaultSchemaTime(), members: null, personer: [person] });
+  assert.equal(available.grundFingerprint, original.grundFingerprint); assert.deepEqual(available.problem, original.problem);
+  assert.deepEqual(available.labels.lessons, original.labels.lessons); assert.ok(available.resurser.larare.some(t => t.ref === person.ref));
+  const used = { ...request, villkor: { ...request.villkor, egna: [{ slag: 'larare', ref: person.ref, typ: 'dag', maxMin: 480 }] } };
+  const first = buildSchemaUnderlag(data, used, { time: defaultSchemaTime(), members: null, personer: [person] });
+  const reordered = buildSchemaUnderlag(data, used, { time: defaultSchemaTime(), members: null, personer: [{ ref: uid(91), name: 'Annan valbar personal' }, person] });
+  assert.notEqual(first.grundFingerprint, original.grundFingerprint); assert.equal(reordered.grundFingerprint, first.grundFingerprint);
+  assert.equal(first.labels.teachers.at(-1).name, person.name); assert.equal(first.resurser.larare.at(-1).ref, person.ref);
+  assert.equal(reordered.resurser.larare[first.labels.teachers.length - 1].ref, person.ref);
+  assert.equal(reordered.teacherRefs[first.labels.teachers.at(-1).id], person.ref); assert.ok(!JSON.stringify(reordered.problem).includes(person.ref));
 });
 
 test('behov blir pass: ensam lärare, delat behov en i taget, vakant och utelämnat', () => {

@@ -55,6 +55,7 @@ const plan = { contractVersion: 1, unitId: uid(1), schoolName: 'Provskolan', sch
   classes, rows, groups, specials: [], joints: [], actions: [], blockers: [], capabilities: { canEdit: true, canPublish: false, canReadHistory: true }, sharing: [] };
 const request = { unitId: uid(1), schoolYear: 2026, period: 'lasar', villkor: defaultSchemaVillkor() };
 const forslag = JSON.parse(readFileSync(join(fixtures, 'schema-forslag.json'), 'utf8'));
+const tidigareFolj = JSON.parse(readFileSync(join(fixtures, 'schema-folj.json'), 'utf8'));
 const underlag = buildSchemaUnderlag(plan, request, basis);
 // Förslagets pass ska vara underlagets; då får fixturen appens kontraktsversion och underlagets fingeravtryck. Inga gamla fingeravtryck står kvar.
 const passen = list => list.map(l => [l.id, l.title, l.classIds, l.teacherIds, l.durationMin, l.marginMin, l.marginBeforeMin, l.roomIds, l.vacant, l.term]);
@@ -65,7 +66,7 @@ Object.assign(forslag, { contractVersion: SCHEMA_CONTRACT_VERSION, fingerprint: 
 const dated = schemaForslag(plan, request, underlag, { status: forslag.status,
   placements: forslag.lessons.flatMap(l => l.day === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]),
   unplaced: forslag.lessons.filter(l => l.day === null).map(l => l.id), diagnoses: [], metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: forslag.elapsedMs });
-Object.assign(forslag, { time: dated.time, trims: dated.trims, teachings: dated.teachings });
+Object.assign(forslag, { time: dated.time, trims: dated.trims, teachings: dated.teachings, fordelning: dated.fordelning });
 parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), request);
 writeFileSync(join(fixtures, 'schema-forslag.json'), JSON.stringify(forslag));
 const gammalKontroll = JSON.parse(readFileSync(join(fixtures, 'schema-kontroll.json'), 'utf8'));
@@ -112,7 +113,8 @@ try {
   for (const [namn, x] of Object.entries(direkt)) assert.ok(x.kontroll.total > 0 && x.kontroll.violations.every(v => v.code === 'outside_allowed'), `${namn}: kontrollen prövar inte villkoret`);
   writeFileSync(join(fixtures, 'schema-kontroll.json'), JSON.stringify({ move, clash, lifted, direkt }));
   // Matematik i klass 1 under hösten, som designvyn. Eleven: första eleven i klass 1 med Spanska.
-  const candidates = forslag.lessons.filter(l => l.title === 'Matematik' && l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.term === 'ht' && l.day !== null);
+  const candidates = forslag.lessons.filter(l => l.title === 'Matematik' && l.classIds.length === 1 && l.classIds[0] === forslag.classes[0].id && l.term === 'ht' && l.day !== null)
+    .sort((a, b) => Number(b.id === tidigareFolj.lesson) - Number(a.id === tidigareFolj.lesson));
   // En tidsbegränsad flertrådskörning kan ge andra placeringar. Välj ett faktiskt
   // matematikpass med en annan fri tid, i stället för att anta att första passet har en.
   let lesson, alla, fri;
@@ -122,6 +124,7 @@ try {
     if (available) { lesson = candidate; alla = positions; fri = available; break; }
   }
   assert.ok(lesson && alla && fri, 'inget matematikpass i klass 1 har en annan fri tid');
+  assert.equal(lesson.id, tidigareFolj.lesson, 'det tidigare följ-passet ska bevaras när underlaget inte ändrats');
   const pupilId = pupils[0].id;
   const elev = await lagen(lesson.id, forslag.lessons, pupilId);
   const flyttad = forslag.lessons.map(l => l.id === lesson.id ? { ...l, day: fri.day, startMin: fri.startMin } : l), efter = await lagen(lesson.id, flyttad);
