@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Tilldela salar och behåll tiderna</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.nav{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.nav[aria-current="page"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+.muted{color:#657185}
+.opt{display:flex;gap:12px;align-items:flex-start;min-height:44px;font-size:14px}
+.opt input{width:20px;height:20px;margin:2px 0 0;accent-color:#365ce6;flex-shrink:0}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;font-weight:600;color:#4f688b;text-align:left;padding:10px 12px;background:#edf0f6;position:sticky;top:0}
+td{padding:10px 12px;border-top:1px solid #e3e7ee;vertical-align:top}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 13px; color: #657185;">Exempelskolan · Läsår 2027/28</span>
+        <span style="font-size: 16px; font-weight: 600;">Utkast: Schema 2027/28</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+        <span class="badge ok">Sparat på servern 15:02 · revision 47</span>
+        <span class="badge neutral">Inte publicerat</span>
+        <button type="button" class="btn">Ångra: flytt av Matematik 1c</button>
+        <button type="button" class="btn" disabled="disabled" aria-disabled="true" style="color: #657185;">Gör om</button>
+      </div>
+    </div>
+    <nav aria-label="Arbetsytor i schemaläggningen" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button type="button" class="nav">Förbered</button>
+      <button type="button" class="nav" aria-current="page">Lägg schema</button>
+      <button type="button" class="nav">Granska</button>
+    </nav>
+  </header>
+
+  <main style="padding: 24px 48px 0; display: flex; flex-direction: column; gap: 20px;">
+    <div style="display: flex; flex-direction: column; gap: 6px;">
+      <div class="eyebrow">LÄGG SCHEMA · SALSÄTTNING · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
+      <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Tilldela salar och behåll tiderna<span style="color: #365ce6;">.</span></h1>
+      <p style="margin: 0; font-size: 15px; color: #657185; max-width: 80ch;">Prövar salar för pass som redan har tid. Dagar, starttider, längder och lås ändras inte. Inget ändras i utkastet förrän du använder förslaget.</p>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(320px, 400px) minmax(0, 1fr); gap: 24px; align-items: start;">
+      <section aria-labelledby="omf" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px;">
+        <h2 id="omf" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">1. Omfattning</h2>
+        <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 4px;">
+          <legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Vilka pass?</legend>
+          <label class="opt"><input type="radio" name="omf" checked="checked"><span>Alla 38 pass utan sal</span></label>
+          <label class="opt"><input type="radio" name="omf"><span>Alla 412 fysiska pass, även de som har sal<br><span class="muted" style="font-size: 13px;">Kan byta sal på redan salsatta pass.</span></span></label>
+          <label class="opt"><input type="radio" name="omf" disabled="disabled" aria-describedby="markerade-skal"><span style="color: #657185;">Markerade pass (0)</span></label>
+          <span id="markerade-skal" style="font-size: 13px; color: #657185; padding-left: 32px;">Markera pass i veckan eller tabellen först.</span>
+        </fieldset>
+        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Behålls oförändrat</h3>
+          <ul style="margin: 0; padding-left: 18px; line-height: 1.6;">
+            <li>Dagar, starttider och längder</li>
+            <li>14 låsta pass och deras salar</li>
+            <li>Datumundantag i 3 veckor</li>
+          </ul>
+        </div>
+        <button type="button" class="btn btn-p" style="align-self: flex-start;">Pröva salsättning</button>
+      </section>
+
+      <section aria-labelledby="res" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 16px #284ab509; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+          <h2 id="res" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">2. Förslag: 35 av 38 pass får sal</h2>
+          <span class="badge ok">Kontrollerat mot revision 47</span>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px 20px; font-size: 14px;">
+          <div><dt class="muted" style="font-size: 13px;">Får lämplig sal</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">35</dd></div>
+          <div><dt class="muted" style="font-size: 13px;">Saknar fortfarande sal</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">3</dd></div>
+          <div><dt class="muted" style="font-size: 13px;">Tider som ändras</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">0</dd></div>
+          <div><dt class="muted" style="font-size: 13px;">Salbyten på andra pass</dt><dd style="margin: 4px 0 0; font-size: 20px; font-weight: 600;">0</dd></div>
+        </dl>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; padding: 14px 16px; border-radius: 10px; background: #fbeeee;">
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;"><span class="badge err" style="background: #fff;">Hinder</span><strong style="font-size: 14px; font-weight: 600; color: #8a2a2a;">Tisdag 09:00–10:30: tre pass behöver laborationssal samtidigt</strong></div>
+          <p style="margin: 0; font-size: 14px; color: #8a2a2a;">Kemi 1 NA27A grupp 1, Biologi 1 NA27B och Kemi 2 NA26A. Bara Labb 1 och Labb 2 uppfyller kraven, och Labb 2 har för få platser för Kemi 1 grupp 1.</p>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="btn">Visa passen i veckan</button>
+            <button type="button" class="btn">Öppna salbehoven</button>
+          </div>
+        </div>
+
+        <div style="overflow: auto; max-height: 300px; border: 1px solid #e3e7ee; border-radius: 10px;">
+          <table>
+            <thead><tr><th scope="col">Pass</th><th scope="col">Tid (oförändrad)</th><th scope="col">Sal nu</th><th scope="col">Föreslagen sal</th></tr></thead>
+            <tbody>
+              <tr><td>Matematik 1c · NA27A</td><td>Mån 08:15–09:35</td><td class="muted">Ingen sal</td><td>A101</td></tr>
+              <tr><td>Svenska 1 · NA27B</td><td>Mån 08:15–09:35</td><td class="muted">Ingen sal</td><td>A102</td></tr>
+              <tr><td>Idrott och hälsa 1 · TE27</td><td>Ons 08:30–10:00</td><td class="muted">Ingen sal</td><td>Idrottshall B</td></tr>
+              <tr><td>Spanska 3 · Språkblock</td><td>Tis 13:00–14:20</td><td class="muted">Ingen sal</td><td>201</td></tr>
+              <tr><td>Tyska 3 · Språkblock</td><td>Tis 13:00–14:20</td><td class="muted">Ingen sal</td><td>202</td></tr>
+              <tr style="background: #fbeeee;"><td>Kemi 1 · NA27A grupp 1</td><td>Tis 09:00–10:30</td><td class="muted">Ingen sal</td><td><span class="badge err" style="background: #fff;">Ingen lämplig ledig sal</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Visar 6 av 38. Spanska 3 och Tyska 3 ingår i samma block och får varsin sal.</p>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 12px; border-top: 1px solid #e3e7ee;">
+          <button type="button" class="btn btn-p">Använd 35 salar</button>
+          <button type="button" class="btn">Avbryt</button>
+          <span style="font-size: 13px; color: #657185;">Blir ett steg i Ångra. De 3 passen står kvar utan sal med hindret synligt.</span>
+        </div>
+      </section>
+    </div>
+
+    <section aria-labelledby="omtag" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 24px;">
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <h2 id="omtag" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">3. Om salar inte räcker: begränsat tidsomtag</h2>
+        <p style="margin: 0; font-size: 14px;">Söker nya tider för de 3 passen utan sal och flyttar så få andra pass som möjligt. Du ser hela förslaget innan något ändras.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end;">
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Högst antal andra pass som får flyttas
+            <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>4</option><option>8</option><option>12</option></select></label>
+          <label class="opt" style="align-items: center;"><input type="checkbox" checked="checked" style="margin: 0;"><span>Samma dag om möjligt</span></label>
+        </div>
+        <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6;">
+          <li>Låsta pass flyttas inte (14).</li>
+          <li>Berörs ett pass i ett block följer hela blocket med.</li>
+          <li>Behövs fler ändringar visas varför, och du väljer om området ska utökas.</li>
+        </ul>
+        <button type="button" class="btn" style="align-self: flex-start;">Sök begränsat omtag</button>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 10px; padding: 16px; border-radius: 10px; background: #f7f8fa; border: 1px solid #e3e7ee;">
+        <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Nytt helförslag</h3>
+        <p style="margin: 0; font-size: 14px;">Lägger hela schemat på nytt med tid och sal. Ersätter 412 handlagda placeringar och kan ta bort datumundantag i 3 veckor.</p>
+        <p style="margin: 0; font-size: 13px; color: #657185;">En hållpunkt sparas först. Förslaget granskas innan det ersätter utkastet.</p>
+        <button type="button" class="btn" style="align-self: flex-start;">Ta fram nytt helförslag…</button>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

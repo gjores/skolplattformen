@@ -1,1 +1,306 @@
-{"v":3,"createdOnFiles":{"v":1,"at":"2026-11-13T09:40:00Z"},"title":"Schemaläggning – vyer","launch":{"view":"canvas"},"pages":[],"boards":{"Main.dc.html":{"x":0,"y":0,"w":1440,"h":1240,"title":"Veckan med villkor, verktyg och högerklick","expand":"fill"},"Sparra.dc.html":{"x":1520,"y":0,"w":1440,"h":1000,"title":"Spärra en tid direkt i schemat","expand":"fill"},"Samlingsvy.dc.html":{"x":0,"y":1360,"w":1440,"h":1000,"title":"Följ passet och möjlighetskarta","expand":"fill"},"Regler.dc.html":{"x":1520,"y":1360,"w":1440,"h":1000,"title":"Marginaler för pass","expand":"fill"},"Fonster.dc.html":{"x":0,"y":2480,"w":1600,"h":960,"title":"Flera fönster som uppdateras live"},"Aktiviteter.dc.html":{"x":1680,"y":2480,"w":1440,"h":1300,"title":"Aktiviteter utanför tjänstefördelningen","expand":"fill"},"Lasar.dc.html":{"x":0,"y":3900,"w":1440,"h":1400,"title":"Läsåret med nationella prov","expand":"fill"},"Forbered.dc.html":{"x":0,"y":5720,"w":1440,"h":1400,"title":"Förbered – överblick","expand":"fill"},"Salar.dc.html":{"x":1520,"y":5720,"w":1440,"h":1140,"title":"Salar – register och salbehov","expand":"fill"},"Saltabell.dc.html":{"x":0,"y":7240,"w":1440,"h":1240,"title":"Salbehov som tabell med massändring","expand":"fill"},"Forutsattningar.dc.html":{"x":1520,"y":7240,"w":1440,"h":1240,"title":"Förutsättningar just nu – alla tillstånd","expand":"fill"},"Salsattning.dc.html":{"x":0,"y":8600,"w":1440,"h":1240,"title":"Tilldela salar och behåll tiderna","expand":"fill"},"Veckan2.dc.html":{"x":1520,"y":8600,"w":1440,"h":1240,"title":"Lägg schema – veckan med inspektör","expand":"fill"},"AktivitetFlera.dc.html":{"x":0,"y":9960,"w":1440,"h":1240,"title":"Aktivitet för flera klasser","expand":"fill"},"Oversikt.dc.html":{"x":1520,"y":9960,"w":1440,"h":1240,"title":"Lägg schema – översikt över många resurser","expand":"fill"}},"order":["Main.dc.html","Sparra.dc.html","Samlingsvy.dc.html","Regler.dc.html","Fonster.dc.html","Aktiviteter.dc.html","Lasar.dc.html","Forbered.dc.html","Salar.dc.html","Saltabell.dc.html","Forutsattningar.dc.html","Salsattning.dc.html","Veckan2.dc.html","AktivitetFlera.dc.html","Oversikt.dc.html"],"notes":{"rubrik":{"x":0,"y":-300,"text":"Schemaläggning – vyer (skiss, inget byggt)","kind":"title1","maxW":2960},"om":{"x":3040,"y":0,"w":360,"text":"Skisser till avsnitt M–P i 05.2-SM-UTVECKLING-RESEARCH.md: villkor syns i schemat, spärra positioner, högerklick och verktygsfält, marginaler för pass, flera fönster som uppdateras live, aktiviteter utanför tjänstefördelningen och nationella prov i läsårsplaneringen. Schemaläggning görs på dator med stor skärm (beslut 2026-11-13). Syntetiska namn och exempeldatum. Inget av detta är byggt.","fill":"blue"},"rubrik2":{"x":0,"y":5420,"text":"Förbered → Lägg schema → Granska, omgång 1 (skiss, inget byggt)","kind":"title1","maxW":2960},"om2":{"x":3040,"y":5720,"w":360,"text":"Omgång 1 till 05.2-SM-UX-RESEARCH.md (2026-11-16): den sammanhängande kedjan salbehov → återkoppling → salsättning med fasta tider → granska/använd/ångra, plus veckan med kontextinspektör. Designhypotes, inte beslutad navigation. Ytans namn Granska prövas mot alternativ i användarprov. Samma slut i samtidighetsblock ritas inte förrän motorn stöder det. Syntetiska namn och exempelvärden; inget är beräknat, byggt eller användarprövat.","fill":"blue"}},"designSystems":[{"title":"Skolplattan","namespace":"skolplattan","artifact":"https://claude.ai/artifact/RChajoCJX8bqdchWfnQBCo","version":"1794551004-add5","copiedAt":"2026-11-13T09:40:00Z"}]}
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "AktivitetFlera-h9fg.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Aktivitet för flera klasser copy",
+      "w": 1440,
+      "x": -1438,
+      "y": 1720
+    },
+    "AktivitetFlera.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Aktivitet för flera klasser",
+      "w": 1440,
+      "x": 0,
+      "y": 9960
+    },
+    "Aktiviteter.dc.html": {
+      "expand": "fill",
+      "h": 1300,
+      "title": "Aktiviteter utanför tjänstefördelningen",
+      "w": 1440,
+      "x": 1680,
+      "y": 2480
+    },
+    "Fonster.dc.html": {
+      "h": 960,
+      "title": "Flera fönster som uppdateras live",
+      "w": 1600,
+      "x": 0,
+      "y": 2480
+    },
+    "Forbered-c6t4.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "page": "page-l8lbe3",
+      "title": "Förbered – överblick copy",
+      "w": 1298,
+      "x": -1438,
+      "y": -2520
+    },
+    "Forbered.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "title": "Förbered – överblick",
+      "w": 1298,
+      "x": 0,
+      "y": 5720
+    },
+    "Forutsattningar-zmub.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Förutsättningar just nu – alla tillstånd copy",
+      "w": 1440,
+      "x": 82,
+      "y": -1000
+    },
+    "Forutsattningar.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Förutsättningar just nu – alla tillstånd",
+      "w": 1440,
+      "x": 1520,
+      "y": 7240
+    },
+    "Lasar.dc.html": {
+      "expand": "fill",
+      "h": 1400,
+      "title": "Läsåret med nationella prov",
+      "w": 1440,
+      "x": 0,
+      "y": 3900
+    },
+    "Main.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Veckan med villkor, verktyg och högerklick",
+      "w": 1440,
+      "x": 0,
+      "y": 0
+    },
+    "Oversikt-zlne.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Lägg schema – översikt över många resurser copy",
+      "w": 1440,
+      "x": 82,
+      "y": 1720
+    },
+    "Oversikt.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Lägg schema – översikt över många resurser",
+      "w": 1440,
+      "x": 1520,
+      "y": 9960
+    },
+    "Regler.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Marginaler för pass",
+      "w": 1440,
+      "x": 1520,
+      "y": 1360
+    },
+    "Salar-soer.dc.html": {
+      "expand": "fill",
+      "h": 1140,
+      "page": "page-l8lbe3",
+      "title": "Salar – register och salbehov copy",
+      "w": 1298,
+      "x": -68,
+      "y": -2520
+    },
+    "Salar.dc.html": {
+      "expand": "fill",
+      "h": 1140,
+      "title": "Salar – register och salbehov",
+      "w": 1298,
+      "x": 1370,
+      "y": 5720
+    },
+    "Salsattning-d0pl.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Tilldela salar och behåll tiderna copy",
+      "w": 1440,
+      "x": -1438,
+      "y": 360
+    },
+    "Salsattning.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Tilldela salar och behåll tiderna",
+      "w": 1440,
+      "x": 0,
+      "y": 8600
+    },
+    "Saltabell-oi4s.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Salbehov som tabell med massändring copy",
+      "w": 1440,
+      "x": -1438,
+      "y": -1000
+    },
+    "Saltabell.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Salbehov som tabell med massändring",
+      "w": 1440,
+      "x": 0,
+      "y": 7240
+    },
+    "Samlingsvy.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Följ passet och möjlighetskarta",
+      "w": 1440,
+      "x": 0,
+      "y": 1360
+    },
+    "Sparra.dc.html": {
+      "expand": "fill",
+      "h": 1000,
+      "title": "Spärra en tid direkt i schemat",
+      "w": 1440,
+      "x": 1520,
+      "y": 0
+    },
+    "Veckan2-346k.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "page": "page-l8lbe3",
+      "title": "Lägg schema – veckan med inspektör copy",
+      "w": 1440,
+      "x": 82,
+      "y": 360
+    },
+    "Veckan2.dc.html": {
+      "expand": "fill",
+      "h": 1240,
+      "title": "Lägg schema – veckan med inspektör",
+      "w": 1440,
+      "x": 1520,
+      "y": 8600
+    }
+  },
+  "createdOnFiles": {
+    "at": "2026-11-13T09:40:00Z",
+    "v": 1
+  },
+  "designSystems": [
+    {
+      "artifact": "https://claude.ai/artifact/RChajoCJX8bqdchWfnQBCo",
+      "copiedAt": "2026-11-13T09:40:00Z",
+      "namespace": "skolplattan",
+      "title": "Skolplattan",
+      "version": "1794551004-add5"
+    }
+  ],
+  "launch": {
+    "view": "canvas"
+  },
+  "noteOrder": [
+    "rubrik",
+    "om",
+    "rubrik2",
+    "om2",
+    "note-d9hmmt",
+    "note-y5498m"
+  ],
+  "notes": {
+    "note-d9hmmt": {
+      "kind": "title1",
+      "maxW": 2960,
+      "page": "page-l8lbe3",
+      "text": "Förbered → Lägg schema → Granska, omgång 1 (skiss, inget byggt)",
+      "w": 240,
+      "x": -1438,
+      "y": -2820
+    },
+    "note-y5498m": {
+      "fill": "blue",
+      "page": "page-l8lbe3",
+      "text": "Omgång 1 till 05.2-SM-UX-RESEARCH.md (2026-11-16): den sammanhängande kedjan salbehov → återkoppling → salsättning med fasta tider → granska/använd/ångra, plus veckan med kontextinspektör. Designhypotes, inte beslutad navigation. Ytans namn Granska prövas mot alternativ i användarprov. Samma slut i samtidighetsblock ritas inte förrän motorn stöder det. Syntetiska namn och exempelvärden; inget är beräknat, byggt eller användarprövat.",
+      "w": 360,
+      "x": 1602,
+      "y": -2520
+    },
+    "om": {
+      "fill": "blue",
+      "text": "Skisser till avsnitt M–P i 05.2-SM-UTVECKLING-RESEARCH.md: villkor syns i schemat, spärra positioner, högerklick och verktygsfält, marginaler för pass, flera fönster som uppdateras live, aktiviteter utanför tjänstefördelningen och nationella prov i läsårsplaneringen. Schemaläggning görs på dator med stor skärm (beslut 2026-11-13). Syntetiska namn och exempeldatum. Inget av detta är byggt.",
+      "w": 360,
+      "x": 3040,
+      "y": 0
+    },
+    "om2": {
+      "fill": "blue",
+      "text": "Omgång 1 till 05.2-SM-UX-RESEARCH.md (2026-11-16): den sammanhängande kedjan salbehov → återkoppling → salsättning med fasta tider → granska/använd/ångra, plus veckan med kontextinspektör. Designhypotes, inte beslutad navigation. Ytans namn Granska prövas mot alternativ i användarprov. Samma slut i samtidighetsblock ritas inte förrän motorn stöder det. Syntetiska namn och exempelvärden; inget är beräknat, byggt eller användarprövat.",
+      "w": 360,
+      "x": 3040,
+      "y": 5720
+    },
+    "rubrik": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Schemaläggning – vyer (skiss, inget byggt)",
+      "w": 240,
+      "x": 0,
+      "y": -300
+    },
+    "rubrik2": {
+      "kind": "title1",
+      "maxW": 2960,
+      "text": "Förbered → Lägg schema → Granska, omgång 1 (skiss, inget byggt)",
+      "w": 240,
+      "x": 0,
+      "y": 5420
+    }
+  },
+  "order": [
+    "Main.dc.html",
+    "Sparra.dc.html",
+    "Samlingsvy.dc.html",
+    "Regler.dc.html",
+    "Fonster.dc.html",
+    "Aktiviteter.dc.html",
+    "Lasar.dc.html",
+    "Forbered.dc.html",
+    "Salar.dc.html",
+    "Saltabell.dc.html",
+    "Forutsattningar.dc.html",
+    "Salsattning.dc.html",
+    "Veckan2.dc.html",
+    "AktivitetFlera.dc.html",
+    "Oversikt.dc.html",
+    "Forbered-c6t4.dc.html",
+    "Salar-soer.dc.html",
+    "Saltabell-oi4s.dc.html",
+    "Forutsattningar-zmub.dc.html",
+    "Salsattning-d0pl.dc.html",
+    "Veckan2-346k.dc.html",
+    "AktivitetFlera-h9fg.dc.html",
+    "Oversikt-zlne.dc.html"
+  ],
+  "pages": [
+    {
+      "id": "page-1",
+      "name": "Page 1"
+    },
+    {
+      "id": "page-l8lbe3",
+      "name": "schemaläggningsprocessen"
+    }
+  ],
+  "title": "Schemaläggning – vyer"
+}

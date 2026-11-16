@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Salar – register och salbehov</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.nav{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.nav[aria-current="page"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+table{border-collapse:collapse;width:100%;font-size:14px}
+th{font-size:12px;font-weight:600;color:#4f688b;text-align:left;padding:10px 12px;background:#edf0f6;position:sticky;top:0}
+td{padding:12px;border-top:1px solid #e3e7ee;vertical-align:top}
+.opt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid #cbd2df;border-radius:10px;font-size:14px;cursor:pointer}
+.opt input{width:20px;height:20px;margin:2px 0 0;accent-color:#365ce6;flex-shrink:0}
+.cand{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;padding:12px 0;border-top:1px solid #e3e7ee;font-size:14px}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 13px; color: #657185;">Exempelskolan · Läsår 2027/28</span>
+        <span style="font-size: 16px; font-weight: 600;">Utkast: Schema 2027/28</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+        <span class="badge info">Sparar…</span>
+        <span class="badge neutral">Inte publicerat</span>
+        <button type="button" class="btn">Ångra: platser för Musiksal</button>
+        <button type="button" class="btn" disabled="disabled" aria-disabled="true" style="color: #657185;">Gör om</button>
+      </div>
+    </div>
+    <nav aria-label="Arbetsytor i schemaläggningen" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button type="button" class="nav" aria-current="page">Förbered</button>
+      <button type="button" class="nav">Lägg schema</button>
+      <button type="button" class="nav">Granska</button>
+    </nav>
+  </header>
+
+  <main style="padding: 24px 48px 0; display: flex; flex-direction: column; gap: 20px;">
+    <button type="button" class="btn" style="align-self: flex-start;">‹ Alla områden</button>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: flex-end; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <div class="eyebrow">FÖRBERED · SALAR · SKISS, INTE BYGGT</div>
+        <h1 style="margin: 0; font-size: 2.4rem; line-height: 1.2; font-weight: 550; letter-spacing: -0.055em;">Salar<span style="color: #365ce6;">.</span></h1>
+        <p style="margin: 0; font-size: 15px; color: #657185; max-width: 72ch;">Fysisk undervisning får en lämplig sal i schemaförslaget. Ange vilka salar som finns och vad varje undervisning behöver.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+        <span class="badge neutral">Återstår: 8 obesvarade salbehov</span>
+        <button type="button" class="btn">Markera som genomgånget</button>
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(380px, 460px); gap: 24px; align-items: start;">
+
+      <section aria-labelledby="register" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 14px; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between;">
+          <h2 id="register" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Salregister (24)</h2>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="btn">Lägg till sal</button>
+            <button type="button" class="btn">Visa som tabell</button>
+          </div>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Varje sal har ett fast ID. Ett nytt namn eller en ny ordning ändrar inte vilken sal schemat pekar på.</p>
+        <div style="overflow: auto; border: 1px solid #e3e7ee; border-radius: 10px;">
+          <table>
+            <thead><tr><th scope="col">Sal</th><th scope="col">Typ</th><th scope="col">Platser</th><th scope="col">Utrustning</th><th scope="col">Tillgänglig</th><th scope="col">Källa</th></tr></thead>
+            <tbody>
+              <tr><td>A101</td><td>Allmän sal</td><td>32</td><td>Projektor</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr><td>A102</td><td>Allmän sal</td><td>30</td><td>Projektor</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr><td>201</td><td>Allmän sal</td><td>28</td><td>–</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr><td>202</td><td>Allmän sal</td><td>24</td><td>–</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr style="background: #edf1ff;"><td><strong style="font-weight: 600;">Labb 1</strong></td><td>Laborationssal</td><td>24</td><td>Dragskåp</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr><td>Labb 2</td><td>Laborationssal</td><td>18</td><td>Dragskåp</td><td>Alla dagar</td><td>Lokalregister</td></tr>
+              <tr><td>Idrottshall B</td><td>Idrottshall</td><td>60</td><td>Omklädningsrum</td><td>Mån–tor</td><td>Eget register</td></tr>
+              <tr><td>Musiksal</td><td>Specialsal</td><td><span class="badge warn">Ej angivet</span></td><td>Instrument</td><td>Alla dagar</td><td>Eget register</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p style="margin: 0; font-size: 13px; color: #657185;">Visar 8 av 24 salar. Saknat antal platser betyder att kapaciteten inte är kontrollerad, inte att salen rymmer alla.</p>
+      </section>
+
+      <aside aria-labelledby="insp" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; box-shadow: 0 4px 16px #284ab509; min-width: 0;">
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <span class="eyebrow">SALBEHOV FÖR UNDERVISNING</span>
+          <h2 id="insp" style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.025em;">Kemi 1 · NA27A grupp 1</h2>
+          <span style="font-size: 13px; color: #657185;">22 elever · Provlärare 12 · 3 pass i veckan</span>
+        </div>
+
+        <fieldset style="margin: 0; padding: 0; border: 0; display: flex; flex-direction: column; gap: 8px;">
+          <legend style="font-size: 14px; font-weight: 600; margin-bottom: 8px;">Behöver undervisningen sal?</legend>
+          <label class="opt"><input type="radio" name="salbehov"><span><strong style="font-weight: 500;">Lämplig allmän sal</strong><br><span style="color: #657185; font-size: 13px;">Vilken allmän sal som helst med plats för gruppen.</span></span></label>
+          <label class="opt" style="border-color: #365ce6; background: #edf1ff;"><input type="radio" name="salbehov" checked="checked"><span><strong style="font-weight: 500;">Särskilda salskrav</strong><br><span style="color: #657185; font-size: 13px;">Typ, utrustning eller bestämd sal.</span></span></label>
+          <label class="opt"><input type="radio" name="salbehov"><span><strong style="font-weight: 500;">Sal behövs inte</strong><br><span style="color: #657185; font-size: 13px;">Ange undervisningsform, till exempel utomhus eller på arbetsplats.</span></span></label>
+        </fieldset>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <h3 style="margin: 0; font-size: 14px; font-weight: 600;">Krav som alla måste uppfyllas</h3>
+          <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6;">
+            <li>Utrustning: dragskåp <span style="color: #657185;">· ärvt från ämnet Kemi</span></li>
+            <li>Minst 22 platser <span style="color: #657185;">· från gruppens elevantal</span></li>
+          </ul>
+          <h3 style="margin: 4px 0 0; font-size: 14px; font-weight: 600;">Önskemål</h3>
+          <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6;">
+            <li>Helst Labb 1 <span style="color: #657185;">· önskemål, inte krav</span></li>
+          </ul>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="btn">Lägg till krav</button>
+            <button type="button" class="btn">Gör eget undantag från ämnet</button>
+          </div>
+        </div>
+
+        <div>
+          <h3 style="margin: 0 0 4px; font-size: 14px; font-weight: 600;">Lämpliga och olämpliga salar</h3>
+          <div class="cand"><span><strong style="font-weight: 500;">Labb 1</strong> · 24 platser · dragskåp</span><span class="badge ok">Lämplig</span></div>
+          <div class="cand"><span><strong style="font-weight: 500;">Labb 2</strong><br><span style="color: #657185; font-size: 13px;">18 platser, gruppen har 22 elever.</span></span><span class="badge neutral">Olämplig</span></div>
+          <div class="cand"><span><strong style="font-weight: 500;">A101</strong><br><span style="color: #657185; font-size: 13px;">Saknar dragskåp.</span></span><span class="badge neutral">Olämplig</span></div>
+          <p style="margin: 8px 0 0; font-size: 13px; padding: 10px 12px; border-radius: 10px; background: #f6efe2; color: #86601f;">1 lämplig sal. Labb 1 behövs också av 6 andra undervisningar.</p>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; padding-top: 4px; border-top: 1px solid #e3e7ee;">
+          <button type="button" class="btn btn-p" style="margin-top: 12px;">Spara salbehov</button>
+          <button type="button" class="btn" style="margin-top: 12px;">Avbryt</button>
+        </div>
+      </aside>
+    </div>
+
+    <section aria-labelledby="hinder" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 6px; flex: 1 1 520px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+          <span class="badge err">Hinder</span>
+          <h2 id="hinder" style="margin: 0; font-size: 16px; font-weight: 600; letter-spacing: -0.025em;">Musik 1 · TE27 har ingen sal som uppfyller alla krav</h2>
+        </div>
+        <p style="margin: 0; font-size: 14px;">Kraven ”instrument” och ”minst 30 platser” uppfylls inte av samma sal. Musiksal har instrument men saknar angivet antal platser; A101 har plats men inga instrument.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+        <button type="button" class="btn">Ange platser för Musiksal</button>
+        <button type="button" class="btn">Öppna salbehovet</button>
+      </div>
+    </section>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1140}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

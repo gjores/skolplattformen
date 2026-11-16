@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<title>Lägg schema – veckan med inspektör</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#f7f8fa;color:#202b3b;font-family:Geist,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+a{color:#365ce6}a:hover{color:#2d4cc1}
+button,select,input{font-family:inherit}
+.btn{min-height:44px;max-width:100%;padding:8px 16px;border-radius:10px;border:1px solid #cbd2df;background:#fff;font-size:14px;font-weight:500;color:#202b3b;white-space:normal;text-align:left;cursor:pointer}
+.btn-p{background:#365ce6;border-color:#365ce6;color:#fff}
+.nav{min-height:44px;padding:8px 16px;border-radius:10px;border:1px solid transparent;background:transparent;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.nav[aria-current="page"]{background:#edf1ff;border-color:#365ce6;color:#2d4cc1}
+.seg{min-height:44px;padding:8px 14px;border:0;border-right:1px solid #e3e7ee;background:#fff;font-size:14px;font-weight:500;color:#202b3b;cursor:pointer}
+.seg[aria-pressed="true"]{background:#edf0f6;color:#25334a}
+.badge{display:inline-block;font-size:12px;font-weight:500;line-height:1.4;padding:4px 10px;border-radius:5px;white-space:normal;max-width:100%}
+.ok{background:#e4f3e9;color:#29704c}.info{background:#eaf0fe;color:#4463a4}.warn{background:#f6efe2;color:#86601f}.err{background:#fbeeee;color:#b83737}.neutral{background:#edf0f6;color:#25334a}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.115em;color:#4f688b}
+.muted{color:#657185}
+.day{position:relative;height:576px;border-radius:7px;border:1px solid #e3e7ee;background:#fff repeating-linear-gradient(to bottom,#e3e7ee 0,#e3e7ee 1px,transparent 1px,transparent 72px)}
+.l{position:absolute;left:4px;right:4px;box-sizing:border-box;border:1px solid #c3cff5;background:#edf1ff;border-radius:7px;padding:4px 8px;font-size:12px;line-height:1.3;overflow:hidden;z-index:3;text-align:left;font-family:inherit;color:#202b3b;cursor:pointer}
+.l b{font-weight:600;display:block}.l small{display:block;color:#4f5b6e;font-size:11px}
+.l.sel{border:2px solid #365ce6;background:#fff;box-shadow:0 4px 16px #284ab509}
+.l.nosal{border:1px dashed #86601f}
+.f{position:absolute;left:0;right:0;z-index:1;box-sizing:border-box;font-size:11px;padding:4px 6px;line-height:1.3;border-radius:6px}
+.f-fri{background:#e4f3e9;border:1px solid #9ccdb0;color:#29704c}
+.f-byte{background:repeating-linear-gradient(45deg,#eaf0fe 0,#eaf0fe 6px,#c9d6f7 6px,#c9d6f7 8px);border:1px solid #8ea6e6;color:#4463a4}
+.f-brott{background:repeating-linear-gradient(0deg,#fbeeee 0,#fbeeee 5px,#efc6c6 5px,#efc6c6 7px);border:1px solid #d08b8b;color:#8a2a2a}
+.f-sparr{background:repeating-linear-gradient(135deg,#eef1f5 0,#eef1f5 6px,#e1e6ee 6px,#e1e6ee 8px);border:1px dashed #8a95a8;color:#4f5b6e}
+.mark{position:absolute;left:2px;right:2px;z-index:4;box-sizing:border-box;border:2px dashed #365ce6;background:#365ce61a;border-radius:7px}
+.lg{display:inline-flex;align-items:center;gap:8px;font-size:13px}
+.sw{width:22px;height:14px;border-radius:4px;display:inline-block}
+.tl{position:absolute;right:6px;font-size:12px;color:#657185}
+</style>
+</helmet>
+<div style="box-sizing: border-box; max-width: 1440px; margin: 0 auto; padding: 0 0 48px; display: flex; flex-direction: column;">
+
+  <header style="background: #fff; border-bottom: 1px solid #e3e7ee; padding: 16px 48px 12px; display: flex; flex-direction: column; gap: 12px;">
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between;">
+      <div style="display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 13px; color: #657185;">Exempelskolan · Läsår 2027/28</span>
+        <span style="font-size: 16px; font-weight: 600;">Utkast: Schema 2027/28</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center;">
+        <span class="badge ok">Sparat på servern 14:58 · revision 46</span>
+        <span class="badge neutral">Inte publicerat</span>
+        <button type="button" class="btn">Ångra: flytt av Engelska 6</button>
+        <button type="button" class="btn" disabled="disabled" aria-disabled="true" style="color: #657185;">Gör om</button>
+      </div>
+    </div>
+    <nav aria-label="Arbetsytor i schemaläggningen" style="display: flex; flex-wrap: wrap; gap: 8px;">
+      <button type="button" class="nav">Förbered</button>
+      <button type="button" class="nav" aria-current="page">Lägg schema</button>
+      <button type="button" class="nav">Granska</button>
+    </nav>
+  </header>
+
+  <main style="padding: 20px 48px 0; display: flex; flex-direction: column; gap: 16px;">
+    <div class="eyebrow">LÄGG SCHEMA · VECKAN · SKISS, INTE BYGGT · EXEMPELVÄRDEN</div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: flex-end; padding: 12px 16px; border: 1px solid #e3e7ee; border-radius: 12px; background: #fff;">
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span id="vy" style="font-size: 14px; color: #657185;">Vy</span>
+        <div role="group" aria-labelledby="vy" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+          <button type="button" class="seg" aria-pressed="true">Vecka</button>
+          <a href="Oversikt.dc.html" class="seg" style="display: inline-flex; align-items: center; text-decoration: none;">Översikt</a>
+          <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Pass i tabell</button>
+        </div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 4px; min-width: 140px;">
+        <span style="font-size: 13px; color: #657185;">Arbetsgrund</span>
+        <span style="font-size: 15px; font-weight: 600;">Hela läsåret</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span id="visa" style="font-size: 14px; color: #657185;">Visa</span>
+        <div role="group" aria-labelledby="visa" style="display: flex; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+          <button type="button" class="seg" aria-pressed="true">Mönster HT</button>
+          <button type="button" class="seg" aria-pressed="false">Mönster VT</button>
+          <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Faktiska datum</button>
+        </div>
+      </div>
+      <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Klass
+        <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>TE27</option><option>NA27A</option></select></label>
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span id="verktyg" style="font-size: 14px; color: #657185;">Verktyg</span>
+        <div role="group" aria-labelledby="verktyg" style="display: flex; flex-wrap: wrap; border: 1px solid #cbd2df; border-radius: 10px; overflow: hidden;">
+          <button type="button" class="seg" aria-pressed="true">Markera</button>
+          <button type="button" class="seg" aria-pressed="false">Spärra</button>
+          <button type="button" class="seg" aria-pressed="false">Lås</button>
+          <button type="button" class="seg" aria-pressed="false">Viloyta</button>
+          <button type="button" class="seg" aria-pressed="false" style="border-right: 0;">Byt</button>
+        </div>
+      </div>
+      <p style="flex: 1 1 260px; margin: 0; font-size: 13px; color: #657185;">Markera: ett klick visar passet i panelen. Inget flyttas förrän du väljer Flytta.</p>
+      <button type="button" class="btn">Fler val</button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: minmax(0, 1fr) minmax(360px, 420px); gap: 20px; align-items: start;">
+
+      <section aria-label="Veckan för TE27, mönster HT" style="background: #fff; border: 1px solid #e3e7ee; border-radius: 12px; padding: 16px; min-width: 0;">
+        <div style="display: grid; grid-template-columns: 48px repeat(5, minmax(0, 1fr)); gap: 6px;">
+          <div></div>
+          <div style="text-align: center; font-size: 14px; font-weight: 500; min-height: 28px;">Måndag</div>
+          <div style="text-align: center; font-size: 14px; font-weight: 500;">Tisdag</div>
+          <div style="text-align: center; font-size: 14px; font-weight: 500;">Onsdag</div>
+          <div style="text-align: center; font-size: 14px; font-weight: 500;">Torsdag</div>
+          <div style="text-align: center; font-size: 14px; font-weight: 500;">Fredag</div>
+
+          <div style="position: relative; height: 576px;">
+            <span class="tl" style="top: 0;">08</span><span class="tl" style="top: 72px;">09</span><span class="tl" style="top: 144px;">10</span><span class="tl" style="top: 216px;">11</span><span class="tl" style="top: 288px;">12</span><span class="tl" style="top: 360px;">13</span><span class="tl" style="top: 432px;">14</span><span class="tl" style="top: 504px;">15</span>
+          </div>
+
+          <div class="day">
+            <button type="button" class="l" style="top: 18px; height: 96px;"><span>08:15–09:35</span><b>Matematik 1c</b><small>Provlärare 4 · A101</small></button>
+            <button type="button" class="l" style="top: 144px; height: 96px;"><span>10:00–11:20</span><b>Svenska 1</b><small>Provlärare 9 · A102</small></button>
+            <button type="button" class="l" style="top: 384px; height: 96px;"><span>13:20–14:40</span><b>Teknik 1</b><small>Provlärare 15 · T3</small></button>
+          </div>
+
+          <div class="day">
+            <button type="button" class="l" style="top: 72px; height: 108px;"><span>09:00–10:30</span><b>Fysik 1a</b><small>Provlärare 21 · A101</small></button>
+            <button type="button" class="l" style="top: 360px; height: 96px; right: 51%;"><span>13:00–14:20</span><b>Spanska 3</b><small>201</small></button>
+            <button type="button" class="l" style="top: 360px; height: 96px; left: 51%;"><span>13:00–14:20</span><b>Tyska 3</b><small>202</small></button>
+          </div>
+
+          <div class="day">
+            <button type="button" class="l sel" style="top: 36px; height: 108px;"><span>08:30–10:00</span><b>Idrott och hälsa 1</b><small>Provlärare 4 · Ingen sal</small><small style="color: #2d4cc1; font-weight: 600;">Markerat</small></button>
+            <button type="button" class="l" style="top: 180px; height: 96px;"><span>10:30–11:50</span><b>Engelska 6</b><small>Provlärare 30 · 201</small></button>
+          </div>
+
+          <div class="day">
+            <div class="f f-fri" style="top: 0; height: 108px;">Fri tid</div>
+            <div class="f f-byte" style="top: 108px; height: 108px;">Går med ett byte</div>
+            <div class="f f-brott" style="top: 216px; height: 144px;">Bryter krav: lunch</div>
+            <div class="f f-fri" style="top: 360px; height: 216px;">Fri tid</div>
+            <div class="mark" style="top: 186px; height: 108px;"></div>
+            <span style="position: absolute; z-index: 5; top: 268px; left: 6px; font-size: 12px; font-weight: 600; background: #fff; color: #2d4cc1; padding: 1px 6px; border-radius: 4px;">Start 10:35</span>
+            <button type="button" class="l" style="top: 180px; height: 96px; left: 40%; opacity: 0.92;"><span>10:30–11:50</span><b>Matematik 1c</b><small>Provlärare 4</small></button>
+          </div>
+
+          <div class="day">
+            <div class="f f-sparr" style="top: 0; height: 576px;">Idrottshall B är inte tillgänglig på fredagar</div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 10px 24px; margin-top: 16px; padding-top: 12px; border-top: 1px solid #e3e7ee;">
+          <span class="lg"><span class="sw f-fri" style="position: static;"></span>Fri tid</span>
+          <span class="lg"><span class="sw f-byte" style="position: static;"></span>Går med ett byte</span>
+          <span class="lg"><span class="sw f-brott" style="position: static;"></span>Bryter krav</span>
+          <span class="lg"><span class="sw f-sparr" style="position: static;"></span>Spärrad tid</span>
+          <span class="lg"><span class="sw" style="border: 2px dashed #365ce6; background: #365ce61a;"></span>Vald starttid</span>
+          <span class="lg"><span class="sw" style="background: #fff; border: 2px solid #365ce6;"></span>Markerat pass</span>
+          <span class="lg"><span class="sw" style="background: #edf1ff; border: 1px dashed #86601f;"></span>Pass utan sal</span>
+          <span class="lg muted">Fälten visar möjliga starttider för markerat pass. Samma fält kan ha olika orsaker; panelen visar vald start.</span>
+        </div>
+      </section>
+
+      <aside aria-labelledby="insp" style="background: #fff; border: 1px solid #365ce6; border-radius: 12px; padding: 20px; display: flex; flex-direction: column; gap: 14px; box-shadow: 0 4px 16px #284ab509; min-width: 0;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;">
+          <span class="badge info">Följer markeringen</span>
+          <button type="button" class="btn" aria-pressed="false">Fäst panelen</button>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 4px;">
+          <h2 id="insp" style="margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.025em;">Idrott och hälsa 1 · TE27</h2>
+          <span style="font-size: 13px; color: #657185;">Onsdag 08:30–10:00 · samma mönster HT och VT</span>
+        </div>
+        <dl style="margin: 0; display: grid; grid-template-columns: 110px minmax(0, 1fr); gap: 8px 12px; font-size: 14px;">
+          <dt class="muted">Deltagare</dt><dd style="margin: 0;">TE27, 31 elever</dd>
+          <dt class="muted">Lärare</dt><dd style="margin: 0;">Provlärare 4</dd>
+          <dt class="muted">Sal</dt><dd style="margin: 0;"><span class="badge warn">Ingen sal</span> Salbehov: idrottshall</dd>
+          <dt class="muted">Källa</dt><dd style="margin: 0;">Timplan TE version 3 · tjänstefördelning 12 nov</dd>
+          <dt class="muted">Årsminuter</dt><dd style="margin: 0;">HT 1 710 + VT 1 800 av 3 600 behövs</dd>
+        </dl>
+
+        <div style="display: flex; flex-direction: column; gap: 10px; padding: 14px; border-radius: 10px; background: #f7f8fa; border: 1px solid #e3e7ee;">
+          <h3 style="margin: 0; font-size: 15px; font-weight: 600;">Pröva ny tid</h3>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;">
+            <label style="display: flex; flex-direction: column; gap: 6px; font-size: 14px; color: #657185;">Dag
+              <select style="min-height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid #cbd2df; background: #fff; font-size: 14px; color: #202b3b;"><option>Torsdag</option></select></label>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <label for="start" style="font-size: 14px; color: #657185;">Start</label>
+              <div style="display: flex; gap: 4px;">
+                <button type="button" class="btn" aria-label="5 minuter tidigare" style="min-width: 44px; padding: 0; text-align: center;">−</button>
+                <input id="start" type="text" value="10:35" inputmode="numeric" style="width: 80px; min-height: 44px; padding: 0 10px; border-radius: 10px; border: 1px solid #cbd2df; font-size: 15px; text-align: center;">
+                <button type="button" class="btn" aria-label="5 minuter senare" style="min-width: 44px; padding: 0; text-align: center;">+</button>
+              </div>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-size: 14px;">
+            <span class="badge info" style="align-self: flex-start;">Torsdag 10:35: går med ett byte</span>
+            <ul style="margin: 0; padding-left: 18px; line-height: 1.5;">
+              <li>Provlärare 4 har Matematik 1c 10:30–11:50.</li>
+              <li>Idrottshall B är ledig.</li>
+              <li>TE27 är ledig.</li>
+            </ul>
+            <span style="font-size: 13px; color: #657185;">Gäller grundmönstret alla veckor. Ett enskilt datum ändras under Faktiska datum.</span>
+          </div>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+            <button type="button" class="btn btn-p">Granska bytet</button>
+            <button type="button" class="btn">Avbryt</button>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button type="button" class="btn">Flytta…</button>
+          <button type="button" class="btn">Lås</button>
+          <button type="button" class="btn">Lägg på viloytan</button>
+          <button type="button" class="btn">Följ passet</button>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1440,"height":1240}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>
