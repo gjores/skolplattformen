@@ -21,6 +21,7 @@ import { parseSchemaVillkorsforslag, tillampaSchemaVillkorsandring } from '@/lib
 import { Villkorsforslag, type VillkorsSokning } from './schema/villkorsforslag.tsx';
 import { Lagesstatus } from './schema/lagesstatus.tsx';
 import { Salar } from './schema/salar.tsx';
+import { Samtidighetsblock } from './schema/block.tsx';
 import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, rememberYta, storedYta, useGenomgang, type SchemaYta } from './schema/forbered.tsx';
 import { schemaForbered } from '@/lib/schema-forbered.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
@@ -1093,7 +1094,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       <Omrade id="lektioner" titel="Lektioner och block">
         {forutsattningar && forutsattningar.fordelning.length > 0 ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Antal lektioner per undervisning</summary><Fordelning forslag={forutsattningar} villkor={villkor} kontroll={forslag ? kontroll : null} disabled={busy || checking} onChange={andraArbetsvillkor}/></details>
           : <p className="empty-state">Undervisningarna visas när underlaget är läst.</p>}
-        <p className="schema-note">Samtidighetsblock från valmodulerna följer med från underlaget. Egna samtidighetsblock mellan utvalda pass går inte att registrera ännu.</p>
+        <Samtidighetsblock villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}/>
       </Omrade>
       <Omrade id="salar" titel="Salar">
       {!fonster && <Salar villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}

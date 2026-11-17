@@ -45,12 +45,15 @@ export function schemaForbered({ kalla, villkor: v, las }: ForberedIndata): Forb
       saknas: (kalla.basis ? 0 : 1) + obemannade,
       nasta: !kalla.basis ? 'Skolan saknar tjänstefördelning för läsåret' : obemannade ? `${n(obemannade, 'undervisning saknar', 'undervisningar saknar')} lärare i tjänstefördelningen` : null });
   // Lektioner och block: hur timplanens tid delas i pass.
-  const valda = v.fordelning?.length ?? 0, block = kalla?.links?.filter(l => l.kind === 'simultaneous').length ?? 0, begransade = kalla?.fordelning.filter(r => r.begransning).length ?? 0;
-  const lektioner = punkt('lektioner', 'Visa', [v.fordelning ?? [], v.minLessonMin, v.maxLessonMin, v.sameDay, v.timeBasis ?? null, v.egna.filter(r => r.typ === 'langd' || r.typ === 'antal'), kalla?.links ?? []], !kalla ? olast : {
+  const valda = v.fordelning?.length ?? 0, begransade = kalla?.fordelning.filter(r => r.begransning).length ?? 0;
+  const egnaBlock = v.block ?? [], blockStatus = kalla?.block ?? [], blockProblem = blockStatus.filter(b => b.status !== 'aktivt');
+  const lektioner = punkt('lektioner', 'Visa', [v.fordelning ?? [], v.minLessonMin, v.maxLessonMin, v.sameDay, v.timeBasis ?? null, v.egna.filter(r => r.typ === 'langd' || r.typ === 'antal'), egnaBlock], !kalla ? olast : {
     varden: [`${n(pass.length, 'pass', 'pass')} per vecka`, `Pass på ${v.minLessonMin}–${v.maxLessonMin} minuter`,
       v.sameDay === 'forbid' ? 'Samma ämne högst en gång per dag' : v.sameDay === 'avoid' ? 'Samma ämne samma dag undviks' : 'Samma ämne får ligga flera gånger samma dag',
-      `${valda} av ${kalla.fordelning.length} undervisningar har valt lektionsantal`, `${n(block, 'samtidighetsblock', 'samtidighetsblock')} från valmoduler`],
-    kontroll: [begransade ? `${n(begransade, 'undervisning har', 'undervisningar har')} en begränsning i fördelningen.` : 'Timplanens tid går att dela på passen.', 'Egna samtidighetsblock går inte att registrera ännu.'] });
+      `${valda} av ${kalla.fordelning.length} undervisningar har valt lektionsantal`, n(egnaBlock.length, 'eget samtidighetsblock', 'egna samtidighetsblock')],
+    kontroll: [begransade ? `${n(begransade, 'undervisning har', 'undervisningar har')} en begränsning i fördelningen.` : 'Timplanens tid går att dela på passen.',
+      ...blockProblem.map(b => `Samtidighetsblocket ${b.namn} ${b.status === 'hinder' ? 'har ett hinder' : 'är inaktuellt'} och används inte.`)],
+    saknas: blockProblem.length, nasta: blockProblem.length ? `${n(blockProblem.length, 'samtidighetsblock behöver', 'samtidighetsblock behöver')} ses över` : null });
   // Salar: register och salbehov.
   const rader = kalla ? saltabellRader(kalla, v) : [], obesvarade = rader.filter(r => r.behov === null).length, hinder = rader.filter(r => r.hinder).length;
   const register = v.salregister, okandaPlatser = register?.salar.filter(s => s.platser === null).length ?? 0, okandKapacitet = rader.filter(r => r.kapacitetOkand).length;

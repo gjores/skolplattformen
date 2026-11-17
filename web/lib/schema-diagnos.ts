@@ -37,6 +37,7 @@ export function diagnosAction(code: string, resources: SchemaDiagnosResurs[]): S
   const r = resources[0];
   if (code === 'more_diagnoses') return { target: 'villkor', label: 'Rätta de visade punkterna och kontrollera igen' };
   if (code === 'group_without_teacher') return { target: 'tjanst', label: 'Tilldela lärare i tjänstefördelningen' };
+  if (code === 'block_hinder' || code === 'block_inaktuellt') return { target: 'villkor', label: 'Se över samtidighetsblocket under Lektioner och block' };
   if (code === 'indivisible_time' || code === 'activity_time' || code === 'too_short') return { target: 'villkor', label: 'Se över passlängd och antal pass', ...(r ? { resourceId: r.id, resource: r } : {}) };
   if (r?.id.startsWith('kluster-')) return { target: 'grupper', label: 'Se över elevernas gruppmedlemskap' };
   if (code === 'no_days' || code === 'no_time') return { target: 'timplan', label: 'Kontrollera timplanens tid och period' };
@@ -62,6 +63,9 @@ export function schemaDiagnos(u: SchemaUnderlag, diagnoses: SchemaDiagnosis[]): 
     findings.push({ code: 'sal_saknas', message: `${a.title}${a.classes.length ? ` (${a.classes.join(', ')})` : ''} har ingen lämplig sal. ${utan[0].sal!.hinder} Passen läggs utan sal tills salbehovet eller salregistret ändras.`,
       proof: false, lessons: utan.map(l => l.id), resources, action: diagnosAction('sal_saknas', resources) });
   }
+  // Egna samtidighetsblock med hinder eller inaktuella pass (05.2-SM-UXF-51) används inte av motorn.
+  for (const b of u.block ?? []) if (b.status !== 'aktivt') findings.push({ code: b.status === 'hinder' ? 'block_hinder' : 'block_inaktuellt', message: `Samtidighetsblocket ${b.namn}: ${b.text}`, proof: false,
+    lessons: b.lessons, resources: [], action: diagnosAction(b.status === 'hinder' ? 'block_hinder' : 'block_inaktuellt', []) });
   for (const o of u.omitted) {
     if (o.reason === 'no_time') continue; // Ingen undervisning beställd i perioden är inget fel.
     findings.push({ code: o.reason, message: `${o.title}${o.classes.length ? ` (${o.classes.join(', ')})` : ''}: ${o.reason === 'no_days' ? 'perioden saknar skoldagar.' : 'tiden räcker inte till ett pass med vald passlängd.'}`,

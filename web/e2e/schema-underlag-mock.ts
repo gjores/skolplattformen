@@ -26,6 +26,31 @@ export function medSalar(f: SchemaForslag, villkor: SchemaVillkor): SchemaForsla
   });
   return f;
 }
+/** Passens undervisning, som servern anger den: samma titel och klasser som raden i fördelningen. */
+export function medUndervisning(f: SchemaForslag): SchemaForslag {
+  f.lessons = f.lessons.map(l => {
+    if (l.egenAktivitet) return l;
+    const klasser = l.classIds.map(id => klassnamn.get(id) ?? id).join();
+    const rad = bas.fordelning.find(r => r.title === l.title && r.classes.join() === klasser) ?? bas.fordelning.find(r => r.title === l.title);
+    return rad ? { ...l, undervisning: rad.ref } : l;
+  });
+  return f;
+}
+/**
+ * Blockstatus som servern skulle ge, förenklad för provet: samma lärare eller samma klass i två pass är hinder, ett pass som saknas gör blocket inaktuellt.
+ * Den riktiga prövningen (elevkluster, terminer, grupper av block) finns i lib/schema-block.ts och dess prov.
+ */
+export function medBlock(f: SchemaForslag, villkor: SchemaVillkor): SchemaForslag {
+  if (!villkor.block?.length) return f;
+  f.block = villkor.block.map(b => {
+    const lessons = b.medlemmar.map(m => f.lessons.filter(l => l.undervisning === m.ref && l.term === m.term)[m.pass - 1]);
+    if (lessons.some(l => !l)) return { id: b.id, namn: b.namn, status: 'inaktuellt' as const, text: 'Passen finns inte längre.', lessons: lessons.filter(Boolean).map(l => l!.id), grupp: [] };
+    const krock = lessons.some((a, i) => lessons.slice(i + 1).some(o => a!.teacherIds.some(t => o!.teacherIds.includes(t)) || a!.classIds.some(c => o!.classIds.includes(c))));
+    return { id: b.id, namn: b.namn, status: krock ? 'hinder' as const : 'aktivt' as const, lessons: lessons.map(l => l!.id), grupp: [],
+      text: krock ? 'Samma lärare eller elever finns i två av passen. Blocket ger ingen rätt till dubbelbokning och används inte förrän hindret är löst.' : `${lessons.length} pass börjar samtidigt.` };
+  });
+  return f;
+}
 /** Underlaget utan beräkning: samma pass, inget lagt. */
 export function olagt(villkor: SchemaVillkor): SchemaForslag {
   const f = structuredClone(bas);
@@ -36,7 +61,7 @@ export function olagt(villkor: SchemaVillkor): SchemaForslag {
     teacherIds: a.teacherRefs.flatMap(ref => { const n = f.resurser.larare.findIndex(t => t.ref === ref); return n >= 0 ? [`larare-${n + 1}`] : []; }), roomIds: [], roomId: null, durationMin: a.durationMin,
     marginMin: 0, marginBeforeMin: 0, vacant: false, term: null, day: null, startMin: null, egenAktivitet: { id: a.id, typId: a.typId, typ: a.typ, veckor: a.veckor, visibleFor: a.visibleFor } });
   f.metrics = { ...f.metrics, lessons: f.lessons.length, placed: 0, unplaced: f.lessons.length };
-  return medSalar(f, villkor);
+  return medBlock(medUndervisning(medSalar(f, villkor)), villkor);
 }
 export async function mockUnderlag(page: Page) {
   const bodies: { villkor: SchemaVillkor }[] = [];

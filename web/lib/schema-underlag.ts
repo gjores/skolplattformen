@@ -15,6 +15,7 @@ import { schemaDatedCalendar } from './schema-vecka-data.ts';
 import { schemaSearchStatistics } from './schema-diagnos.ts';
 import { SchemaFordelningError, undervisningensAntal } from './schema-fordelning.ts';
 import { gallandeSalbehov, lampligaSalar } from './schema-salregister.ts';
+import { schemaBlock } from './schema-block.ts';
 import { arsbehov, arstak, arsandelar, sammaArsresurser, arsmonsterGerTid, trimmaLasar } from './schema-lasarsmonster.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
@@ -45,7 +46,7 @@ export type SchemaUnderlag = { /** Intern koppling från stabil gruppidentitet t
   period: SchemaForslagRequest['period']; terms: SchemaTerm[]; villkor: SchemaVillkor; problem: SchemaProblem; labels: SchemaLabels; omitted: SchemaOmission[]; time: SchemaTime; members: SchemaForslag['members']; fingerprint: string;
   /** Grundens fingeravtryck: passen, deras deltagare och namnen (05.2-SM-VILLKOR-DIREKT). */
   grundFingerprint: string;
-  resurser: SchemaForslag['resurser']; egnaUtanTraff: number[]; fordelning: SchemaForslag['fordelning'] };
+  resurser: SchemaForslag['resurser']; egnaUtanTraff: number[]; fordelning: SchemaForslag['fordelning']; block?: import('./schema-block.ts').SchemaBlockStatus[] };
 
 /** Utan läsårskalender: ett fast antal lika veckor (förval). */
 export function defaultSchemaTime(): SchemaTime {
@@ -564,6 +565,9 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     for (const row of fordelning) row.terms = row.terms.filter(t => t.term === selected);
     for (let i = fordelning.length - 1; i >= 0; i--) if (!fordelning[i].terms.length) fordelning.splice(i, 1);
   }
+  // Egna samtidighetsblock (05.2-SM-UXF-51): bara block utan hinder blir motorns kopplingar. Kopplingarna ingår i grundens fingeravtryck.
+  const blockResultat = schemaBlock(v.block, problem, labels);
+  if (blockResultat.links.length) problem.links = [...(problem.links ?? []), ...blockResultat.links];
   const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
   const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),
     amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: selectableTeachers.map(t => ({ ref: t.personId, name: t.displayName })),
@@ -589,7 +593,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   return { groupRefs: Object.fromEntries(nodes), teacherRefs: Object.fromEntries([...teacherNo].map(([ref, id]) => [id, ref])),
     ...(annualContext ? { annual: annualContext } : {}),
     period: request.period, terms: annual ? visibleTerms : terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
-    grundFingerprint, resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]), fordelning };
+    grundFingerprint, resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]), fordelning, block: blockResultat.status };
 }
 
 /**
@@ -749,7 +753,8 @@ export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlace
 
 export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagRequest, underlag: SchemaUnderlag, solution: SchemaSolution): SchemaForslag {
   const at = new Map(solution.placements.map(p => [p.lesson, p]));
-  const lessons = underlag.labels.lessons.map(({ activity: _activity, ...l }) => ({ ...l, day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null, roomId: at.get(l.id)?.room ?? null }));
+  const undervisning = new Map(underlag.labels.activities.map(a => [a.id, a.ref]));
+  const lessons = underlag.labels.lessons.map(({ activity, ...l }) => ({ ...l, ...(undervisning.has(activity) ? { undervisning: undervisning.get(activity)! } : {}), day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null, roomId: at.get(l.id)?.room ?? null }));
   const termDays = underlag.terms.map(term => ({ term, schoolDays: underlag.time.terms[term].perWeekday.reduce((sum, n) => sum + n, 0) }));
   const days = termDays.reduce((sum, t) => sum + t.schoolDays, 0);
   const { teachings, trims } = plannedTeachings(underlag, at);
@@ -765,6 +770,7 @@ export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagReques
         const ref = Object.entries(underlag.groupRefs).find(([, internal]) => internal === g.id)?.[0];
         return { id: g.id, classIds: classIds.length ? classIds : plan.groups?.find(group => group.groupId === ref)?.classIds ?? [] };
       })) },
+    ...(underlag.block?.length ? { block: underlag.block } : {}),
     members: underlag.members, teachings, trims, resurser: underlag.resurser, rooms: underlag.labels.rooms, egnaUtanTraff: underlag.egnaUtanTraff,
     fordelning: underlag.fordelning.map(row => ({ ...row, terms: row.terms.map(term => ({ ...term, plannedMin: teachings.find(t => t.ref === row.ref)?.terms.find(t => t.term === term.term)?.plannedMin ?? 0 })) })),
     basis: plan.version ? { versionNo: plan.version.versionNo, status: plan.version.status } : null,

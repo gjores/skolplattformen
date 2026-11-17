@@ -79,6 +79,28 @@ Inget ändras förrän du väljer **Spara salbehov**. **Avbryt** återställer f
 
 Bara rader som syns i filtret kan vara valda. Ändringen gäller de valda undervisningarna som egna undantag; ämnets värde för andra undervisningar ändras inte. Hela ändringen är ett steg i **Ångra**.
 
+## Samtidighetsblock
+
+Ett samtidighetsblock lägger utvalda pass ur olika undervisningar med samma start, även utanför valmodulerna. Varje pass behåller sina elever, lärare, sal och minuter.
+
+1. Gå till **Lektioner och block** i Förbered.
+2. Under **Lägg till samtidighetsblock** skriver du ett namn.
+3. Välj undervisning och pass, och välj **Lägg till passet**. Upprepa för varje pass, 2–20 pass.
+4. Välj **Lägg till samtidighetsblock**.
+
+Blocket visar sin status:
+
+| Status | Betydelse |
+| --- | --- |
+| Används | Passen börjar samtidigt i nästa schemaförslag. Pass med olika längd börjar samtidigt och slutar olika. |
+| Hinder | Samma lärare eller samma elever finns i två av passen, eller passen går olika terminer. Blocket ger ingen rätt till dubbelbokning och används inte förrän hindret är löst. |
+| Inaktuellt | Ett pass finns inte längre, till exempel efter ändrat antal lektioner. Välj passen på nytt. |
+
+- Block som delar pass läggs som en samtidighetsgrupp.
+- Ett nytt eller ändrat block kräver ett nytt schemaförslag.
+- Två pass ur samma undervisning kan inte ingå i samma block.
+- Samma slut för passen går inte att välja.
+
 ## Förutsättningar just nu
 
 Kortet svarar på fyra frågor, var för sig:
@@ -146,7 +168,6 @@ Du kan göra detta utan att något schema har räknats fram:
 
 - **Önskad sal** sparas och visas men vägs inte av schemamotorn.
 - Val av nationella prov finns inte. Provtid räknas inte in i ämnenas tid.
-- Egna samtidighetsblock mellan utvalda pass går inte att registrera. Block från valmodulerna följer med från underlaget.
 - Målen för schemat går inte att prioritera om.
 - Appen kan inte avgöra om en lärare utan tidsvillkor har svarat. Läraren räknas som tillgänglig hela skoldagen.
 - Lunch i matsal med sittningar och platser finns inte.
