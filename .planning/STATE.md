@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "05.2-SM-UXFLODE våg 1–3 och UXF-41 klara och pushade; UXF-42 och våg 5 återstår"
+current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara och pushade; UXF-53 väntar på beslut om provbokning"
 status: in_progress
-stopped_at: "Arbetsgången Förbered → Lägg schema: underlag utan förslag, tid/sal/kapacitet, salregister och salbehov, Förbered-ytan och Tilldela salar är byggda och prövade mot simulerade rutter. Inte installerat; 7e38ba67 består. Nattrapport: 05.2-SM-UXFLODE-NATT.md."
+stopped_at: "Arbetsgången Förbered → Lägg schema med salar, Tilldela salar, panel för valt pass, egna samtidighetsblock och aktivitet per klass är byggd och prövad mot simulerade rutter. Inte installerat; 7e38ba67 består. Användaren väntar på prov i 3012, som kräver installationsbeslut."
 last_updated: "2026-11-17"
 last_activity: 2026-11-17
-last_activity_desc: "Arbetsgången Förbered → Lägg schema genomförd i sex planer (UXF-11, -12, -21, -22, -31, -41) med prov; antaganden A1–A13 väntar på användarens ja."
+last_activity_desc: "UXF-42, UXF-51 och UXF-52 genomförda 2026-11-17 efter användarens godkännande av A1–A13; 318 av 318 UI-fall gröna. UXF-53 väntar på beslut."
 state_head: 93e9081a5d5674ffa0df5768333c5a4459fe2953
 progress:
   total_phases: 8
@@ -29,6 +29,8 @@ schema_installation_status: annual_model_passed_5_groups_zero_new_sql_14_prior_r
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**05.2-SM våg 4–5 2026-11-17:** Användaren godkände antagandena A1–A13 och beställde UXF-42 och våg 5. Klart och pushat: panel för valt pass där ett klick inte ändrar något, stegning till exakt starttid och sammanhängande möjlighetskarta (UXF-42); egna samtidighetsblock med namngivna hinder (UXF-51); aktivitet per klass som serie (UXF-52). Rättelse av researchen: motorn klarar pass med olika längd i en samtidighetskoppling. Kontroller: 363 Node-prov, 65 motorprov, 318 av 318 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handboksbygge. Allt mot simulerade rutter; **inte installerat**. UXF-53 (nationella prov) kräver beslut om provbokningens modell, migration och källa. Användaren vill prova på 3012 i stället för en lokal provsida; installation kräver användarens ja. [Nattrapport](phases/05.2-schemamodul/05.2-SM-UXFLODE-NATT.md).
 
 **05.2-SM arbetsgången Förbered → Lägg schema 2026-11-17:** Enligt [vågplanen](phases/05.2-schemamodul/05.2-SM-UXFLODE-WORKFLOW.md) är sex planer genomförda och pushade (1c97755c–d458138f). Före första förslaget går det nu att läsa underlaget och ändra villkor, lektionsantal, villkorstabell, salar och aktiviteter. Statusen redovisas som tid, sal och kapacitet. Salregistret har fasta ID, platser och utrustning, och salbehov kan anges som formulär eller tabell med massändring. Förbered har en checklista med sju punkter, nästa uppgift och Förutsättningar just nu. Tilldela salar sätter salar utan att ändra tider. Allt är prövat mot simulerade rutter och syntetiska uppgifter: 349 Node-prov, 305 av 306 UI-fall på 1280 och 1600 px (det fallna var tillfälligt och gav 6 av 6 vid omkörning), 3 nya motorprov och dokumentationsbygge. **Inte installerat**; 3012, 3013 och målbasen är orörda, ingen migration. UXF-42 (inspektör och möjlighetskarta) och våg 5 återstår. Antaganden A1–A13 och en fråga om kontrollens befintliga salifyllning väntar på användarens ja, se [nattrapporten](phases/05.2-schemamodul/05.2-SM-UXFLODE-NATT.md).
 
