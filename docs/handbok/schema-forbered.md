@@ -104,6 +104,22 @@ Ett förslag redovisas med tre besked i stället för en samlad status:
 
 Att alla pass har tid betyder inte att salarna är klara.
 
+## Tilldela salar och behåll tiderna
+
+När schemat redan har tider men pass saknar sal, eller har en sal som kontrollen har underkänt, visas **Tilldela salar och behåll tiderna** i Lägg schema.
+
+1. Välj **Förhandsgranska salarna**. Du ser vilka pass som får sal, med nuvarande och föreslagen sal, och vilka pass som inte får plats.
+2. Läs **Hinder**. Varje hinder säger vilka salar passet får ligga i och vad som upptar dem.
+3. Välj **Använd salarna för … pass**, eller **Avbryt**.
+
+- Ingen dag, starttid eller längd ändras. Låsta pass och pass med datumändring rörs inte.
+- Schemamotorns kontroll prövar hela schemat med de föreslagna salarna innan du kan använda dem.
+- **Använd** är ett steg i Ångra som återställer alla salar på en gång. **Avbryt** lämnar schemat orört.
+- Ändras schemat eller salbehoven efter förhandsgranskningen måste du förhandsgranska igen.
+- Pass som inte får plats står kvar som de är. Flytta berörda pass i veckan, ändra salbehoven eller lägg till salar.
+
+När ett pass som ska ha sal saknar en, väljer kontrollen själv den första tillåtna salen, även om den är upptagen. Det syns då som en regelavvikelse för salen, och passet räknas in i Tilldela salar.
+
 ## Före första förslaget
 
 Du kan göra detta utan att något schema har räknats fram:

@@ -23,6 +23,8 @@ import { Lagesstatus } from './schema/lagesstatus.tsx';
 import { Salar } from './schema/salar.tsx';
 import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, rememberYta, storedYta, useGenomgang, type SchemaYta } from './schema/forbered.tsx';
 import { schemaForbered } from '@/lib/schema-forbered.ts';
+import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
+import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -157,6 +159,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   // Vald yta (05.2-SM-UXF-31). Utan eget val visas Förbered tills ett förslag finns.
   const [ytaVal, setYtaVal] = useState<SchemaYta | null>(() => storedYta(unitId, schoolYear)), [genomgang, setGenomgang] = useGenomgang(unitId, schoolYear);
   const valjYta = (next: SchemaYta) => { setYtaVal(next); rememberYta(unitId, schoolYear, next); };
+  // Tilldela salar och behåll tiderna (05.2-SM-UXF-41): förhandsgranskningen och kontrollens svar för just den.
+  const [salsattning, setSalsattning] = useState<(SalsattningVisning & { svar: SchemaKontroll | null }) | null>(null);
   const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve'>('diagnos');
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
   // Lagren i veckan (05.2-SM-VILLKOR-SYNS) ligger i utkastet och minns i webbläsaren.
@@ -406,6 +410,41 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
       setError(message(caught));
     } finally { if (running.current === controller) { running.current = null; setBusy(false); } }
+  }
+
+  /** Pass vars nuvarande sal kontrollen har underkänt: de får en ny sal i tilldelningen om en är ledig. */
+  const salkrockar = () => new Set((kontroll?.violations ?? []).filter(v => (SALFEL as readonly string[]).includes(v.code)).flatMap(v => v.lessons));
+  /** Förhandsgranskning (05.2-SM-UXF-41): salarna väljs i appen och hela schemat prövas av motorns kontroll. Inget ändras i utkastet. */
+  async function forhandsgranskaSalar() {
+    if (!base || !forslag || redigeringStoppad || busy || checking || running.current || grundAndrad || issues.length) return;
+    const nyckel = salsattningsNyckel;
+    const resultat = tilldelaSalar(passMedSal, { rooms: (salbild ?? forslag).rooms, egna: provade.egna, lasta: new Set(Object.keys(utkast.locked)), datum: new Set(datedOverrides.map(a => a.lesson)), krockar: salkrockar() });
+    if (!resultat.tilldelade.length) { setSalsattning({ resultat, kontroll: { status: 'ok' }, nyckel, svar: null }); return; }
+    const ny = new Map(resultat.tilldelade.map(t => [t.lesson, t.till]));
+    const lessons = forslag.lessons.map(l => ny.has(l.id) ? { ...l, roomId: ny.get(l.id)! } : l);
+    const controller = new AbortController(); running.current = controller; setChecking(true); setMoveError(null);
+    try {
+      const checked = await kontrollera(base, lessons, controller);
+      if (controller.signal.aborted) return;
+      const fore = new Set((kontroll?.violations ?? []).map(avvikelseNyckel));
+      const nya = checked.violations.filter(v => !fore.has(avvikelseNyckel(v)) && v.lessons.some(id => ny.has(id)));
+      const bytta = resultat.tilldelade.filter(t => (checked.rooms[t.lesson] ?? null) !== t.till);
+      const texter = [...nya.map(v => v.message), ...bytta.map(t => `${t.title}: kontrollen godtog inte den föreslagna salen.`)];
+      setSalsattning({ resultat, kontroll: texter.length ? { status: 'avvikelser', texter: texter.slice(0, 10) } : { status: 'ok' }, nyckel, svar: checked });
+    } catch (caught) {
+      if (controller.signal.aborted) return;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+      setMoveError(moveMessage(caught, 'Förhandsgranskningen av salarna'));
+    } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
+  }
+  /** Använd: alla föreslagna salar läggs i utkastet som ett steg i Ångra. Dag och starttid kommer oförändrade från utkastet. */
+  function anvandSalar() {
+    if (!base || !forslag || !salsattning?.svar || salsattning.kontroll.status !== 'ok' || salsattning.nyckel !== salsattningsNyckel || redigeringStoppad || busy || checking || running.current) return;
+    const tilldelade = salsattning.resultat.tilldelade, svar = salsattning.svar;
+    const action: SchemaUtkastAtgard = { type: 'placement', lesson: tilldelade[0].lesson, placements: salsattningPlaceringar(forslag.lessons, tilldelade), rooms: svar.rooms };
+    if (schemaUtkast(utkast, action) === utkast) { setMoveError('Salarna stämmer inte längre med utkastets pass och lås. Inget har ändrats. Förhandsgranska igen.'); return; }
+    dispatch(action); setBase({ ...base, teachings: svar.teachings, trims: svar.trims, metrics: svar.metrics }); setKontroll({ svar, villkor: provadeKey });
+    setMoved(`Salar tilldelade för ${tilldelade.length} pass. Ingen tid har ändrats. Ångra återställer alla salar i ett steg.`); setSalsattning(null);
   }
 
   /** Kontroll av underlaget utan beräkning (05.2-SM-UXF-31): samma fördiagnos som före ett förslag, men inget schema läggs. */
@@ -976,6 +1015,12 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     {!forslag && !busy && !error && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
   </>;
   const regelformId = `${resultHeading}-regler`;
+  // Utkastet och villkoren som en förhandsgranskning av salar gäller. Ändras något av dem är den inaktuell.
+  const salsattningsNyckel = JSON.stringify([utkast.placements, utkast.locked, provadeKey, salNyckel, datedOverrides.length]);
+  const underkanda = salkrockar(), utanSal = passMedSal.filter(l => l.day !== null && l.roomIds.length > 0 && (l.roomId === null || !l.roomIds.includes(l.roomId) || underkanda.has(l.id))).length;
+  const salsattningsvy = forslag && !fonster && <Salsattningspanel utanSal={utanSal} visning={salsattning} inaktuell={!!salsattning && salsattning.nyckel !== salsattningsNyckel} busy={busy || checking} roomName={roomName}
+    stopp={redigeringStoppad ? 'Utkastet behöver läsas eller sparas innan salar kan tilldelas.' : grundAndrad ? 'Underlaget har ändrats. Ta fram ett nytt förslag innan salar tilldelas.' : issues.length ? 'Rätta felen i villkoren först.' : null}
+    onForhandsgranska={() => void forhandsgranskaSalar()} onAnvand={anvandSalar} onAvbryt={() => setSalsattning(null)}/>;
   // Vad nästa Ångra avser, i klartext.
   const senasteSteg = utkast.undo.at(-1), angraText = senasteSteg && arbetsvillkorSteg(senasteSteg) ? `Ångra: ${senasteSteg.text.charAt(0).toLocaleLowerCase('sv')}${senasteSteg.text.slice(1)}` : 'Ångra';
   const taFramKnapp = <Button type="submit" form={regelformId} variant={sokning || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
@@ -1098,6 +1143,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
           {forslag.metrics.placed > 0 && ` Håltid per vecka: elever ${forslag.metrics.studentGapMin} min, lärare ${forslag.metrics.teacherGapMin} min.`}</p>
       </div>
 
+      {salsattningsvy}
       {forslag.metrics.lessons > 0 && !fonster && <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Antal lektioner per undervisning</summary><Fordelning forslag={forslag} villkor={villkor} kontroll={kontroll} disabled={busy || checking} onChange={andraArbetsvillkor}/></details>}
       {fonster && ['larare', 'sal', 'elev'].includes(fonster.view) && <ResursFonster intentional={intentionalPass} forslag={forslag} villkor={provade} placements={placeringar} layers={utkast.layers} term={viewTerm} picked={picked} slag={fonster.view === 'larare' ? 'larare' : fonster.view === 'sal' ? 'sal' : 'elev'} initialResource={fonster.resource} onPick={id => { const l = forslag.lessons.find(x => x.id === id); if (l) pick(l); }} onLayer={(layer, on) => dispatch({ type: 'layer', layer, on })} onSessionLost={onSessionLost} onTerm={setShownTerm}/>}
       {fonster?.view === 'viloyta' && <Viloyta restRef={rest} lessons={unplaced} forslag={forslag} over={false} dragging={null} disabled={checking} termTag={termTag} onGrab={grab} onPick={pick} onFollow={foljPass} onSuggest={lesson => void sokPlacering({ mode: 'lesson', lesson, target: null, depth: 1 })} onSuggestAll={() => void sokPlacering({ mode: 'rest', lesson: null, target: null, depth: 1 })}/>}
