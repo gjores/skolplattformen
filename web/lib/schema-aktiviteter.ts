@@ -7,6 +7,8 @@ export type SchemaAktivitet = {
   id: string; typId: string; typ: string; name: string; classRefs: string[]; groupRefs: string[]; teacherRefs: string[]; rooms: string[];
   durationMin: number; veckor: SchemaAktivitetsVeckor; visibleFor: 'personal' | 'alla'; margin: SchemaMarginal | null;
   tid: { typ: 'fast'; day: number; startMin: number } | { typ: 'motor'; days: number[]; startMin: number; endMin: number };
+  /** Serien som aktiviteten skapades i, en per klass (05.2-SM-UXF-52). Saknas för en ensam aktivitet. */
+  serie?: string;
 };
 export type SchemaAktivitetsMeta = Pick<SchemaAktivitet, 'id' | 'typId' | 'typ' | 'veckor' | 'visibleFor'>;
 export const AKTIVITET_LIMIT = 100;
@@ -52,6 +54,7 @@ export function aktiviteternasFel(activities: SchemaAktivitet[]): string[] {
     const v = a.veckor;
     if (!v || !['alla', 'udda', 'jamna', 'valda'].includes(v.typ) || v.typ === 'valda' && (!Array.isArray(v.veckor) || !v.veckor.length || v.veckor.length > 53 || new Set(v.veckor).size !== v.veckor.length || v.veckor.some(n => !Number.isSafeInteger(n) || n < 1 || n > 53))) errors.push(`${a.name}: välj giltiga veckor (1–53).`);
     if (a.visibleFor !== 'personal' && a.visibleFor !== 'alla') errors.push(`${a.name}: välj vilka som ser aktiviteten.`);
+    if (a.serie !== undefined && (typeof a.serie !== 'string' || !/^serie-[1-9]\d{0,4}$/u.test(a.serie))) errors.push(`${a.name}: serien är ogiltig.`);
     if (a.margin !== null) {
       const m = a.margin;
       if (!m || m.typ !== 'marginal' || !min(m.beforeMin, 0, 60) || !min(m.afterMin, 0, 60) || !Array.isArray(m.occupies) || m.occupies.some(x => !['elever', 'larare', 'sal'].includes(x))
@@ -66,7 +69,7 @@ export function parseAktiviteter(value: unknown): SchemaAktivitet[] {
   if (aktiviteternasFel(list).length) throw new TypeError('Aktiviteterna kunde inte kontrolleras.');
   const keys = ['id', 'typId', 'typ', 'name', 'classRefs', 'groupRefs', 'teacherRefs', 'rooms', 'durationMin', 'veckor', 'visibleFor', 'margin', 'tid'];
   for (const a of list) {
-    if (Object.keys(a).length !== keys.length || keys.some(k => !Object.hasOwn(a, k))) throw new TypeError('Okända aktivitetsfält.');
+    if (Object.keys(a).length !== keys.length + (Object.hasOwn(a, 'serie') ? 1 : 0) || keys.some(k => !Object.hasOwn(a, k))) throw new TypeError('Okända aktivitetsfält.');
     const tid = Object.keys(a.tid).sort().join(), veckor = Object.keys(a.veckor).sort().join();
     if (tid !== (a.tid.typ === 'fast' ? 'day,startMin,typ' : 'days,endMin,startMin,typ') || veckor !== (a.veckor.typ === 'valda' ? 'typ,veckor' : 'typ')) throw new TypeError('Okända tidsfält.');
   }

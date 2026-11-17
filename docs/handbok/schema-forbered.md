@@ -126,6 +126,22 @@ Ett förslag redovisas med tre besked i stället för en samlad status:
 
 Att alla pass har tid betyder inte att salarna är klara.
 
+## Aktivitet för flera klasser
+
+Mentorstid och liknande kan läggas in för många klasser på en gång.
+
+1. Välj **Ny aktivitet** under **Aktiviteter och nationella prov**.
+2. Fyll i typ, namn, tid och längd och kryssa i klasserna.
+3. Under **Hur många aktiviteter?** väljer du **En gemensam aktivitet för alla valda klasser** eller **En aktivitet per klass**.
+4. Med en per klass visas en rad per klass. Välj ansvarig för varje klass, eller låt raden stå som **Saknar ansvarig**.
+5. Välj **Lägg till … aktiviteter**.
+
+- Varje klass får en egen aktivitet med samma tid, längd och veckor, och klassens namn efter aktivitetens namn.
+- Aktiviteterna hålls ihop som en serie. **Ta bort serien** tar bort alla på en gång; varje aktivitet kan ändras för sig.
+- Är samma ansvarig vald för flera klasser på samma fasta tid visas en krock, och serien läggs inte till.
+- Skolan kan ha högst 100 egna aktiviteter. Formuläret visar hur många det blir efter tillägget.
+- Ansvarig hämtas inte från mentorskap, och lunch i matsal med sittningar finns inte.
+
 ## Tilldela salar och behåll tiderna
 
 När schemat redan har tider men pass saknar sal, eller har en sal som kontrollen har underkänt, visas **Tilldela salar och behåll tiderna** i Lägg schema.
@@ -159,7 +175,8 @@ Du kan göra detta utan att något schema har räknats fram:
 - lägga till egna villkor för klass, grupp, ämne och lärare
 - välja antal lektioner per undervisning
 - ändra villkor i tabell
-- lägga till aktiviteter
+- lägga till aktiviteter, en per klass om du vill
+- lägga till samtidighetsblock
 - registrera salar och salbehov.
 
 **Ångra** står överst och säger vad den avser, till exempel *Ångra: salbehov för Kemi*.

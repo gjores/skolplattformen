@@ -25,7 +25,8 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
   const [handledStart, setHandledStart] = useState<NyAktivitetsTid | null>(null);
   if (start && start !== handledStart) { setHandledStart(start); setForm({ tid: start }); }
   useEffect(() => { if (start) onStartHandled?.(); }, [start, onStartHandled]);
-  const save = (a: SchemaAktivitet) => onChange(activities.some(x => x.id === a.id) ? activities.map(x => x.id === a.id ? a : x) : [...activities, a], form?.aktivitet ? `Aktiviteten ${a.name} är ändrad` : `Aktiviteten ${a.name} är tillagd`);
+  const save = (a: SchemaAktivitet | SchemaAktivitet[]) => Array.isArray(a) ? onChange([...activities, ...a], `${a.length} aktiviteter är tillagda, en per klass`)
+    : onChange(activities.some(x => x.id === a.id) ? activities.map(x => x.id === a.id ? a : x) : [...activities, a], form?.aktivitet ? `Aktiviteten ${a.name} är ändrad` : `Aktiviteten ${a.name} är tillagd`);
   const name = (ref: string) => [...f.resurser.klass, ...f.resurser.grupp, ...f.resurser.larare].find(r => r.ref === ref)?.name ?? 'Resursen finns inte i underlaget';
   return <section className="aktiviteter" aria-labelledby="aktiviteter-rubrik">
     <div className="akt-rubrik"><div><p className="eyebrow">Schema · Egna aktiviteter</p><h3 id="aktiviteter-rubrik" className="section-heading">Aktiviteter utanför tjänstefördelningen</h3>
@@ -40,7 +41,9 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
             <TableCell>{[...a.classRefs, ...a.groupRefs, ...a.teacherRefs].map(name).concat(a.rooms).join(', ')}</TableCell>
             <TableCell>{aktivitetsTidText(a)}{a.tid.typ === 'motor' && <p>{at ? `Nu ${at}` : 'Har ingen placering'}</p>}{a.veckor.typ !== 'alla' && <p className="text-muted-foreground">Upptar alla veckor i grundschemat.</p>}</TableCell>
             <TableCell>Upptar deltagarna{a.rooms.length ? ' och salen' : ''}. Ingen timplanetid.</TableCell><TableCell><div className="akt-segment"><Button variant="outline" disabled={busy} onClick={() => setForm({ aktivitet: a })} aria-label={`Ändra aktiviteten ${a.name}`}>Ändra</Button>
-              <Button variant="outline" disabled={busy} onClick={() => void onChange(activities.filter(x => x.id !== a.id), `Aktiviteten ${a.name} är borttagen`)} aria-label={`Ta bort aktiviteten ${a.name}`}>Ta bort</Button></div></TableCell></TableRow>;
+              <Button variant="outline" disabled={busy} onClick={() => void onChange(activities.filter(x => x.id !== a.id), `Aktiviteten ${a.name} är borttagen`)} aria-label={`Ta bort aktiviteten ${a.name}`}>Ta bort</Button>
+              {a.serie && activities.filter(x => x.serie === a.serie).length > 1 && <Button variant="outline" disabled={busy} aria-label={`Ta bort hela serien som ${a.name} hör till`}
+                onClick={() => void onChange(activities.filter(x => x.serie !== a.serie), `Serien med ${activities.filter(x => x.serie === a.serie).length} aktiviteter är borttagen`)}>Ta bort serien</Button>}</div></TableCell></TableRow>;
         })}</TableBody></Table>}
     {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} personalLookup={personalLookup} onSessionLost={onSessionLost}
       onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
