@@ -6,6 +6,7 @@ import { buildSchemaUnderlag, schemaKontroll, type SchemaBasis, type SchemaUnder
 import { SCHEMA_VILLKORSFORSLAG_LIMITS, SchemaVillkorsforslagError, parseSchemaVillkorsforslag, schemaVillkorsandring, schemaVillkorsforslagInputFingerprint, tillampaSchemaVillkorsandring,
   type SchemaVillkorsforslag, type SchemaVillkorsforslagRequest } from '../schema-villkorsforslag.ts';
 import { SchemaEngineError, suggestSchema, validateSchema } from './schemamotor.ts';
+import { salIfyllning } from '../schema-utan-sal.ts';
 
 export type SchemaVillkorsforslagMotor = {
   validate: (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
@@ -69,7 +70,7 @@ export async function schemaVillkorsforslag(plan: TjanstPlanRead, input: SchemaV
   if (!selected || input.placements.some(p => p.lesson === input.lesson)) throw new SchemaVillkorsforslagError('schema_villkorsforslag_not_parked');
   if (selected.locked) throw new SchemaVillkorsforslagError('schema_placement_locked_lesson');
   const val: SchemaPlaceringVal = { lesson: input.lesson, depth: input.depth, mode: 'lesson', target: null };
-  const placements = checkSchemaPlaceringRequest({ ...input, ...val }, underlag.problem), roots = rootsFor(underlag.problem, input.lesson);
+  const placements = checkSchemaPlaceringRequest({ ...input, ...val }, underlag.problem, salIfyllning(underlag.villkor)), roots = rootsFor(underlag.problem, input.lesson);
   const suggestions: SchemaVillkorsforslag['suggestions'] = [];
   let timedOut = false, testedCandidates = 0, newGrundCandidates = 0, considered = 0;
   try {

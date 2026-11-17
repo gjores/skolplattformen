@@ -156,7 +156,9 @@ När schemat redan har tider men pass saknar sal, eller har en sal som kontrolle
 - Ändras schemat eller salbehoven efter förhandsgranskningen måste du förhandsgranska igen.
 - Pass som inte får plats står kvar som de är. Flytta berörda pass i veckan, ändra salbehoven eller lägg till salar.
 
-När ett pass som ska ha sal saknar en, väljer kontrollen själv den första tillåtna salen, även om den är upptagen. Det syns då som en regelavvikelse för salen, och passet räknas in i Tilldela salar.
+När skolan har ett salregister väljs salen bara av dig eller av Tilldela salar. Ett pass som ska ha sal men saknar en står utan sal och räknas i beskedet **Sal**. Det är en uppgift, inte en regelavvikelse, och det upptar ingen sal.
+
+Utkast utan salregister fungerar som tidigare. Där väljer kontrollen själv den första tillåtna salen när ett pass saknar sal, även om salen är upptagen. Det syns då som en regelavvikelse för salen, och passet räknas in i Tilldela salar.
 
 ## Valt pass
 
@@ -167,6 +169,16 @@ Klicka på ett pass i veckan, eller välj det med tangentbordet och tryck Retur.
 3. Välj **Flytta hit** för att flytta passet, eller **Avbryt**.
 
 Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fält: fri tid, går med ett byte, bryter ett önskemål eller regelbrott. Ett fält säger bara läget. Orsakerna kan skilja sig inom fältet, så läs beskedet i panelen för den exakta starttiden.
+
+### Salen när du flyttar ett pass
+
+Med salregister behåller passet sin sal om salen är ledig vid den nya tiden. Är salen upptagen eller spärrad där blir passet utan sal. Ingen annan sal väljs i stället.
+
+- Innan du flyttar står det i panelen, till exempel *A101 är inte ledig då. Passet blir utan sal.*
+- I veckan är sådana tider ett eget, ljusare fält med streckad kant: **Fri tid, men passet blir utan sal**.
+- Efter flytten står det i beskedet att passet är utan sal och vilken sal som inte var ledig. Ge passet en sal med **Tilldela salar och behåll tiderna**, eller välj en sal i panelen.
+- Väljer du själv en annan sal i panelen behålls ditt val. **Ingen sal** betyder att passet flyttas utan sal.
+- I Följ passet öppnar en sådan tid först beskedet, och du flyttar med **Lägg här**.
 
 ## Före första förslaget
 
@@ -188,3 +200,4 @@ Du kan göra detta utan att något schema har räknats fram:
 - Målen för schemat går inte att prioritera om.
 - Appen kan inte avgöra om en lärare utan tidsvillkor har svarat. Läraren räknas som tillgänglig hela skoldagen.
 - Lunch i matsal med sittningar och platser finns inte.
+- Flyttar du flera markerade pass samtidigt prövas salen bara för passet du drar. De andra passen behåller sin sal. Detsamma gäller om de möjliga starttiderna inte hunnit läsas in. Är salen upptagen visas det som en regelavvikelse.

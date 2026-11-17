@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara, installerade på 3012; UXF-53 väntar på beslut om provbokning"
 status: in_progress
-stopped_at: "563e1201 med arbetsgången Förbered → Lägg schema är installerad på 3012/3013 (PASS 5/5, 0 migrationer, 43 revisioner oförändrade). Användarens prov på 3012 återstår."
+stopped_at: "563e1201 är installerad på 3012/3013. UXF-43 (ingen salifyllning med salregister) är byggd och prövad mot simulerade rutter, inte installerad. Användarens prov på 3012 återstår."
 last_updated: "2026-11-17"
 last_activity: 2026-11-17
 last_activity_desc: "563e1201 installerad på 3012/3013 efter användarens ja; andra försöket PASS efter rättad förväntan i installationsskriptet."
@@ -29,6 +29,8 @@ schema_installation_status: uxflode_passed_5_groups_zero_new_sql_43_prior_revisi
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**05.2-SM UXF-43 2026-11-17 (kväll):** Användaren godkände med **”Kör på det”**: med salregister fyller kontrollen ingen sal, och vid flytt behåller passet sin sal bara där den är ledig, annars blir passet utan sal och det syns före flytten. Pass utan sal upptar ingen sal hos motorn, så placeringsförslagen fungerar. Äldre utkast utan register är oförändrade. Kontroller: 368 Node-prov, 322 av 322 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handbok. Allt mot simulerade rutter; **inte installerat**, och 3012 kör fortfarande 563e1201. Skolplattans guide är inte synkad med lägesfälten. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-43-SALIFYLLNING-PLAN.md).
 
 **05.2-SM installerad på 3012 2026-11-17 (kväll):** Efter användarens **”Ja, installera”** kör 3012 och 3013 den frysta kandidaten `563e1201`, med Förbered, salar, Tilldela salar, panel för valt pass, samtidighetsblock och aktivitet per klass. Kandidaten passerade först den egna API-kedjan med 9 av 9 kontroller. Installationen: PASS 5 av 5 kontrollgrupper, 0 migrationer, alla 16 schemavägar nekar utan inloggning och alla 43 tidigare utkastrevisioner är oförändrade. Första försöket stoppade före bytet på en inaktuell förväntan i skriptet, som är rättad. Användarens prov på 3012 återstår, liksom besluten om A11 och UXF-53. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-17.md).
 

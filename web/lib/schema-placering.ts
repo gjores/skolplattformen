@@ -49,7 +49,7 @@ export function parseSchemaPlaceringRequest(value: unknown): SchemaPlaceringRequ
 }
 
 /** Normalisering får inte byta en sal bakom före/efter-listan. Olåsta saknade pass får ligga kvar på viloytan. */
-export function checkSchemaPlaceringRequest(input: SchemaPlaceringRequest, problem: SchemaProblem): SchemaPlacement[] {
+export function checkSchemaPlaceringRequest(input: SchemaPlaceringRequest, problem: SchemaProblem, fyll = true): SchemaPlacement[] {
   const known = new Map(problem.lessons.map(l => [l.id, l])), placed = new Set(input.placements.map(p => p.lesson));
   if (input.lesson !== null) {
     const lesson = known.get(input.lesson); if (!lesson) bad();
@@ -63,7 +63,7 @@ export function checkSchemaPlaceringRequest(input: SchemaPlaceringRequest, probl
   } else if (problem.lessons.every(l => placed.has(l.id))) throw new SchemaPlaceringError('schema_placement_rest_empty');
   // En parkerad fast aktivitet får läggas på sin fasta tid av rest-sökningen. Bara redan lagda lås krävs i utgångspunkten.
   const baselineProblem = { ...problem, lessons: problem.lessons.map(l => placed.has(l.id) ? l : { ...l, locked: undefined }) };
-  const at = checkSchemaPlacements(input.placements, baselineProblem);
+  const at = checkSchemaPlacements(input.placements, baselineProblem, fyll);
   for (const p of at) {
     const lock = known.get(p.lesson)?.locked;
     if (lock?.rooms?.length && (lock.rooms.length !== 1 || lock.rooms[0] !== p.room)) bad();

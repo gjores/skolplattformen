@@ -8,6 +8,7 @@ import { schemaFolj } from '../../../../lib/schema-folj.ts';
 import { parseSchemaLagenRequest, type SchemaLagenRequest } from '../../../../lib/schema-lagen.ts';
 import { schemaProvUnderlag, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
+import { salIfyllning } from '../../../../lib/schema-utan-sal.ts';
 
 /**
  * Följ passet (05.2-SM-FOLJ): grupperna på ett pass, grupper som delar elever med det och, för den som får se elever, elevlistan och en vald elevs pass.
@@ -31,7 +32,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const underlag = schemaProvUnderlag(read.plan, input, read.basis);
     if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
-    checkSchemaPlacements(input.placements, underlag.problem);
+    checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor));
     if (!underlag.problem.lessons.some(l => l.id === input.lesson)) throw new SchemaContractError();
     try {
       return json(schemaFolj(read.plan, underlag, read.basis.members, read.names, input.lesson, input.pupilId), init);

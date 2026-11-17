@@ -26,6 +26,7 @@ import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, r
 import { schemaForbered } from '@/lib/schema-forbered.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
 import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
+import { flyttSal } from '@/lib/schema-utan-sal.ts';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -481,7 +482,12 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
    * Flyttar ett pass, lägger det på viloytan, ångrar eller gör om. Passet behåller sin sal om ingen annan anges; utan sal väljer servern en ledig.
    * Hela schemat kontrolleras om med placeringarna ändringen ger, och utkastet ändras först när kontrollen har svarat.
    */
-  async function andra(action: FlyttAtgard) {
+  async function andra(atgard: FlyttAtgard) {
+    // Med salregister behåller ett flyttat pass sin sal bara där den är ledig; annars blir det utan sal (05.2-SM-UXF-43).
+    const egenSal = atgard.type === 'move' ? utkast.placements[atgard.lesson]?.room ?? null : null;
+    const action: FlyttAtgard = atgard.type === 'move' && provade.salregister ? { ...atgard, room: flyttSal(egenSal, atgard.room,
+      bytLagen.lagen?.lesson === atgard.lesson ? bytLagen.lagen.positions.find(p => p.day === atgard.day && p.startMin === atgard.startMin) : undefined) } : atgard;
+    const tappadSal = action.type === 'move' && egenSal !== null && action.room === null ? roomName(egenSal) || 'Salen' : null;
     if (fonster) { synk.send({ typ: 'andra', action }); return; }
     if (redigeringStoppad || checking || busy || running.current) return;
     if (action.type === 'move' || action.type === 'park' || action.type === 'swap') {
@@ -562,7 +568,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       dispatch({ ...action, rooms: reply.rooms });
       focus.current = before.id; setKontroll({ svar: reply, villkor: key });
       const { day, startMin } = next[before.id], fler = action.type === 'park' ? action.fler?.length ?? 0 : 0;
-      setMoved(action.type === 'swap' ? `Passen har bytt dag och starttid. ${reply.total ? `${reply.total} regelavvikelser.` : 'Inga regelavvikelser.'}` : `${fler ? `${fler + 1} pass ligger nu på viloytan` : `${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}`}. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
+      setMoved(action.type === 'swap' ? `Passen har bytt dag och starttid. ${reply.total ? `${reply.total} regelavvikelser.` : 'Inga regelavvikelser.'}` : `${fler ? `${fler + 1} pass ligger nu på viloytan` : `${before.title} ${day === null || startMin === null ? 'ligger nu på viloytan' : `ligger nu ${DAYS[day].toLowerCase()} ${clock(startMin)}`}`}.${tappadSal ? ` Passet är utan sal: ${tappadSal} var inte ledig då.` : ''} ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }

@@ -6,6 +6,7 @@ import { SchemaEngineError, validateSchema } from '../../../../lib/server/schema
 import { checkSchemaPlacements, parseSchemaKontrollRequest, SchemaContractError, type SchemaKontrollRequest } from '../../../../lib/schema-contract.ts';
 import { schemaProvUnderlag, schemaKontroll, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
+import { salIfyllning } from '../../../../lib/schema-utan-sal.ts';
 
 /**
  * Kontroll av ett för hand ändrat schemaförslag (05.2-SM-FLYTT, F1–F3). Inget sparas: underlaget byggs om ur samma läsning,
@@ -27,7 +28,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const underlag = schemaProvUnderlag(read.plan, read.input, read.basis);
     if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
-    const placements = checkSchemaPlacements(read.input.placements, underlag.problem);
+    const placements = checkSchemaPlacements(read.input.placements, underlag.problem, salIfyllning(underlag.villkor));
     return json(schemaKontroll(underlag, placements, await validateSchema(underlag.problem, placements)), init);
   } catch (error) {
     if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });

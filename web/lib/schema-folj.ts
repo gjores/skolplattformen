@@ -225,8 +225,8 @@ export function elevKrockar(rader: FoljRad[]): { lessons: Set<string>; texter: s
 }
 
 /** Möjliga starttider som sammanhängande sträckor med samma läge per dag, för att rita raden. `to` är sista starttiden plus ett steg. */
-export function lagesStrackor(positions: Pick<SchemaLagenPosition, 'day' | 'startMin' | 'state'>[], step: number): { day: number; from: number; to: number; state: SchemaLagenPosition['state'] }[] {
-  const sorted = [...positions].sort((a, b) => a.day - b.day || a.startMin - b.startMin), result: { day: number; from: number; to: number; state: SchemaLagenPosition['state'] }[] = [];
+export function lagesStrackor<S extends string = SchemaLagenPosition['state']>(positions: { day: number; startMin: number; state: S }[], step: number): { day: number; from: number; to: number; state: S }[] {
+  const sorted = [...positions].sort((a, b) => a.day - b.day || a.startMin - b.startMin), result: { day: number; from: number; to: number; state: S }[] = [];
   for (const p of sorted) {
     const last = result.at(-1);
     if (last && last.day === p.day && last.state === p.state && last.to === p.startMin) last.to = p.startMin + step;

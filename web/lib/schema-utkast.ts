@@ -73,7 +73,7 @@ export type SchemaUtkastAtgard =
  * Lager i veckorutnätet. Ritas av `app/schema/vecka.tsx`; tas fram av senare planer (SM-VILLKOR-SYNS, SM-LAGEN, SM-AKTIVITETER).
  * Fälttyper för villkor (`sparrad`, `tillaten-ute`, `lunch`, `marginal`, `aktivitet`, `installt`) och för möjlighetskartan (`fri`, `onskemal`, `byte`, `brott`).
  */
-export const SCHEMA_FALT = ['sparrad', 'tillaten-ute', 'lunch', 'marginal', 'aktivitet', 'installt', 'fri', 'onskemal', 'byte', 'brott'] as const;
+export const SCHEMA_FALT = ['sparrad', 'tillaten-ute', 'lunch', 'marginal', 'aktivitet', 'installt', 'fri', 'fri-utan-sal', 'onskemal', 'byte', 'brott'] as const;
 export type SchemaFaltTyp = typeof SCHEMA_FALT[number];
 /** Ett fält över hela dagens bredd, under passen. `label` är den synliga texten; `sourceId` pekar på villkoret fältet kommer från. */
 export type SchemaOverlay = { day: number; startMin: number; endMin: number; kind: SchemaFaltTyp; label: string; sourceId?: string };

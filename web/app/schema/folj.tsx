@@ -131,7 +131,7 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
     <div className="folj-rutnat" style={{ '--span': end - start, '--first-hour': Math.ceil(start / 60) * 60 - start, '--days': forslag.days.length } as CSSProperties}>
       <div className="folj-rad folj-dagar" aria-hidden="true"><div/>{forslag.days.map((_, d) => <div key={d}>{dayName(d)}</div>)}</div>
       <Mojligt days={forslag.days} span={{ start, end }} step={forslag.startGridMin} lesson={lesson.id} title={lesson.title} lengthMin={lesson.durationMin}
-        lagen={lagen} loading={loading} kontext={kontext} disabled={checking} onMove={onMove}/>
+        lagen={lagen} loading={loading} kontext={kontext} medSalregister={!!forslag.villkor.salregister} disabled={checking} onMove={onMove}/>
       {rader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick} compact/>)}
     </div>
     {krock.texter.length > 0 && <div className="folj-krock">{krock.texter.map(t => <p key={t}>{t}</p>)}</div>}

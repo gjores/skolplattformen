@@ -16,6 +16,7 @@ import { SCHEMA_DRAFT_BYTES, SCHEMA_DRAFT_VERSION, SchemaDraftError, parseSchema
   type SchemaDraftDocument, type SchemaDraftLessonSource, type SchemaDraftReadReply, type SchemaDraftSave, type SchemaDraftSaveReply, type SchemaDraftScope,
   type SchemaDraftStatusRequest, type SchemaDraftStatusReply } from '../schema-draft-contract.ts';
 import { logEvent, type EventInput } from './events.ts';
+import { salIfyllning } from '../schema-utan-sal.ts';
 
 type ReadBasis = Awaited<ReturnType<typeof readSchemaBasis>> & { datedBasis: SchemaDatedBasis };
 type RawEnvelope = { contractVersion: 'schema_draft_sql_v1'; actor: { identityId: string; assignmentId: string }; result: Record<string, unknown> };
@@ -126,7 +127,7 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
     underlag = buildSchemaUnderlag(read.plan, request, read.basis);
   }
   if (input.placements.some(p => p.room !== null && !underlag.problem.lessons.find(l => l.id === p.lesson)?.rooms?.allowed.includes(p.room!))) throw new SchemaDraftError();
-  const placements = checkSchemaPlacements(input.placements, underlag.problem), check = underlag.problem.lessons.length
+  const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor)), check = underlag.problem.lessons.length
     ? await validateSchema(underlag.problem, placements) : { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   const ids = new Set(placements.map(p => p.lesson)), unplaced = underlag.problem.lessons.filter(l => !ids.has(l.id)).map(l => l.id);
   const solution: SchemaSolution = { status: underlag.problem.lessons.length === 0 ? 'input_missing' : unplaced.length ? 'time_limit' : 'complete', placements, unplaced, diagnoses: [], metrics: check.metrics, elapsedMs: 0 };

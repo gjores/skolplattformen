@@ -6,6 +6,7 @@ import { checkSchemaPlacements, parseSchemaKontrollRequest, SchemaContractError,
 import { schemaProvUnderlag, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import { schemaSamlingData } from '../../../../lib/schema-samling.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
+import { salIfyllning } from '../../../../lib/schema-utan-sal.ts';
 
 /** Behörighetsprövad, läsande resurslista för samlingsvyn. Samma mandat, MFA, ursprung, underlag och granskningshändelser som Följ passet. */
 export async function POST(request: Request): Promise<Response> {
@@ -22,7 +23,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const u = schemaProvUnderlag(read.plan, read.input, read.basis);
     if (!u) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
-    checkSchemaPlacements(read.input.placements, u.problem); return json(schemaSamlingData(read.plan, u, read.basis.members, read.names), init);
+    checkSchemaPlacements(read.input.placements, u.problem, salIfyllning(u.villkor)); return json(schemaSamlingData(read.plan, u, read.basis.members, read.names), init);
   }
   catch (error) { if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });
     if (error instanceof SchemaContractError) return json({ code: 'bad_request', correlationId }, { ...init, status: 400 }); throw error; }

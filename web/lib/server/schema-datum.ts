@@ -12,6 +12,7 @@ import { logEvent } from './events.ts';
 import { readSchemaBasis } from './schema-read.ts';
 import { readSchemaDatedBasis } from './schema-datum-read.ts';
 import { SchemaEngineError, validateSchema } from './schemamotor.ts';
+import { salIfyllning } from '../schema-utan-sal.ts';
 
 export type SchemaDatumRead = { plan: TjanstPlanRead; basis: SchemaBasis; datedBasis: SchemaDatedBasis };
 type Validator = (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
@@ -19,7 +20,7 @@ type Validator = (problem: SchemaProblem, placements: SchemaPlacement[]) => Prom
 export function schemaDatumGrund(read: Pick<SchemaDatumRead, 'plan' | 'basis'>, input: SchemaKontrollRequest) {
   const underlag = schemaProvUnderlag(read.plan, input, read.basis);
   if (!underlag) throw new Deny('conflict', 409, { reason: 'schema_underlag_changed' });
-  const placements = checkSchemaPlacements(input.placements, underlag.problem), placed = new Set(placements.map(p => p.lesson));
+  const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor)), placed = new Set(placements.map(p => p.lesson));
   const forslag = schemaForslag(read.plan, input, underlag, { status: placed.size === underlag.problem.lessons.length ? 'complete' : 'time_limit', placements,
     unplaced: underlag.problem.lessons.filter(l => !placed.has(l.id)).map(l => l.id), diagnoses: [], elapsedMs: 0, metrics: { studentGapMin: 0, teacherGapMin: 0 } });
   return { underlag, forslag };

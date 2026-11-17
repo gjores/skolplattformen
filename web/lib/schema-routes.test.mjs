@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor } from './schema-contract.ts';
+import { laggTillSal, sattSalbehov, tomtSalbehov } from './schema-salregister.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
 
 const id = n => `73111500-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -60,6 +61,11 @@ const fake = globalThis.__schemaRoutesTest = {
     return { status: 'complete', placements: problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: l.rooms?.allowed[0] ?? null })), unplaced: [], diagnoses: [],
       metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: 0 };
   },
+  async positions(problem, placements, lesson) {
+    if (!state.positions) throw Error('Motor must not be reached');
+    state.positionCalls = [...state.positionCalls ?? [], { problem: structuredClone(problem), placements: structuredClone(placements), lesson }];
+    return { lesson, positions: state.positions.map(p => ({ ...p, room: null, state: 'fri', costDelta: 0, reasons: [] })) };
+  },
   async diagnose(problem) { state.diagnoses.push(structuredClone(problem)); return []; },
   async suggest(problem, placements, input) {
     assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'), 'förslagsmotorn nåddes före lyckad audit');
@@ -93,7 +99,7 @@ registerHooks({ load(url, context, next) {
   if (is('schemamotor.ts')) source = `export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const solveSchema=(...a)=>globalThis.__schemaRoutesTest.solve(...a);
     export const diagnoseSchema=(...a)=>globalThis.__schemaRoutesTest.diagnose(...a);
     export const suggestSchema=(...a)=>globalThis.__schemaRoutesTest.suggest(...a);
-    export const validateSchema=(...a)=>globalThis.__schemaRoutesTest.validate(...a);export const positionsSchema=async()=>{throw Error('Motor must not be reached');};`;
+    export const validateSchema=(...a)=>globalThis.__schemaRoutesTest.validate(...a);export const positionsSchema=(...a)=>globalThis.__schemaRoutesTest.positions(...a);`;
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
 const { Deny } = await import('./server/db.ts');
@@ -314,3 +320,46 @@ test('fördiagnos och förslag visar en omöjlig lektionsfördelning utan att an
     assert.equal(state.solves.length+state.diagnoses.length,0);
   }
 });
+
+// 05.2-SM-UXF-43: med salregister fyller kontrollen ingen sal, pass utan sal upptar ingen sal hos motorn, och lägena behåller passets sal bara där den är ledig.
+// Två matematikpass i veckan: behovet dubblas under provet och återställs efteråt.
+function dubbelt(fn) {
+  const fore = structuredClone({ needs: plan.classes[0].needs, rows: plan.rows });
+  for (const x of [...plan.classes[0].needs, ...plan.rows]) { x.needHt *= 2; x.needVt *= 2; if ('teacherHt' in x) { x.teacherHt *= 2; x.teacherVt *= 2; } }
+  return Promise.resolve(fn()).finally(() => { plan.classes[0].needs = fore.needs; plan.rows = fore.rows; });
+}
+function medSalregister() {
+  let v = defaultSchemaVillkor();
+  for (const name of ['A101', 'A102']) v = laggTillSal(v, { name, typ: 'Allmän sal', platser: 30, utrustning: [] });
+  return sattSalbehov(v, 'amne', 'Matematik', tomtSalbehov('allman'));
+}
+test('med salregister: kontrollen fyller ingen sal och motorn får passen utan sal utan salkrav', () => dubbelt(async () => {
+  reset(); const v = medSalregister(), value = body('kontroll', v);
+  assert.ok(value.placements.length >= 2 && value.placements.every(p => p.room === null));
+  const res = await routes.kontroll(request('kontroll', value));
+  assert.equal(res.status, 200); const svar = await res.json();
+  assert.deepEqual(svar.rooms, {}, 'ingen sal fylls i');
+  const sent = state.validations.at(-1);
+  assert.ok(sent.placements.every(p => p.room === null));
+  // Underlaget har salkrav; validateSchema i server/schemamotor.ts tar bort det för pass utan sal (prövat i schema-utan-sal.test.mjs).
+  assert.ok(sent.problem.lessons.filter(l => value.placements.some(p => p.lesson === l.id)).every(l => l.rooms?.allowed.length === 2));
+  // Utan register fylls första lediga tillåtna sal i som förut.
+  reset(); const utan = defaultSchemaVillkor(); utan.salar = ['A101']; utan.egna = [{ slag: 'amne', ref: 'Matematik', typ: 'sal', rooms: ['A101'] }];
+  const gammal = body('kontroll', utan), r2 = await routes.kontroll(request('kontroll', gammal));
+  assert.equal(r2.status, 200); const s2 = await r2.json();
+  assert.ok(Object.values(s2.rooms).length > 0 && Object.values(s2.rooms).every(r => r === 'sal-1'), 'äldre utkast fyller i sal');
+}));
+test('med salregister: lägena prövar tiden utan sal och behåller passets egen sal bara där den är ledig', () => dubbelt(async () => {
+  reset(); const v = medSalregister(), value = body('lagen', v);
+  const [forsta, andra] = value.placements;
+  value.placements = value.placements.map(p => p.lesson === forsta.lesson ? { ...p, day: 0, startMin: 480, room: 'sal-1' } : p.lesson === andra.lesson ? { ...p, day: 1, startMin: 600, room: 'sal-1' } : p);
+  value.lesson = forsta.lesson;
+  state.positions = [{ day: 1, startMin: 600 }, { day: 1, startMin: 900 }];
+  const res = await routes.lagen(request('lagen', value));
+  assert.equal(res.status, 200); const svar = await res.json();
+  const call = state.positionCalls.at(-1);
+  assert.equal(call.lesson, forsta.lesson);
+  assert.equal(call.placements.find(p => p.lesson === forsta.lesson).room, null, 'passet prövas utan sal');
+  assert.equal(call.problem.lessons.find(l => l.id === forsta.lesson).rooms, undefined, 'motorn får passet utan salkrav');
+  assert.deepEqual(svar.positions.map(p => [p.startMin, p.room]), [[600, null], [900, 'sal-1']], 'upptagen vid 10:00, ledig vid 15:00');
+}));

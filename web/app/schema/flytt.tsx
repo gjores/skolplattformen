@@ -58,7 +58,7 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
         <Button type="button" variant="outline" aria-label="Senare start" disabled={senare === null} onClick={() => senare !== null && onTarget({ ...target, startMin: senare })}>+</Button>
       </div>
       {l.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} onChange={e => onTarget({ ...target, room: e.target.value || null })}>
-        <option value="">Första lediga</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
+        <option value="">{forslag.villkor.salregister ? 'Ingen sal' : 'Första lediga'}</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
     </fieldset>
     {salRequest && <SalSok scope={salRequest} lesson={l.id} target={target} rooms={forslag.rooms} disabled={blocked} onSelect={room => onTarget({ ...target, room })} onSessionLost={onSessionLost}/>}
     <div className="schema-inspektor-knappar">
@@ -68,6 +68,6 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
       {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Lägg på viloytan</Button>}
       <Button type="button" variant="outline" disabled={checking} onClick={onCancel}>Avbryt</Button>
     </div>
-    <output className="schema-inspektor-status" aria-live="polite">{!andrad ? 'Passets nuvarande tid.' : status?.startsWith('Varför inte ') ? status : `${dayName(target.day)} ${clock(target.startMin)}: ${status || 'prövas när du flyttar.'}`}</output>
+    <output className="schema-inspektor-status" aria-live="polite">{!andrad ? 'Passets nuvarande tid.' : status?.startsWith('Varför inte ') ? status : `${dayName(target.day)} ${clock(target.startMin)}: ${status?.startsWith(`${dayName(target.day)} ${clock(target.startMin)} `) ? status.slice(`${dayName(target.day)} ${clock(target.startMin)} `.length) : status || 'prövas när du flyttar.'}`}</output>
   </form>;
 }

@@ -7,6 +7,7 @@ import { env as bindings } from 'cloudflare:workers';
 import { SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
 import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
+import { motorProblem } from '../schema-utan-sal.ts';
 import { parseSchemaMotorPlacering, type SchemaPlaceringFailure, type SchemaPlaceringVal } from '../schema-placering.ts';
 
 const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
@@ -49,15 +50,17 @@ export function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
   return call(`/v1/solve?time_ms=${SCHEMA_ENGINE_TIME_MS}`, problem, SCHEMA_ENGINE_TIME_MS, value => parseSchemaSolution(value, problem));
 }
 
-/** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. */
+/** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. Pass utan sal upptar ingen sal (05.2-SM-UXF-43). */
 const engineAt = (placements: SchemaPlacement[]) => placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] }));
 export function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
-  return call('/v1/validate', { problem, placements: engineAt(placements) }, 0, value => parseSchemaCheck(value, problem));
+  const motor = motorProblem(problem, placements);
+  return call('/v1/validate', { problem: motor, placements: engineAt(placements) }, 0, value => parseSchemaCheck(value, motor));
 }
 
 /** Läget för varje starttid för ett pass (05.2-SM-LAGEN). `pupil` är ett elevkluster ur underlaget, aldrig ett elev-ID. */
 export function positionsSchema(problem: SchemaProblem, placements: SchemaPlacement[], lesson: string, pupil: string | null): Promise<SchemaPositions> {
-  return call('/v1/positions', { problem, placements: engineAt(placements), lesson, ...(pupil === null ? {} : { pupil }) }, 0, value => parseSchemaPositions(value, problem, lesson));
+  const motor = motorProblem(problem, placements);
+  return call('/v1/positions', { problem: motor, placements: engineAt(placements), lesson, ...(pupil === null ? {} : { pupil }) }, 0, value => parseSchemaPositions(value, motor, lesson));
 }
 
 /** Förkontroller utan motorsökning. Underlaget hålls inom samma behöriga serverväg som förslaget. */
@@ -72,8 +75,8 @@ export function diagnoseSchema(problem: SchemaProblem) {
 
 /** Begränsad placeringssökning, högst två sekunder. Resultatet är ett förslag, aldrig en skrivning. */
 export function suggestSchema(problem: SchemaProblem, placements: SchemaPlacement[], val: SchemaPlaceringVal) {
-  const { target, mode, lesson, depth } = val;
-  return call('/v1/suggest', { problem, placements: engineAt(placements), mode, lesson, depth,
+  const { target, mode, lesson, depth } = val, motor = motorProblem(problem, placements);
+  return call('/v1/suggest', { problem: motor, placements: engineAt(placements), mode, lesson, depth,
     target: target ? { day: target.day, start_min: target.startMin, rooms: target.room ? [target.room] : [] } : null }, 2_000,
-  value => parseSchemaMotorPlacering(value, problem, { ...val, placements }));
+  value => parseSchemaMotorPlacering(value, motor, { ...val, placements }));
 }

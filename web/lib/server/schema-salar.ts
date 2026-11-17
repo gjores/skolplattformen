@@ -6,6 +6,7 @@ import { buildSchemaUnderlag, schemaKontroll, type SchemaUnderlag } from '../sch
 import { SchemaSalError, parseSchemaSalSvar, schemaSalInputFingerprint, schemaSalPlaceringar, type SchemaSalRad, type SchemaSalRequest, type SchemaSalSvar } from '../schema-salar.ts';
 import { schemaDatumGrund, valideraSchemaDatum, type SchemaDatumRead } from './schema-datum.ts';
 import { validateSchema } from './schemamotor.ts';
+import { salIfyllning } from '../schema-utan-sal.ts';
 
 type Validator = (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
 export type SchemaSalRead = Pick<SchemaDatumRead, 'plan' | 'basis'> & Partial<Pick<SchemaDatumRead, 'datedBasis'>>;
@@ -25,7 +26,7 @@ export async function schemaSalSok(read: SchemaSalRead, input: SchemaSalRequest,
   if (!lesson) throw new SchemaSalError('schema_sal_lesson_unknown');
   if (!input.datedTarget && lesson.locked) throw new SchemaSalError('schema_placement_locked_lesson');
   const placed = new Set(input.placements.map(p => p.lesson));
-  const baseline = checkSchemaPlacements(input.placements, { ...underlag.problem, lessons: underlag.problem.lessons.map(l => placed.has(l.id) ? l : { ...l, locked: undefined }) });
+  const baseline = checkSchemaPlacements(input.placements, { ...underlag.problem, lessons: underlag.problem.lessons.map(l => placed.has(l.id) ? l : { ...l, locked: undefined }) }, salIfyllning(underlag.villkor));
   if (!sammaSchemaPlaceringar(baseline, input.placements)) throw new SchemaPlaceringError('schema_placement_rooms_changed');
   const dated = input.datedTarget ? schemaDatumGrund(read, input) : null;
   const original = input.datedTarget && dated ? schemaDatumOriginal(dated.forslag, { lesson: input.lesson, originalDate: input.datedTarget.originalDate }) : null;

@@ -93,6 +93,7 @@
 .falt-aktivitet { background: color-mix(in srgb, var(--secondary-foreground) 6%, var(--secondary)); color: var(--foreground); border: 1px solid var(--secondary-foreground); border-radius: var(--radius-sm); }
 .falt-installt { background: var(--card); color: var(--muted-foreground); border: 1px dashed var(--schema-hatch-border); border-radius: var(--radius-sm); text-decoration: line-through; }
 .falt-fri { background: var(--success-surface); color: var(--success-foreground); border: 1px solid color-mix(in srgb, var(--success-foreground) 40%, var(--success-surface)); border-radius: var(--radius-sm); }
+.falt-fri-utan-sal { background: color-mix(in srgb, var(--success-surface) 45%, var(--card)); color: var(--success-foreground); border: 1px dashed var(--success-foreground); border-radius: var(--radius-sm); }
 .falt-onskemal { background: var(--warning-surface); color: var(--warning-foreground); border: 1px dotted var(--warning-foreground); border-radius: var(--radius-sm); }
 .falt-byte { background: repeating-linear-gradient(45deg, var(--info-surface) 0, var(--info-surface) 4px, color-mix(in srgb, var(--info-foreground) 22%, var(--info-surface)) 4px, color-mix(in srgb, var(--info-foreground) 22%, var(--info-surface)) 6px);
   color: var(--info-foreground); border: 1px solid color-mix(in srgb, var(--info-foreground) 55%, var(--info-surface)); border-radius: var(--radius-sm); }

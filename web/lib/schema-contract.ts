@@ -499,9 +499,10 @@ export function parseSchemaKontrollRequest(value: unknown): SchemaKontrollReques
  * Passet ska finnas, ligga en gång på en av veckans dagar och rymmas i dygnet. Att det ligger inom skoldagen prövas av kontrollanten (`outside_day`),
  * eftersom skoldagen är ett tidsvillkor som kan ha ändrats efter förslaget (05.2-SM-VILLKOR-DIREKT). En sal som inte är en av passets tillåtna
  * (salvillkoret har ändrats) släpps. Ett pass som ska ha en sal men saknar en får den första tillåtna som är ledig, annars den första tillåtna (R6);
- * en upptagen sal redovisas då av kontrollanten.
+ * en upptagen sal redovisas då av kontrollanten. Med salregister fylls ingen sal i (`fyll` falskt, 05.2-SM-UXF-43): passet står utan sal tills
+ * människan eller Tilldela salar väljer en.
  */
-export function checkSchemaPlacements(placements: SchemaPlacement[], problem: SchemaProblem): SchemaPlacement[] {
+export function checkSchemaPlacements(placements: SchemaPlacement[], problem: SchemaProblem, fyll = true): SchemaPlacement[] {
   const lesson = new Map(problem.lessons.map(l => [l.id, l])), seen = new Set<string>();
   for (const p of placements) {
     const l = lesson.get(p.lesson);
@@ -513,7 +514,7 @@ export function checkSchemaPlacements(placements: SchemaPlacement[], problem: Sc
   const result = placements.map(p => ({ ...p, room: p.room !== null && lesson.get(p.lesson)!.rooms?.allowed.includes(p.room) ? p.room : null }));
   for (const p of result) {
     const allowed = lesson.get(p.lesson)!.rooms?.allowed;
-    if (p.room === null && allowed) p.room = allowed.find(room => !result.some(o => o !== p && o.room === room && meets(o, p))) ?? allowed[0];
+    if (fyll && p.room === null && allowed) p.room =allowed.find(room => !result.some(o => o !== p && o.room === room && meets(o, p))) ?? allowed[0];
   }
   return result;
 }

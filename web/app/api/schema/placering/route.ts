@@ -7,6 +7,7 @@ import { SCHEMA_CONTRACT_VERSION, SchemaContractError } from '../../../../lib/sc
 import { checkSchemaPlaceringRequest, parseSchemaPlaceringRequest, SchemaPlaceringError, type SchemaPlaceringRequest } from '../../../../lib/schema-placering.ts';
 import { schemaProvUnderlag, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
+import { salIfyllning } from '../../../../lib/schema-utan-sal.ts';
 
 /** Eget aktuellt skolmandat, MFA, ursprung och lyckad audit före beräkning. Klientens underlag godtas aldrig som motorproblem. */
 export async function POST(request: Request): Promise<Response> {
@@ -23,7 +24,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const input = read.input, underlag = schemaProvUnderlag(read.plan, input, read.basis);
     if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
-    const placements = checkSchemaPlaceringRequest(input, underlag.problem);
+    const placements = checkSchemaPlaceringRequest(input, underlag.problem, salIfyllning(underlag.villkor));
     const referenced = { ...underlag.problem, reference: placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) };
     const before = await validateSchema(referenced, placements);
     if (before.violations.length) throw new SchemaPlaceringError('schema_placement_invalid_baseline');

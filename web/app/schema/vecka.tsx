@@ -16,7 +16,7 @@ import { Pass } from './pass.tsx';
 /** Fälttypernas namn, i teckenförklaringen och för skärmläsare. */
 export const FALT: Record<SchemaFaltTyp, string> = {
   sparrad: 'Spärrad tid', 'tillaten-ute': 'Utanför tillåten tid', lunch: 'Lunchfönster', marginal: 'Marginal', aktivitet: 'Aktivitet', installt: 'Inställt pass',
-  fri: 'Fri: passet kan läggas här', onskemal: 'Bryter ett önskemål', byte: 'Går med ett byte', brott: 'Regelbrott',
+  fri: 'Fri: passet kan läggas här', 'fri-utan-sal': 'Fri tid, men passet blir utan sal', onskemal: 'Bryter ett önskemål', byte: 'Går med ett byte', brott: 'Regelbrott',
 };
 /** Bandens namn i teckenförklaringen (Main). */
 const BAND: Record<NonNullable<SchemaBand['kind']>, string> = { marginal: 'Omklädning och dusch', restid: 'Restid mellan platser' };

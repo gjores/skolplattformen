@@ -8,6 +8,7 @@ import { checkSchemaPlacements, SchemaContractError } from '../../../../lib/sche
 import { parseSchemaLagenRequest, schemaElevKluster, schemaLagen, schemaPassKluster, type SchemaLagenRequest } from '../../../../lib/schema-lagen.ts';
 import { schemaProvUnderlag, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
+import { motorProblem, salIfyllning, salLedig } from '../../../../lib/schema-utan-sal.ts';
 
 /**
  * Möjliga starttider för ett pass (05.2-SM-LAGEN). Samma behörighet, MFA, läsning och granskningshändelser som kontrollen; nuvarande tidsvillkor prövas direkt och ändrad grund ger 409 (05.2-SM-VILLKOR-DIREKT).
@@ -32,7 +33,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const underlag = schemaProvUnderlag(read.plan, input, read.basis);
     if (!underlag) return json({ code: 'schema_underlag_changed', correlationId, details: { reason: 'schema_underlag_changed' } }, { ...init, status: 409 });
-    const placements = checkSchemaPlacements(input.placements, underlag.problem);
+    const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor));
     if (!underlag.problem.lessons.some(l => l.id === input.lesson)) throw new SchemaContractError();
     let pupil: string | null = null;
     if (input.pupilId !== null) {
@@ -40,7 +41,12 @@ export async function POST(request: Request): Promise<Response> {
       if (pupil === null || !schemaPassKluster(underlag.problem, input.lesson).includes(pupil))
         return json({ code: 'bad_request', correlationId, details: { reason: 'schema_pupil_not_in_lesson' } }, { ...init, status: 400 });
     }
-    return json(schemaLagen(underlag, await positionsSchema(underlag.problem, placements, input.lesson, pupil), pupil !== null), init);
+    if (salIfyllning(underlag.villkor)) return json(schemaLagen(underlag, await positionsSchema(underlag.problem, placements, input.lesson, pupil), pupil !== null), init);
+    // Med salregister (05.2-SM-UXF-43): tiden prövas utan sal, och passet behåller sin egna sal bara där den är ledig. Annars blir det utan sal.
+    const egen = placements.find(p => p.lesson === input.lesson)?.room ?? null, utan = placements.map(p => p.lesson === input.lesson ? { ...p, room: null } : p);
+    const reply = await positionsSchema(motorProblem(underlag.problem, utan, [input.lesson]), utan, input.lesson, pupil);
+    const positions = reply.positions.map(p => ({ ...p, room: egen && salLedig(underlag.problem, placements, input.lesson, egen, p.day, p.startMin) ? egen : null }));
+    return json(schemaLagen(underlag, { ...reply, positions }, pupil !== null), init);
   } catch (error) {
     if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });
     if (error instanceof SchemaContractError) return json({ code: 'bad_request', correlationId }, { ...init, status: 400 });
