@@ -9,16 +9,19 @@ import { ALLMAN_SALTYP, SALTYP_FORSLAG, SCHEMA_SAL_LIMITS, SCHEMA_UNDERVISNINGSF
   taBortSal, tomtSalbehov, type SchemaSal, type SchemaSalbehov, type SchemaSalbehovLage, type SchemaSalregister, type SchemaUndervisningsform } from '@/lib/schema-salregister.ts';
 import { salbehovLageNamn, salbehovText, saltabellRader, type SaltabellRad } from '@/lib/schema-saltabell.ts';
 import { Saltabell } from './saltabell.tsx';
+import { overforingTillSkolan } from '@/lib/skolsalar.ts';
+import type { Skolsalar } from './use-skolsalar.ts';
 
 export type SalarProps = { villkor: SchemaVillkor; /** Förslaget eller underlaget före första förslaget; `null` medan underlaget läses. */ kalla: SchemaForslag | null;
-  disabled: boolean; besked?: string; onChange: (next: SchemaVillkor, text: string) => void };
+  disabled: boolean; besked?: string; onChange: (next: SchemaVillkor, text: string) => void;
+  /** Skolans salregister (05.2-SM-UXF-23). Saknas i anslutna fönster; där gäller utkastets villkor som förut. */ skola?: Skolsalar };
 const FALT = 'rounded-md border border-input bg-background p-2 min-h-(--control-height) w-full';
 const KRYSS = 'schema-val';
 const lika = (a: string, b: string) => a.toLocaleLowerCase('sv') === b.toLocaleLowerCase('sv');
 
-export function Salar({ villkor: v, kalla, disabled, besked, onChange }: SalarProps) {
+export function Salar({ villkor: v, kalla, disabled, besked, onChange, skola }: SalarProps) {
   const rubrik = useId(), [vy, setVy] = useState<'formular' | 'tabell'>('formular'), [vald, setVald] = useState('');
-  const register = v.salregister ?? null;
+  const register = v.salregister ?? null, iSkolan = register?.kalla === 'skola';
   const rader = useMemo(() => kalla ? saltabellRader(kalla, v) : [], [kalla, v]);
   const obesvarade = rader.filter(r => r.behov === null).length, hinder = rader.filter(r => r.hinder);
   const okandaPlatser = register?.salar.filter(s => s.platser === null).length ?? 0;
@@ -27,19 +30,20 @@ export function Salar({ villkor: v, kalla, disabled, besked, onChange }: SalarPr
       <h2 id={rubrik} className="section-heading">Salar</h2>
       <p>Fysisk undervisning får en lämplig sal i schemaförslaget. Ange vilka salar som finns och vad varje undervisning behöver.</p>
       <p className="flex flex-wrap gap-2">
-        <span className="status-badge">{register ? `${register.salar.length} ${register.salar.length === 1 ? 'sal' : 'salar'} i registret` : 'Inget salregister'}</span>
+        <span className="status-badge">{register ? `${register.salar.length} ${register.salar.length === 1 ? 'sal' : 'salar'} i ${iSkolan ? 'skolans salregister' : 'utkastets salregister'}` : 'Inget salregister'}</span>
         {rader.length > 0 && <span className={`status-badge ${obesvarade ? 'warning' : 'success'}`}>{obesvarade ? `${obesvarade} av ${rader.length} salbehov obesvarade` : `Alla ${rader.length} salbehov besvarade`}</span>}
         {hinder.length > 0 && <span className="status-badge warning">{hinder.length} utan lämplig sal</span>}
         {okandaPlatser > 0 && <span className="status-badge">Platser saknas för {okandaPlatser} {okandaPlatser === 1 ? 'sal' : 'salar'}</span>}
       </p>
       {obesvarade > 0 && <p className="schema-note">Obesvarat betyder inte att sal inte behövs. Passen läggs utan sal och räknas inte som klara.</p>}
     </div>
-    {!register && v.salar.length > 0 && <div className="rounded-md border border-border p-3 space-y-2" style={{ background: 'var(--info-surface)' }} data-overforing>
+    {skola && <Overforing v={v} skola={skola} disabled={disabled} onChange={onChange}/>}
+    {(!skola || skola.status !== 'ok') && !register && v.salar.length > 0 && <div className="rounded-md border border-border p-3 space-y-2" style={{ background: 'var(--info-surface)' }} data-overforing>
       <p><strong>{v.salar.length} {v.salar.length === 1 ? 'sal finns' : 'salar finns'} som namn från äldre villkor:</strong> {v.salar.join(', ')}.</p>
       <p className="schema-note">De gäller som förut tills du för över dem. Överföringen ger varje sal ett fast ID och behåller namnen, villkoren och vilka salar passen ligger i. Saltyp och platser är okända efteråt och anges av dig.</p>
       <Button type="button" variant="outline" disabled={disabled} onClick={() => onChange(overforSalnamn(v), `Salnamn förda över till salregistret`)}>För över salnamnen till salregistret</Button>
     </div>}
-    <Register v={v} disabled={disabled} onChange={onChange}/>
+    <Register v={v} disabled={disabled} onChange={onChange} skola={skola}/>
     {register && register.salar.length > 0 && <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h3 className="font-semibold">Salbehov per undervisning</h3>
@@ -64,7 +68,9 @@ export function Salar({ villkor: v, kalla, disabled, besked, onChange }: SalarPr
 
 type Utkast = { id: string | null; name: string; typ: string; platser: string; utrustning: string };
 const tomSal: Utkast = { id: null, name: '', typ: ALLMAN_SALTYP, platser: '', utrustning: '' };
-function Register({ v, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onChange'> & { v: SchemaVillkor }) {
+function Register({ v, disabled: avstangd, onChange, skola }: Pick<SalarProps, 'disabled' | 'onChange' | 'skola'> & { v: SchemaVillkor }) {
+  // I skolans register sparas ändringen direkt på servern och följer sedan med till utkastet; den ingår inte i Ångra.
+  const iSkolan = v.salregister?.kalla === 'skola' && !!skola, [sparar, setSparar] = useState(false), disabled = avstangd || sparar || iSkolan && skola.status !== 'ok';
   const register = v.salregister ?? null, typer = useId(), [utkast, setUtkast] = useState<Utkast | null>(null), [besked, setBesked] = useState('');
   const kanSkapa = register !== null || v.salar.length === 0;
   const platser = utkast?.platser.trim() === '' ? null : Number(utkast?.platser), name = utkast?.name.trim() ?? '';
@@ -73,23 +79,40 @@ function Register({ v, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onCh
     : !salnamnLedigt(v, name, utkast.id ?? undefined) ? 'En annan sal har redan det namnet.'
     : platser !== null && (!Number.isSafeInteger(platser) || platser < SCHEMA_SAL_LIMITS.platser[0] || platser > SCHEMA_SAL_LIMITS.platser[1]) ? 'Platser ska vara ett heltal från 1, eller lämnas tomt om antalet är okänt.'
     : utkast.typ.trim().length > SCHEMA_SAL_LIMITS.typ || utrustning.length > SCHEMA_SAL_LIMITS.utrustning || utrustning.some(x => x.length > SCHEMA_SAL_LIMITS.tagg) ? 'Saltyp och utrustning får vara högst 40 tecken, och högst 12 slag av utrustning.' : null;
-  const spara = () => {
-    if (!utkast || fel) return;
-    const sal = { name, typ: utkast.typ.trim(), platser, utrustning };
-    onChange(utkast.id ? andraSal(v, utkast.id, sal) : laggTillSal(v, sal), utkast.id ? `Sal ${name} ändrad` : `Sal ${name} tillagd`);
-    setUtkast(null); setBesked('');
+  /** Skolans register: hela registret sparas; utkastet följer med när det lästs in igen. `true` om det gick. */
+  const iSkolansRegister = async (next: SchemaVillkor) => {
+    if (!skola || !next.salregister) return false;
+    setSparar(true);
+    const fel = await skola.spara({ nasta: next.salregister.nasta, salar: next.salregister.salar });
+    setSparar(false); if (fel) setBesked(fel);
+    return fel === null;
   };
-  const taBort = (sal: SchemaSal) => {
+  const spara = async () => {
+    if (!utkast || fel) return;
+    const sal = { name, typ: utkast.typ.trim(), platser, utrustning }, next = utkast.id ? andraSal(v, utkast.id, sal) : laggTillSal(v, sal);
+    if (iSkolan) { if (!await iSkolansRegister(next)) return; setBesked(`${name} är ${utkast.id ? 'ändrad' : 'tillagd'} i skolans salregister.`); }
+    else { onChange(next, utkast.id ? `Sal ${name} ändrad` : `Sal ${name} tillagd`); setBesked(''); }
+    setUtkast(null);
+  };
+  const taBort = async (sal: SchemaSal) => {
     const { villkor, berorda } = taBortSal(v, sal.id);
+    const behov = berorda.length ? ` ${berorda.length} salbehov pekade på salen och har ändrats; ett krav som bara gällde den salen är nu obesvarat.` : '';
+    if (iSkolan) {
+      if (!await iSkolansRegister(villkor)) return;
+      setBesked(`${sal.name} är borttagen ur skolans salregister och gäller inte längre i något schemautkast för skolan.${behov} Pass som låg i salen står utan sal tills de får en ny.`);
+      return;
+    }
     onChange(villkor, `Sal ${sal.name} borttagen`);
-    setBesked(`${sal.name} är borttagen.${berorda.length ? ` ${berorda.length} salbehov pekade på salen och har ändrats; ett krav som bara gällde den salen är nu obesvarat.` : ''} Pass som låg i salen får en annan tillåten sal vid nästa kontroll eller står utan sal. Borttagningen går att ångra.`);
+    setBesked(`${sal.name} är borttagen.${behov} Pass som låg i salen får en annan tillåten sal vid nästa kontroll eller står utan sal. Borttagningen går att ångra.`);
   };
   return <div className="space-y-3" data-salregister>
     <div className="flex flex-wrap items-center justify-between gap-3">
       <h3 className="font-semibold">Salregister{register ? ` (${register.salar.length})` : ''}</h3>
       {kanSkapa && !utkast && <Button type="button" variant="outline" disabled={disabled || (register?.salar.length ?? 0) >= SCHEMA_SAL_LIMITS.salar} onClick={() => setUtkast(tomSal)}>Lägg till sal</Button>}
     </div>
-    {register && <p className="schema-note">Varje sal har ett fast ID. Ett nytt namn eller en ny ordning ändrar inte vilken sal schemat pekar på.</p>}
+    {register && <p className="schema-note">Varje sal har ett fast ID. Ett nytt namn eller en ny ordning ändrar inte vilken sal schemat pekar på.{iSkolan ? ' Registret gäller hela skolan och alla schemautkast. Ändringar sparas direkt och ingår inte i Ångra.' : ''}</p>}
+    {iSkolan && skola.status === 'laddar' && <p className="schema-note">Läser skolans salregister…</p>}
+    {iSkolan && skola.status === 'fel' && <p className="text-destructive" role="alert">{skola.fel ?? 'Skolans salregister kunde inte läsas.'} Salarna kan inte ändras just nu.</p>}
     {register && register.salar.length > 0 && <div className="max-h-96 overflow-auto rounded-md border border-border">
       <Table><TableHeader><TableRow><TableHead>Sal</TableHead><TableHead>Typ</TableHead><TableHead>Platser</TableHead><TableHead>Utrustning</TableHead><TableHead>ID</TableHead><TableHead><span className="sr-only">Åtgärder</span></TableHead></TableRow></TableHeader>
         <TableBody>{register.salar.map(s => <TableRow key={s.id} data-sal={s.id}>
@@ -97,7 +120,7 @@ function Register({ v, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onCh
           <TableCell>{s.platser ?? 'Ej angivet'}</TableCell><TableCell className="whitespace-normal">{s.utrustning.join(', ') || '–'}</TableCell><TableCell className="text-muted-foreground">{s.id}</TableCell>
           <TableCell><div className="flex flex-wrap gap-2">
             <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ändra sal ${s.name}`} onClick={() => setUtkast({ id: s.id, name: s.name, typ: s.typ, platser: s.platser === null ? '' : String(s.platser), utrustning: s.utrustning.join(', ') })}>Ändra</Button>
-            <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort sal ${s.name}`} onClick={() => taBort(s)}>Ta bort</Button></div></TableCell>
+            <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort sal ${s.name}`} onClick={() => void taBort(s)}>Ta bort</Button></div></TableCell>
         </TableRow>)}</TableBody></Table></div>}
     {register && register.salar.some(s => s.platser === null) && <p className="schema-note">Saknat antal platser betyder att kapaciteten inte är kontrollerad, inte att salen rymmer alla.</p>}
     {!register && kanSkapa && !utkast && <p className="empty-state">Inga salar är registrerade. Lägg till skolans salar för att kunna ange salbehov.</p>}
@@ -113,7 +136,7 @@ function Register({ v, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onCh
         <span className="schema-note">Skilj med kommatecken, till exempel dragskåp, projektor.</span></label>
       {fel && (utkast.name || utkast.id) && <p className="text-destructive sm:col-span-2" role="alert">{fel}</p>}
       <div className="flex flex-wrap gap-2 sm:col-span-2">
-        <Button type="button" disabled={disabled || fel !== null} onClick={spara}>{utkast.id ? 'Spara salen' : 'Lägg till salen'}</Button>
+        <Button type="button" disabled={disabled || fel !== null} onClick={() => void spara()}>{sparar ? 'Sparar…' : utkast.id ? 'Spara salen' : 'Lägg till salen'}</Button>
         <Button type="button" variant="outline" onClick={() => setUtkast(null)}>Avbryt</Button></div>
     </fieldset>}
   </div>;
@@ -189,5 +212,31 @@ function Salbehov({ v, register, rader, vald, onVald, disabled, onChange }: Pick
       <Button type="button" variant="outline" disabled={!andrat} onClick={() => bytGaller(galler)}>Avbryt</Button>
       {!andrat && <span className="schema-note self-center">Inga osparade ändringar i formuläret.</span>}
     </div>
+  </div>;
+}
+
+/**
+ * Uttrycklig överföring till skolans salregister (05.2-SM-UXF-23). Visar vilka salar som redan finns och vilka som läggs till innan något sparas.
+ * Äldre salnamn blir sal-n i listans ordning; utkastets eget register behåller sina ID. Konflikter stoppar överföringen.
+ */
+function Overforing({ v, skola, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onChange'> & { v: SchemaVillkor; skola: Skolsalar }) {
+  const [sparar, setSparar] = useState(false), [fel, setFel] = useState('');
+  if (skola.status !== 'ok') return null;
+  const o = overforingTillSkolan(v, skola.register?.document ?? null);
+  if (!o) return null;
+  const nya = o.rader.filter(r => !r.finns).length;
+  const forOver = async () => {
+    setSparar(true); const svar = await skola.spara(o.dokument); setSparar(false);
+    if (svar) { setFel(svar); return; }
+    onChange(o.villkor, 'Salarna förda till skolans salregister');
+  };
+  return <div className="rounded-md border border-border p-3 space-y-2" style={{ background: 'var(--info-surface)' }} data-overforing>
+    <p><strong>{v.salregister ? 'Utkastet har ett eget salregister.' : `${v.salar.length} ${v.salar.length === 1 ? 'sal finns' : 'salar finns'} som namn från äldre villkor.`}</strong> Salar hör nu till skolan och gäller i alla schemautkast. Utkastets salar gäller som förut tills du för över dem.</p>
+    <ul className="list-disc pl-5" aria-label="Salar som förs över">{o.rader.map(r => <li key={r.id}>{r.name}: {r.finns ? 'finns redan i skolans salregister' : 'läggs till i skolans salregister'}</li>)}</ul>
+    {o.konflikter.length > 0 ? <div role="alert" className="space-y-1"><p className="font-medium">Salarna kan inte föras över:</p><ul className="list-disc pl-5">{o.konflikter.map(k => <li key={k}>{k}</li>)}</ul>
+      <p className="schema-note">Byt namn på salen i skolans salregister eller i utkastet så att nummer och namn stämmer, och försök igen.</p></div>
+      : <p className="schema-note">Salarna behåller sina nummer, så lagda pass ligger kvar i samma sal. Villkor och salbehov följer med.{nya ? ` ${nya} ${nya === 1 ? 'sal läggs' : 'salar läggs'} till i skolans register.` : ''}</p>}
+    {fel && <p className="text-destructive" role="alert">{fel}</p>}
+    <Button type="button" variant="outline" disabled={disabled || sparar || o.konflikter.length > 0} onClick={() => void forOver()}>{sparar ? 'För över…' : 'För över till skolans salregister'}</Button>
   </div>;
 }

@@ -107,6 +107,7 @@ registerHooks({ load(url, context, next) {
   if (is('elective-block.ts')) source = 'export const readElectiveBlocks=(...a)=>globalThis.__schemaDraftRoutesTest.elective(...a);';
   if (is('study-groups.ts')) source = 'export const readStudyGroups=(...a)=>globalThis.__schemaDraftRoutesTest.study(...a);';
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaDraftRoutesTest.lasar(...a);';
+  if (is('skolsalar.ts')) source = 'export const readSkolsalar=async()=>globalThis.__schemaSkolsalar??null;export const skolsalarDokument=r=>r?.document??null;';
   if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error { constructor(reason){super(reason);this.reason=reason;} } export const validateSchema=(...a)=>globalThis.__schemaDraftRoutesTest.validate(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });

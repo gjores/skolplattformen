@@ -37,6 +37,8 @@ Kryssa i **Genomgånget** när du har gått igenom ett område. Bocken är ditt 
 
 ### Salregistret
 
+Salregistret hör till skolenheten och gäller i alla schemautkast för skolan. Rektor och administratör med uppdrag för skolenheten ändrar det här. Huvudmannen har samma behörighet men ännu ingen egen vy för salregistret. En ändring sparas direkt för hela skolan och ingår inte i **Ångra**.
+
 1. Gå till området **Salar** och välj **Lägg till sal**.
 2. Ange salens namn, saltyp, antal platser och utrustning. Skilj utrustning med kommatecken.
 3. Välj **Lägg till salen**.
@@ -45,9 +47,18 @@ Varje sal får ett fast ID. Du kan byta namn på en sal eller ta bort en annan s
 
 - **Allmän sal** är saltypen för salar som kan användas av undervisning utan särskilda krav.
 - Lämna **Platser** tomt om antalet är okänt. Kapaciteten kontrolleras då inte för den salen. Ett tomt fält betyder inte att salen rymmer alla.
-- En borttagen sal försvinner ur salbehov som pekade på den. Ett krav som bara gällde den salen blir obesvarat.
+- En borttagen sal försvinner ur salbehov som pekade på den, i alla schemautkast för skolan. Ett krav som bara gällde den salen blir obesvarat. Pass som låg i salen står utan sal tills de får en ny.
+- Byter en sal namn följer det nya namnet med i villkor och aktiviteter som nämner salen.
 
-Har skolan salar som bara är namn från äldre villkor visas de i en ruta med knappen **För över salnamnen till salregistret**. Namnen gäller som förut tills du väljer det. Överföringen behåller namnen, villkoren och vilka salar passen ligger i. Saltyp och platser anger du efteråt.
+#### Salar från ett äldre utkast
+
+Ett utkast som har egna salar, eller salar som bara är namn från äldre villkor, visar en ruta med en förhandsgranskning. Rutan visar vilka salar som redan finns i skolans salregister och vilka som läggs till. Utkastets salar gäller som förut tills du väljer **För över till skolans salregister**.
+
+- Salarna behåller sina nummer, så lagda pass ligger kvar i samma sal. Salnamn från äldre villkor numreras i den ordning de står.
+- Har skolans salregister redan en annan sal med samma nummer, eller samma sal med ett annat nummer, förs ingenting över. Rutan visar vilka salar det gäller. Byt namn i skolans register eller i utkastet och försök igen.
+- Överföringen av utkastet går att ångra. Salarna som lagts till i skolans register finns kvar.
+
+Om skolans salregister inte kan läsas visas det i rutan, och salarna kan inte ändras just då.
 
 ### Salbehov
 

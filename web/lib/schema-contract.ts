@@ -13,6 +13,7 @@ export type SchemaMotorVersion = 4 | typeof SCHEMA_MOTOR_VERSION;
  * v7 (05.2-SM-PLACERING) tillför begärda placeringsförslag; motorns v4 har ett separat strikt förslagskontrakt. v8 tillför stabil undervisningsfördelning.
  */
 import { checkSchemaBlock, parseSchemaBlock, type SchemaBlockStatus, type SchemaEgetBlock } from './schema-block.ts';
+import { medSkolsalar } from './skolsalar.ts';
 import { checkSalregister, parseSalbehov, parseSalregister, type SchemaSalKapacitet, type SchemaSalbehov, type SchemaSalregister } from './schema-salregister.ts';
 export const SCHEMA_CONTRACT_VERSION = 8 as const;
 export const SCHEMA_TERMS = ['ht', 'vt'] as const;
@@ -612,11 +613,19 @@ export function parseSchemaMotorStatistics(value: unknown, problem: SchemaProble
   return { lessons, bottlenecks, iterations: int(s.iterations, 0, Number.MAX_SAFE_INTEGER) };
 }
 
+/**
+ * Servern lägger in skolans salregister i utkastets villkor (05.2-SM-UXF-23). Svaret jämförs därför med de skickade villkoren efter samma
+ * omvandling med serverns salar, så att bara spegeln av skolans register får skilja.
+ */
+function medServernsSalar(skickat: SchemaVillkor, svar: unknown): SchemaVillkor {
+  const r = (svar as Partial<SchemaVillkor> | null)?.salregister;
+  return r?.kalla === 'skola' && Array.isArray(r.salar) && typeof r.nasta === 'number' ? medSkolsalar(skickat, { nasta: r.nasta, salar: r.salar }) : skickat;
+}
 /** Klientens tolkning av ruttens svar: formen prövas så att vyn aldrig ritar ett halvt förslag. */
 export function parseSchemaForslag(value: unknown, expected: SchemaForslagRequest): SchemaForslag {
   const f = record(value) as SchemaForslag;
   if (f.contractVersion !== SCHEMA_CONTRACT_VERSION || f.unitId !== expected.unitId || f.schoolYear !== expected.schoolYear
-    || f.period !== expected.period || JSON.stringify(parseSchemaVillkor(f.villkor)) !== JSON.stringify(parseSchemaVillkor(expected.villkor)) || !SCHEMA_STATUSES.includes(f.status)) bad();
+    || f.period !== expected.period || JSON.stringify(parseSchemaVillkor(f.villkor)) !== JSON.stringify(parseSchemaVillkor(medServernsSalar(expected.villkor, f.villkor))) || !SCHEMA_STATUSES.includes(f.status)) bad();
   for (const key of ['days', 'classes', 'teachers', 'lessons', 'omitted', 'diagnoses', 'teachings', 'rooms', 'egnaUtanTraff'] as const) list(f[key], SCHEMA_LIMITS.lessons);
   const fordelningRefs = new Set<string>();
   for (const raw of list(f.fordelning, SCHEMA_VILLKOR_LIMITS.fordelning)) {

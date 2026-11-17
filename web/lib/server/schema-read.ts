@@ -13,6 +13,7 @@ import { personalRead, planRead, tjanstRequest } from './tjanst.ts';
 import { SchemaVersionError, type SchemaForslagRequest } from '../schema-contract.ts';
 import { schemaTime } from '../schema-kalender.ts';
 import { mergeSchemaMembers, type SchemaBasis } from '../schema-underlag.ts';
+import { readSkolsalar, skolsalarDokument } from './skolsalar.ts';
 
 /**
  * Begäran till kontroll, möjliga starttider och Följ passet (05.2-SM-VILLKOR-DIREKT): samma läsning och storleksgräns som övriga schemarutter.
@@ -37,6 +38,8 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   for (const extra of [elective.event, study.event, lasar.event]) await logEvent(tx, { ...ctx, request }, { ...extra, outcome: 'ok' });
   const basis: SchemaBasis = { members: mergeSchemaMembers([{ pupils: elective.body.pupils, memberships: elective.body.placements }, { pupils: study.body.pupils, memberships: study.body.memberships }]),
     time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)) };
+  // Skolans salregister (05.2-SM-UXF-23): samma aktör och skolenhet; läsningen granskas i databasen.
+  basis.skolsalar = skolsalarDokument(await readSkolsalar(tx, ctx, input.unitId));
   // Personallistan har eget mandat: rektor får skolans personal. Administratörens planmandat utvidgas inte.
   if (ctx.accessFunction === 'rektor') {
     const personal = await personalRead(tx, { unitId: input.unitId }, ctx);

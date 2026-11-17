@@ -83,6 +83,7 @@ registerHooks({ load(url, context, next) {
   if (is('elective-block.ts')) source = 'export const readElectiveBlocks=(...a)=>globalThis.__schemaSalarRoutesTest.elective(...a);';
   if (is('study-groups.ts')) source = 'export const readStudyGroups=(...a)=>globalThis.__schemaSalarRoutesTest.study(...a);';
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaSalarRoutesTest.lasar(...a);';
+  if (is('skolsalar.ts')) source = 'export const readSkolsalar=async()=>globalThis.__schemaSkolsalar??null;export const skolsalarDokument=r=>r?.document??null;';
   if (is('schema-datum-read.ts')) source = 'export const readSchemaDatedBasis=(...a)=>globalThis.__schemaSalarRoutesTest.dated(...a);';
   if (is('schemamotor.ts')) source = `export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const solveSchema=async()=>{throw Error('Full solve must not be reached');};
     export const diagnoseSchema=async()=>{throw Error('Diagnosis must not be reached');};

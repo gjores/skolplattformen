@@ -27,6 +27,8 @@ import { schemaForbered } from '@/lib/schema-forbered.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
 import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
 import { flyttSal } from '@/lib/schema-utan-sal.ts';
+import { medSkolsalar } from '@/lib/skolsalar.ts';
+import { useSkolsalar } from './schema/use-skolsalar.ts';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -241,6 +243,11 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
   const redigeringStoppad = !spara.ready || sparstatus.phase === 'loading' || sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
+  // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
+  const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
+  // Justeras under renderingen (Reacts mönster för tillstånd som följer annat tillstånd); omvandlingen är idempotent och stannar efter ett varv.
+  const medSkolansSalar = !fonster && skolsalar.status === 'ok' ? medSkolsalar(villkor, skolsalar.register?.document ?? null) : villkor;
+  if (medSkolansSalar !== villkor) setVillkorLocal(medSkolansSalar);
   // Med salregister läses det också när ett förslag finns, så att passens tillåtna salar, elevantal och kapacitet följer registret och salbehoven (05.2-SM-UXF-21).
   const salNyckel = villkor.salregister ? villkorNyckel([villkor.salregister, villkor.salbehov ?? [], villkor.egna.filter(r => r.typ === 'sal')]) : '';
   const underlagLas = useSchemaUnderlag({ enabled: !fonster && (!base || (!!villkor.salregister && !grundAndrad)) && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
@@ -1103,7 +1110,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
         <Samtidighetsblock villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}/>
       </Omrade>
       <Omrade id="salar" titel="Salar">
-      {!fonster && <Salar villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}
+      {!fonster && <Salar villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor} skola={skolsalar}
         besked={issues.length ? 'Rätta felen i villkoren för att läsa undervisningarna från underlaget.' : underlagLas.error ?? 'Läser undervisningarna från underlaget…'}/>}
       </Omrade>
       <Omrade id="larartider" titel="Lärartider och fasta tider">

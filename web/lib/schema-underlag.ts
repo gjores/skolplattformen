@@ -15,6 +15,7 @@ import { schemaDatedCalendar } from './schema-vecka-data.ts';
 import { schemaSearchStatistics } from './schema-diagnos.ts';
 import { SchemaFordelningError, undervisningensAntal } from './schema-fordelning.ts';
 import { gallandeSalbehov, lampligaSalar } from './schema-salregister.ts';
+import { medSkolsalar } from './skolsalar.ts';
 import { schemaBlock } from './schema-block.ts';
 import { arsbehov, arstak, arsandelar, sammaArsresurser, arsmonsterGerTid, trimmaLasar } from './schema-lasarsmonster.ts';
 
@@ -39,7 +40,9 @@ export type SchemaLabels = {
   /** `durationMin` är undervisningstiden; `marginBeforeMin` och `marginMin` den största marginalen före och efter passet för någon av dess parter (05.2-SM-MARGINAL). */
   lessons: { egenAktivitet?: import('./schema-aktiviteter.ts').SchemaAktivitetsMeta; id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; marginBeforeMin: number; roomIds: string[]; sal?: import('./schema-contract.ts').SchemaPassSal; vacant: boolean; term: SchemaTerm | null }[];
 };
-export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime; /** Behörigt läst personal för aktiviteter, endast skolans namn och ID. */ personer?: { ref: string; name: string }[] };
+export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime; /** Behörigt läst personal för aktiviteter, endast skolans namn och ID. */ personer?: { ref: string; name: string }[];
+  /** Skolans salregister ur tabellen (05.2-SM-UXF-23); `null` när skolan inte har något. Saknas fältet har registret inte lästs, och utkastets villkor används som de är. */
+  skolsalar?: import('./skolsalar.ts').SchemaSkolsalar | null };
 export type SchemaUnderlag = { /** Intern koppling från stabil gruppidentitet till körningens löpnummer. Skickas inte till motorn. */ groupRefs: Record<string, string>;
   /** Verkliga personalreferenser från den behöriga läsningen. Ingår aldrig i problem eller motorpayload. */ teacherRefs: Record<string, string>;
   annual?: { labels: SchemaLabels };
@@ -231,7 +234,9 @@ function teachings(plan: TjanstPlanRead, term: SchemaTerm, hasMembers: (groupId:
 }
 
 export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaForslagRequest, 'period' | 'locks'> & { villkor?: SchemaVillkor }, basis?: SchemaBasis): SchemaUnderlag {
-  const d = SCHEMA_DEFAULTS, v = request.villkor ?? defaultSchemaVillkor(), annual = v.timeBasis === 'lasar';
+  // Skolans salregister (05.2-SM-UXF-23) går före utkastets spegel när servern har läst det (`basis.skolsalar` satt, även null).
+  const v0 = request.villkor ?? defaultSchemaVillkor(), v = basis?.skolsalar === undefined ? v0 : medSkolsalar(v0, basis.skolsalar);
+  const d = SCHEMA_DEFAULTS, annual = v.timeBasis === 'lasar';
   const visibleTerms = schemaTerms(request.period), terms = annual ? schemaTerms('lasar') : visibleTerms;
   const time = basis?.time ?? defaultSchemaTime(), members = basis?.members ?? null;
   const classNo = new Map(plan.classes.map((c, i) => [c.classId, `grupp-${i + 1}`])), className = new Map(plan.classes.map(c => [c.classId, c.name]));

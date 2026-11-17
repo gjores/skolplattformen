@@ -16,7 +16,8 @@ export const UNDERVISNINGSFORM_NAMN: Record<SchemaUndervisningsform, string> = {
 
 /** `typ` tom: saltypen är inte angiven och salen räknas aldrig som allmän sal. `platser` null: okänt, kapaciteten kan inte kontrolleras. */
 export type SchemaSal = { id: string; name: string; typ: string; platser: number | null; utrustning: string[] };
-export type SchemaSalregister = { nasta: number; arv: string[]; salar: SchemaSal[] };
+/** `kalla` `skola` (05.2-SM-UXF-23): `nasta` och `salar` speglar skolans salregister och ersätts alltid av servern med tabellens innehåll. Utan `kalla` är registret utkastets eget. */
+export type SchemaSalregister = { nasta: number; arv: string[]; salar: SchemaSal[]; kalla?: 'skola' };
 export type SchemaSalbehovLage = 'allman' | 'sarskild' | 'ingen';
 /**
  * `slag` `amne`: gäller ämnets alla undervisningar (ärvs). `undervisning`: eget undantag för en undervisning och går före ämnets.
@@ -48,7 +49,8 @@ function ids(value: unknown): string[] { const t = list(value, SCHEMA_SAL_LIMITS
 export const salNummer = (id: string): number => Number(SAL_ID.exec(id)?.[1] ?? 0);
 
 export function parseSalregister(value: unknown): SchemaSalregister {
-  const r = record(value, ['nasta', 'arv', 'salar']);
+  const r = record(value, value && typeof value === 'object' && Object.hasOwn(value, 'kalla') ? ['nasta', 'arv', 'salar', 'kalla'] : ['nasta', 'arv', 'salar']);
+  if (Object.hasOwn(r, 'kalla') && r.kalla !== 'skola') bad();
   const arv = list(r.arv, SCHEMA_SAL_LIMITS.salar).map(x => text(x, SCHEMA_SAL_LIMITS.namn));
   const salar = list(r.salar, SCHEMA_SAL_LIMITS.salar).map((raw): SchemaSal => {
     const s = record(raw, ['id', 'name', 'typ', 'platser', 'utrustning']), id = text(s.id, 10);
@@ -59,7 +61,7 @@ export function parseSalregister(value: unknown): SchemaSalregister {
   if (typeof r.nasta !== 'number' || !Number.isSafeInteger(r.nasta) || r.nasta < 1 || r.nasta > 1000) bad();
   if (new Set(salar.map(s => s.id)).size !== salar.length || !distinct(salar.map(s => s.name)) || salar.some(s => salNummer(s.id) >= (r.nasta as number))) bad();
   if (!distinct(arv) || arv.length >= (r.nasta as number)) bad();
-  return { nasta: r.nasta as number, arv, salar };
+  return { nasta: r.nasta as number, arv, salar, ...(r.kalla === 'skola' ? { kalla: 'skola' as const } : {}) };
 }
 export function parseSalbehov(value: unknown): SchemaSalbehov[] {
   const seen = new Set<string>();
@@ -128,10 +130,10 @@ export function lampligaSalar(register: SchemaSalregister, behov: Krav, elever: 
     hinder: lampliga.length ? null : register.salar.length === 0 ? 'Salregistret är tomt.' : `Ingen sal uppfyller ${krav.length > 1 ? 'alla krav' : 'kravet'}: ${krav.join(', ')}.` };
 }
 
-type MedSalar = { salar: string[]; salregister?: SchemaSalregister; salbehov?: SchemaSalbehov[]; egna: unknown[]; aktiviteter?: unknown[] };
+export type MedSalar = { salar: string[]; salregister?: SchemaSalregister; salbehov?: SchemaSalbehov[]; egna: unknown[]; aktiviteter?: unknown[] };
 type Regel = { slag: string; ref: string; typ: string; rooms?: string[] };
 /** Byter eller tar bort ett salnamn i villkor för salen, salvillkor och aktiviteter. `till` null tar bort. */
-function namnIVillkor<V extends MedSalar>(v: V, fran: string, till: string | null): Pick<V, 'egna' | 'aktiviteter'> {
+export function namnIVillkor<V extends MedSalar>(v: V, fran: string, till: string | null): Pick<V, 'egna' | 'aktiviteter'> {
   const egna = (v.egna as Regel[]).flatMap((r): Regel[] => {
     if (r.slag === 'sal' && r.ref === fran) return till === null ? [] : [{ ...r, ref: till }];
     if (!r.rooms?.includes(fran)) return [r];
@@ -141,7 +143,7 @@ function namnIVillkor<V extends MedSalar>(v: V, fran: string, till: string | nul
   const aktiviteter = (v.aktiviteter as { rooms: string[] }[] | undefined)?.map(a => a.rooms.includes(fran) ? { ...a, rooms: a.rooms.flatMap(x => x !== fran ? [x] : till === null ? [] : [till]) } : a);
   return { egna, ...(aktiviteter ? { aktiviteter } : {}) } as Pick<V, 'egna' | 'aktiviteter'>;
 }
-const medRegister = <V extends MedSalar>(v: V, register: SchemaSalregister, extra: Partial<V> = {}): V => ({ ...v, ...extra, salregister: register, salar: register.salar.map(s => s.name) });
+export const medRegister = <V extends MedSalar>(v: V, register: SchemaSalregister, extra: Partial<V> = {}): V => ({ ...v, ...extra, salregister: register, salar: register.salar.map(s => s.name) });
 
 /**
  * Uttrycklig överföring av äldre salnamn (antagande A6): namn nummer n blir `sal-n`, så att lagda pass och lås behåller sin sal.

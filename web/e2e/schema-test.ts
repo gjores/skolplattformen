@@ -49,6 +49,8 @@ export async function mockSchemaDrafts(context: BrowserContext): Promise<SchemaD
   const returnedReceipt = (receipt: SchemaDraftReceipt) => server.corruptReceipt ? { ...receipt, requestHash: `sha256:${'b'.repeat(64)}` } : receipt;
   // Underlaget före första förslaget (05.2-SM-UXF-11): otillgängligt som standard, så att äldre prov behåller läget "bara salen går att välja". Prov som behöver det lägger en egen rutt.
   await context.route('**/api/schema/underlag', route => route.fulfill({ headers, status: 503, json: { code: 'unavailable' } }));
+  // Skolans salregister (05.2-SM-UXF-23): otillgängligt som standard, så att äldre prov behåller utkastets egna villkor. Prov som behöver det använder mockSkolsalar.
+  for (const rutt of ['las', 'spara']) await context.route(`**/api/schema/salregister/${rutt}`, route => route.fulfill({ headers, status: 503, json: { code: 'unavailable' } }));
   await context.route('**/api/schema/utkast/las', async route => {
     const input = route.request().postDataJSON(); server.reads++;
     if (server.delayRead) await new Promise(r => setTimeout(r, server.delayRead));
@@ -74,6 +76,19 @@ export async function mockSchemaDrafts(context: BrowserContext): Promise<SchemaD
     if(server.loseReply){server.loseReply=false;return route.abort('failed');}
     if (server.replyDelay) await new Promise(r => setTimeout(r, server.replyDelay));
     return route.fulfill({headers,json:{...scope,draft:returnedDraft(draft),receipt:returnedReceipt(receipt)}}).catch(() => {});
+  });
+  return server;
+}
+/** Simulerat salregister för skolan med optimistisk revision, i minnet för sidan. */
+export async function mockSkolsalar(page: import('@playwright/test').Page, start: import('../lib/skolsalar.ts').SchemaSkolsalar | null = null) {
+  const server = { document: start, revision: start ? 1 : 0, saves: [] as import('../lib/skolsalar.ts').SkolsalarSpara[] };
+  const register = () => server.document ? { revision: server.revision, contentHash: `sha256:${'c'.repeat(64)}`, savedAt: new Date().toISOString(), document: server.document } : null;
+  await page.route('**/api/schema/salregister/las', route => { const { contractVersion, unitId } = route.request().postDataJSON(); return route.fulfill({ headers, json: { contractVersion, unitId, register: register() } }); });
+  await page.route('**/api/schema/salregister/spara', route => {
+    const input = route.request().postDataJSON(); server.saves.push(input);
+    if (input.expectedRevision !== server.revision) return route.fulfill({ headers, status: 409, json: { code: 'conflict', details: { reason: 'school_rooms_conflict' } } });
+    server.document = input.document; server.revision++;
+    return route.fulfill({ headers, json: { contractVersion: input.contractVersion, unitId: input.unitId, register: register(), replayed: false } });
   });
   return server;
 }
