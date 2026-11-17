@@ -247,7 +247,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const forutsattningar = salbild ?? forslag ?? underlagLas.forslag;
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered'), visaForbered = yta === 'forbered';
   const antalLas = Object.keys(utkast.locked).length;
-  const forberedPunkter = useMemo(() => schemaForbered({ kalla: forutsattningar, villkor, las: antalLas }), [forutsattningar, villkor, antalLas]);
+  // Checklistan räknas bara när Förbered visas: den behövs inte i Lägg schema eller i utlyfta fönster och ska inte fördröja synk efter en flytt.
+  const forberedPunkter = useMemo(() => visaForbered ? schemaForbered({ kalla: forutsattningar, villkor, las: antalLas }) : [], [visaForbered, forutsattningar, villkor, antalLas]);
   // Passen med aktuell salbild: var de ligger kommer från utkastet, vilka salar de får ha från den senaste läsningen.
   const passMedSal = useMemo(() => { if (!forslag) return []; if (!salbild) return forslag.lessons; const by = new Map(salbild.lessons.map(l => [l.id, l]));
     return forslag.lessons.map(l => { const u = by.get(l.id); return u ? { ...l, roomIds: u.roomIds, sal: u.sal } : l; }); }, [forslag, salbild]);
