@@ -34,19 +34,20 @@ async function setup(page: Page, pupils = false) {
   return data;
 }
 async function add(page: Page, name: string) {
-  await page.getByRole('button', { name: 'Lägg till resurs', exact: true }).click();
-  const input = page.getByRole('combobox', { name: 'Sök resurs' });
+  const input = page.getByRole('combobox', { name: 'Lägg till resurs' });
   await input.fill(name);
   const exactName = name.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
   const target = page.getByRole('option').filter({ hasText: new RegExp(`^${exactName}\\s*(klass|grupp|lärare|sal|elev)$`, 'u') });
   await expect(target).toHaveCount(1); await expect(target).toBeVisible();
-  // Command kan redan ha markerat första träffen; pilar vidare bara tills den exakta resursen är markerad.
+  // Första träffen är markerad; pilar vidare bara tills den exakta resursen är markerad.
   // Prefixsökning efter t.ex Provlärare 1 får inte välja Provlärare 10.
   const count = await page.getByRole('option').count();
-  for (let i = 0; i < count && await target.getAttribute('aria-selected') !== 'true'; i++) await input.press('ArrowDown');
-  await expect(target).toHaveAttribute('aria-selected', 'true'); await expect(input).toBeFocused();
+  for (let i = 0; i < count && await target.getAttribute('data-highlighted') === null; i++) await input.press('ArrowDown');
+  await expect(target).toHaveAttribute('data-highlighted', ''); await expect(input).toBeFocused();
   await input.press('Enter');
   await expect(page.getByRole('button', { name: `Ta bort ${name} från samlingsvyn`, exact: true })).toBeVisible();
+  // Fältet töms efter valet, så att nästa resurs kan sökas direkt.
+  await expect(input).toHaveValue('');
 }
 
 test('samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar sparad arbetsvy efter omladdning', async ({ page }) => {
@@ -106,8 +107,8 @@ test('gemensam ledig tid, lager och resursmatris visas tillsammans utan sidledsr
 });
 
 test('elevresurser saknas utan behörigt lässvar och elevval sparas aldrig i arbetsvyn', async ({ page }) => {
-  await setup(page, false); await page.getByRole('button', { name: 'Lägg till resurs', exact: true }).click();
-  const input = page.getByRole('combobox', { name: 'Sök resurs' }); await input.fill('Provelev');
+  await setup(page, false);
+  const input = page.getByRole('combobox', { name: 'Lägg till resurs' }); await input.fill('Provelev');
   await expect(page.getByText('Inga resurser hittades.')).toBeVisible(); await input.press('Escape');
   await page.reload(); await setup(page, true); await add(page, 'Provelev Samling');
   const view = page.locator('.samling'); await view.getByLabel('Namn på arbetsvyn').fill('Urval utan elev');

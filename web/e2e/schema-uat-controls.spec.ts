@@ -103,15 +103,15 @@ test('en marginal kan sparas som ingen och tas bort uttryckligt, båda går att 
 test('resurssök visar rena namnrader med grupprubrik och fungerar med tangentbord vid stor text', async ({ page }, info) => {
   await setup(page);
   await page.getByRole('button', { name: 'Samlingsvy', exact: true }).click();
-  await page.getByRole('button', { name: 'Lägg till resurs', exact: true }).click();
-  const dialog = page.getByRole('dialog', { name: 'Lägg till klass, grupp, lärare, sal eller elev', exact: true });
-  const input = dialog.getByRole('combobox', { name: 'Sök resurs', exact: true });
+  // Sökfältet ligger direkt i raden Visas; listan öppnas under fältet (ingen dialog).
+  const input = page.getByRole('combobox', { name: 'Lägg till resurs', exact: true });
+  await expect(page.locator('.folj-chips').getByRole('combobox', { name: 'Lägg till resurs', exact: true })).toBeVisible();
   await input.fill(base.teachers[0].name);
+  const dialog = page.getByRole('listbox');
   await expect(dialog.locator('.samling-resursnamn').first()).toHaveText(base.teachers[0].name);
   expect(await dialog.locator('.schema-note').count()).toBe(0);
   await input.press('Enter');
   await expect(page.getByRole('button', { name: `Ta bort ${base.teachers[0].name} från samlingsvyn`, exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Lägg till resurs', exact: true }).click();
   await page.addStyleTag({ content: 'html { font-size: 32px !important; }' });
   await input.fill(longGroup.name);
   const option = dialog.getByRole('option').filter({ hasText: longGroup.name }).first();

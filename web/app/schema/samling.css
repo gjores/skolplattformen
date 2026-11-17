@@ -39,6 +39,3 @@
 .samling .samling-ledigsok > summary { min-height: var(--control-height); cursor: pointer; display: flex; align-items: center; font-weight: 600; }
 .samling .samling-ledigsok[open] > summary { margin-bottom: .75rem; }
 .samling .samling-lediga { display: flex; flex-wrap: wrap; gap: .5rem; padding: 0; list-style: none; margin: .75rem 0 0; }
-.samling-resurssok [cmdk-item] { min-height: var(--control-height); white-space: normal; overflow-wrap: anywhere; }
-.samling-resurssok input { min-height: var(--control-height); }
-.samling-resurssok [data-slot="command-input-wrapper"] [data-slot="input-group"] { height: auto !important; }
