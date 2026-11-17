@@ -8,6 +8,7 @@ module.exports = { handbok: [
     'timplaner',
     'apl-planering',
     'tjanstefordelning',
+    'schema-forbered',
     'valbara-block',
     'undervisningsgrupper',
     'elevval',

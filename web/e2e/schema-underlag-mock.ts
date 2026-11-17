@@ -4,6 +4,7 @@ import type { Page } from '@playwright/test';
 import rawForslag from './schema-fixture';
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { gallandeSalbehov, lampligaSalar } from '../lib/schema-salregister.ts';
+import { aktivitetsPassId } from '../lib/schema-aktiviteter.ts';
 
 export const headers = { 'X-Context-Epoch': '1' };
 export const bas = { ...rawForslag, contractVersion: SCHEMA_CONTRACT_VERSION } as unknown as SchemaForslag;
@@ -29,7 +30,12 @@ export function medSalar(f: SchemaForslag, villkor: SchemaVillkor): SchemaForsla
 export function olagt(villkor: SchemaVillkor): SchemaForslag {
   const f = structuredClone(bas);
   f.lessons = f.lessons.map(l => ({ ...l, day: null, startMin: null, roomId: null })); f.status = 'cancelled'; delete f.locks;
-  f.metrics = { ...f.metrics, placed: 0, unplaced: f.lessons.length };
+  // Egna aktiviteter i villkoren blir egna pass, olagda som allt annat i underlaget.
+  for (const a of villkor.aktiviteter ?? []) f.lessons.push({ id: aktivitetsPassId(a.id), title: a.name,
+    classIds: a.classRefs.flatMap(ref => { const n = f.resurser.klass.findIndex(c => c.ref === ref); return n >= 0 ? [`grupp-${n + 1}`] : []; }),
+    teacherIds: a.teacherRefs.flatMap(ref => { const n = f.resurser.larare.findIndex(t => t.ref === ref); return n >= 0 ? [`larare-${n + 1}`] : []; }), roomIds: [], roomId: null, durationMin: a.durationMin,
+    marginMin: 0, marginBeforeMin: 0, vacant: false, term: null, day: null, startMin: null, egenAktivitet: { id: a.id, typId: a.typId, typ: a.typ, veckor: a.veckor, visibleFor: a.visibleFor } });
+  f.metrics = { ...f.metrics, lessons: f.lessons.length, placed: 0, unplaced: f.lessons.length };
   return medSalar(f, villkor);
 }
 export async function mockUnderlag(page: Page) {
@@ -46,3 +52,5 @@ export async function utanBerakning(page: Page) {
   for (const rutt of ['forslag', 'diagnos']) await page.route(`**/api/schema/${rutt}`, route => { anrop.push(route.request().postDataJSON()); return route.abort(); });
   return anrop;
 }
+/** Ett beräknat förslag med fixturens lagda pass och salbilden enligt villkoren. Passen har tid men ingen sal. */
+export function lagt(villkor: SchemaVillkor): SchemaForslag { return medSalar(structuredClone(bas), villkor); }
