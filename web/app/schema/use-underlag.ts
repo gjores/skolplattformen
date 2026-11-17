@@ -18,8 +18,8 @@ export type SchemaUnderlagLas = { forslag: SchemaForslag | null; loading: boolea
  * Underlaget före första förslaget (05.2-SM-UXF-11). Läses när inget förslag finns och på nytt när grunden i villkoren ändras
  * (det som avgör vilka pass som finns). Tidsvillkor läser inte om. Motorn anropas inte och svaret blir aldrig utkastets bas.
  */
-export function useSchemaUnderlag({ enabled, request, onSessionLost }: { enabled: boolean; request: SchemaForslagRequest; onSessionLost: () => void }): SchemaUnderlagLas {
-  const scope = `${request.unitId}:${request.schoolYear}:${request.period}`, key = `${scope}:${villkorNyckel(schemaGrund(request.villkor))}`;
+export function useSchemaUnderlag({ enabled, request, extra = '', onSessionLost }: { enabled: boolean; request: SchemaForslagRequest; /** Mer än grunden som ska läsa om, till exempel salregister och salbehov. */ extra?: string; onSessionLost: () => void }): SchemaUnderlagLas {
+  const scope = `${request.unitId}:${request.schoolYear}:${request.period}`, key = `${scope}:${villkorNyckel(schemaGrund(request.villkor))}:${extra}`;
   const [state, setState] = useState<{ key: string; scope: string; forslag: SchemaForslag | null; error: string | null } | null>(null), [attempt, setAttempt] = useState(0);
   // Begäran följer med i en ref så att ett ändrat tidsvillkor inte läser om; `key` avgör när läsningen görs.
   const body = useRef(request);

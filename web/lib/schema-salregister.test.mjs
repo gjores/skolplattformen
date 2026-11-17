@@ -66,7 +66,7 @@ test('tolkningen nekar dubbla ID, använda nummer över nästa lediga, okända f
 });
 test('rimlighetskontrollen kräver form när sal inte behövs, minst ett särskilt krav och salar som finns', () => {
   const r = register(), namn = r.salar.map(s => s.name), fel = b => checkSalregister(r, [b], namn)[0] ?? null;
-  assert.match(fel(behov('ingen', { form: null })), /undervisningsform/u); assert.match(fel(behov('sarskild')), /minst ett krav/u);
+  assert.match(fel(behov('ingen', { form: null })), /undervisningsform/u); assert.match(fel(behov('sarskild')), /minst ett krav/iu);
   assert.match(fel(behov('allman', { utrustning: ['Projektor'] })), /Särskilda salskrav/u); assert.match(fel(behov('sarskild', { salar: ['sal-9'] })), /finns inte längre/u);
   assert.equal(fel(behov('ingen', { form: 'utomhus' })), null);
   assert.match(checkSalregister(undefined, [behov('allman')], [])[0], /kräver ett salregister/u); assert.deepEqual(checkSalregister(undefined, undefined, ['Gammal sal']), []);

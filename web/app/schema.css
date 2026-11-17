@@ -387,3 +387,6 @@
 .passtabell-ram tr.passtabell-grupp th { padding: .625rem .5rem .375rem; text-align: left; font-weight: 400; background: var(--secondary); color: var(--secondary-foreground); white-space: normal; }
 .passtabell-ram tr.passtabell-grupp strong { font-weight: 600; }
 .schema-workspace .passtabell .empty-state { display: grid; gap: .75rem; justify-items: start; }
+/* Val med kryssruta eller radioknapp på en rad (05.2-SM-UXF-22): arbetsytans allmänna regel ger annars fält full bredd och etiketten ovanför. */
+.schema-workspace label.schema-val { display: flex; gap: .5rem; align-items: center; min-height: var(--control-height); font-size: 1rem; color: var(--foreground); }
+.schema-workspace label.schema-val input { width: 1rem; height: 1rem; min-height: 0; padding: 0; flex: none; accent-color: var(--primary); }

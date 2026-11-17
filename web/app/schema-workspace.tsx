@@ -20,6 +20,7 @@ import { Placeringsforslag, type PlaceringSokning } from './schema/placering.tsx
 import { parseSchemaVillkorsforslag, tillampaSchemaVillkorsandring } from '@/lib/schema-villkorsforslag.ts';
 import { Villkorsforslag, type VillkorsSokning } from './schema/villkorsforslag.tsx';
 import { Lagesstatus } from './schema/lagesstatus.tsx';
+import { Salar } from './schema/salar.tsx';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -229,9 +230,15 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
   const redigeringStoppad = !spara.ready || sparstatus.phase === 'loading' || sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
-  const underlagLas = useSchemaUnderlag({ enabled: !fonster && !base && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
-    request: { unitId, schoolYear, period, villkor: berakningsVillkor }, onSessionLost });
-  const forutsattningar = forslag ?? underlagLas.forslag;
+  // Med salregister läses det också när ett förslag finns, så att passens tillåtna salar, elevantal och kapacitet följer registret och salbehoven (05.2-SM-UXF-21).
+  const salNyckel = villkor.salregister ? villkorNyckel([villkor.salregister, villkor.salbehov ?? [], villkor.egna.filter(r => r.typ === 'sal')]) : '';
+  const underlagLas = useSchemaUnderlag({ enabled: !fonster && (!base || (!!villkor.salregister && !grundAndrad)) && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
+    request: { unitId, schoolYear, period: base?.period ?? period, villkor: base ? villkor : berakningsVillkor }, extra: salNyckel, onSessionLost });
+  const salbild = forslag && underlagLas.forslag && underlagLas.forslag.grundFingerprint === forslag.grundFingerprint ? underlagLas.forslag : null;
+  const forutsattningar = salbild ?? forslag ?? underlagLas.forslag;
+  // Passen med aktuell salbild: var de ligger kommer från utkastet, vilka salar de får ha från den senaste läsningen.
+  const passMedSal = useMemo(() => { if (!forslag) return []; if (!salbild) return forslag.lessons; const by = new Map(salbild.lessons.map(l => [l.id, l]));
+    return forslag.lessons.map(l => { const u = by.get(l.id); return u ? { ...l, roomIds: u.roomIds, sal: u.sal } : l; }); }, [forslag, salbild]);
   async function bytPeriod(next: SchemaPeriod) {
     if (next === period || busy || checking || !spara.ready) return;
     if (!await spara.flush()) return;
@@ -297,10 +304,10 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     } });
   function dispatch(action: SchemaUtkastAtgard) { if (fonster) { synk.send({ typ: 'utkast', action }); return; } dispatchLocal(action); }
   function setVillkor(value: SchemaVillkor) { if (fonster) { synk.send({ typ: 'villkor', value }); return; } setVillkorLocal(value); }
-  function andraArbetsvillkor(value: SchemaVillkor) {
+  function andraArbetsvillkor(value: SchemaVillkor, text = 'Villkor för schemat') {
     if (fonster) { synk.send({ typ: 'arbetsvillkor', value }); return; }
     if (villkorNyckel(value) === villkorNyckel(villkor)) return;
-    dispatchLocal({ type: 'arbetsvillkor', fore: villkor, efter: value, text: 'Villkor för schemat' });
+    dispatchLocal({ type: 'arbetsvillkor', fore: villkor, efter: value, text });
     setVillkorLocal(value);
   }
   function setTabellVillkor(value: SchemaVillkor) {
@@ -795,7 +802,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const trimOf = (l: SchemaForslagLesson) => forslag?.trims.find(x => x.lesson === l.id && x.term === (l.term ?? viewTerm)) ?? null;
   const shownMin = (l: SchemaForslagLesson) => l.durationMin - (trimOf(l)?.fixedMin ?? 0);
   const someWeeks = (l: SchemaForslagLesson) => { const n = trimOf(l)?.extraCount ?? 0; return n ? ` · kortare ${n === 1 ? 'en vecka' : `${n} veckor`}` : ''; };
-  const roomName = (id: string | null) => forslag?.rooms.find(r => r.id === id)?.name ?? '';
+  const roomName = (id: string | null) => (salbild ?? forslag)?.rooms.find(r => r.id === id)?.name ?? '';
   // Passets egna villkor med text (05.2-SM-VILLKOR-SYNS): justerad längd mot grundschemat (W6), kortning vissa veckor och salskrav.
   const passRader = (l: SchemaForslagLesson) => {
     const trim = trimOf(l), n = trim?.extraCount ?? 0, rooms = l.roomIds.map(roomName).filter(Boolean);
@@ -964,6 +971,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       <Villkor value={villkor} disabled={busy || checking} issues={issues} resurser={forutsattningar?.resurser ?? null} forslag={forslag} onChange={andraArbetsvillkor}
         resurserBesked={issues.length ? 'Rätta felen i villkoren för att läsa klasser, grupper, ämnen och lärare från underlaget.' : underlagLas.error ?? 'Läser klasser, grupper, ämnen och lärare från underlaget…'}/>
     </form>}
+    {!fonster && <Salar villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}
+      besked={issues.length ? 'Rätta felen i villkoren för att läsa undervisningarna från underlaget.' : underlagLas.error ?? 'Läser undervisningarna från underlaget…'}/>}
     <output aria-live="polite" className="schema-note">{busy ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
@@ -991,7 +1000,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       <div className="schema-summary" aria-labelledby={resultHeading}>
         <h2 id={resultHeading} className="sr-only">Schemaförslag</h2>
         {forslag.status !== 'complete' && <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>}
-        {forslag.metrics.lessons > 0 && <Lagesstatus lessons={forslag.lessons}/>}
+        {forslag.metrics.lessons > 0 && <Lagesstatus lessons={passMedSal}/>}
         {forslag.metrics.lessons > 0 && <span className={`status-badge ${off ? 'warning' : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? '' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? 'Årsberäknad terminsdel' : 'Tiden följer timplanen'}</span>}
         {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}

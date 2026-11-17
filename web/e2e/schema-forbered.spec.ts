@@ -1,30 +1,11 @@
 // 05.2-SM-UXFLODE: förutsättningar före första förslaget, mot uttryckligt simulerade rutter och syntetiska uppgifter. Inget användarprov.
-import { test, expect, type Page } from './schema-test';
-import rawForslag from './schema-fixture';
-import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaVillkor } from '../lib/schema-contract.ts';
+import { test, expect } from './schema-test';
+import { bas as base, mockUnderlag, utanBerakning } from './schema-underlag-mock';
 
-const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };
-const base = { ...rawForslag, contractVersion: SCHEMA_CONTRACT_VERSION } as unknown as SchemaForslag;
-/** Underlaget utan beräkning: samma pass, inget lagt. */
-export function olagt(villkor: SchemaVillkor): SchemaForslag {
-  const f = structuredClone(base);
-  f.villkor = villkor; f.lessons = f.lessons.map(l => ({ ...l, day: null, startMin: null, roomId: null })); f.status = 'cancelled'; delete f.locks;
-  f.metrics = { ...f.metrics, placed: 0, unplaced: f.lessons.length };
-  return f;
-}
-export async function mockUnderlag(page: Page) {
-  const bodies: { villkor: SchemaVillkor }[] = [];
-  await page.route('**/api/schema/underlag', route => {
-    const body = route.request().postDataJSON() as { villkor: SchemaVillkor }; bodies.push(body);
-    return route.fulfill({ headers, json: { contractVersion: SCHEMA_CONTRACT_VERSION, beraknat: false, forslag: olagt(body.villkor) } });
-  });
-  return bodies;
-}
+const URL = '/e2e/fixtures/schema-preview.html';
 
 test('resurser, lektionsantal och villkor går att läsa och ändra utan beräknat förslag', async ({ page }) => {
-  const solves: unknown[] = [];
-  await page.route('**/api/schema/forslag', route => { solves.push(route.request().postDataJSON()); return route.abort(); });
-  await page.route('**/api/schema/diagnos', route => { solves.push(route.request().postDataJSON()); return route.abort(); });
+  const solves = await utanBerakning(page);
   const reads = await mockUnderlag(page);
   await page.goto(URL);
   const underlag = page.getByRole('region', { name: 'Underlag före första förslaget' });
@@ -40,7 +21,7 @@ test('resurser, lektionsantal och villkor går att läsa och ändra utan beräkn
   // En spärrad tid är ett tidsvillkor och läser inte om underlaget. En ny sal ändrar grunden: underlaget läses om, utan beräkning.
   expect(reads).toHaveLength(1);
   await page.getByLabel('Salens namn').fill('Idrottshallen');
-  await page.getByRole('button', { name: 'Lägg till sal' }).click();
+  await page.getByRole('group', { name: 'Salar' }).getByRole('button', { name: 'Lägg till sal' }).click();
   await expect.poll(() => reads.length).toBe(2);
   expect(reads[1].villkor.salar).toEqual(['Idrottshallen']); expect(reads[1].villkor.egna).toHaveLength(1);
   await underlag.getByText('Antal lektioner per undervisning').click();

@@ -108,10 +108,17 @@ function Egna({ value: v, disabled, resurser, resurserBesked, onChange }: { valu
   return <>
     <fieldset disabled={disabled}><legend>Salar</legend>
       <p className="schema-note">Ange de salar som villkor ska kunna gälla, till exempel idrottshallen eller en labbsal. Pass utan salsvillkor läggs utan sal.</p>
+      {v.salregister ? <>
+        {/* Med salregister (05.2-SM-UXF-22) läggs salar till, ändras och tas bort där, så att namnlistan alltid följer registret. */}
+        <p className="schema-note">Salarna hanteras i salregistret under Salar. Villkor för en sal, som spärrad tid, anges här.</p>
+        {v.salar.length > 0 && <ul className="schema-egna" aria-label="Salar">{v.salar.map(x => <li key={x}><span>{x}</span></li>)}</ul>}
+      </> : <>
+      <p className="schema-note">Salar med platser, saltyp och utrustning läggs till i salregistret under Salar. Namn som läggs till här kan föras över dit.</p>
       <label>Salens namn<input type="text" maxLength={L.salNamn} value={sal} onChange={e => setSal(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addSal(); } }}/></label>
       <div><Button type="button" variant="outline" size="sm" disabled={disabled || !canAddSal} onClick={addSal}>Lägg till sal</Button></div>
       {v.salar.length > 0 && <ul className="schema-egna" aria-label="Salar">{v.salar.map(x => <li key={x}><span>{x}</span>
         <Button type="button" variant="outline" size="sm" disabled={disabled} aria-label={`Ta bort sal ${x}`} onClick={() => removeSal(x)}>Ta bort</Button></li>)}</ul>}
+      </>}
     </fieldset>
     <fieldset disabled={disabled} className="schema-wide"><legend>Egna villkor</legend>
       <p className="schema-note">Ett eget villkor gäller en klass, en grupp, ett ämne, en lärare eller en sal. Villkoren styr när och var passen läggs och hur veckotiden delas i pass. Hur mycket undervisning som läggs bestäms alltid av timplanen.</p>

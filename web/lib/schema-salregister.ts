@@ -73,17 +73,23 @@ export function parseSalbehov(value: unknown): SchemaSalbehov[] {
     return behov;
   });
 }
+/** Felet i ett salbehov i klartext, eller `null`. `known`: registrets sal-ID. */
+export function salbehovFel(b: Omit<SchemaSalbehov, 'slag' | 'ref'>, known: Set<string>): string | null {
+  if (b.lage === 'ingen' ? b.form === null || b.typ !== null || b.utrustning.length || b.salar.length || b.onskad.length : b.form !== null) return 'Ange undervisningsform när sal inte behövs, och bara då.';
+  if (b.lage === 'allman' && (b.typ !== null || b.utrustning.length || b.salar.length)) return 'En lämplig allmän sal har inga särskilda krav. Välj Särskilda salskrav för typ, utrustning eller bestämd sal.';
+  if (b.lage === 'sarskild' && b.typ === null && !b.utrustning.length && !b.salar.length) return 'Ange minst ett krav: saltyp, utrustning eller bestämd sal.';
+  if ([...b.salar, ...b.onskad].some(id => !known.has(id))) return 'En vald sal finns inte längre i salregistret.';
+  return null;
+}
 /** Rimlighet som användaren kan rätta. Tom lista: inga fel. `salar` är villkorens namnlista, som ska följa registret när det finns. */
 export function checkSalregister(register: SchemaSalregister | undefined, behov: SchemaSalbehov[] | undefined, salar: string[]): string[] {
   if (!register) return behov?.length ? ['Salbehov kräver ett salregister. För över salnamnen eller lägg till en sal i registret.'] : [];
   if (register.salar.length !== salar.length || register.salar.some((s, i) => s.name !== salar[i])) return ['Salregistret och salarnas namn stämmer inte överens. Läs om utkastet.'];
   const known = new Set(register.salar.map(s => s.id));
   for (const b of behov ?? []) {
-    const namn = `Salbehovet för ${b.ref.replace(/^[^:]+:/u, '')}`;
-    if (b.lage === 'ingen' ? b.form === null || b.typ !== null || b.utrustning.length || b.salar.length || b.onskad.length : b.form !== null) return [`${namn}: ange undervisningsform när sal inte behövs, och bara då.`];
-    if (b.lage === 'allman' && (b.typ !== null || b.utrustning.length || b.salar.length)) return [`${namn}: en lämplig allmän sal har inga särskilda krav. Välj Särskilda salskrav för typ, utrustning eller bestämd sal.`];
-    if (b.lage === 'sarskild' && b.typ === null && !b.utrustning.length && !b.salar.length) return [`${namn}: ange minst ett krav: saltyp, utrustning eller bestämd sal.`];
-    if ([...b.salar, ...b.onskad].some(id => !known.has(id))) return [`${namn}: en vald sal finns inte längre i salregistret.`];
+    const fel = salbehovFel(b, known);
+    // Undervisningens referens är en teknisk nyckel och visas inte; ämnets referens är dess namn.
+    if (fel) return [`${b.slag === 'amne' ? `Salbehovet för ${b.ref}` : 'Salbehovet för en undervisning'}: ${fel}`];
   }
   return [];
 }
@@ -96,7 +102,8 @@ export function gallandeSalbehov(behov: SchemaSalbehov[] | undefined, undervisni
   return amne ? { behov: amne, kalla: 'amne' } : null;
 }
 
-const kravText = (b: SchemaSalbehov, register: SchemaSalregister, elever: number | null): string[] => [
+type Krav = Omit<SchemaSalbehov, 'slag' | 'ref'>;
+const kravText = (b: Krav, register: SchemaSalregister, elever: number | null): string[] => [
   ...(b.lage === 'allman' ? ['allmän sal'] : []), ...(b.typ ? [`saltyp ${b.typ.toLocaleLowerCase('sv')}`] : []), ...b.utrustning.map(u => u.toLocaleLowerCase('sv')),
   ...(b.salar.length ? [`någon av ${b.salar.map(id => register.salar.find(s => s.id === id)?.name ?? id).join(', ')}`] : []), ...(elever !== null ? [`minst ${elever} platser`] : [])];
 
@@ -104,7 +111,7 @@ const kravText = (b: SchemaSalbehov, register: SchemaSalregister, elever: number
  * Vilka salar som uppfyller alla krav (snittet), med skäl för varje sal som faller bort. Okänt elevantal eller okända platser sorterar
  * aldrig bort en sal; kapaciteten är då inte kontrollerad. Tom mängd ger ett hinder i klartext. Sal behövs inte ger ingen sal och inget hinder.
  */
-export function lampligaSalar(register: SchemaSalregister, behov: SchemaSalbehov, elever: number | null): SchemaSalUrval {
+export function lampligaSalar(register: SchemaSalregister, behov: Krav, elever: number | null): SchemaSalUrval {
   if (behov.lage === 'ingen') return { rader: [], tillatna: [], kapacitet: {}, hinder: null };
   const rader = register.salar.map((sal): SchemaSalBedomning => {
     const skal: string[] = [];
