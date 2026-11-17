@@ -1,0 +1,47 @@
+{
+  "kind": "schema-uxf43-installation",
+  "revision": "ead8f3880ddcbb3732993677639b2236695ef412",
+  "request": "Ja, installera (2026-11-17), UXF-43 efter uttryckligt ja",
+  "startedAt": "2026-11-17T22:13:09.441Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "exact old product files, unchanged SQL and mandate gate; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "UXF-43 candidate on3012 and compatible motor5 on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all16protected schema paths, including the new underlag path, retain session gate",
+      "status": "PASS"
+    },
+    {
+      "name": "same169journal, all prior draft revisions, session secret and exact new product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "preservedRevisions": {
+    "count": 65,
+    "sha256": "77918775225a6f16ce0aa1d38cea5469df54c2aac78d980df61963a081e904da"
+  },
+  "manifestSha256": "52b5e430dcef4374680c04f5cb1084bf3263e9f481d30875d9e7b50782c13340",
+  "inventorySha256": "927b92856c1bfc74fb838ab35317261dcd7ac97a0d9073f3e66d4ee28739ad25",
+  "stage": "work/pilot/targets/protected/runtime/schema-ead8f38880",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-563e1201bd",
+  "processes": {
+    "appRoot": 94150,
+    "appListener": 94169,
+    "motorListener": 94135
+  },
+  "finishedAt": "2026-11-17T22:13:23.113Z"
+}

@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara, installerade på 3012; UXF-53 väntar på beslut om provbokning"
 status: in_progress
-stopped_at: "563e1201 är installerad på 3012/3013. UXF-43 (ingen salifyllning med salregister) är byggd och prövad mot simulerade rutter, inte installerad. Användarens prov på 3012 återstår."
+stopped_at: "ead8f388 (arbetsgången Förbered → Lägg schema och UXF-43) är installerad på 3012/3013, PASS 5/5, 0 migrationer. Användarens prov på 3012 återstår."
 last_updated: "2026-11-17"
 last_activity: 2026-11-17
 last_activity_desc: "563e1201 installerad på 3012/3013 efter användarens ja; andra försöket PASS efter rättad förväntan i installationsskriptet."
@@ -21,16 +21,16 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 563e1201bdaf50c29fdeaac309a38c1f807cfd54
-schema_candidate_revision: 563e1201bdaf50c29fdeaac309a38c1f807cfd54
+schema_runtime_revision: ead8f3880ddcbb3732993677639b2236695ef412
+schema_candidate_revision: ead8f3880ddcbb3732993677639b2236695ef412
 schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 5
-schema_installation_status: uxflode_passed_5_groups_zero_new_sql_43_prior_revisions_preserved
+schema_installation_status: uxf43_passed_5_groups_zero_new_sql_65_prior_revisions_preserved
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
 
-**05.2-SM UXF-43 2026-11-17 (kväll):** Användaren godkände med **”Kör på det”**: med salregister fyller kontrollen ingen sal, och vid flytt behåller passet sin sal bara där den är ledig, annars blir passet utan sal och det syns före flytten. Pass utan sal upptar ingen sal hos motorn, så placeringsförslagen fungerar. Äldre utkast utan register är oförändrade. Kontroller: 368 Node-prov, 322 av 322 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handbok. Allt mot simulerade rutter; **inte installerat**, och 3012 kör fortfarande 563e1201. Skolplattans guide är inte synkad med lägesfälten. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-43-SALIFYLLNING-PLAN.md).
+**05.2-SM UXF-43 2026-11-17 (kväll):** Användaren godkände med **”Kör på det”**: med salregister fyller kontrollen ingen sal, och vid flytt behåller passet sin sal bara där den är ledig, annars blir passet utan sal och det syns före flytten. Pass utan sal upptar ingen sal hos motorn, så placeringsförslagen fungerar. Äldre utkast utan register är oförändrade. Kontroller: 368 Node-prov, 322 av 322 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handbok. Installerad på 3012/3013 samma kväll som `ead8f388` efter användarens ja: egen API-kedja 9 av 9, installation PASS 5 av 5, 0 migrationer och 65 tidigare revisioner oförändrade ([journal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-17.md)). Skolplattans guide är inte synkad med lägesfälten. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-43-SALIFYLLNING-PLAN.md).
 
 **05.2-SM installerad på 3012 2026-11-17 (kväll):** Efter användarens **”Ja, installera”** kör 3012 och 3013 den frysta kandidaten `563e1201`, med Förbered, salar, Tilldela salar, panel för valt pass, samtidighetsblock och aktivitet per klass. Kandidaten passerade först den egna API-kedjan med 9 av 9 kontroller. Installationen: PASS 5 av 5 kontrollgrupper, 0 migrationer, alla 16 schemavägar nekar utan inloggning och alla 43 tidigare utkastrevisioner är oförändrade. Första försöket stoppade före bytet på en inaktuell förväntan i skriptet, som är rättad. Användarens prov på 3012 återstår, liksom besluten om A11 och UXF-53. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-17.md).
 

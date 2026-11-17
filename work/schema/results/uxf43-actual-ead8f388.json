@@ -1,0 +1,82 @@
+{
+  "kind": "schema-lasarsmonster-owned-actual",
+  "status": "PASS",
+  "syntheticOnly": true,
+  "startedAt": "2026-11-17T22:11:13.900Z",
+  "releaseRevision": "ead8f3880ddcbb3732993677639b2236695ef412",
+  "releaseManifestSha256": "52b5e430dcef4374680c04f5cb1084bf3263e9f481d30875d9e7b50782c13340",
+  "releaseArtifactSha256": "927b92856c1bfc74fb838ab35317261dcd7ac97a0d9073f3e66d4ee28739ad25",
+  "checks": [
+    {
+      "name": "existing eight protected API cases pass on the new exact candidate",
+      "status": "PASS"
+    },
+    {
+      "name": "real motor HTTP solve validate diagnose positions suggest preserve both v4 and v5 response versions",
+      "status": "PASS"
+    },
+    {
+      "name": "frozen TS reserved-block basis retains actually staffed term teachers and sends only anonymous annual budget to real motor5",
+      "status": "PASS"
+    },
+    {
+      "name": "real motor5 accepts a valid room-only activity and still rejects an activity with no participants or room",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh own principal session from actual OIDC baseline still has live selected mandate and MFA",
+      "status": "PASS"
+    },
+    {
+      "name": "unmarked synthetic legacy bas8 doc1 saves and reopens with verified canonical hash locks pass-rule and dated occurrence",
+      "status": "PASS"
+    },
+    {
+      "name": "annual working marker over legacy foundation persists without remapping; status replay and stale CAS preserve the exact old base",
+      "status": "PASS"
+    },
+    {
+      "name": "actual annual date transfer has zero year delta; changed original length is denied and frozen-model stale trim invalidates the old exception",
+      "status": "PASS"
+    },
+    {
+      "name": "new annual doc1 saves and reopens while prior legacy and pending revisions remain immutable",
+      "status": "PASS"
+    }
+  ],
+  "limits": [
+    "Only fresh owned PostgreSQL/Keycloak/GoTrue/Linux-workerd and exact frozen Rust motor",
+    "No target or existing user browser auth",
+    "Legacy is produced by the explicitly unmarked compatible builder; this is not a historical production document",
+    "No product UI acceptance or municipality integration is claimed"
+  ],
+  "baseline": {
+    "checks": 8,
+    "sourceRevision": "ead8f3880ddcbb3732993677639b2236695ef412",
+    "report": "/private/tmp/schema-draft-final-namespace-lasarsmonster-ff0c6efdf0f140ac9fe20ca95f1e2052.json",
+    "finalReportSha256": "691dc74d0bdf77e5205385bc8baee504cbcb1b90ff6e682422b3e1038932d36a"
+  },
+  "history": [
+    {
+      "revision": 1,
+      "contentHash": "sha256:1cfeff125a5f9a0916a377466a34c2ee3f3f9a33df146c33746cd539c59e4e02"
+    },
+    {
+      "revision": 2,
+      "contentHash": "sha256:68646c8679a427c7ece8ff926681a0c17a5ecfa94f3ff21581ae40fde7131a89"
+    },
+    {
+      "revision": 3,
+      "contentHash": "sha256:681e442843e2b6db1d04b8670acf74c21115a64786dae946850479857a086d16"
+    }
+  ],
+  "apiCompletedAt": "2026-11-17T22:12:51.320Z",
+  "cleanup": {
+    "status": "PASS",
+    "namespace": "complete",
+    "ownCore": "complete",
+    "credentialsRemoved": true,
+    "targetTouched": false
+  },
+  "completedAt": "2026-11-17T22:12:56.872Z"
+}
