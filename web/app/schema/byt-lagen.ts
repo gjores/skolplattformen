@@ -6,6 +6,7 @@ import { SCHEMA_CONTRACT_VERSION, villkorNyckel, type SchemaForslag, type Schema
 import { parseSchemaLagen, varfor, type SchemaLagen } from '@/lib/schema-lagen.ts';
 import type { SchemaOverlay } from '@/lib/schema-utkast.ts';
 import { LAGE } from './mojligt.tsx';
+import { lagesfalt } from '@/lib/schema-lagesfalt.ts';
 
 type Props = { forslag: SchemaForslag | null; villkor: SchemaVillkor; lesson: string | null; placements: SchemaPlacement[]; userLocks?: SchemaPlacement[]; unitId: string; schoolYear: number; onSessionLost: () => void };
 export function useSchemaBytLagen({ forslag, villkor, lesson, placements, userLocks = [], unitId, schoolYear, onSessionLost }: Props) {
@@ -29,7 +30,8 @@ export function useSchemaBytLagen({ forslag, villkor, lesson, placements, userLo
     return () => controller.abort();
   }, [lesson, fingerprint, key, rules, period, unitId, schoolYear, query, locks]);
   const lagen = lesson && reply?.query === query ? reply.lagen : null;
-  const overlays: SchemaOverlay[] = lagen?.positions.map(p => ({ day: p.day, startMin: p.startMin, endMin: p.startMin + (forslag?.startGridMin ?? 5), kind: p.state, label: LAGE[p.state] })) ?? [];
+  // Sammanhängande fält (05.2-SM-UXF-42): starttider i följd med samma läge ritas som ett fält. Den exakta startens orsaker står i panelen för valt pass.
+  const overlays: SchemaOverlay[] = lagen ? lagesfalt(lagen.positions, forslag?.startGridMin ?? 5).map(f => ({ day: f.day, startMin: f.startMin, endMin: f.endMin, kind: f.state, label: LAGE[f.state] })) : [];
   const status = (to: { day: number | null; startMin: number | null } | null): string => {
     const p = to && lagen?.positions.find(p => p.day === to.day && p.startMin === to.startMin);
     if (!p || !forslag || !lesson) return '';

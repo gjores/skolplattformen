@@ -120,6 +120,16 @@ När schemat redan har tider men pass saknar sal, eller har en sal som kontrolle
 
 När ett pass som ska ha sal saknar en, väljer kontrollen själv den första tillåtna salen, även om den är upptagen. Det syns då som en regelavvikelse för salen, och passet räknas in i Tilldela salar.
 
+## Valt pass
+
+Klicka på ett pass i veckan, eller välj det med tangentbordet och tryck Retur. Panelen under veckan visar passets tid, längd, lärare, sal och salbehov. Klicket ändrar ingenting.
+
+1. Under **Pröva ny tid** väljer du dag och starttid. Med **−** och **+** går du till närmaste möjliga starttid före eller efter.
+2. Under listorna står vad som händer vid den valda tiden, till exempel vilka pass som krockar.
+3. Välj **Flytta hit** för att flytta passet, eller **Avbryt**.
+
+Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fält: fri tid, går med ett byte, bryter ett önskemål eller regelbrott. Ett fält säger bara läget. Orsakerna kan skilja sig inom fältet, så läs beskedet i panelen för den exakta starttiden.
+
 ## Före första förslaget
 
 Du kan göra detta utan att något schema har räknats fram:

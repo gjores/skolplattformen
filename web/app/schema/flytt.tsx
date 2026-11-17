@@ -1,15 +1,22 @@
 'use client';
 // Flyttpanelen (05.2-SM-FLYTT): flytta ett valt pass med dag, starttid och sal. Används med tangentbord och på pekskärm. Flyttad oförändrad av 05.2-SM-YTA.
-import type { Ref } from 'react';
+import { useId, type Ref } from 'react';
 import { Button } from '@/components/ui/button';
 import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
 import type { SchemaSalScope } from '@/lib/schema-salar.ts';
 import { DAYS, clock, dayName, names, startTimes } from './delat.ts';
 import { SalSok } from './sal-sok.tsx';
+import { stegaStart } from '@/lib/schema-lagesfalt.ts';
 
 export type FlyttMal = { day: number; startMin: number; room: string | null };
 
-export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, salRequest, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest, onSessionLost }: {
+const SALBEHOV: Record<NonNullable<SchemaForslagLesson['sal']>['lage'], string> = { allman: 'Lämplig allmän sal', sarskild: 'Särskilda salskrav', ingen: 'Sal behövs inte', aldre: 'Salvillkor', obesvarat: 'Salbehov obesvarat' };
+
+/**
+ * Panelen för valt pass (05.2-SM-UXF-42, designvyn Veckan2). Ett klick på ett pass visar passet här och ändrar ingenting.
+ * Passet flyttas först med Flytta hit. Exakt starttid väljs i listan eller med − och +, utan dragning. Flyttpanelens tangentbordsväg är oförändrad.
+ */
+export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, salRequest, status, sal, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest, onSessionLost }: {
   lesson: SchemaForslagLesson; forslag: SchemaForslag; target: FlyttMal; checking: boolean; locked?: string;
   shownMin: number;
   /** Kortning vissa veckor och termin, i samma text som i passrutan. */
@@ -17,27 +24,50 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
   roomName: (id: string | null) => string;
   dayRef?: Ref<HTMLSelectElement>;
   salRequest?: SchemaSalScope;
+  /** Möjlighetskartans besked för vald dag och start, i klartext. */
+  status?: string;
+  /** Passets salbehov enligt aktuellt salregister. */
+  sal?: SchemaForslagLesson['sal'];
   onSessionLost?: () => void;
   onTarget: (next: FlyttMal) => void; onMove: () => void; onPark: () => void; onCancel: () => void;
   onSuggest?: () => void; onTargetSuggest?: () => void;
 }) {
-  const blocked = checking || !!locked;
+  const blocked = checking || !!locked, rubrik = useId();
   const starts = (day: number) => startTimes(forslag, day, l.durationMin + l.marginMin, l.marginBeforeMin);
-  return <form className="schema-move" aria-label="Flytta pass" onSubmit={e => { e.preventDefault(); if (!blocked) onMove(); }}>
-    <p><strong>{l.title}</strong>, {shownMin} min{shownMin !== l.durationMin && ` (${l.durationMin} min i grundschemat)`}{extra.someWeeks}{l.marginMin + l.marginBeforeMin > 0 && ` och marginal ${l.marginBeforeMin || '–'} · ${l.marginMin || '–'} min`}{extra.termTag} · {names(l.classIds, forslag.classes)}{l.teacherIds.length > 0 && ` · ${names(l.teacherIds, forslag.teachers)}`}
-      <span className="schema-note"> {l.day === null || l.startMin === null ? 'Ligger på viloytan.' : `Ligger nu ${DAYS[l.day].toLowerCase()} ${clock(l.startMin)}${l.roomId ? ` i ${roomName(l.roomId)}` : ''}.`}</span></p>
-    {locked && <p className="schema-note">{locked}</p>}
-    <label>Dag<select ref={dayRef} value={target.day} disabled={blocked} onChange={e => { const day = Number(e.target.value), next = starts(day); onTarget({ ...target, day, startMin: next.includes(target.startMin) ? target.startMin : next[0] ?? target.startMin }); }}>
-      {forslag.days.map((_, day) => <option key={day} value={day}>{dayName(day)}</option>)}</select></label>
-    <label>Starttid<select value={target.startMin} disabled={blocked} onChange={e => onTarget({ ...target, startMin: Number(e.target.value) })}>
-      {starts(target.day).map(m => <option key={m} value={m}>{clock(m)}–{clock(m + l.durationMin)}</option>)}</select></label>
-    {l.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} disabled={blocked} onChange={e => onTarget({ ...target, room: e.target.value || null })}>
-      <option value="">Första lediga</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
+  const tidigare = stegaStart(starts(target.day), target.startMin, -1), senare = stegaStart(starts(target.day), target.startMin, 1);
+  const andrad = !(target.day === l.day && target.startMin === l.startMin && target.room === l.roomId);
+  const salText = l.roomId ? roomName(l.roomId) : l.roomIds.length ? 'Ingen sal ännu' : 'Ingen sal';
+  return <form className="schema-move schema-inspektor" aria-label="Flytta pass" aria-describedby={rubrik} onSubmit={e => { e.preventDefault(); if (!blocked) onMove(); }}>
+    <div className="schema-inspektor-pass" id={rubrik}>
+      <h2 className="text-base font-semibold">{l.title} · {names(l.classIds, forslag.classes)} <span className="schema-note font-normal">Ett klick visar passet. Inget flyttas förrän du väljer Flytta hit.</span></h2>
+      <dl>
+        <div><dt>Tid</dt><dd>{l.day === null || l.startMin === null ? 'Ligger på viloytan.' : `${DAYS[l.day]} ${clock(l.startMin)}–${clock(l.startMin + shownMin)}`}{extra.termTag}{extra.someWeeks}</dd></div>
+        <div><dt>Längd</dt><dd>{shownMin} min{shownMin !== l.durationMin && ` (${l.durationMin} min i grundschemat)`}{l.marginMin + l.marginBeforeMin > 0 && `, marginal ${l.marginBeforeMin || '–'} före och ${l.marginMin || '–'} efter`}</dd></div>
+        <div><dt>Lärare</dt><dd>{l.teacherIds.length ? names(l.teacherIds, forslag.teachers) : 'Ingen lärare'}</dd></div>
+        <div><dt>Sal</dt><dd>{salText}{sal && <span className="schema-note block">Salbehov: {SALBEHOV[sal.lage]}{sal.hinder ? `. ${sal.hinder}` : ''}</span>}</dd></div>
+        {locked && <><div><dt>Lås</dt><dd>{locked}</dd></div></>}
+      </dl>
+    </div>
+    <fieldset className="schema-inspektor-tid" disabled={blocked}><legend className="sr-only">Pröva ny tid</legend>
+      <label>Dag<select ref={dayRef} value={target.day} onChange={e => { const day = Number(e.target.value), next = starts(day); onTarget({ ...target, day, startMin: next.includes(target.startMin) ? target.startMin : next[0] ?? target.startMin }); }}>
+        {forslag.days.map((_, day) => <option key={day} value={day}>{dayName(day)}</option>)}</select></label>
+      <div className="schema-inspektor-start">
+        <label>Starttid<select value={target.startMin} onChange={e => onTarget({ ...target, startMin: Number(e.target.value) })}>
+          {starts(target.day).map(m => <option key={m} value={m}>{clock(m)}–{clock(m + l.durationMin)}</option>)}</select></label>
+        <Button type="button" variant="outline" aria-label="Tidigare start" disabled={tidigare === null} onClick={() => tidigare !== null && onTarget({ ...target, startMin: tidigare })}>−</Button>
+        <Button type="button" variant="outline" aria-label="Senare start" disabled={senare === null} onClick={() => senare !== null && onTarget({ ...target, startMin: senare })}>+</Button>
+      </div>
+      {l.roomIds.length > 1 && <label>Sal<select value={target.room ?? ''} onChange={e => onTarget({ ...target, room: e.target.value || null })}>
+        <option value="">Första lediga</option>{l.roomIds.map(id => <option key={id} value={id}>{roomName(id)}</option>)}</select></label>}
+    </fieldset>
     {salRequest && <SalSok scope={salRequest} lesson={l.id} target={target} rooms={forslag.rooms} disabled={blocked} onSelect={room => onTarget({ ...target, room })} onSessionLost={onSessionLost}/>}
-    <Button type="submit" disabled={blocked || target.day === l.day && target.startMin === l.startMin && target.room === l.roomId}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
-    {onTargetSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onTargetSuggest}>Lägg här och flytta det som krockar</Button>}
-    {onSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onSuggest}>Föreslå placering</Button>}
-    {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Lägg på viloytan</Button>}
-    <Button type="button" variant="outline" disabled={checking} onClick={onCancel}>Avbryt</Button>
+    <div className="schema-inspektor-knappar">
+      <Button type="submit" disabled={blocked || !andrad}>{checking ? 'Kontrollerar…' : 'Flytta hit'}</Button>
+      {onTargetSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onTargetSuggest}>Lägg här och flytta det som krockar</Button>}
+      {onSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onSuggest}>Föreslå placering</Button>}
+      {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Lägg på viloytan</Button>}
+      <Button type="button" variant="outline" disabled={checking} onClick={onCancel}>Avbryt</Button>
+    </div>
+    <output className="schema-inspektor-status" aria-live="polite">{!andrad ? 'Passets nuvarande tid.' : status?.startsWith('Varför inte ') ? status : `${dayName(target.day)} ${clock(target.startMin)}: ${status || 'prövas när du flyttar.'}`}</output>
   </form>;
 }
