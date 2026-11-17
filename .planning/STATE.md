@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara och pushade; UXF-53 väntar på beslut om provbokning"
+current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara, installerade på 3012; UXF-53 väntar på beslut om provbokning"
 status: in_progress
-stopped_at: "Arbetsgången Förbered → Lägg schema med salar, Tilldela salar, panel för valt pass, egna samtidighetsblock och aktivitet per klass är byggd och prövad mot simulerade rutter. Inte installerat; 7e38ba67 består. Användaren väntar på prov i 3012, som kräver installationsbeslut."
+stopped_at: "563e1201 med arbetsgången Förbered → Lägg schema är installerad på 3012/3013 (PASS 5/5, 0 migrationer, 43 revisioner oförändrade). Användarens prov på 3012 återstår."
 last_updated: "2026-11-17"
 last_activity: 2026-11-17
-last_activity_desc: "UXF-42, UXF-51 och UXF-52 genomförda 2026-11-17 efter användarens godkännande av A1–A13; 318 av 318 UI-fall gröna. UXF-53 väntar på beslut."
+last_activity_desc: "563e1201 installerad på 3012/3013 efter användarens ja; andra försöket PASS efter rättad förväntan i installationsskriptet."
 state_head: 93e9081a5d5674ffa0df5768333c5a4459fe2953
 progress:
   total_phases: 8
@@ -21,14 +21,16 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 7e38ba670a4cef400c203390a094ad96d5e5b75c
-schema_candidate_revision: 7e38ba670a4cef400c203390a094ad96d5e5b75c
+schema_runtime_revision: 563e1201bdaf50c29fdeaac309a38c1f807cfd54
+schema_candidate_revision: 563e1201bdaf50c29fdeaac309a38c1f807cfd54
 schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 5
-schema_installation_status: annual_model_passed_5_groups_zero_new_sql_14_prior_revisions_preserved
+schema_installation_status: uxflode_passed_5_groups_zero_new_sql_43_prior_revisions_preserved
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**05.2-SM installerad på 3012 2026-11-17 (kväll):** Efter användarens **”Ja, installera”** kör 3012 och 3013 den frysta kandidaten `563e1201`, med Förbered, salar, Tilldela salar, panel för valt pass, samtidighetsblock och aktivitet per klass. Kandidaten passerade först den egna API-kedjan med 9 av 9 kontroller. Installationen: PASS 5 av 5 kontrollgrupper, 0 migrationer, alla 16 schemavägar nekar utan inloggning och alla 43 tidigare utkastrevisioner är oförändrade. Första försöket stoppade före bytet på en inaktuell förväntan i skriptet, som är rättad. Användarens prov på 3012 återstår, liksom besluten om A11 och UXF-53. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-17.md).
 
 **05.2-SM våg 4–5 2026-11-17:** Användaren godkände antagandena A1–A13 och beställde UXF-42 och våg 5. Klart och pushat: panel för valt pass där ett klick inte ändrar något, stegning till exakt starttid och sammanhängande möjlighetskarta (UXF-42); egna samtidighetsblock med namngivna hinder (UXF-51); aktivitet per klass som serie (UXF-52). Rättelse av researchen: motorn klarar pass med olika längd i en samtidighetskoppling. Kontroller: 363 Node-prov, 65 motorprov, 318 av 318 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handboksbygge. Allt mot simulerade rutter; **inte installerat**. UXF-53 (nationella prov) kräver beslut om provbokningens modell, migration och källa. Användaren vill prova på 3012 i stället för en lokal provsida; installation kräver användarens ja. [Nattrapport](phases/05.2-schemamodul/05.2-SM-UXFLODE-NATT.md).
 

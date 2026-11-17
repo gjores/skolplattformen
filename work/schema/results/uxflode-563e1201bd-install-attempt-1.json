@@ -1,0 +1,23 @@
+{
+  "kind": "schema-uxflode-installation",
+  "revision": "563e1201bdaf50c29fdeaac309a38c1f807cfd54",
+  "request": "kör nästa steg / 3012 (2026-11-17), efter uttryckligt ja till den frysta kandidaten",
+  "startedAt": "2026-11-17T17:53:10.176Z",
+  "status": "FAIL",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "failure": {
+    "name": "AssertionError",
+    "code": "ERR_ASSERTION",
+    "messageSha256": "6f3bdaae06378f1910f96f4c44fdfca78bd29f9ba6bc8a9b1f266404083410e2"
+  },
+  "finishedAt": "2026-11-17T17:53:18.669Z"
+}

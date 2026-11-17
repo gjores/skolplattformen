@@ -1,0 +1,47 @@
+{
+  "kind": "schema-uxflode-installation",
+  "revision": "563e1201bdaf50c29fdeaac309a38c1f807cfd54",
+  "request": "kör nästa steg / 3012 (2026-11-17), efter uttryckligt ja till den frysta kandidaten",
+  "startedAt": "2026-11-17T17:54:01.983Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "exact old product files, unchanged SQL and mandate gate; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "UXFLODE candidate on3012 and compatible motor5 on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all16protected schema paths, including the new underlag path, retain session gate",
+      "status": "PASS"
+    },
+    {
+      "name": "same169journal, all prior draft revisions, session secret and exact new product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "preservedRevisions": {
+    "count": 43,
+    "sha256": "b83067f3740228815f8ecb2aa01e51e0ce73d85a5e59cc3b03f0059e8eacac3e"
+  },
+  "manifestSha256": "f8a3e49772c975d30fa2a0d82dfe1445210d2de5c46023859c6932509b7ef17e",
+  "inventorySha256": "32472cd6a0402dcd8d346b1f1ff3bd3b45c0dd80223cbb00f18fe6a0945e729d",
+  "stage": "work/pilot/targets/protected/runtime/schema-563e1201bd",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-7e38ba670a",
+  "processes": {
+    "appRoot": 54156,
+    "appListener": 54189,
+    "motorListener": 54143
+  },
+  "finishedAt": "2026-11-17T17:54:18.205Z"
+}
