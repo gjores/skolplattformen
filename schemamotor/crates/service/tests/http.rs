@@ -153,10 +153,33 @@ fn bad_requests_are_refused_without_solving() {
     assert_eq!(call(&addr, "POST", "/v1/solve", Some(TOKEN), "{\"version\":1}").0, 400);
     assert_eq!(call(&addr, "POST", "/v1/solve", Some(TOKEN), &problem(1).replace("\"id\":\"prov\"", "\"id\":\"prov\",\"okand\":1")).0, 400);
     assert_eq!(call(&addr, "POST", "/v1/solve?time_ms=0", Some(TOKEN), &problem(1)).0, 400);
-    assert_eq!(call(&addr, "POST", "/v1/solve?seed=2", Some(TOKEN), &problem(1)).0, 400);
+    assert_eq!(call(&addr, "POST", "/v1/solve?time_ms=20&seed=2&seed=2", Some(TOKEN), &problem(1)).0, 400);
     assert_eq!(call(&addr, "POST", "/v1/solve", Some(TOKEN), &problem(40)).0, 413);
     assert_eq!(call(&addr, "GET", "/v1/solve", Some(TOKEN), "").0, 405);
     assert_eq!(call(&addr, "POST", "/v1/annat", Some(TOKEN), "").0, 404);
+}
+
+#[test]
+fn solve_accepts_u64_seed_and_reports_the_used_seed_without_changing_problem_contract() {
+    let mut cfg = Config::new(TOKEN.into());
+    cfg.threads = 1;
+    let addr = start(cfg);
+    for (query, seed) in [("time_ms=30", 1), ("seed=0&time_ms=30", 0), ("time_ms=30&seed=9007199254740991", 9_007_199_254_740_991), ("time_ms=30&seed=18446744073709551615", u64::MAX)] {
+        let (status, text) = call(&addr, "POST", &format!("/v1/solve?{query}"), Some(TOKEN), &problem(2));
+        assert_eq!(status, 200);
+        let answer: serde_json::Value = serde_json::from_str(&text).unwrap();
+        assert_eq!(answer["version"], schemamotor_model::CONTRACT_VERSION);
+        assert_eq!(answer["stats"]["seed"], seed);
+        let parsed: Solution = serde_json::from_value(answer).unwrap();
+        let p: Problem = serde_json::from_str(&problem(2)).unwrap();
+        assert!(schemamotor_validate::validate_solution(&p, &parsed).ok());
+    }
+    for query in ["seed=-1", "seed=+1", "seed=1.5", "seed=18446744073709551616", "seed=1&seed=1", "time_ms=30&time_ms=30", "time_ms=30&seed=1&unknown=1"] {
+        assert_eq!(call(&addr, "POST", &format!("/v1/solve?{query}"), Some(TOKEN), &problem(2)).0, 400, "{query}");
+    }
+    for endpoint in ["validate", "positions", "diagnose", "suggest"] {
+        assert_eq!(call(&addr, "POST", &format!("/v1/{endpoint}?seed=1"), Some(TOKEN), &problem(2)).0, 400);
+    }
 }
 
 #[test]

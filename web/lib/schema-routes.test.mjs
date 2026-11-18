@@ -6,6 +6,7 @@ import { registerHooks } from 'node:module';
 import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor } from './schema-contract.ts';
 import { laggTillSal, sattSalbehov, tomtSalbehov } from './schema-salregister.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
+import { parseSchemaFortsatt } from './schema-fortsatt.ts';
 
 const id = n => `73111500-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const ISSUER = 'http://host.docker.internal:8180/realms/skolplattform-test';
@@ -56,8 +57,12 @@ const fake = globalThis.__schemaRoutesTest = {
   async elective() { state.reads.push({ type: 'elective' }); return { body: { pupils: pupils(), placements: [] }, event: event('elective_blocks_read') }; },
   async study() { state.reads.push({ type: 'study' }); return { body: { pupils: pupils(), memberships: [] }, event: event('study_groups_read') }; },
   async lasar() { state.reads.push({ type: 'lasar' }); return { body: { calendar: null, versions: [] }, event: event('lasar_read') }; },
-  async solve(problem) {
+  async solve(problem, timeMs, seed) {
+    assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'), 'motorn nåddes före lyckad audit');
     state.solves.push(structuredClone(problem));
+    state.solveTimes = [...state.solveTimes ?? [], timeMs];
+    state.solveSeeds = [...state.solveSeeds ?? [], seed];
+    if (state.engineFailure) throw new SchemaEngineError(state.engineFailure);
     return { status: 'complete', placements: problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: l.rooms?.allowed[0] ?? null })), unplaced: [], diagnoses: [],
       metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: 0 };
   },
@@ -98,6 +103,7 @@ registerHooks({ load(url, context, next) {
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaRoutesTest.lasar(...a);';
   if (is('skolsalar.ts')) source = 'export const readSkolsalar=async()=>globalThis.__schemaSkolsalar??null;export const skolsalarDokument=r=>r?.document??null;';
   if (is('schemamotor.ts')) source = `export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const solveSchema=(...a)=>globalThis.__schemaRoutesTest.solve(...a);
+    export const freshSchemaSolveSeed=()=>globalThis.__schemaRoutesTest.freshSeed();
     export const diagnoseSchema=(...a)=>globalThis.__schemaRoutesTest.diagnose(...a);
     export const suggestSchema=(...a)=>globalThis.__schemaRoutesTest.suggest(...a);
     export const validateSchema=(...a)=>globalThis.__schemaRoutesTest.validate(...a);export const positionsSchema=(...a)=>globalThis.__schemaRoutesTest.positions(...a);`;
@@ -105,7 +111,8 @@ registerHooks({ load(url, context, next) {
 } });
 const { Deny } = await import('./server/db.ts');
 const { SchemaEngineError } = await import('./server/schemamotor.ts');
-const routes = Object.fromEntries(await Promise.all(['forslag', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter', 'diagnos', 'fonster', 'placering', 'underlag'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
+const routes = Object.fromEntries(await Promise.all(['forslag', 'fortsatt', 'kontroll', 'lagen', 'folj', 'samling', 'aktiviteter', 'diagnos', 'fonster', 'placering', 'underlag'].map(async name => [name, (await import(`../app/api/schema/${name}/route.ts`)).POST])));
+fake.freshSeed = () => { state.seedCount = (state.seedCount ?? 0) + 1; return 123_000 + state.seedCount; };
 const reset = () => { state = { role: 'rektor', seePupils: true, reads: [], events: [], solves: [], validations: [], diagnoses: [], suggests: [] }; };
 const scope = villkor => ({ unitId: id(1), schoolYear: 2026, period: 'ht', villkor: villkor ?? defaultSchemaVillkor() });
 const basis = () => ({ members: { pupils: pupils().map(p => ({ id: p.id, classIds: p.classIds })), memberships: [] }, time: defaultSchemaTime(),
@@ -146,7 +153,7 @@ test('samlingsvyn använder aktuell skolavgränsning och lämnar inga data när 
 });
 
 test('obligatorisk audit måste lyckas innan samlings- eller aktivitetsdata och motoranrop lämnas', async () => {
-  for (const name of ['samling', 'aktiviteter', 'placering']) {
+  for (const name of ['samling', 'aktiviteter', 'placering', 'fortsatt']) {
     reset(); const value = body(name); state.auditFails = true; state.auditAction = 'tjanst_plan_read';
     const res = await routes[name](request(name, value));
     assert.equal(res.status, 500); assert.equal((await res.json()).code, 'audit_unavailable');
@@ -182,7 +189,7 @@ test('främmande aktivitetsresurs ger kontrollerat 400 på alla beräknings- och
 });
 
 test('gammalt kontrakt stoppas före källäsning och gammal grund stoppas före motorn', async () => {
-  for (const name of ['samling', 'aktiviteter', 'placering']) {
+  for (const name of ['samling', 'aktiviteter', 'placering', 'fortsatt']) {
     reset(); let res = await routes[name](request(name, { ...body(name), contractVersion: SCHEMA_CONTRACT_VERSION - 1 }));
     assert.equal(res.status, 400); assert.equal((await res.json()).details.reason, 'schema_contract_version'); assert.equal(state.reads.length, 0);
     reset(); res = await routes[name](request(name, { ...body(name), grundFingerprint: 'a'.repeat(28) }));
@@ -364,3 +371,73 @@ test('med salregister: lägena prövar tiden utan sal och behåller passets egen
   assert.equal(call.problem.lessons.find(l => l.id === forsta.lesson).rooms, undefined, 'motorn får passet utan salkrav');
   assert.deepEqual(svar.positions.map(p => [p.startMin, p.room]), [[600, null], [900, 'sal-1']], 'upptagen vid 10:00, ledig vid 15:00');
 }));
+
+test('första förslag och fortsatt beräkning skickar vald räknetid; äldre klient utan tid får 30 sekunder', async () => {
+  for (const name of ['forslag', 'fortsatt']) for (const time of [undefined, 10_000, 30_000, 60_000]) {
+    reset(); const value = { ...body(name), ...(time === undefined ? {} : { solveTimeMs: time }) };
+    const res = await routes[name](request(name, value));
+    assert.equal(res.status, 200, `${name}: ${time}`); assert.deepEqual(state.solveTimes, [time ?? 30_000]);
+    assert.deepEqual(state.solveSeeds, [name === 'fortsatt' ? 123_001 : undefined]);
+    if (name === 'fortsatt') parseSchemaFortsatt(await res.json(), value);
+  }
+});
+
+test('varje fortsättning får nytt serverfrö även från oförändrad referens; klienten får inte välja frö', async () => {
+  reset(); const input = body('fortsatt');
+  for (let i = 0; i < 2; i++) assert.equal((await routes.fortsatt(request('fortsatt', input))).status, 200);
+  assert.deepEqual(state.solveSeeds, [123_001, 123_002]);
+  assert.deepEqual(state.solves[0].reference, state.solves[1].reference);
+  for (const name of ['fortsatt', 'forslag']) {
+    reset(); assert.equal((await routes[name](request(name, { ...body(name), seed: 7 }))).status, 400);
+    assert.equal(state.solves.length + state.reads.length, 0);
+  }
+});
+
+test('fortsättning utgår från de handgjorda placeringarna, bevarar lås och lämnar före/efter utan skrivning', async () => {
+  reset(); const value = { ...body('fortsatt'), solveTimeMs: 60_000 };
+  value.placements[0] = { ...value.placements[0], day: 2, startMin: 755 };
+  value.locks = { grundFingerprint: value.grundFingerprint, placements: [value.placements[0]] };
+  const before = structuredClone(value), res = await routes.fortsatt(request('fortsatt', value));
+  assert.equal(res.status, 200); const result = parseSchemaFortsatt(await res.json(), value);
+  assert.deepEqual(value, before, 'kommandot ändras inte'); assert.equal(state.validations.length, 2);
+  assert.deepEqual(state.solves[0].reference, value.placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })));
+  assert.deepEqual(state.solves[0].lessons[0].locked, { day: 2, start_min: 755 });
+  assert.equal(result.forslag.lessons.find(l => l.id === value.placements[0].lesson).startMin, 755);
+  assert.equal(result.before.metrics.placed, value.placements.length); assert.equal(result.after.metrics.placed, result.forslag.metrics.placed);
+  assert.ok(state.events.every(e => !e.action.includes('save')), 'ingen sparhändelse');
+});
+
+test('fortsättning med salregister väljer inte sal åt redan lagda eller olagda pass utan sal', () => dubbelt(async () => {
+  reset(); const value = { ...body('fortsatt', medSalregister()), solveTimeMs: 30_000 };
+  value.placements = value.placements.slice(0, 1);
+  const res = await routes.fortsatt(request('fortsatt', value));
+  assert.equal(res.status, 200); const result = parseSchemaFortsatt(await res.json(), value);
+  assert.ok(state.solves[0].lessons.every(l => !l.rooms));
+  assert.ok(result.forslag.lessons.every(l => l.roomId === null));
+  assert.ok(result.forslag.lessons.some(l => l.roomIds.length > 0), 'salbehoven finns kvar i granskningsförslaget');
+}));
+
+test('fortsättning stoppar felaktiga referenser, dubbla pass, saknat lås och ogiltig budget före motorn', async () => {
+  const mutations = [
+    r => { r.placements[0].lesson = 'pass-888888'; },
+    r => { r.placements.push({ ...r.placements[0] }); },
+    r => { r.locks = { grundFingerprint: r.grundFingerprint, placements: [{ ...r.placements[0] }] }; r.placements.shift(); },
+    r => { r.solveTimeMs = 120_000; }, r => { r.solveTimeMs = '60000'; }, r => { r.extra = true; },
+  ];
+  for (const mutate of mutations) {
+    reset(); const value = body('fortsatt'); mutate(value);
+    const res = await routes.fortsatt(request('fortsatt', value));
+    assert.equal(res.status, 400); assert.equal(state.solves.length + state.validations.length, 0);
+  }
+});
+
+test('fortsättning nekar annan skola och redovisar motorfel utan kandidat eller insända personuppgifter', async () => {
+  reset(); let res = await routes.fortsatt(request('fortsatt', { ...body('fortsatt'), unitId: id(999) }));
+  assert.equal(res.status, 403); assert.equal(state.solves.length + state.validations.length, 0);
+  for (const reason of ['schema_engine_busy', 'schema_engine_unreachable', 'schema_engine_bad_reply']) {
+    reset(); const value = body('fortsatt'); state.engineFailure = reason;
+    res = await routes.fortsatt(request('fortsatt', value)); const result = await res.json();
+    assert.equal(res.status, 503); assert.equal(result.details.reason, reason);
+    assert.ok(!Object.hasOwn(result, 'forslag')); assert.ok(!JSON.stringify(result).includes('Provlärare'));
+  }
+});

@@ -3,7 +3,8 @@ import { protectedRoute, requireSameOrigin } from '../../../../lib/server/authz.
 import { json } from '../../../../lib/server/http.ts';
 import { readSchemaBasis, schemaBegaran } from '../../../../lib/server/schema-read.ts';
 import { SchemaEngineError, solveSchema } from '../../../../lib/server/schemamotor.ts';
-import { parseSchemaForslagRequest, SchemaContractError, type SchemaForslagRequest, type SchemaSolution } from '../../../../lib/schema-contract.ts';
+import { SchemaContractError, type SchemaSolution } from '../../../../lib/schema-contract.ts';
+import { parseSchemaSolveRequest, type SchemaSolveRequest } from '../../../../lib/schema-fortsatt.ts';
 import { buildSchemaUnderlag, schemaForslag, type SchemaBasis } from '../../../../lib/schema-underlag.ts';
 import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
 
@@ -13,10 +14,10 @@ import type { TjanstPlanRead } from '../../../../lib/tjanst-contract.ts';
  * Motorn anropas först när databastransaktionen är klar, så att räknetiden inte håller en anslutning. Inget sparas.
  */
 export async function POST(request: Request): Promise<Response> {
-  const read: { plan?: TjanstPlanRead; input?: SchemaForslagRequest; basis?: SchemaBasis } = {};
+  const read: { plan?: TjanstPlanRead; input?: SchemaSolveRequest; basis?: SchemaBasis } = {};
   const response = await protectedRoute(request, 'tjanst_plan_read', { mutating: false, mfa: true, audit: 'required', functions: ['rektor', 'administrator'] }, async (ctx, tx) => {
     requireSameOrigin(request);
-    const input = await schemaBegaran(request, value => parseSchemaForslagRequest(value));
+    const input = await schemaBegaran(request, parseSchemaSolveRequest);
     const result = await readSchemaBasis(request, tx, ctx, input);
     read.plan = result.plan; read.input = input; read.basis = result.basis;
     return { body: null, event: result.event };
@@ -27,7 +28,7 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const underlag = buildSchemaUnderlag(read.plan, read.input, read.basis);
     const empty: SchemaSolution = { status: 'input_missing', placements: [], unplaced: [], diagnoses: [], metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: 0 };
-    const solution = underlag.problem.lessons.length === 0 ? empty : await solveSchema(underlag.problem);
+    const solution = underlag.problem.lessons.length === 0 ? empty : await solveSchema(underlag.problem, read.input.solveTimeMs);
     return json(schemaForslag(read.plan, read.input, underlag, solution), init);
   } catch (error) {
     if (error instanceof SchemaFordelningError) return json({ code: 'schema_fordelning_invalid', correlationId, details: { issues: error.issues.slice(0, 20) } }, { ...init, status: 400 });

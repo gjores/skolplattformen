@@ -53,19 +53,24 @@ fn error(request: Request, status: u16, code: &str) {
     reply(request, status, format!("{{\"error\":\"{code}\"}}"));
 }
 
-fn time_ms(url: &str, cfg: &Config) -> Result<u64, ()> {
-    let Some((_, query)) = url.split_once('?') else { return Ok(cfg.default_time_ms) };
-    let mut out = cfg.default_time_ms;
-    for pair in query.split('&') {
-        match pair.split_once('=') {
-            Some(("time_ms", v)) => out = v.parse::<u64>().map_err(|_| ())?,
-            _ => return Err(()),
+#[derive(Debug, PartialEq)]
+struct SolveQuery { time_ms: u64, seed: u64 }
+
+fn solve_query(url: &str, cfg: &Config) -> Result<SolveQuery, ()> {
+    let (mut time, mut seed) = (None, None);
+    if let Some((_, query)) = url.split_once('?') {
+        for pair in query.split('&') {
+            let (key, raw) = pair.split_once('=').ok_or(())?;
+            if raw.is_empty() || !raw.bytes().all(|c| c.is_ascii_digit()) { return Err(()); }
+            let value = raw.parse::<u64>().map_err(|_| ())?;
+            match key {
+                "time_ms" if time.is_none() && value > 0 => time = Some(value),
+                "seed" if seed.is_none() => seed = Some(value),
+                _ => return Err(()),
+            }
         }
     }
-    if out == 0 {
-        return Err(());
-    }
-    Ok(out.min(cfg.max_time_ms))
+    Ok(SolveQuery { time_ms: time.unwrap_or(cfg.default_time_ms).min(cfg.max_time_ms), seed: seed.unwrap_or(1) })
 }
 
 #[derive(Deserialize)]
@@ -110,7 +115,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     if !authorized {
         return error(request, 401, "unauthorized");
     }
-    let Ok(limit) = time_ms(request.url(), cfg) else { return error(request, 400, "bad_request") };
+    let Ok(query) = solve_query(request.url(), cfg) else { return error(request, 400, "bad_request") };
     if (check || path == "/v1/diagnose" || path == "/v1/suggest") && request.url().contains('?') {
         return error(request, 400, "bad_request");
     }
@@ -183,7 +188,7 @@ fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
         let out = serde_json::json!({"version": problem.version, "problem_id": problem.id, "diagnoses": diagnose(&problem)});
         return reply(request, 200, out.to_string());
     }
-    let options = Options { time_limit_ms: Some(limit), max_iters: None, threads: cfg.threads, seed: 1 };
+    let options = Options { time_limit_ms: Some(query.time_ms), max_iters: None, threads: cfg.threads, seed: query.seed };
     let solution = solve(&problem, &options, &AtomicBool::new(false));
     reply(request, 200, serde_json::to_string(&solution).expect("resultat"));
 }
@@ -205,6 +210,19 @@ mod tests {
     use std::net::TcpStream;
 
     const TOKEN: &str = "prov-token-bara-for-test";
+
+    #[test]
+    fn solve_query_is_strict_and_old_calls_keep_seed_one() {
+        let mut cfg = Config::new(TOKEN.into());
+        cfg.max_time_ms = 1500;
+        assert_eq!(solve_query("/v1/solve", &cfg), Ok(SolveQuery { time_ms: 1500, seed: 1 }));
+        assert_eq!(solve_query("/v1/solve?time_ms=200", &cfg), Ok(SolveQuery { time_ms: 200, seed: 1 }));
+        assert_eq!(solve_query("/v1/solve?seed=0&time_ms=3000", &cfg), Ok(SolveQuery { time_ms: 1500, seed: 0 }));
+        assert_eq!(solve_query("/v1/solve?time_ms=300&seed=18446744073709551615", &cfg), Ok(SolveQuery { time_ms: 300, seed: u64::MAX }));
+        for query in ["", "seed=", "seed=-1", "seed=+1", "seed=1.5", "seed=1e3", "seed=%31", "seed=18446744073709551616", "seed=1&seed=2", "seed=1&seed=1", "time_ms=200&time_ms=200", "time_ms=0", "time_ms=-1", "unknown=1", "seed=1&"] {
+            assert_eq!(solve_query(&format!("/v1/solve?{query}"), &cfg), Err(()), "{query}");
+        }
+    }
 
     fn call(addr: &str, path: &str, token: Option<&str>, body: &str) -> (u16, String) {
         let mut s = TcpStream::connect(addr).unwrap();

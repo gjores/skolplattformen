@@ -5,12 +5,12 @@
  */
 import { env as bindings } from 'cloudflare:workers';
 import { SchemaContractError, parseSchemaEngineDiagnoses, parseSchemaSolution, parseSchemaCheck, type SchemaCheck, type SchemaPlacement, type SchemaProblem, type SchemaSolution } from '../schema-contract.ts';
-import { SCHEMA_DEFAULTS } from '../schema-underlag.ts';
+import { SCHEMA_SOLVE_DEFAULT_MS, schemaSolveTime, type SchemaSolveTimeMs } from '../schema-fortsatt.ts';
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
 import { motorProblem } from '../schema-utan-sal.ts';
 import { parseSchemaMotorPlacering, type SchemaPlaceringFailure, type SchemaPlaceringVal } from '../schema-placering.ts';
 
-const SCHEMA_ENGINE_TIME_MS = SCHEMA_DEFAULTS.solveTimeMs, MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
+const MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
 export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply' | SchemaPlaceringFailure;
 export class SchemaEngineError extends Error {
   public reason: SchemaEngineFailure;
@@ -46,8 +46,20 @@ async function call<T>(path: string, body: unknown, timeMs: number, parse: (valu
   try { return parse(JSON.parse(text)); } catch { throw new SchemaEngineError('schema_engine_bad_reply'); }
 }
 
-export function solveSchema(problem: SchemaProblem): Promise<SchemaSolution> {
-  return call(`/v1/solve?time_ms=${SCHEMA_ENGINE_TIME_MS}`, problem, SCHEMA_ENGINE_TIME_MS, value => parseSchemaSolution(value, problem));
+/** Ett nytt sökfrö per fortsättning. Endast servern väljer det; det ingår inte i schemagrunden eller det sparade utkastet. */
+export function freshSchemaSolveSeed(): number {
+  const random = crypto.getRandomValues(new Uint32Array(2));
+  return Math.max(1, (random[0] & 0x1fffff) * 0x1_0000_0000 + random[1]);
+}
+
+export function solveSchema(problem: SchemaProblem, timeMs: SchemaSolveTimeMs = SCHEMA_SOLVE_DEFAULT_MS, seed?: number): Promise<SchemaSolution> {
+  const limit = schemaSolveTime(timeMs);
+  if (seed !== undefined && (!Number.isSafeInteger(seed) || seed < 0)) throw new SchemaContractError();
+  return call(`/v1/solve?time_ms=${limit}${seed === undefined ? '' : `&seed=${seed}`}`, problem, limit, value => {
+    // Fröet finns redan i motorns stats. Ett gammalt/felaktigt svar får inte påstå att den nya sökomgången användes.
+    if (seed !== undefined && (value as { stats?: { seed?: unknown } } | null)?.stats?.seed !== seed) throw new SchemaContractError();
+    return parseSchemaSolution(value, problem);
+  });
 }
 
 /** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. Pass utan sal upptar ingen sal (05.2-SM-UXF-43). */

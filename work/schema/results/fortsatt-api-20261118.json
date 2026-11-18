@@ -1,0 +1,50 @@
+{
+  "kind": "schema-fortsatt-api-verification",
+  "date": "2026-11-18",
+  "candidate": "working-tree-before-final-commit",
+  "status": "PASS",
+  "syntheticDataOnly": true,
+  "databaseOrOidcTest": false,
+  "installedOn3012Or3013": false,
+  "checks": [
+    { "name": "Node contracts, routes and motor transport", "passed": 34, "failed": 0 },
+    { "name": "Rust warm start and locked reference", "passed": 3, "failed": 0 },
+    { "name": "Rust strict time/seed query parser", "passed": 1, "failed": 0 },
+    { "name": "Actual motor service HTTP suite", "passed": 12, "failed": 0 },
+    { "name": "TypeScript", "status": "PASS" },
+    { "name": "Oxlint app lib", "status": "PASS" },
+    { "name": "git diff --check", "status": "PASS" },
+    { "name": "Locked offline release build", "status": "PASS" }
+  ],
+  "actualMotorHttp": {
+    "script": "work/schema/verify-fortsatt.mjs",
+    "timeMs": 10000,
+    "placedBefore": 2,
+    "placedAfter": 3,
+    "violationsBefore": 0,
+    "violationsAfter": 0,
+    "referenceCount": 2,
+    "lockedPreserved": true,
+    "withoutRoomsPreserved": true,
+    "strictReply": true,
+    "freshSeedAcknowledged": true,
+    "noTokenDenied": true,
+    "ownTemporaryProcessCleaned": true
+  },
+  "releaseBinaries": [
+    {
+      "path": "schemamotor/target/release/schemamotor-tjanst",
+      "sha256": "af5a47fee7ba70632342480a041725577ce89f73944ceec3c56ff60b12fde83a"
+    },
+    {
+      "path": "schemamotor/target/release/schemamotor",
+      "sha256": "4f36fdec0c4e8bca4490ed45a5675de1623f534c603158cad3720285f1abdc5c"
+    }
+  ],
+  "limits": [
+    "The application chooses 10, 30 or 60 seconds; the real HTTP chain above used 10 seconds.",
+    "Each continuation starts from current placements with a new server-generated seed; internal search history is not checkpointed.",
+    "Server role/database readers in route unit tests are simulated; this is not a full protected Worker/OIDC/PostgreSQL test.",
+    "No user acceptance or installation is claimed."
+  ]
+}
