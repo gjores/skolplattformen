@@ -1,5 +1,10 @@
 # Skolplattformen
 
+## Aktuellt 2026-11-18 — fortsatt schemaberäkning färdig för installation
+
+[SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) är genomförd på användarens begäran: val 10/30/60 sekunder, förval 30, och Fortsätt förbättra från det aktuella utkastet. Lås och datumkopplingar skyddas, alla ändringar granskas före användning och kan ångras tillsammans. Följ passet har kortare informationsrader. Slutprov 1479 Node PASS (två äldre opt-in-skip), 34 unika UI-profilfall, typ/lint/byggen PASS; oberoende granskning utan öppna blockerare. [Fryst 66a4fb96](phases/05.2-schemamodul/05.2-SM-FORTSATT-RELEASE.md) har 1490 verifierade filer/571 paket och faktisk 60-sekundersmotor PASS med bevarade lås/salfria pass, 2 → 3 lagda utan regelavvikelser. Ingen ny SQL, extern anslutning eller mänsklig acceptans. **Inte installerad: 3012/3013 kör fortfarande f3869834, skolans salregister/UXF-43. Separat installationsbeslut återstår.** Äldre noteringar nedan är historik.
+
+
 ## Aktuellt 2026-11-16 — fördjupad UX-research och principskiss
 
 Användarens fördjupade researchbeställning är genomförd: [samlad designriktning](phases/05.2-schemamodul/05.2-SM-UX-RESEARCH.md),35 manualartiklar, UX-primärkällor och tolv prioriterade kodfynd. Förslaget omprövar sexstegslistan till **Förbered/Lägg schema/Granska** för samma utkast, med fria förberedelseområden, gemensam formulär/tabell, stadig inspektör och granskat omtag. Principskiss med exempeldata:16/16 klick-/layoutkontroller PASS. **Designhypotes, inte användarverifierad ombyggnad.** Ingen ny produkt-/mål-/handboksändring eller kravacceptans; installerad 7e38ba67 består. Riktade användarprov och genomförandeplanering är föreslagna nästa steg.

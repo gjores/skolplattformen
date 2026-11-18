@@ -1,0 +1,25 @@
+{
+  "kind": "schema-fortsatt-actual-motor-http",
+  "status": "PASS",
+  "timeMs": 60000,
+  "actualElapsedMs": 60001,
+  "solveRoundTripMs": 60013,
+  "withinRequestedBudget": true,
+  "motorBinary": {
+    "file": "schemamotor-tjanst",
+    "sha256": "a9a9fab1051a24a9861742f04b833cb46b74c160842a6767cb1b2fdfd5435b82",
+    "explicitlyBound": true
+  },
+  "motorBinaryUnchanged": true,
+  "placedBefore": 2,
+  "placedAfter": 3,
+  "violationsBefore": 0,
+  "violationsAfter": 0,
+  "referenceCount": 2,
+  "lockedPreserved": true,
+  "withoutRoomsPreserved": true,
+  "strictReply": true,
+  "freshSeedAcknowledged": true,
+  "noTokenDenied": true,
+  "ownTemporaryProcessCleaned": true
+}

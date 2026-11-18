@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara, installerade på 3012; UXF-53 väntar på beslut om provbokning"
+current_plan: "SM-FORTSATT klar och fryst, väntar installation; UXFLODE till UXF-52 installerad, UXF-53 väntar provbeslut"
 status: in_progress
-stopped_at: "f3869834 (skolans salregister, UXF-43, resursväljare) är installerad på 3012/3013 med två additiva migrationer (journal 169→171), PASS 6/6. Användarens prov på 3012 återstår."
-last_updated: "2026-11-17"
-last_activity: 2026-11-17
-last_activity_desc: "563e1201 installerad på 3012/3013 efter användarens ja; andra försöket PASS efter rättad förväntan i installationsskriptet."
-state_head: 93e9081a5d5674ffa0df5768333c5a4459fe2953
+stopped_at: "SM-FORTSATT och TMI klara; fryst 66a4fb96 inventeringskontrollerad och faktisk 60s-motor PASS. Separat installationsbeslut återstår. 3012/3013 kör fortsatt f3869834."
+last_updated: "2026-11-18"
+last_activity: 2026-11-18
+last_activity_desc: "Valbar räknetid och fortsatt sökning från aktuellt utkast med granskning/Ångra klara; inget nytt installerat."
+state_head: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 progress:
   total_phases: 8
   completed_phases: 3
@@ -22,13 +22,16 @@ worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: f3869834e80ba270f024fe41e077a8bbdbbe81b8
-schema_candidate_revision: f3869834e80ba270f024fe41e077a8bbdbbe81b8
-schema_candidate_status: installed_awaiting_user_retrial
+schema_candidate_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
+schema_candidate_status: prepared_1490_files_frozen_motor_60s_pass_no_new_sql_awaiting_installation_decision
 schema_motor_contract_version: 5
 schema_installation_status: uxf23_passed_6_groups_two_additive_migrations_journal_171_74_prior_revisions_preserved
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**2026-11-18 – fortsatt beräkning och TMI klara, inte installerade:** [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger 10/30/60 sekunder (förval30) och Fortsätt förbättra från aktuella placeringar med nytt sökfrö. Granskning, lås/datum, autosave och Ångra bevaras; Följ passet har korta lärarrader och blockdetaljer på begäran. Slutprov1479 Node PASS +2 äldre opt-in-skip,34 unika UI-profilfall, typ/lint/app/handbok PASS. Oberoende granskning utan öppna blockerare. [Fryst kandidat66a4fb96](phases/05.2-schemamodul/05.2-SM-FORTSATT-RELEASE.md):1490 filer,571 paket,app8/motor5,0 nya SQL. Faktisk60s-körning av exakt fryst motor PASS:2→3 lagda pass,0 regelavvikelser,lås/salfria kvar,nytt frökvitto,egen process städad. Ingen ny faktisk Worker/OIDC/PostgreSQL-helkedja eller mänsklig acceptans. **Nästa är separat installationsbeslut för66a4; på3012/3013 kör fortfarande f3869834.** Inga formella krav-/fasantal ändras.
+
 
 **05.2-SM samlingsvyns resursväljare 2026-11-18:** Efter användarens bild och **”Borde gå att lägga här istället med en sökväljarfunktion”** är dialogen ersatt av ett sökfält med förslag direkt i raden Visas. Det är samma combobox som lärarväljaren, med grupperade träffar, tangentbord och ett fält som töms efter valet. Prövat i UI-prov: 18 av 18 på 1280 och 1600 px, även vid 200 % text. Installerat med f3869834 2026-11-18.
 

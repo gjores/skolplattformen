@@ -1,0 +1,26 @@
+{
+  "kind": "schema-fortsatt-prepared-release",
+  "status": "PREPARED",
+  "authorization": "pending-concrete-user-approval",
+  "sourceRevision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "previousRuntimeRevision": "f3869834e80ba270f024fe41e077a8bbdbbe81b8",
+  "directory": "/private/tmp/schema-uat-release-20261118-66a4fb96",
+  "manifestSha256": "381e203c46e97669e5de37990dc3d50e1bb5154f932fc88988669f5e521df00a",
+  "artifactSha256": "587a6df2c861e22a3261737dbbcc75db1c11b1a8c8056576812b411c03ade2c4",
+  "fileCount": 1490,
+  "installedPackages": 571,
+  "contracts": {
+    "app": 8,
+    "motor": 5
+  },
+  "newMigrations": [],
+  "historicalMigrationsInBundle": 5,
+  "targetContact": false,
+  "frozenInventoryValidation": "PASS",
+  "motorProof": "work/schema/results/fortsatt-frozen-motor-66a4fb96.json",
+  "installed": false,
+  "motorProofStatus": "PASS",
+  "actualBudgetMs": 60000,
+  "actualElapsedMs": 60001,
+  "ownedMotorCleaned": true
+}
