@@ -5,7 +5,7 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "05.2-SM-UXFLODE våg 1–4 samt UXF-51 och UXF-52 klara, installerade på 3012; UXF-53 väntar på beslut om provbokning"
 status: in_progress
-stopped_at: "ead8f388 (arbetsgången Förbered → Lägg schema och UXF-43) är installerad på 3012/3013, PASS 5/5, 0 migrationer. Användarens prov på 3012 återstår."
+stopped_at: "f3869834 (skolans salregister, UXF-43, resursväljare) är installerad på 3012/3013 med två additiva migrationer (journal 169→171), PASS 6/6. Användarens prov på 3012 återstår."
 last_updated: "2026-11-17"
 last_activity: 2026-11-17
 last_activity_desc: "563e1201 installerad på 3012/3013 efter användarens ja; andra försöket PASS efter rättad förväntan i installationsskriptet."
@@ -21,18 +21,18 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: ead8f3880ddcbb3732993677639b2236695ef412
-schema_candidate_revision: ead8f3880ddcbb3732993677639b2236695ef412
+schema_runtime_revision: f3869834e80ba270f024fe41e077a8bbdbbe81b8
+schema_candidate_revision: f3869834e80ba270f024fe41e077a8bbdbbe81b8
 schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 5
-schema_installation_status: uxf43_passed_5_groups_zero_new_sql_65_prior_revisions_preserved
+schema_installation_status: uxf23_passed_6_groups_two_additive_migrations_journal_171_74_prior_revisions_preserved
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
 
-**05.2-SM samlingsvyns resursväljare 2026-11-18:** Efter användarens bild och **”Borde gå att lägga här istället med en sökväljarfunktion”** är dialogen ersatt av ett sökfält med förslag direkt i raden Visas. Det är samma combobox som lärarväljaren, med grupperade träffar, tangentbord och ett fält som töms efter valet. Prövat i UI-prov: 18 av 18 på 1280 och 1600 px, även vid 200 % text. Inte installerat.
+**05.2-SM samlingsvyns resursväljare 2026-11-18:** Efter användarens bild och **”Borde gå att lägga här istället med en sökväljarfunktion”** är dialogen ersatt av ett sökfält med förslag direkt i raden Visas. Det är samma combobox som lärarväljaren, med grupperade träffar, tangentbord och ett fält som töms efter valet. Prövat i UI-prov: 18 av 18 på 1280 och 1600 px, även vid 200 % text. Installerat med f3869834 2026-11-18.
 
-**05.2-SM UXF-23 skolans salregister 2026-11-18:** Användaren skrev **”salar är något som borde finnas som en konstant … i tabell som alltid blir tillgänglig i schema”** och valde behörighet (huvudman, rektor, administratör), en sal per skolenhet och uttrycklig överföring. Byggt: tabell med migration (inte applicerad), rutter, att schemat läser registret och Salar-vyn med förhandsgranskad överföring. Prövat i ephemeral PostgreSQL (18 av 18) och mot simulerade rutter. **Inte installerat.** Installationen är förberedd 2026-11-18: kandidat `f3869834` (egen API-kedja 10 av 10, provinstallation 169→171 i egen databas) och skriptet `install-uxf23.mjs`. Körningen kräver användarens ja, eftersom två migrationer ska köras på målet. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-23-SKOLANS-SALREGISTER-PLAN.md).
+**05.2-SM UXF-23 skolans salregister 2026-11-18:** Användaren skrev **”salar är något som borde finnas som en konstant … i tabell som alltid blir tillgänglig i schema”** och valde behörighet (huvudman, rektor, administratör), en sal per skolenhet och uttrycklig överföring. Byggt: tabell med migration (inte applicerad), rutter, att schemat läser registret och Salar-vyn med förhandsgranskad överföring. Prövat i ephemeral PostgreSQL (18 av 18) och mot simulerade rutter. **Installerat 2026-11-18 efter användarens ”Ja, installera”:** PASS 6 av 6, journal 169→171 och 74 tidigare utkastrevisioner oförändrade ([installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-18.md)). Förberedelsen 2026-11-18: kandidat `f3869834` (egen API-kedja 10 av 10, provinstallation 169→171 i egen databas) och skriptet `install-uxf23.mjs`. Körningen kräver användarens ja, eftersom två migrationer ska köras på målet. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-23-SKOLANS-SALREGISTER-PLAN.md).
 
 **05.2-SM UXF-43 2026-11-17 (kväll):** Användaren godkände med **”Kör på det”**: med salregister fyller kontrollen ingen sal, och vid flytt behåller passet sin sal bara där den är ledig, annars blir passet utan sal och det syns före flytten. Pass utan sal upptar ingen sal hos motorn, så placeringsförslagen fungerar. Äldre utkast utan register är oförändrade. Kontroller: 368 Node-prov, 322 av 322 UI-fall på 1280 och 1600 px, typkontroll, lint, bygge och handbok. Installerad på 3012/3013 samma kväll som `ead8f388` efter användarens ja: egen API-kedja 9 av 9, installation PASS 5 av 5, 0 migrationer och 65 tidigare revisioner oförändrade ([journal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-17.md)). Skolplattans guide är inte synkad med lägesfälten. [Plan och utfall](phases/05.2-schemamodul/05.2-SM-UXF-43-SALIFYLLNING-PLAN.md).
 

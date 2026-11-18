@@ -25,7 +25,7 @@ const oldBase=path.join(previous,'runtime'), appDir=path.join(stage,'runtime/web
 const targetFile=path.join(root,'work/pilot/targets/protected/manifest.json');
 const node='/opt/homebrew/opt/node@25/bin/node',runId=randomUUID();
 const out=path.join(root,'work/schema/results/uxf23-f3869834e8-install.json');
-const report={kind:'schema-uxf23-installation',revision,request:'UXF-23 skolans salregister; körs bara efter uttryckligt ja till installation med migration',startedAt:new Date().toISOString(),status:'FAIL',checks:[],migrationsApplied:0,rollback:{performed:false}};
+const report={kind:'schema-uxf23-installation',revision,request:'Ja, installera (2026-11-18), UXF-23 skolans salregister med två migrationer efter uttryckligt ja',startedAt:new Date().toISOString(),status:'FAIL',checks:[],migrationsApplied:0,rollback:{performed:false}};
 const pass=name=>{report.checks.push({name,status:'PASS'});console.log(JSON.stringify({stage:name,status:'PASS'}));};
 const json = file => JSON.parse(readFileSync(file, 'utf8'));
 const delay = ms => new Promise(resolve => setTimeout(resolve, ms));

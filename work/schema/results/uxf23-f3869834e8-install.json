@@ -1,0 +1,118 @@
+{
+  "kind": "schema-uxf23-installation",
+  "revision": "f3869834e80ba270f024fe41e077a8bbdbbe81b8",
+  "request": "Ja, installera (2026-11-18), UXF-23 skolans salregister med två migrationer efter uttryckligt ja",
+  "startedAt": "2026-11-18T14:01:01.698Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "same frozen candidate passed actual owned API tests and full cleanup",
+      "status": "PASS"
+    },
+    {
+      "name": "exact old product files, only the two new additive migrations, unchanged mandate gate, owned install rehearsal; installed169journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "two migrations rehearsed, rolled back and atomically committed with the app stopped; original rows retained (journal169->171)",
+      "status": "PASS"
+    },
+    {
+      "name": "UXF-23 candidate on3012 and compatible motor5 on3013",
+      "status": "PASS"
+    },
+    {
+      "name": "all18protected schema paths, including the two school room paths, retain session gate",
+      "status": "PASS"
+    },
+    {
+      "name": "171journal and installed catalog, empty school room tables, all prior draft revisions, session secret and exact new product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 2,
+  "rollback": {
+    "performed": false
+  },
+  "preservedRevisions": {
+    "count": 74,
+    "sha256": "909309ae0ec705b52079844d02c6e0bd06758122bab2346d9c854f794149ea18"
+  },
+  "database": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "f3921460bf4dbeb550ba8911e5be5a2fb9988375d6a86f2af9bdf75544c4af82",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+      "inventory": {
+        "newFunctions": 10,
+        "newTables": 2,
+        "newIndexes": 3,
+        "newTriggers": 1,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 2,
+        "workerEntries": 2,
+        "privateHelpers": 8
+      },
+      "journalCount": 171,
+      "journalSha256": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "f3921460bf4dbeb550ba8911e5be5a2fb9988375d6a86f2af9bdf75544c4af82"
+    },
+    "committed": true,
+    "installed": {
+      "fingerprint": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+      "inventory": {
+        "newFunctions": 10,
+        "newTables": 2,
+        "newIndexes": 3,
+        "newTriggers": 1,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 2,
+        "workerEntries": 2,
+        "privateHelpers": 8
+      },
+      "journalCount": 171,
+      "journalSha256": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a",
+      "auditId": "298127"
+    },
+    "journal": {
+      "before": 169,
+      "after": 171,
+      "sha256": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a"
+    },
+    "fingerprint": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+    "preservedRowsSha256": "11045a3598ea36f0423a6c0c7a31177c3d1375693e3abc1f2e537782a05ea42f"
+  },
+  "manifestSha256": "0dc7da4e0f6f2133d275060a1ed0ce9db6449b0fc1fbc823edace0a4fad891ba",
+  "inventorySha256": "d21397d9d2acbbca17fdeec8aee1ec30756c592e97587d0d48a1cb42a2a4780c",
+  "stage": "work/pilot/targets/protected/runtime/schema-f3869834e8",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-ead8f38880",
+  "processes": {
+    "appRoot": 26834,
+    "appListener": 26851,
+    "motorListener": 26825
+  },
+  "finishedAt": "2026-11-18T14:02:13.496Z"
+}
