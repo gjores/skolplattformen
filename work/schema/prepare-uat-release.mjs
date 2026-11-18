@@ -8,6 +8,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { SCHEMA_UAT_MIGRATIONS, schemaUatSources, schemaUatSqlMetadata } from '../pilot/schema-uat-install-core.mjs';
 import { prepareMigrationSql } from '../pilot/apply-elective-blocks.mjs';
+import { SCHOOL_ROOMS_MIGRATIONS, schoolRoomsSources, schoolRoomsSqlMetadata } from '../pilot/school-rooms-install-core.mjs';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 export const PREVIOUS_SCHEMA_REVISION = '4267daf75b4f142f72ce04a9d3ac57e5b98ea2ef';
@@ -172,7 +173,8 @@ export async function prepareSchemaUatRelease({ revision, directory, motorReleas
   for (const name of ['schemamotor', 'schemamotor-tjanst']) copyFileSync(path.join(reusedMotor === null ? path.join(directory, 'cargo-target/release')
     : path.join(reusedMotor.directory, 'runtime/motor'), name), path.join(runtime, 'motor', name));
   if (reusedMotor !== null) assertSchemaMotorFiles(directory, reusedMotor.provenance.files);
-  const sources = schemaUatSources(clone), sql = schemaUatSqlMetadata(sources);
+  // Schemaleveransens tre installerade migrationer och skolans salregister (05.2-SM-UXF-23), i journalens ordning.
+  const sql = [...schemaUatSqlMetadata(schemaUatSources(clone)), ...schoolRoomsSqlMetadata(schoolRoomsSources(clone))];
   for (const item of sql) copyFileSync(path.join(clone, 'supabase/migrations', item.file), path.join(directory, 'sql', item.file));
   onStage('verifying-final-inventory');
   assert.deepEqual(schemaReleaseDependencies(path.join(web, 'package-lock.json'), dependencies), dependencyManifest, 'dependencies changed during frozen build');
@@ -199,7 +201,7 @@ export function verifySchemaUatRelease(directory, { nodeModules = null } = {}) {
   assert.deepEqual(Object.keys(manifest.contracts).sort(), ['app', 'motor']); assert.ok([4, 5].includes(manifest.contracts.motor), 'supported motor contract required');
   assertSchemaReleaseRevision(root, manifest.previousRuntimeRevision);
   assert.equal(manifest.authorization, 'pending-concrete-user-approval');
-  assert.deepEqual(manifest.sql.map(item => item.file), [...SCHEMA_UAT_MIGRATIONS], 'exact three migrations required');
+  assert.deepEqual(manifest.sql.map(item => item.file), [...SCHEMA_UAT_MIGRATIONS, ...SCHOOL_ROOMS_MIGRATIONS], 'exact five migrations required');
   const files = sorted([...releaseInventory(path.join(directory, 'runtime'), 'runtime/'), ...releaseInventory(path.join(directory, 'sql'), 'sql/')]);
   assert.deepEqual(files, manifest.artifact.files, 'frozen artifact changed'); assert.equal(files.length, manifest.artifact.fileCount); assert.equal(releaseSha(files), manifest.artifact.sha256);
   assert.equal(releaseSha(dependency), manifest.dependencies.sha256, 'dependency manifest changed');

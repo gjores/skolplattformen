@@ -225,6 +225,26 @@ try {
     report.history = history.map(row => ({ revision: row.revision, contentHash: row.content_hash }));
   } finally { await db.end(); }
   passed('new annual doc1 saves and reopens while prior legacy and pending revisions remain immutable');
+  // Skolans salregister (05.2-SM-UXF-23) genom den riktiga Workern och RPC:erna, sist så att tidigare fall prövas utan register.
+  const roomScope = { contractVersion: 1, unitId: scope.unitId }, rooms = (route, input) => request('/api/schema/salregister/' + route, input);
+  const noRooms = await rooms('las', roomScope); assert.equal(noRooms.status, 200); assert.equal(noRooms.body.register, null);
+  const roomDocument = { nasta: 3, salar: [{ id: 'sal-1', name: 'Syntetisk sal A', typ: 'Allmän sal', platser: 30, utrustning: [] },
+    { id: 'sal-2', name: 'Syntetiskt labb', typ: 'Laborationssal', platser: null, utrustning: ['Dragskåp'] }] };
+  const roomSave = { ...roomScope, commandId: randomUUID(), expectedRevision: 0, document: roomDocument };
+  const savedRooms = await rooms('spara', roomSave); assert.equal(savedRooms.status, 200); assert.equal(savedRooms.body.register.revision, 1);
+  assert.deepEqual(savedRooms.body.register.document, roomDocument); assert.equal(savedRooms.body.replayed, false);
+  const replayedRooms = await rooms('spara', roomSave); assert.equal(replayedRooms.status, 200); assert.equal(replayedRooms.body.replayed, true);
+  assert.equal((await rooms('spara', { ...roomSave, commandId: randomUUID() })).status, 409);
+  assert.equal((await rooms('spara', { ...roomSave, commandId: randomUUID(), expectedRevision: 1, document: { nasta: 2, salar: [] } })).status, 400);
+  const reopenedRooms = await rooms('las', roomScope); assert.deepEqual(reopenedRooms.body.register.document, roomDocument);
+  const roomVillkor = domain.defaultSchemaVillkor(), withRooms = await request('/api/schema/forslag', { unitId: scope.unitId, schoolYear: scope.schoolYear, period: scope.period, villkor: roomVillkor });
+  assert.equal(withRooms.status, 200); assert.equal(withRooms.body.villkor.salregister.kalla, 'skola');
+  assert.deepEqual(withRooms.body.villkor.salregister.salar, roomDocument.salar); assert.deepEqual(withRooms.body.rooms.map(r => r.name), ['Syntetisk sal A', 'Syntetiskt labb']);
+  const roomDb = postgres({ path: path.join(core.pg, `.s.PGSQL.${core.ports.postgres}`), database: core.database, username: 'postgres', prepare: false });
+  try { const audits = await roomDb`select action,count(*)::int n from public.security_events where action in ('school_rooms_read','school_rooms_saved') group by action order by action`;
+    assert.deepEqual(audits.map(a => a.action), ['school_rooms_read', 'school_rooms_saved']); report.schoolRooms = { audits: audits.map(a => ({ action: a.action, rows: a.n })) };
+  } finally { await roomDb.end(); }
+  passed('school room register saves, replays and rejects stale or shrinking documents through the actual Worker and RPCs, is audited and reaches the schedule basis');
   report.status = 'PASS'; report.apiCompletedAt = new Date().toISOString(); save();
 } catch (error) {
   report.status = 'FAIL'; report.failure = { code: error.code ?? error.name, message: String(error.message).replace(/postgres(?:ql)?:\/\/\S+/gu, '[private-db-url]').slice(0, 700) }; save();

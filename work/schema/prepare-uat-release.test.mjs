@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { releaseInventory, schemaReleaseDependencies, assertSchemaReleaseRevision, prepareSchemaUatRelease, verifySchemaUatRelease, PREVIOUS_SCHEMA_REVISION, releaseSha,
   assertIdenticalSchemaMotorTrees, assertSchemaMotorFiles, verifySchemaReusableMotor, parseSchemaReleaseArguments } from './prepare-uat-release.mjs';
 import { schemaUatSources, schemaUatSqlMetadata } from '../pilot/schema-uat-install-core.mjs';
+import { schoolRoomsSources, schoolRoomsSqlMetadata } from '../pilot/school-rooms-install-core.mjs';
 
 const temporary = fn => { const directory = mkdtempSync(path.join(tmpdir(), 'schema-release-unit-')); try { return fn(directory); } finally { rmSync(directory, { recursive: true, force: true }); } };
 test('freeze accepts only an exact complete existing commit; HEAD/abbreviation/another object are rejected', () => temporary(directory => {
@@ -40,7 +41,7 @@ test('release preparation rejects target/runtime paths before any build, clone o
 });
 test('frozen verification rejects changed product, dependency evidence, omitted SQL and mismatched build revision', () => temporary(directory => {
   const write = (relative, value) => { const file = path.join(directory, relative); mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, typeof value === 'string' ? value : JSON.stringify(value)); };
-  const sources = schemaUatSources(), sql = schemaUatSqlMetadata(sources), dependency = { packages: [], files: [] }, revision = 'c'.repeat(40);
+  const sources = { ...schemaUatSources(), ...schoolRoomsSources() }, sql = [...schemaUatSqlMetadata(sources), ...schoolRoomsSqlMetadata(sources)], dependency = { packages: [], files: [] }, revision = 'c'.repeat(40);
   const build = { mode: 'protected', revision, node: process.version, builtAt: '2026-11-16T12:00:00Z' };
   write('runtime/web/dist-protected/build-mode.json', build); write('runtime/web/dist-protected/app.js', 'synthetic app');
   write('runtime/motor/schemamotor-tjanst', 'synthetic motor'); for (const item of sql) write('sql/' + item.file, sources[item.file].sql);
@@ -54,7 +55,7 @@ test('frozen verification rejects changed product, dependency evidence, omitted 
   write('artifact.json', manifest);
   write('runtime/web/dist-protected/app.js', 'changed'); assert.throws(() => verifySchemaUatRelease(directory), /artifact changed/u); write('runtime/web/dist-protected/app.js', 'synthetic app');
   write('dependencies.json', { changed: true }); assert.throws(() => verifySchemaUatRelease(directory), /dependency manifest changed/u); write('dependencies.json', dependency);
-  write('artifact.json', { ...manifest, sql: sql.slice(0, -1) }); assert.throws(() => verifySchemaUatRelease(directory), /exact three migrations/u);
+  write('artifact.json', { ...manifest, sql: sql.slice(0, -1) }); assert.throws(() => verifySchemaUatRelease(directory), /exact five migrations/u);
   write('artifact.json', { ...manifest, source: { revision: 'd'.repeat(40) } }); assert.throws(() => verifySchemaUatRelease(directory));
 }));
 test('motor reuse accepts a UI-only commit but rejects any change in the entire motor tree or a missing object/tree', () => temporary(directory => {
