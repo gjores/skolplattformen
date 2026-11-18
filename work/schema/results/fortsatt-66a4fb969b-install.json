@@ -1,0 +1,63 @@
+{
+  "kind": "schema-fortsatt-installation",
+  "revision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "request": "ja (2026-11-18), uttryckligt svar på installation av fryst 66a4fb96 på 3012/3013",
+  "startedAt": "2026-11-18T18:01:25.206Z",
+  "status": "PASS",
+  "checks": [
+    {
+      "name": "approved exact frozen candidate, 1490 files, dependencies and bound 60s proof",
+      "status": "PASS"
+    },
+    {
+      "name": "old pair and unchanged SQL/mandate gate verified; correct local database and 171-entry journal read only",
+      "status": "PASS"
+    },
+    {
+      "name": "new stage copied without rebuild; old configuration and rollback pair retained",
+      "status": "PASS"
+    },
+    {
+      "name": "approved 66a4fb96 app/motor pair running on 3012/3013 with correct build and health",
+      "status": "PASS"
+    },
+    {
+      "name": "installed motor accepts new seed and both problem versions; reference/lock/roomless and independent validation pass",
+      "status": "PASS"
+    },
+    {
+      "name": "all 19 schema routes including fortsatt deny without a session and remain no-store",
+      "status": "PASS"
+    },
+    {
+      "name": "journal/catalog and all prior draft/room-register revision rows preserved; same session secret and exact product files",
+      "status": "PASS"
+    }
+  ],
+  "migrationsApplied": 0,
+  "rollback": {
+    "performed": false
+  },
+  "installerSha256": "08e3905c2e57e7ef1a8eeb35f5cf296d7fd563a78cae3f8ceb0b288a98729c3a",
+  "targetIdentitySha256": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+  "preservedRevisions": {
+    "drafts": {
+      "count": 80,
+      "sha256": "011a02d3f1b76565c9815af0962c0374ae7a558f1b0b085c7c03ecd9e57f2308"
+    },
+    "rooms": {
+      "count": 1,
+      "sha256": "9a6ef93774f7e460c3f797cf8489d44625072931d78c53f1142e0fe1fd3d2003"
+    }
+  },
+  "manifestSha256": "381e203c46e97669e5de37990dc3d50e1bb5154f932fc88988669f5e521df00a",
+  "inventorySha256": "587a6df2c861e22a3261737dbbcc75db1c11b1a8c8056576812b411c03ade2c4",
+  "stage": "work/pilot/targets/protected/runtime/schema-66a4fb969b",
+  "previousStage": "work/pilot/targets/protected/runtime/schema-f3869834e8",
+  "processes": {
+    "appRoot": 42204,
+    "appListener": 42224,
+    "motorListener": 42182
+  },
+  "finishedAt": "2026-11-18T18:01:43.476Z"
+}

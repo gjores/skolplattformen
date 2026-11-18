@@ -1,9 +1,8 @@
 # Skolplattformen
 
-## Aktuellt 2026-11-18 — fortsatt schemaberäkning färdig för installation
+## Aktuellt 2026-11-18 — fortsatt schemaberäkning installerad
 
-[SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) är genomförd på användarens begäran: val 10/30/60 sekunder, förval 30, och Fortsätt förbättra från det aktuella utkastet. Lås och datumkopplingar skyddas, alla ändringar granskas före användning och kan ångras tillsammans. Följ passet har kortare informationsrader. Slutprov 1479 Node PASS (två äldre opt-in-skip), 34 unika UI-profilfall, typ/lint/byggen PASS; oberoende granskning utan öppna blockerare. [Fryst 66a4fb96](phases/05.2-schemamodul/05.2-SM-FORTSATT-RELEASE.md) har 1490 verifierade filer/571 paket och faktisk 60-sekundersmotor PASS med bevarade lås/salfria pass, 2 → 3 lagda utan regelavvikelser. Ingen ny SQL, extern anslutning eller mänsklig acceptans. **Inte installerad: 3012/3013 kör fortfarande f3869834, skolans salregister/UXF-43. Separat installationsbeslut återstår.** Äldre noteringar nedan är historik.
-
+På användarens **”ja”** är fryst `66a4fb96` installerad på **3012/3013**. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-18.md): **PASS 7/7**, 0 migrationer, samma journal med 171 rader, alla 80 tidigare utkastrevisioner och salregistrets 1 revision bevarade. App/motor och samtliga 1490 produktfiler kontrollerade; föregående par `f3869834` finns kvar för återgång. [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger val 10/30/60 sekunder (förval 30) och **Fortsätt förbättra** från det aktuella utkastet med granskning och Ångra. Följ passet har kortare informationsrader. Före installation: 1479 Node PASS (två äldre opt-in-skip), 34 unika UI-profilfall, typ/lint/byggen PASS och faktisk 60-sekunderskörning av exakt fryst motor. Efter installation: 19 skyddade schemavägar och liten faktisk motorversion 4/5-sökning med frö/lås/salfria pass PASS. **Nästa: nytt användarprov.** Ingen mänsklig acceptans eller extern standardanslutning påstås. Äldre noteringar nedan är historik.
 
 ## Aktuellt 2026-11-16 — fördjupad UX-research och principskiss
 

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-FORTSATT klar och fryst, väntar installation; UXFLODE till UXF-52 installerad, UXF-53 väntar provbeslut"
+current_plan: "SM-FORTSATT och TMI installerade på 3012/3013; användarprov återstår. UXF-53 väntar provbeslut"
 status: in_progress
-stopped_at: "SM-FORTSATT och TMI klara; fryst 66a4fb96 inventeringskontrollerad och faktisk 60s-motor PASS. Separat installationsbeslut återstår. 3012/3013 kör fortsatt f3869834."
+stopped_at: "Fryst 66a4fb96 installerad efter användarens ja, PASS 7/7. 0 SQL, journal171 och alla80 utkastrevisioner samt1 salregisterrevision bevarade. Nästa: användarprov på3012."
 last_updated: "2026-11-18"
 last_activity: 2026-11-18
-last_activity_desc: "Valbar räknetid och fortsatt sökning från aktuellt utkast med granskning/Ångra klara; inget nytt installerat."
+last_activity_desc: "Installerat längre och fortsatt schemaberäkning samt kortare följpanel; ny app/motor på3012/3013 med alla kontroller PASS."
 state_head: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 progress:
   total_phases: 8
@@ -21,16 +21,16 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: f3869834e80ba270f024fe41e077a8bbdbbe81b8
+schema_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_candidate_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_candidate_status: prepared_1490_files_frozen_motor_60s_pass_no_new_sql_awaiting_installation_decision
+schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 5
-schema_installation_status: uxf23_passed_6_groups_two_additive_migrations_journal_171_74_prior_revisions_preserved
+schema_installation_status: fortsatt_passed_7_groups_zero_migrations_journal_171_80_draft_and_1_room_revisions_preserved
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
 
-**2026-11-18 – fortsatt beräkning och TMI klara, inte installerade:** [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger 10/30/60 sekunder (förval30) och Fortsätt förbättra från aktuella placeringar med nytt sökfrö. Granskning, lås/datum, autosave och Ångra bevaras; Följ passet har korta lärarrader och blockdetaljer på begäran. Slutprov1479 Node PASS +2 äldre opt-in-skip,34 unika UI-profilfall, typ/lint/app/handbok PASS. Oberoende granskning utan öppna blockerare. [Fryst kandidat66a4fb96](phases/05.2-schemamodul/05.2-SM-FORTSATT-RELEASE.md):1490 filer,571 paket,app8/motor5,0 nya SQL. Faktisk60s-körning av exakt fryst motor PASS:2→3 lagda pass,0 regelavvikelser,lås/salfria kvar,nytt frökvitto,egen process städad. Ingen ny faktisk Worker/OIDC/PostgreSQL-helkedja eller mänsklig acceptans. **Nästa är separat installationsbeslut för66a4; på3012/3013 kör fortfarande f3869834.** Inga formella krav-/fasantal ändras.
+**2026-11-18 – fortsatt beräkning och TMI installerade:** Användaren svarade **”ja”** på installation av fryst `66a4fb96` på 3012/3013. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-18.md), [rapport](../work/schema/results/fortsatt-66a4fb969b-install.json): **PASS 7/7**, ingen återgång. App 8/motor 5 kör samma frysta källa, 1490 produktfiler oförändrade. **0 migrationer**, samma 171-raders journal och katalog; alla **80** tidigare utkastrevisioner och salregistrets **1** revision bevarade med SHA256 av hela revisionsrader. Samma sessionshemlighet/token, alla 19 schemavägar nekar utan session, faktisk liten motorsökning med version 4/5, frö, lås och salfria pass PASS. [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger 10/30/60 sekunder (förval 30), referensstart och granskning/Ångra; [TMI](phases/05.2-schemamodul/05.2-SM-FOLJ-TMI-SUMMARY.md) kortar Följ passet. Föregående `f3869834` finns kvar för återgång. **Nästa: användarprov på 3012.** Ingen mänsklig acceptans, full ny autentiserad Worker/OIDC/PostgreSQL-kedja eller extern standardanslutning påstås; krav-/fasantal består.
 
 
 **05.2-SM samlingsvyns resursväljare 2026-11-18:** Efter användarens bild och **”Borde gå att lägga här istället med en sökväljarfunktion”** är dialogen ersatt av ett sökfält med förslag direkt i raden Visas. Det är samma combobox som lärarväljaren, med grupperade träffar, tangentbord och ett fält som töms efter valet. Prövat i UI-prov: 18 av 18 på 1280 och 1600 px, även vid 200 % text. Installerat med f3869834 2026-11-18.
