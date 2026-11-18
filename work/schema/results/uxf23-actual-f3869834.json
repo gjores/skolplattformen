@@ -1,0 +1,98 @@
+{
+  "kind": "schema-lasarsmonster-owned-actual",
+  "status": "PASS",
+  "syntheticOnly": true,
+  "startedAt": "2026-11-18T13:57:39.892Z",
+  "releaseRevision": "f3869834e80ba270f024fe41e077a8bbdbbe81b8",
+  "releaseManifestSha256": "0dc7da4e0f6f2133d275060a1ed0ce9db6449b0fc1fbc823edace0a4fad891ba",
+  "releaseArtifactSha256": "d21397d9d2acbbca17fdeec8aee1ec30756c592e97587d0d48a1cb42a2a4780c",
+  "checks": [
+    {
+      "name": "existing eight protected API cases pass on the new exact candidate",
+      "status": "PASS"
+    },
+    {
+      "name": "real motor HTTP solve validate diagnose positions suggest preserve both v4 and v5 response versions",
+      "status": "PASS"
+    },
+    {
+      "name": "frozen TS reserved-block basis retains actually staffed term teachers and sends only anonymous annual budget to real motor5",
+      "status": "PASS"
+    },
+    {
+      "name": "real motor5 accepts a valid room-only activity and still rejects an activity with no participants or room",
+      "status": "PASS"
+    },
+    {
+      "name": "fresh own principal session from actual OIDC baseline still has live selected mandate and MFA",
+      "status": "PASS"
+    },
+    {
+      "name": "unmarked synthetic legacy bas8 doc1 saves and reopens with verified canonical hash locks pass-rule and dated occurrence",
+      "status": "PASS"
+    },
+    {
+      "name": "annual working marker over legacy foundation persists without remapping; status replay and stale CAS preserve the exact old base",
+      "status": "PASS"
+    },
+    {
+      "name": "actual annual date transfer has zero year delta; changed original length is denied and frozen-model stale trim invalidates the old exception",
+      "status": "PASS"
+    },
+    {
+      "name": "new annual doc1 saves and reopens while prior legacy and pending revisions remain immutable",
+      "status": "PASS"
+    },
+    {
+      "name": "school room register saves, replays and rejects stale or shrinking documents through the actual Worker and RPCs, is audited and reaches the schedule basis",
+      "status": "PASS"
+    }
+  ],
+  "limits": [
+    "Only fresh owned PostgreSQL/Keycloak/GoTrue/Linux-workerd and exact frozen Rust motor",
+    "No target or existing user browser auth",
+    "Legacy is produced by the explicitly unmarked compatible builder; this is not a historical production document",
+    "No product UI acceptance or municipality integration is claimed"
+  ],
+  "baseline": {
+    "checks": 8,
+    "sourceRevision": "f3869834e80ba270f024fe41e077a8bbdbbe81b8",
+    "report": "/private/tmp/schema-draft-final-namespace-lasarsmonster-a4c320debf4c4f9bbe1feb7afb062172.json",
+    "finalReportSha256": "58b7a480be7c3b2d3f9bf2624a0f9b35ede7c183532a80ebd4d332384edd14cb"
+  },
+  "history": [
+    {
+      "revision": 1,
+      "contentHash": "sha256:bf3a0082a6eed382ef74f92004499458aa428a50878f6f2f6fe449245a00285b"
+    },
+    {
+      "revision": 2,
+      "contentHash": "sha256:fa233f1835e209a4fbc1dbd70664531ef84ce5f0a02f97cc397570e22f633aba"
+    },
+    {
+      "revision": 3,
+      "contentHash": "sha256:06dc5e06332b54350d15e313be9d7415e3396488f7f4698e639436de827e717c"
+    }
+  ],
+  "schoolRooms": {
+    "audits": [
+      {
+        "action": "school_rooms_read",
+        "rows": 36
+      },
+      {
+        "action": "school_rooms_saved",
+        "rows": 5
+      }
+    ]
+  },
+  "apiCompletedAt": "2026-11-18T13:59:41.914Z",
+  "cleanup": {
+    "status": "PASS",
+    "namespace": "complete",
+    "ownCore": "complete",
+    "credentialsRemoved": true,
+    "targetTouched": false
+  },
+  "completedAt": "2026-11-18T13:59:47.721Z"
+}

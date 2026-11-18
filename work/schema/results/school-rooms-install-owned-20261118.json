@@ -1,0 +1,206 @@
+{
+  "kind": "school-rooms-install-owned",
+  "status": "PASS",
+  "targetContact": false,
+  "startedAt": "2026-11-18T13:57:38.605Z",
+  "checks": [
+    {
+      "name": "nonempty synthetic business baseline with the installed schema package and the target journal shape (known education gaps excluded)",
+      "ok": true
+    },
+    {
+      "name": "two migrations rehearse atomically; rollback restores exact schema, ACL, original journal and all original rows",
+      "ok": true
+    },
+    {
+      "name": "failure after all DDL, grants and journal rows rolls back the entire package without original changes",
+      "ok": true
+    },
+    {
+      "name": "mandatory installation audit failure atomically removes new objects and journal rows",
+      "ok": true
+    },
+    {
+      "name": "apply repeats rehearsal then commits exactly two bound SQL journal rows and one audit; old business/auth rows and publication unchanged",
+      "ok": true
+    },
+    {
+      "name": "a second installation is refused before any change",
+      "ok": true
+    },
+    {
+      "name": "post-commit two narrow Worker entries; two forced-RLS tables remain empty and closed to direct access",
+      "ok": true
+    }
+  ],
+  "limits": [
+    "Own migrations-built PostgreSQL only",
+    "No installed target or application rollback claim",
+    "No real pupil or provider data"
+  ],
+  "provenance": {
+    "kind": "ephemeral-migrated-postgresql",
+    "serverVersion": "18.3 (Homebrew)",
+    "stubs": "work/pilot/ephemeral-supabase-stubs.sql",
+    "applied": 171,
+    "appliedChainSha256": "693d11cd2ec636c9b428b9857d5112ef8b40502bd8b43239a4a0c9901190ccab",
+    "excluded": [
+      "20261118100000_school_rooms.sql",
+      "20261118101000_school_rooms_worker_access.sql"
+    ]
+  },
+  "sql": [
+    {
+      "file": "20261118100000_school_rooms.sql",
+      "version": "20261118100000",
+      "name": "school_rooms",
+      "bytes": 13627,
+      "sha256": "14bbc22f3c24f8ac67216d315dc202895f6075041fe8826dccfbf4623667705e",
+      "executionSha256": "14bbc22f3c24f8ac67216d315dc202895f6075041fe8826dccfbf4623667705e",
+      "wrapper": "none"
+    },
+    {
+      "file": "20261118101000_school_rooms_worker_access.sql",
+      "version": "20261118101000",
+      "name": "school_rooms_worker_access",
+      "bytes": 287,
+      "sha256": "219a6c43e3da921e3be46168784b11285ff79ad1b0d4f28efdf7b4efbdada8a5",
+      "executionSha256": "219a6c43e3da921e3be46168784b11285ff79ad1b0d4f28efdf7b4efbdada8a5",
+      "wrapper": "none"
+    }
+  ],
+  "installerSources": {
+    "work/pilot/school-rooms-install-core.mjs": "c79681ea7fc707be28d52b36231b6fa60cbcf2d8ba7d7a6740135b0dbaedce84",
+    "work/pilot/verify-school-rooms-install-owned.mjs": "533d354bf7bc1185b78bc18ba8a09e59de4bed11fd449342d68481a2da7efa93",
+    "work/pilot/schema-uat-install-core.mjs": "a91fe3d55f824b9c913ce4c089e8a4b607251cf5208d7f523586d9b78208fcb5",
+    "work/pilot/apply-elective-blocks.mjs": "66f567ffee9aa8341e58f4678a7d81e0076c1345e021a76e83775451de1a1dbd",
+    "work/pilot/named-timplan-snapshot.mjs": "dafb5a74379b50f09dcfab5452ffe3ddd0dfe89ee40aeb570eba1e86ae217143",
+    "work/pilot/ephemeral-migrated-db.mjs": "ad6badbec4a377c1b44c14ef2ee14acf009692cd0d2c1784fe0cf3ead9ac4585",
+    "work/pilot/ephemeral-supabase-stubs.sql": "51787b89b2db714f33cb7c57ebcd061440b2348702cad4c677b0a110b9bd9e19",
+    "work/pilot/tjanst-fixtures.mjs": "0fc0e7f6d90738e92b8f09a328d4cc4de95306bc991ee00cb5a2486c77498065",
+    "work/pilot/tjanst-year-fixtures.mjs": "f41da3391c2c52dc13133c1fcd1a3b4afcdb7ed296579d80bebc3f6d7a55c7c2"
+  },
+  "rehearsal": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "5ed6d2a20749506f3799e97358efdc7d19450f151f5b2ba29fce2bb698816de4",
+      "inventory": {
+        "newFunctions": 10,
+        "newTables": 2,
+        "newIndexes": 3,
+        "newTriggers": 1,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 2,
+        "workerEntries": 2,
+        "privateHelpers": 8
+      },
+      "journalCount": 171,
+      "journalSha256": "5850a3039026e1d0c7f8d2e7dbc23d31045bda76d7bd7163406d45955d6e8b71",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57"
+    },
+    "committed": false
+  },
+  "apply": {
+    "checks": [
+      {
+        "name": "no migration of the stage recorded before",
+        "ok": true
+      },
+      {
+        "name": "rehearsal completed inside the transaction",
+        "ok": true
+      },
+      {
+        "name": "rollback restored the exact schema fingerprint and empty journal",
+        "ok": true
+      }
+    ],
+    "before": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+      "recorded": 0
+    },
+    "rehearsal": {
+      "fingerprint": "5ed6d2a20749506f3799e97358efdc7d19450f151f5b2ba29fce2bb698816de4",
+      "inventory": {
+        "newFunctions": 10,
+        "newTables": 2,
+        "newIndexes": 3,
+        "newTriggers": 1,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 2,
+        "workerEntries": 2,
+        "privateHelpers": 8
+      },
+      "journalCount": 171,
+      "journalSha256": "5850a3039026e1d0c7f8d2e7dbc23d31045bda76d7bd7163406d45955d6e8b71",
+      "auditId": null
+    },
+    "afterRehearsal": {
+      "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57"
+    },
+    "committed": true,
+    "installed": {
+      "fingerprint": "5ed6d2a20749506f3799e97358efdc7d19450f151f5b2ba29fce2bb698816de4",
+      "inventory": {
+        "newFunctions": 10,
+        "newTables": 2,
+        "newIndexes": 3,
+        "newTriggers": 1,
+        "oldObjectsUnchanged": true
+      },
+      "privileges": {
+        "forcedPrivateTables": 2,
+        "workerEntries": 2,
+        "privateHelpers": 8
+      },
+      "journalCount": 171,
+      "journalSha256": "5850a3039026e1d0c7f8d2e7dbc23d31045bda76d7bd7163406d45955d6e8b71",
+      "auditId": "24"
+    }
+  },
+  "baseline": {
+    "fingerprint": "c503826079ed32b3289c8e4f25f03667f17465c6977a61693f46df40b974ad57",
+    "journal": {
+      "count": 169,
+      "sha256": "16363d05c1fac49ba3e2332e4c1946beda9e4c607c32507246268a2c3df1e7bb"
+    },
+    "originalRowsSha256": "7277a07b7d4f893e0b1a2d4c00dafcd51895a2378a06d47cd6588b6ec03863f9",
+    "tables": 157
+  },
+  "installed": {
+    "fingerprint": "5ed6d2a20749506f3799e97358efdc7d19450f151f5b2ba29fce2bb698816de4",
+    "journal": {
+      "count": 171,
+      "sha256": "5850a3039026e1d0c7f8d2e7dbc23d31045bda76d7bd7163406d45955d6e8b71"
+    },
+    "oldObjectsUnchanged": true,
+    "addedAuditRows": 1
+  },
+  "databaseClosed": true,
+  "cleanup": "complete",
+  "finishedAt": "2026-11-18T13:57:58.297Z"
+}
