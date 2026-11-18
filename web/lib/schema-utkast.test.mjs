@@ -339,6 +339,24 @@ test('ett godkänt villkors- och placeringsförslag ångras tillsammans och beh�
   const illegal=placements.map(p=>p.lesson==='b'?{...p,startMin:900}:p);
   assert.equal(run(locked,{type:'arbetsvillkor',fore,efter,text:'nej',placements:illegal}),locked);
 });
+
+test('fortsatt beräkning bevarar oförändrade medvetna krockar och ångrar hela placeringen i ett steg', () => {
+  const original = start(), violation = { code: 'teacher_clash', message: 'A och B krockar.', lessons: ['a', 'b'] }, villkor = { egna: [] };
+  const marked = run(original, { type: 'intent', mark: medvetenMarkering(violation, original.placements, 'villkor'), on: true });
+  const placements = utkastPlaceringar(marked.placements).map(p => p.lesson === 'c' ? { ...p, startMin: 660 } : p);
+  const action = { type: 'arbetsvillkor', fore: villkor, efter: structuredClone(villkor), placements, text: 'Fortsatt beräkning' };
+  const changed = run(marked, action);
+  assert.deepEqual(changed.intentional, marked.intentional);
+  assert.equal(changed.undo.length, marked.undo.length + 1);
+  const undone = run(changed, { type: 'undo' });
+  assert.deepEqual(undone.placements, marked.placements); assert.deepEqual(undone.intentional, marked.intentional);
+  const redone = run(undone, { type: 'redo' });
+  assert.deepEqual(redone.placements, changed.placements); assert.deepEqual(redone.intentional, changed.intentional);
+  const movedClash = run(marked, { ...action, placements: placements.map(p => p.lesson === 'a' ? { ...p, startMin: 900 } : p) });
+  assert.equal(movedClash.intentional.length, 0, 'en ändrad krock behåller inte en gammal markering');
+  const changedRules = run(marked, { ...action, efter: { egna: [{ typ: 'sparrad' }] } });
+  assert.equal(changedRules.intentional.length, 0, 'nya villkor prövas utan gamla godkännandemarkeringar');
+});
 test('datumändring har egen historik och ändrar aldrig återkommande placeringar eller lås',()=>{
   const original=run(start(),{type:'lock',lesson:'b',locked:true}),after=[{lesson:'a',originalDate:'2027-09-06',date:'2027-09-07',startMin:660,room:null,durationMin:60}];
   const changed=run(original,{type:'datum',fore:[],efter:after,text:'Tillfälle'});

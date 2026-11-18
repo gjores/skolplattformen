@@ -66,7 +66,7 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.getByText('Schemat utgår från skolans tjänstefördelning och sparas som utkast på servern.', { exact: false })).toBeVisible();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
-  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'lasar', villkor: forslag.villkor }]);
+  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'lasar', villkor: forslag.villkor, solveTimeMs: 30_000 }]);
   await expect(page.getByText(`Hela läsåret. ${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   await expect(page.getByText('Tid: 182 skoldagar (HT 84, VT 98) enligt läsårskalendern version 1 (fastställd, gällande).')).toBeVisible();
   await expect(page.getByText('Underlag: tjänstefördelning version 1 (utkast).')).toBeVisible();
@@ -164,7 +164,7 @@ test('olagda pass, förklaring och utelämnade behov redovisas i text', async ({
     metrics: { ...forslag.metrics, placed: forslag.metrics.lessons - 1, unplaced: 1 } } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Förslag · Räknetiden tog slut')).toBeVisible();
+  await expect(page.getByText('Förslag · Mer räknetid kan behövas')).toBeVisible();
   await expect(page.getByText('Pass på viloytan räknas som avvikelse från timplanen.')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
   await expect(page.getByText(`Pass ${first.title} fick ingen plats.`)).toBeVisible();
@@ -228,7 +228,7 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   await submit.click();
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   const villkor = { ...forslag.villkor, days: forslag.villkor.days.map((d, i) => i === 4 ? { ...d, endMin: 840 } : d), maxLessonMin: 60, lunch: null, studentMaxMinPerDay: 360 };
-  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor }]);
+  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor, solveTimeMs: 30_000 }]);
   await expect(page.getByText('Höstterminen. ')).toBeVisible();
   await expect(page.getByRole('heading', { name: `Tid över terminen (${forslag.teachings.length})` })).toBeVisible();
 

@@ -20,7 +20,7 @@ import { schemaBlock } from './schema-block.ts';
 import { arsbehov, arstak, arsandelar, sammaArsresurser, arsmonsterGerTid, trimmaLasar } from './schema-lasarsmonster.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
-export const SCHEMA_DEFAULTS = { days: 5, stepMin: 5, maxLessonsPerWeek: 20, classSize: 25, solveTimeMs: 10_000, weeks: { ht: 18, vt: 20 } } as const;
+export const SCHEMA_DEFAULTS = { days: 5, stepMin: 5, maxLessonsPerWeek: 20, classSize: 25, solveTimeMs: 30_000, weeks: { ht: 18, vt: 20 } } as const;
 
 /** En del av ett pass: en klass, eller en grupp vars elever avgör vilka som är upptagna. */
 type Part = { classIds: string[]; groupId: string | null; alone: boolean };

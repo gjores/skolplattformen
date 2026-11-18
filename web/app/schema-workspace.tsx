@@ -13,7 +13,8 @@ import { Sparstatus } from './schema/sparstatus.tsx';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, sammaGrund, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
   SchemaContractError, type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm, type SchemaVillkor, type SchemaViolation } from '@/lib/schema-contract.ts';
-import { SCHEMA_DEFAULTS } from '@/lib/schema-underlag.ts';
+import { SCHEMA_SOLVE_TIMES, SCHEMA_SOLVE_DEFAULT_MS, parseSchemaFortsatt, type SchemaFortsattRequest, type SchemaSolveTimeMs } from '@/lib/schema-fortsatt.ts';
+import { FortsattGranskning, fortsattStopp, type FortsattSokning } from './schema/fortsatt.tsx';
 import { arbetsvillkorSteg, aktivitetsSteg, datumSteg, avvikelseRad, avvikelseNyckel, medUtkast, medvetenKrock, medvetenGaller, medvetenMarkering, medvetenSteg, medvetnaAvvikelser, resursRefs, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, utkastLas, bytSalar, villkorSteg, type SchemaOverlay, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
 import { parseSchemaPlacering, type SchemaPlaceringVal } from '@/lib/schema-placering.ts';
 import { Placeringsforslag, type PlaceringSokning } from './schema/placering.tsx';
@@ -68,7 +69,7 @@ import './schema.css';
 const STATUS: Record<SchemaStatus, { text: string; tone: 'success' | 'warning' }> = {
   // Visas inte: ett färdigräknat förslag redovisas som tid, sal och kapacitet var för sig (05.2-SM-UXF-12).
   complete: { text: 'Beräkningen är klar', tone: 'success' },
-  time_limit: { text: 'Räknetiden tog slut', tone: 'warning' },
+  time_limit: { text: 'Mer räknetid kan behövas', tone: 'warning' },
   infeasible: { text: 'Går inte att lägga', tone: 'warning' },
   input_missing: { text: 'Underlag saknas', tone: 'warning' },
   cancelled: { text: 'Avbruten', tone: 'warning' },
@@ -167,6 +168,9 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const [salsattning, setSalsattning] = useState<(SalsattningVisning & { svar: SchemaKontroll | null }) | null>(null);
   const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve'>('diagnos');
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
+  const [solveTimeMs, setSolveTimeMs] = useState<SchemaSolveTimeMs>(SCHEMA_SOLVE_DEFAULT_MS);
+  const [fortsatt, setFortsatt] = useState<FortsattSokning | null>(null), currentContinueKey = useRef('');
+  const continueButton = useRef<HTMLButtonElement | null>(null);
   // Lagren i veckan (05.2-SM-VILLKOR-SYNS) ligger i utkastet och minns i webbläsaren.
   const [utkast, dispatchLocal] = useReducer(schemaUtkast, undefined, () => ({ ...tomtUtkast(), layers: storedLager() }));
   // Ett eget villkor som togs bort från ett fält i veckan, så att det kan ångras.
@@ -233,7 +237,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       const restored = schemaUtkast({ ...tomtUtkast(), layers: utkast.layers }, { type: 'reset', forslag: draft?.base ? { lessons: draft.base.lessons, locks: draft.locks } : { lessons: [] } });
       dispatchLocal({ type: 'hydrate', state: { ...restored, intentional: draft?.intentional ?? [] } });
       setKontroll(draft?.base && draft.control ? { svar: draft.control, villkor: villkorNyckel(draft.basisVillkor!) } : null);
-      setChosen(draft?.base?.classes[0]?.id ?? ''); setBy('class'); setFolj(null); setFore(null); setSokning(null); setError(null); setMoveError(null); setMoved('');
+      setChosen(draft?.base?.classes[0]?.id ?? ''); setBy('class'); setFolj(null); setFore(null); setSokning(null); setFortsatt(null); setError(null); setMoveError(null); setMoved('');
       setKraverNytt(null); setMisslyckat(null);
     },
   });
@@ -265,7 +269,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     if (next === period || busy || checking || !spara.ready) return;
     if (!await spara.flush()) return;
     rememberPeriod(unitId, schoolYear, next);
-    setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setPeriod(next);
+    setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setPeriod(next);
   }
   async function lasServerversion() {
     if (sparstatus.dirty && !await confirm({ title: 'Läs serverns version?', description: 'Dina lokala ändringar ersätts med det senast sparade utkastet på servern.', confirmLabel: 'Läs serverns version', cancelLabel: 'Behåll lokala ändringar' })) return;
@@ -409,10 +413,10 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
         if (findings.length) return;
       }
       setBerakningssteg('solve');
-      const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', request, controller.signal), request);
+      const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', { ...request, solveTimeMs }, controller.signal), request);
       if (controller.signal.aborted) return;
       generationConsent.current = null; spara.acceptNewBasis(); setDatedOverrides([]); setDatumPicked(null);
-      setBase(next); setVillkor(next.villkor); dispatch({ type: 'reset', forslag: next }); valjYta('schema'); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
+      setBase(next); setVillkor(next.villkor); dispatch({ type: 'reset', forslag: next }); setFortsatt(null); valjYta('schema'); setFolj(null); setShownTerm('ht'); setBy('class'); setChosen(next.classes[0]?.id ?? '');
       setVisning(grundschemaVal());
       setKontroll(null); setKraverNytt(null); setMisslyckat(null); setMoveError(null); setMoved('');
     } catch (caught) {
@@ -420,6 +424,73 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
       setError(message(caught));
     } finally { if (running.current === controller) { running.current = null; setBusy(false); } }
+  }
+
+  /** Fortsätter från utkastet, utan att ersätta det eller tömma dess historik. */
+  async function fortsattBerakning() {
+    if (fonster || !forslag || !base || redigeringStoppad || grundAndrad || issues.length || busy || checking || running.current) return;
+    const original = placeringsBas();
+    if (!original) return;
+    // Datumändrade pass får inte flyttas i grundschemat. Skydden gäller bara denna sökning, inte utkastets användarlås.
+    const locks = new Map((original.locks?.placements ?? []).map(p => [p.lesson, p]));
+    for (const a of datedOverrides) {
+      const p = original.placements.find(p => p.lesson === a.lesson);
+      if (p) locks.set(p.lesson, p);
+    }
+    const request: SchemaFortsattRequest = { ...original, ...(locks.size ? { locks: { grundFingerprint: original.grundFingerprint, placements: [...locks.values()] } } : {}), solveTimeMs };
+    const key = currentContinueKey.current, controller = new AbortController();
+    running.current = controller; setBusy(true); setError(null); setBerakningssteg('solve');
+    searchRunning.current?.abort(); setSokning(null); setVillkorsSokning(null); setSalsattning(null);
+    setFortsatt({ key, request, result: null, loading: true, error: null });
+    try {
+      if (!await spara.flush()) throw new Error('save_failed');
+      if (controller.signal.aborted) return;
+      const result = parseSchemaFortsatt(await api.post<unknown>('/api/schema/fortsatt', request, controller.signal), request);
+      if (controller.signal.aborted) return;
+      setFortsatt({ key, request, result, loading: false, error: null });
+    } catch (caught) {
+      if (controller.signal.aborted) return;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+      const text = caught instanceof Error && caught.message === 'save_failed' ? 'Spara det nuvarande utkastet innan du fortsätter. Dina ändringar finns kvar.'
+        : caught instanceof ApiError && caught.status === 409 ? 'Underlaget har ändrats. Ta fram ett nytt schemaförslag innan du fortsätter. Ditt schema finns kvar.'
+        : `${message(caught)} Ditt nuvarande schema finns kvar.`;
+      setFortsatt({ key, request, result: null, loading: false, error: text });
+    } finally { if (running.current === controller) { running.current = null; setBusy(false); } }
+  }
+
+  function behallNuvarande() {
+    if (checking) return;
+    if (fortsatt?.loading) { running.current?.abort(); running.current = null; setBusy(false); }
+    setFortsatt(null); requestAnimationFrame(() => continueButton.current?.focus());
+  }
+
+  async function anvandFortsatt() {
+    const search = fortsatt;
+    if (!search?.result || search.loading || !base || !forslag || busy || checking || running.current || redigeringStoppad) return;
+    if (search.key !== currentContinueKey.current || grundAndrad || issues.length) {
+      setFortsatt({ ...search, error: 'Schemat har ändrats. Fortsätt förbättra igen innan du använder ett förslag.' }); return;
+    }
+    if (fortsattStopp(search.result)) return;
+    const controller = new AbortController(); running.current = controller; setChecking(true);
+    try {
+      const candidate = search.result.forslag, placements = candidate.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
+      const checked = await kontrollera(base, candidate.lessons, controller);
+      await kontrolleraDatumKandidat(base, candidate.lessons, controller);
+      if (controller.signal.aborted) return;
+      if (currentContinueKey.current !== search.key || fortsattStopp({ ...search.result, after: checked }) || placements.some(p => (checked.rooms[p.lesson] ?? null) !== p.room)) {
+        setFortsatt({ ...search, error: 'Förslaget stämmer inte längre med schemat eller klarade inte den nya kontrollen. Inget har ändrats. Fortsätt förbättra igen.' }); return;
+      }
+      const action: SchemaUtkastAtgard = { type: 'arbetsvillkor', fore: villkor, efter: villkor, placements, text: 'Fortsatt beräkning' };
+      if (schemaUtkast(utkast, action) === utkast) { setFortsatt({ ...search, error: 'Förslaget följer inte utkastets lås. Inga pass har ändrats.' }); return; }
+      dispatch(action);
+      setBase({ ...base, status: candidate.status, metrics: checked.metrics, teachings: checked.teachings, trims: checked.trims, diagnoses: candidate.diagnoses, statistics: candidate.statistics, elapsedMs: candidate.elapsedMs });
+      setKontroll({ svar: checked, villkor: provadeKey }); setFortsatt(null); setMoveError(null);
+      setMoved('Den fortsatta beräkningen är genomförd. Ändringarna kan ångras i ett steg.'); requestAnimationFrame(() => continueButton.current?.focus());
+    } catch (caught) {
+      if (controller.signal.aborted) return;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+      setFortsatt({ ...search, error: 'Förslaget kunde inte kontrolleras. Ditt nuvarande schema finns kvar. Försök igen.' });
+    } finally { if (running.current === controller) { running.current = null; setChecking(false); } }
   }
 
   /** Pass vars nuvarande sal kontrollen har underkänt: de får en ny sal i tilldelningen om en är ledig. */
@@ -863,6 +934,8 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const placeringar = forslag?.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]) ?? [];
   const placementBase = placeringsBas(), placementInputKey = placementBase ? JSON.stringify({ base: placeringsBasNyckel(placementBase), villkor: villkorKey }) : '';
   useEffect(() => { currentPlacementKey.current = placementInputKey; }, [placementInputKey]);
+  const continueInputKey = JSON.stringify([unitId, schoolYear, period, base?.grundFingerprint, utkast.placements, utkast.locked, villkorKey, datedOverrides]);
+  useEffect(() => { currentContinueKey.current = continueInputKey; }, [continueInputKey]);
   const intentionalKeys = medvetnaAvvikelser(utkast, kontroll?.violations ?? [], villkorKey, forslag?.grundFingerprint ?? '');
   const intentionalPass = [...new Set((kontroll?.violations ?? []).filter(v => intentionalKeys.has(avvikelseNyckel(v))).flatMap(v => v.lessons))];
   const keepIntent = useMemo(() => (utkast.intentional ?? []).filter(m => medvetenGaller(m, utkast.placements, villkorKey, forslag?.grundFingerprint ?? '') && (!kontroll || kontroll.violations.some(v => medvetenKrock(v) && avvikelseNyckel(v) === m.key))).map(m => m.key), [utkast.intentional, utkast.placements, villkorKey, kontroll, forslag?.grundFingerprint]);
@@ -894,7 +967,6 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const dragged = drop ? forslag?.lessons.find(l => l.id === drop.lesson) ?? null : null;
   const unplaced = forslag?.lessons.filter(l => l.day === null) ?? [];
   const shown = forslag?.lessons.filter(l => l.day !== null && l.startMin !== null && (datumVal.mode === 'grundschema' ? mine(l) : (by === 'class' ? l.classIds : l.teacherIds).includes(selected))) ?? [];
-  const d = SCHEMA_DEFAULTS;
   const { deviating, off } = tidAvvikelser(forslag);
   // Villkoren som lager för den klass eller lärare som visas. Lagren följer villkoren i formuläret, så att en ändring syns direkt.
   const allaITerminen = forslag?.lessons.filter(l => l.term === null || l.term === shownTerm) ?? [];
@@ -1022,7 +1094,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
   const recoveryFore = fore?.key === recoveryKey ? fore : null;
   // Ytorna Förbered och Lägg schema (05.2-SM-UXF-31) visar samma utkast. Formuläret för regler och aktivitetslistan finns på båda och ritas där ytan står.
   const meddelanden = <>
-    <output aria-live="polite" className="schema-note">{busy ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar. Det tar upp till ${d.solveTimeMs / 1000} sekunder.` : ''}</output>
+    <output aria-live="polite" className="schema-note">{busy && !fortsatt?.loading ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. Därefter kontrolleras resultatet.` : ''}</output>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
@@ -1038,11 +1110,16 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     onForhandsgranska={() => void forhandsgranskaSalar()} onAnvand={anvandSalar} onAvbryt={() => setSalsattning(null)}/>;
   // Vad nästa Ångra avser, i klartext.
   const senasteSteg = utkast.undo.at(-1), angraText = senasteSteg && arbetsvillkorSteg(senasteSteg) ? `Ångra: ${senasteSteg.text.charAt(0).toLocaleLowerCase('sv')}${senasteSteg.text.slice(1)}` : 'Ångra';
-  const taFramKnapp = <Button type="submit" form={regelformId} variant={sokning || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
+  const taFramKnapp = <Button type="submit" form={regelformId} variant={sokning || fortsatt || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
   const regelform = !fonster && <form id={regelformId} className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
       <label>Schemat gäller<select value={period} disabled={busy || checking || !spara.ready} onChange={e => void bytPeriod(e.target.value as SchemaPeriod)}>
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
-      {!visaForbered && <Button type="submit" variant={sokning || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>}
+      <label>Räknetid per omgång<select value={solveTimeMs} disabled={busy || checking} onChange={e => setSolveTimeMs(Number(e.target.value) as SchemaSolveTimeMs)}>
+        {SCHEMA_SOLVE_TIMES.map(ms => <option key={ms} value={ms}>{ms / 1000} sekunder</option>)}
+      </select></label>
+      {!visaForbered && <Button type="submit" variant={sokning || fortsatt || diagnosAktuell?.findings.length ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>}
+      {!visaForbered && forslag && forslag.metrics.lessons > 0 && <Button ref={continueButton} type="button" variant="outline" disabled={busy || checking || issues.length > 0 || grundAndrad || redigeringStoppad} onClick={() => void fortsattBerakning()}>Fortsätt förbättra</Button>}
+      {!visaForbered && forslag && forslag.metrics.lessons > 0 && <p className="schema-note schema-wide">{grundAndrad ? 'Passens underlag har ändrats. Ta fram ett nytt schemaförslag för den nya uppdelningen.' : 'Fortsätt förbättra utgår från ditt nuvarande schema. Låsta pass och pass med datumändringar ligger kvar. Andra pass kan flyttas, och du granskar ändringarna innan de används.'}</p>}
       <p className="schema-note schema-wide">Ämnenas sammanlagda tid för läsåret kommer från timplanen, via tjänstefördelningen. Ett gemensamt veckomönster används på hösten och våren när undervisningen och lärarna är desamma. Tid och kortningar räknas över årets faktiska lektionstillfällen. Undervisning som bara går en termin ligger kvar där.</p>
       <Villkor value={villkor} disabled={busy || checking} issues={issues} resurser={forutsattningar?.resurser ?? null} forslag={forslag} onChange={andraArbetsvillkor}
         resurserBesked={issues.length ? 'Rätta felen i villkoren för att läsa klasser, grupper, ämnen och lärare från underlaget.' : underlagLas.error ?? 'Läser klasser, grupper, ämnen och lärare från underlaget…'}/>
@@ -1137,6 +1214,9 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
     </>}
     {!visaForbered && meddelanden}
 
+    {!fonster && !visaForbered && forslag && fortsatt && <FortsattGranskning search={fortsatt} forslag={forslag} stale={fortsatt.key !== continueInputKey} checking={checking}
+      onApply={() => void anvandFortsatt()} onClose={behallNuvarande}/>}
+
     {forslag && sokning && <Placeringsforslag search={sokning} forslag={forslag} stale={placementInputKey !== sokning.inputKey} checking={checking || busy}
       onDepth={depth => void sokPlacering({ mode: sokning.request.mode, lesson: sokning.request.lesson, target: sokning.request.target, depth })} onApply={(index, key) => void genomforPlacering(index, key)} onClose={stangPlacering}>
       {villkorsSokning && villkorsSokning.key === sokning.key && <Villkorsforslag search={villkorsSokning} forslag={forslag} stale={placementInputKey !== villkorsSokning.inputKey} disabled={busy || checking} onApply={(i, key) => void genomforVillkorsforslag(i, key)}/>}
@@ -1151,6 +1231,7 @@ function Workspace({ unitId, schoolYear, scopeKey, onSessionLost, fonster, perso
         {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
         {egnaSyns > 0 && <span className="status-badge">{egnaSyns} {egnaSyns === 1 ? 'eget villkor syns' : 'egna villkor syns'} i veckan</span>}
         <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
+        {forslag.status === 'time_limit' && <p className="schema-note">Motorn slutade söka när omgångens räknetid var slut. Det betyder inte att schemat är omöjligt. Välj längre räknetid och Fortsätt förbättra för att arbeta vidare från de placeringar som finns.</p>}
         <p className="schema-note">{forslag.basis ? `Underlag: tjänstefördelning version ${forslag.basis.versionNo} (${BASIS[forslag.basis.status] ?? forslag.basis.status}).` : 'Skolan har ingen tjänstefördelning för läsåret; bara behoven är underlag.'}
           {forslag.time.source === 'kalender'
             ? ` Tid: ${forslag.time.schoolDays} skoldagar${forslag.time.terms.length > 1 ? ` (${forslag.time.terms.map(t => `${t.term.toUpperCase()} ${t.schoolDays}`).join(', ')})` : ''} enligt läsårskalendern version ${forslag.time.version} (${CALENDAR[forslag.time.status ?? ''] ?? forslag.time.status}${forslag.time.current ? ', gällande' : ''}).`

@@ -125,6 +125,26 @@ Kortet svarar på fyra frågor, var för sig:
 
 **Ta fram schemaförslag** räknar fram ett förslag och tar dig till Lägg schema. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt: det som saknas läggs utan sal eller lärare och redovisas som lucka.
 
+I **Följ passet** visar lärarraden namn och roll. För valbara block väljer du **Visa ämnen i blocket** för att läsa hela ämneslistan. Fulla passnamn finns också på passknapparna.
+
+### Räknetid och fortsatt förbättring
+
+Välj **Räknetid per omgång**: 10, 30 eller 60 sekunder. Förvalet är 30 sekunder. En längre omgång ger motorn mer tid att söka, men garanterar inte att alla pass får plats.
+
+**Mer räknetid kan behövas** betyder att motorn nådde omgångens tidsgräns med ett ofullständigt resultat. Det är inte ett besked om att schemat är omöjligt.
+
+När du har ett schema kan du välja **Fortsätt förbättra** i Lägg schema. Motorn använder dina nuvarande placeringar som utgångspunkt. Låsta pass och grundplaceringarna för pass med datumändringar ligger kvar. Andra pass kan flyttas för att ge plats eller förbättra schemat. Pass utan sal får ingen ny sal i den fortsatta beräkningen när skolan har ett salregister.
+
+1. Välj räknetid och **Fortsätt förbättra**. Det nuvarande utkastet sparas innan beräkningen börjar.
+2. Granska varje ändrat pass, från och till, samt antalet lagda pass, regelavvikelser, timplaneavvikelser och håltid.
+3. Välj **Använd förslaget** eller **Behåll nuvarande schema**. Före ditt val ändras inga placeringar. Ett förslag med färre lagda pass eller fler regel- eller timplaneavvikelser kan inte användas.
+
+Förslaget kontrolleras på nytt när du använder det. Ändringen sparas i samma utkast och kan ångras som **Fortsatt beräkning**, i ett steg. Du kan sedan fortsätta igen från den nya versionen. Har du ändrat schemat eller villkoren efter sökningen behöver du söka igen.
+
+Om du väljer **Behåll nuvarande schema** under sökningen slutar arbetsytan vänta på svaret. Motorn kan fortsätta räkna tills omgångens tidsgräns är nådd. Ditt utkast finns kvar. Beräkningen är ingen bakgrundskörning som sparar ett nytt resultat när sidan har stängts.
+
+Har du ändrat vilka pass som ska finnas, till exempel deras uppdelning eller samtidighetsblock, behöver du först ta fram ett nytt schemaförslag. Fortsättningen använder samma pass och räknar inte om underlaget.
+
 ## Tid, sal och kapacitet
 
 Ett förslag redovisas med tre besked i stället för en samlad status:

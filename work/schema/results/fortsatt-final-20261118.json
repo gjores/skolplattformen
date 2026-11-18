@@ -1,0 +1,58 @@
+{
+  "kind": "schema-fortsatt-final-checks",
+  "date": "2026-11-18",
+  "status": "PASS",
+  "syntheticOnly": true,
+  "installed": false,
+  "newSqlMigrations": 0,
+  "checks": {
+    "node": {
+      "command": "node --test lib/*.test.mjs",
+      "total": 1481,
+      "passed": 1479,
+      "failed": 0,
+      "skipped": 2,
+      "skipReason": "Två äldre opt-in-motorprov; räknas inte som PASS. Ny fortsatt HTTP-kedja körd separat."
+    },
+    "typescript": {
+      "command": "npx tsc --noEmit",
+      "status": "PASS"
+    },
+    "lint": {
+      "command": "npx oxlint app lib",
+      "status": "PASS"
+    },
+    "build": {
+      "command": "npm run build",
+      "status": "PASS"
+    },
+    "handbook": {
+      "command": "npm run docs:build",
+      "status": "PASS"
+    },
+    "ui": {
+      "uniqueProfileCases": 34,
+      "status": "PASS",
+      "report": "work/schema/results/fortsatt-ui-20261118.json"
+    },
+    "actualMotor": {
+      "status": "PASS",
+      "report": "work/schema/results/fortsatt-api-20261118.json"
+    }
+  },
+  "sourceSha256": {
+    "web/app/schema-workspace.tsx": "c74bcf0ef2db4f5f7a019e9ca3a5b71885cff91babde37e1f5694b6f5b60722c",
+    "web/app/schema/fortsatt.tsx": "07ca62e6e40da27301c9ccd29ec8f7d405a29eaccc221a981b2158831f1adee7",
+    "web/app/schema/folj.tsx": "767a051500821aa56b0ad15de6284a2f836a1c203e520d8ef4ef7129a94605d5",
+    "web/lib/schema-fortsatt.ts": "750edc8d184a0f773112774c331629e92f1555deed63dee5c676b0a86305fa63",
+    "web/lib/schema-utkast.ts": "02184567ee573c180e6ec629203e15956644fd2f2d061f4e5dff28806d4fc289",
+    "web/lib/schema-underlag.ts": "4b9d596640442138641b6380884c68cf1971b9f7351809224edd83c1667f4c02",
+    "web/lib/server/schemamotor.ts": "21fd8add9989f55a00ff207c64b496c4436a466cff44fe7f718685e13e8249c6",
+    "web/app/api/schema/fortsatt/route.ts": "87d326069702abfc227124ce8c13ecbcb10590b9dc24aa0cc97060225244aa3e",
+    "schemamotor/crates/service/src/lib.rs": "e367d6a5b16cf5008aff14145b90bc501d6f6c4cfe3bae5da72bd684dbaf343e"
+  },
+  "limits": [
+    "Ingen ny faktisk Worker/OIDC/PostgreSQL-helkedja eller mänsklig acceptans.",
+    "Ingen installation på3012/3013. Den frysta kandidaten prövas separat."
+  ]
+}

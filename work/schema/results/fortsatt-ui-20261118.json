@@ -1,0 +1,938 @@
+{
+  "kind": "schema-fortsatt-ui-verification",
+  "date": "2026-11-18",
+  "status": "PASS",
+  "uniqueProfileCases": 34,
+  "actualDbOrOidc": false,
+  "actualMotor": false,
+  "humanAcceptance": false,
+  "mobileAuthoringIncluded": false,
+  "fixtures": "Syntetiska uppgifter och uttryckligen simulerade skyddade API-rutter. Hashbundet autosave i minnet; faktiskt BroadcastChannel mellan två fönster.",
+  "corrections": [
+    "Första TMI-locatorn var felaktigt dubbelscopad; details hämtas nu från summary-föräldern.",
+    "Första tidsstatusprovet använde den gamla statusfrasen.",
+    "Bildgranskning fann rubrik bakom sticky Ångra. Produktens scroll ändrades till center och geometri kontrollerades på1280/1600 inklusive200 procent text.",
+    "Två prov avbröts av utvecklingsomladdningar under parallellarbete (seedat datum/lås1600 och extraTMI-bild1280); bägge fick passerade riktade omprov.",
+    "Sista fortsättningsomprovet kördes efter reducerjusteringen för bevarad medveten krock och sluttexten elevminuter/lärarminuter.",
+    "Ytterligare2/2 godkännande-/ångraprov efter sista rensningen av salförhandsgranskning vid fortsatt-start."
+  ],
+  "sources": {
+    "web/app/schema-workspace.tsx": "c74bcf0ef2db4f5f7a019e9ca3a5b71885cff91babde37e1f5694b6f5b60722c",
+    "web/app/schema/fortsatt.tsx": "07ca62e6e40da27301c9ccd29ec8f7d405a29eaccc221a981b2158831f1adee7",
+    "web/app/schema/folj.tsx": "767a051500821aa56b0ad15de6284a2f836a1c203e520d8ef4ef7129a94605d5",
+    "web/lib/schema-fortsatt.ts": "750edc8d184a0f773112774c331629e92f1555deed63dee5c676b0a86305fa63",
+    "web/lib/schema-utkast.ts": "02184567ee573c180e6ec629203e15956644fd2f2d061f4e5dff28806d4fc289",
+    "web/e2e/schema-fortsatt.spec.ts": "69c6ccdd21c7919a3854abaa4f18cc8a3089541d47a2126cc7db5c45ccdf1dcb",
+    "web/e2e/schema-folj-information.spec.ts": "30eb3133380533afe138158e15101a09250a73cf412affc7bcb91a328ab58775",
+    "web/e2e/schema.spec.ts": "fa0ac2776689580cdac63a3325c8021e139cb7c653b9fab0679022eaace7baf4"
+  },
+  "runs": [
+    {
+      "run": 1,
+      "stats": {
+        "startTime": "2026-11-18T15:26:49.442Z",
+        "duration": 135669.98400000003,
+        "expected": 23,
+        "skipped": 0,
+        "unexpected": 5,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1280",
+          "status": "failed",
+          "durationMs": 9660,
+          "retry": 0
+        },
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "ett vanligt pass behåller ämnesnamnet och får ingen valblocksdetalj",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 1920,
+          "retry": 0
+        },
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1600",
+          "status": "failed",
+          "durationMs": 7993,
+          "retry": 0
+        },
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "ett vanligt pass behåller ämnesnamnet och får ingen valblocksdetalj",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 5444,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+          "project": "desktop-1280",
+          "status": "failed",
+          "durationMs": 6409,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 9417,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "behåll nuvarande schema lämnar både placeringar och sparat utkast kvar och återför fokus",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 3085,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fel från fortsatt beräkning lämnar det gamla schemat och låsen kvar",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 3957,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med färre lagda pass kan inte skriva över det aktuella schemat",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2697,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med fler regelavvikelser kan inte skriva över det aktuella schemat",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2519,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med fler timplansavvikelser kan inte skriva över det aktuella schemat",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2700,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "en granskad kandidat blir inaktuell efter nytt lås och kan inte godkännas",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2941,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2124,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 5137,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "avbruten granskning under körning lämnar sparat schema kvar även när ett sent svar anländer",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 3801,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "ett nytt lås i ett anslutet fönster gör huvudfönstrets kandidat inaktuell",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 4616,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+          "project": "desktop-1600",
+          "status": "failed",
+          "durationMs": 7087,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 9645,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "behåll nuvarande schema lämnar både placeringar och sparat utkast kvar och återför fokus",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2944,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fel från fortsatt beräkning lämnar det gamla schemat och låsen kvar",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 3955,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med färre lagda pass kan inte skriva över det aktuella schemat",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2911,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med fler regelavvikelser kan inte skriva över det aktuella schemat",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2520,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "försämring med fler timplansavvikelser kan inte skriva över det aktuella schemat",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2490,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "en granskad kandidat blir inaktuell efter nytt lås och kan inte godkännas",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2762,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2084,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+          "project": "desktop-1600",
+          "status": "failed",
+          "durationMs": 6816,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "avbruten granskning under körning lämnar sparat schema kvar även när ett sent svar anländer",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 4407,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "ett nytt lås i ett anslutet fönster gör huvudfönstrets kandidat inaktuell",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 4619,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 2,
+      "stats": {
+        "startTime": "2026-11-18T15:30:04.763Z",
+        "duration": 42072.078,
+        "expected": 12,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 3853,
+          "retry": 0
+        },
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 3323,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 1234,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 8787,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2073,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2964,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 1124,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 8511,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2205,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2936,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 1267,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 1177,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 3,
+      "stats": {
+        "startTime": "2026-11-18T15:31:38.859Z",
+        "duration": 23162.917,
+        "expected": 6,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2952,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2963,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 4630,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2624,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 4688,
+          "retry": 0
+        },
+        {
+          "file": "schema.spec.ts",
+          "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2269,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 4,
+      "stats": {
+        "startTime": "2026-11-18T15:32:53.994Z",
+        "duration": 33628.442,
+        "expected": 3,
+        "skipped": 0,
+        "unexpected": 1,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1280",
+          "status": "failed",
+          "durationMs": 9504,
+          "retry": 0
+        },
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 3156,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 8937,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 8402,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 5,
+      "stats": {
+        "startTime": "2026-11-18T15:34:23.904Z",
+        "duration": 5878.49,
+        "expected": 1,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-folj-information.spec.ts",
+          "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 4101,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 6,
+      "stats": {
+        "startTime": "2026-11-18T15:35:45.192Z",
+        "duration": 24231.163,
+        "expected": 4,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 8901,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 2242,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 8551,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 2213,
+          "retry": 0
+        }
+      ]
+    },
+    {
+      "run": 7,
+      "stats": {
+        "startTime": "2026-11-18T15:38:08.174Z",
+        "duration": 19540.914,
+        "expected": 2,
+        "skipped": 0,
+        "unexpected": 0,
+        "flaky": 0
+      },
+      "cases": [
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1280",
+          "status": "passed",
+          "durationMs": 8946,
+          "retry": 0
+        },
+        {
+          "file": "schema-fortsatt.spec.ts",
+          "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+          "project": "desktop-1600",
+          "status": "passed",
+          "durationMs": 8405,
+          "retry": 0
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "file": "schema-folj-information.spec.ts",
+      "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 4101,
+      "retry": 0,
+      "lastRun": 5
+    },
+    {
+      "file": "schema-folj-information.spec.ts",
+      "title": "ett vanligt pass behåller ämnesnamnet och får ingen valblocksdetalj",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 1920,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-folj-information.spec.ts",
+      "title": "valblock sammanfattas en gång och lärarrader upprepar inte ämneslistorna, även med stor text",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 3156,
+      "retry": 0,
+      "lastRun": 4
+    },
+    {
+      "file": "schema-folj-information.spec.ts",
+      "title": "ett vanligt pass behåller ämnesnamnet och får ingen valblocksdetalj",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 5444,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 1234,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 8946,
+      "retry": 0,
+      "lastRun": 7
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "behåll nuvarande schema lämnar både placeringar och sparat utkast kvar och återför fokus",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 3085,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "fel från fortsatt beräkning lämnar det gamla schemat och låsen kvar",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 3957,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med färre lagda pass kan inte skriva över det aktuella schemat",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2697,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med fler regelavvikelser kan inte skriva över det aktuella schemat",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2519,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med fler timplansavvikelser kan inte skriva över det aktuella schemat",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2700,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "en granskad kandidat blir inaktuell efter nytt lås och kan inte godkännas",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2941,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2242,
+      "retry": 0,
+      "lastRun": 6
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2964,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "avbruten granskning under körning lämnar sparat schema kvar även när ett sent svar anländer",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 3801,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "ett nytt lås i ett anslutet fönster gör huvudfönstrets kandidat inaktuell",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 4616,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "räknetid har förval 30 sekunder och valt värde går till första beräkningen",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 1124,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "fortsättning granskas före ändring och kan användas, ångras och göras om i ett steg",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 8405,
+      "retry": 0,
+      "lastRun": 7
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "behåll nuvarande schema lämnar både placeringar och sparat utkast kvar och återför fokus",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2944,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "fel från fortsatt beräkning lämnar det gamla schemat och låsen kvar",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 3955,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med färre lagda pass kan inte skriva över det aktuella schemat",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2911,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med fler regelavvikelser kan inte skriva över det aktuella schemat",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2520,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "försämring med fler timplansavvikelser kan inte skriva över det aktuella schemat",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2490,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "en granskad kandidat blir inaktuell efter nytt lås och kan inte godkännas",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2762,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "oförändrat resultat ger inget nytt ändringssteg och fortsatt beräkning fungerar med 200 procent text",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2213,
+      "retry": 0,
+      "lastRun": 6
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "handgjorda placeringar, lås och datumändringar används som utgångspunkt och överlever godkännande",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2936,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "avbruten granskning under körning lämnar sparat schema kvar även när ett sent svar anländer",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 4407,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema-fortsatt.spec.ts",
+      "title": "ett nytt lås i ett anslutet fönster gör huvudfönstrets kandidat inaktuell",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 4619,
+      "retry": 0,
+      "lastRun": 1
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 1267,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "olagda pass, förklaring och utelämnade behov redovisas i text",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 1177,
+      "retry": 0,
+      "lastRun": 2
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 4630,
+      "retry": 0,
+      "lastRun": 3
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+      "project": "desktop-1280",
+      "status": "passed",
+      "durationMs": 2624,
+      "retry": 0,
+      "lastRun": 3
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "förslaget visas som vecka per klass och per lärare, utan sidledsrullning",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 4688,
+      "retry": 0,
+      "lastRun": 3
+    },
+    {
+      "file": "schema.spec.ts",
+      "title": "villkoren prövas i vyn, skickas med begäran och finns kvar för skolan",
+      "project": "desktop-1600",
+      "status": "passed",
+      "durationMs": 2269,
+      "retry": 0,
+      "lastRun": 3
+    }
+  ],
+  "images": [
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/folj-valblock-16px-1280.png",
+      "bytes": 175275,
+      "sha256": "a1c7043523743fb6456561efa5e315be133eaa366f409e683176d21586c140ca"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/folj-valblock-16px-1600.png",
+      "bytes": 187312,
+      "sha256": "bf677d0a797b5d755f9d3e51a842aaa9e7f3d6cb0b075293e2d295d4010a9b9c"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/folj-valblock-32px-1280.png",
+      "bytes": 351850,
+      "sha256": "45bc6fb747ad670b75036a830f52c835938f7152ea3399216eb08a99827f33d2"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/folj-valblock-32px-1600.png",
+      "bytes": 330062,
+      "sha256": "c82c51fdbc41706c503fefb5b35ac7b031433c935be2cae4b18a7547519fc5f4"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-200-1280.png",
+      "bytes": 146707,
+      "sha256": "4f4bd08a390b92d603cee057fa998b89f57117080fc736904e7baad1dd2232a6"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-200-1600.png",
+      "bytes": 164554,
+      "sha256": "23bb801d7821f7fdafc31a77022e352daa3bf637fe737d6eac1bc112a6229fad"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-granskning-1280.png",
+      "bytes": 131282,
+      "sha256": "bad6c4734b695ee31b56b7b50d0e19cc96661e1684a0840c039babd343295fc8"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-granskning-1600.png",
+      "bytes": 135790,
+      "sha256": "944b735ed903d6b43d1497c08a84be3958450bad8d8de39175a330ef1d2aa1cc"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-kontroller-200-1280.png",
+      "bytes": 151877,
+      "sha256": "fb7468ecc7d472c4e95daf6035da39f32315d8d828181572180b81ed70d831c8"
+    },
+    {
+      "path": "work/schema/results/fortsatt-ui-20261118/fortsatt-kontroller-200-1600.png",
+      "bytes": 171074,
+      "sha256": "65bcef4c9a15dcf45114e7a28a2778069b92171bee0daffefc383f7fe6508b87"
+    }
+  ]
+}

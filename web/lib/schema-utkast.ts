@@ -4,6 +4,7 @@
 import type { SchemaAktivitetsSnapshot } from './schema-aktiviteter.ts';
 import type { SchemaDatumAndring } from './schema-datum.ts';
 import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement, SchemaRegel, SchemaRegelSlag, SchemaViolation, SchemaVillkor } from './schema-contract.ts';
+import { villkorNyckel } from './schema-contract.ts';
 
 /** Var ett pass ligger. `day` och `startMin` är null när passet ligger på viloytan. */
 export type SchemaUtkastPlats = { day: number | null; startMin: number | null; room: string | null };
@@ -230,9 +231,13 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
         return { ...state, placements: withRooms(placements, action.rooms), picked: null, intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       }
       // Ett villkorssteg bär villkoren före och efter och flyttar inget pass; arbetsytan sätter tillbaka villkoren.
-      if (villkorSteg(step) || arbetsvillkorSteg(step)) return { ...state,
-        placements: arbetsvillkorSteg(step) && step.platser ? withRooms(step.platser[action.type === 'undo' ? 'fore' : 'efter'], action.rooms) : state.placements,
-        intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
+      if (villkorSteg(step) || arbetsvillkorSteg(step)) {
+        const placements = arbetsvillkorSteg(step) && step.platser ? withRooms(step.platser[action.type === 'undo' ? 'fore' : 'efter'], action.rooms) : state.placements;
+        const sammaVillkor = arbetsvillkorSteg(step) && villkorNyckel(step.arbetsvillkor.fore) === villkorNyckel(step.arbetsvillkor.efter);
+        return { ...state, placements,
+          intentional: action.type === 'undo' ? step.intentional ?? [] : sammaVillkor ? (step.intentional ?? []).filter(m => medvetenGaller(m, placements, m.villkor)) : [],
+          undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
+      }
       const moved = { lesson: step.lesson, placements: state.placements, locked: state.locked, intentional: state.intentional ?? [] };
       return { ...state, placements: withRooms(step.placements, action.rooms), locked: step.locked ?? state.locked, picked: null, selected: [], intentional: step.intentional ?? [],
         undo: action.type === 'undo' ? from.slice(0, -1) : push(to, moved), redo: action.type === 'undo' ? push(to, moved) : from.slice(0, -1) };
@@ -248,7 +253,7 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
     case 'arbetsvillkor': {
       const next = action.placements ? schemaUtkast(state, { type: 'placement', lesson: '', placements: action.placements }) : state;
       if (action.placements && next === state) return state;
-      return { ...state, placements: next.placements, picked: null, selected: [], intentional: [], undo: push(state.undo, { arbetsvillkor: { fore: action.fore, efter: action.efter },
+      return { ...state, placements: next.placements, picked: null, selected: [], intentional: villkorNyckel(action.fore) === villkorNyckel(action.efter) ? next.intentional : [], undo: push(state.undo, { arbetsvillkor: { fore: action.fore, efter: action.efter },
         ...(action.placements ? { platser: { fore: state.placements, efter: next.placements } } : {}), text: action.text, intentional: state.intentional ?? [] }), redo: [] };
     }
     case 'datum':
