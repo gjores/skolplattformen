@@ -88,12 +88,18 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
   const kontext = { lessons: forslag.lessons, classes: forslag.classes, teachers: forslag.teachers, rooms: forslag.rooms, placements, ...(elevNamn ? { elev: elevNamn } : {}) };
   const klasser = names(lesson.classIds, forslag.classes);
   const elever = folj?.elever ?? null;
+  // Ett valbart block kan ha en mycket lång titel med samtliga ämnen. Visa listan en gång på begäran, inte i varje resursrad.
+  const valbartBlock = lesson.title.startsWith('Valbart block: '), kortTitel = valbartBlock ? 'Valbart block' : lesson.title;
 
   return <section className="folj" aria-labelledby={heading}>
     <div className="folj-huvud">
       <div>
         <p className="folj-overrad">Flera scheman samtidigt</p>
-        <h2 id={heading} ref={headingRef} tabIndex={-1}>Följ passet: {lesson.title}{klasser ? `, ${klasser}` : ''}</h2>
+        <h2 id={heading} ref={headingRef} tabIndex={-1}>Följ passet: {kortTitel}{klasser ? `, ${klasser}` : ''}</h2>
+        {valbartBlock && <details className="mt-2 text-sm">
+          <summary className="min-h-(--control-height) cursor-pointer py-2 font-medium text-primary focus-visible:outline-3 focus-visible:outline-offset-4 focus-visible:outline-ring">Visa ämnen i blocket</summary>
+          <p className="schema-note">{lesson.title.slice('Valbart block: '.length)}</p>
+        </details>}
         <p className="schema-note">Alla scheman passet berör: klassen, läraren, salen och elever som delar grupp. Översta raden visar var passet kan ligga i veckan och varför inte.
           {locked ? ' Panelen är låst till passet.' : ' Panelen följer det markerade passet.'}</p>
       </div>
@@ -130,9 +136,10 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
 
     <div className="folj-rutnat" style={{ '--span': end - start, '--first-hour': Math.ceil(start / 60) * 60 - start, '--days': forslag.days.length } as CSSProperties}>
       <div className="folj-rad folj-dagar" aria-hidden="true"><div/>{forslag.days.map((_, d) => <div key={d}>{dayName(d)}</div>)}</div>
-      <Mojligt days={forslag.days} span={{ start, end }} step={forslag.startGridMin} lesson={lesson.id} title={lesson.title} lengthMin={lesson.durationMin}
+      <Mojligt days={forslag.days} span={{ start, end }} step={forslag.startGridMin} lesson={lesson.id} title={kortTitel} lengthMin={lesson.durationMin}
         lagen={lagen} loading={loading} kontext={kontext} medSalregister={!!forslag.villkor.salregister} disabled={checking} onMove={onMove}/>
-      {rader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick} compact/>)}
+      {rader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick}
+        head={r.slag === 'larare' ? <><b>{r.name}</b><small>lärare</small></> : undefined} compact/>)}
     </div>
     {krock.texter.length > 0 && <div className="folj-krock">{krock.texter.map(t => <p key={t}>{t}</p>)}</div>}
     {rader.some(r => r.slag === 'elev') && <p className="schema-note">Elevens pass kommer ur klassen och elevens grupper; streckad kant = gruppens pass.</p>}
