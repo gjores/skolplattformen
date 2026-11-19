@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-NAVIGATION första etappen genomförd lokalt. Användarprov återstår. UXF-53 väntar provbeslut."
+current_plan: "SM-NAVIGATION första etappen installerad på 3012. Användarprov återstår. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Gemensam navigation och passpanel i e832bc04. Skyddat bygge klart. Ändringen väntar på installation och användarprov."
+stopped_at: "App e832bc04 installerad på 3012 med godkända efterkontroller. Nästa är användarprov i Lägg schema."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Lägg schema har en kompakt arbetsyta med passpanel och genväg till kontrollerna."
+last_activity_desc: "Installerad ny schemaarbetsyta med gemensam navigation och passpanel."
 state_head: e832bc049e3b889e5d3d173de1e40bac7bbf54b7
 progress:
   total_phases: 8
@@ -21,16 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_candidate_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
+schema_runtime_revision: e832bc049e3b889e5d3d173de1e40bac7bbf54b7
+schema_candidate_revision: e832bc049e3b889e5d3d173de1e40bac7bbf54b7
 schema_candidate_status: installed_awaiting_user_retrial
 schema_motor_contract_version: 5
-schema_installation_status: fortsatt_passed_7_groups_zero_migrations_journal_171_80_draft_and_1_room_revisions_preserved
-user_trial_status: new_room_and_map_issues_reported_workflow_proposed
+schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
+schema_installation_status: navigation_passed_6_groups_zero_migrations_80_draft_and_1_room_revisions_preserved
+user_trial_status: schema_navigation_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – schemats navigation och passpanel:** [Första etappen](phases/05.2-schemamodul/05.2-SM-NAVIGATION-SUMMARY.md) ger kalendern mer plats, grupperar skola/läsår/period och sparbesked och flyttar passverktygen till en panel intill veckan och passtabellen. Beräkning och Till kontrollerna leder till befintliga verktyg. Byggd och prövad lokalt med syntetiska uppgifter. Installation och användarprov återstår. Granska tas upp i en senare etapp.
+**2026-11-19 – schemats navigation och passpanel:** [Första etappen](phases/05.2-schemamodul/05.2-SM-NAVIGATION-SUMMARY.md) ger kalendern mer plats, grupperar skola/läsår/period och sparbesked och flyttar passverktygen till en panel intill veckan och passtabellen. Beräkning och Till kontrollerna leder till befintliga verktyg. Byggd och prövad lokalt med syntetiska uppgifter. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-NAVIGATION-INSTALL.md) med 6 av 6 kontrollgrupper godkända. Användarprov återstår. Granska tas upp i en senare etapp.
 
 **2026-11-18 – fortsatt beräkning och TMI installerade:** Användaren svarade **”ja”** på installation av fryst `66a4fb96` på 3012/3013. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-18.md), [rapport](../work/schema/results/fortsatt-66a4fb969b-install.json): **PASS 7/7**, ingen återgång. App 8/motor 5 kör samma frysta källa, 1490 produktfiler oförändrade. **0 migrationer**, samma 171-raders journal och katalog; alla **80** tidigare utkastrevisioner och salregistrets **1** revision bevarade med SHA256 av hela revisionsrader. Samma sessionshemlighet/token, alla 19 schemavägar nekar utan session, faktisk liten motorsökning med version 4/5, frö, lås och salfria pass PASS. [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger 10/30/60 sekunder (förval 30), referensstart och granskning/Ångra; [TMI](phases/05.2-schemamodul/05.2-SM-FOLJ-TMI-SUMMARY.md) kortar Följ passet. Föregående `f3869834` finns kvar för återgång. **Nästa: användarprov på 3012.** Ingen mänsklig acceptans, full ny autentiserad Worker/OIDC/PostgreSQL-kedja eller extern standardanslutning påstås; krav-/fasantal består.
 
