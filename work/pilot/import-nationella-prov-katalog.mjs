@@ -53,6 +53,10 @@ const WEEKDAYS = [[], ['mån', 'måndag'], ['tis', 'tisdag'], ['ons', 'onsdag'],
 const iso = day => day.toISOString().slice(0, 10);
 const term = day => day.slice(5, 7) < '07' ? 'vt' : 'ht';
 const start = entry => entry.tid.typ === 'fast' ? entry.tid.datum : entry.tid.fran;
+const TIME_ERROR = 'Tidsåtgången i källtabellen kunde inte tolkas.';
+// Skolverket anger ibland en rast utan längd. Lägg ett lokalt förslag i
+// bokningsblocket och redovisa de minuterna separat.
+const planeradeRaster = new Map([['rast', 10], ['kort rast', 10], ['längre rast', 20]]);
 
 function parseYear(value) {
   const match = /^(\d{4})\s*\/\s*(\d{2}|\d{4})$/u.exec(value);
@@ -110,6 +114,64 @@ function entryKey(entry) {
   return `${entry.group.id}-${entry.part}-${term(start(entry))}`;
 }
 
+function positiveMinutes(value) {
+  const minutes = Number(value);
+  assert.ok(Number.isInteger(minutes) && minutes > 0, TIME_ERROR);
+  return minutes;
+}
+
+function commonTime(minutes, planeradRastMin = 0) {
+  const minuter = Math.ceil(minutes / 5) * 5;
+  assert.ok(minuter <= 1440 - PROVSTART, TIME_ERROR);
+  return { typ: 'gemensam', minuter, ...(planeradRastMin > 0 && { planeradRastMin }) };
+}
+
+function parseTidsplan(value, tid, group, part) {
+  if (tid.typ === 'period') {
+    const oral = /^(?:cirka )?(\d{1,3}) min(?:uter)? per (elevpar|elev)(?: \+ (\d{1,3}) min(?:uter)? för enskild förberedelse under uppsikt)?$/iu.exec(value);
+    assert.ok(oral, TIME_ERROR);
+    return {
+      typ: 'muntlig', minuterPerTillfalle: positiveMinutes(oral[1]),
+      deltagarePerTillfalle: oral[2].toLowerCase() === 'elevpar' ? 2 : 1,
+      ...(oral[3] && { forberedelseMin: positiveMinutes(oral[3]) }),
+    };
+  }
+
+  const svenska = /^(\d{1,3}) min för elever som följer svenska 1 (\d{1,3}) min för elever som följer svenska som andraspråk 1$/iu.exec(value);
+  if (svenska && group.id === 'svenska1' && part === 'b') {
+    return commonTime(Math.max(positiveMinutes(svenska[1]), positiveMinutes(svenska[2])));
+  }
+
+  const englishB = part === 'b' && (group.id === 'engelska1' || group.id === 'engelska2');
+  // Vårens engelska B har samma tidsblock som hösten, men en tabellrad
+  // utelämnar ordet "min" efter det publicerade intervallet 5–10.
+  const instructions = / \(exkl\. (?:totalt )?(\d{1,3})(?:[-–](\d{1,3}))? min(?: för)? instruktioner\)$/iu.exec(value)
+    ?? (englishB ? / \(exkl\. (5)[-–](10) instruktioner\)$/iu.exec(value) : null);
+  let minutes = instructions ? positiveMinutes(instructions[2] ?? instructions[1]) : 0;
+  if (instructions) assert.ok(minutes >= positiveMinutes(instructions[1]), TIME_ERROR);
+  const segments = (instructions ? value.slice(0, instructions.index) : value).split(' + ');
+  let plannedBreakMinutes = 0;
+  let timedBlock = false;
+  for (const segment of segments) {
+    const assumedBreak = planeradeRaster.get(segment.toLowerCase());
+    if (assumedBreak !== undefined) {
+      plannedBreakMinutes += assumedBreak;
+      continue;
+    }
+    const measuredBreak = /^rast (?:ca )?(\d{1,3}) min$/iu.exec(segment);
+    if (measuredBreak) {
+      minutes += positiveMinutes(measuredBreak[1]);
+      continue;
+    }
+    const block = /^(\d{1,3})(?: min(?: (?:genomgång av förberedelsematerial|skrivtid|utan räknare|med digitala verktyg|med enkel räknare))?)?$/iu.exec(segment);
+    assert.ok(block && (segment.includes(' ') || segments.length > 1), TIME_ERROR);
+    minutes += positiveMinutes(block[1]);
+    timedBlock = true;
+  }
+  assert.ok(timedBlock, TIME_ERROR);
+  return commonTime(minutes + plannedBreakMinutes, plannedBreakMinutes);
+}
+
 function parseRows(schoolYear, rows) {
   assert.ok(rows.length && rows.length <= 200, 'Provtabellen måste innehålla mellan 1 och 200 delprov.');
   const entries = [];
@@ -138,13 +200,14 @@ function parseRows(schoolYear, rows) {
     } else {
       tid = fixedDate(schoolYear, dateLabel, week);
     }
-    entries.push({ group, part, tid, tidsatgang, foreBC: Boolean(weekMatch?.[2]) });
+    const tidsplan = parseTidsplan(tidsatgang, tid, group, part);
+    entries.push({ group, part, tid, tidsatgang, tidsplan, foreBC: Boolean(weekMatch?.[2]) });
   }
 
   const byId = new Map(entries.map(entry => [entryKey(entry), entry]));
   assert.equal(byId.size, entries.length, 'Flera delprov fick samma identitet i samma termin.');
   return [...byId].sort(([a], [b]) => a.localeCompare(b, 'sv')).map(([id, entry]) => {
-    const { group, part, tid, tidsatgang, foreBC } = entry;
+    const { group, part, tid, tidsatgang, tidsplan, foreBC } = entry;
     if (foreBC) {
       const suffix = term(tid.fran);
       const b = byId.get(`${group.id}-b-${suffix}`);
@@ -159,7 +222,7 @@ function parseRows(schoolYear, rows) {
       : tid.tidigasteStartMin === undefined ? '' : '. Genomförs efter delprov A.';
     const delprov = part === 'abc' ? 'Delprov A, B och C' : `Delprov ${part.toUpperCase()}`;
     assert.ok(tidsatgang.length + anvisning.length <= 500, 'Tidsåtgången i källtabellen är för lång.');
-    return { id, namn: `${group.namn} · ${delprov}`, nivaer: group.nivaer, tid, tidsatgang: tidsatgang + anvisning };
+    return { id, namn: `${group.namn} · ${delprov}`, nivaer: group.nivaer, tid, tidsatgang: tidsatgang + anvisning, tidsplan };
   });
 }
 

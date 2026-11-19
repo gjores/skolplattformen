@@ -30,9 +30,9 @@ I arbetssättet ram kan skolan börja först när huvudmannen har gett ut ramen.
 
 Provdatum och skolans bokningar finns under **Nationella prov** i skolans läsårskalender. Rektor och skoladministratör kan planera prov för vald skola och valt läsår.
 
-1. Välj ett delprov för läsåret i katalogen från Skolverket. Datumet då uppgifterna hämtades visas under väljaren. Använd **Eget provunderlag** när du behöver ange provuppgifterna själv. Välj då också ämne och nivå eller kurs. [Skolverkets provdatum](https://www.skolverket.se/prov-och-bedomning/nationella-prov/provdatum/provdatum-for-gymnasieskolan)
-2. Granska förslagen på klasser och undervisningsgrupper. Entydiga träffar är förvalda. Kontrollera de osäkra förslagen och välj bara de deltagare som ska skriva.
-3. Ange tiden, datumet då du kontrollerade underlaget och eventuella salar och provvakter. För ett prov inom en provperiod anger du också provdatum och starttid. Räkna med raster och instruktioner när du väljer hur länge resurserna ska bokas.
+1. Börja under **Rekommenderade prov** i provväljaren. Förslagen bygger på skolans ämnen, nivåer och terminer. Hela katalogen finns i samma väljare. [Skolverkets provdatum](https://www.skolverket.se/prov-och-bedomning/nationella-prov/provdatum/provdatum-for-gymnasieskolan)
+2. Granska föreslagna klasser och undervisningsgrupper. Entydiga träffar är förvalda. Kontrollera deltagarnas studieväg och när undervisningen avslutas, särskilt för de förslag som behöver granskas.
+3. Kontrollera de förifyllda tiderna och välj eventuella salar och provvakter. Datum och start för fasta prov kommer från Skolverket. Föreslagen sluttid går att ändra. För muntliga prov inom en period föreslår appen ett tidsblock på en skoldag när kalendern har ett lämpligt datum. Anpassa blocket efter antal elever och sittningar. Med **Eget provunderlag** väljer du ämne och nivå eller kurs och anger själv datum, tider och när underlaget kontrollerades.
 4. Välj **Förhandsgranska bokningar** och kontrollera raden för varje deltagare. Du kan gå tillbaka och ändra valen. Bokningarna läggs till först när du väljer **Spara**.
 
 Sparade provdagar markeras i kalendern. Samma bokningar visas i [Förbered](./schema-forbered.md) och i listan **Sparade provbokningar**. När du väljer ett delprov från Skolverket sparas kopplingen mellan provet och skolans deltagare. Sparade provdagar ligger kvar när nya uppgifter hämtas. Om katalogen eller provplanen ändras medan du planerar behöver du läsa om och förhandsgranska igen. Provtid redovisas separat från gymnasiets garanterade undervisningstid.

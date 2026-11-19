@@ -16,6 +16,7 @@ import {
 import {
   provDatumTillatet, provDeltagarforslag, provNivaNyckel, provtermin, provTidTillaten,
 } from '@/lib/nationella-prov-katalog.ts';
+import { provDeltagareForPlanering, provRekommendationer, provTidsforslag } from '@/lib/nationella-prov-forslag.ts';
 
 type Props = {
   schoolYear: number;
@@ -84,7 +85,14 @@ export function LasarNationellaProv(props: Props) {
   const previewHeading = useRef<HTMLHeadingElement>(null);
   const katalog = underlag?.provkatalog;
   const prov = katalog?.prov.find(p => p.id === provId);
-  const provval = katalog?.prov.toSorted((a, b) => provstart(a).localeCompare(provstart(b)) || a.namn.localeCompare(b.namn, 'sv'));
+  const idag = stockholmsdatum();
+  const bokningar = props.document?.bokningar ?? [];
+  const rekommendationer = underlag ? provRekommendationer(underlag, schoolYear, bokningar, idag) : [];
+  const tidforslag = prov && underlag ? provTidsforslag(prov, underlag, schoolYear, bokningar, idag) : null;
+  const formKey = prov ? `${provId}:${katalog?.revision}:${tidforslag?.datum}:${tidforslag?.startMin}:${tidforslag?.slutMin}` : EGET;
+  const rekommenderadeId = new Set(rekommendationer.map(({ prov }) => prov.id));
+  const ovrigaProv = katalog?.prov.filter(p => !rekommenderadeId.has(p.id))
+    .sort((a, b) => provstart(a).localeCompare(provstart(b)) || a.namn.localeCompare(b.namn, 'sv')) ?? [];
   const stale = preview !== null && (preview.basis !== underlag || preview.previous !== props.document);
 
   function closePreview() {
@@ -103,7 +111,7 @@ export function LasarNationellaProv(props: Props) {
     const saved = await props.onSave(preview.document);
     if (!saved) return;
     const antal = preview.rows.length;
-    setNotice(antal === 1 ? 'En provbokning har sparats.' : `${antal} provbokningar har sparats.`);
+    setNotice(`${antal === 1 ? 'En provbokning har' : `${antal} provbokningar har`} sparats i läsårskalendern.`);
     closePreview();
     setProvId('');
   }
@@ -133,15 +141,27 @@ export function LasarNationellaProv(props: Props) {
               setNotice('');
             }}>
               <option value="">Välj prov eller eget provunderlag</option>
-              {provval?.map(p => <option key={p.id} value={p.id}>{p.namn} · {provdag(p)}</option>)}
+              {rekommendationer.length > 0 && <optgroup label="Rekommenderade prov">
+                {rekommendationer.map(({ prov: p, deltagare, osakra, saknarTidsforslag }) => <option key={p.id} value={p.id}>
+                  {p.namn} · {provdag(p)} · {deltagare} {deltagare === 1 ? 'matchning' : 'matchningar'}{osakra > 0 ? ' att granska' : ''}
+                  {saknarTidsforslag ? ' · Kontrollera tiden' : ''}
+                </option>)}
+              </optgroup>}
+              {ovrigaProv.length > 0 && <optgroup label="Övriga prov i katalogen">
+                {ovrigaProv.map(p => <option key={p.id} value={p.id}>{p.namn} · {provdag(p)}</option>)}
+              </optgroup>}
               <option value={EGET}>Eget provunderlag</option>
             </NativeSelect>
             <FieldDescription>
-              {katalog ? `Provdatumen hämtades från Skolverket ${formatDate(katalog.kontrolleradDatum, true)}.`
+              {katalog ? <>
+                {rekommendationer.length > 0 ? 'Förslagen utgår från skolans ämnen, nivåer och terminer. Kontrollera deltagarnas studieväg och när nivån avslutas.'
+                  : 'Skolans undervisning ger inga nya provförslag för återstoden av läsåret.'}{' '}
+                Provdatum hämtade {formatDate(katalog.kontrolleradDatum, true)}.
+              </>
                 : 'Publicerade provdatum för det här läsåret saknas i katalogen. Lägg in uppgifter från ditt eget provunderlag.'}
             </FieldDescription>
           </Field>
-          {(prov || provId === EGET) && <Provform key={prov ? `${provId}:${katalog?.revision}` : EGET} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov}
+          {(prov || provId === EGET) && <Provform key={formKey} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov} idag={idag} tidforslag={tidforslag}
             disabled={reading || saving || readFailed || Boolean(needsReload)} onCancel={() => {
               setProvId('');
               heading.current?.focus();
@@ -171,15 +191,18 @@ export function LasarNationellaProv(props: Props) {
 type FormProps = Pick<Props, 'schoolYear' | 'document'> & {
   underlag: NationellaProvUnderlag;
   prov: Provval | undefined;
+  idag: string;
+  tidforslag: ReturnType<typeof provTidsforslag>;
   disabled: boolean;
   onPreview: (preview: Forhandsvisning) => void;
   onCancel: () => void;
 };
 
-function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, onCancel }: FormProps) {
+function Provform({ schoolYear, underlag, document, prov, idag, tidforslag, disabled, onPreview, onCancel }: FormProps) {
   const id = useId();
+  const bokningar = document?.bokningar ?? [];
   const [nivaKey, setNivaKey] = useState('');
-  const [datum, setDatum] = useState(prov?.tid.typ === 'fast' ? prov.tid.datum : '');
+  const [datum, setDatum] = useState(tidforslag?.datum ?? (prov?.tid.typ === 'fast' ? prov.tid.datum : ''));
   const [tidsval, setTidsval] = useState<NationellProvbokning['tidsval']>(prov?.tid.typ ?? 'fast');
   const [valdTermin, setValdTermin] = useState<{ termin: Provtermin | undefined; val: Record<string, string | null> }>({ termin: undefined, val: {} });
   const [vakter, setVakter] = useState<string[]>([]);
@@ -188,10 +211,11 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
   const nivaer = prov ? [] : nivaerFranSkolan(underlag);
   const egenNiva = nivaer.find(([key]) => key === nivaKey)?.[1];
   const nivaUrval = prov?.nivaer ?? (egenNiva ? [egenNiva] : []);
-  const kallDatum = prov ? prov.tid.typ === 'fast' ? prov.tid.datum : prov.tid.fran : '';
+  const kallDatum = prov ? provstart(prov) : '';
   const kallTermin = provtermin(kallDatum, schoolYear, underlag.terminer);
   const termin = provtermin(datum || kallDatum, schoolYear, underlag.terminer);
-  const forslag = nivaUrval.length ? provDeltagarforslag(nivaUrval, underlag.deltagare, termin) : [];
+  const forslag = prov ? provDeltagareForPlanering(prov, underlag, schoolYear, bokningar, datum || kallDatum)
+    : nivaUrval.length ? provDeltagarforslag(nivaUrval, underlag.deltagare, termin) : [];
   const val = valdTermin.termin === termin ? valdTermin.val : {};
   const valtAlternativ = (rad: Forslag) => {
     const override = val[targetKey(rad.deltagare)];
@@ -218,9 +242,9 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
     const start = tidsval === 'fast' ? '09:00' : faltText(fields, 'start');
     const end = faltText(fields, 'slut');
     const startMin = minutes(start), slutMin = end === '00:00' ? 1440 : minutes(end);
-    const taken = document?.bokningar ?? [];
+    const taken = bokningar;
     const base = { namn, datum, startMin, slutMin, tidsval, salId: faltText(fields, 'sal') || null,
-      vakter: vakter.slice(), kontrolleradDatum: faltText(fields, 'kontrollerad') };
+      vakter: vakter.slice(), kontrolleradDatum: prov ? underlag.provkatalog?.kontrolleradDatum ?? '' : faltText(fields, 'kontrollerad') };
 
     function fail(message: string) {
       setError(message);
@@ -266,6 +290,14 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
       {prov ? <div className="text-sm">
         <p className="font-medium">{provdag(prov)}</p>
         {prov.tidsatgang && <p className="text-muted-foreground">{prov.tidsatgang}</p>}
+        {prov.tid.typ === 'period' && <p className="text-muted-foreground">{tidforslag
+          ? 'Tiden är ett förslag på ett block för muntliga prov. Anpassa blocket efter antal elever och sittningar.'
+          : 'Ingen skoldag med plats för ett föreslaget tidsblock kunde hittas inom provperioden.'}</p>}
+        {prov.tid.typ === 'fast' && underlag.skoldagar && !underlag.skoldagar.includes(prov.tid.datum)
+          && <p className="text-muted-foreground">Kalendern saknar skoldag på provdatumet.</p>}
+        {prov.tidsplan?.typ === 'gemensam' && prov.tidsplan.planeradRastMin && <p className="text-muted-foreground">
+          Förslaget till sluttid räknar med {prov.tidsplan.planeradRastMin} min rast. Anpassa rasttiden till skolans upplägg.
+        </p>}
       </div> : <div className="grid min-w-0 gap-3 md:grid-cols-2">
         <Field>
           <FieldLabel htmlFor={`${id}-namn`}>Provets namn</FieldLabel>
@@ -298,21 +330,21 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
         </Field>
         <Field>
           <FieldLabel htmlFor={`${id}-start`}>Start</FieldLabel>
-          <Input className="min-h-11" key={tidsval} id={`${id}-start`} name="start" type="time" step={300} defaultValue={tidsval === 'fast' ? '09:00' : ''}
+          <Input className="min-h-11" key={tidsval} id={`${id}-start`} name="start" type="time" step={300} defaultValue={tidsval === 'fast' ? '09:00' : tidforslag ? clock(tidforslag.startMin) : ''}
             readOnly={tidsval === 'fast'} required/>
           {tid && datum === tid.fran && tid.tidigasteStartMin !== undefined && <FieldDescription>Tidigast {clock(tid.tidigasteStartMin)} den här dagen.</FieldDescription>}
         </Field>
         <Field>
           <FieldLabel htmlFor={`${id}-slut`}>Slut</FieldLabel>
-          <Input className="min-h-11" id={`${id}-slut`} name="slut" type="time" step={300} required/>
+          <Input className="min-h-11" id={`${id}-slut`} name="slut" type="time" step={300} defaultValue={tidforslag ? clock(tidforslag.slutMin % 1440) : ''} required/>
           <FieldDescription>{tid && datum === tid.till && tid.senasteSlutMin !== undefined
-            ? `Senast ${clock(tid.senasteSlutMin)} den här dagen.` : 'Ange sluttiden för de deltagare du bokar tillsammans.'}</FieldDescription>
+            ? `Senast ${clock(tid.senasteSlutMin)} den här dagen.` : tidforslag ? 'Föreslagen sluttid kan ändras.' : 'Ange sluttiden för de deltagare du bokar tillsammans.'}</FieldDescription>
         </Field>
-        <Field>
+        {!prov && <Field>
           <FieldLabel htmlFor={`${id}-kontrollerad`}>Underlag kontrollerat</FieldLabel>
-          <Input className="min-h-11" id={`${id}-kontrollerad`} name="kontrollerad" type="date" min="2000-01-01" max={stockholmsdatum()} required/>
-          <FieldDescription>{prov ? 'Ange när du kontrollerade provuppgifterna hos Skolverket.' : 'Ange när du kontrollerade skolans eget provunderlag.'}</FieldDescription>
-        </Field>
+          <Input className="min-h-11" id={`${id}-kontrollerad`} name="kontrollerad" type="date" min="2000-01-01" max={idag} required/>
+          <FieldDescription>Ange när du kontrollerade skolans eget provunderlag.</FieldDescription>
+        </Field>}
       </div>
       {nivaUrval.length > 0 && <fieldset className="min-w-0 space-y-2">
         <FieldLegend>Föreslagna deltagare</FieldLegend>
@@ -376,7 +408,7 @@ function Forhandsrader({ preview }: { preview: Forhandsvisning }) {
   const vakter = first.vakter.map(ref => preview.basis.vakter.find(v => v.ref === ref)?.name).filter(Boolean).join(', ') || 'Inga provvakter valda';
   return <>
     <p className="font-medium">{first.namn}</p>
-    <p className="text-sm text-muted-foreground">Underlag kontrollerat {formatDate(first.kontrolleradDatum, true)}</p>
+    <p className="text-sm text-muted-foreground">{first.kallprov ? 'Provuppgifter hämtade' : 'Underlag kontrollerat'} {formatDate(first.kontrolleradDatum, true)}</p>
     <Table aria-label="Bokningar som kommer att sparas">
       <TableHeader>
         <TableRow>

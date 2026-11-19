@@ -33,12 +33,16 @@ export type NationellaProvRegister = { revision: number; document: NationellaPro
 export type Provniva = { amne: string; niva: string; namn: string };
 export type Provtermin = 'ht' | 'vt';
 export type Provterminer = Record<Provtermin, { start: string; end: string }>;
+export type Provtidsplan =
+  | { typ: 'gemensam'; minuter: number; planeradRastMin?: number }
+  | { typ: 'muntlig'; minuterPerTillfalle: number; deltagarePerTillfalle: 1 | 2; forberedelseMin?: number };
 export type Provval = {
   id: string;
   namn: string;
   nivaer: Provniva[];
   tid: { typ: 'fast'; datum: string } | { typ: 'period'; fran: string; till?: string; tidigasteStartMin?: number; senasteSlutMin?: number };
   tidsatgang?: string;
+  tidsplan?: Provtidsplan;
 };
 export type NationellaProvKatalog = { revision: number; kontrolleradDatum: string; prov: Provval[] };
 type Provundervisning = {
@@ -133,13 +137,27 @@ function provId(value: unknown): string {
     && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(value) ? value : bad();
 }
 
+function parseProvtidsplan(value: unknown, tid: Provval['tid']): Provtidsplan {
+  if (tid.typ === 'fast') {
+    const f = exact(value, ['typ', 'minuter'], ['planeradRastMin']);
+    if (f.typ !== 'gemensam') return bad();
+    const minuter = int(f.minuter, 5, 900);
+    if (minuter % 5) return bad();
+    return { typ: f.typ, minuter, ...(Object.hasOwn(f, 'planeradRastMin') && { planeradRastMin: int(f.planeradRastMin, 1, minuter - 1) }) };
+  }
+  const m = exact(value, ['typ', 'minuterPerTillfalle', 'deltagarePerTillfalle'], ['forberedelseMin']);
+  if (m.typ !== 'muntlig' || m.deltagarePerTillfalle !== 1 && m.deltagarePerTillfalle !== 2) return bad();
+  return { typ: m.typ, minuterPerTillfalle: int(m.minuterPerTillfalle, 1, 240), deltagarePerTillfalle: m.deltagarePerTillfalle,
+    ...(Object.hasOwn(m, 'forberedelseMin') && { forberedelseMin: int(m.forberedelseMin, 1, 240) }) };
+}
+
 export function parseNationellaProvKatalog(raw: unknown, schoolYear: number): NationellaProvKatalog | null {
   if (raw === null) return null;
   const r = exact(raw, ['revision', 'kontrolleradDatum', 'prov']);
   if (!Array.isArray(r.prov) || !r.prov.length || r.prov.length > 200) return bad();
   const yearDate = (value: unknown) => date(value, `${schoolYear}-07-01`, `${schoolYear + 1}-06-30`);
   const prov = r.prov.map((value): Provval => {
-    const p = exact(value, ['id', 'namn', 'nivaer', 'tid'], ['tidsatgang']);
+    const p = exact(value, ['id', 'namn', 'nivaer', 'tid'], ['tidsatgang', 'tidsplan']);
     const { typ } = exact(p.tid, ['typ'], ['datum', 'fran', 'till', 'tidigasteStartMin', 'senasteSlutMin']);
     let tid: Provval['tid'];
     if (typ === 'fast') {
@@ -154,7 +172,8 @@ export function parseNationellaProvKatalog(raw: unknown, schoolYear: number): Na
       if (Object.hasOwn(t, 'senasteSlutMin')) tid.senasteSlutMin = int(t.senasteSlutMin, 1, 1440);
     } else return bad();
     return { id: provId(p.id), namn: text(p.namn, 160), nivaer: parseProvnivaer(p.nivaer), tid,
-      ...(Object.hasOwn(p, 'tidsatgang') && { tidsatgang: text(p.tidsatgang, 1000) }) };
+      ...(Object.hasOwn(p, 'tidsatgang') && { tidsatgang: text(p.tidsatgang, 1000) }),
+      ...(Object.hasOwn(p, 'tidsplan') && { tidsplan: parseProvtidsplan(p.tidsplan, tid) }) };
   });
   if (new Set(prov.map(p => p.id)).size !== prov.length) return bad();
   return { revision: int(r.revision, 1, 2147483647), kontrolleradDatum: date(r.kontrolleradDatum, '2000-01-01', '2101-12-31'), prov };
