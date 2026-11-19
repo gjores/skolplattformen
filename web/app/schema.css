@@ -26,6 +26,10 @@
 .schema-workspace .schema-arbetsrad > output:empty, .schema-workspace > fieldset > output:empty { position: absolute; }
 .schema-workspace .schema-kontroller { display: grid; gap: 1rem; min-width: 0; }
 .schema-workspace .schema-kontroller > h2 { scroll-margin-block-start: 7rem; }
+.schema-workspace .schema-granska-kontext { position: sticky; top: 0; z-index: 10; display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; min-width: 0; padding: .5rem .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
+.schema-workspace .schema-granska-kontext > div { flex: 1 1 12rem; overflow-wrap: anywhere; }
+.schema-workspace .schema-granska-jamfor { min-width: 0; scroll-margin-block-start: 7rem; }
+.schema-workspace[data-granska-pass] .schema-arbetsrad { position: static; }
 
 /* Villkorsformulär (05.2-SM-LASAR-VILLKOR): fältgrupper i en utfällbar ruta. */
 .schema-workspace .schema-controls .schema-wide { flex-basis: 100%; }

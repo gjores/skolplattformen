@@ -92,6 +92,7 @@ export type VeckaProps = {
   trims?: SchemaTrim[];
   term?: SchemaTerm;
   classId?: string | null;
+  pickedOccurrence?: string;
 };
 
 /** Minuten i rutnätet under en punkt i en dags kolumn. */
@@ -104,7 +105,7 @@ export const somRutnat = (week: HTMLElement | null) => !!week?.querySelector<HTM
 
 const at = (from: number, to: number, origin: number) => ({ '--start': from - origin, '--length': to - from }) as CSSProperties;
 
-export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {},
+export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {},
   selected = [], onSelect, onLockDay, verktyg = 'markera', markering = null, markeringNamn, markeringHjalp, onMarkera, kalender, visning, trims = [], classId = null, datum, onOccurrence }: VeckaProps) {
   const { start, end, hours } = veckansSpann(days);
   const [ram, setRam] = useState<{ left: number; top: number; width: number; height: number; lessons: string[] } | null>(null);
@@ -173,7 +174,7 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
               ...(o?.changed ? ['Ändrat tillfälle'] : []),
               ...(extra?.(original) ?? []).filter(x => !x.startsWith('kortare ') && !x.includes('i grundschemat')),
               ...('egenAktivitet' in l && l.egenAktivitet ? ['Grundschemaaktivitet'] : [])] : extra?.(l);
-            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={picked === original.id || (ram?.lessons ?? selected).includes(original.id)} flagged={flagged.has(original.id)}
+            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={o && pickedOccurrence ? o.key === pickedOccurrence : picked === original.id || (ram?.lessons ?? selected).includes(original.id)} flagged={flagged.has(original.id)}
               dragging={!daterad && drop?.lesson === l.id} disabled={disabled} detail={detail(original)} rader={rader} occurrence={o} locked={locked?.(original)} onGrab={daterad ? () => undefined : onGrab} onPick={o && onOccurrence ? () => onOccurrence(o) : onPick}/>;
           })}
           {beside.map(({ b, l }, i) => {

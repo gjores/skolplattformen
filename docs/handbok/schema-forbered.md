@@ -2,7 +2,7 @@
 title: Förbered schemat
 ---
 
-Under **Planering → Schema** växlar du mellan **Förbered** och **Lägg schema** i sidhuvudet. Båda visar samma utkast. Där ser du också skolan, läsåret, vilken period schemat gäller och om utkastet är sparat. Ändringar sparas automatiskt. Vid behov kan du välja **Spara nu**.
+Under **Planering → Schema** växlar du mellan **Förbered**, **Lägg schema** och **Granska** i sidhuvudet. Alla tre visar samma utkast. Där ser du också skolan, läsåret, vilken period schemat gäller och om utkastet är sparat. Ändringar sparas automatiskt. Vid behov kan du välja **Spara nu**.
 
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 
@@ -20,6 +20,15 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 - Öppna **Beräkning** för att ändra räknetid, fortsätta förbättra schemat eller ta fram ett nytt förslag.
 - Välj **Till kontrollerna** för att gå till regelavvikelser, undervisningstid, datumändringar och övrigt underlag längre ner på sidan. Där finns också **Tilldela salar och behåll tiderna** när pass behöver sal.
 - **Ångra**, **Gör om** och **Fönster** finns i verktygsraden. Med **Fönster** kan du till exempel ha en lärares schema öppet bredvid klassens schema.
+
+## Gå från en avvikelse till rätt pass
+
+1. Öppna **Granska**. Under **Visa fynd** kan du välja till exempel pass utan tid, regelavvikelser eller datumändringar. Välj **Kontrollera schemat** om resultat för grundschemat saknas.
+2. Välj **Visa passet** eller **Visa tillfället** vid den rad du vill följa upp. För ett fynd med flera berörda pass väljer du vilket du vill öppna. Ett pass utan tid öppnas på viloytan. Ett flyttat datumtillfälle visas på datumet där det nu ligger.
+3. Öppna **Jämför resurser** och sök efter en klass, grupp, lärare eller sal. Lägg till de resurser du vill se och ta bort dem från jämförelsen med kryssknappen på varje rad. Du ser pass som överlappar den valda tiden. Pass utan tid kan jämföras när de fått en placering. Urvalet är tillfälligt och ändrar inga bokningar.
+4. Använd passpanelen för att ändra ett grundpass eller **Ändra tillfället** för en datumändring. Välj **Tillbaka till granskningen** för att komma tillbaka till samma fynd med ditt filter kvar. Om åtgärden löste fyndet visas den uppdaterade listan.
+
+Resursjämförelsen utgår från de bokningar som finns i utkastet. Använd den ordinarie schemakontrollen för att pröva resursernas villkor och elevöverlapp.
 
 ## Checklistan
 
