@@ -57,6 +57,7 @@ async function mockProvplan(page: Page, source = underlag) {
   return state;
 }
 const panel = (page: Page) => page.getByRole('region', { name: 'Nationella prov', exact: true });
+const provrad = (page: Page, delprov: 'A' | 'C') => panel(page).getByRole('button', { name: new RegExp(`Engelska nivå 1 · Delprov ${delprov}`, 'u') });
 const chooseResources = async (page: Page) => {
   const form = panel(page);
   await form.getByLabel('Sal (valfri)').selectOption('sal-1');
@@ -74,10 +75,9 @@ test('provval ger entydiga förslag och visar bokningarna innan kalendern eller 
   await mockSchemaDrafts(page.context());
   await page.goto(calendar + '?prov=1&status=faststalld');
   const form = panel(page);
-  const provval = form.getByLabel('Välj prov', { exact: true });
-  const rekommenderade = provval.locator('optgroup[label="Rekommenderade prov"]');
-  await expect(rekommenderade.locator('option[value="engelska1-c-ht"]')).toHaveCount(1);
-  await provval.selectOption('engelska1-c-ht');
+  const rekommenderade = form.getByRole('list', { name: 'Rekommenderade prov', exact: true });
+  await expect(rekommenderade.getByRole('button', { name: /Delprov C.*24 november/u })).toBeVisible();
+  await provrad(page, 'C').click();
   await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
   await expect(form.getByLabel('Start', { exact: true })).toHaveValue('09:00');
   await expect(form.getByLabel('Slut', { exact: true })).toHaveValue('10:30');
@@ -101,9 +101,10 @@ test('provval ger entydiga förslag och visar bokningarna innan kalendern eller 
   expect(state.saves).toHaveLength(0);
   await form.getByRole('button', { name: 'Ändra uppgifter' }).click();
   await form.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(provrad(page, 'C')).toBeFocused();
   expect(state.saves).toHaveLength(0);
 
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-ht');
+  await provrad(page, 'C').click();
   await chooseResources(page);
   await review(page).click();
   await form.getByRole('button', { name: 'Spara 2 provbokningar' }).click();
@@ -130,9 +131,9 @@ test('eget provunderlag ger förslag i ett senare läsår och kräver ny förhan
   state.conflict = true;
   await page.goto(calendar + '?prov=1&ar=2027');
   const form = panel(page);
-  const prov = form.getByLabel('Välj prov', { exact: true });
-  await expect(prov.locator('option')).toHaveCount(2);
-  await prov.selectOption({ label: 'Eget provunderlag' });
+  await expect(form.getByRole('list')).toHaveCount(0);
+  await expect(form.getByText(/Publicerade provdatum för det här läsåret saknas/u)).toBeVisible();
+  await form.getByRole('button', { name: 'Eget provunderlag', exact: true }).click();
   await form.getByLabel('Provets namn').fill('Engelska nivå 1, planerat delprov');
   await form.getByLabel('Ämne och nivå').selectOption('ENGE:ENGE1000X');
   await form.getByLabel('Typ av provtid').selectOption('period');
@@ -165,7 +166,7 @@ test('periodprov använder terminen i provunderlaget även när den visade kalen
   const state = await mockProvplan(page, source);
   await page.goto(calendar + '?prov=1');
   const form = panel(page);
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-a-ht');
+  await provrad(page, 'A').click();
   await expect(form.getByLabel('Provdatum')).toHaveAttribute('max', '2027-01-26');
   await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
   await expect(form.getByLabel('Start', { exact: true })).toHaveValue('09:00');
@@ -188,7 +189,7 @@ test('föreslaget muntligt provblock läggs in i läsårskalendern utan inmatnin
   const state = await mockProvplan(page);
   await page.goto(calendar + '?prov=1');
   const form = panel(page);
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-a-ht');
+  await provrad(page, 'A').click();
   await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
   await expect(form.getByLabel('Start', { exact: true })).toHaveValue('09:00');
   await expect(form.getByLabel('Slut', { exact: true })).toHaveValue('10:30');
@@ -207,7 +208,7 @@ test('ändrade katalogdatum kräver ny förhandsgranskning och sparas med den ny
   const state = await mockProvplan(page);
   await page.goto(calendar + '?prov=1');
   const form = panel(page);
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-ht');
+  await provrad(page, 'C').click();
   await chooseResources(page);
   await review(page).click();
 
@@ -235,4 +236,23 @@ test('skolans provplan visas bara för behörigt uppdrag i gymnasiets skolkalend
     await expect(panel(page)).toHaveCount(0);
   }
   expect(state.reads).toBe(0);
+});
+
+test('hela katalogen visas som provrader även utan rekommendationer', async ({ page }) => {
+  const state = await mockProvplan(page, { ...underlag, deltagare: [] });
+  await page.goto(calendar + '?prov=1');
+  const form = panel(page);
+  const lista = form.getByRole('list', { name: 'Prov i katalogen', exact: true });
+  await expect(lista.getByRole('listitem')).toHaveCount(2);
+  await expect(lista.getByRole('listitem').nth(0)).toContainText('från 2 november');
+  await expect(lista.getByRole('listitem').nth(1)).toContainText('24 november');
+  await expect(form.getByRole('combobox')).toHaveCount(0);
+  await provrad(page, 'C').focus();
+  await provrad(page, 'C').press('Enter');
+  await expect(form.getByRole('heading', { name: 'Engelska nivå 1 · Delprov C' })).toBeFocused();
+  await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
+  await form.getByRole('button', { name: 'Till provlistan' }).click();
+  await expect(provrad(page, 'C')).toBeFocused();
+  await expect(lista).toBeVisible();
+  expect(state.saves).toHaveLength(0);
 });

@@ -30,7 +30,7 @@ I arbetssättet ram kan skolan börja först när huvudmannen har gett ut ramen.
 
 Provdatum och skolans bokningar finns under **Nationella prov** i skolans läsårskalender. Rektor och skoladministratör kan planera prov för vald skola och valt läsår.
 
-1. Börja under **Rekommenderade prov** i provväljaren. Förslagen bygger på skolans ämnen, nivåer och terminer. Hela katalogen finns i samma väljare. [Skolverkets provdatum](https://www.skolverket.se/prov-och-bedomning/nationella-prov/provdatum/provdatum-for-gymnasieskolan)
+1. Välj en rad i **Provlista**. Varje rad visar provets datum eller provperiod. **Rekommenderade prov** visas överst när skolans ämnen, nivåer och terminer matchar. Övriga prov följer i datumordning. [Skolverkets provdatum](https://www.skolverket.se/prov-och-bedomning/nationella-prov/provdatum/provdatum-for-gymnasieskolan)
 2. Granska föreslagna klasser och undervisningsgrupper. Entydiga träffar är förvalda. Kontrollera deltagarnas studieväg och när undervisningen avslutas, särskilt för de förslag som behöver granskas.
 3. Kontrollera de förifyllda tiderna och välj eventuella salar och provvakter. Datum och start för fasta prov kommer från Skolverket. Föreslagen sluttid går att ändra. För muntliga prov inom en period föreslår appen ett tidsblock på en skoldag när kalendern har ett lämpligt datum. Anpassa blocket efter antal elever och sittningar. Med **Eget provunderlag** väljer du ämne och nivå eller kurs och anger själv datum, tider och när underlaget kontrollerades.
 4. Välj **Förhandsgranska bokningar** och kontrollera raden för varje deltagare. Du kan gå tillbaka och ändra valen. Bokningarna läggs till först när du väljer **Spara**.

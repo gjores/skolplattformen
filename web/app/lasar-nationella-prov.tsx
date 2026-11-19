@@ -1,6 +1,6 @@
 'use client';
 
-import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ArrowRight, ChevronRight, ExternalLink } from 'lucide-react';
 import { useId, useRef, useState, type SubmitEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -82,9 +82,14 @@ export function LasarNationellaProv(props: Props) {
   const [notice, setNotice] = useState('');
   const [preview, setPreview] = useState<Forhandsvisning | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
+  const listHeading = useRef<HTMLHeadingElement>(null);
+  const formHeading = useRef<HTMLHeadingElement>(null);
   const previewHeading = useRef<HTMLHeadingElement>(null);
+  const senasteVal = useRef<HTMLButtonElement>(null);
   const katalog = underlag?.provkatalog;
   const prov = katalog?.prov.find(p => p.id === provId);
+  const planerarProv = Boolean(prov || provId === EGET);
+  const blockerad = reading || saving || readFailed || Boolean(needsReload);
   const idag = stockholmsdatum();
   const bokningar = props.document?.bokningar ?? [];
   const rekommendationer = underlag ? provRekommendationer(underlag, schoolYear, bokningar, idag) : [];
@@ -95,9 +100,25 @@ export function LasarNationellaProv(props: Props) {
     .sort((a, b) => provstart(a).localeCompare(provstart(b)) || a.namn.localeCompare(b.namn, 'sv')) ?? [];
   const stale = preview !== null && (preview.basis !== underlag || preview.previous !== props.document);
 
+  function valjProv(val: string, knapp: HTMLButtonElement) {
+    senasteVal.current = knapp;
+    setProvId(val);
+    setNotice('');
+    requestAnimationFrame(() => formHeading.current?.focus());
+  }
+
+  function avbrytPlanering() {
+    setProvId('');
+    requestAnimationFrame(() => {
+      const knapp = senasteVal.current;
+      if (knapp?.isConnected && !knapp.disabled) knapp.focus();
+      else listHeading.current?.focus();
+    });
+  }
+
   function closePreview() {
     setPreview(null);
-    requestAnimationFrame(() => heading.current?.focus());
+    requestAnimationFrame(() => (formHeading.current ?? listHeading.current)?.focus());
   }
 
   function reload() {
@@ -112,8 +133,29 @@ export function LasarNationellaProv(props: Props) {
     if (!saved) return;
     const antal = preview.rows.length;
     setNotice(`${antal === 1 ? 'En provbokning har' : `${antal} provbokningar har`} sparats i läsårskalendern.`);
-    closePreview();
+    setPreview(null);
     setProvId('');
+    requestAnimationFrame(() => heading.current?.focus());
+  }
+
+  function provrad(p: Provval, forslag?: typeof rekommendationer[number]) {
+    const status = forslag && [
+      `${forslag.deltagare} ${forslag.deltagare === 1 ? 'matchning' : 'matchningar'}`,
+      ...(forslag.osakra > 0 ? ['Kontrollera deltagare'] : []),
+      ...(forslag.saknarTidsforslag ? ['Kontrollera tiden'] : []),
+    ].join(' · ');
+    return <li key={p.id}>
+      <Button type="button" variant="ghost" disabled={blockerad}
+        className="relative grid h-auto min-h-11 w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] justify-start gap-3 rounded-none px-3 py-2 text-left whitespace-normal focus-visible:z-10 focus-visible:ring-inset"
+        onClick={e => valjProv(p.id, e.currentTarget)}>
+        <span className="grid min-w-0 gap-x-4 gap-y-0.5 lg:grid-cols-[minmax(0,1fr)_auto]">
+          <span className="[overflow-wrap:anywhere]">{p.namn}</span>
+          <span className="font-normal text-muted-foreground">{provdag(p)}</span>
+          {status && <span className="text-xs font-normal text-muted-foreground lg:col-span-2">{status}</span>}
+        </span>
+        <ChevronRight className="text-muted-foreground" aria-hidden="true" />
+      </Button>
+    </li>;
   }
 
   if (underlag && !underlag.gallerGymnasiet) return null;
@@ -134,41 +176,47 @@ export function LasarNationellaProv(props: Props) {
       </div>}
       {underlag && <>
         <div hidden={preview !== null} className="space-y-4">
-          <Field>
-            <FieldLabel htmlFor={`${id}-prov`}>Välj prov</FieldLabel>
-            <NativeSelect id={`${id}-prov`} className={SELECT} value={provId} disabled={reading || readFailed || saving} onChange={e => {
-              setProvId(e.target.value);
-              setNotice('');
-            }}>
-              <option value="">Välj prov eller eget provunderlag</option>
-              {rekommendationer.length > 0 && <optgroup label="Rekommenderade prov">
-                {rekommendationer.map(({ prov: p, deltagare, osakra, saknarTidsforslag }) => <option key={p.id} value={p.id}>
-                  {p.namn} · {provdag(p)} · {deltagare} {deltagare === 1 ? 'matchning' : 'matchningar'}{osakra > 0 ? ' att granska' : ''}
-                  {saknarTidsforslag ? ' · Kontrollera tiden' : ''}
-                </option>)}
-              </optgroup>}
-              {ovrigaProv.length > 0 && <optgroup label="Övriga prov i katalogen">
-                {ovrigaProv.map(p => <option key={p.id} value={p.id}>{p.namn} · {provdag(p)}</option>)}
-              </optgroup>}
-              <option value={EGET}>Eget provunderlag</option>
-            </NativeSelect>
-            <FieldDescription>
+          <div hidden={planerarProv} className="space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <h3 id={`${id}-provlista`} ref={listHeading} tabIndex={-1} className="font-semibold">Provlista</h3>
+              <Button type="button" variant="outline" className={ACTION} disabled={blockerad}
+                onClick={e => valjProv(EGET, e.currentTarget)}>Eget provunderlag</Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
               {katalog ? <>
                 {rekommendationer.length > 0 ? 'Förslagen utgår från skolans ämnen, nivåer och terminer. Kontrollera deltagarnas studieväg och när nivån avslutas.'
                   : 'Skolans undervisning ger inga nya provförslag för återstoden av läsåret.'}{' '}
                 Provdatum hämtade {formatDate(katalog.kontrolleradDatum, true)}.
               </>
                 : 'Publicerade provdatum för det här läsåret saknas i katalogen. Lägg in uppgifter från ditt eget provunderlag.'}
-            </FieldDescription>
-          </Field>
-          {(prov || provId === EGET) && <Provform key={formKey} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov} idag={idag} tidforslag={tidforslag}
-            disabled={reading || saving || readFailed || Boolean(needsReload)} onCancel={() => {
-              setProvId('');
-              heading.current?.focus();
-            }} onPreview={next => {
-              setPreview(next);
-              requestAnimationFrame(() => previewHeading.current?.focus());
-            }}/>}
+            </p>
+            {katalog && <section aria-labelledby={`${id}-provlista`}
+              className="max-h-[min(26rem,55dvh)] overflow-y-auto rounded-md border border-border divide-y divide-border">
+              {rekommendationer.length > 0 && <div>
+                <h4 id={`${id}-rekommenderade`} className="bg-muted px-3 py-2 text-sm font-semibold">Rekommenderade prov</h4>
+                <ul aria-labelledby={`${id}-rekommenderade`} className="divide-y divide-border">
+                  {rekommendationer.map(forslag => provrad(forslag.prov, forslag))}
+                </ul>
+              </div>}
+              {ovrigaProv.length > 0 && <div>
+                {rekommendationer.length > 0 && <h4 className="bg-muted px-3 py-2 text-sm font-semibold">Övriga prov i katalogen</h4>}
+                <ul aria-label="Prov i katalogen" className="divide-y divide-border">
+                  {ovrigaProv.map(p => provrad(p))}
+                </ul>
+              </div>}
+            </section>}
+          </div>
+          {planerarProv && <div className="space-y-4">
+            <Button type="button" variant="ghost" className={ACTION} disabled={saving} onClick={avbrytPlanering}>
+              <ArrowLeft aria-hidden="true" /> Till provlistan
+            </Button>
+            <h3 ref={formHeading} tabIndex={-1} className="font-semibold">{prov?.namn ?? 'Eget provunderlag'}</h3>
+            <Provform key={formKey} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov} idag={idag} tidforslag={tidforslag}
+              disabled={blockerad} onCancel={avbrytPlanering} onPreview={next => {
+                setPreview(next);
+                requestAnimationFrame(() => previewHeading.current?.focus());
+              }}/>
+          </div>}
         </div>
         {preview && <section className="min-w-0 space-y-3 rounded-md border border-border p-3" aria-labelledby={`${id}-forhandsgranskning`}>
           <div className="flex flex-wrap items-center gap-2">
