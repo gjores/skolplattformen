@@ -5,11 +5,11 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "UXF-53 har en sparad provplan i Förbered. Läsårskalendern, provdatumvalet och krockberäkningen följer från frontend­skissen."
 status: in_progress
-stopped_at: "Provplanen verifierad lokalt. Installation på 3012 och provflödet i läsårskalendern återstår."
+stopped_at: "Provplanen är installerad och flerurvalet provat inloggat på 3012. Användarprov med sparande och provflödet i läsårskalendern återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Nationella prov i Förbered med avstämning mot Skolverkets källa och den bifogade frontend­skissen."
-state_head: cc131fd46df9b488c8df4dfe2102700a6601fd39
+last_activity_desc: "Provplanen installerad på 3012 med två migrationer och verifierat flerurval med rektorsuppdrag."
+state_head: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,17 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
-schema_candidate_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
-schema_candidate_status: veckans_resursval_installed_authenticated_ui_verified
+schema_runtime_revision: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
+schema_candidate_revision: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
+schema_candidate_status: nationella_prov_installed_authenticated_selection_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: veckans_resursval_passed_6_groups_zero_migrations_112_draft_and_1_room_revisions_preserved
-user_trial_status: schema_veckans_resursval_installed_awaiting_user_trial
+schema_installation_status: nationella_prov_passed_8_groups_2_migrations_116_draft_and_1_room_revisions_preserved
+user_trial_status: schema_nationella_prov_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – nationella prov i Förbered.** [UXF-53](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-PLAN.md) sparar gymnasiets daterade provbokningar per skola och läsår redan före första schemautkastet. Skissen styr den fortsatta kopplingen till läsårskalendern, val från källunderlag och förhandsgranskning per deltagare. Provtid redovisas separat från garanterad undervisningstid enligt Skolverket. Inget motorstöd för datumkrockar eller bortfall ännu. Den här etappen är verifierad lokalt. Installation och inloggat prov på 3012 återstår.
+**2026-11-19 – nationella prov i Förbered.** [UXF-53](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-PLAN.md) sparar gymnasiets daterade provbokningar per skola och läsår redan före första schemautkastet. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-INSTALL.md) passerade åtta kontrollgrupper och tillämpade två migrationer. Ett inloggat prov valde två klasser och en undervisningsgrupp i samma formulär och avslutade före sparande. Skissen styr den fortsatta kopplingen till läsårskalendern, val från källunderlag och förhandsgranskning per deltagare. Provtid redovisas separat från garanterad undervisningstid enligt Skolverket. Datumkrockar och bortfall av undervisning återstår.
 
 **2026-11-19 – veckans resursval:** [Visa schema för](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL.md) samlar klass, undervisningsgrupp, lärare, sal och ämne. **Pass utan tid** ersätter Viloyta och passens längduppgifter finns i sidopanelen. 112 webbläsarfall och 88 domänprov godkändes över flera körningar. [Installerad och funktionsprovad inloggat på 3012](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL-INSTALL.md). Byte mellan ämne, sal och grupp samt tillägg och borttagning i **Följ passet** behöll utkastets sparversion. Eget användarprov återstår.
 

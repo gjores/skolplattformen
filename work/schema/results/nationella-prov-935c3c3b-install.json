@@ -1,0 +1,59 @@
+{
+  "revision": "935c3c3bcd8fca6a2a38aea2589ce7a92e669735",
+  "previousAppRevision": "cc131fd46df9b488c8df4dfe2102700a6601fd39",
+  "motorRevision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "status": "PASS",
+  "checks": [
+    "lokalt skyddat mål, IdP, 171 journalrader och befintlig motor",
+    "förhandsprov, filinventering och föregående app verifierade",
+    "båda migrationerna provkörda i återställd transaktion",
+    "två additiva migrationer installerade, tidigare katalogobjekt och datarader bevarade i transaktionen",
+    "rätt appbygge, process och privat konfiguration på 3012",
+    "inloggningssida, exakta schemafiler och 21 skyddade rutter på 3012",
+    "samma motorprocess med frisk status och syntetiskt beräkningsprov",
+    "migrationsjournal och produktkatalog verifierade, befintliga utkast och salregister bevarade"
+  ],
+  "startedAt": "2026-11-19T18:43:08.661Z",
+  "migrationsApplied": 2,
+  "rollback": null,
+  "installedSql": {
+    "journalRows": 173,
+    "journalSha": "29f90a083d3a6175036a44d3778648f0a8495fe0170dad3cfcaead1551199079",
+    "catalogSha": "f7edab5a7df9555b11a0fa79e5b382eabd44802909a77cd18d1cfd9f04de3267",
+    "originalTables": 179,
+    "originalRowsSha256": "37d676a9c7e91706e976e3cdef8abaa7e4ae54fa1b6f58d14a76671719822530"
+  },
+  "database": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 171,
+    "journalSha": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a",
+    "catalogSha": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+    "counts": {
+      "drafts": 116,
+      "roomRegister": 1
+    },
+    "digests": {
+      "drafts": "d1bd753216ac677bc15b2ea9340090658d83efb9e40aa6a184731809edf876ff",
+      "roomRegister": "ddcabb9e2672bd529a80ab4a64dea5547d4ddc1b717d623a1318a7a089bbf99e"
+    }
+  },
+  "after": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 173,
+    "journalSha": "29f90a083d3a6175036a44d3778648f0a8495fe0170dad3cfcaead1551199079",
+    "catalogSha": "f7edab5a7df9555b11a0fa79e5b382eabd44802909a77cd18d1cfd9f04de3267",
+    "counts": {
+      "drafts": 116,
+      "roomRegister": 1
+    },
+    "digests": {
+      "drafts": "d1bd753216ac677bc15b2ea9340090658d83efb9e40aa6a184731809edf876ff",
+      "roomRegister": "ddcabb9e2672bd529a80ab4a64dea5547d4ddc1b717d623a1318a7a089bbf99e"
+    }
+  },
+  "appListener": 19924,
+  "appRoot": 19910,
+  "motorListener": 42182,
+  "artifactSha256": "2cb3003cb0e36456ca1fa465b6322104507ea7466c541ac20878b2f815653fa0",
+  "finishedAt": "2026-11-19T18:43:45.728Z"
+}
