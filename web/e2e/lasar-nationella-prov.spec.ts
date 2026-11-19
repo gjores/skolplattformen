@@ -6,6 +6,13 @@ const calendar = '/e2e/fixtures/lasar-preview.html';
 const uid = (value: number) => `52110000-0000-4000-8000-${String(value).padStart(12, '0')}`;
 const engelska1 = { amne: 'ENGE', niva: 'ENGE1000X', namn: 'Engelska nivå 1' };
 const engelska2 = { amne: 'ENGE', niva: 'ENGE2000X', namn: 'Engelska nivå 2' };
+const provkatalog: NonNullable<NationellaProvUnderlag['provkatalog']> = {
+  revision: 3, kontrolleradDatum: '2026-11-19',
+  prov: [
+    { id: 'engelska1-a-ht', namn: 'Engelska nivå 1 · Delprov A', nivaer: [engelska1], tid: { typ: 'period', fran: '2026-11-02' } },
+    { id: 'engelska1-c-ht', namn: 'Engelska nivå 1 · Delprov C', nivaer: [engelska1], tid: { typ: 'fast', datum: '2026-11-24' } },
+  ],
+};
 const eng = (ref: string, nivaer = [engelska1]) => ({ ref: `undervisning:${ref}`, title: nivaer.map(l => l.namn).join(' / '), nivaer, terminer: { ht: true, vt: true } });
 const underlag: NationellaProvUnderlag = {
   gallerGymnasiet: true,
@@ -15,7 +22,7 @@ const underlag: NationellaProvUnderlag = {
     { slag: 'klass', ref: uid(3), name: 'EK26', undervisningar: [eng('ek26', [engelska2])] },
     { slag: 'grupp', ref: uid(4), name: 'Engelskagrupp 1', undervisningar: [eng('grupp1')], klassRefs: [] },
   ],
-  skoldagar: ['2026-11-24', '2027-01-26', '2027-11-23'],
+  skoldagar: ['2026-11-24', '2026-11-26', '2027-01-26', '2027-11-23'],
   salar: [{ id: 'sal-1', name: 'Aulan' }],
   vakter: [{ ref: uid(5), name: 'Provvakt A' }],
 };
@@ -23,16 +30,19 @@ type Save = { expectedRevision: number; commandId: string; document: NationellaP
 
 async function mockProvplan(page: Page, source = underlag) {
   let register: NationellaProvRegister | null = null;
-  const state = { saves: [] as Save[], reads: 0, conflict: false };
+  const state = { saves: [] as Save[], reads: 0, conflict: false, provkatalog };
   const headers = { 'X-Context-Epoch': '1' };
   await page.route('**/api/lasar/nationella-prov/lasa', route => {
     state.reads++;
     const body = route.request().postDataJSON();
-    return route.fulfill({ headers, json: { ...body, contractVersion: NATIONELLA_PROV_VERSION, register, underlag: source } });
+    return route.fulfill({ headers, json: { ...body, contractVersion: NATIONELLA_PROV_VERSION, register, underlag: { ...source, provkatalog: body.schoolYear === 2026 ? state.provkatalog : null } } });
   });
   await page.route('**/api/lasar/nationella-prov/spara', route => {
     const { unitId, schoolYear, expectedRevision, commandId, document } = route.request().postDataJSON();
     state.saves.push({ commandId, expectedRevision, document });
+    if ((document as NationellaProvDocument).bokningar.some(b => b.kallprov && b.kallprov.revision !== state.provkatalog.revision)) {
+      return route.fulfill({ status: 409, headers, json: { code: 'conflict', details: { reason: 'nationella_prov_katalog_changed' } } });
+    }
     if (state.conflict) {
       state.conflict = false;
       register = { revision: 1, document: { granskad: true, bokningar: [] }, savedAt: '2026-11-18T11:00:00Z' };
@@ -60,7 +70,7 @@ test('provval ger entydiga förslag och visar bokningarna innan kalendern eller 
   await mockSchemaDrafts(page.context());
   await page.goto(calendar + '?prov=1&status=faststalld');
   const form = panel(page);
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-2026-11-24');
+  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-ht');
   await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
   await expect(form.getByLabel('Start', { exact: true })).toHaveValue('09:00');
   await expect(form.getByRole('checkbox', { name: /NA26/u })).toBeChecked();
@@ -84,12 +94,15 @@ test('provval ger entydiga förslag och visar bokningarna innan kalendern eller 
   await form.getByRole('button', { name: 'Avbryt', exact: true }).click();
   expect(state.saves).toHaveLength(0);
 
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-2026-11-24');
+  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-ht');
   await fillBooking(page);
   await review(page).click();
   await form.getByRole('button', { name: 'Spara 2 provbokningar' }).click();
   await expect(form.getByRole('status')).toContainText('2 provbokningar har sparats.');
   await expect(day).toHaveAccessibleName(/nationellt prov, 2 bokningar/u);
+  expect(state.saves[0].document.bokningar.map(b => b.kallprov)).toEqual([
+    { id: 'engelska1-c-ht', revision: 3 }, { id: 'engelska1-c-ht', revision: 3 },
+  ]);
   expect(state.saves.map(s => s.document.bokningar.map(b => [b.mal.ref, b.startMin, b.slutMin, b.datum, b.salId, b.vakter]))).toEqual([[
     [uid(1), 540, 630, '2026-11-24', 'sal-1', [uid(5)]], [uid(4), 540, 630, '2026-11-24', 'sal-1', [uid(5)]],
   ]]);
@@ -100,6 +113,7 @@ test('provval ger entydiga förslag och visar bokningarna innan kalendern eller 
   const sammaPlan = page.locator('[data-nationella-prov]').getByRole('table', { name: 'Planerade nationella prov' });
   await expect(sammaPlan).toContainText('NA26');
   await expect(sammaPlan).toContainText('Engelskagrupp 1');
+  await expect(sammaPlan.getByText('Skolverkets provkatalog', { exact: true })).toHaveCount(2);
 });
 
 test('eget provunderlag ger förslag i ett senare läsår och kräver ny förhandsgranskning vid konflikt', async ({ page }) => {
@@ -129,6 +143,7 @@ test('eget provunderlag ger förslag i ett senare läsår och kräver ny förhan
   await save.click();
   await expect(form.getByRole('status')).toContainText('2 provbokningar har sparats.');
   expect(state.saves.map(s => s.expectedRevision)).toEqual([0, 1]);
+  expect(state.saves[1].document.bokningar.every(b => b.kallprov === undefined)).toBe(true);
 });
 
 test('periodprov använder terminen i provunderlaget även när den visade kalendern skiljer sig', async ({ page }) => {
@@ -139,7 +154,7 @@ test('periodprov använder terminen i provunderlaget även när den visade kalen
   const state = await mockProvplan(page, source);
   await page.goto(calendar + '?prov=1');
   const form = panel(page);
-  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-a-2026-11-02');
+  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-a-ht');
   await expect(form.getByLabel('Provdatum')).toHaveAttribute('max', '2027-01-26');
   await form.getByLabel('Provdatum').fill('2027-01-26');
   await form.getByLabel('Start', { exact: true }).fill('08:30');
@@ -150,6 +165,30 @@ test('periodprov använder terminen i provunderlaget även när den visade kalen
   await expect(previewRows(page)).toHaveCount(2);
   await expect(previewRows(page).nth(1)).toContainText('NA26');
   expect(state.saves).toHaveLength(0);
+});
+
+test('ändrade katalogdatum kräver ny förhandsgranskning och sparas med den nya revisionen', async ({ page }) => {
+  const state = await mockProvplan(page);
+  await page.goto(calendar + '?prov=1');
+  const form = panel(page);
+  await form.getByLabel('Välj prov', { exact: true }).selectOption('engelska1-c-ht');
+  await fillBooking(page);
+  await review(page).click();
+
+  state.provkatalog = { ...provkatalog, revision: 4, prov: provkatalog.prov.map(p => p.id === 'engelska1-c-ht'
+    ? { ...p, tid: { typ: 'fast', datum: '2026-11-26' } } : p) };
+  const save = form.getByRole('button', { name: 'Spara 2 provbokningar' });
+  await save.click();
+  await expect(form.getByRole('alert')).toContainText('Provkatalogen har ändrats.');
+  await expect(save).toBeDisabled();
+  await form.getByRole('button', { name: 'Läs om provplanen' }).click();
+  await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-26');
+  await fillBooking(page);
+  await review(page).click();
+  await save.click();
+  await expect(form.getByRole('status')).toContainText('2 provbokningar har sparats.');
+  expect(state.saves.map(s => s.expectedRevision)).toEqual([0, 0]);
+  expect(state.saves[1].document.bokningar.map(b => [b.kallprov?.revision, b.datum])).toEqual([[4, '2026-11-26'], [4, '2026-11-26']]);
 });
 
 test('skolans provplan visas bara för behörigt uppdrag i gymnasiets skolkalender', async ({ page }) => {

@@ -11,10 +11,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { formatDate, formatLong } from '@/lib/lasar-model.ts';
 import {
   NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, parseNationellaProvDocument, skapaProvId,
-  type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning, type Provniva, type Provtermin, type Provterminer,
+  type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning, type Provniva, type Provtermin, type Provval,
 } from '@/lib/nationella-prov.ts';
 import {
-  PROVDATUM_KONTROLLERADE, provDatumTillatet, provDeltagarforslag, provNivaNyckel, provTidTillaten, provvalForLasar, type Provval,
+  provDatumTillatet, provDeltagarforslag, provNivaNyckel, provtermin, provTidTillaten,
 } from '@/lib/nationella-prov-katalog.ts';
 
 type Props = {
@@ -62,11 +62,7 @@ function provdag(prov: Provval) {
     : prov.tid.till ? `${formatDate(prov.tid.fran)}–${formatDate(prov.tid.till, true)}` : `från ${formatDate(prov.tid.fran, true)}`;
 }
 
-function provtermin(datum: string, schoolYear: number, terminer?: Provterminer): Provtermin | undefined {
-  if (!datum) return undefined;
-  if (!terminer) return datum < `${schoolYear + 1}-01-01` ? 'ht' : 'vt';
-  return (['ht', 'vt'] as const).find(termin => terminer[termin].start <= datum && datum <= terminer[termin].end);
-}
+const provstart = (prov: Provval) => prov.tid.typ === 'fast' ? prov.tid.datum : prov.tid.fran;
 
 function nivaerFranSkolan(underlag: NationellaProvUnderlag) {
   const nivaer = new Map<string, Provniva>();
@@ -86,8 +82,9 @@ export function LasarNationellaProv(props: Props) {
   const [preview, setPreview] = useState<Forhandsvisning | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
   const previewHeading = useRef<HTMLHeadingElement>(null);
-  const katalog = provvalForLasar(schoolYear);
-  const prov = katalog.find(p => p.id === provId);
+  const katalog = underlag?.provkatalog;
+  const prov = katalog?.prov.find(p => p.id === provId);
+  const provval = katalog?.prov.toSorted((a, b) => provstart(a).localeCompare(provstart(b)) || a.namn.localeCompare(b.namn, 'sv'));
   const stale = preview !== null && (preview.basis !== underlag || preview.previous !== props.document);
 
   function closePreview() {
@@ -136,15 +133,15 @@ export function LasarNationellaProv(props: Props) {
               setNotice('');
             }}>
               <option value="">Välj prov eller eget provunderlag</option>
-              {katalog.map(p => <option key={p.id} value={p.id}>{p.namn} · {provdag(p)}</option>)}
+              {provval?.map(p => <option key={p.id} value={p.id}>{p.namn} · {provdag(p)}</option>)}
               <option value={EGET}>Eget provunderlag</option>
             </NativeSelect>
             <FieldDescription>
-              {katalog.length ? `Provdatumen stämdes av mot Skolverket ${formatDate(PROVDATUM_KONTROLLERADE, true)}.`
+              {katalog ? `Provdatumen hämtades från Skolverket ${formatDate(katalog.kontrolleradDatum, true)}.`
                 : 'Publicerade provdatum för det här läsåret saknas i katalogen. Lägg in uppgifter från ditt eget provunderlag.'}
             </FieldDescription>
           </Field>
-          {(prov || provId === EGET) && <Provform key={provId} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov}
+          {(prov || provId === EGET) && <Provform key={prov ? `${provId}:${katalog?.revision}` : EGET} schoolYear={schoolYear} underlag={underlag} document={props.document} prov={prov}
             disabled={reading || saving || readFailed || Boolean(needsReload)} onCancel={() => {
               setProvId('');
               heading.current?.focus();
@@ -245,7 +242,8 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
       const deltagare = rad.deltagare, vald = rad.alternativ.find(option => option.ref === valtAlternativ(rad));
       if (!vald) return fail(`Välj undervisning för ${deltagare.name}.`);
       const mal = { slag: deltagare.slag, ref: deltagare.ref };
-      const bokning = { ...base, id: skapaProvId(), mal, undervisning: vald.ref };
+      const bokning = { ...base, id: skapaProvId(), mal, undervisning: vald.ref,
+        ...(prov && underlag.provkatalog && { kallprov: { id: prov.id, revision: underlag.provkatalog.revision } }) };
       const fel = nationellaProvBokningsfel(bokning, underlag);
       if (fel) return fail(fel);
       const duplicate = taken.some(b => b.namn === namn && b.datum === datum && b.startMin === startMin

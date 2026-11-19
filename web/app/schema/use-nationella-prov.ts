@@ -32,7 +32,7 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
     ).then(raw => {
       if (abort.signal.aborted) return;
       if (raw.contractVersion !== NATIONELLA_PROV_VERSION || raw.unitId !== unitId || raw.schoolYear !== schoolYear) throw new Error();
-      const register = parseNationellaProvRegister(raw.register, schoolYear), underlag = parseNationellaProvUnderlag(raw.underlag);
+      const register = parseNationellaProvRegister(raw.register, schoolYear), underlag = parseNationellaProvUnderlag(raw.underlag, schoolYear);
       pending.current = null; mustReload.current = false;
       setState({ register, underlag }); setError(null); setReadFailed(false); setNeedsReload(false);
     }).catch(caught => {
@@ -72,11 +72,18 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
       if (caught instanceof ApiError) {
         if (caught.status === 401) { lost.current(); return false; }
         if (caught.status === 409) {
-          pending.current = null; mustReload.current = true;
+          pending.current = null;
+          if (caught.reason === 'nationella_prov_katalog_mapping_invalid') {
+            setError('Välj en undervisning och provtid som stämmer med katalogprovet.');
+            return false;
+          }
+          mustReload.current = true;
           setNeedsReload(true);
-          setError(caught.reason === 'nationella_prov_underlag_changed'
-            ? 'Uppgifterna stämmer inte längre med skolans underlag. Läs in provplanen och kontrollera bokningen.'
-            : 'Provplanen har ändrats. Läs in den nya versionen innan du sparar igen.');
+          setError(caught.reason === 'nationella_prov_katalog_changed'
+            ? 'Provkatalogen har ändrats. Läs om provplanen och välj provet på nytt i Läsår & skoldagar.'
+            : caught.reason === 'nationella_prov_underlag_changed'
+              ? 'Uppgifterna stämmer inte längre med skolans underlag. Läs in provplanen och kontrollera bokningen.'
+              : 'Provplanen har ändrats. Läs in den nya versionen innan du sparar igen.');
           return false;
         }
         if (caught.status === 400 || caught.status === 403) {

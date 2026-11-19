@@ -1,9 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { NationellaProvError, parseNationellaProvUnderlag, skapaProvId } from './nationella-prov.ts';
-import { provDatumTillatet, provDeltagarforslag, provNivaNyckel, provTidTillaten, provvalForLasar } from './nationella-prov-katalog.ts';
+import { NationellaProvError, parseNationellaProvKatalog, parseNationellaProvUnderlag, skapaProvId } from './nationella-prov.ts';
+import { provDatumTillatet, provDeltagarforslag, provNivaNyckel, provTidTillaten } from './nationella-prov-katalog.ts';
 import { nationellaProvDeltagare } from './nationella-prov-deltagare.ts';
-import { findSubject } from './syllabus.ts';
 
 const eng1 = { amne: 'ENGE', niva: 'ENGE1000X', namn: 'Engelska nivå 1' };
 const eng2 = { amne: 'ENGE', niva: 'ENGE2000X', namn: 'Engelska nivå 2' };
@@ -22,29 +21,21 @@ test('lokal HTTP kan skapa UUID v4 från kryptografiskt slumpade byte', t => {
   assert.equal(slump.mock.callCount(), 1);
 });
 
-test('gymnasiets publicerade delprov hör till 2026/27 och nivåerna finns i styrdokumentskatalogen', () => {
-  const prov = provvalForLasar(2026);
-  assert.equal(prov.length, 30);
-  assert.equal(prov.filter(p => p.tid.typ === 'fast').length, 22);
-  assert.equal(new Set(prov.map(p => p.id)).size, prov.length);
-  assert.deepEqual(provvalForLasar(2025), []);
-  assert.deepEqual(provvalForLasar(2027), []);
-  for (const p of prov) {
-    assert.ok(p.nivaer.every(n => findSubject(n.amne)?.items.some(item => item.code === n.niva)));
-    assert.ok(p.tidsatgang && p.namn.length <= 160);
-  }
-  const matematik = prov.find(p => p.id === 'matematik1-abc-2027-05-20');
-  assert.deepEqual(matematik.tid, { typ: 'fast', datum: '2027-05-20' });
-  assert.deepEqual(matematik.nivaer.map(n => n.niva), ['MATE1A00X', 'MATE1B00X', 'MATE1C00X']);
-  const svenska = prov.find(p => p.id === 'svenska1-b-2026-11-30');
-  assert.match(svenska.tidsatgang, /120.*180/u);
+const prov = (id, tid) => ({ id, namn: 'Exempelprov', nivaer: [eng1], tid });
+const fast = prov('engelska1-c-ht', { typ: 'fast', datum: '2026-11-24' });
+
+test('katalogen kräver unik provnyckel och datum inom läsåret', () => {
+  const snapshot = { revision: 2, kontrolleradDatum: '2026-11-19', prov: [fast] };
+  assert.deepEqual(parseNationellaProvKatalog(snapshot, 2026), snapshot);
+  assert.equal(parseNationellaProvKatalog(null, 2027), null);
+  assert.throws(() => parseNationellaProvKatalog(snapshot, 2027), NationellaProvError);
+  assert.throws(() => parseNationellaProvKatalog({ ...snapshot, prov: [fast, fast] }, 2026), NationellaProvError);
+  assert.throws(() => parseNationellaProvKatalog({ ...snapshot, prov: [{ ...fast, id: 'eget-prov' }] }, 2026), NationellaProvError);
 });
 
 test('fasta datum och öppna provperioder avgränsas till publicerad start, rätt termin och vardagar', () => {
-  const prov = provvalForLasar(2026);
-  const fast = prov.find(p => p.id === 'engelska1-c-2026-11-24');
-  const oppet = prov.find(p => p.id === 'engelska1-a-2026-11-02');
-  const avgransat = prov.find(p => p.id === 'svenska1-a-2026-11-02');
+  const oppet = prov('engelska1-a-ht', { typ: 'period', fran: '2026-11-02' });
+  const avgransat = prov('svenska1-a-ht', { typ: 'period', fran: '2026-11-02', till: '2026-11-30', senasteSlutMin: 540 });
   assert.equal(provDatumTillatet(fast, '2026-11-24'), true);
   assert.equal(provDatumTillatet(fast, '2026-11-25'), false);
   for (const dag of ['2026-10-30', '2026-11-07', '2027-01-01', '2026-11-31', '2026-11-2', '']) {
@@ -57,7 +48,7 @@ test('fasta datum och öppna provperioder avgränsas till publicerad start, rät
   assert.equal(provDatumTillatet(avgransat, '2026-12-01'), false);
   assert.equal(provTidTillaten(avgransat, '2026-11-30', 480, 540), true);
   assert.equal(provTidTillaten(avgransat, '2026-11-30', 525, 545), false);
-  const efter = prov.find(p => p.id === 'svenska3-b-2026-11-10');
+  const efter = prov('svenska3-b-ht', { typ: 'period', fran: '2026-11-10', tidigasteStartMin: 780 });
   assert.equal(provDatumTillatet(efter, '2026-11-10'), true);
   assert.equal(provTidTillaten(efter, '2026-11-10', 775, 810), false);
   assert.equal(provTidTillaten(efter, '2026-11-10', 780, 810), true);

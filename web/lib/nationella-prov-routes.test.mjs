@@ -13,7 +13,7 @@ const input = (commandId, expectedRevision, bokningar = [booking], granskad = fa
   ({ ...scope, commandId: id(commandId), expectedRevision, document: { granskad, bokningar } });
 const validCatalog = { gallerGymnasiet: true, deltagare: [{ ...booking.mal, name: 'Klass A', undervisningar: [{ ref: booking.undervisning, title: 'Engelska' }] }],
   salar: [], vakter: booking.vakter.map(ref => ({ ref, name: 'Provvakt' })), skoldagar: [booking.datum] };
-const newState = () => ({ role: 'rektor', register: null, history: new Map(), catalog: validCatalog, catalogCalls: 0, sqlCalls: 0, events: [] });
+const newState = () => ({ role: 'rektor', register: null, history: new Map(), catalog: validCatalog, source: [], catalogCalls: 0, sqlCalls: 0, events: [] });
 let state = newState();
 
 const fake = globalThis.__nationellaProvRouteTest = {
@@ -41,6 +41,11 @@ const fake = globalThis.__nationellaProvRouteTest = {
     }
     if (sql.includes('select i.auth_user_id')) return [{ auth_user_id: id(4), function: state.role, organizer_id: id(8), unit_id: id(1) }];
     state.sqlCalls++;
+    if (sql.includes('pg_advisory_xact_lock_shared')) return [];
+    if (sql.includes('from public.nationella_prov_kataloger')) {
+      if (values[0] !== scope.schoolYear) return [];
+      return state.source.filter(r => values[1] === null || r.revision === values[1]).slice(0, 1);
+    }
     const q = values[0];
     const wire = result => [{ result: { contractVersion: scope.contractVersion,
       actor: { identityId: state.wrongActor ? id(99) : id(4), assignmentId: id(6) }, result } }];
@@ -92,7 +97,7 @@ test('provvägarna prövar ursprung, MFA, aktuell roll och epok före dataåtkom
 
 test('skolans katalog hör till läsningen och kan blockera nytt innehåll utan att förlora en tidigare revision', async () => {
   state = newState();
-  assert.deepEqual((await call('lasa', scope)).body, { ...scope, register: null, underlag: validCatalog });
+  assert.deepEqual((await call('lasa', scope)).body, { ...scope, register: null, underlag: { ...validCatalog, provkatalog: null } });
   const first = input(20, 0);
   assert.equal((await call('spara', first)).body.register.revision, 1);
   assert.equal((await call('spara', input(23, 0))).body.details.reason, 'nationella_prov_conflict');
@@ -123,6 +128,34 @@ test('administratören kan behålla och rensa tidigare provvakter men behöver g
   assert.equal((await call('spara', input(22, 2))).body.details.reason, 'nationella_prov_underlag_changed');
   assert.equal((await call('spara', input(23, 2, [{ ...booking, datum: '2027-12-01', vakter: [id(13)] }]))).response.status, 409);
   assert.equal((await call('spara', input(24, 2, [{ ...booking, vakter: [] }]))).body.register.revision, 3);
+});
+
+test('skolan sparar provets katalogrevision och behöver läsa om vid inaktuell eller felaktig koppling', async () => {
+  state = newState();
+  const niva = { amne: 'ENGE', niva: 'ENGE1000X', namn: 'Engelska nivå 1' };
+  const alternativ = { ref: 'undervisning:annan', title: 'Engelska nivå 2', nivaer: [{ ...niva, niva: 'ENGE2000X' }] };
+  state.catalog = { ...validCatalog, skoldagar: [booking.datum, '2027-12-01'], deltagare: [
+    { ...validCatalog.deltagare[0], undervisningar: [{ ...validCatalog.deltagare[0].undervisningar[0], nivaer: [niva] }, alternativ] },
+  ] };
+  const prov = { id: 'engelska1-b-ht', namn: 'Engelska nivå 1', nivaer: [niva], tid: { typ: 'fast', datum: booking.datum } };
+  const version = { revision: 1, kontrolleradDatum: '2026-11-19', prov: [prov] };
+  state.source = [version];
+  const mapped = { ...booking, kallprov: { id: prov.id, revision: 1 } };
+  assert.deepEqual((await call('lasa', scope)).body.underlag.provkatalog, version);
+  const wrong = await call('spara', input(33, 0, [{ ...mapped, undervisning: alternativ.ref }]));
+  assert.equal(wrong.body.details.reason, 'nationella_prov_katalog_mapping_invalid');
+  assert.equal(state.register, null);
+  const first = await call('spara', input(34, 0, [mapped]));
+  assert.deepEqual(first.body.register.document.bokningar[0].kallprov, mapped.kallprov);
+  state.source.unshift({ ...version, revision: 2, prov: [{ ...prov, tid: { typ: 'fast', datum: '2027-12-01' } }] });
+  const outdated = await call('spara', input(35, 1, [{ ...mapped, datum: '2027-12-01' }]));
+  assert.equal(outdated.response.status, 409);
+  assert.equal(state.register.revision, 1);
+  const fresh = { ...mapped, id: id(16), datum: '2027-12-01', kallprov: { ...mapped.kallprov, revision: 2 } };
+  const editedResources = { ...mapped, vakter: [] };
+  const second = await call('spara', input(36, 1, [editedResources, fresh]));
+  assert.equal(second.body.register.revision, 2);
+  assert.deepEqual(second.body.register.document.bokningar.map(b => b.kallprov.revision), [1, 2]);
 });
 
 test('bara gymnasiets prov går att planera och källkontrollen kan inte dateras framåt', async () => {

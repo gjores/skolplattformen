@@ -25,6 +25,7 @@ export type NationellProvbokning = {
   salId: string | null;
   vakter: string[];
   kontrolleradDatum: string;
+  kallprov?: { id: string; revision: number };
 };
 
 export type NationellaProvDocument = { granskad: boolean; bokningar: NationellProvbokning[] };
@@ -32,6 +33,14 @@ export type NationellaProvRegister = { revision: number; document: NationellaPro
 export type Provniva = { amne: string; niva: string; namn: string };
 export type Provtermin = 'ht' | 'vt';
 export type Provterminer = Record<Provtermin, { start: string; end: string }>;
+export type Provval = {
+  id: string;
+  namn: string;
+  nivaer: Provniva[];
+  tid: { typ: 'fast'; datum: string } | { typ: 'period'; fran: string; till?: string; tidigasteStartMin?: number; senasteSlutMin?: number };
+  tidsatgang?: string;
+};
+export type NationellaProvKatalog = { revision: number; kontrolleradDatum: string; prov: Provval[] };
 type Provundervisning = {
   ref: string;
   title: string;
@@ -55,6 +64,7 @@ export type NationellaProvUnderlag = {
   skoldagar: string[] | null;
   /** Samma kalenderversion som skoldagarna. */
   terminer?: Provterminer;
+  provkatalog?: NationellaProvKatalog | null;
 };
 
 export class NationellaProvError extends Error {}
@@ -76,19 +86,22 @@ function provkod(value: unknown): string {
   return typeof value === 'string' && PROVKOD.test(value) ? value : bad();
 }
 
+function parseProvnivaer(value: unknown): Provniva[] {
+  if (!Array.isArray(value) || value.length < 1 || value.length > 32) return bad();
+  const nivaer = value.map(item => {
+    const n = exact(item, ['amne', 'niva', 'namn']);
+    return { amne: provkod(n.amne), niva: provkod(n.niva), namn: text(n.namn, 500) };
+  });
+  if (new Set(nivaer.map(n => `${n.amne}:${n.niva}`)).size !== nivaer.length) return bad();
+  return nivaer;
+}
+
 function parseProvundervisning(value: unknown): Provundervisning {
   const u = exact(value, ['ref', 'title'], ['nivaer', 'terminer']);
   const ref = text(u.ref, 500);
   if (!UNDERVISNING.test(ref)) return bad();
   const result: Provundervisning = { ref, title: text(u.title, 500) };
-  if (Object.hasOwn(u, 'nivaer')) {
-    if (!Array.isArray(u.nivaer) || u.nivaer.length < 1 || u.nivaer.length > 32) return bad();
-    result.nivaer = u.nivaer.map(value => {
-      const n = exact(value, ['amne', 'niva', 'namn']);
-      return { amne: provkod(n.amne), niva: provkod(n.niva), namn: text(n.namn, 500) };
-    });
-    if (new Set(result.nivaer.map(n => `${n.amne}:${n.niva}`)).size !== result.nivaer.length) return bad();
-  }
+  if (Object.hasOwn(u, 'nivaer')) result.nivaer = parseProvnivaer(u.nivaer);
   if (Object.hasOwn(u, 'terminer')) {
     const t = exact(u.terminer, [], ['ht', 'vt']);
     if (Object.values(t).some(value => typeof value !== 'boolean')) return bad();
@@ -115,6 +128,38 @@ function date(value: unknown, first: string, last: string): string {
   return Number.isFinite(day.getTime()) && day.toISOString().slice(0, 10) === value ? value : bad();
 }
 
+function provId(value: unknown): string {
+  return typeof value === 'string' && value.length <= 80 && value !== 'eget-prov'
+    && /^[a-z0-9]+(?:-[a-z0-9]+)*$/u.test(value) ? value : bad();
+}
+
+export function parseNationellaProvKatalog(raw: unknown, schoolYear: number): NationellaProvKatalog | null {
+  if (raw === null) return null;
+  const r = exact(raw, ['revision', 'kontrolleradDatum', 'prov']);
+  if (!Array.isArray(r.prov) || !r.prov.length || r.prov.length > 200) return bad();
+  const yearDate = (value: unknown) => date(value, `${schoolYear}-07-01`, `${schoolYear + 1}-06-30`);
+  const prov = r.prov.map((value): Provval => {
+    const p = exact(value, ['id', 'namn', 'nivaer', 'tid'], ['tidsatgang']);
+    const { typ } = exact(p.tid, ['typ'], ['datum', 'fran', 'till', 'tidigasteStartMin', 'senasteSlutMin']);
+    let tid: Provval['tid'];
+    if (typ === 'fast') {
+      const t = exact(p.tid, ['typ', 'datum']);
+      tid = { typ, datum: yearDate(t.datum) };
+    } else if (typ === 'period') {
+      const t = exact(p.tid, ['typ', 'fran'], ['till', 'tidigasteStartMin', 'senasteSlutMin']);
+      tid = { typ, fran: yearDate(t.fran) };
+      if (Object.hasOwn(t, 'till')) tid.till = yearDate(t.till);
+      if (tid.till && tid.till < tid.fran || Object.hasOwn(t, 'senasteSlutMin') && !tid.till) return bad();
+      if (Object.hasOwn(t, 'tidigasteStartMin')) tid.tidigasteStartMin = int(t.tidigasteStartMin, 0, 1439);
+      if (Object.hasOwn(t, 'senasteSlutMin')) tid.senasteSlutMin = int(t.senasteSlutMin, 1, 1440);
+    } else return bad();
+    return { id: provId(p.id), namn: text(p.namn, 160), nivaer: parseProvnivaer(p.nivaer), tid,
+      ...(Object.hasOwn(p, 'tidsatgang') && { tidsatgang: text(p.tidsatgang, 1000) }) };
+  });
+  if (new Set(prov.map(p => p.id)).size !== prov.length) return bad();
+  return { revision: int(r.revision, 1, 2147483647), kontrolleradDatum: date(r.kontrolleradDatum, '2000-01-01', '2101-12-31'), prov };
+}
+
 export function parseNationellaProvScope(raw: unknown) {
   const r = exact(raw, ['contractVersion', 'unitId', 'schoolYear']);
   if (r.contractVersion !== NATIONELLA_PROV_VERSION) return bad();
@@ -126,7 +171,7 @@ export function parseNationellaProvDocument(raw: unknown, schoolYear: number): N
   if (typeof r.granskad !== 'boolean' || !Array.isArray(r.bokningar) || r.bokningar.length > 200) return bad();
   const ids = new Set<string>(), keys = new Set<string>();
   const bokningar = r.bokningar.map((value): NationellProvbokning => {
-    const b = exact(value, ['id', 'namn', 'undervisning', 'mal', 'datum', 'startMin', 'slutMin', 'tidsval', 'salId', 'vakter', 'kontrolleradDatum']);
+    const b = exact(value, ['id', 'namn', 'undervisning', 'mal', 'datum', 'startMin', 'slutMin', 'tidsval', 'salId', 'vakter', 'kontrolleradDatum'], ['kallprov']);
     const id = uuid(b.id), namn = text(b.namn, 160);
     const undervisning = text(b.undervisning, 500);
     if (!UNDERVISNING.test(undervisning)) return bad();
@@ -145,8 +190,10 @@ export function parseNationellaProvDocument(raw: unknown, schoolYear: number): N
     if (ids.has(id) || keys.has(key) || new Set(vakter).size !== vakter.length) return bad();
     ids.add(id);
     keys.add(key);
+    const kallprov = Object.hasOwn(b, 'kallprov') ? exact(b.kallprov, ['id', 'revision']) : null;
     return { id, namn, undervisning, mal, datum, startMin, slutMin, tidsval: b.tidsval, salId, vakter,
-      kontrolleradDatum: date(b.kontrolleradDatum, '2000-01-01', '2101-12-31') };
+      kontrolleradDatum: date(b.kontrolleradDatum, '2000-01-01', '2101-12-31'),
+      ...(kallprov && { kallprov: { id: provId(kallprov.id), revision: int(kallprov.revision, 1, 2147483647) } }) };
   });
   return { granskad: r.granskad, bokningar };
 }
@@ -168,8 +215,8 @@ export function parseNationellaProvRegister(raw: unknown, schoolYear: number): N
   return { revision: int(r.revision, 1, 2147483647), document: parseNationellaProvDocument(r.document, schoolYear), savedAt: r.savedAt };
 }
 
-export function parseNationellaProvUnderlag(raw: unknown): NationellaProvUnderlag {
-  const r = exact(raw, ['gallerGymnasiet', 'deltagare', 'salar', 'vakter', 'skoldagar'], ['terminer']);
+export function parseNationellaProvUnderlag(raw: unknown, schoolYear?: number): NationellaProvUnderlag {
+  const r = exact(raw, ['gallerGymnasiet', 'deltagare', 'salar', 'vakter', 'skoldagar'], ['terminer', 'provkatalog']);
   if (typeof r.gallerGymnasiet !== 'boolean' || !Array.isArray(r.deltagare) || !Array.isArray(r.salar) || !Array.isArray(r.vakter)
     || r.skoldagar !== null && !Array.isArray(r.skoldagar)) return bad();
   const deltagare = r.deltagare.map((value): NationellaProvDeltagare => {
@@ -200,7 +247,10 @@ export function parseNationellaProvUnderlag(raw: unknown): NationellaProvUnderla
   const term = Object.hasOwn(r, 'terminer') ? exact(r.terminer, ['ht', 'vt']) : null;
   const terminer = term ? { ht: span(term.ht), vt: span(term.vt) } : undefined;
   if (terminer && terminer.ht.end >= terminer.vt.start) return bad();
+  const provkatalog = Object.hasOwn(r, 'provkatalog')
+    ? parseNationellaProvKatalog(r.provkatalog, schoolYear ?? bad()) : undefined;
   return { gallerGymnasiet: r.gallerGymnasiet, deltagare, salar, vakter, ...(terminer && { terminer }),
+    ...(provkatalog !== undefined && { provkatalog }),
     skoldagar: r.skoldagar?.map(value => date(value, '2000-01-01', '2101-12-31')) ?? null };
 }
 

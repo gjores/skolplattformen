@@ -5,10 +5,12 @@ import {
   NATIONELLA_PROV_VERSION,
   NationellaProvError,
   nationellaProvBokningsfel,
+  parseNationellaProvKatalog,
   parseNationellaProvRegister,
   parseNationellaProvSave,
   parseNationellaProvScope,
 } from '../nationella-prov.ts';
+import { katalogbokningGiltig } from '../nationella-prov-katalog.ts';
 import { readNationellaProvUnderlag } from './nationella-prov-underlag.ts';
 
 const FUNCTIONS = ['rektor', 'administrator'] as const;
@@ -58,6 +60,15 @@ export async function readNationellaProv(tx: Tx, ctx: Context, unitId: string, s
   return register(result.register, schoolYear);
 }
 
+async function readProvkatalog(tx: Tx, schoolYear: number, revision: number | null = null) {
+  const rows = await tx<{ revision: number; kontrolleradDatum: string; prov: unknown }[]>`
+    select revision, checked_date::text as "kontrolleradDatum", document as prov
+    from public.nationella_prov_kataloger where school_year = ${schoolYear}
+    and (${revision}::integer is null or revision = ${revision}::integer)
+    order by revision desc limit 1`;
+  return parseNationellaProvKatalog(rows[0] ?? null, schoolYear);
+}
+
 async function requestInput<T>(request: Request, parse: (value: unknown) => T): Promise<T> {
   const raw = await tjanstRequest(request, value => value, 262144);
   try { return parse(raw); }
@@ -76,7 +87,8 @@ export function nationellaProvLasRoute(request: Request): Promise<Response> {
     const { unitId, schoolYear } = input;
     const register = await readNationellaProv(tx, ctx, unitId, schoolYear);
     const underlag = await readNationellaProvUnderlag(tx, ctx, unitId, schoolYear);
-    const body = { ...input, register, underlag };
+    const body = { ...input, register, underlag: underlag.gallerGymnasiet
+      ? { ...underlag, provkatalog: await readProvkatalog(tx, schoolYear) } : underlag };
     return { body, event: event(action, unitId, schoolYear) };
   });
 }
@@ -101,6 +113,8 @@ export function nationellaProvSparaRoute(request: Request): Promise<Response> {
       if (input.document.granskad || bookings.length) {
         const underlag = await readNationellaProvUnderlag(tx, ctx, unitId, schoolYear);
         if (underlag.gallerGymnasiet === false) throw new Deny('forbidden', 403);
+        const katalogfel = () => new Deny('conflict', 409, { reason: 'nationella_prov_katalog_changed' });
+        const kataloger = new Map<number | null, Awaited<ReturnType<typeof readProvkatalog>>>();
         for (const booking of bookings) {
           const original = previousBookings.get(booking.id);
           // Administratörens personalunderlag kan sakna tidigare val som rektor kunde se.
@@ -109,6 +123,26 @@ export function nationellaProvSparaRoute(request: Request): Promise<Response> {
             : booking;
           if (nationellaProvBokningsfel(valid, underlag)) {
             throw new Deny('conflict', 409, { reason: 'nationella_prov_underlag_changed' });
+          }
+          const kallprov = booking.kallprov;
+          if (!kallprov) {
+            if (original?.kallprov) throw katalogfel();
+            continue;
+          }
+          const bevaradKoppling = kallprov.id === original?.kallprov?.id && kallprov.revision === original.kallprov.revision
+            && booking.mal.slag === original.mal.slag && booking.mal.ref === original.mal.ref
+            && booking.undervisning === original.undervisning && booking.datum === original.datum
+            && booking.startMin === original.startMin && booking.tidsval === original.tidsval;
+          const revision = bevaradKoppling ? kallprov.revision : null;
+          if (!kataloger.has(revision)) {
+            if (revision === null) await tx`select pg_advisory_xact_lock_shared(2026111903, ${schoolYear}::integer)`;
+            kataloger.set(revision, await readProvkatalog(tx, schoolYear, revision));
+          }
+          const katalog = kataloger.get(revision);
+          const source = katalog?.revision === kallprov.revision && katalog.prov.find(p => p.id === kallprov.id);
+          if (!source) throw katalogfel();
+          if (!katalogbokningGiltig(source, booking, underlag, schoolYear)) {
+            throw new Deny('conflict', 409, { reason: 'nationella_prov_katalog_mapping_invalid' });
           }
         }
       }

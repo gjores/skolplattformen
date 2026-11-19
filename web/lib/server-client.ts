@@ -7,7 +7,7 @@ export class ApiError extends Error {
   public correlationId: string | null;
   public details: ConflictDetails | null;
   public hasExplicitCode: boolean;
-  /** Vitlistad felorsak från tjänstefördelningens, valplanernas, gruppernas eller läsårskalenderns SQL (details.reason, t.ex. tjanst_capacity_exceeded); aldrig fri text. */
+  /** Vitlistad felorsak från verksamhets-API:t (details.reason, till exempel tjanst_capacity_exceeded). */
   public reason: string | null;
   /** Validerade verksamhetsfel för undervisningens uppdelning. */
   public issues: string[];
@@ -133,7 +133,7 @@ async function request<T>(
       const details = !unexpectedEpoch && code === 'conflict' && response.status === 409
         ? parseConflictDetails(error.details) : null;
       const reason = !unexpectedEpoch && error.details && typeof error.details === 'object' && !Array.isArray(error.details)
-        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group|lasar|schema)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
+        && typeof (error.details as { reason?: unknown }).reason === 'string' && /^(?:tjanst|valplan|study_group|lasar|schema|nationella_prov)_[a-z_]{1,60}$/u.test((error.details as { reason: string }).reason)
         ? (error.details as { reason: string }).reason : null;
       const rawIssues = !unexpectedEpoch && code === 'schema_fordelning_invalid' && response.status === 400
         && error.details && typeof error.details === 'object' && !Array.isArray(error.details)

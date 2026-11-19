@@ -122,6 +122,7 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
             <TableCell className="whitespace-normal">
               <p className="font-medium">{b.namn}</p>
               <p className="text-muted-foreground">{namnFor(b)} · {undervisningar.get(b.undervisning) ?? 'Undervisning saknas i underlaget'}</p>
+              {b.kallprov && <p className="text-xs text-muted-foreground">Skolverkets provkatalog</p>}
               {bokningsfel?.has(b.id) && <p className="status-badge warning mt-1 whitespace-normal">{bokningsfel.get(b.id)}</p>}
             </TableCell>
             <TableCell>
@@ -257,7 +258,8 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
       const key = malNyckel({ slag, ref });
       const bookingId = bokning?.id ?? ids.current.get(key) ?? skapaProvId();
       ids.current.set(key, bookingId);
-      return { id: bookingId, namn, undervisning: valda[key], mal: { slag, ref }, datum, startMin, slutMin, tidsval, salId, vakter: provvakter, kontrolleradDatum };
+      return { id: bookingId, namn, undervisning: valda[key], mal: { slag, ref }, datum, startMin, slutMin, tidsval, salId, vakter: provvakter, kontrolleradDatum,
+        ...(bokning?.kallprov && { kallprov: bokning.kallprov }) };
     });
     const tidigare = bokningar.filter(b => b.id !== bokning?.id), veckodag = new Date(datum).getUTCDay();
     const dubblett = nya.some(ny => tidigare.some(b => b.namn === ny.namn && b.datum === datum && b.startMin === startMin
