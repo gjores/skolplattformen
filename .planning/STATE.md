@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 har en databaskatalog från Skolverket och skolvisa provkopplingar. Installation och krockberäkning återstår."
+current_plan: "UXF-53 har rekommenderade prov, förifyllda tider och sparande i läsårskalendern. Installation och krockberäkning återstår."
 status: in_progress
-stopped_at: "Den gemensamma provkatalogen är importerad och verifierad i isolerad PostgreSQL. Nästa steg för provmiljön är migration, import, installation och inloggat användarprov."
+stopped_at: "Provförslagen är verifierade på dator- och telefonbredder. Nästa steg för provmiljön är katalogmigration, import med tidsuppgifter, installation och inloggat användarprov."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Byggt och verifierat Skolverkets provkatalog med skolvisa kopplingar till prov och katalogrevision."
-state_head: c196ee2b2d8f1896b9d513f9dfa544e6541e04dc
+last_activity_desc: "Verifierat skolvisa provrekommendationer, förifyllda tider och sparande i läsårskalendern."
+state_head: 95247a308ad30136381afe7266b3da90b36ab97f
 progress:
   total_phases: 8
   completed_phases: 3
@@ -22,14 +22,16 @@ worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: e77e378627d062a2b84f84f28695c89ad3b0c02a
-schema_candidate_revision: c196ee2b2d8f1896b9d513f9dfa544e6541e04dc
-schema_candidate_status: nationella_prov_katalog_verified_in_isolated_database_and_browser
+schema_candidate_revision: 95247a308ad30136381afe7266b3da90b36ab97f
+schema_candidate_status: nationella_prov_recommendations_and_calendar_verified_in_isolated_database_and_browser
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: nationella_prov_lasar_passed_6_groups_zero_migrations_116_draft_and_1_room_revisions_preserved
 user_trial_status: schema_nationella_prov_lasar_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – rekommenderade prov i läsårskalendern.** [UXF-53 Provförslag](phases/05.2-schemamodul/05.2-SM-UXF-53-PROVFORSLAG-PLAN.md) visar skolans relevanta prov, källans fasta datum och förslag på sluttid. Periodprov kan få ett föreslaget block på en skoldag. Efter förhandsgranskning markerar sparandet dagen i kalendern. Isolerad katalogimport och 24 webbläsarfall verifierade beteendet. Katalogmigration, import med tidsuppgifter och installation på 3012 återstår.
 
 **2026-11-19 – gemensam provkatalog.** [UXF-53 Katalog](phases/05.2-schemamodul/05.2-SM-UXF-53-KATALOG-PLAN.md) ersätter den handlagda listan med importerade provversioner. Skolans bokning sparar kopplingen till vald katalogrevision, klass eller undervisningsgrupp. Import av 30 publicerade delprov verifierades mot Skolverket och i isolerad PostgreSQL. Två skolor sparade egna kopplingar till samma prov. Migrering, första import och installation i testmiljön på 3012 återstår.
 
