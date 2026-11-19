@@ -175,19 +175,19 @@ Att alla pass har tid betyder inte att salarna är klara.
 
 ## Aktivitet för flera klasser
 
-Mentorstid och liknande kan läggas in för många klasser på en gång.
+Mentorstid eller tid i matsalen kan läggas in för många klasser på en gång.
 
 1. Välj **Ny aktivitet** under **Aktiviteter och nationella prov**.
-2. Fyll i typ, namn, tid och längd och kryssa i klasserna.
-3. Under **Hur många aktiviteter?** väljer du **En gemensam aktivitet för alla valda klasser** eller **En aktivitet per klass**.
-4. Med en per klass visas en rad per klass. Välj ansvarig för varje klass, eller låt raden stå som **Saknar ansvarig**.
+2. Välj typ och namn. Välj sedan **En aktivitet per klass** under **Omfattning**. Kryssa i klasserna eller välj **Välj alla klasser**.
+3. Fyll i tid och längd. Välj **Samma starttid** för samtidig mentorstid. Om klasserna ska använda samma matsal, välj salen och **Klasserna efter varandra**. Ange första starttid och eventuellt mellanrum. Klockslagen räknas fram i den ordning klasserna visas.
+4. Läs tiderna i **Förhandsvisning per klass**. Välj ansvarig för varje klass eller låt raden stå som **Saknar ansvarig**. Rätta eventuella krockar som visas.
 5. Välj **Lägg till … aktiviteter**.
 
-- Varje klass får en egen aktivitet med samma tid, längd och veckor, och klassens namn efter aktivitetens namn.
+- Varje klass får en egen aktivitet med samma längd och veckor, och klassens namn efter aktivitetens namn.
 - Aktiviteterna hålls ihop som en serie. **Ta bort serien** tar bort alla på en gång; varje aktivitet kan ändras för sig.
-- Är samma ansvarig vald för flera klasser på samma fasta tid visas en krock, och serien läggs inte till.
+- En bokad sal används av en klass i taget. För en gemensam aktivitet med flera klasser väljer du **En gemensam aktivitet**.
 - Skolan kan ha högst 100 egna aktiviteter. Formuläret visar hur många det blir efter tillägget.
-- Ansvarig hämtas inte från mentorskap, och lunch i matsal med sittningar finns inte.
+- Ansvarig väljs manuellt.
 
 ## Tilldela salar och behåll tiderna
 
@@ -248,5 +248,5 @@ Du kan göra detta utan att något schema har räknats fram:
 - Val av nationella prov finns inte. Provtid räknas inte in i ämnenas tid.
 - Målen för schemat går inte att prioritera om.
 - Appen kan inte avgöra om en lärare utan tidsvillkor har svarat. Läraren räknas som tillgänglig hela skoldagen.
-- Lunch i matsal med sittningar och platser finns inte.
+- En matsalsbokning i en serie reserverar salen för en klass i taget.
 - Flyttar du flera markerade pass samtidigt prövas salen bara för passet du drar. De andra passen behåller sin sal. Detsamma gäller om de möjliga starttiderna inte hunnit läsas in. Är salen upptagen visas det som en regelavvikelse.

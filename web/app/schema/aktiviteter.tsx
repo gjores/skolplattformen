@@ -45,7 +45,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
               {a.serie && activities.filter(x => x.serie === a.serie).length > 1 && <Button variant="outline" disabled={busy} aria-label={`Ta bort hela serien som ${a.name} hör till`}
                 onClick={() => void onChange(activities.filter(x => x.serie !== a.serie), `Serien med ${activities.filter(x => x.serie === a.serie).length} aktiviteter är borttagen`)}>Ta bort serien</Button>}</div></TableCell></TableRow>;
         })}</TableBody></Table>}
-    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} personalLookup={personalLookup} onSessionLost={onSessionLost}
+    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} villkor={villkor} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} personalLookup={personalLookup} onSessionLost={onSessionLost}
       onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
     {manage && <AktivitetsTyper serverSaved={!!activityTypes} typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;

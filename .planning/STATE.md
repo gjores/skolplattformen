@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-GRANSKA installerad på 3012. Inloggat användarprov återstår. UXF-53 väntar provbeslut."
+current_plan: "UXF-52 kompletterad för massval och tider i följd. Granska är installerad på 3012. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Granska e61e014a installerad på 3012 med sex godkända kontrollgrupper. Nästa är användarprovet."
+stopped_at: "Aktivitetsdialogens massval och matsalstider är verifierade med syntetiska uppgifter. Installation återstår för uppföljningen."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Installerad Granska med avvikelse till exakt pass, resursjämförelse och återgång till fyndet."
+last_activity_desc: "Aktiviteter per klass med massval, samma starttid och tider i följd."
 state_head: e61e014a742c3c322d32db96166b30564b0f74b5
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: granska_passed_6_groups_zero_migrations_81_draft_and
 user_trial_status: schema_granska_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – aktivitetsdialogen efter användarprov:** [Tillägget till UXF-52](phases/05.2-schemamodul/05.2-SM-UXF-52-SERIE-PLAN.md#tillägg-efter-användarprov-2026-11-19) gör **En aktivitet per klass** synligt före klassurvalet, lägger till **Välj alla klasser** och låter klasser boka exempelvis en matsal i följd. 20 domänprov och 26 webbläsarfall passerade. Installation av uppföljningen återstår.
 
 **2026-11-19 – Granska:** [Andra etappen](phases/05.2-schemamodul/05.2-SM-GRANSKA-SUMMARY.md) öppnar rätt grundpass eller datumtillfälle från en avvikelse och låter schemaläggaren jämföra klasser, grupper, lärare och salar. Återgången behåller valt filter, fyndets position och fokus. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-GRANSKA-INSTALL.md) med sex godkända kontrollgrupper och noll migrationer. Inloggat användarprov återstår.
 

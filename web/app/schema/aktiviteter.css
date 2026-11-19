@@ -15,6 +15,8 @@
 .akt-val { min-width: 0; border: 1px solid var(--border); border-radius: var(--radius); padding: .75rem; }
 .akt-val legend, .akt-nar legend { color: var(--heading-accent); font-weight: 500; margin-bottom: .375rem; }
 .akt-val > div { max-height: 15rem; overflow: auto; }
+.akt-serie [data-slot="table-container"] { margin-block: .5rem; }
+.akt-serie :is(th, td) { white-space: normal; vertical-align: top; }
 .akt-check { display: flex; gap: .5rem; align-items: center; min-height: var(--control-height, 44px); color: var(--foreground); }
 .akt-check input { flex-shrink: 0; width: 1.125rem; height: 1.125rem; accent-color: var(--primary); }
 .akt-nar { border: 0; padding: 0; min-width: 0; }
