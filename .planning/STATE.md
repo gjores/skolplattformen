@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 har rekommenderade prov, förifyllda tider och sparande i läsårskalendern på 3012. Krockberäkning återstår."
+current_plan: "Programplaner och Timplaner är uppdaterade och en syntetisk årskurs 1 för 2026/27 är installerad på 3012. UXF-53 krockberäkning återstår."
 status: in_progress
-stopped_at: "Provlistan är installerad på 3012 och verifierad inloggat med 30 katalograder för 2026/27. Testskolorna saknar deltagarunderlag för katalogåret."
-last_updated: "2026-11-19"
-last_activity: 2026-11-19
-last_activity_desc: "Bytt provväljaren mot en synlig lista och verifierat provval på 3012."
-state_head: 07c71c8889203f894f338e50279a47ed3e385620
+stopped_at: "Nya planlistor och höstterminens provutkast på 3012. Inloggat schemaprov för Nystartsgymnasiet 2026/27 gav tider och salar för samtliga 71 pass."
+last_updated: "2026-11-20"
+last_activity: 2026-11-20
+last_activity_desc: "Installerat uppdaterade planlistor och lagt till syntetisk skolorganisation för första årskursen."
+state_head: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,15 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 07c71c8889203f894f338e50279a47ed3e385620
-schema_candidate_revision: 07c71c8889203f894f338e50279a47ed3e385620
-schema_candidate_status: nationella_prov_list_installed_authenticated_browser_verified
+schema_runtime_revision: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
+schema_candidate_revision: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
+schema_candidate_status: planeringsvyer_periodbyte_and_roomed_ht_trial_installed
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: nationella_prov_list_passed_6_groups_zero_migrations_catalogue_preserved
-user_trial_status: schema_nationella_prov_recommendations_installed_awaiting_user_trial
+schema_installation_status: planeringsvyer_passed_6_groups_zero_migrations
+user_trial_status: planeringsvyer_och_testorganisation_2026_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-20 – planeringsvyer och skolunderlag på 3012.** [Programplaner, timplaner och schemaprov](phases/05.2-schemamodul/05.2-PLANER-UX-TESTORGANISATION-PLAN.md) har responsiva listor enligt Skolplattan. Nystartsgymnasiet har fyra syntetiska åk 1-klasser med 120 elever, tre program, två undervisningsgrupper, 16 lärare och nio salar för 2026/27. **Höstterminen → Förbered** har ett eget villkorsutkast. Ett inloggat prov placerade alla 71 återkommande pass med kapacitetsanpassade salar och Granska visade noll regelbrott. Befintliga planeringsrader och utkastrevisioner bevarades. Åk 2 och 3 återstår för en flerårsorganisation. [Installation av listorna](../work/schema/results/planeringsvyer-22c85191-install.json) och [installation av periodbytet](../work/schema/results/planeringsvyer-5ec3842c-install.json).
 
 **2026-11-19 – provlista på 3012.** Katalogen visas direkt med delprov och datum eller period. Rekommendationerna står först. En provrad öppnar bokningen, med återgång till samma rad vid avbrott. 28 webbläsarfall passerade och den inloggade provmiljön visade samtliga 30 rader. [Installationsrapport](../work/schema/results/provlista-lasar-07c71c88-install.json)
 

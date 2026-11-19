@@ -4,6 +4,8 @@ title: Förbered schemat
 
 Under **Planering → Schema** växlar du mellan **Förbered**, **Lägg schema** och **Granska** i sidhuvudet. Alla tre visar samma utkast. Där ser du också skolan, läsåret, vilken period schemat gäller och om utkastet är sparat. Ändringar sparas automatiskt. Vid behov kan du välja **Spara nu**.
 
+Använd **Schemat gäller** för att öppna utkastet för hela läsåret eller för en av terminerna. Om underlaget har ändrats kan du fortfarande byta period från ett sparat utkast. Finns det osparade ändringar behöver du hantera dem först.
+
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 
 ## Börja i Förbered

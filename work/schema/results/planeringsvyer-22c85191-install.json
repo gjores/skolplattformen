@@ -1,0 +1,58 @@
+{
+  "revision": "22c8519180be1386112ee4411a3658356032ee4f",
+  "previousAppRevision": "07c71c8889203f894f338e50279a47ed3e385620",
+  "motorRevision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "status": "PASS",
+  "checks": [
+    "lokalt skyddat mål, IdP, 174 journalrader och befintlig motor",
+    "förhandsprov, filinventering och föregående app verifierade",
+    "rätt appbygge, process och privat konfiguration på 3012",
+    "inloggningssida, exakta planerings-, kalender- och schemafiler och 21 skyddade rutter på 3012",
+    "samma motorprocess med frisk status och syntetiskt beräkningsprov",
+    "journal, katalog, provplaner, salregister och befintliga utkastrevisioner bevarade"
+  ],
+  "startedAt": "2026-11-19T23:08:14.681Z",
+  "migrationsApplied": 0,
+  "rollback": null,
+  "database": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 174,
+    "journalSha": "5f84463dc7c989871bf077c854a14bbb4883fbd08ab7488e8477689e277fdf39",
+    "catalogSha": "65a3fdcb590229163f845ef495268d63ddfd2ff6e5fe9559624eb0608d319489",
+    "counts": {
+      "drafts": 116,
+      "roomRegister": 2,
+      "provkatalog": 1,
+      "examPlans": 0
+    },
+    "digests": {
+      "drafts": "d1bd753216ac677bc15b2ea9340090658d83efb9e40aa6a184731809edf876ff",
+      "roomRegister": "59935ec29a646937cb290bf51d1075d6afd842f0c25cc3445d64e176fa9656b1",
+      "provkatalog": "92b5b146e6f68f00b728bf6a16482f374108b44dbaed7c5fd7369d19f8b7ef82",
+      "examPlans": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "after": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 174,
+    "journalSha": "5f84463dc7c989871bf077c854a14bbb4883fbd08ab7488e8477689e277fdf39",
+    "catalogSha": "65a3fdcb590229163f845ef495268d63ddfd2ff6e5fe9559624eb0608d319489",
+    "counts": {
+      "drafts": 116,
+      "roomRegister": 2,
+      "provkatalog": 1,
+      "examPlans": 0
+    },
+    "digests": {
+      "drafts": "d1bd753216ac677bc15b2ea9340090658d83efb9e40aa6a184731809edf876ff",
+      "roomRegister": "59935ec29a646937cb290bf51d1075d6afd842f0c25cc3445d64e176fa9656b1",
+      "provkatalog": "92b5b146e6f68f00b728bf6a16482f374108b44dbaed7c5fd7369d19f8b7ef82",
+      "examPlans": "4f53cda18c2baa0c0354bb5f9a3ecbe5ed12ab4d8e11ba873c2f11161202b945"
+    }
+  },
+  "appListener": 51552,
+  "appRoot": 51540,
+  "motorListener": 42182,
+  "artifactSha256": "c7282d98cd57df48c872fb9fb8f75d53f289e5e49ee8bf4831815c00ac517652",
+  "finishedAt": "2026-11-19T23:08:28.054Z"
+}
