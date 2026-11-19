@@ -75,6 +75,33 @@ test('valt HT-utkast autosparas och återöppnas direkt efter omladdning utan ny
   expect(server.drafts.get(htKey)?.placements).toEqual(placements); expect(server.saves.filter(s => s.period === 'ht')).toHaveLength(writes);
 });
 
+test('ett inaktuellt utkast kan byta period när inga lokala ändringar väntar', async ({ page, schemaDraftServer: server }) => {
+  const placements = source.lessons.filter(l => l.day !== null && l.startMin !== null)
+    .map(l => ({ lesson: l.id, day: l.day!, startMin: l.startMin!, room: l.roomId }));
+  const annual = await seed(server, input({ basisVillkor: source.villkor, workingVillkor: source.villkor,
+    grundFingerprint: source.grundFingerprint, placements }));
+  annual.stale = true;
+  await seed(server, input({ period: 'ht', name: 'Sparat HT-utkast' }));
+  server.delayRead = 500;
+  await setup(page);
+  const period = page.getByRole('combobox', { name: 'Schemat gäller', exact: true });
+  await expect(period).toBeDisabled();
+  await expect(saved(page).getByText('Underlaget har ändrats', { exact: true })).toBeVisible();
+  await expect(period).toBeEnabled();
+
+  await name(page).fill('Lokalt ändrat namn');
+  await expect(period).toBeDisabled();
+  await expect(period).toHaveValue('lasar');
+  await expect(name(page)).toHaveValue('Lokalt ändrat namn');
+
+  await name(page).fill(annual.name);
+  await period.selectOption('ht');
+  await expect(name(page)).toHaveValue('Sparat HT-utkast');
+  await expect(period).toHaveValue('ht');
+  expect(server.saves).toHaveLength(0);
+  expect(server.drafts.get(key())).toEqual(annual);
+});
+
 test('periodval hålls isär mellan HT2026 och VT2027 och ett nytt läsår börjar med hela läsåret', async ({ page, schemaDraftServer: server }) => {
   await seed(server, input({ name: 'Hela 2026' }));
   await seed(server, input({ period: 'ht', name: 'HT2026' }));

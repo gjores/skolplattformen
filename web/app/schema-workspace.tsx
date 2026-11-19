@@ -267,6 +267,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const gamlaPassregler = byterGrund ? villkor.egna.filter(r => r.slag === 'pass') : [];
   const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
   const redigeringStoppad = !spara.ready || sparstatus.phase === 'loading' || sparstatus.phase === 'stale';
+  const periodbyteStoppat = busy || checking || !spara.ready || sparstatus.phase === 'loading' || (sparstatus.phase === 'stale' && sparstatus.dirty);
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
   const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
@@ -308,8 +309,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const passMedSal = useMemo(() => { if (!forslag) return []; if (!salbild) return forslag.lessons; const by = new Map(salbild.lessons.map(l => [l.id, l]));
     return forslag.lessons.map(l => { const u = by.get(l.id); return u ? { ...l, roomIds: u.roomIds, sal: u.sal } : l; }); }, [forslag, salbild]);
   async function bytPeriod(next: SchemaPeriod) {
-    if (next === period || busy || checking || !spara.ready) return;
-    if (!await spara.flush()) return;
+    if (next === period || periodbyteStoppat) return;
+    if (sparstatus.phase !== 'stale' && !await spara.flush()) return;
     rememberPeriod(unitId, schoolYear, next);
     setJamforTerminer(false);
     setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setGranskatPass(null); setPeriod(next);
@@ -1342,7 +1343,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       <div className="schema-huvudrad">
         <div className="page-heading"><div><h1>Schema<span className="heading-dot">.</span></h1><p>{schoolName ? `${schoolName} · ` : ''}Läsår {planningYearLabel(schoolYear)}</p></div></div>
         <div className="schema-utkastval">
-          <label>Schemat gäller<select value={period} disabled={busy || checking || !spara.ready || redigeringStoppad} onChange={e => void bytPeriod(e.target.value as SchemaPeriod)}>
+          <label>Schemat gäller<select value={period} disabled={periodbyteStoppat} onChange={e => void bytPeriod(e.target.value as SchemaPeriod)}>
         <option value="lasar">{PERIOD.lasar}</option><option value="ht">{PERIOD.ht}</option><option value="vt">{PERIOD.vt}</option></select></label>
           {sparbesked}
         </div>
