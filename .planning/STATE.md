@@ -5,10 +5,10 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "Veckans sökväljare och resursjämförelse i Följ passet installerade på 3012. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Veckans sökväljare, Pass utan tid, kortare passkort och resursjämförelse i Följ passet körs på 3012 i cc131fd4. Inloggat användarprov återstår."
+stopped_at: "Veckans sökväljare och Följ passets resursjämförelse funktionsprovade inloggat på 3012 i cc131fd4. Eget användarprov återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Installerad och verifierad veckovyns sökväljare, Pass utan tid, kortare passkort och resursjämförelse i Följ passet."
+last_activity_desc: "Inloggat funktionsprov av veckans resursval och Följ passets jämförelserader."
 state_head: cc131fd46df9b488c8df4dfe2102700a6601fd39
 progress:
   total_phases: 8
@@ -23,7 +23,7 @@ verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
 schema_candidate_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
-schema_candidate_status: veckans_resursval_installed_awaiting_user_trial
+schema_candidate_status: veckans_resursval_installed_authenticated_ui_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: veckans_resursval_passed_6_groups_zero_migrations_112_draft_and_1_room_revisions_preserved
@@ -31,7 +31,7 @@ user_trial_status: schema_veckans_resursval_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – veckans resursval:** [Visa schema för](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL.md) samlar klass, undervisningsgrupp, lärare, sal och ämne. **Pass utan tid** ersätter Viloyta och passens längduppgifter finns i sidopanelen. 112 webbläsarfall och 88 domänprov godkändes över flera körningar. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL-INSTALL.md) med sex godkända kontrollgrupper. Inloggat användarprov återstår.
+**2026-11-19 – veckans resursval:** [Visa schema för](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL.md) samlar klass, undervisningsgrupp, lärare, sal och ämne. **Pass utan tid** ersätter Viloyta och passens längduppgifter finns i sidopanelen. 112 webbläsarfall och 88 domänprov godkändes över flera körningar. [Installerad och funktionsprovad inloggat på 3012](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL-INSTALL.md). Byte mellan ämne, sal och grupp samt tillägg och borttagning i **Följ passet** behöll utkastets sparversion. Eget användarprov återstår.
 
 **2026-11-19 – resursjämförelse i Följ passet:** [Visas](phases/05.2-schemamodul/05.2-SM-FOLJ-RESURSER.md) har en sökväljare för klass, undervisningsgrupp, lärare och sal. Jämförelseraderna följer med vid passbyte i vyn. 24 webbläsarfall på två datorbredder och 15 domänprov godkända efter omprov. Tillägget ingår i veckovyns installation på 3012.
 
