@@ -1,0 +1,50 @@
+{
+  "revision": "cc131fd46df9b488c8df4dfe2102700a6601fd39",
+  "previousAppRevision": "0591c225dc57463ef0cc9642e6abe8643cafd5f8",
+  "motorRevision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "status": "PASS",
+  "checks": [
+    "lokalt skyddat mål, IdP, 171 journalrader och befintlig motor",
+    "förhandsprov, filinventering och föregående app verifierade",
+    "rätt appbygge, process och privat konfiguration på 3012",
+    "inloggningssida, exakta schemafiler och 19 skyddade rutter på 3012",
+    "samma motorprocess med frisk status och syntetiskt beräkningsprov",
+    "journal, katalog och samtliga befintliga utkastrevisioner bevarade"
+  ],
+  "startedAt": "2026-11-19T15:41:56.568Z",
+  "migrationsApplied": 0,
+  "rollback": null,
+  "database": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 171,
+    "journalSha": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a",
+    "catalogSha": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+    "counts": {
+      "drafts": 112,
+      "roomRegister": 1
+    },
+    "digests": {
+      "drafts": "5aa105a7bae57980ae4aa9ed0e48c51e4a4727400f4ee59b2a960e8da3c9aa9e",
+      "roomRegister": "ddcabb9e2672bd529a80ab4a64dea5547d4ddc1b717d623a1318a7a089bbf99e"
+    }
+  },
+  "after": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 171,
+    "journalSha": "3f9e1c73e42958c7d9f1943ce7265d40e826f2395dba5b96b0d863ecdc8a689a",
+    "catalogSha": "d9108975231f1acb4c60545dadf4886c397cddb673eac6317ceb2294dcc822c5",
+    "counts": {
+      "drafts": 112,
+      "roomRegister": 1
+    },
+    "digests": {
+      "drafts": "5aa105a7bae57980ae4aa9ed0e48c51e4a4727400f4ee59b2a960e8da3c9aa9e",
+      "roomRegister": "ddcabb9e2672bd529a80ab4a64dea5547d4ddc1b717d623a1318a7a089bbf99e"
+    }
+  },
+  "appListener": 6702,
+  "appRoot": 6690,
+  "motorListener": 42182,
+  "artifactSha256": "012090724e0ea590991dad3cf53daef44471210926de528d4119a67e7babb67c",
+  "finishedAt": "2026-11-19T15:42:08.115Z"
+}

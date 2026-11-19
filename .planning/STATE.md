@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "Resursjämförelse i Följ passet byggd och lokalt verifierad. UXF-53 väntar provbeslut."
+current_plan: "Veckans sökväljare och resursjämförelse i Följ passet installerade på 3012. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Resursjämförelse i Följ passet är klar för provinstallation. HT/VT och massval för aktiviteter körs på 3012 i 0591c225."
+stopped_at: "Veckans sökväljare, Pass utan tid, kortare passkort och resursjämförelse i Följ passet körs på 3012 i cc131fd4. Inloggat användarprov återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Verifierad resursjämförelse direkt på raden Visas i Följ passet."
-state_head: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
+last_activity_desc: "Installerad och verifierad veckovyns sökväljare, Pass utan tid, kortare passkort och resursjämförelse i Följ passet."
+state_head: cc131fd46df9b488c8df4dfe2102700a6601fd39
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,17 +21,19 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
-schema_candidate_revision: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
-schema_candidate_status: terminsjamforelse_installed_awaiting_user_trial
+schema_runtime_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
+schema_candidate_revision: cc131fd46df9b488c8df4dfe2102700a6601fd39
+schema_candidate_status: veckans_resursval_installed_awaiting_user_trial
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: terminsjamforelse_passed_6_groups_zero_migrations_111_draft_and_1_room_revisions_preserved
-user_trial_status: schema_terminsjamforelse_installed_awaiting_user_trial
+schema_installation_status: veckans_resursval_passed_6_groups_zero_migrations_112_draft_and_1_room_revisions_preserved
+user_trial_status: schema_veckans_resursval_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – resursjämförelse i Följ passet:** [Visas](phases/05.2-schemamodul/05.2-SM-FOLJ-RESURSER.md) har en sökväljare för klass, undervisningsgrupp, lärare och sal. Jämförelseraderna följer med vid passbyte i vyn. 24 webbläsarfall på två datorbredder och 15 domänprov godkända efter omprov. Installation på 3012 återstår.
+**2026-11-19 – veckans resursval:** [Visa schema för](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL.md) samlar klass, undervisningsgrupp, lärare, sal och ämne. **Pass utan tid** ersätter Viloyta och passens längduppgifter finns i sidopanelen. 112 webbläsarfall och 88 domänprov godkändes över flera körningar. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL-INSTALL.md) med sex godkända kontrollgrupper. Inloggat användarprov återstår.
+
+**2026-11-19 – resursjämförelse i Följ passet:** [Visas](phases/05.2-schemamodul/05.2-SM-FOLJ-RESURSER.md) har en sökväljare för klass, undervisningsgrupp, lärare och sal. Jämförelseraderna följer med vid passbyte i vyn. 24 webbläsarfall på två datorbredder och 15 domänprov godkända efter omprov. Tillägget ingår i veckovyns installation på 3012.
 
 **2026-11-19 – terminsjämförelse:** [Grundschema med HT och VT sida vid sida](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA.md) visar varje veckodag i två kolumner med rätt passlängder för vald klass, grupp eller lärare. Ett pass öppnas i sin terminsvy. Slutprovet gav 30 godkända webbläsarfall. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA-INSTALL.md) fick sex godkända kontrollgrupper. Inloggat användarprov återstår.
 
