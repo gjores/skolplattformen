@@ -518,6 +518,8 @@ Schemaberäkningen, schemapass och undervisningsgrupper hör till 05.2. Klassern
 
 ### Phase 05.2: Schemaläggning med Rust-schemamotor (INSERTED)
 
+**Granska byggd 2026-11-19:** [Plan](phases/05.2-schemamodul/05.2-SM-GRANSKA-PLAN.md) och [utfall](phases/05.2-schemamodul/05.2-SM-GRANSKA-SUMMARY.md) följer användarens beställning. Granska samlar fynd från samma utkast som Lägg schema. Ett fynd kan öppna rätt pass eller datumtillfälle och resursjämförelsen, med återgång till fyndet. Installation på 3012, användarprov och full kravverifiering återstår.
+
 **Fördjupad UX-research 2026-11-16:** [Designriktningen](phases/05.2-schemamodul/05.2-SM-UX-RESEARCH.md) grundas i 35 manualartiklar, primära UX-källor och tolv aktuella kodfynd. Fria förberedelseområden och tre sammanhängande huvudytor föreslås för samma utkast, med direkt expertväg och granskningsbara ändringar. Interaktiv principskiss 16/16 klick-/layoutkontroller PASS, utan riktig motor/server eller mänskligt användarprov. Förslag inför prov/planering; ingen beslutad ombyggnad, produktinstallation eller ny kravacceptans. Den tidigare sexdelade listan ska inte behandlas som en fastställd wizard.
 
 **Förarbete/salar — research 2026-11-16:** Nya användarfynd om salfria pass och små informationsfält har undersökts i aktuell kod och externa primärkällor. [Researchförslaget](phases/05.2-schemamodul/05.2-SM-FORARBETE-RESEARCH.md) föreslår sex förberedelseområden, stabilt salsunderlag, salsättning från start och begränsade omtag. Förberedda resursvillkor kräver i dag ett första schemaförslag; det cirkelberoendet ska bort i en framtida plan. Status är **förslag, inte beslutad leverans**. Ingen ny kod, måländring eller kravacceptans; installerad 7e38ba67 består.
