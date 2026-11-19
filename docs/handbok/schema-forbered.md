@@ -144,6 +144,8 @@ Kortet svarar på fyra frågor, var för sig:
 
 I **Följ passet** visar lärarraden namn och roll. För valbara block väljer du **Visa ämnen i blocket** för att läsa hela ämneslistan. Fulla passnamn finns också på passknapparna.
 
+Sök på raden **Visas** efter en klass, undervisningsgrupp, lärare eller sal. Varje val lägger till ett schema på samma tidsaxel. Klicka på krysset vid resursens namn för att ta bort jämförelseraden. Dina jämförelseval följer med när du byter pass i den öppna vyn. Beräkningen av möjliga starttider gäller passets egna förutsättningar.
+
 ### Räknetid och fortsatt förbättring
 
 Välj **Räknetid per omgång**: 10, 30 eller 60 sekunder. Förvalet är 30 sekunder. En längre omgång ger motorn mer tid att söka, men garanterar inte att alla pass får plats.

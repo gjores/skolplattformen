@@ -2,19 +2,21 @@
 // Följ passet (05.2-SM-FOLJ, design/Samlingsvy.dc.html): alla scheman ett pass berör, rad för rad med gemensam tidsaxel, och överst var passet kan ligga.
 // Panelen följer markeringen tills den låses. Grupper, elevkluster och elevlistan kommer från servern (/api/schema/folj); lägena från /api/schema/lagen.
 // Elevens schema ritas här ur utkastets placeringar. Inget sparas.
-import { useEffect, useId, useRef, useState, type CSSProperties, type Ref } from 'react';
+import { useEffect, useEffectEvent, useId, useMemo, useRef, useState, type CSSProperties, type Ref } from 'react';
 import { LockIcon, LockOpenIcon, XIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { SCHEMA_CONTRACT_VERSION, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaPlacement, type SchemaVillkor } from '@/lib/schema-contract.ts';
-import { elevKrockar, foljRader, parseSchemaFolj, type SchemaFolj } from '@/lib/schema-folj.ts';
+import { elevKrockar, foljRader, parseSchemaFolj, type FoljRad, type SchemaFolj } from '@/lib/schema-folj.ts';
 import { SCHEMA_LAGEN, parseSchemaLagen, type SchemaLagen, type SchemaLagenPosition } from '@/lib/schema-lagen.ts';
+import { parseSamlingData, samlingPass, samlingResurser, SAMLING_NAMN, type SamlingResurs } from '@/lib/schema-samling.ts';
 import { clock, dayName, names, ruleText } from './delat.ts';
 import { passetsVillkor } from '@/lib/schema-utkast.ts';
 import { LAGE, LAGE_KLASS, Mojligt } from './mojligt.tsx';
 import { veckansSpann } from './vecka.tsx';
 import { OppnaFonster } from './fonster';
 import { SamlingRad } from './samling-rad.tsx';
+import { SamlingSok } from './samling-sok.tsx';
 
 const FEL: Record<string, string> = {
   schema_underlag_changed: 'Underlaget eller villkoren som avgör vilka pass som finns har ändrats sedan förslaget togs fram. Ta fram ett nytt schemaförslag för att följa passet.',
@@ -41,11 +43,57 @@ type Props = {
   term: 'ht' | 'vt'; onOpen?: () => void; onSuggest?: () => void; onSwap?: () => void; intentional?: string[];
 };
 
-export function Folj({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen, onSuggest, onSwap, intentional = [] }: Props) {
+type Gruppunderlag = null | 'laddar' | 'fel' | SamlingResurs[];
+
+export function Folj(props: Props) {
+  const { forslag, placements, villkor, onSessionLost } = props;
+  const [valda, setValda] = useState<string[]>([]);
+  const [grupper, setGrupper] = useState<Gruppunderlag>(null);
+  const lasGrupper = useEffectEvent((signal: AbortSignal) => {
+    const { unitId, schoolYear, period, grundFingerprint } = forslag;
+    void api.post<unknown>('/api/schema/samling', { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period, grundFingerprint, placements, villkor }, signal)
+      .then(raw => {
+        if (!signal.aborted) setGrupper(parseSamlingData(raw, forslag).resources.filter(r => r.slag === 'grupp'));
+      })
+      .catch((caught: unknown) => {
+        if (signal.aborted) return;
+        if (caught instanceof ApiError && caught.status === 401) onSessionLost();
+        setGrupper('fel');
+      });
+  });
+  useEffect(() => {
+    if (grupper !== 'laddar') return;
+    const controller = new AbortController();
+    lasGrupper(controller.signal);
+    return () => controller.abort();
+  }, [grupper]);
+  const resurser = useMemo(() => {
+    const klassnycklar = new Set(forslag.resurser.klass.map(r => `klass:${r.ref}`));
+    const bas = samlingResurser(forslag).filter(r => r.slag === 'larare' || r.slag === 'sal' || klassnycklar.has(r.key));
+    return Array.isArray(grupper) ? [...bas, ...grupper] : bas;
+  }, [forslag, grupper]);
+
+  return <FoljPass key={props.lesson.id} {...props} resurser={resurser} valda={valda}
+    onAdd={key => setValda(old => old.includes(key) ? old : [...old, key])}
+    onRemove={key => setValda(old => old.filter(value => value !== key))}
+    onSearch={() => { if (forslag.resurser.grupp.length) setGrupper(old => old ?? 'laddar'); }}
+    gruppstatus={grupper === 'laddar' || grupper === 'fel' ? grupper : null}
+    onRetry={() => setGrupper('laddar')}/>;
+}
+
+type FoljPassProps = Props & {
+  resurser: SamlingResurs[]; valda: string[]; onAdd: (key: string) => void; onRemove: (key: string) => void;
+  onSearch: () => void; gruppstatus: 'laddar' | 'fel' | null; onRetry: () => void;
+};
+
+function FoljPass({ forslag, lesson, placements, villkor, userLocks = [], locked, checking, headingRef, onLock, onClose, onMove, onSessionLost, onPick, term, onOpen, onSuggest, onSwap, intentional = [],
+  resurser, valda, onAdd, onRemove, onSearch, gruppstatus, onRetry }: FoljPassProps) {
   const heading = useId(), pupilLabel = useId();
+  const resursval = useRef<HTMLDivElement>(null);
+  const fokuseraResursval = () => resursval.current?.querySelector('input')?.focus();
   const [pupil, setPupil] = useState<string | null>(null), [folj, setFolj] = useState<SchemaFolj | null>(null), [svar, setSvar] = useState<{ lagen: SchemaLagen; villkor: string } | null>(null);
   const [raknat, setRaknat] = useState<string | null>(null), [error, setError] = useState<string | null>(null);
-  // Panelen får en ny nyckel för varje pass (schema-workspace.tsx), så att elevvalet och svaren börjar om: eleven kanske inte har det nya passet.
+  // Elevval och beräkningssvar börjar om när passet byts.
   const placed = useRef(placements), lost = useRef(onSessionLost), provade = useRef(villkor);
   useEffect(() => { placed.current = placements; lost.current = onSessionLost; provade.current = villkor; });
   const key = JSON.stringify(placements), lessonId = lesson.id, villkorKey = villkorNyckel(villkor), lockKey = JSON.stringify(userLocks);
@@ -80,8 +128,16 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
   // Lägena räknas tills svaret för just dessa placeringar, den eleven och de villkoren har kommit. Ett svar för andra villkor visas inte.
   const loading = raknat !== key + (pupil ?? '') + villkorKey + lockKey, lagen = svar?.villkor === villkorKey + lockKey ? svar.lagen : null;
 
-  const visas = (l: SchemaForslagLesson) => l.term === null || l.term === (lesson.term ?? term);
-  const rader = foljRader(forslag, lesson.id, folj, visas);
+  const visadTerm = lesson.term ?? term;
+  const rader = foljRader(forslag, lesson.id, folj, l => l.term === null || l.term === visadTerm);
+  const ordinarie = new Set(rader.map(r => r.key));
+  const tillgangliga = resurser.filter(r => !ordinarie.has(`${r.slag}:${r.id}`)
+    && !((r.slag === 'klass' || r.slag === 'grupp') && ordinarie.has(`delar:${r.id}`)));
+  const extra = valda.flatMap(key => tillgangliga.find(r => r.key === key) ?? []);
+  const jamforelserader: FoljRad[] = extra.map(r => ({
+    key: r.key, slag: r.slag, name: r.name, chip: r.name, detail: `${SAMLING_NAMN[r.slag].toLocaleLowerCase('sv-SE')} · jämförelse`,
+    lessons: samlingPass(r, forslag.lessons, visadTerm),
+  }));
   const krock = elevKrockar(rader);
   const { start, end } = veckansSpann(forslag.days);
   const elevNamn = pupil ? folj?.elever?.find(e => e.id === pupil)?.name : undefined;
@@ -112,8 +168,28 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
         <Button type="button" variant="outline" onClick={onClose}><XIcon aria-hidden="true"/>Stäng</Button>
       </div>
     </div>
-    <div className="folj-chips"><span className="schema-note" id={`${heading}-visas`}>Visas:</span>
-      <ul aria-labelledby={`${heading}-visas`}>{rader.map(r => <li key={r.key} className="folj-chip">{r.chip}</li>)}</ul></div>
+    <div className="flex min-w-0 flex-col gap-2">
+      <div className="folj-chips" ref={resursval} onFocus={onSearch}>
+        <span className="schema-note" id={`${heading}-visas`}>Visas:</span>
+        <ul aria-labelledby={`${heading}-visas`} className="min-w-0">
+          {rader.map(r => <li key={r.key} className="folj-chip max-w-full wrap-anywhere">{r.chip}</li>)}
+          {extra.map(r => <li key={r.key} className="max-w-full">
+            <Button type="button" variant="outline" className="schema-chip max-w-full wrap-anywhere"
+              aria-label={`Ta bort ${SAMLING_NAMN[r.slag].toLocaleLowerCase('sv-SE')} ${r.name} från jämförelsen`}
+              onClick={() => { onRemove(r.key); fokuseraResursval(); }}>
+              {r.name}<XIcon aria-hidden="true"/>
+            </Button>
+          </li>)}
+        </ul>
+        <SamlingSok resources={tillgangliga} selected={valda} onAdd={onAdd} allowStudents={false}/>
+      </div>
+      <p className="schema-note">Extra rader är till för jämförelse. Möjliga starttider gäller det pass du följer.</p>
+      {gruppstatus === 'laddar' && <output className="schema-note">Läser undervisningsgrupper…</output>}
+      {gruppstatus === 'fel' && <div className="flex flex-wrap items-center gap-2">
+        <output className="schema-note">Undervisningsgrupperna kunde inte läsas.</output>
+        <Button type="button" variant="outline" onClick={() => { onRetry(); fokuseraResursval(); }}>Läs grupper igen</Button>
+      </div>}
+    </div>
     <details className="rounded-lg border border-border bg-card p-3" open>
       <summary className="cursor-pointer font-medium">Villkor för passet</summary>
       <p className="schema-note">Skolans ramar: {villkor.startGridMin} min mellan möjliga starter, {villkor.minLessonMin}–{villkor.maxLessonMin} min per lektion och {villkor.breakMin} min rast.</p>
@@ -140,6 +216,7 @@ export function Folj({ forslag, lesson, placements, villkor, userLocks = [], loc
         lagen={lagen} loading={loading} kontext={kontext} medSalregister={!!forslag.villkor.salregister} disabled={checking} onMove={onMove}/>
       {rader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} krock={krock.lessons} classes={forslag.classes} onPick={onPick}
         head={r.slag === 'larare' ? <><b>{r.name}</b><small>lärare</small></> : undefined} compact/>)}
+      {jamforelserader.map(r => <SamlingRad intentional={intentional} key={r.key} rad={r} days={forslag.days} start={start} followed={lesson.id} classes={forslag.classes} onPick={onPick} compact/>)}
     </div>
     {krock.texter.length > 0 && <div className="folj-krock">{krock.texter.map(t => <p key={t}>{t}</p>)}</div>}
     {rader.some(r => r.slag === 'elev') && <p className="schema-note">Elevens pass kommer ur klassen och elevens grupper; streckad kant = gruppens pass.</p>}

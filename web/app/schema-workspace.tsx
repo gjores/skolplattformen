@@ -1175,7 +1175,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       onPick={id => { const l = forslag.lessons.find(x => x.id === id); if (l) pick(l); }}/>
   </div> : undefined;
   const foljvy = forslag && foljt ? <div ref={resursvy}>
-    <Folj intentional={intentionalPass} key={foljt.id} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} userLocks={utkastLas(utkast)} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
+    <Folj intentional={intentionalPass} key={`${unitId}:${schoolYear}:${forslag.period}:${forslag.grundFingerprint}`} forslag={forslag} lesson={foljt} placements={placeringar} villkor={provade} userLocks={utkastLas(utkast)} locked={folj!.locked} checking={checking || busy} headingRef={foljRubrik} term={shownTerm}
       onPick={id => { const l = forslag.lessons.find(x => x.id === id); if (l) meny.onPick(l); }}
       onSwap={() => meny.passAtgarder(foljt).byt?.()}
       onSuggest={() => void sokPlacering({ mode: 'lesson', lesson: foljt.id, target: null, depth: 1 })}

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "Terminsjämförelse och massval för aktiviteter installerade på 3012. UXF-53 väntar provbeslut."
+current_plan: "Resursjämförelse i Följ passet byggd och lokalt verifierad. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "HT/VT-jämförelse och aktivitetsdialogens massval installerade på 3012 i 0591c225. Inloggat användarprov återstår."
+stopped_at: "Resursjämförelse i Följ passet är klar för provinstallation. HT/VT och massval för aktiviteter körs på 3012 i 0591c225."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Installerad HT/VT-jämförelse sida vid sida och aktiviteter per klass i följd."
+last_activity_desc: "Verifierad resursjämförelse direkt på raden Visas i Följ passet."
 state_head: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: terminsjamforelse_passed_6_groups_zero_migrations_11
 user_trial_status: schema_terminsjamforelse_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – resursjämförelse i Följ passet:** [Visas](phases/05.2-schemamodul/05.2-SM-FOLJ-RESURSER.md) har en sökväljare för klass, undervisningsgrupp, lärare och sal. Jämförelseraderna följer med vid passbyte i vyn. 24 webbläsarfall på två datorbredder och 15 domänprov godkända efter omprov. Installation på 3012 återstår.
 
 **2026-11-19 – terminsjämförelse:** [Grundschema med HT och VT sida vid sida](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA.md) visar varje veckodag i två kolumner med rätt passlängder för vald klass, grupp eller lärare. Ett pass öppnas i sin terminsvy. Slutprovet gav 30 godkända webbläsarfall. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA-INSTALL.md) fick sex godkända kontrollgrupper. Inloggat användarprov återstår.
 
