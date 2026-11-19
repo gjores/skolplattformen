@@ -3,7 +3,7 @@
 // varifrån det kommer (`sourceId` → `kallor`). Inget lagras.
 import type { SchemaForslag, SchemaForslagLesson, SchemaMarginalDel, SchemaRegel, SchemaVillkor } from './schema-contract.ts';
 import { passMarginal } from './schema-marginal.ts';
-import type { SchemaBand, SchemaDimmed, SchemaOverlay } from './schema-utkast.ts';
+import type { SchemaBand, SchemaDimmed, SchemaOverlay, SchemaSparrResurs } from './schema-utkast.ts';
 
 /** Lagren som kan visas eller döljas i veckan (chipsraden i Main). Förval: alla på utom Salar. */
 export const SCHEMA_LAGER = [
@@ -18,8 +18,8 @@ export type SchemaLagerTyp = typeof SCHEMA_LAGER[number]['id'];
 /** Om ett lager visas. Saknad nyckel i utkastets `layers` betyder lagrets förval. */
 export const lagerPa = (layers: Record<string, boolean>, id: SchemaLagerTyp): boolean => layers[id] ?? SCHEMA_LAGER.find(x => x.id === id)!.forval;
 
-/** Det som visas i veckan: en klass (eller grupp) eller en lärare, med förslagets löpnummer (`grupp-1`, `larare-3`). */
-export type SchemaVisad = { slag: 'klass' | 'larare'; ref: string };
+/** Det som visas i veckan. Klass- och lärarfilter kan anges med förslagets löpnummer. */
+export type SchemaVisad = { slag: 'klass' | 'grupp' | 'larare' | 'sal' | 'amne'; ref: string; villkor?: SchemaSparrResurs; lektioner?: ReadonlySet<string> };
 /**
  * Varifrån ett fält kommer. `egen`: plats `index` i `villkor.egna`. Grundvillkoren: skoldagen, lunchfönstret och sena pass.
  * `beror`: antal pass som ligger på villkoret nu (på spärrad tid, utanför tillåten tid eller skoldagen, efter sen tid); `null` när det inte går att säga.
@@ -92,13 +92,21 @@ export function regelNamn(r: SchemaRegel, resurser: SchemaLagerUnderlag['resurse
 export function schemaLager(villkor: SchemaVillkor, f: SchemaLagerUnderlag, visad: SchemaVisad, val: SchemaLagerVal = {}): SchemaLager {
   const on = (id: SchemaLagerTyp) => lagerPa(val.layers ?? {}, id);
   const placed = (val.alla ?? f.lessons).filter(l => l.day !== null && l.startMin !== null);
-  const lessons = (val.lessons ?? f.lessons.filter(l => (visad.slag === 'klass' ? l.classIds : l.teacherIds).includes(visad.ref))).filter(l => l.day !== null && l.startMin !== null);
+  const lessons = (val.lessons ?? f.lessons.filter(l => {
+    if (visad.slag === 'klass') return l.classIds.includes(visad.ref);
+    if (visad.slag === 'larare') return l.teacherIds.includes(visad.ref);
+    if (visad.slag === 'sal') return l.roomId === visad.ref;
+    if (visad.slag === 'grupp') return visad.lektioner?.has(l.id);
+    return !l.egenAktivitet && l.title === visad.ref;
+  })).filter(l => l.day !== null && l.startMin !== null);
   const days = f.days.length, start = Math.min(...f.days.map(d => d.startMin)), end = Math.max(...f.days.map(d => d.endMin)), whole: Span = [start, end];
-  const ids = refs(f), me = ids.get(visad.ref) ?? null;
+  const ids = refs(f), me = visad.villkor ?? ids.get(visad.ref) ?? null;
   const roomName = (id: string | null) => f.rooms.find(r => r.id === id)?.name ?? null;
-  const titles = new Set(lessons.map(l => l.title)), rooms = new Set(lessons.flatMap(l => [l.roomId, ...l.roomIds]).map(roomName));
+  const titles = new Set(visad.slag === 'amne' ? [visad.ref] : lessons.map(l => l.title));
+  const rooms = new Set(visad.slag === 'sal' ? [roomName(visad.ref)] : lessons.flatMap(l => [l.roomId, ...l.roomIds]).map(roomName));
   // Passen ett eget villkor gäller: klassens, gruppens och lärarens pass, ämnets pass och passen som ligger i salen.
-  const galler = (r: SchemaRegel) => (l: SchemaForslagLesson) => r.slag === 'amne' ? l.title === r.ref : r.slag === 'sal' ? roomName(l.roomId) === r.ref
+  const galler = (r: SchemaRegel) => (l: SchemaForslagLesson) => r.slag === 'grupp' && me?.slag === r.slag && me.ref === r.ref && visad.lektioner ? visad.lektioner.has(l.id)
+    : r.slag === 'amne' ? l.title === r.ref : r.slag === 'sal' ? roomName(l.roomId) === r.ref
     : (r.slag === 'larare' ? l.teacherIds : l.classIds).some(id => { const x = ids.get(id); return x?.slag === r.slag && x.ref === r.ref; });
   const overlays: SchemaOverlay[] = [], bands: SchemaBand[] = [], kallor: Record<string, SchemaKalla> = {};
   const field = (day: number, [a, b]: Span, kind: SchemaOverlay['kind'], label: string, sourceId: string) => { if (a < b) overlays.push({ day, startMin: a, endMin: b, kind, label, sourceId }); };
@@ -107,7 +115,7 @@ export function schemaLager(villkor: SchemaVillkor, f: SchemaLagerUnderlag, visa
   const tider = villkor.egna.flatMap((r, index): { r: Tid; index: number }[] => (r.typ === 'sparrad' || r.typ === 'tillaten') && (
     r.slag === 'amne' ? titles.has(r.ref) : r.slag === 'sal' ? rooms.has(r.ref) : me !== null && r.slag === me.slag && r.ref === me.ref) ? [{ r, index }] : []);
   for (const { r, index } of tider) {
-    const lager: SchemaLagerTyp = r.slag === 'sal' ? 'salar' : r.typ, name = regelNamn(r, f.resurser), id = `egna:${index}`;
+    const lager: SchemaLagerTyp = r.slag === 'sal' && visad.slag !== 'sal' ? 'salar' : r.typ, name = regelNamn(r, f.resurser), id = `egna:${index}`;
     if (!on(lager)) continue;
     if (r.typ === 'sparrad') {
       const own: Span = [r.startMin, r.endMin], helDag = r.startMin <= start && r.endMin >= end;
@@ -136,7 +144,7 @@ export function schemaLager(villkor: SchemaVillkor, f: SchemaLagerUnderlag, visa
       beror: lessons.filter(l => val.utanSkoldag?.includes(l.day!) || l.startMin! < frame(l.day!)[0] || l.startMin! + l.durationMin > frame(l.day!)[1]).length };
   }
   // Lunchfönstret: för klasser, och för lärare när lärare också ska få lunch.
-  if (on('lunch') && villkor.lunch && (visad.slag === 'klass' || villkor.lunch.teachers)) {
+  if (on('lunch') && villkor.lunch && (visad.slag === 'klass' || visad.slag === 'grupp' || visad.slag === 'larare' && villkor.lunch.teachers)) {
     for (let day = 0; day < days; day++) field(day, [villkor.lunch.startMin, villkor.lunch.endMin], 'lunch', 'Lunch', 'lunch');
     kallor.lunch = { id: 'lunch', lager: 'lunch', typ: 'lunch', beror: null };
   }
@@ -148,7 +156,8 @@ export function schemaLager(villkor: SchemaVillkor, f: SchemaLagerUnderlag, visa
     if (any) kallor.sena = { id: 'sena', lager: 'sena', typ: 'sena', beror: lessons.filter(l => l.startMin! + l.durationMin > late).length };
   }
   // Marginal före och efter passet (05.2-SM-MARGINAL) för den part vyn visar: klassens vy visar elevernas marginal, lärarens vy lärarens.
-  if (on('marginal')) for (const l of lessons) bands.push(...marginalBand(villkor, f, l, visad.slag === 'klass' ? 'elever' : 'larare'));
+  const del = visad.slag === 'klass' || visad.slag === 'grupp' ? 'elever' : visad.slag === 'amne' ? null : visad.slag;
+  if (on('marginal') && del) for (const l of lessons) bands.push(...marginalBand(villkor, f, l, del));
 
   return { overlays, bands, dimmed: [], kallor };
 }

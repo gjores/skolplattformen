@@ -15,9 +15,9 @@ export type PassProps = {
   length: number;
   lane: { lane: number; lanes: number };
   picked: boolean; flagged: boolean; dragging: boolean; disabled: boolean;
-  /** Raden under ämnet: lärare eller klass, sal, termin och kortning. */
+  /** Kort resursinformation på raden under ämnet. */
   detail: string;
-  /** Fler rader: justerad längd mot grundschemat, kortning vissa veckor, salskrav. */
+  /** Kompletterande status, exempelvis ändrat tillfälle. */
   rader?: string[];
   /** Låst pass. Lås införs av SM-BYT; fältet finns så att passrutan kan visa det. */
   locked?: boolean;
@@ -27,9 +27,10 @@ export type PassProps = {
 };
 
 export function Pass({ lesson: l, origin, length, lane, picked, flagged, dragging, disabled, detail, rader = [], locked = false, onGrab, onPick, occurrence, actionTitle }: PassProps) {
+  const metadata = [detail, locked ? 'Låst' : ''].filter(Boolean).join(' · ');
   return <li className={`schema-lesson${l.egenAktivitet ? ' aktivitet' : ''}${l.vacant ? ' vacant' : ''}${flagged ? ' deviation' : ''}${picked ? ' picked' : ''}${dragging ? ' dragging' : ''}`}
     style={{ '--start': l.startMin! - origin, '--length': length, '--lane': lane.lane, '--lanes': lane.lanes } as CSSProperties}>
     <button type="button" data-lesson={occurrence?.lesson.id ?? l.id} data-occurrence={occurrence?.key} aria-pressed={picked} disabled={disabled} title={actionTitle ?? (occurrence ? 'Ändra detta tillfälle' : 'Flytta passet')} onContextMenu={e => { if (occurrence) { e.preventDefault(); onPick(l); } }} onPointerDown={e => { if (!e.shiftKey) onGrab?.(e, l); }} onClick={e => onPick(l, e.shiftKey)}>
       <time>{clock(l.startMin!)}–{clock(l.startMin! + length)}</time><strong>{l.title}</strong>{l.egenAktivitet && <span className="akt-typtext">{l.egenAktivitet.typ} · {aktivitetsVeckorText(l.egenAktivitet.veckor)}</span>}{locked && <LockIcon className="schema-las" aria-hidden="true"/>}
-      {flagged && <em>Regelavvikelse</em>}<span>{[detail, locked ? 'Låst' : ''].filter(Boolean).join(' · ')}</span>{rader.map(x => <span key={x}>{x}</span>)}</button></li>;
+      {flagged && <em>Regelavvikelse</em>}{metadata && <span>{metadata}</span>}{rader.map(x => <span key={x}>{x}</span>)}</button></li>;
 }

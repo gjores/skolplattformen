@@ -386,6 +386,8 @@
    Tabellen rullar i sin ram (båda led) med rubrikraden kvar överst; isolation gör att flyttpanelen (sticky) ligger över tabellen. ── */
 .schema-workspace .schema-vyval { gap: .75rem 1.25rem; }
 .schema-workspace .schema-vyval .schema-verktyg-grupp { align-self: end; }
+.schema-vecko-resursval { display: grid; gap: .25rem; align-self: end; }
+.schema-filter .schema-vecko-resursval label { min-width: 0; }
 .schema-workspace .passtabell { isolation: isolate; display: grid; gap: .75rem; min-width: 0; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-workspace .passtabell-verktyg label:has(input[type="search"]) { flex: 1 1 18rem; }
 .schema-workspace .passtabell-verktyg input[type="search"] { min-height: var(--control-height); }

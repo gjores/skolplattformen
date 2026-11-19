@@ -16,7 +16,7 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 
 ## Arbeta i Lägg schema
 
-- Välj **Vecka**, **Pass i tabell**, **Samlingsvy** eller **Villkor i tabell**. För veckan väljer du också klass, grupp eller lärare. Med **Grundschema**, **Vecka** eller **Datumintervall** styr du vilka datum som visas.
+- Välj **Vecka**, **Pass i tabell**, **Samlingsvy** eller **Villkor i tabell**. I veckan söker du i **Visa schema för** efter en klass, undervisningsgrupp, lärare, sal eller ett ämne. Med **Grundschema**, **Vecka** eller **Datumintervall** styr du vilka datum som visas. En sal visar de pass som är bokade där i den valda perioden.
 - I **Grundschema** för hela läsåret kan du välja **Jämför HT och VT**. Varje veckodag visar hösten och våren bredvid varandra. Gemensamma pass visas på båda sidor med respektive termins passlängd. Välj ett pass för att öppna passpanelen i rätt termin.
 - Öppna **Beräkning** för att ändra räknetid, fortsätta förbättra schemat eller ta fram ett nytt förslag.
 - Välj **Till kontrollerna** för att gå till regelavvikelser, undervisningstid, datumändringar och övrigt underlag längre ner på sidan. Där finns också **Tilldela salar och behåll tiderna** när pass behöver sal.
@@ -25,7 +25,7 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 ## Gå från en avvikelse till rätt pass
 
 1. Öppna **Granska**. Under **Visa fynd** kan du välja till exempel pass utan tid, regelavvikelser eller datumändringar. Välj **Kontrollera schemat** om resultat för grundschemat saknas.
-2. Välj **Visa passet** eller **Visa tillfället** vid den rad du vill följa upp. För ett fynd med flera berörda pass väljer du vilket du vill öppna. Ett pass utan tid öppnas på viloytan. Ett flyttat datumtillfälle visas på datumet där det nu ligger.
+2. Välj **Visa passet** eller **Visa tillfället** vid den rad du vill följa upp. För ett fynd med flera berörda pass väljer du vilket du vill öppna. Ett pass utan tid öppnas under **Pass utan tid**. Ett flyttat datumtillfälle visas på datumet där det nu ligger.
 3. Öppna **Jämför resurser** och sök efter en klass, grupp, lärare eller sal. Lägg till de resurser du vill se och ta bort dem från jämförelsen med kryssknappen på varje rad. Du ser pass som överlappar den valda tiden. Pass utan tid kan jämföras när de fått en placering. Urvalet är tillfälligt och ändrar inga bokningar.
 4. Använd passpanelen för att ändra ett grundpass eller **Ändra tillfället** för en datumändring. Välj **Tillbaka till granskningen** för att komma tillbaka till samma fynd med ditt filter kvar. Om åtgärden löste fyndet visas den uppdaterade listan.
 
@@ -218,7 +218,7 @@ Klicka på ett pass i veckan eller tryck Retur när passet har fokus. I passtabe
 2. Under listorna står vad som händer vid den valda tiden, till exempel vilka pass som krockar.
 3. Välj **Flytta hit** för att flytta passet, eller **Avbryt**.
 
-Passpanelen ger också tillgång till **Följ passet**, lås, byte, placeringsförslag och viloytan. Verktygen visas eller kan användas beroende på om passet är utlagt och låst.
+Välj ett pass i kalendern för att läsa längden, eventuella kortningar, salskrav och detaljer om regelavvikelser. Passpanelen ger också tillgång till **Följ passet**, lås, byte och placeringsförslag. **Ta bort tiden** flyttar passet till **Pass utan tid**. Därifrån kan du dra ut det i veckan igen eller föreslå en placering.
 
 Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fält: fri tid, går med ett byte, bryter ett önskemål eller regelbrott. Ett fält säger bara läget. Orsakerna kan skilja sig inom fältet, så läs beskedet i panelen för den exakta starttiden.
 

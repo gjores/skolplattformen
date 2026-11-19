@@ -57,7 +57,7 @@ export type VeckaProps = {
   detail: (l: SchemaForslagLesson) => string;
   onGrab: (e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson) => void;
   onPick: (l: SchemaForslagLesson, utoka?: boolean) => void;
-  datum?: { forslag: SchemaForslag; overrides: SchemaDatumAndring[] };
+  datum?: { forslag: SchemaForslag; overrides: SchemaDatumAndring[]; matches?: (l: SchemaForslagLesson) => boolean };
   onOccurrence?: (o: SchemaDatumTillfalle) => void;
   selected?: string[];
   onSelect?: (ids: string[]) => void;
@@ -66,7 +66,7 @@ export type VeckaProps = {
   bands?: SchemaBand[];
   dimmed?: SchemaDimmed[];
   gridRef?: Ref<HTMLDivElement>;
-  /** Fler rader i passrutan: justerad längd, kortning vissa veckor, salskrav (05.2-SM-VILLKOR-SYNS). */
+  /** Status som behöver synas i passrutan, till exempel medveten krock. */
   extra?: (l: SchemaForslagLesson) => string[];
   /** Låsta pass (lås kommer i SM-BYT). */
   locked?: (l: SchemaForslagLesson) => boolean;
@@ -111,7 +111,7 @@ export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flag
   const [ram, setRam] = useState<{ left: number; top: number; width: number; height: number; lessons: string[] } | null>(null);
   const daterad = !!kalender && !!visning && visning.mode !== 'grundschema';
   const datedDays = daterad ? schemaVisningsDagar(kalender, visning!) : [];
-  const occasions = daterad ? datum ? schemaDatumTillfallen(datum.forslag, visning!, datum.overrides).filter(o => all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
+  const occasions = daterad ? datum ? schemaDatumTillfallen(datum.forslag, visning!, datum.overrides).filter(o => datum.matches ? datum.matches(o.lesson) : all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
   const columns = daterad ? datedDays.map(d => ({ day: d.weekday, heading: d.heading, date: d.date, ...schemaDagStatus(d, classId) }))
     : days.map((_, day) => ({ day, heading: dayName(day), date: null, schoolDay: true, reason: null }));
   // Dra över tom tid med Spärra eller Tillåt bara (05.2-SM-MENY): från punkten där musen trycktes ned till där den släpps, på 5-minutersrutnätet.
@@ -170,10 +170,7 @@ export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flag
               aria-describedby={markeringHjalp}><span>{clock(markering.startMin)}–{clock(markering.endMin)}</span></button></li>}
           {lessons.map(l => {
             const o = actual.get(l.id), original = o?.lesson ?? l;
-            const rader = daterad ? [...(shownLength(l) !== l.durationMin ? [`${shownLength(l)} min · ${l.durationMin} i grundschemat`] : []),
-              ...(o?.changed ? ['Ändrat tillfälle'] : []),
-              ...(extra?.(original) ?? []).filter(x => !x.startsWith('kortare ') && !x.includes('i grundschemat')),
-              ...('egenAktivitet' in l && l.egenAktivitet ? ['Grundschemaaktivitet'] : [])] : extra?.(l);
+            const rader = [...(extra?.(original) ?? []), ...(o?.changed ? ['Ändrat tillfälle'] : [])];
             return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={o && pickedOccurrence ? o.key === pickedOccurrence : picked === original.id || (ram?.lessons ?? selected).includes(original.id)} flagged={flagged.has(original.id)}
               dragging={!daterad && drop?.lesson === l.id} disabled={disabled} detail={detail(original)} rader={rader} occurrence={o} locked={locked?.(original)} onGrab={daterad ? () => undefined : onGrab} onPick={o && onOccurrence ? () => onOccurrence(o) : onPick}/>;
           })}

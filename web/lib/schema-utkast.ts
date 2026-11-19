@@ -364,10 +364,10 @@ const overlap = (l: Lagt, m: SchemaMarkering) => l.day === m.day && l.startMin !
  * Det en spärr på den markerade tiden kan gälla: den som visas (klass, grupp eller lärare), och för passen som ligger där lärarna,
  * salen, ämnet och övriga klasser och grupper. Bara det som har en referens i underlaget tas med.
  */
-export function sparrResurser(f: Underlag, visad: string, lessons: Lagt[], m: SchemaMarkering): SchemaSparrResurs[] {
+export function sparrResurser(f: Underlag, visad: string | SchemaSparrResurs, lessons: Lagt[], m: SchemaMarkering): SchemaSparrResurs[] {
   const refs = resursRefs(f), out: SchemaSparrResurs[] = [], seen = new Set<string>();
   const add = (r: SchemaSparrResurs | undefined) => { if (r && !seen.has(`${r.slag}|${r.ref}`)) { seen.add(`${r.slag}|${r.ref}`); out.push(r); } };
-  add(refs.get(visad));
+  add(typeof visad === 'string' ? refs.get(visad) : visad);
   const dar = lessons.filter(l => overlap(l, m));
   for (const l of dar) for (const id of l.teacherIds) { const r = refs.get(id); if (r) add({ ...r, namn: `${r.namn} (${l.title})` }); }
   for (const l of dar) { const room = f.rooms.find(x => x.id === l.roomId)?.name; if (room) add({ slag: 'sal', ref: room, namn: room }); }
@@ -415,7 +415,7 @@ export function passPaVillkor<T extends Lagt>(f: Underlag, egna: SchemaRegel[], 
 }
 
 /**
- * Varför ett pass avviker, i passrutan (05.2-SM-VILLKOR-DIREKT). Vilka pass som avviker avgörs bara av kontrollens svar (`koder`: kontrollens koder för
+ * Varför ett pass avviker (05.2-SM-VILLKOR-DIREKT). Vilka pass som avviker avgörs bara av kontrollens svar (`koder`: kontrollens koder för
  * passet); villkoren används för att säga om ett pass utanför sina tillåtna fönster ligger på spärrad tid eller utanför tillåten tid.
  * Null: ingen rad för koden (avvikelsen står i listan Regelavvikelser).
  */

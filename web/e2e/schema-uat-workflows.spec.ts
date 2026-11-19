@@ -41,7 +41,7 @@ test('olika undervisningar får egna antal; Ångra är synlig också i villkorst
   await page.getByRole('button',{name:'Gör om',exact:true}).click();await expect(selects.nth(1)).toHaveValue('3');
 });
 test('Följ passet går att öppna från viloytan och byte finns i följpanelen',async({page})=>{
-  await setup(page);const own=page.locator('[data-lesson="pass-7"]').first();await own.click();await page.getByRole('form',{name:'Flytta pass'}).getByRole('button',{name:'Lägg på viloytan',exact:true}).click();
+  await setup(page);const own=page.locator('[data-lesson="pass-7"]').first();await own.click();await page.getByRole('form',{name:'Flytta pass'}).getByRole('button',{name:'Ta bort tiden',exact:true}).click();
   const rest=page.locator('.schema-rest');await rest.getByRole('button',{name:/^Följ passet /}).click();await expect(page.getByRole('heading',{name:/Följ passet:/})).toBeVisible();await expect(page.getByText('Villkor för passet',{exact:true})).toBeVisible();
   await page.locator('.folj').getByRole('button',{name:'Stäng',exact:true}).click();
   await page.locator('.schema-lesson [data-lesson]').first().click();await page.getByRole('button',{name:'Följ passet',exact:true}).first().click();
@@ -65,12 +65,12 @@ test('utebliven placering ger ett granskat villkorsalternativ som godkänns och 
     return r.fulfill({headers,json:{contractVersion:SCHEMA_CONTRACT_VERSION,grundFingerprint:input.grundFingerprint,fingerprint:'a'.repeat(28),inputFingerprint:schemaVillkorsforslagInputFingerprint(input),lesson:input.lesson,depth:input.depth,timedOut:false,elapsedMs:1,testedCandidates:1,newGrundCandidates:0,explanation:'Passet kan placeras om den här spärren tas bort.',
       suggestions:[{id:'regel-1',change,placement:{placements,changes:[{lesson:own.id,from:null,to}],metricsBefore:metrics,metricsAfter:metrics,cost:0},kontroll:{...control({...input,placements}),fingerprint:'b'.repeat(28)}}]}});
   });
-  await page.locator('[data-lesson="pass-7"]').first().click();await page.getByRole('form',{name:'Flytta pass'}).getByRole('button',{name:'Lägg på viloytan',exact:true}).click();
+  await page.locator('[data-lesson="pass-7"]').first().click();await page.getByRole('form',{name:'Flytta pass'}).getByRole('button',{name:'Ta bort tiden',exact:true}).click();
   await page.locator('.schema-rest').getByRole('button',{name:/^Föreslå placering för /}).click();
   const suggestions=page.getByRole('region',{name:'Förslag på ändrade villkor'});await expect(suggestions).toContainText('Den här regeln tas bort');
   await expect(page.locator('.schema-rest')).toContainText(own.title);await page.screenshot({path:info.outputPath('villkorsforslag.png'),fullPage:false});
   await suggestions.getByRole('button',{name:'Godkänn villkorsändring och placering 1',exact:true}).click();
-  await expect(page.locator('.schema-rest')).toContainText('Inga pass på viloytan');expect(controls.at(-1)?.villkor.egna).toEqual([]);
+  await expect(page.locator('.schema-rest')).toContainText('Alla pass har tid');expect(controls.at(-1)?.villkor.egna).toEqual([]);
   await page.getByRole('button',{name:'Ångra senaste villkor',exact:true}).click();await expect(page.locator('.schema-rest')).toContainText(own.title);expect(controls.at(-1)?.villkor.egna).toEqual([rule]);
 });
 test('datumflytt ger ett undantag och lämnar grundschema och andra tillfällen orörda; ångra återställer',async({page,schemaDraftServer},info)=>{

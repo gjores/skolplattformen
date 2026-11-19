@@ -12,7 +12,7 @@ export function ForeBerakning({ findings, busy, onContinue, onTarget }: {
   if (!findings.length) return null;
   return <section aria-label="Före beräkning" className="rounded-lg border border-border bg-card p-4 space-y-3" aria-busy={busy}>
     <h2 ref={heading} tabIndex={-1} className="section-heading">Före beräkning</h2>
-    <p className="schema-note">Underlaget har {findings.length} {findings.length === 1 ? 'punkt' : 'punkter'} att se över. Du kan rätta villkoren eller ta fram ett förslag med pass kvar på viloytan.</p>
+    <p className="schema-note">Underlaget har {findings.length} {findings.length === 1 ? 'punkt' : 'punkter'} att se över. Du kan rätta villkoren eller ta fram ett förslag där vissa pass saknar tid.</p>
     <ul className="divide-y divide-border">
       {findings.map((f, i) => <li key={`${f.code}-${i}`} className="py-3 space-y-2">
         <span className="status-badge">{f.proof ? 'Går inte ihop' : 'Att kontrollera'}</span>

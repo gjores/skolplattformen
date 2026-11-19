@@ -19,7 +19,7 @@ export function Villkorsforslag({ search, forslag: f, stale, disabled, onApply }
       <h4 className="font-semibold">Alternativ {i + 1}: {s.change.message}</h4>
       <dl className="grid gap-2 text-sm"><div><dt className="font-medium">Nu</dt><dd>{ruleText(s.change.before, f.resurser)}</dd></div><div><dt className="font-medium">Efter godkännande</dt><dd>{s.change.after ? ruleText(s.change.after, f.resurser) : 'Den här regeln tas bort. Övriga regler gäller fortfarande.'}</dd></div></dl>
       <ul className="divide-y divide-border">{s.placement.changes.map(c => {
-        const l = f.lessons.find(x => x.id === c.lesson), place = (p: typeof c.from) => p ? `${dayName(p.day)} ${clock(p.startMin)}${p.room ? ` · ${f.rooms.find(r => r.id === p.room)?.name ?? p.room}` : ''}` : 'Viloytan';
+        const l = f.lessons.find(x => x.id === c.lesson), place = (p: typeof c.from) => p ? `${dayName(p.day)} ${clock(p.startMin)}${p.room ? ` · ${f.rooms.find(r => r.id === p.room)?.name ?? p.room}` : ''}` : 'Utan tid';
         return <li key={c.lesson} className="py-2"><strong>{l?.title}</strong><p>{l ? [names(l.classIds, f.classes), names(l.teacherIds, f.teachers)].filter(Boolean).join(' · ') : ''}</p><p>{place(c.from)} → {place(c.to)}</p></li>;
       })}</ul>
       <p className="text-sm text-muted-foreground">Hela alternativet kontrolleras igen och kan ångras som ett steg.</p>

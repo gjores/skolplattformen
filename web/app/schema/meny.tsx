@@ -4,7 +4,7 @@
 // Spärren är ett tidsvillkor: arbetsytan låter kontrollen pröva den direkt, och passen märks ur kontrollens svar (05.2-SM-VILLKOR-DIREKT).
 // Menypunkter visas när arbetsytan erbjuder funktionen.
 // Passets punkter står i `PassMenypunkter`, som passtabellen också använder (05.2-SM-PASSTABELL).
-import { useEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type ReactNode, type RefObject } from 'react';
 import { ContextMenu, ContextMenuContent, ContextMenuGroup, ContextMenuItem, ContextMenuLabel, ContextMenuSeparator, ContextMenuShortcut, ContextMenuSub,
   ContextMenuSubContent, ContextMenuSubTrigger, ContextMenuTrigger } from '@/components/ui/context-menu';
 import { Button } from '@/components/ui/button';
@@ -12,7 +12,7 @@ import { Kbd } from '@/components/ui/kbd';
 import type { SchemaForslag, SchemaForslagLesson, SchemaRegel, SchemaVillkor } from '@/lib/schema-contract.ts';
 import type { SchemaKalla } from '@/lib/schema-lager.ts';
 import { flyttaMarkering, laggAldrigHar, markeringVid, passPaVillkor, sparrRegel, sparrResurser, stegMal, villkorSteg,
-  type SchemaMarkering, type SchemaPil, type SchemaUtkast, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
+  type SchemaMarkering, type SchemaPil, type SchemaSparrResurs, type SchemaUtkast, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
 import { PERIOD, startTimes } from './delat.ts';
 import { kallaText, visaVillkor } from './lager.tsx';
 import { SparrPanel, passText, tidText, type SparrTyp } from './sparr.tsx';
@@ -47,6 +47,7 @@ export type MenyVal = {
   alla: SchemaForslagLesson[];
   /** Den klass eller lärare som visas (förslagets löpnummer). */
   visad: string;
+  visadResurs?: SchemaSparrResurs;
   unplaced: SchemaForslagLesson[];
   kallor: Record<string, SchemaKalla>;
   /** Passets längd som den visas i veckan. */
@@ -83,7 +84,7 @@ type PassMenyProps = {
 export const passMenyHandelser = (a: PassAtgarder) => ({ onFlytta: a.flytta, onFolj: a.folj, onParkera: a.parkera, onLaggAldrig: a.laggAldrig, onVillkor: a.villkor, onVisaIVeckan: a.visaIVeckan, onLas: a.las, last: a.last, onByt: a.byt, onOppnaFonster: a.oppnaFonster, onForesla: a.foresla });
 /**
  * Passmenyns punkter (05.2-SM-MENY), utbrutna så att veckan och passtabellen använder samma lista (05.2-SM-PASSTABELL). Ett pass på viloytan har ingen
- * Lägg på viloytan och ingen Lägg aldrig här. `flyttarFokus` omsluter de punkter som flyttar fokus själva, så att menyn inte lämnar tillbaka fokus.
+ * Ta bort tiden och ingen Lägg aldrig här. `flyttarFokus` omsluter de punkter som flyttar fokus själva, så att menyn inte lämnar tillbaka fokus.
  */
 export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, onParkera, onLaggAldrig, onVillkor, onVisaIVeckan, onLas, last, onByt, onOppnaFonster, onForesla }: PassMenyProps) {
   const lagd = pass.day !== null && pass.startMin !== null;
@@ -95,7 +96,7 @@ export function PassMenypunkter({ pass, rubrik, flyttarFokus, onFlytta, onFolj, 
     {lagd && <>
       {onLas && <ContextMenuItem onClick={onLas}>{last ? 'Lås upp' : 'Lås här'}<ContextMenuShortcut><Kbd>L</Kbd></ContextMenuShortcut></ContextMenuItem>}
       {onByt && <ContextMenuItem disabled={last} onClick={onByt}>Byt med ett annat pass…<ContextMenuShortcut><Kbd>B</Kbd></ContextMenuShortcut></ContextMenuItem>}
-      <ContextMenuItem onClick={onParkera}>Lägg på viloytan<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
+      <ContextMenuItem onClick={onParkera}>Ta bort tiden<ContextMenuShortcut><Kbd>P</Kbd></ContextMenuShortcut></ContextMenuItem>
       <ContextMenuSeparator/>
       <ContextMenuItem onClick={onLaggAldrig}>Lägg aldrig här</ContextMenuItem>
     </>}
@@ -112,7 +113,7 @@ export function oppnaMenyVid(el: HTMLElement): void {
   el.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true, clientX: box.left + Math.min(box.width / 2, 24), clientY: box.top + Math.min(box.height / 2, 16) }));
 }
 
-export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet, onOpenWindow, foresla, minsta }: MenyVal) {
+export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, shown, alla, visad, visadResurs, unplaced, kallor, length, checking, week, synlig = true, andra, pick, taBort, folj, andraVillkor, gemensam, nyAktivitet, onOpenWindow, foresla, minsta }: MenyVal) {
   const text = (l: SchemaForslagLesson) => passText(l, length(l));
   const tool = utkast.tool, markerar = tool === 'sparra' || tool === 'tillat';
   const [markering, setMarkering] = useState<SchemaMarkering | null>(null);
@@ -137,13 +138,14 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     observer.observe(el);
     return () => observer.disconnect();
   }, [week, forslag, synlig]);
-  useEffect(() => {
+  // Vid byte av dag ersätts knappen i DOM. Återställ fokus före nästa tangenttryckning.
+  useLayoutEffect(() => {
     if (!fokus.current) return;
     const el = week.current?.querySelector<HTMLElement>(fokus.current) ?? document.querySelector<HTMLElement>(fokus.current);
     if (el) { el.focus(); fokus.current = null; }
   });
   // Ett nytt förslag eller en annan vy tömmer markering och panel.
-  const vy = `${forslag?.fingerprint ?? ''}|${visad}`, [visadVy, setVisadVy] = useState(vy);
+  const vy = `${forslag?.fingerprint ?? ''}|${visadResurs?.slag ?? ''}|${visadResurs?.ref ?? visad}`, [visadVy, setVisadVy] = useState(vy);
   if (visadVy !== vy) { setByteFran(null); setVisadVy(vy); setMarkering(null); setNy(null); }
 
   const days = forslag?.days ?? [];
@@ -167,7 +169,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
   }
 
   // Panelen Ny spärr.
-  const panelResurser = forslag && ny ? sparrResurser(forslag, visad, shown, ny.markering) : [];
+  const panelResurser = forslag && ny ? sparrResurser(forslag, visadResurs ?? visad, shown, ny.markering) : [];
   const panelRegel = ny && panelResurser[ny.vald] ? sparrRegel(ny.typ, panelResurser[ny.vald], ny.markering) : null;
   const panelBerorda = forslag && panelRegel ? passPaVillkor(forslag, [...villkor.egna, panelRegel], villkor.egna.length, alla) : [];
   function oppnaPanel(typ: SparrTyp, m: SchemaMarkering, vald = 0) { setMarkering(m); setNy({ typ, markering: m, vald }); menyFokus.current = true; }
@@ -265,7 +267,7 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
 
   const pass = mal?.typ === 'pass' ? shown.find(l => l.id === mal.lesson) ?? null : null;
   const tid = mal && mal.typ !== 'pass' ? mal.markering : null;
-  const tidResurser = forslag && tid ? sparrResurser(forslag, visad, shown, tid) : [];
+  const tidResurser = forslag && tid ? sparrResurser(forslag, visadResurs ?? visad, shown, tid) : [];
   const kalla = mal?.typ === 'falt' ? mal.kalla : null, kallaRubrik = kalla && forslag ? kallaText(kalla, villkor, forslag.resurser).title : '';
   const tidRegel = (k: SchemaKalla) => k.typ === 'egen' && (villkor.egna[k.index]?.typ === 'sparrad' || villkor.egna[k.index]?.typ === 'tillaten');
   /** En menypunkt som flyttar fokus själv (panel, flyttpanel, formulär): menyn lämnar inte tillbaka fokus. */
@@ -305,8 +307,8 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
         <ContextMenuSubContent className="schema-meny">{resursLista('sparrad', tid)}</ContextMenuSubContent></ContextMenuSub>
       <ContextMenuSub><ContextMenuSubTrigger>Tillåt bara här för</ContextMenuSubTrigger>
         <ContextMenuSubContent className="schema-meny">{resursLista('tillaten', tid)}</ContextMenuSubContent></ContextMenuSub>
-      <ContextMenuSub><ContextMenuSubTrigger>Lägg ut pass från viloytan här</ContextMenuSubTrigger>
-        <ContextMenuSubContent className="schema-meny">{unplaced.length === 0 ? <ContextMenuItem disabled>Viloytan är tom</ContextMenuItem>
+      <ContextMenuSub><ContextMenuSubTrigger>Lägg ett pass här</ContextMenuSubTrigger>
+        <ContextMenuSubContent className="schema-meny">{unplaced.length === 0 ? <ContextMenuItem disabled>Inga pass utan tid</ContextMenuItem>
           : unplaced.map(l => <ContextMenuItem key={l.id} disabled={startTimes(forslag!, tid.day, l.durationMin + l.marginMin).length === 0}
             onClick={() => laggUt(l, tid)}>{l.title}, {l.durationMin} min</ContextMenuItem>)}</ContextMenuSubContent></ContextMenuSub>
     </>}
@@ -332,12 +334,12 @@ export function useSchemaMeny({ forslag, utkast, dispatch, villkor, setVillkor, 
     dispatch({ type: 'tool', tool: next });
     if (next !== 'sparra' && next !== 'tillat') { setNy(null); setMarkering(null); } else if (ny) setNy({ ...ny, typ: next === 'sparra' ? 'sparrad' : 'tillaten' });
   }}/><div className="schema-flerpass">
-    {forslag?.classes.some(c => c.id === visad) && <Button variant="outline" disabled={checking} onClick={() => lasa(klassens, !helaKlassenLast)}>{helaKlassenLast ? 'Lås upp klassens schema' : 'Lås klassens schema'}</Button>}
+    {(!visadResurs || visadResurs.slag === 'klass' || visadResurs.slag === 'grupp') && forslag?.classes.some(c => c.id === visad) && <Button variant="outline" disabled={checking} onClick={() => lasa(klassens, !helaKlassenLast)}>{helaKlassenLast ? 'Lås upp klassens schema' : 'Lås klassens schema'}</Button>}
     {valda.length > 0 && <><span>{valda.length} pass markerade</span>
       <Button variant="outline" disabled={checking} onClick={() => { const first = alla.find(l => l.id === valda[0]); if (first) pick(first); }}>Flytta markerade</Button>
       <Button variant="outline" disabled={checking} onClick={() => lasa(valda, true)}>Lås markerade</Button>
       <Button variant="outline" disabled={checking} onClick={() => lasa(valda, false)}>Lås upp markerade</Button>
-      <Button variant="outline" disabled={checking} onClick={() => andra({ type: 'park', lesson: valda[0], fler: valda.slice(1) })}>Parkera markerade</Button>
+      <Button variant="outline" disabled={checking} onClick={() => andra({ type: 'park', lesson: valda[0], fler: valda.slice(1) })}>Ta bort tiden för markerade</Button>
       <Button variant="outline" onClick={() => dispatch({ type: 'select', lessons: [] })}>Avmarkera</Button></>}
     {byteFran && <><span>Välj det andra passet för bytet.</span><Button variant="outline" onClick={() => { setByteFran(null); dispatch({ type: 'tool', tool: 'markera' }); }}>Avbryt bytet</Button></>}
   </div></>;

@@ -1,5 +1,6 @@
 // SM-AKTIVITETER: användarbeteende mot uttryckligt simulerade rutter och syntetiska uppgifter.
 import { test, expect, type Page } from './schema-test';
+import { valjVeckoresurs } from './schema-vecko-val';
 import rawForslag from './schema-fixture';
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaPlacement, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { aktivitetsPassId } from '../lib/schema-aktiviteter.ts';
@@ -69,9 +70,9 @@ for (const width of [1280, 1600]) test(`mentorstid via tom tid syns för klass o
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid');
   await page.screenshot({ path: info.outputPath('aktivitet-i-schemat.png'), fullPage: false });
-  await page.getByRole('button', { name: 'Lärare', exact: true }).click(); await page.getByRole('combobox', { name: 'Lärare', exact: true }).selectOption('larare-1');
+  await valjVeckoresurs(page, 'Provlärare 1', 'Lärare');
   await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
-  await page.getByRole('button', { name: 'Klass', exact: true }).click();
+  await valjVeckoresurs(page, 'Klass 1', 'Klass');
   const ordinary = base.lessons.find(l => l.classIds.includes('grupp-1') && l.term !== 'vt')!;
   await page.locator(`[data-lesson="${ordinary.id}"]`).focus(); await page.keyboard.press('Enter');
   const move = page.getByRole('form', { name: 'Flytta pass' });

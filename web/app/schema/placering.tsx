@@ -15,12 +15,12 @@ export function Placeringsforslag({ search, forslag, stale, checking, onDepth, o
   const heading = useId(), headingRef = useRef<HTMLHeadingElement | null>(null);
   useEffect(() => { headingRef.current?.focus(); headingRef.current?.scrollIntoView({ block: 'start' }); }, [search.key]);
   const lesson = forslag.lessons.find(l => l.id === search.request.lesson);
-  const place = (p: SchemaPlacement | null) => p ? `${dayName(p.day)} ${clock(p.startMin)}${p.room ? ` · ${forslag.rooms.find(r => r.id === p.room)?.name ?? 'Sal saknas i underlaget'}` : ' · Ingen sal'}` : 'Viloytan';
+  const place = (p: SchemaPlacement | null) => p ? `${dayName(p.day)} ${clock(p.startMin)}${p.room ? ` · ${forslag.rooms.find(r => r.id === p.room)?.name ?? 'Sal saknas i underlaget'}` : ' · Ingen sal'}` : 'Utan tid';
   const suggestions = search.result?.suggestions ?? [], blocked = search.loading || checking || stale;
   return <section data-schema-placement-panel className="schema-list min-w-0 border border-border bg-card p-4" aria-labelledby={heading} aria-busy={search.loading || checking}>
-    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="folj-overrad">Granska före ändring</p><h2 id={heading} ref={headingRef} tabIndex={-1}>Placeringsförslag{lesson ? ` för ${lesson.title}` : search.request.mode === 'rest' ? ' för hela viloytan' : ''}</h2></div>
+    <div className="flex flex-wrap items-center justify-between gap-3"><div><p className="folj-overrad">Granska före ändring</p><h2 id={heading} ref={headingRef} tabIndex={-1}>Placeringsförslag{lesson ? ` för ${lesson.title}` : search.request.mode === 'rest' ? ' för alla pass utan tid' : ''}</h2></div>
       <Button variant="outline" disabled={checking} onClick={onClose}>Stäng placeringsförslagen</Button></div>
-    <p className="schema-note">{search.request.mode === 'rest' ? 'Varje förslag lägger alla pass från viloytan. Inga halvfärdiga förslag genomförs.' : search.request.mode === 'target' ? 'Passet läggs på den valda tiden. Andra pass flyttas bara i det förslag du godkänner.' : 'Jämför placeringarna och vilka scheman som berörs.'} Inget ändras före Godkänn. Hela förslaget kontrolleras på nytt innan det genomförs, som ett steg i ångra.</p>
+    <p className="schema-note">{search.request.mode === 'rest' ? 'Varje förslag ger alla pass en tid. Inga halvfärdiga förslag genomförs.' : search.request.mode === 'target' ? 'Passet läggs på den valda tiden. Andra pass flyttas bara i det förslag du godkänner.' : 'Jämför placeringarna och vilka scheman som berörs.'} Inget ändras före Godkänn. Hela förslaget kontrolleras på nytt innan det genomförs, som ett steg i ångra.</p>
     {search.request.target && <p>Önskad plats: {place({ lesson: search.request.lesson ?? '', ...search.request.target })}.</p>}
     <div className="flex flex-wrap items-center gap-3"><span className="status-badge">Sökdjup {search.request.depth} av 3</span>
       {search.request.depth < 3 && <Button variant="outline" disabled={search.loading || checking} onClick={() => onDepth((search.request.depth + 1) as 2 | 3)}>Öka sökdjupet</Button>}

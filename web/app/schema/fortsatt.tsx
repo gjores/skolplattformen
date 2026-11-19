@@ -27,7 +27,7 @@ export function FortsattGranskning({ search, forslag, stale, checking, onApply, 
     const n = after.get(l.id);
     return n && (n.day !== l.day || n.startMin !== l.startMin || n.roomId !== l.roomId) ? [{ from: l, to: n }] : [];
   });
-  const place = (l: SchemaForslagLesson) => l.day === null || l.startMin === null ? 'Viloytan' : `${dayName(l.day)} ${clock(l.startMin)} · ${l.roomId ? forslag.rooms.find(r => r.id === l.roomId)?.name ?? 'Sal saknas i underlaget' : 'Ingen sal'}`;
+  const place = (l: SchemaForslagLesson) => l.day === null || l.startMin === null ? 'Utan tid' : `${dayName(l.day)} ${clock(l.startMin)} · ${l.roomId ? forslag.rooms.find(r => r.id === l.roomId)?.name ?? 'Sal saknas i underlaget' : 'Ingen sal'}`;
   const stop = result ? fortsattStopp(result) : null;
   const moved = changes.filter(c => c.from.day !== null && c.to.day !== null).length;
   return <section data-schema-continue-panel className="schema-list min-w-0 border border-border bg-card p-4 space-y-3" aria-labelledby={heading} aria-busy={search.loading || checking}>
@@ -38,7 +38,7 @@ export function FortsattGranskning({ search, forslag, stale, checking, onApply, 
     {stale && <p className="valplan-alert">Schemat, låsen eller villkoren har ändrats. Fortsätt förbättra igen från det aktuella schemat.</p>}
     {search.error && <p className="valplan-alert" role="alert">{search.error}</p>}
     {result && <>
-      <p>{changes.length === 0 ? 'Ingen ändrad placering hittades i den här omgången. Du kan låta motorn fortsätta igen.' : `${changes.filter(c => c.from.day === null).length} pass får en tid. ${moved} redan ${moved === 1 ? 'lagt pass ändras' : 'lagda pass ändras'}. ${changes.filter(c => c.to.day === null).length} pass hamnar på viloytan.`}</p>
+      <p>{changes.length === 0 ? 'Ingen ändrad placering hittades i den här omgången. Du kan låta motorn fortsätta igen.' : `${changes.filter(c => c.from.day === null).length} pass får en tid. ${moved} redan ${moved === 1 ? 'lagt pass ändras' : 'lagda pass ändras'}. ${changes.filter(c => c.to.day === null).length} pass blir utan tid.`}</p>
       <div className="flex flex-wrap gap-3"><span>Pass med tid: {result.before.metrics.placed} → {result.after.metrics.placed}</span><span>Regelavvikelser: {result.before.total} → {result.after.total}</span><span>Timplaneavvikelser: {result.before.teachings.filter(t => t.deviation !== null).length} → {result.after.teachings.filter(t => t.deviation !== null).length}</span></div>
       <p>Håltid per vecka: {result.before.metrics.studentGapMin} → {result.after.metrics.studentGapMin} elevminuter; {result.before.metrics.teacherGapMin} → {result.after.metrics.teacherGapMin} lärarminuter.</p>
       <p className="schema-note">Elevminuter väger samman håltiden och antalet berörda elever. Lärarminuter summerar lärarnas håltid.</p>

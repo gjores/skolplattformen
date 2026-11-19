@@ -68,7 +68,7 @@ test('tre pass markeras med skift, parkeras och återställs i ett steg', async 
   const calls = await start(page), ids = visible.slice(0, 3).map(l => l.id);
   for (const id of ids) await pass(page, id).click({ modifiers: ['Shift'] });
   await expect(page.getByText('3 pass markerade', { exact: true })).toBeVisible();
-  await page.getByRole('button', { name: 'Parkera markerade' }).click();
+  await page.getByRole('button', { name: 'Ta bort tiden för markerade' }).click();
   await expect.poll(() => calls.checks.length).toBe(1);
   expect(calls.checks[0].placements.filter(p => ids.includes(p.lesson))).toEqual([]);
   await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();

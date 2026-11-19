@@ -1,5 +1,6 @@
 // Granskningsflödet i produktens komponenter med syntetiska schema- och sparrutter.
 import { test, expect, type Page } from './schema-test';
+import { veckoval } from './schema-vecko-val';
 import fixture from './schema-fixture';
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 import {
@@ -78,7 +79,7 @@ test('regelkrocken öppnar valt pass och tillfällig jämförelse återgår till
   await selected.click();
   await expect(granskatPass(page)).toContainText(andra.title);
   await expect(page.locator('.schema-week').locator(`[data-lesson="${andra.id}"]`)).toBeFocused();
-  await expect(page.getByRole('combobox', { name: 'Klass eller grupp', exact: true })).toHaveValue(andra.classIds[0]);
+  await expect(veckoval(page)).toHaveValue(`${base.classes.find(c => c.id === andra.classIds[0])!.name} · Klass`);
 
   await granskatPass(page).getByRole('button', { name: 'Jämför resurser', exact: true }).click();
   const comparison = page.getByRole('region', { name: 'Jämför resurser', exact: true });
@@ -108,7 +109,7 @@ test('regelkrocken öppnar valt pass och tillfällig jämförelse återgår till
   await page.screenshot({ path: info.outputPath('tillbaka-till-samma-fynd.png') });
 
   await selected.click();
-  await page.getByRole('button', { name: 'Lägg på viloytan', exact: true }).click();
+  await page.getByRole('button', { name: 'Ta bort tiden', exact: true }).click();
   await expect.poll(() => schemaDraftServer.saves.at(-1)?.placements.some(p => p.lesson === andra.id)).toBe(false);
   await granskatPass(page).getByRole('button', { name: /^Tillbaka till/u }).click();
   await expect(filter).toHaveValue('regler');

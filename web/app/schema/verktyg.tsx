@@ -11,7 +11,7 @@ export const VERKTYG: { id: SchemaVerktyg; namn: string; ikon: ReactNode; senare
   { id: 'sparra', namn: 'Spärra', ikon: <BanIcon aria-hidden="true"/> },
   { id: 'tillat', namn: 'Tillåt bara', ikon: <CircleCheckIcon aria-hidden="true"/> },
   { id: 'las', namn: 'Lås', ikon: <LockIcon aria-hidden="true"/> },
-  { id: 'viloyta', namn: 'Viloyta', ikon: <InboxIcon aria-hidden="true"/> },
+  { id: 'viloyta', namn: 'Ta bort tid', ikon: <InboxIcon aria-hidden="true"/> },
   { id: 'byt', namn: 'Byt', ikon: <ArrowLeftRightIcon aria-hidden="true"/> },
 ];
 
@@ -21,7 +21,7 @@ const HJALP: Record<SchemaVerktyg, string> = {
   sparra: 'Dra över tid i en dag för att spärra den, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
   tillat: 'Dra över tid i en dag där passen bara får ligga, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
   las: 'Välj ett lagt pass för att låsa eller låsa upp tiden. Låsta pass står kvar vid nästa beräkning.', byt: 'Välj två lagda pass för att byta deras dag och starttid. B på ett pass börjar ett byte.',
-  viloyta: 'Välj ett pass för att lägga det på viloytan.',
+  viloyta: 'Välj ett pass för att ta bort tiden.',
 };
 export const HJALP_ID = 'schema-verktyg-hjalp';
 

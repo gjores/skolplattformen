@@ -222,13 +222,13 @@ export function Passtabell({ forslag, violations, egna, term, visning, datedOver
       <p className="schema-note" aria-live="polite">Visar {ordning.length} av {rader.length} {visning && visning.mode !== 'grundschema' ? 'tillfällen' : 'pass'}{grupper ? ` i ${grupper.length} ${grupper.length === 1 ? 'undervisning' : 'undervisningar'}` : ''}.
         {synligaValda.length > 0 && ` ${synligaValda.length} ${visning && visning.mode !== 'grundschema' ? synligaValda.length === 1 ? 'tillfälle valt' : 'tillfällen valda' : synligaValda.length === 1 ? 'pass valt' : 'pass valda'}.`}</p>
       {synligaValda.length > 0 && (!visning || visning.mode === 'grundschema') && <div className="passtabell-knappar">
-        <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={parkeraValda}>Lägg valda på viloytan</Button>
+        <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={parkeraValda}>Ta bort tiden för valda pass</Button>
         {onLas && <><Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.dag !== null)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.dag !== null).map(r => r.lessonId ?? r.id))], true)}>Lås valda</Button>
           <Button type="button" variant="outline" disabled={checking || !synligaValda.some(r => r.last)} onClick={() => onLas([...new Set(synligaValda.filter(r => r.last).map(r => r.lessonId ?? r.id))], false)}>Lås upp valda</Button></>}
         <Button type="button" variant="ghost" onClick={() => setValda(new Set())}>Avmarkera</Button>
       </div>}
     </div>
-    <p id={`${id}-hjalp`} className="sr-only">Piltangenter flyttar mellan celler. Enter flyttar passet, F följer passet, P lägger det på viloytan, mellanslag väljer raden och Skift+F10 öppnar menyn. Esc avbryter.</p>
+    <p id={`${id}-hjalp`} className="sr-only">Piltangenter flyttar mellan celler. Enter flyttar passet, F följer passet, P tar bort tiden, mellanslag väljer raden och Skift+F10 öppnar menyn. Esc avbryter.</p>
     {ordning.length === 0
       ? <div className="empty-state"><p>Inga pass med de här filtren.</p>{(val.filter.length > 0 || val.sok) && <Button type="button" variant="outline" onClick={() => onVal({ ...val, filter: [], sok: '' })}>Rensa filter och sökning</Button>}</div>
       : <ContextMenu open={open} disabled={checking} onOpenChange={next => { setOpen(next); if (!next) tangentbord.current = false; }}
@@ -256,7 +256,7 @@ export function Passtabell({ forslag, violations, egna, term, visning, datedOver
         </ContextMenuTrigger>
         <ContextMenuContent className="schema-meny" finalFocus={() => { const keep = !menyFokus.current; menyFokus.current = false; return keep; }}>
           {malRad?.datum && malRad.originalDate ? <ContextMenuItem onClick={flyttarFokus(() => onDatum?.({ lesson: malRad.lessonId!, originalDate: malRad.originalDate! }))}>Ändra detta tillfälle · {malRad.datum}</ContextMenuItem> : malLesson && <PassMenypunkter pass={malLesson} rubrik={rubrik(malLesson)} flyttarFokus={flyttarFokus} {...passMenyHandelser(atgarder(malLesson))}/>}
-          {flera > 1 && !malRad?.datum && <><ContextMenuSeparator/><ContextMenuItem onClick={parkeraValda}>Lägg {flera} valda pass på viloytan</ContextMenuItem></>}
+          {flera > 1 && !malRad?.datum && <><ContextMenuSeparator/><ContextMenuItem onClick={parkeraValda}>Ta bort tiden för {flera} valda pass</ContextMenuItem></>}
         </ContextMenuContent>
       </ContextMenu>}
   </section>;

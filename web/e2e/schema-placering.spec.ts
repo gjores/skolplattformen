@@ -50,7 +50,7 @@ async function popupViewport(child: Page, source: Page) {
 }
 const weekButton = (page: Page, id: string) => page.locator(`button[data-lesson="${id}"]`).first();
 async function park(page: Page, id: string) {
-  await weekButton(page, id).click({ button: 'right' }); await page.getByRole('menuitem', { name: /^Lägg på viloytan/u }).click();
+  await weekButton(page, id).click({ button: 'right' }); await page.getByRole('menuitem', { name: /^Ta bort tiden/u }).click();
   await expect(weekButton(page, id)).toHaveCount(0);
 }
 async function selectTarget(page: Page, id: string) {
@@ -63,7 +63,7 @@ test('parkera → föreslå från viloytan → granska → genomför alla placer
   const { searches, controls } = await setup(context, page); const id = checked.move.lesson; await park(page, id);
   await page.getByRole('button', { name: new RegExp(`^Föreslå placering för ${proposal.lessons.find(l => l.id === id)!.title},`, 'u') }).click();
   await expect(panel(page).getByRole('button', { name: 'Godkänn förslag 1' })).toBeEnabled();
-  await expect(panel(page)).toContainText('Viloytan'); await expect(panel(page)).toContainText('1 ny placering · 0 redan lagda pass flyttas.'); await expect(panel(page)).toContainText('Ingen sal'); await expect(panel(page)).toContainText('Elevernas håltid: 30 → 15 elevminuter.');
+  await expect(panel(page)).toContainText('Utan tid'); await expect(panel(page)).toContainText('1 ny placering · 0 redan lagda pass flyttas.'); await expect(panel(page)).toContainText('Ingen sal'); await expect(panel(page)).toContainText('Elevernas håltid: 30 → 15 elevminuter.');
   expect(searches).toHaveLength(1); expect(searches[0].placements).toHaveLength(proposal.lessons.length - 1); expect(searches[0].lesson).toBe(id);
   await expect(weekButton(page, id)).toHaveCount(0);
   await panel(page).getByRole('button', { name: 'Godkänn förslag 1' }).click();
@@ -112,10 +112,10 @@ test('Alt-dra öppnar målsökning och flyttar inget före Godkänn', async ({ c
   await expect(page.getByRole('button', { name: 'Ångra senaste flytt', exact: true })).toBeDisabled();
 });
 
-test('Lägg viloytan omfattar alla parkerade pass och avvisar ett simulerat halvresultat', async ({ context, page }) => {
+test('Föreslå tider för alla omfattar alla parkerade pass och avvisar ett simulerat halvresultat', async ({ context, page }) => {
   const { searches } = await setup(context, page, { partial: true }); const ids = ownIds.slice(0, 2).map(l => l.id);
   for (const id of ids) await park(page, id);
-  await page.getByRole('button', { name: 'Lägg viloytan', exact: true }).click();
+  await page.getByRole('button', { name: 'Föreslå tider för alla', exact: true }).click();
   await expect(panel(page).getByRole('alert')).toContainText('Placeringsförslagen kunde inte kontrolleras.');
   expect(searches[0].mode).toBe('rest'); expect(searches[0].placements).toHaveLength(proposal.lessons.length - 2);
   await expect(panel(page).getByRole('button', { name: /^Godkänn/u })).toHaveCount(0);
@@ -187,7 +187,7 @@ test('Föreslå placering från Följ passet öppnar samma granskning med fullst
 test('anslutet barnfönster söker, granskar, genomför och ångrar hela placeringsförslaget via huvudfönstret', async ({ context, page }) => {
   const { searches, controls } = await setup(context, page); const id = checked.move.lesson; await park(page, id);
   await page.getByRole('button', { name: 'Fönster', exact: true }).click(); const ready = context.waitForEvent('page');
-  await page.getByRole('menuitem', { name: 'Viloytan', exact: true }).click(); const child = await ready; await popupViewport(child, page);
+  await page.getByRole('menuitem', { name: 'Pass utan tid', exact: true }).click(); const child = await ready; await popupViewport(child, page);
   await child.getByRole('button', { name: /^Föreslå placering för/u }).first().click();
   await expect(panel(child).getByRole('button', { name: 'Godkänn förslag 1' })).toBeEnabled(); await expect(panel(page)).toBeVisible();
   expect(searches).toHaveLength(1); expect(searches[0].lesson).toBe(id);
@@ -195,7 +195,7 @@ test('anslutet barnfönster söker, granskar, genomför och ångrar hela placeri
   await panel(child).getByRole('button', { name: 'Stäng placeringsförslagen' }).click();
   const origin = child.getByRole('button', { name: /^Föreslå placering för/u }).first(); await expect(origin).toBeFocused(); await origin.click();
   await panel(child).getByRole('button', { name: 'Godkänn förslag 1' }).click();
-  await expect(weekButton(page, id)).toBeVisible(); await expect(child.getByText('Inga pass på viloytan.', { exact: true })).toBeVisible();
+  await expect(weekButton(page, id)).toBeVisible(); await expect(child.getByText('Alla pass har tid.', { exact: true })).toBeVisible();
   await expect(child.getByRole('button', { name: 'Ångra senaste flytt', exact: true })).toBeFocused();
   expect(controls.at(-1)!.placements).toHaveLength(proposal.lessons.length);
   await child.getByRole('button', { name: 'Ångra senaste flytt', exact: true }).click();

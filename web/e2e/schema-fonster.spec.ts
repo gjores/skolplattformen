@@ -1,5 +1,6 @@
 // Flera riktiga fönster och BroadcastChannel, med simulerad session/skolbehörighet och syntetiska schemauppgifter.
 import { test, expect, type BrowserContext, type Page } from './schema-test';
+import { valjVeckoresurs, veckoval } from './schema-vecko-val';
 import proposal from './schema-fixture';
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 import following from './fixtures/schema-folj.json' with { type: 'json' };
@@ -104,7 +105,7 @@ test('Följ passet uppdateras från huvudfönstret och delar markering och ångr
 });
 
 test('huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkastet orört', async ({ context, page }) => {
-  await setup(context, page); const child = await open(page, 'Viloytan');
+  await setup(context, page); const child = await open(page, 'Pass utan tid');
   await page.close(); await expect(child.getByRole('status').filter({ hasText: /Inte uppdaterat sedan/u })).toBeVisible();
   await expect(child.getByRole('button', { name: 'Läs om', exact: true })).toBeVisible();
   await expect(child.getByText('Väntar på huvudfönstret. Inga ändringar kan göras innan kontakten är tillbaka.', { exact: true })).toBeVisible();
@@ -112,7 +113,7 @@ test('huvudfönstret stängs: utlyft vy visar tappad kontakt och lämnar utkaste
 });
 
 test('fönsterarbetsvy sparar och öppnar två vyer igen utan elevurval', async ({ context, page }) => {
-  await setup(context, page); const first = await open(page, 'Tid över läsåret'), second = await open(page, 'Viloytan');
+  await setup(context, page); const first = await open(page, 'Tid över läsåret'), second = await open(page, 'Pass utan tid');
   await expect(page.getByText('Fönster 1 av 3', { exact: true })).toBeVisible();
   await page.getByText('Fönstren som arbetsvy', { exact: true }).click();
   await page.getByLabel('Namn på fönsterarbetsvyn').fill('Två planeringsvyer');
@@ -200,9 +201,9 @@ test('villkor i barnfönstret ångras där och görs om i huvudfönstret som ett
 
 test('klassfönster använder stabil klassreferens och saknad lärarreferens ersätts inte med första läraren', async ({ context, page }) => {
   await setup(context, page); expect(proposal.classes.length).toBeGreaterThan(1);
-  const wanted = proposal.classes[1]; await page.getByRole('combobox', { name: 'Klass eller grupp', exact: true }).selectOption(wanted.id);
+  const wanted = proposal.classes[1]; await valjVeckoresurs(page, wanted.name, 'Klass');
   const child = await open(page, 'Klassens schema');
-  await expect(child.getByRole('combobox', { name: 'Klass eller grupp', exact: true })).toHaveValue(wanted.id);
+  await expect(veckoval(child)).toHaveValue(`${wanted.name} · Klass`);
   const f = { ...proposal, contractVersion: SCHEMA_CONTRACT_VERSION } as SchemaForslag;
   await context.route('**/api/schema/samling', route => route.fulfill({ headers, json: { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: f.grundFingerprint, resources: samlingResurser(f), clusters: [] } }));
   const teacher = await open(page, 'Lärarens schema'), address = new globalThis.URL(teacher.url()); address.searchParams.set('resurs', 'larare:ffffffff-ffff-4fff-8fff-ffffffffffff');

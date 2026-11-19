@@ -8,7 +8,7 @@ import { schemaDatumTillfallen, type SchemaDatumAndring } from './schema-datum.t
 import { aktivitetsVeckorText } from './schema-aktiviteter.ts';
 
 export type PassStatus = 'lagd' | 'viloyta' | 'avvikelse' | 'last';
-export const PASS_STATUS: Record<PassStatus, string> = { last: 'Låst', lagd: 'Lagd', viloyta: 'Viloyta', avvikelse: 'Regelavvikelse' };
+export const PASS_STATUS: Record<PassStatus, string> = { last: 'Låst', lagd: 'Lagd', viloyta: 'Utan tid', avvikelse: 'Regelavvikelse' };
 const VECKODAGAR = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lördag', 'Söndag'];
 const klocka = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
 
@@ -121,7 +121,7 @@ export function filterVal(rader: PassRad[]): Record<PassFilterTyp, { varde: stri
     klass: samla(r => r.klasser), grupp: samla(r => r.grupper),
     larare: [...samla(r => r.larare), ...rader.some(r => r.vakant) ? [{ varde: 'ingen', namn: 'Ingen lärare' }] : []],
     sal: [...salar, ...rader.some(r => r.salId === null) ? [{ varde: 'ingen', namn: 'Ingen sal' }] : []],
-    dag: dagar.map(d => d === null ? { varde: 'viloyta', namn: 'Viloytan' } : { varde: String(d), namn: VECKODAGAR[d] ?? `Dag ${d + 1}` }),
+    dag: dagar.map(d => d === null ? { varde: 'viloyta', namn: 'Utan tid' } : { varde: String(d), namn: VECKODAGAR[d] ?? `Dag ${d + 1}` }),
     status: (['lagd', 'last', 'avvikelse', 'viloyta'] as const).filter(s => rader.some(r => r.status === s || s === 'last' && r.last)).map(s => ({ varde: s, namn: PASS_STATUS[s] })),
     termin: (['ht', 'vt'] as const).filter(t => rader.some(r => r.termin === null || r.termin === t)).map(t => ({ varde: t, namn: t === 'ht' ? 'Höstterminen' : 'Vårterminen' })),
   };
@@ -204,12 +204,12 @@ export function grupperaPass(rader: PassRad[], teachings: SchemaForslag['teachin
 }
 
 // ── Text i cellerna ──────────────────────────────────────────────────────────────────────────────────────────────────────────────
-export const dagText = (r: Pick<PassRad, 'dag' | 'datum'>) => r.dag === null ? 'Viloytan' : `${VECKODAGAR[r.dag] ?? `Dag ${r.dag + 1}`}${r.datum ? ` ${schemaDateText(r.datum)}` : ''}`;
+export const dagText = (r: Pick<PassRad, 'dag' | 'datum'>) => r.dag === null ? 'Utan tid' : `${VECKODAGAR[r.dag] ?? `Dag ${r.dag + 1}`}${r.datum ? ` ${schemaDateText(r.datum)}` : ''}`;
 export const tidText = (r: Pick<PassRad, 'start' | 'langd'>) => r.start === null ? '–' : `${klocka(r.start)}–${klocka(r.start + r.langd)}`;
 export const terminText = (r: Pick<PassRad, 'termin'>) => r.termin === 'ht' ? 'HT' : r.termin === 'vt' ? 'VT' : 'HT och VT';
 export const veckorText = (r: Pick<PassRad, 'kortareVeckor' | 'aktivitetVeckor'>) => r.aktivitetVeckor ?? (r.kortareVeckor === 0 ? '' : `kortare ${r.kortareVeckor === 1 ? 'en vecka' : `${r.kortareVeckor} veckor`}`);
 export const marginalText = (r: Pick<PassRad, 'marginalFore' | 'marginalEfter'>) => r.marginalFore + r.marginalEfter === 0 ? '' : `${r.marginalFore || '–'} · ${r.marginalEfter || '–'} min`;
 
 /** Passet i ett ord för skärmläsare och menyns rubrik: ämne, klass, dag och tid eller viloytan. */
-export const radNamn = (r: PassRad) => `${r.undervisning}, ${namnLista(r.klasser) || namnLista(r.grupper) || 'ingen klass'}, ${r.dag === null ? 'på viloytan' : `${dagText(r).toLowerCase()} ${tidText(r)}`}`;
+export const radNamn = (r: PassRad) => `${r.undervisning}, ${namnLista(r.klasser) || namnLista(r.grupper) || 'ingen klass'}, ${r.dag === null ? 'utan tid' : `${dagText(r).toLowerCase()} ${tidText(r)}`}`;
 

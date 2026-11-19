@@ -16,10 +16,10 @@ const SALBEHOV: Record<NonNullable<SchemaForslagLesson['sal']>['lage'], string> 
  * Panelen för valt pass (05.2-SM-UXF-42, designvyn Veckan2). Ett klick på ett pass visar passet här och ändrar ingenting.
  * Passet flyttas först med Flytta hit. Exakt starttid väljs i listan eller med − och +, utan dragning. Flyttpanelens tangentbordsväg är oförändrad.
  */
-export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, headingRef, salRequest, status, sal, verktyg, flerVerktyg, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest, onSessionLost }: {
+export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shownMin, extra, roomName, dayRef, headingRef, salRequest, status, sal, avvikelse, medveten, verktyg, flerVerktyg, onTarget, onMove, onPark, onCancel, onSuggest, onTargetSuggest, onSessionLost }: {
   lesson: SchemaForslagLesson; forslag: SchemaForslag; target: FlyttMal; checking: boolean; locked?: string;
   shownMin: number;
-  /** Kortning vissa veckor och termin, i samma text som i passrutan. */
+  /** Kortning vissa veckor och termin för valt pass. */
   extra: { someWeeks: string; termTag: string };
   roomName: (id: string | null) => string;
   dayRef?: Ref<HTMLSelectElement>;
@@ -29,6 +29,8 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
   status?: string;
   /** Passets salbehov enligt aktuellt salregister. */
   sal?: SchemaForslagLesson['sal'];
+  avvikelse?: string | null;
+  medveten?: boolean;
   verktyg?: ReactNode;
   flerVerktyg?: ReactNode;
   onSessionLost?: () => void;
@@ -40,15 +42,18 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
   const tidigare = stegaStart(starts(target.day), target.startMin, -1), senare = stegaStart(starts(target.day), target.startMin, 1);
   const andrad = !(target.day === l.day && target.startMin === l.startMin && target.room === l.roomId);
   const salText = l.roomId ? roomName(l.roomId) : l.roomIds.length ? 'Ingen sal ännu' : 'Ingen sal';
+  const tillatnaSalar = l.roomIds.map(roomName).filter(Boolean);
   return <form className="schema-move schema-inspektor" aria-label="Flytta pass" aria-describedby={rubrik} onSubmit={e => { e.preventDefault(); if (!blocked) onMove(); }}>
     <div className="schema-inspektor-pass" id={rubrik}>
       <p className="schema-note">Valt pass</p>
       <h2 ref={headingRef} tabIndex={-1} className="text-base font-semibold">{l.title} · {names(l.classIds, forslag.classes)}</h2>
       <dl>
-        <div><dt>Tid</dt><dd>{l.day === null || l.startMin === null ? 'Ligger på viloytan.' : `${DAYS[l.day]} ${clock(l.startMin)}–${clock(l.startMin + shownMin)}`}{extra.termTag}{extra.someWeeks}</dd></div>
+        <div><dt>Tid</dt><dd>{l.day === null || l.startMin === null ? 'Utan tid' : `${DAYS[l.day]} ${clock(l.startMin)}–${clock(l.startMin + shownMin)}`}{extra.termTag}{extra.someWeeks}</dd></div>
         <div><dt>Längd</dt><dd>{shownMin} min{shownMin !== l.durationMin && ` (${l.durationMin} min i grundschemat)`}{l.marginMin + l.marginBeforeMin > 0 && `, marginal ${l.marginBeforeMin || '–'} före och ${l.marginMin || '–'} efter`}</dd></div>
         <div><dt>Lärare</dt><dd>{l.teacherIds.length ? names(l.teacherIds, forslag.teachers) : 'Ingen lärare'}</dd></div>
-        <div><dt>Sal</dt><dd>{salText}{sal && <span className="schema-note block">Salbehov: {SALBEHOV[sal.lage]}{sal.hinder ? `. ${sal.hinder}` : ''}</span>}</dd></div>
+        <div><dt>Sal</dt><dd>{salText}{sal && <span className="schema-note block">Salbehov: {SALBEHOV[sal.lage]}{sal.hinder ? `. ${sal.hinder}` : ''}</span>}
+          {tillatnaSalar.length > 0 && (!l.roomId || tillatnaSalar.length > 1) && <span className="schema-note block">Salskrav: {tillatnaSalar.join(' eller ')}</span>}</dd></div>
+        {(avvikelse || medveten) && <div><dt>Regelavvikelse</dt><dd>{medveten && <strong className="block">Medveten krock</strong>}{avvikelse}</dd></div>}
         {locked && <><div><dt>Lås</dt><dd>{locked}</dd></div></>}
       </dl>
     </div>
@@ -74,7 +79,7 @@ export function Flyttpanel({ lesson: l, forslag, target, checking, locked, shown
       {verktyg}
       {onTargetSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onTargetSuggest}>Lägg här och flytta det som krockar</Button>}
       {onSuggest && <Button type="button" variant="outline" disabled={blocked} onClick={onSuggest}>Föreslå placering</Button>}
-      {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Lägg på viloytan</Button>}
+      {l.day !== null && <Button type="button" variant="outline" disabled={blocked} onClick={onPark}>Ta bort tiden</Button>}
     </fieldset>
     {flerVerktyg && <details className="schema-inspektor-fler"><summary>Fler passverktyg</summary><div className="schema-inspektor-knappar">{flerVerktyg}</div></details>}
   </form>;

@@ -37,7 +37,7 @@ export const visadVy = (vy: SchemaVy, harVillkor: boolean, harSamling = false, h
  */
 export function Vyval({ utlyft = false, vy, onVy, vecka, veckaVal, veckaVerktyg, folj, samling, pass, villkor, valtPass }: {
   utlyft?: boolean; vy: SchemaVy; onVy: (vy: SchemaVy) => void; vecka: ReactNode;
-  /** Veckans val (Klass eller Lärare) står i samma rad som väljaren, så att veckan inte flyttas ned. */
+  /** Veckans resursval står intill vyknapparna när bredden räcker. */
   veckaVal?: ReactNode;
   veckaVerktyg?: ReactNode;
   valtPass?: ReactNode;

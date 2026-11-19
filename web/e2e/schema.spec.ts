@@ -1,6 +1,7 @@
 // Vyn Schema mot ett syntetiskt förslag som schemamotorn har räknat (work/schema/verify-koppling.mjs).
 // Rutt, behörighet och motoranrop verifieras separat; här prövas bara vad användaren ser.
 import { test, expect, type Page } from './schema-test';
+import { valjVeckoresurs, veckoval } from './schema-vecko-val';
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
 import forslag from './schema-fixture';
 // En flytt som motorns kontrollant har prövat: passet läggs där klassen redan har ett annat pass.
@@ -84,8 +85,8 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   expect(forslag.teachings.every(t => t.deviation === null && t.terms.every(x => x.plannedMin >= x.needMin && x.plannedMin <= x.maxMin))).toBe(true);
   expect(forslag.teachings.every(t => t.terms.every(x => x.plannedMin === Math.ceil(x.needMin / 5) * 5))).toBe(true);
   await expect(page.getByText('annan tid över terminen')).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
-  await expect(page.getByText('Inga pass på viloytan.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (0)' })).toBeVisible();
+  await expect(page.getByText('Alla pass har tid.')).toBeVisible();
 
   const monday = page.getByRole('region', { name: 'Måndag' });
   await expect(monday.getByRole('listitem').first()).toContainText(/\d{2}:\d{2}–\d{2}:\d{2}/u);
@@ -100,14 +101,16 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.locator('.schema-lesson')).toHaveCount(mine.length);
   await expect(page.locator('.schema-lesson', { hasText: 'Religionskunskap' })).not.toHaveCount(0);
   await expect(page.locator('.schema-lesson', { hasText: 'Psykologi' })).toHaveCount(0);
-  // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): ett pass som kortas alla veckor visas med sin kortare sluttid; kortning vissa veckor står i text.
+  // Kortning visas i sluttiden och förklaras i det valda passets panel.
   const hhmm = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
   const trimOf = (l: typeof mine[number]) => forslag.trims.find(x => x.lesson === l.id && x.term === 'ht');
   const fixed = mine.find(l => (trimOf(l)?.fixedMin ?? 0) > 0)!, varied = mine.find(l => (trimOf(l)?.extraCount ?? 0) > 0)!;
   expect(fixed && varied).toBeTruthy();
   await expect(page.locator(`[data-lesson="${fixed.id}"] time`)).toHaveText(`${hhmm(fixed.startMin!)}–${hhmm(fixed.startMin! + fixed.durationMin - trimOf(fixed)!.fixedMin)}`);
   const n = trimOf(varied)!.extraCount;
-  await expect(page.locator(`[data-lesson="${varied.id}"]`)).toContainText(`kortare ${n === 1 ? 'en vecka' : `${n} veckor`}`);
+  await expect(page.locator(`[data-lesson="${varied.id}"]`)).not.toContainText('kortare');
+  await page.locator(`[data-lesson="${varied.id}"]`).click();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toContainText(`kortare ${n === 1 ? 'en vecka' : `${n} veckor`}`);
   await page.locator(`[data-lesson="${fixed.id}"]`).click();
   await expect(page.getByRole('form', { name: 'Flytta pass' })).toContainText(`${fixed.durationMin - trimOf(fixed)!.fixedMin} min (${fixed.durationMin} min i grundschemat)`);
   await page.locator(`[data-lesson="${fixed.id}"]`).click();
@@ -153,9 +156,7 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   await expect(page.locator('.schema-lesson')).toHaveCount(ofClass.filter(inTerm('vt')).length);
   await expect(page.locator('.schema-lesson', { hasText: 'Psykologi' })).not.toHaveCount(0);
   await expect(page.locator('.schema-lesson', { hasText: 'Religionskunskap' })).toHaveCount(0);
-  await page.getByRole('button', { name: 'Lärare', exact: true }).click();
-  await expect(page.getByRole('button', { name: 'Lärare', exact: true })).toHaveAttribute('aria-pressed', 'true');
-  await page.locator('.schema-filter select').first().selectOption({ label: forslag.teachers[1].name });
+  await valjVeckoresurs(page, forslag.teachers[1].name, 'Lärare');
   await expect(page.locator('.schema-lesson')).toHaveCount(forslag.lessons.filter(l => l.teacherIds.includes(forslag.teachers[1].id)).filter(inTerm('vt')).length);
   await expect(page.locator('.schema-lesson').first()).toContainText('Klass');
   await expect(page.getByRole('heading', { name: 'Villkor och antaganden i förslaget' })).toBeVisible();
@@ -174,8 +175,8 @@ test('olagda pass, förklaring och utelämnade behov redovisas i text', async ({
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Förslag · Mer räknetid kan behövas')).toBeVisible();
-  await expect(page.getByText('Pass på viloytan räknas som avvikelse från timplanen.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByText('Undervisning utan tid räknas som avvikelse från timplanen.')).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   await expect(page.getByText(`Pass ${first.title} fick ingen plats.`)).toBeVisible();
   await expect(page.getByText('Liten kurs · Klass 1: mindre än 20 min i veckan')).toBeVisible();
   await expect(page.getByText('Praktik · Klass 2: inga skoldagar')).toBeVisible();
@@ -305,18 +306,18 @@ test('ett pass på viloytan läggs ut för hand och kan tas tillbaka', async ({ 
   const bodies = await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   await page.getByRole('button', { name: /^Lägg ut / }).click();
   const panel = page.getByRole('form', { name: 'Flytta pass' });
-  await expect(panel).toContainText('Ligger på viloytan.');
-  await expect(panel.getByRole('button', { name: 'Lägg på viloytan' })).toHaveCount(0);
+  await expect(panel).toContainText('Utan tid');
+  await expect(panel.getByRole('button', { name: 'Ta bort tiden' })).toHaveCount(0);
   await panel.getByLabel('Dag').selectOption({ label: 'Onsdag' });
   await panel.getByRole('button', { name: 'Flytta hit' }).click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (0)' })).toBeVisible();
   await expect(page.getByText(`${forslag.metrics.lessons} av ${forslag.metrics.lessons} pass har fått en tid.`)).toBeVisible();
   expect(bodies[0].placements).toHaveLength(forslag.lessons.length);
   await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   expect(bodies[1].placements).toHaveLength(forslag.lessons.length - 1);
 });
 
@@ -329,9 +330,9 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
   const lesson = page.locator(`[data-lesson="${id}"]`), rest = page.locator('.schema-rest');
   if (info.project.name === 'phone') {
     await lesson.click();
-    await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Lägg på viloytan' }).click();
-    await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
-    await expect(page.getByRole('status').filter({ hasText: `${before.title} ligger nu på viloytan` })).toBeVisible();
+    await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Ta bort tiden' }).click();
+    await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: `${before.title} är nu utan tid` })).toBeVisible();
     expect(bodies[0].placements).toHaveLength(forslag.lessons.length - 1);
     return;
   }
@@ -348,7 +349,7 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
   await expect(rest).toHaveClass(/over/u);
   await expect(page.locator('.schema-lesson.dragging')).toHaveCount(1);
   await page.mouse.up();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   await expect(page.locator('.status-badge', { hasText: 'Avviker från timplanen' })).toBeVisible();
   // Släppet räknas inte som ett klick: flyttpanelen öppnas inte.
   await expect(page.getByRole('form', { name: 'Flytta pass' })).toHaveCount(0);
@@ -365,7 +366,7 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
   await expect(column.locator('.schema-drop')).toContainText(/\d{2}:\d{2}–\d{2}:\d{2}/u);
   if (shots) await page.screenshot({ path: `${shots}/schema-dra-${info.project.name}.png`, fullPage: true });
   await page.mouse.up();
-  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (0)' })).toBeVisible();
   const dropped = bodies[1].placements.find(p => p.lesson === id)!;
   expect([dropped.day, dropped.startMin % forslag.villkor.startGridMin, dropped.room]).toEqual([2, 0, null]);
   await expect(column.locator(`[data-lesson="${id}"]`)).toBeVisible();
@@ -459,13 +460,13 @@ test('flera flyttar ångras i omvänd ordning och görs om', async ({ page }, in
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
   // Steg två: samma pass till viloytan.
   await lesson.click();
-  await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Lägg på viloytan' }).click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Ta bort tiden' }).click();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   await expect(page.getByText('Ändrat för hand · 2 flyttar')).toBeVisible();
   await expect(redo).toBeDisabled();
 
   await undo.click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (0)' })).toBeVisible();
   await expect(at(kontroll.move.day)).toContainText('Regelavvikelse');
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
   await expect(redo).toBeEnabled();
@@ -482,14 +483,14 @@ test('flera flyttar ångras i omvänd ordning och görs om', async ({ page }, in
   await expect(page.getByText('Ändrat för hand · 1 flytt')).toBeVisible();
   await expect(page.getByRole('status').filter({ hasText: `${before.title} ligger nu ${DAYS[kontroll.move.day].toLowerCase()}` })).toBeVisible();
   await redo.click();
-  await expect(page.getByRole('heading', { name: 'Viloyta (1)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (1)' })).toBeVisible();
   await expect(page.getByText('Ändrat för hand · 2 flyttar')).toBeVisible();
   await expect(redo).toBeDisabled();
   expect(bodies).toHaveLength(6);
   expect(bodies[5].placements).toHaveLength(forslag.lessons.length - 1);
   // Ett nytt förslag tömmer historiken.
   await räknaOm(page);
-  await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pass utan tid (0)' })).toBeVisible();
   await expect(undo).toBeDisabled();
   await expect(redo).toBeDisabled();
   if (shots) await page.screenshot({ path: `${shots}/schema-yta-1280.png`, fullPage: true });
@@ -584,9 +585,13 @@ test('villkoren syns i veckan med text, villkoret nås med tangentbord och kan t
   expect(await page.evaluate(([x, y]) => (document.elementFromPoint(x, y) as HTMLElement | null)?.closest('[data-lesson]')?.getAttribute('data-lesson'), [box.x + box.width / 2, box.y + box.height / 2])).toBe('pass-36');
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem'))
     .toHaveText(['Spärrad tid', 'Utanför tillåten tid', 'Lunchfönster', 'Sena pass (undviks)', 'Marginal före eller efter pass', 'Pass utan lärare']);
-  // Passrutan visar justerad längd mot grundschemat och kortning vissa veckor med text.
-  await expect(page.locator('[data-lesson="pass-1"]')).toContainText('65 min · 70 i grundschemat');
-  await expect(page.locator('[data-lesson="pass-1"]')).toContainText('kortare 2 veckor');
+  const trimmedPass = page.locator('[data-lesson="pass-1"]');
+  await expect(trimmedPass).not.toContainText(/i grundschemat|kortare/u);
+  await trimmedPass.click();
+  const passDetails = page.getByRole('form', { name: 'Flytta pass' });
+  await expect(passDetails).toContainText('65 min (70 min i grundschemat)');
+  await expect(passDetails).toContainText('kortare 2 veckor');
+  await passDetails.getByRole('button', { name: 'Avbryt', exact: true }).click();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-villkor-1280.png`, fullPage: true });
   if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await page.screenshot({ path: `${shots}/schema-villkor-1600.png`, fullPage: true }); await page.setViewportSize({ width: 1280, height: 1000 }); }
@@ -738,8 +743,7 @@ test.describe('marginaler för pass', () => {
     await m.getByLabel('Etikett i schemat').selectOption('Övergång');
     await m.getByRole('button', { name: 'Lägg till marginal' }).click();
     await expect(band(page, 'Måndag')).toHaveText('Efter Programämne: Övergång 10 min');
-    await page.getByRole('button', { name: 'Lärare', exact: true }).click();
-    await page.locator('.schema-filter select').first().selectOption({ label: 'Provlärare 22' });
+    await valjVeckoresurs(page, 'Provlärare 22', 'Lärare');
     await expect(page.getByRole('region', { name: 'Måndag' }).locator('[data-lesson="pass-36"]')).toBeVisible();
     await expect(page.locator('.schema-band')).toHaveCount(0);
     // Ändra: marginalen upptar också läraren och syns då i lärarens vy.
@@ -911,7 +915,7 @@ test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fo
   await page.keyboard.press('Shift+F10');
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Torsdag 14:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ett pass här']);
   await expect(menu.getByRole('menuitem', { name: 'Ny aktivitet här' })).toBeFocused();
   await page.keyboard.press('ArrowDown');
   await page.keyboard.press('ArrowDown');
@@ -923,8 +927,11 @@ test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fo
   await page.keyboard.press('Tab');
   await expect(panel.getByRole('button', { name: 'Lägg till spärr' })).toBeFocused();
   await page.keyboard.press('Enter');
-  await expect(page.locator('[data-lesson="pass-27"]')).toContainText('Ligger på spärrad tid');
+  const pass = page.locator('[data-lesson="pass-27"]');
+  await expect(pass).toContainText('Regelavvikelse');
   await expect(meny.dag(page, 3).locator('.schema-falt.falt-sparrad').getByRole('button')).toBeFocused();
+  await pass.click();
+  await expect(page.getByRole('form', { name: 'Flytta pass' })).toContainText('Ligger på spärrad tid');
 });
 
 test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lägger inte passet där', async ({ page }, info) => {
@@ -947,7 +954,7 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await pass.click({ button: 'right' });
   const menu = page.getByRole('menu');
   await expect(menu).toContainText('Programämne · torsdag 10:00–11:05');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Programämne…', 'Öppna i nytt fönster']);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Ta bort tidenP', 'Lägg aldrig här', 'Villkor för Programämne…', 'Öppna i nytt fönster']);
   await expect(menu.getByText('Varför inte här')).toHaveCount(0);
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
@@ -1023,7 +1030,7 @@ test('meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkera
   await page.mouse.click(sen.x, sen.y, { button: 'right' });
   await expect(menu).toContainText('Sena pass');
   await expect(menu).toContainText('Torsdag 16:00–16:30');
-  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ut pass från viloytan här']);
+  await expect(menu.getByRole('menuitem')).toHaveText(['Ändra', 'Ny aktivitet här', 'Visa gemensam ledig tid', 'Spärra för', 'Tillåt bara här för', 'Lägg ett pass här']);
   await expect(menu.getByText('Visa gemensam ledig tid')).toHaveCount(1);
   await menu.getByRole('menuitem', { name: 'Tillåt bara här för' }).hover();
   await page.getByRole('menuitem', { name: 'Klass 1', exact: true }).click();
@@ -1033,7 +1040,7 @@ test('meny: tom tid och villkorsfält med högerklick, verktyget Viloyta parkera
   await panel.getByRole('button', { name: 'Avbryt' }).click();
   await expect(panel).toBeHidden();
   // Verktyget Viloyta: klick på ett pass lägger det på viloytan, efter kontroll.
-  await meny.verktyg(page, 'Viloyta').click();
+  await meny.verktyg(page, 'Ta bort tid').click();
   await page.locator('[data-lesson="pass-15"]').click();
   await expect.poll(() => checks.length).toBe(1);
   expect(checks[0].placements.some(p => p.lesson === 'pass-15')).toBe(false);
@@ -1414,7 +1421,7 @@ for (const width of [1280, 1600]) test(`villkorstabell (${width}): spärra freda
   await expect(await vt.cell(page, 'Provlärare 3', 'Pass på villkoret')).toHaveText(antal('larare-3'));
   // Passen på tiden märks direkt i veckan (Klass 1, höstterminen). Veckan och tabellen är vyer av samma utkast.
   await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
-  for (const id of ['pass-1', 'pass-45', 'pass-577']) await expect(page.locator(`[data-lesson="${id}"]`)).toContainText('Ligger på spärrad tid');
+  for (const id of ['pass-1', 'pass-45', 'pass-577']) await expect(page.locator(`[data-lesson="${id}"]`)).toContainText('Regelavvikelse');
   await expect(page.locator('[data-lesson="pass-9"]')).not.toContainText('Regelavvikelse');
   await vt.oppna(page, 'Lärare');
   if (shots) await page.screenshot({ path: `${shots}/schema-villkorstabell-${width}.png`, fullPage: true });
@@ -1599,7 +1606,7 @@ test('passtabell: filtrera på en lärare och sortera på dag; valet av vy minns
     await expect(page.getByText(`Visar ${forslag.lessons.length} av ${forslag.lessons.length} pass.`)).toBeVisible();
     await expect(tabell.grid(page).getByRole('columnheader')).toHaveText(['', 'Undervisning', 'Klass', 'Grupper', 'Lärare', 'Sal', 'Dag', 'Tid', 'Längd', 'Termin', 'Veckor', 'Marginal', 'Status']);
     // Veckans val och verktyg hör till veckan; ångra är gemensamt.
-    await expect(page.getByLabel('Klass eller grupp')).toHaveCount(0);
+    await expect(veckoval(page)).toHaveCount(0);
     await expect(page.getByRole('group', { name: 'Verktyg i schemat' })).toHaveCount(0);
     await expect(page.getByRole('button', { name: 'Ångra senaste flytt' })).toBeVisible();
     // En rad ur fixturen: justerad längd och kortning vissa veckor som i passrutan.
@@ -1674,7 +1681,7 @@ test('passtabell: högerklick, Följ passet och flytt till fri tid syns i tabell
     await expect(tabell.cell(page, own.id, 7)).toHaveText(fore);
     await tabell.cell(page, own.id, 2).click({ button: 'right' });
     const menu = page.getByRole('menu');
-    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Lägg på viloytanP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Öppna i nytt fönster', 'Visa i veckan']);
+    await expect(menu.getByRole('menuitem')).toHaveText(['Flytta…Enter', 'Följ passetF', 'Föreslå placering', 'Lås härL', 'Byt med ett annat pass…B', 'Ta bort tidenP', 'Lägg aldrig här', 'Villkor för Matematik…', 'Öppna i nytt fönster', 'Visa i veckan']);
     await menu.getByRole('menuitem', { name: 'Följ passet' }).click();
     const panel = page.getByRole('region', { name: 'Följ passet: Matematik, Klass 1' });
     await expect(panel.getByRole('heading', { name: 'Följ passet: Matematik, Klass 1' })).toBeFocused();
@@ -1707,7 +1714,7 @@ test('passtabell: Visa i veckan markerar passet, och markerat pass är markerat 
   await tabell.cell(page, vt.id, 1).click({ button: 'right' });
   await page.getByRole('menuitem', { name: 'Visa i veckan' }).click();
   await expect(tabell.vy(page, 'Vecka')).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.getByLabel('Klass eller grupp')).toHaveValue('grupp-3');
+  await expect(veckoval(page)).toHaveValue('Klass 3 · Klass');
   await expect(page.getByRole('button', { name: 'Vårterminen' })).toHaveAttribute('aria-pressed', 'true');
   const pass = page.locator(`[data-lesson="${vt.id}"]`);
   await expect(pass).toBeFocused();
@@ -1735,14 +1742,14 @@ test('passtabell: tre valda rader läggs på viloytan och ångras som ett steg',
   for (const id of ids) await expect(tabell.rad(page, id)).toHaveAttribute('aria-selected', 'true');
   // Högerklick på en vald rad erbjuder samma sak.
   await tabell.cell(page, ids[1], 1).click({ button: 'right' });
-  await expect(page.getByRole('menuitem', { name: 'Lägg 3 valda pass på viloytan' })).toBeVisible();
+  await expect(page.getByRole('menuitem', { name: 'Ta bort tiden för 3 valda pass' })).toBeVisible();
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: 'Lägg valda på viloytan' }).click();
-  await expect(page.getByRole('status').filter({ hasText: '3 pass ligger nu på viloytan.' })).toBeVisible();
+  await page.getByRole('button', { name: 'Ta bort tiden för valda pass' }).click();
+  await expect(page.getByRole('status').filter({ hasText: '3 pass är nu utan tid.' })).toBeVisible();
   const sista = kontroller.at(-1)!;
   for (const id of ids) expect(sista.placements.some(p => p.lesson === id)).toBe(false);
   expect(kontroller).toHaveLength(1);
-  for (const id of ids) await expect(tabell.cell(page, id, 12)).toHaveText('Viloyta');
+  for (const id of ids) await expect(tabell.cell(page, id, 12)).toHaveText('Utan tid');
   await expect(page.getByText('3 pass valda.')).toHaveCount(0);
   // Ett steg: en ångra lägger tillbaka alla tre, och det finns inget mer att ångra.
   await page.getByRole('button', { name: 'Ångra senaste flytt' }).click();
@@ -1813,7 +1820,7 @@ test('passtabell: bara tangentbord', async ({ page }, info) => {
   await expect(tabell.rad(page, own.id)).toHaveAttribute('aria-selected', 'false');
   // P: viloytan genom kontrollen, fokus kvar på raden.
   await page.keyboard.press('p');
-  await expect(tabell.cell(page, own.id, 12)).toHaveText('Viloyta');
+  await expect(tabell.cell(page, own.id, 12)).toHaveText('Utan tid');
   expect(kontroller.at(-1)!.placements.some(p => p.lesson === own.id)).toBe(false);
   await expect(tabell.cell(page, own.id, 1)).toBeFocused();
   // Ctrl+End och Ctrl+Home i hela tabellen.
