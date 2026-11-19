@@ -5,11 +5,11 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "UXF-53 har provval, deltagarförslag och förhandsgranskning i läsårskalendern. Krockberäkningen återstår."
 status: in_progress
-stopped_at: "Kalenderflödet är installerat på 3012 och provat inloggat fram till förhandsgranskning. Användarprov med sparande återstår."
+stopped_at: "Kalenderflödet är installerat på 3012 och provat inloggat via wifi fram till förhandsgranskning. Användarprov på fysisk telefon och sparande återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Installerat och inloggat provval, deltagarförslag och förhandsgranskning i läsårskalendern på 3012."
-state_head: b94a1251a24df4086e4a2c41590edb5537676b33
+last_activity_desc: "Verifierat inloggat provval, deltagarförslag och förhandsgranskning med telefonprofil via den lokala mobilingången."
+state_head: e77e378627d062a2b84f84f28695c89ad3b0c02a
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,9 +21,9 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: b94a1251a24df4086e4a2c41590edb5537676b33
-schema_candidate_revision: b94a1251a24df4086e4a2c41590edb5537676b33
-schema_candidate_status: nationella_prov_lasar_installed_authenticated_preview_verified
+schema_runtime_revision: e77e378627d062a2b84f84f28695c89ad3b0c02a
+schema_candidate_revision: e77e378627d062a2b84f84f28695c89ad3b0c02a
+schema_candidate_status: nationella_prov_lasar_installed_lan_mobile_preview_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: nationella_prov_lasar_passed_6_groups_zero_migrations_116_draft_and_1_room_revisions_preserved
