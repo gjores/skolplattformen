@@ -92,6 +92,7 @@ test('ny fördiagnos visas och får fokus även när en gammal placeringssöknin
   await page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Lägg här och flytta det som krockar', exact: true }).click();
   await expect(page.locator('[data-schema-placement-panel]')).toBeVisible();
   await page.route('**/api/schema/diagnos', r => r.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [{ code: 'capacity', message: 'Skolans valda undervisningstid ryms inte inom dagarnas tidsram.', proof: true, lessons: [], resources: [], action: { target: 'villkor', label: 'Se över villkoren' } }] } }));
+  await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect(page.locator('[data-schema-placement-panel]')).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Före beräkning', exact: true })).toBeFocused();
@@ -103,6 +104,7 @@ for (const viaActivity of [false, true]) test(`datumundantag kräver bekräftels
   const { solves } = await setup(page);
   const finding = { code: 'capacity', message: 'Tidigare kontrollpunkt som behöver granskas.', proof: false, lessons: [], resources: [], action: { target: 'villkor', label: 'Se över villkoren' } };
   await page.route('**/api/schema/diagnos', r => r.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [finding] } }));
+  await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'Före beräkning', exact: true })).toBeVisible();
   await page.route('**/api/schema/datum', r => { const input = r.request().postDataJSON(), datedOverrides = parseSchemaDatumAndringar(input.datedOverrides); return r.fulfill({ headers, json: { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: input.grundFingerprint, fingerprint: proposal.fingerprint, datedOverrides, checkedDates: [...new Set([...input.dates, ...datedOverrides.flatMap(a => [a.originalDate, a.date])])], violations: [], total: 0, timeChanges: [] } }); });

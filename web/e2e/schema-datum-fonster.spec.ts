@@ -119,6 +119,7 @@ test('en äldre datumdialog och dess kvarhållna avsikt kan inte ändra återanv
   await dialog(child).getByRole('button', { name: 'Spara ändringen för detta tillfälle', exact: true }).click();
   await expect.poll(() => child.evaluate(() => (window as unknown as {schemaDatumTransport:TransportState}).schemaDatumTransport.held.length)).toBe(1);
   expect(state.calls).toHaveLength(0);
+  await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect(child.locator(`[data-lesson="${lessonId}"]`).first()).toContainText('Ny undervisning i samma passnummer');
   await expect(dialog(child)).toHaveCount(0);

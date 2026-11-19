@@ -10,5 +10,6 @@
 .schema-day:has(.schema-daglas) > h3, .schema-daglas { min-height: max(2rem, var(--control-height)); }
 .schema-urvalsram { position: absolute; z-index: 4; pointer-events: none; border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 10%, transparent); }
 
-/* Beskedet får inte flytta rutnätet under ett pågående drag. Hela texten kan läsas i radens egen rullning. */
-.schema-drag-status { display: block; height: 4.5em; overflow: auto; }
+/* Beskedet står efter rutnätet för att inte flytta starttiderna mitt under ett drag. */
+.schema-drag-status { display: block; }
+.schema-drag-status:empty { position: absolute; }

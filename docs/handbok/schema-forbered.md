@@ -2,7 +2,7 @@
 title: Förbered schemat
 ---
 
-I **Schema** arbetar du på två ytor som visar samma utkast: **Förbered** och **Lägg schema**. I Förbered går du igenom förutsättningarna innan du tar fram ett schemaförslag. I Lägg schema arbetar du med veckan, passen och villkoren när ett förslag finns.
+Under **Planering → Schema** växlar du mellan **Förbered** och **Lägg schema** i sidhuvudet. Båda visar samma utkast. Där ser du också skolan, läsåret, vilken period schemat gäller och om utkastet är sparat. Ändringar sparas automatiskt. Vid behov kan du välja **Spara nu**.
 
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 
@@ -13,6 +13,13 @@ Förbered visas först när skolan inte har något schemaförslag för läsåret
 Överst står **Nästa uppgift**. Den pekar på det första området där en uppgift saknas, och annars på det första området som ingen har gått igenom. Du väljer själv ordning; inget område är låst.
 
 Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**. Villkoren går att ändra under tiden.
+
+## Arbeta i Lägg schema
+
+- Välj **Vecka**, **Pass i tabell**, **Samlingsvy** eller **Villkor i tabell**. För veckan väljer du också klass, grupp eller lärare. Med **Grundschema**, **Vecka** eller **Datumintervall** styr du vilka datum som visas.
+- Öppna **Beräkning** för att ändra räknetid, fortsätta förbättra schemat eller ta fram ett nytt förslag.
+- Välj **Till kontrollerna** för att gå till regelavvikelser, undervisningstid, datumändringar och övrigt underlag längre ner på sidan. Där finns också **Tilldela salar och behåll tiderna** när pass behöver sal.
+- **Ångra**, **Gör om** och **Fönster** finns i verktygsraden. Med **Fönster** kan du till exempel ha en lärares schema öppet bredvid klassens schema.
 
 ## Checklistan
 
@@ -133,7 +140,7 @@ Välj **Räknetid per omgång**: 10, 30 eller 60 sekunder. Förvalet är 30 seku
 
 **Mer räknetid kan behövas** betyder att motorn nådde omgångens tidsgräns med ett ofullständigt resultat. Det är inte ett besked om att schemat är omöjligt.
 
-När du har ett schema kan du välja **Fortsätt förbättra** i Lägg schema. Motorn använder dina nuvarande placeringar som utgångspunkt. Låsta pass och grundplaceringarna för pass med datumändringar ligger kvar. Andra pass kan flyttas för att ge plats eller förbättra schemat. Pass utan sal får ingen ny sal i den fortsatta beräkningen när skolan har ett salregister.
+När du har ett schema kan du välja **Beräkning → Fortsätt förbättra** i Lägg schema. Motorn använder dina nuvarande placeringar som utgångspunkt. Låsta pass och grundplaceringarna för pass med datumändringar ligger kvar. Andra pass kan flyttas för att ge plats eller förbättra schemat. Pass utan sal får ingen ny sal i den fortsatta beräkningen när skolan har ett salregister.
 
 1. Välj räknetid och **Fortsätt förbättra**. Det nuvarande utkastet sparas innan beräkningen börjar.
 2. Granska varje ändrat pass, från och till, samt antalet lagda pass, regelavvikelser, timplaneavvikelser och håltid.
@@ -175,7 +182,7 @@ Mentorstid och liknande kan läggas in för många klasser på en gång.
 
 ## Tilldela salar och behåll tiderna
 
-När schemat redan har tider men pass saknar sal, eller har en sal som kontrollen har underkänt, visas **Tilldela salar och behåll tiderna** i Lägg schema.
+När schemat redan har tider men pass saknar sal, eller har en sal som kontrollen har underkänt, visas **Tilldela salar och behåll tiderna** under **Till kontrollerna** i Lägg schema.
 
 1. Välj **Förhandsgranska salarna**. Du ser vilka pass som får sal, med nuvarande och föreslagen sal, och vilka pass som inte får plats.
 2. Läs **Hinder**. Varje hinder säger vilka salar passet får ligga i och vad som upptar dem.
@@ -193,11 +200,13 @@ Utkast utan salregister fungerar som tidigare. Där väljer kontrollen själv de
 
 ## Valt pass
 
-Klicka på ett pass i veckan, eller välj det med tangentbordet och tryck Retur. Panelen under veckan visar passets tid, längd, lärare, sal och salbehov. Klicket ändrar ingenting.
+Klicka på ett pass i veckan eller tryck Retur när passet har fokus. I passtabellen använder du Retur på raden eller väljer **Flytta…** i radens snabbmeny. **Valt pass** visar tid, längd, lärare, sal och salbehov. På en bred arbetsyta visas panelen bredvid schemat. När utrymmet är mindre visas den under schemat.
 
-1. Under **Pröva ny tid** väljer du dag och starttid. Med **−** och **+** går du till närmaste möjliga starttid före eller efter.
+1. Under **Pröva ny tid eller sal** väljer du dag och starttid. Med **−** och **+** går du till närmaste möjliga starttid före eller efter. Med **Sök ledig sal** kan du leta efter en sal för den valda tiden.
 2. Under listorna står vad som händer vid den valda tiden, till exempel vilka pass som krockar.
 3. Välj **Flytta hit** för att flytta passet, eller **Avbryt**.
+
+Passpanelen ger också tillgång till **Följ passet**, lås, byte, placeringsförslag och viloytan. Verktygen visas eller kan användas beroende på om passet är utlagt och låst.
 
 Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fält: fri tid, går med ett byte, bryter ett önskemål eller regelbrott. Ett fält säger bara läget. Orsakerna kan skilja sig inom fältet, så läs beskedet i panelen för den exakta starttiden.
 

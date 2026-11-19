@@ -44,7 +44,11 @@ async function setup(context: BrowserContext, page: Page) {
     const body = route.request().postDataJSON();
     return route.fulfill({ headers, json: { ...following.alla, contractVersion: SCHEMA_CONTRACT_VERSION, lesson: body.lesson } });
   });
-  await page.goto(URL); await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await page.goto(URL);
+  await expect(page.getByRole('textbox', { name: 'Namn på utkastet', exact: true })).toBeEnabled();
+  const berakning = page.getByRole('button', { name: 'Beräkning', exact: true });
+  if (await berakning.isVisible()) await berakning.click();
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
 }
 async function open(page: Page, name: string) {
@@ -153,11 +157,16 @@ test('resursfönster läser egna listor: lärare, salstomläge och elev med loka
   await pupil.screenshot({ path: test.info().outputPath('fonster-elev-200.png'), fullPage: true });
 });
 
-test('ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy', async ({ context, page }) => {
+test('ny huvudinstans efter omladdning ger nytt tillstånd och kontextsignal stänger elev- och schemavy', async ({ context, page, schemaDraftServer }) => {
   await setup(context, page); const child = await open(page, 'Pass i tabell');
   await expect(child.locator('tr[data-lesson]').first()).toBeVisible();
-  await page.reload(); await expect(child.locator('[data-lesson]')).toHaveCount(0);
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click(); await expect(child.locator('tr[data-lesson]').first()).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
+  // Den nya huvudinstansen läser en syntetisk miljö där utkastet saknas.
+  schemaDraftServer.drafts.clear();
+  await page.reload();
+  await expect(child.locator('[data-lesson]')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(child.locator('tr[data-lesson]').first()).toBeVisible();
   await page.evaluate(() => { const channel = new BroadcastChannel('skolplattform-session'); channel.postMessage({ type: 'epoch', epoch: 2 }); channel.close(); });
   await expect(child.getByRole('heading', { name: 'Schemavyn är stängd' })).toBeVisible();
   await expect(child.locator('[data-lesson], [data-schema-pass]')).toHaveCount(0);

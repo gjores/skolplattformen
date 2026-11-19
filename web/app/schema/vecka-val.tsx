@@ -1,5 +1,5 @@
 'use client';
-import { useId } from 'react';
+import { useId, type ReactNode } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -8,8 +8,8 @@ import type { SchemaForslag, SchemaTerm } from '@/lib/schema-contract.ts';
 import { addSchemaDays, schemaVeckaVal, schemaVeckor, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import './vecka-val.css';
 
-export function VeckaVal({ forslag, term, value, onChange }: {
-  forslag: SchemaForslag; term: SchemaTerm; value: SchemaVeckaVal; onChange: (next: SchemaVeckaVal) => void;
+export function VeckaVal({ forslag, term, value, onChange, terminsval }: {
+  forslag: SchemaForslag; term: SchemaTerm; value: SchemaVeckaVal; onChange: (next: SchemaVeckaVal) => void; terminsval?: ReactNode;
 }) {
   const id = useId(), calendar = forslag.time.calendar, val = schemaVeckaVal(forslag, term, value);
   const weeks = schemaVeckor(calendar, forslag.period === 'lasar' ? term : forslag.period), at = weeks.findIndex(w => w.monday === val.monday);
@@ -23,6 +23,7 @@ export function VeckaVal({ forslag, term, value, onChange }: {
         <ToggleGroupItem value="vecka" disabled={!calendar} aria-describedby={!calendar ? `${id}-saknas` : undefined}>Vecka</ToggleGroupItem>
         <ToggleGroupItem value="intervall" disabled={!calendar} aria-describedby={!calendar ? `${id}-saknas` : undefined}>Datumintervall</ToggleGroupItem>
       </ToggleGroup>
+      {terminsval}
       {val.mode === 'vecka' && <div className="schema-veckoblad">
         <Button variant="outline" aria-label="Föregående vecka" disabled={at <= 0} onClick={() => onChange({ ...val, monday: weeks[at - 1].monday })}><ChevronLeftIcon aria-hidden="true"/></Button>
         <label>Vecka<select value={val.monday} onChange={e => onChange({ ...val, monday: e.target.value })}>{weeks.map(w => <option key={w.monday} value={w.monday}>{w.label}</option>)}</select></label>
@@ -39,9 +40,8 @@ export function VeckaVal({ forslag, term, value, onChange }: {
         <span className="schema-note">Högst fyra veckor.</span>
       </div>}
     </div>
-    {!calendar && <p id={`${id}-saknas`} className="schema-note">Faktiska datum saknas i underlaget. Grundschemat visar det återkommande mönstret.</p>}
-    {val.mode === 'grundschema' ? <p className="schema-note">Grundschemat visar mönstret som upprepas varje vecka. Vecka och Datumintervall visar kalenderns faktiska undervisningstillfällen.</p>
-      : <><output className="schema-note schema-flytt-alla">Ändringar här gäller ett enskilt tillfälle. Välj en lektion för att ändra datum, tid eller sal. Grundschemat ändras bara när du uttryckligen väljer det.</output>
+    {!calendar && <p id={`${id}-saknas`} className="schema-note">Faktiska datum saknas i underlaget.</p>}
+    {val.mode !== 'grundschema' && <><output className="schema-note schema-flytt-alla">Ändringar här gäller ett enskilt tillfälle. Välj en lektion för att ändra datum, tid eller sal. Grundschemat ändras bara när du uttryckligen väljer det.</output>
         {forslag.lessons.some(l => 'egenAktivitet' in l && l.egenAktivitet) && <p className="schema-note">Egna aktiviteter visas från grundschemat. Deras faktiska veckor och kalenderavvikelser är ännu inte fastställda.</p>}</>}
   </section>;
 }

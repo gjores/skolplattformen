@@ -35,14 +35,17 @@ export const visadVy = (vy: SchemaVy, harVillkor: boolean, harSamling = false, h
  * Väljaren och den valda vyn under den. `villkor` är vyn Villkor i tabell; saknas den visas inte valet, och ett minnet val av den visar veckan.
  * Vyn som inte visas ritas inte, så att veckans och tabellens pass inte finns två gånger på sidan.
  */
-export function Vyval({ utlyft = false, vy, onVy, vecka, veckaVal, folj, samling, pass, villkor }: {
+export function Vyval({ utlyft = false, vy, onVy, vecka, veckaVal, veckaVerktyg, folj, samling, pass, villkor, valtPass }: {
   utlyft?: boolean; vy: SchemaVy; onVy: (vy: SchemaVy) => void; vecka: ReactNode;
   /** Veckans val (Klass eller Lärare) står i samma rad som väljaren, så att veckan inte flyttas ned. */
   veckaVal?: ReactNode;
+  veckaVerktyg?: ReactNode;
+  valtPass?: ReactNode;
   pass: ReactNode; villkor?: ReactNode; samling?: ReactNode; folj?: ReactNode;
 }) {
   const vyer = VYER.filter(v => (v.id !== 'villkor' || villkor !== undefined) && (v.id !== 'samling' || samling !== undefined) && (v.id !== 'folj' || folj !== undefined));
   const visad = visadVy(vy, villkor !== undefined, samling !== undefined, folj !== undefined);
+  const innehall = visad === 'vecka' ? vecka : visad === 'folj' ? folj : visad === 'samling' ? samling : visad === 'pass' ? pass : villkor;
   return <>
     {!utlyft && <div className="schema-filter schema-vyval">
       <ToggleGroup aria-label="Visa schemat som" variant="outline" spacing={0} className="schema-verktyg-grupp" value={[visad]}
@@ -52,6 +55,10 @@ export function Vyval({ utlyft = false, vy, onVy, vecka, veckaVal, folj, samling
       {visad === 'vecka' && veckaVal}
     </div>}
     {utlyft && visad === 'vecka' && <div className="schema-filter">{veckaVal}</div>}
-    {visad === 'vecka' ? vecka : visad === 'folj' ? folj : visad === 'samling' ? samling : visad === 'pass' ? pass : villkor}
+    {visad === 'vecka' && veckaVerktyg}
+    <div className={valtPass && (visad === 'vecka' || visad === 'pass') ? 'schema-arbetsvy med-pass' : 'schema-arbetsvy'}>
+      <div className="schema-arbetsvy-innehall">{innehall}</div>
+      {valtPass && <aside className="schema-passpanel" aria-label="Valt pass">{valtPass}</aside>}
+    </div>
   </>;
 }

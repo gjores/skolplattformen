@@ -17,7 +17,7 @@ export const VERKTYG: { id: SchemaVerktyg; namn: string; ikon: ReactNode; senare
 
 /** Vad verktyget gör, under verktygsfältet. */
 const HJALP: Record<SchemaVerktyg, string> = {
-  markera: 'Välj ett pass för att flytta det. Skift-klick eller dra en ram över tom tid för att välja flera pass. Högerklick eller Skift+F10 öppnar menyn för ett pass, en tid eller ett villkor.',
+  markera: 'Skift-klick eller dra en ram för att markera flera. Högerklick eller Skift+F10 öppnar snabbmenyn.',
   sparra: 'Dra över tid i en dag för att spärra den, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
   tillat: 'Dra över tid i en dag där passen bara får ligga, eller välj en tid med piltangenterna och utöka med Skift+pil. Enter fortsätter.',
   las: 'Välj ett lagt pass för att låsa eller låsa upp tiden. Låsta pass står kvar vid nästa beräkning.', byt: 'Välj två lagda pass för att byta deras dag och starttid. B på ett pass börjar ett byte.',

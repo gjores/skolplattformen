@@ -79,6 +79,7 @@ test('klassens lås följer nästa begäran och visas i passtabellens filter', a
   const calls = await start(page);
   await page.getByRole('button', { name: 'Lås klassens schema' }).click();
   await expect(pass(page, visible[0].id)).toContainText('Låst');
+  await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect.poll(() => calls.requests.length).toBe(2);
   const klass = f.lessons.filter(l => l.classIds.includes(f.classes[0].id) && l.day !== null);
@@ -123,11 +124,11 @@ test('markerade pass flyttas med samma tidsförskjutning och ramen markerar dage
   // Hela dagen ska ligga nedanför den fasta ångraraden, som kan täcka en punkt inom viewporten.
   await own.evaluate(el => {
     const bar = document.querySelector('.schema-moves')?.getBoundingClientRect();
-    if (bar) window.scrollBy(0, el.getBoundingClientRect().top - bar.bottom - 8);
+    if (bar) window.scrollBy({ top: el.getBoundingClientRect().top - bar.bottom - 16, behavior: 'instant' });
   });
   await expect(own).toBeInViewport({ ratio: 1 });
   const b = (await own.boundingBox())!;
-  const from = { x: b.x + b.width - 1, y: b.y + 2 }, to = { x: b.x + 1, y: b.y + b.height - 2 };
+  const from = { x: Math.floor(b.x + b.width - 2), y: b.y + 3 }, to = { x: b.x + 2, y: b.y + b.height - 3 };
   // Börja på kolumnens tomma kant: träffytan ska ligga i dagen och inte i en passknapp.
   expect(await own.evaluate((el, point) => { const hit = document.elementFromPoint(point.x, point.y); return !!hit && el.contains(hit) && !hit.closest('.schema-lesson'); }, from)).toBe(true);
   await page.mouse.move(from.x, from.y); await page.mouse.down();

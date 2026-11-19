@@ -2,6 +2,7 @@
 // Förbered-ytan (05.2-SM-UXF-31, designvyerna Forbered och Forutsattningar): ytval, nästa uppgift, checklista med sju punkter och kortet
 // Förutsättningar just nu. Människans genomgång sparas i webbläsaren (antagande A9); maskinens kontroll bockar aldrig av något.
 import { useId, useState, type ReactNode } from 'react';
+import { CalendarDaysIcon, ClipboardListIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { genomgangsStatus, nastaUppgift, parseGenomgang, type ForberedOmrade, type ForberedPunkt, type Genomgang } from '@/lib/schema-forbered.ts';
 
@@ -14,9 +15,9 @@ export function rememberYta(unitId: string, schoolYear: number, yta: SchemaYta) 
 
 /** Två ytor för samma utkast. Granska visas inte förrän den är byggd (antagande A1). */
 export function Ytval({ yta, onYta }: { yta: SchemaYta; onYta: (yta: SchemaYta) => void }) {
-  return <nav aria-label="Arbetsytor" className="flex flex-wrap gap-2" data-ytval>
-    {([['forbered', 'Förbered'], ['schema', 'Lägg schema']] as const).map(([id, namn]) =>
-      <Button key={id} type="button" variant={yta === id ? 'secondary' : 'outline'} aria-current={yta === id ? 'page' : undefined} onClick={() => onYta(id)}>{namn}</Button>)}
+  return <nav aria-label="Arbetsytor" className="schema-ytval" data-ytval>
+    {([['forbered', 'Förbered', ClipboardListIcon], ['schema', 'Lägg schema', CalendarDaysIcon]] as const).map(([id, namn, Icon]) =>
+      <Button key={id} type="button" variant="ghost" aria-current={yta === id ? 'page' : undefined} onClick={() => onYta(id)}><Icon aria-hidden="true"/>{namn}</Button>)}
   </nav>;
 }
 

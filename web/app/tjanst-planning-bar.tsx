@@ -16,7 +16,7 @@ import './tjanst-planning-bar.css';
  */
 export type TjanstPlanningSelection = { unitId: string | null; schoolYear: number };
 type Props = { contextKey: string; initial: Partial<TjanstPlanningSelection> | null; schoolChoice: boolean;
-  onChange: (selection: TjanstPlanningSelection) => void; onSessionLost: () => void; children: (selection: TjanstPlanningSelection) => ReactNode };
+  onChange: (selection: TjanstPlanningSelection) => void; onSessionLost: () => void; children: (selection: TjanstPlanningSelection, schoolName: string | null) => ReactNode };
 const WAIT = 'Invänta sparandet eller läs sparstatus innan du byter planeringsval.';
 // Valet överlever verifieringen med engångskod (en hel sidladdning) i den här fliken. Bara skolans ID och läsåret
 // sparas, nycklat på epok, kund och uppdrag; inga personuppgifter (05.1-09, faktiskt prov).
@@ -89,6 +89,6 @@ function Area({ contextKey, initial, schoolChoice, onChange, onSessionLost, chil
       {!schoolChoice && <p className="planning-context-scope">{PLANNING_SCOPE_TEXT}</p>}
       {notice && <output>{notice}</output>}
     </section>
-    {children(selection)}
+    {children(selection, setup.units.find(unit => unit.unitId === selection.unitId)?.schoolName ?? null)}
   </>;
 }

@@ -12,6 +12,15 @@ test.beforeEach(async ({ page }) => {
 const URL = '/e2e/fixtures/schema-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
 const shots = process.env.SCHEMA_SHOTS;
+async function räknaOm(page: Page) {
+  await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
+  await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+}
+async function taFramEfterSidstart(page: Page) {
+  await expect(page.getByRole('textbox', { name: 'Namn på utkastet', exact: true })).toBeEnabled();
+  if (await page.getByRole('button', { name: 'Beräkning', exact: true }).isVisible()) await räknaOm(page);
+  else await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+}
 async function mock(page: Page, reply: (body: Record<string, unknown>) => { status?: number; json: unknown }) {
   // Även looparnas unrouteAll ska följas av en ny uttrycklig fördiagnosmock.
   await page.route('**/api/schema/diagnos', route => route.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
@@ -63,7 +72,7 @@ test('förslaget visas som vecka per klass och per lärare, utan sidledsrullning
   const bodies = await mock(page, () => ({ json: forslag }));
   await page.goto(URL);
   await expect(page.getByText('Inget förslag ännu.')).toBeVisible();
-  await expect(page.getByText('Schemat utgår från skolans tjänstefördelning och sparas som utkast på servern.', { exact: false })).toBeVisible();
+  await expect(page.getByText('Läsår 2026/27', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'lasar', villkor: forslag.villkor, solveTimeMs: 30_000 }]);
@@ -236,7 +245,7 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   await page.reload();
   await expect(page.locator('.schema-villkor summary')).toContainText('Ändrade: skoldag');
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
-  await expect(page.getByLabel('Längsta pass')).toHaveValue('60');
+  await expect(page.locator('details.schema-villkor').getByRole('combobox', { name: 'Längsta pass', exact: true })).toHaveValue('60');
   await expect(page.getByLabel('Lägg in lunch varje dag')).not.toBeChecked();
 });
 
@@ -245,7 +254,7 @@ test('ett pass flyttas med tangentbordet, avvikelser märks ut och flytten kan �
   const bodies = await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
-  await expect(page.getByText('Ändringar sparas automatiskt för skolan, läsåret och vald period.', { exact: false })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast', exact: true })).toContainText('Sparat på servern');
   await expect(page.getByRole('button', { name: 'Ångra senaste flytt' })).toBeDisabled();
   const before = forslag.lessons.find(l => l.id === kontroll.move.lesson)!;
   const lesson = await move(page);
@@ -418,7 +427,7 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await expect(page.locator('.schema-villkor summary')).toContainText('4 egna villkor');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   if (shots) await page.screenshot({ path: `${shots}/schema-egna-${info.project.name}.png`, fullPage: true });
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   const sent = bodies[1].villkor as typeof forslag.villkor & { egna: Record<string, unknown>[] };
   expect(sent.egna).toEqual([sparr, { slag: 'amne', ref: 'Idrott och hälsa', typ: 'sal', rooms: ['Idrottshallen'] }, { slag: 'klass', ref: forslag.resurser.klass[0].ref, typ: 'langd', maxMin: 60 },
@@ -479,7 +488,7 @@ test('flera flyttar ångras i omvänd ordning och görs om', async ({ page }, in
   expect(bodies).toHaveLength(6);
   expect(bodies[5].placements).toHaveLength(forslag.lessons.length - 1);
   // Ett nytt förslag tömmer historiken.
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await räknaOm(page);
   await expect(page.getByRole('heading', { name: 'Viloyta (0)' })).toBeVisible();
   await expect(undo).toBeDisabled();
   await expect(redo).toBeDisabled();
@@ -646,8 +655,8 @@ test('lagren visas och döljs med chipsen, valet minns och utan lager ser veckan
   await expect(page.locator('.status-badge', { hasText: 'syns i veckan' })).toHaveCount(0);
   await expect(page.getByRole('list', { name: 'Teckenförklaring' }).getByRole('listitem')).toHaveText(['Pass utan lärare']);
   // Valet minns i webbläsaren.
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
   await page.reload();
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   await expect(chip(page, 'Lunch')).toHaveAttribute('aria-pressed', 'false');
   await expect(page.locator('.schema-falt, .schema-band')).toHaveCount(0);
@@ -757,7 +766,7 @@ test.describe('marginaler för pass', () => {
     if (shots) await m.screenshot({ path: `${shots}/schema-marginaler-1280.png` });
 
     // Nästa förslag får marginalerna i fast form.
-    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await räknaOm(page);
     await expect.poll(() => bodies.length).toBe(2);
     expect((bodies[1].villkor as typeof forslag.villkor).egna).toEqual([
       { slag: 'amne', ref: 'Idrott och hälsa', typ: 'marginal', beforeMin: 10, afterMin: 15, occupies: ['elever'], label: 'Omklädning före, dusch efter', visibleFor: ['elever'], when: 'alltid' },
@@ -867,7 +876,7 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   await expect(pass).toContainText('Ligger på spärrad tid');
   await expect.poll(() => bodies.kontroller.length).toBe(3);
   // Spärren skickas med nästa förslag. Ett nytt förslag har ingen kontroll än: passet märks inte förrän det flyttas eller villkoren ändras.
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([nySparr]);
   await expect(pass).not.toContainText('Ligger på spärrad tid');
@@ -945,7 +954,7 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   await expect(menu).toBeHidden();
   await expect(pass).toContainText('Ligger på spärrad tid');
   await expect(page.locator('ul[aria-label="Egna villkor"] > li')).toHaveText([/^Ämne Programämne: spärrad torsdag 10:00–11:10/u]);
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([aldrig]);
   await expect(pass).toContainText('15:20–16:25');
@@ -1087,7 +1096,7 @@ async function foljStart(page: Page, width: number) {
   await mock(page, () => ({ json: forslag }));
   const kontrollBodies = await mockKontroll(page);
   await page.goto(URL);
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await taFramEfterSidstart(page);
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   return kontrollBodies;
 }
@@ -1152,7 +1161,7 @@ test('Följ passet med tangentbordet: varför inte via fokus, flytt till fri tid
     await page.getByRole('button', { name: 'Avbryt' }).click();
     await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
     await page.locator(`[data-lesson="${folj.lesson}"]`).click();
-    await page.locator('.schema-undo').getByRole('button', { name: 'Följ passet', exact: true }).click();
+    await page.getByRole('complementary', { name: 'Valt pass' }).getByRole('button', { name: 'Följ passet', exact: true }).click();
     const lock = page.getByRole('button', { name: 'Lås till detta pass' });
     await lock.click();
     await expect(lock).toHaveAttribute('aria-pressed', 'true');
@@ -1315,8 +1324,7 @@ test('villkor direkt: Följ passet visar den nya spärren som spärrad tid i mö
   await expect(panel.locator('.folj-start[aria-label$=": spärrad tid"]')).toHaveCount(0);
 });
 
-// Flyttpanelen står kvar längst ned medan veckan rullar under den; passen får inte ritas över panelen (fel vid användarprovet 2026-11-14).
-test('flyttpanelen ligger över passen när veckan rullar under den', async ({ page }, info) => {
+test('flyttpanelen är nåbar bredvid veckan när schemat rullas', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
   await foljStart(page, 1280);
   await page.setViewportSize({ width: 1280, height: 700 });
@@ -1325,25 +1333,12 @@ test('flyttpanelen ligger över passen när veckan rullar under den', async ({ p
   await page.keyboard.press('Enter');
   const panel = page.getByRole('form', { name: 'Flytta pass' });
   await expect(panel.getByLabel('Dag')).toBeFocused();
-  // Rulla så att veckans pass ligger bakom den klistrade panelen.
-  await page.evaluate(() => { const v = document.querySelector('.schema-week')!; window.scrollTo({ top: v.getBoundingClientRect().bottom + window.scrollY - innerHeight + 40, behavior: 'instant' }); });
-  await expect(page.locator('.schema-lesson').first()).toBeVisible();
-  await page.waitForTimeout(100);
-  // Punkter i panelen som också ligger över ett pass: överst ska alltid panelen vara.
-  const { overlapp, fel } = await page.evaluate(() => {
-    const p = document.querySelector('.schema-move')!.getBoundingClientRect(), pass = [...document.querySelectorAll('.schema-week .schema-lesson')].map(e => e.getBoundingClientRect());
-    let overlapp = 0; const fel: string[] = [];
-    for (let x = p.left + 4; x < p.right; x += 24) for (let y = p.top + 4; y < p.bottom; y += 12) {
-      if (!pass.some(r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)) continue;
-      overlapp += 1;
-      const el = document.elementFromPoint(x, y);
-      if (!el?.closest('.schema-move')) fel.push(`${Math.round(x)},${Math.round(y)} ${el?.className}`);
-    }
-    return { overlapp, fel };
-  });
-  const lage = await page.evaluate(() => JSON.stringify({ y: scrollY, h: innerHeight, panel: document.querySelector('.schema-move')!.getBoundingClientRect(), vecka: document.querySelector('.schema-week')!.getBoundingClientRect() }));
-  expect(overlapp, lage).toBeGreaterThan(20);
-  expect(fel).toEqual([]);
+  const week = page.locator('.schema-week');
+  await week.evaluate(element => window.scrollTo({ top: element.getBoundingClientRect().top + scrollY + 160, behavior: 'instant' }));
+  await expect(panel.getByLabel('Dag')).toBeInViewport();
+  const calendar = (await week.boundingBox())!, sidebar = (await panel.boundingBox())!;
+  expect(sidebar.x).toBeGreaterThanOrEqual(calendar.x + calendar.width);
+  expect(sidebar.y).toBeLessThan(calendar.y + calendar.height);
 });
 
 // ── 05.2-SM-VILLKORSTABELL: villkor per resurs i tabell, flera rader på en gång, tidsrutnätet, tangentbord, "Ändra" i veckan och 200 % text. ──
@@ -1502,7 +1497,7 @@ test('villkorstabell: redigera med bara tangentbordet, längsta dag per lärare 
   // Längsta dag är ett tidsvillkor: ingen text om nytt förslag.
   await expect(page.locator('[data-villkor-andrade="tid"]')).toBeVisible();
   // Ett nytt förslag bär villkoren.
-  await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect(sammaEgna((bodies[1].villkor as typeof forslag.villkor).egna, [vtSparr[0], dagRegel])).toBe(true);
 });
@@ -1574,7 +1569,7 @@ const tabell = {
     await mock(page, () => ({ json: data }));
     const kontroller = await mockKontroll(page);
     await page.goto(URL);
-    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+    await taFramEfterSidstart(page);
     await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
     return kontroller;
   },
@@ -1655,10 +1650,10 @@ test('passtabell: filtrera på en lärare och sortera på dag; valet av vy minns
     await expect(page.getByText(`i ${forslag.teachings.length} undervisningar.`)).toBeVisible();
     if (shots) await page.screenshot({ path: `${shots}/schema-passtabell-grupper-${width}.png` });
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
-    // Valet minns i webbläsaren: nästa förslag visas i tabellen direkt.
+    // Valet minns i webbläsaren när det sparade utkastet öppnas igen.
     expect(await page.evaluate(() => localStorage.getItem('schema-vy'))).toBe('pass');
+    await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
     await page.reload();
-    await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
     await expect(tabell.grid(page)).toBeVisible();
     await tabell.vy(page, 'Vecka').click();
     await expect(page.getByRole('region', { name: 'Måndag' })).toBeVisible();
@@ -1852,30 +1847,24 @@ test('passtabell vid 200 % textstorlek: tabellen rullar i sidled i sin ram, inte
   }
 });
 
-test('passtabell: flyttpanelen öppnad från tabellen ligger över raderna', async ({ page }, info) => {
+test('passtabell: flyttpanelen är nåbar bredvid raderna när sidan rullas', async ({ page }, info) => {
   test.skip(info.project.name === 'phone', 'Schemaläggningens arbetsyta prövas på dator.');
   await tabell.start(page, 1280);
   await page.setViewportSize({ width: 1280, height: 700 });
   await tabell.oppna(page);
-  await tabell.cell(page, kontroll.move.lesson, 1).focus();
+  const cell = tabell.cell(page, kontroll.move.lesson, 1);
+  await cell.focus();
   await page.keyboard.press('Enter');
   const panel = page.getByRole('form', { name: 'Flytta pass' });
   await expect(panel.getByLabel('Dag')).toBeFocused();
-  await page.evaluate(() => { const t = document.querySelector('.passtabell')!; window.scrollTo({ top: t.getBoundingClientRect().bottom + window.scrollY - innerHeight + 40, behavior: 'instant' }); });
-  await page.waitForTimeout(100);
-  const { overlapp, fel } = await page.evaluate(() => {
-    const p = document.querySelector('.schema-move')!.getBoundingClientRect(), rader = [...document.querySelectorAll('.passtabell thead th, .passtabell tbody tr')].map(e => e.getBoundingClientRect());
-    let overlapp = 0; const fel: string[] = [];
-    for (let x = p.left + 4; x < p.right; x += 24) for (let y = p.top + 4; y < p.bottom; y += 12) {
-      if (!rader.some(r => x >= r.left && x <= r.right && y >= r.top && y <= r.bottom)) continue;
-      overlapp += 1;
-      const el = document.elementFromPoint(x, y);
-      if (!el?.closest('.schema-move')) fel.push(`${Math.round(x)},${Math.round(y)} ${el?.tagName}.${el?.className}`);
-    }
-    return { overlapp, fel };
-  });
-  expect(overlapp).toBeGreaterThan(20);
-  expect(fel).toEqual([]);
+  const table = page.locator('.passtabell');
+  await table.evaluate(element => window.scrollTo({ top: element.getBoundingClientRect().top + scrollY + 160, behavior: 'instant' }));
+  await expect(panel.getByLabel('Dag')).toBeInViewport();
+  const rows = (await table.boundingBox())!, sidebar = (await panel.boundingBox())!;
+  expect(sidebar.x).toBeGreaterThanOrEqual(rows.x + rows.width);
+  expect(sidebar.y).toBeLessThan(rows.y + rows.height);
+  await panel.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(cell).toBeFocused();
   if (shots) await page.screenshot({ path: `${shots}/schema-passtabell-flytt-1280.png` });
 });
 

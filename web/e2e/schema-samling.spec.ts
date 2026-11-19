@@ -27,6 +27,8 @@ async function setup(page: Page, pupils = false) {
     await settings.getByRole('button', { name: 'Lägg till sal', exact: true }).click();
   }
   await settings.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
+  const berakning = page.getByRole('button', { name: 'Beräkning', exact: true });
+  if (await berakning.isVisible()) await berakning.click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await expect(page.getByText('Tid · Alla pass har tid', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Samlingsvy', exact: true }).click();
@@ -74,7 +76,8 @@ test('samlingsvy lägger till klass, lärare och sal med tangentbord och öppnar
   await view.getByLabel('Namn på arbetsvyn').fill('Klassens planering');
   await view.getByRole('button', { name: 'Spara som arbetsvy', exact: true }).click();
   await expect(view.getByText('Arbetsvyn Klassens planering är sparad i den här webbläsaren. Elevval följer inte med.')).toBeVisible();
-  await page.reload(); await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
+  await page.reload();
   await view.getByRole('combobox', { name: 'Arbetsvy', exact: true }).selectOption({ label: 'Klassens planering' });
   await expect(day).toHaveValue('0');
   await expect(view.getByRole('button', { name: `Ta bort ${teacher} från samlingsvyn`, exact: true })).toBeVisible();

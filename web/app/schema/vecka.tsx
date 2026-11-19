@@ -107,7 +107,7 @@ const at = (from: number, to: number, origin: number) => ({ '--start': from - or
 export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, length, detail, onGrab, onPick, overlays = [], bands = [], dimmed = [], gridRef, extra, locked, falt, namn = {},
   selected = [], onSelect, onLockDay, verktyg = 'markera', markering = null, markeringNamn, markeringHjalp, onMarkera, kalender, visning, trims = [], classId = null, datum, onOccurrence }: VeckaProps) {
   const { start, end, hours } = veckansSpann(days);
-  const [ram, setRam] = useState<{ left: number; top: number; width: number; height: number } | null>(null);
+  const [ram, setRam] = useState<{ left: number; top: number; width: number; height: number; lessons: string[] } | null>(null);
   const daterad = !!kalender && !!visning && visning.mode !== 'grundschema';
   const datedDays = daterad ? schemaVisningsDagar(kalender, visning!) : [];
   const occasions = daterad ? datum ? schemaDatumTillfallen(datum.forslag, visning!, datum.overrides).filter(o => all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
@@ -120,16 +120,19 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
     const ol = e.currentTarget, from = minutVid(ol, e.clientY);
     if (verktyg === 'markera' && onSelect) {
       const begin = { x: e.clientX, y: e.clientY };
-      const choose = (ev: PointerEvent) => {
+      const rectangle = (ev: PointerEvent, commit: boolean) => {
         if (Math.hypot(begin.x - ev.clientX, begin.y - ev.clientY) < 6) return;
         const left = Math.min(begin.x, ev.clientX), right = Math.max(begin.x, ev.clientX), top = Math.min(begin.y, ev.clientY), bottom = Math.max(begin.y, ev.clientY);
         const grid = ol.closest('.schema-week');
         const b = grid?.getBoundingClientRect();
-        if (b) setRam({ left: left - b.left, top: top - b.top, width: right - left, height: bottom - top });
         const ids = [...grid?.querySelectorAll<HTMLElement>('[data-lesson]') ?? []].flatMap(el => { const b = el.getBoundingClientRect(); return b.left < right && b.right > left && b.top < bottom && b.bottom > top ? [el.dataset.lesson!] : []; });
-        onSelect(e.shiftKey ? [...new Set([...selected, ...ids])] : ids);
+        const lessons = e.shiftKey ? [...new Set([...selected, ...ids])] : ids;
+        // Håll verktygsraden på plats medan förhandsmarkeringen dras över rutnätet.
+        if (commit) onSelect(lessons);
+        else if (b) setRam({ left: left - b.left, top: top - b.top, width: right - left, height: bottom - top, lessons });
       };
-      const end = (ev: PointerEvent) => { window.removeEventListener('pointermove', choose); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); if (ev.type === 'pointerup') choose(ev); setRam(null); };
+      const choose = (ev: PointerEvent) => rectangle(ev, false);
+      const end = (ev: PointerEvent) => { window.removeEventListener('pointermove', choose); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end); if (ev.type === 'pointerup') rectangle(ev, true); setRam(null); };
       window.addEventListener('pointermove', choose); window.addEventListener('pointerup', end); window.addEventListener('pointercancel', end);
       return;
     }
@@ -170,7 +173,7 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
               ...(o?.changed ? ['Ändrat tillfälle'] : []),
               ...(extra?.(original) ?? []).filter(x => !x.startsWith('kortare ') && !x.includes('i grundschemat')),
               ...('egenAktivitet' in l && l.egenAktivitet ? ['Grundschemaaktivitet'] : [])] : extra?.(l);
-            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={picked === original.id || selected.includes(original.id)} flagged={flagged.has(original.id)}
+            return <Pass key={l.id} lesson={l} origin={start} length={shownLength(l)} lane={lane.get(l.id)!} picked={picked === original.id || (ram?.lessons ?? selected).includes(original.id)} flagged={flagged.has(original.id)}
               dragging={!daterad && drop?.lesson === l.id} disabled={disabled} detail={detail(original)} rader={rader} occurrence={o} locked={locked?.(original)} onGrab={daterad ? () => undefined : onGrab} onPick={o && onOccurrence ? () => onOccurrence(o) : onPick}/>;
           })}
           {beside.map(({ b, l }, i) => {
@@ -190,7 +193,7 @@ export function Vecka({ days, lessons: all, picked, drop, flagged, disabled, len
           {lessons.length === 0 && <li className="schema-free">{daterad && !schoolDay ? reason ?? 'Ingen undervisning' : 'Inga pass'}</li>}</ol>
       </section>;
     })}
-    {ram && <span aria-hidden="true" className="schema-urvalsram" style={ram}/>}
+    {ram && <span aria-hidden="true" className="schema-urvalsram" style={{ left: ram.left, top: ram.top, width: ram.width, height: ram.height }}/>}
   </div>;
   return daterad ? <div className="schema-daterad-ram" style={{ '--date-days': columns.length } as CSSProperties}>{grid}</div> : grid;
 }

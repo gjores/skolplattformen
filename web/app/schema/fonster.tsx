@@ -63,12 +63,12 @@ export function useSchemaSynk<T, A>(options: {
     popupBlocked };
 }
 
-export function FonsterList<A>({ synk, title, children }: { synk: SchemaFonsterSynk<A>; title: string; children?: ReactNode }) {
+export function FonsterList<A>({ synk, title, children }: { synk: SchemaFonsterSynk<A>; title?: string; children?: ReactNode }) {
   const time = synk.lastUpdated === null ? '—' : new Intl.DateTimeFormat('sv-SE', { hour: '2-digit', minute: '2-digit' }).format(synk.lastUpdated);
-  return <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3" aria-label="Fönsterstatus">
-    <strong className="min-w-0 break-words">Schema · {title}</strong>
+  return <div className={title ? 'flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3' : 'flex flex-wrap items-center gap-2'} aria-label="Fönsterstatus">
+    {title && <strong className="min-w-0 break-words">Schema · {title}</strong>}
     <output className={`status-badge${synk.live ? ' success' : ' warning'}`}>{synk.live ? 'Live' : `Inte uppdaterat sedan ${time}`}</output>
-    {synk.role === 'host' && <span className="text-muted-foreground">Fönster 1 av {synk.windows}</span>}
+    {synk.role === 'host' && <span className="schema-note">Fönster 1 av {synk.windows}</span>}
     {!synk.live && <Button variant="outline" onClick={synk.refresh}>Läs om</Button>}
     {children}
   </div>;
@@ -98,8 +98,7 @@ export function FonsterMeny<A>({ synk, disabled = false, resource }: { synk: Sch
       <label htmlFor={nameId} className="flex flex-col gap-1">Namn på fönsterarbetsvyn<Input id={nameId} value={name} maxLength={80} onChange={e => setName(e.target.value)}/></label>
       <Button variant="outline" disabled={!name.trim() || synk.opened.length === 0} onClick={save}>Spara fönstren som arbetsvy</Button>
       <label className="flex flex-col gap-1">Öppna fönsterarbetsvy<select className="rounded-md border border-border bg-background p-2" value="" onChange={e => { const v = saved.find(s => s.id === e.target.value); if (v?.windows) synk.openSet(v.windows); }}><option value="">Välj arbetsvy</option>{saved.filter(s => s.windows?.length).map(s => <option key={s.id} value={s.id}>{s.name}</option>)}</select></label>
-    </div></details>}
-    <p className="schema-note basis-full">Webbläsaren kan behöva tillåta popup-fönster. Fönstren delar samma utkast och ångra. Lämna huvudfönstret öppet. Sparade fönster visar samma klass eller resurs när den finns i underlaget. Elevval följer inte med.</p>
+    </div><p className="schema-note">Fönstren delar samma utkast och ångra. Lämna huvudfönstret öppet och tillåt popup-fönster om det behövs. Sparade fönster visar samma klass eller resurs när den finns i underlaget. Elevval följer inte med.</p></details>}
     {synk.popupBlocked && <p role="alert">Fönstret kunde inte öppnas. Tillåt popup-fönster och försök igen.</p>}
     {message && <output>{message}</output>}
   </div>;

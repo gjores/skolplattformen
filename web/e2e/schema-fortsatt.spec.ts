@@ -12,6 +12,7 @@ const source = proposal as unknown as SchemaForslag, draftKey = `${source.unitId
 const parked = source.lessons.at(-1)!.id;
 const placements = (f: SchemaForslag): SchemaPlacement[] => f.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
 const panel = (page: Page) => page.locator('[data-schema-continue-panel]');
+const berakning = (page: Page) => page.getByRole('button', { name: 'Beräkning', exact: true });
 type ContinueRequest = SchemaKontrollRequest & { solveTimeMs: number };
 type Outcome = 'improve' | 'same' | 'fewer' | 'rule' | 'time' | 'error';
 
@@ -75,6 +76,7 @@ async function setup(page: Page) {
 async function start(page: Page) {
   const state = await setup(page); await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+  await berakning(page).click();
   await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeVisible();
   return state;
 }
@@ -89,6 +91,9 @@ test('räknetid har förval 30 sekunder och valt värde går till första beräk
   await expect(budget.locator('option')).toHaveText(['10 sekunder', '30 sekunder', '60 sekunder']);
   await budget.selectOption('60000');
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+  await expect(berakning(page)).toHaveAttribute('aria-expanded', 'false');
+  await expect(budget).toBeHidden();
+  await berakning(page).click();
   await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeVisible();
   expect(state.initial[0].solveTimeMs).toBe(60_000);
   await expect(page.getByText('Förslag · Mer räknetid kan behövas', { exact: true })).toBeVisible();
@@ -114,7 +119,8 @@ test('fortsättning granskas före ändring och kan användas, ångras och göra
   await expect(panel(page)).toHaveCount(0);
   await page.locator('.schema-undo').getByRole('button').first().click(); await saved(server, original);
   await page.getByRole('button', { name: 'Gör om', exact: true }).click(); await saved(server, candidate);
-  await page.reload(); await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeVisible();
+  await page.reload(); await berakning(page).click();
+  await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeVisible();
   expect(state.initial).toHaveLength(1); expect(state.continues).toHaveLength(1); expect(server.drafts.get(draftKey)?.placements).toEqual(candidate);
 });
 
@@ -183,6 +189,7 @@ test('handgjorda placeringar, lås och datumändringar används som utgångspunk
     placements: original, locks: [original.find(p => p.lesson === locked)!], intentional: [], datedOverrides: dates, activityTypes: [] });
   const { draft } = await schemaTestDraft(input, source); server.drafts.set(draftKey, draft);
   await page.goto(URL); await expect(page.getByRole('textbox', { name: 'Namn på utkastet', exact: true })).toHaveValue(input.name);
+  await berakning(page).click();
   await page.getByRole('button', { name: 'Fortsätt förbättra', exact: true }).click(); await expect(panel(page)).toBeVisible();
   expect(state.initial).toHaveLength(0); expect(state.continues[0].placements).toEqual(original);
   expect(state.continues[0].locks?.placements).toEqual(expect.arrayContaining([original.find(p => p.lesson === locked)!, original.find(p => p.lesson === dated.id)!]));

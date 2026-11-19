@@ -21,6 +21,7 @@ async function start(page: Page) {
     return route.fulfill({ headers, json: { ...kontroll.clash, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: f.grundFingerprint,
       violations: [], total: 0, metrics: { ...kontroll.clash.metrics, placed: body.placements.length, unplaced: f.lessons.length - body.placements.length } } });
   });
+  await page.route('**/api/schema/folj', route => route.fulfill({ headers, json: { ...folj.utanElever, contractVersion: SCHEMA_CONTRACT_VERSION, lesson: route.request().postDataJSON().lesson } }));
   await page.route('**/api/schema/lagen', route => route.fulfill({ headers, json: { ...folj.alla, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: f.grundFingerprint, lesson: route.request().postDataJSON().lesson } }));
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
@@ -36,7 +37,7 @@ test('ett klick visar passet och ändrar ingenting; flytt till exakt tid görs m
   const panel = page.getByRole('form', { name: 'Flytta pass' });
   await expect(panel.getByRole('heading', { name: new RegExp(`^${l.title} · `, 'u') })).toBeVisible();
   await expect(panel).toContainText(`Tid${['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'][l.day!]} ${clock(l.startMin!)}`);
-  await expect(panel).toContainText('Ett klick visar passet. Inget flyttas förrän du väljer Flytta hit.');
+  await expect(panel.getByRole('group', { name: 'Pröva ny tid eller sal' })).toBeVisible();
   await expect(panel.getByRole('status')).toHaveText('Passets nuvarande tid.');
   await expect(panel.getByRole('button', { name: 'Flytta hit' })).toBeDisabled();
   // Klicket gav ingen kontroll och inget ångra-steg.
@@ -60,6 +61,65 @@ test('ett klick visar passet och ändrar ingenting; flytt till exakt tid görs m
   expect([flyttad.day, flyttad.startMin]).toEqual([l.day, mal]);
 });
 
+test('arbetsytorna delar utkast och veckan lämnar plats åt passpanelen vid val', async ({ page, schemaDraftServer }, info) => {
+  const checks = await start(page);
+  const week = page.locator('.schema-week');
+  const navigation = page.getByRole('navigation', { name: 'Arbetsytor' });
+  const prepare = navigation.getByRole('button', { name: 'Förbered' });
+  const schedule = navigation.getByRole('button', { name: 'Lägg schema' });
+  const sidebar = page.getByRole('complementary', { name: 'Valt pass' });
+  const pass = week.locator(`[data-lesson="${visible[0].id}"]`);
+  await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
+  await expect(schedule).toHaveAttribute('aria-current', 'page');
+  await expect(sidebar).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Beräkning', exact: true })).toHaveAttribute('aria-expanded', 'false');
+  await page.evaluate(() => window.scrollTo(0, 0));
+  const wholeWeek = (await week.boundingBox())!;
+  expect(wholeWeek.y).toBeLessThan(page.viewportSize()!.height * 0.7);
+  const previousWrites = schemaDraftServer.saves.length, previousChecks = checks.length;
+
+  await pass.focus();
+  await page.keyboard.press('Enter');
+  await expect(sidebar.getByRole('combobox', { name: 'Dag', exact: true })).toBeFocused();
+  await expect(sidebar.getByRole('button', { name: 'Följ passet', exact: true })).toBeVisible();
+  await expect(sidebar.getByRole('button', { name: 'Lås passet', exact: true })).toBeEnabled();
+  const withPanel = (await week.boundingBox())!, panelBox = (await sidebar.boundingBox())!;
+  expect(withPanel.width).toBeLessThan(wholeWeek.width);
+  expect(panelBox.x).toBeGreaterThanOrEqual(withPanel.x + withPanel.width);
+  expect(panelBox.y).toBeLessThan(withPanel.y + withPanel.height);
+
+  await prepare.click();
+  await expect(prepare).toHaveAttribute('aria-current', 'page');
+  await expect(sidebar).toHaveCount(0);
+  await schedule.click();
+  await expect(schedule).toHaveAttribute('aria-current', 'page');
+  await expect(pass).toHaveAttribute('aria-pressed', 'true');
+  await expect(sidebar).toBeVisible();
+  await page.getByRole('button', { name: 'Till kontrollerna', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Kontroller och underlag', exact: true })).toBeFocused();
+  await sidebar.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(pass).toBeFocused();
+  await expect(sidebar).toHaveCount(0);
+  expect((await week.boundingBox())!.width).toBeCloseTo(wholeWeek.width, 0);
+  expect(checks.length).toBe(previousChecks);
+  expect(schemaDraftServer.saves.length).toBe(previousWrites);
+  await pass.click();
+  await sidebar.getByRole('button', { name: 'Lås passet', exact: true }).click();
+  await expect(pass).toContainText('Låst');
+  await expect(sidebar.getByRole('button', { name: 'Flytta hit', exact: true })).toBeDisabled();
+  await sidebar.getByRole('button', { name: 'Lås upp passet', exact: true }).click();
+  await expect(pass).not.toContainText('Låst');
+  if (process.env.SCHEMA_BILDER) {
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.screenshot({ path: info.outputPath('schema-oversikt.png') });
+  }
+  await sidebar.getByRole('button', { name: 'Följ passet', exact: true }).click();
+  const follow = page.getByRole('region', { name: /^Följ passet:/u });
+  await expect(follow.getByRole('heading', { name: /^Följ passet:/u })).toBeFocused();
+  await follow.getByRole('button', { name: 'Stäng', exact: true }).click();
+  await expect(pass).toBeFocused();
+});
+
 test('möjlighetskartan ritar sammanhängande fält, färre och större än de prövade starttiderna', async ({ page }) => {
   await start(page);
   const l = visible[0];
@@ -74,10 +134,13 @@ test('möjlighetskartan ritar sammanhängande fält, färre och större än de p
   expect(Math.max(...hojder)).toBeGreaterThanOrEqual(16);
 });
 
-test('panelen för valt pass vid 200 % text på 1280 px: inget ligger utanför sidan', async ({ page }) => {
+test('panelen för valt pass vid 200 % text staplas och ryms inom sidan', async ({ page }) => {
   await start(page);
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   await page.locator(`.schema-week [data-lesson="${visible[0].id}"]`).click();
-  await expect(page.getByRole('form', { name: 'Flytta pass' }).getByRole('button', { name: 'Senare start' })).toBeVisible();
+  const sidebar = page.getByRole('complementary', { name: 'Valt pass' });
+  await expect(sidebar.getByRole('button', { name: 'Senare start' })).toBeVisible();
+  const week = (await page.locator('.schema-week').boundingBox())!, panel = (await sidebar.boundingBox())!;
+  expect(panel.y).toBeGreaterThanOrEqual(week.y + week.height);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)).toBe(true);
 });
