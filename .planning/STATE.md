@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-FORTSATT och TMI installerade på 3012/3013; användarprov återstår. UXF-53 väntar provbeslut"
+current_plan: "SM-NAVIGATION första etappen genomförd lokalt. Användarprov återstår. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Fryst 66a4fb96 installerad efter användarens ja, PASS 7/7. 0 SQL, journal171 och alla80 utkastrevisioner samt1 salregisterrevision bevarade. Nästa: användarprov på3012."
-last_updated: "2026-11-18"
-last_activity: 2026-11-18
-last_activity_desc: "Installerat längre och fortsatt schemaberäkning samt kortare följpanel; ny app/motor på3012/3013 med alla kontroller PASS."
-state_head: 66a4fb969bc71548768014da59bac2b7f1aedb7a
+stopped_at: "Gemensam navigation och passpanel i e832bc04. Skyddat bygge klart. Ändringen väntar på installation och användarprov."
+last_updated: "2026-11-19"
+last_activity: 2026-11-19
+last_activity_desc: "Lägg schema har en kompakt arbetsyta med passpanel och genväg till kontrollerna."
+state_head: e832bc049e3b889e5d3d173de1e40bac7bbf54b7
 progress:
   total_phases: 8
   completed_phases: 3
@@ -29,6 +29,8 @@ schema_installation_status: fortsatt_passed_7_groups_zero_migrations_journal_171
 user_trial_status: new_room_and_map_issues_reported_workflow_proposed
 milestone_name: milestone
 ---
+
+**2026-11-19 – schemats navigation och passpanel:** [Första etappen](phases/05.2-schemamodul/05.2-SM-NAVIGATION-SUMMARY.md) ger kalendern mer plats, grupperar skola/läsår/period och sparbesked och flyttar passverktygen till en panel intill veckan och passtabellen. Beräkning och Till kontrollerna leder till befintliga verktyg. Byggd och prövad lokalt med syntetiska uppgifter. Installation och användarprov återstår. Granska tas upp i en senare etapp.
 
 **2026-11-18 – fortsatt beräkning och TMI installerade:** Användaren svarade **”ja”** på installation av fryst `66a4fb96` på 3012/3013. [Installationsjournal](phases/05.2-schemamodul/05.2-SM-INSTALL-2026-11-18.md), [rapport](../work/schema/results/fortsatt-66a4fb969b-install.json): **PASS 7/7**, ingen återgång. App 8/motor 5 kör samma frysta källa, 1490 produktfiler oförändrade. **0 migrationer**, samma 171-raders journal och katalog; alla **80** tidigare utkastrevisioner och salregistrets **1** revision bevarade med SHA256 av hela revisionsrader. Samma sessionshemlighet/token, alla 19 schemavägar nekar utan session, faktisk liten motorsökning med version 4/5, frö, lås och salfria pass PASS. [SM-FORTSATT](phases/05.2-schemamodul/05.2-SM-FORTSATT-SUMMARY.md) ger 10/30/60 sekunder (förval 30), referensstart och granskning/Ångra; [TMI](phases/05.2-schemamodul/05.2-SM-FOLJ-TMI-SUMMARY.md) kortar Följ passet. Föregående `f3869834` finns kvar för återgång. **Nästa: användarprov på 3012.** Ingen mänsklig acceptans, full ny autentiserad Worker/OIDC/PostgreSQL-kedja eller extern standardanslutning påstås; krav-/fasantal består.
 
