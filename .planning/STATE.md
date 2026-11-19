@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 har provval, deltagarförslag och förhandsgranskning i läsårskalendern. Krockberäkningen återstår."
+current_plan: "UXF-53 har en databaskatalog från Skolverket och skolvisa provkopplingar. Installation och krockberäkning återstår."
 status: in_progress
-stopped_at: "Kalenderflödet är installerat på 3012 och provat inloggat via wifi fram till förhandsgranskning. Användarprov på fysisk telefon och sparande återstår."
+stopped_at: "Den gemensamma provkatalogen är importerad och verifierad i isolerad PostgreSQL. Nästa steg för provmiljön är migration, import, installation och inloggat användarprov."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Verifierat inloggat provval, deltagarförslag och förhandsgranskning med telefonprofil via den lokala mobilingången."
-state_head: e77e378627d062a2b84f84f28695c89ad3b0c02a
+last_activity_desc: "Byggt och verifierat Skolverkets provkatalog med skolvisa kopplingar till prov och katalogrevision."
+state_head: c196ee2b2d8f1896b9d513f9dfa544e6541e04dc
 progress:
   total_phases: 8
   completed_phases: 3
@@ -22,14 +22,16 @@ worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: e77e378627d062a2b84f84f28695c89ad3b0c02a
-schema_candidate_revision: e77e378627d062a2b84f84f28695c89ad3b0c02a
-schema_candidate_status: nationella_prov_lasar_installed_lan_mobile_preview_verified
+schema_candidate_revision: c196ee2b2d8f1896b9d513f9dfa544e6541e04dc
+schema_candidate_status: nationella_prov_katalog_verified_in_isolated_database_and_browser
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: nationella_prov_lasar_passed_6_groups_zero_migrations_116_draft_and_1_room_revisions_preserved
 user_trial_status: schema_nationella_prov_lasar_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – gemensam provkatalog.** [UXF-53 Katalog](phases/05.2-schemamodul/05.2-SM-UXF-53-KATALOG-PLAN.md) ersätter den handlagda listan med importerade provversioner. Skolans bokning sparar kopplingen till vald katalogrevision, klass eller undervisningsgrupp. Import av 30 publicerade delprov verifierades mot Skolverket och i isolerad PostgreSQL. Två skolor sparade egna kopplingar till samma prov. Migrering, första import och installation i testmiljön på 3012 återstår.
 
 **2026-11-19 – provval i läsårskalendern.** [UXF-53 Läsår](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-PLAN.md) visar Skolverkets provdatum för 2026/27 och låter skolan lägga in eget provunderlag för andra år. Entydiga deltagarförslag förväljs och osäkra lämnas för aktivt val. Förhandsgranskningen visar varje bokning innan den sparas. Sparade datum markeras och Förbered läser samma provplan. 24 riktade kalenderfall på dator och telefon samt 18 Förbered-fall godkändes. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-INSTALL.md) med sex godkända kontrollgrupper och noll migrationer. Provval, klass- och gruppförslag samt förhandsgranskning verifierades inloggat före sparande.
 
