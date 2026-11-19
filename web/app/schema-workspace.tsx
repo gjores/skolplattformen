@@ -28,11 +28,13 @@ import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, r
 import { GranskaUtkast, type GranskaMal } from './schema/granska.tsx';
 import { JamforResurser } from './schema/jamfor-resurser.tsx';
 import { schemaForbered } from '@/lib/schema-forbered.ts';
+import { nationellaProvBokningsfel } from '@/lib/nationella-prov.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
 import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
 import { flyttSal } from '@/lib/schema-utan-sal.ts';
 import { medSkolsalar } from '@/lib/skolsalar.ts';
 import { useSkolsalar } from './schema/use-skolsalar.ts';
+import { useNationellaProv } from './schema/use-nationella-prov.ts';
 import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivitetsTyp, type SchemaAktivitet } from '@/lib/schema-aktiviteter.ts';
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
@@ -62,6 +64,7 @@ import { useSchemaMeny } from './schema/meny.tsx';
 import { Folj } from './schema/folj.tsx';
 import { Samling, type SamlingStart } from './schema/samling.tsx';
 import { Aktiviteter } from './schema/aktiviteter.tsx';
+import { NationellaProv } from './schema/nationella-prov.tsx';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
@@ -264,9 +267,27 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const gamlaPassregler = byterGrund ? villkor.egna.filter(r => r.slag === 'pass') : [];
   const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
   const redigeringStoppad = !spara.ready || sparstatus.phase === 'loading' || sparstatus.phase === 'stale';
+  const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
+  const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
   // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
   const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
+  const nationellaProv = useNationellaProv({ unitId, schoolYear, enabled: visaForbered, onSessionLost });
+  const provunderlag = useMemo(() => {
+    const underlag = nationellaProv.underlag;
+    if (!underlag || skolsalar.status !== 'ok') return underlag;
+    return { ...underlag, salar: skolsalar.register?.document.salar ?? [] };
+  }, [nationellaProv.underlag, skolsalar.status, skolsalar.register]);
+  const provbokningsfel = useMemo(() => {
+    const errors = new Map<string, string>();
+    if (provunderlag) {
+      for (const b of nationellaProv.document?.bokningar ?? []) {
+        const fel = nationellaProvBokningsfel(personalLookup ? b : { ...b, vakter: [] }, provunderlag);
+        if (fel) errors.set(b.id, fel);
+      }
+    }
+    return errors;
+  }, [nationellaProv.document, provunderlag, personalLookup]);
   // Justeras under renderingen (Reacts mönster för tillstånd som följer annat tillstånd); omvandlingen är idempotent och stannar efter ett varv.
   const medSkolansSalar = !fonster && skolsalar.status === 'ok' ? medSkolsalar(villkor, skolsalar.register?.document ?? null) : villkor;
   if (medSkolansSalar !== villkor) setVillkorLocal(medSkolansSalar);
@@ -276,13 +297,13 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     request: { unitId, schoolYear, period: base?.period ?? period, villkor: base ? villkor : berakningsVillkor }, extra: salNyckel, onSessionLost });
   const salbild = forslag && underlagLas.forslag && underlagLas.forslag.grundFingerprint === forslag.grundFingerprint ? underlagLas.forslag : null;
   const forutsattningar = salbild ?? forslag ?? underlagLas.forslag;
-  const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
-  const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
   const granskaScope = JSON.stringify([period, forslag?.grundFingerprint]);
   const granskaMal = granskatPass?.scope === granskaScope ? granskatPass.mal : null;
   const antalLas = Object.keys(utkast.locked).length;
   // Checklistan räknas bara när Förbered visas: den behövs inte i Lägg schema eller i utlyfta fönster och ska inte fördröja synk efter en flytt.
-  const forberedPunkter = useMemo(() => visaForbered ? schemaForbered({ kalla: forutsattningar, villkor, las: antalLas }) : [], [visaForbered, forutsattningar, villkor, antalLas]);
+  const forberedPunkter = useMemo(() => visaForbered ? schemaForbered({ kalla: forutsattningar, villkor, las: antalLas, provplan: nationellaProv.document,
+    provbokningsfel: provbokningsfel.size, provlasning: nationellaProv.reading ? 'laddar' : nationellaProv.readFailed ? 'fel' : provunderlag?.gallerGymnasiet === false ? 'ej-tillamplig' : 'klar' }) : [],
+    [visaForbered, forutsattningar, villkor, antalLas, nationellaProv.document, provbokningsfel, nationellaProv.reading, nationellaProv.readFailed, provunderlag?.gallerGymnasiet]);
   // Passen med aktuell salbild: var de ligger kommer från utkastet, vilka salar de får ha från den senaste läsningen.
   const passMedSal = useMemo(() => { if (!forslag) return []; if (!salbild) return forslag.lessons; const by = new Map(salbild.lessons.map(l => [l.id, l]));
     return forslag.lessons.map(l => { const u = by.get(l.id); return u ? { ...l, roomIds: u.roomIds, sal: u.sal } : l; }); }, [forslag, salbild]);
@@ -1412,7 +1433,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
           : <p className="empty-state">Lärarna visas när underlaget är läst.</p>}
       </Omrade>
       <Omrade id="aktiviteter" titel="Aktiviteter och nationella prov">
-        <p className="schema-note">Skolans återkommande aktiviteter läggs in här så att schemat läggs runt dem. Val av nationella prov är inte byggt; provtid räknas ännu inte in i ämnenas tid.</p>
+        {provunderlag?.gallerGymnasiet === false ? <p className="schema-note">Provplanen gäller gymnasieskolan.</p> : <NationellaProv schoolYear={schoolYear} forslag={forutsattningar} document={nationellaProv.document}
+          deltagare={provunderlag?.deltagare ?? []} salar={provunderlag?.salar ?? []} vakter={provunderlag?.vakter ?? []} bokningsfel={provbokningsfel}
+          skoldagar={provunderlag?.skoldagar} reading={nationellaProv.reading} saving={nationellaProv.saving} disabled={nationellaProv.readFailed}
+          error={nationellaProv.error} onSave={nationellaProv.onSave} onReload={nationellaProv.onReload}/>}
+        <h3 className="font-semibold">Återkommande aktiviteter</h3>
         {forutsattningar ? aktivitetsvy(forutsattningar) : <p className="empty-state">Aktiviteter kan läggas till när underlaget är läst.</p>}
       </Omrade>
     </>}

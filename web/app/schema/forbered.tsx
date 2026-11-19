@@ -91,7 +91,7 @@ export function ForutsattningarKort({ punkter, provning, kvalitet, kontrollera, 
     <div className="grid gap-4 md:grid-cols-2">
       {fraga(1, 'Finns uppgifterna?', saknas.length ? 'Behöver kompletteras' : 'Inga kända luckor', saknas.length ? 'warning' : 'success',
         saknas.length ? <ul className="list-disc pl-5">{saknas.map(p => <li key={p.id}>{p.nasta}.</li>)}</ul> : <p>Appen hittar inga saknade uppgifter i det den kan kontrollera.</p>,
-        'En saknad uppgift räknas inte som fritt utrymme. Lärartider och nationella prov kan appen inte kontrollera.')}
+        'Gå igenom lärarnas tillgänglighet och stäm av provplanen mot Skolverkets provdatum.')}
       {fraga(2, 'Hur stort är utrymmet?', hinder ? 'Hinder' : 'Inte beräknat', hinder ? 'warning' : '',
         <p>{hinder ? `${hinder} ` : ''}Antal möjliga tider och salar räknas inte före ett förslag.</p>, 'Få eller många alternativ säger inte om schemat blir bra.')}
       {fraga(3, 'Vad har prövats?', provning.typ === 'inte' ? 'Inte prövat' : provning.typ === 'kontroll' ? provning.fynd ? `Kontrollerat, ${provning.fynd} fynd` : 'Kontrollerat, inga påvisade hinder' : provning.inaktuellt ? 'Inaktuellt förslag' : 'Förslag beräknat',
@@ -104,7 +104,7 @@ export function ForutsattningarKort({ punkter, provning, kvalitet, kontrollera, 
     </div>
     <div className="rounded-md border border-border p-3 space-y-2" data-ta-fram>
       <h4 className="font-semibold">Ta fram schemaförslag</h4>
-      <p>{saknas.length ? `${saknas.map(p => p.nasta).join('. ')}. Ett förslag nu är ofullständigt: det som saknas läggs utan sal eller lärare och redovisas som lucka.` : 'Underlaget har inga kända luckor. Förslaget lägger tid och, där salbehov finns, sal.'}</p>
+      <p>{saknas.length ? `${saknas.map(p => p.nasta).join('. ')}. Ett förslag nu kan ha luckor i underlaget.` : 'Underlaget har inga kända luckor. Förslaget lägger tid och, där salbehov finns, sal.'}</p>
       <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={busy} onClick={kontrollera}>Kontrollera underlaget</Button>{taFram}</div>
     </div>
   </section>;

@@ -41,7 +41,7 @@ Checklistan har sju punkter. Varje punkt visar de aktuella värdena, vad appen h
 | Lektioner och block | Antal lektioner per undervisning, passlängder och samtidighetsblock från valmodulerna. |
 | Salar | Salregistret och varje undervisnings salbehov. |
 | Lärartider och fasta tider | Spärrad och tillåten tid per lärare, längsta dag, låsta pass och aktiviteter med fast tid. |
-| Aktiviteter och nationella prov | Skolans återkommande aktiviteter, till exempel mentorstid. |
+| Aktiviteter och nationella prov | Provplanen för läsåret och skolans återkommande aktiviteter, till exempel mentorstid. |
 | Regler och önskemål | Skoldag, lunch, raster, spärrar och marginaler. |
 | Mål för schemat | Vad schemamotorn väger: elevernas och lärarnas håltid, sena pass och samma ämne samma dag. |
 
@@ -176,6 +176,20 @@ Ett förslag redovisas med tre besked i stället för en samlad status:
 
 Att alla pass har tid betyder inte att salarna är klara.
 
+## Planera gymnasiets nationella prov
+
+Öppna **Schema → Förbered → Aktiviteter och nationella prov**. Provplanen sparas för vald skola och valt läsår. Du kan börja innan det finns ett schemautkast.
+
+1. Följ länken **Provdatum hos Skolverket** och kontrollera datum, provtid och delprov. Om provdatumen för läsåret ännu saknas, lämna provplanen öppen för genomgång.
+2. Välj **Planera prov** och ange provets namn och dagen du kontrollerade källan. Välj **Fast provtid** för prov som börjar kl. 09.00 på en bestämd dag, eller **Inom en provperiod** för en tid som skolan väljer inom perioden.
+3. Välj en eller flera klasser eller undervisningsgrupper. Kontrollera ämne och nivå för varje deltagare. När du sparar skapas en bokning per klass eller grupp.
+4. Välj sal från skolans salregister och provvakter om uppgifterna redan är klara. Kontrollera att salen och provvakterna är lediga på provdagen.
+5. När planen är klar väljer du **Markera som genomgånget**. Om skolan har kontrollerat att det inte finns några prov att planera väljer du **Bekräfta att inga prov ska planeras**.
+
+Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver provplanen gås igenom igen. Vid samtidig redigering visas en uppmaning att läsa in aktuell plan före nästa sparning.
+
+Provtiden redovisas separat från gymnasiets garanterade undervisningstid. Planera också hur undervisning, salar och personal ska fördelas på provdagarna. Provplanen ändrar ännu inga lektionstillfällen i schemat.
+
 ## Aktivitet för flera klasser
 
 Mentorstid eller tid i matsalen kan läggas in för många klasser på en gång.
@@ -248,7 +262,7 @@ Du kan göra detta utan att något schema har räknats fram:
 ## Begränsningar
 
 - **Önskad sal** sparas och visas men vägs inte av schemamotorn.
-- Val av nationella prov finns inte. Provtid räknas inte in i ämnenas tid.
+- Provplanen bygger på uppgifter som skolan kontrollerar hos Skolverket. Bokningarna granskas i Förbered och används ännu inte vid schemaberäkningen.
 - Målen för schemat går inte att prioritera om.
 - Appen kan inte avgöra om en lärare utan tidsvillkor har svarat. Läraren räknas som tillgänglig hela skoldagen.
 - En matsalsbokning i en serie reserverar salen för en klass i taget.

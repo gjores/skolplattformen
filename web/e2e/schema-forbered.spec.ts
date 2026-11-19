@@ -64,7 +64,7 @@ test('checklistan har sju punkter, en nästa uppgift och en genomgång som blir 
   await expect(page.locator('[data-checklista] li[data-punkt]')).toHaveCount(7);
   await expect(page.locator('[data-klara]')).toHaveText('0 av 7 genomgångna');
   await expect(punkt(page, 'salar')).toContainText(`3 salar · 0 av ${base.fordelning.length} undervisningar har salbehov · ${base.fordelning.length} obesvarade`);
-  await expect(punkt(page, 'aktiviteter')).toContainText('Nationella prov: val av prov är inte byggt');
+  await expect(punkt(page, 'aktiviteter')).toContainText('Provtid redovisas separat från undervisningstiden.');
   // Nästa uppgift är densamma som appens egen beräkning på samma underlag, och säger varför.
   const vantad = nastaUppgift(schemaForbered({ kalla: olagt(villkor), villkor, las: 0 }), {})!;
   await expect(page.locator(`[data-nasta="${vantad.omrade}"]`)).toContainText(vantad.text.slice(1));
@@ -96,7 +96,7 @@ test('checklistan har sju punkter, en nästa uppgift och en genomgång som blir 
   const kort = page.locator('[data-forutsattningar]');
   await expect(kort.locator('[data-fraga="1"]')).toContainText('Behöver kompletteras'); await expect(kort.locator('[data-fraga="2"]')).toContainText('Inte beräknat');
   await expect(kort.locator('[data-fraga="3"]')).toContainText('Inte prövat'); await expect(kort.locator('[data-fraga="4"]')).toContainText('Kvaliteten är inte prövad');
-  await expect(kort.locator('[data-ta-fram]')).toContainText('Ett förslag nu är ofullständigt');
+  await expect(kort.locator('[data-ta-fram]')).toContainText('Ett förslag nu kan ha luckor i underlaget');
   expect(solves).toHaveLength(0);
   // Kontrollera underlaget söker hinder utan att lägga något schema.
   await page.unroute('**/api/schema/diagnos');
@@ -121,7 +121,7 @@ test('en aktivitet läggs till före första förslaget utan beräkning', async 
   await page.route('**/api/schema/aktiviteter', route => { sparningar.push(1); return route.abort(); });
   await page.goto(URL);
   const yta = omrade(page, 'aktiviteter');
-  await expect(yta).toContainText('Val av nationella prov är inte byggt');
+  await expect(yta.getByRole('heading', { name: 'Återkommande aktiviteter' })).toBeVisible();
   await yta.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
   await dialog.getByLabel('Namn', { exact: true }).fill('Mentorstid prov');

@@ -5,6 +5,7 @@
  */
 import { checkSchemaVillkor, type SchemaForslag, type SchemaVillkor } from './schema-contract.ts';
 import { saltabellRader } from './schema-saltabell.ts';
+import type { NationellaProvDocument } from './nationella-prov.ts';
 
 export const FORBERED_OMRADEN = ['underlag', 'lektioner', 'salar', 'larartider', 'aktiviteter', 'regler', 'mal'] as const;
 export type ForberedOmrade = typeof FORBERED_OMRADEN[number];
@@ -12,7 +13,8 @@ export const FORBERED_TITEL: Record<ForberedOmrade, string> = { underlag: 'Under
   aktiviteter: 'Aktiviteter och nationella prov', regler: 'Regler och önskemål', mal: 'Mål för schemat' };
 /** `saknas`: uppgifter som saknas i området. `nasta`: uppgiften i klartext när något saknas. `atgard`: knappens text. */
 export type ForberedPunkt = { id: ForberedOmrade; titel: string; varden: string[]; kontroll: string[]; saknas: number; nasta: string | null; atgard: string; avtryck: string };
-export type ForberedIndata = { kalla: SchemaForslag | null; villkor: SchemaVillkor; /** Låsta pass i utkastet. */ las: number };
+export type ForberedIndata = { kalla: SchemaForslag | null; villkor: SchemaVillkor; /** Låsta pass i utkastet. */ las: number;
+  provplan?: NationellaProvDocument | null; provbokningsfel?: number; provlasning?: 'laddar' | 'klar' | 'fel' | 'ej-tillamplig' };
 export type Genomgang = Partial<Record<ForberedOmrade, { avtryck: string; at: string }>>;
 export type GenomgangsStatus = 'aterstar' | 'genomgangen' | 'andrat';
 
@@ -27,7 +29,7 @@ export function forberedAvtryck(value: unknown): string {
   return h.toString(16).padStart(8, '0');
 }
 
-export function schemaForbered({ kalla, villkor: v, las }: ForberedIndata): ForberedPunkt[] {
+export function schemaForbered({ kalla, villkor: v, las, provplan, provbokningsfel = 0, provlasning }: ForberedIndata): ForberedPunkt[] {
   const punkt = (id: ForberedOmrade, atgard: string, innehall: unknown, del: Pick<ForberedPunkt, 'varden' | 'kontroll'> & Partial<Pick<ForberedPunkt, 'saknas' | 'nasta'>>): ForberedPunkt =>
     ({ id, titel: FORBERED_TITEL[id], atgard, saknas: del.saknas ?? 0, nasta: del.nasta ?? null, varden: del.varden, kontroll: del.kontroll, avtryck: forberedAvtryck(innehall) });
   const olast = { varden: ['Underlaget är inte läst'], kontroll: ['Kan inte kontrolleras förrän underlaget är läst.'] };
@@ -72,9 +74,18 @@ export function schemaForbered({ kalla, villkor: v, las }: ForberedIndata): Forb
       ...(v.teacherMaxMinPerDay ? [`Högst ${v.teacherMaxMinPerDay / 60} timmar undervisning per dag`] : [])],
     kontroll: ['En lärare utan tidsvillkor räknas som tillgänglig hela skoldagen. Appen kan inte avgöra om det är ett svar eller en saknad uppgift.'] });
   // Aktiviteter och nationella prov.
-  const aktiviteter = punkt('aktiviteter', 'Visa', [v.aktiviteter ?? []], {
-    varden: [n(v.aktiviteter?.length ?? 0, 'egen aktivitet', 'egna aktiviteter'), 'Nationella prov: val av prov är inte byggt'],
-    kontroll: ['Egna aktiviteter räknas inte som timplanetid. Provtid räknas ännu inte in i ämnenas årsminuter.'] });
+  const bokningar = provplan?.bokningar ?? [];
+  const provuppgift = provlasning === 'ej-tillamplig' ? null : provlasning === 'fel' ? 'Läs in provplanen' : provlasning === 'laddar' ? 'Vänta på provplanen'
+    : provbokningsfel ? 'Kontrollera provbokningarna mot aktuellt underlag' : !provplan?.granskad ? 'Gå igenom nationella prov' : null;
+  const aktiviteter = punkt('aktiviteter', 'Visa', [v.aktiviteter ?? [], provplan ?? null, provbokningsfel, provlasning ?? null], {
+    varden: [n(v.aktiviteter?.length ?? 0, 'egen aktivitet', 'egna aktiviteter'), ...(provlasning === 'ej-tillamplig' ? [] : [
+      provlasning === 'laddar' ? 'Läser provplanen' : provlasning === 'fel' ? 'Provplanen gick inte att läsa'
+        : provplan?.granskad && !bokningar.length ? 'Inga prov bekräftade' : n(bokningar.length, 'provbokning', 'provbokningar')])],
+    kontroll: provlasning === 'ej-tillamplig' ? ['Egna aktiviteter räknas separat från undervisningstiden.']
+      : [provlasning === 'fel' || provlasning === 'laddar' ? 'Bokningarna kontrolleras när provplanen är läst.'
+      : provbokningsfel ? `${n(provbokningsfel, 'provbokning behöver', 'provbokningar behöver')} ses över.`
+        : provplan?.granskad ? 'Provplanen är genomgången.' : 'Provplanen behöver gås igenom.', 'Provtid redovisas separat från undervisningstiden.'],
+    saknas: provuppgift ? Math.max(1, provbokningsfel) : 0, nasta: provuppgift });
   // Regler och önskemål.
   const fel = checkSchemaVillkor(v), tid = v.egna.filter(r => r.slag !== 'larare' && (r.typ === 'sparrad' || r.typ === 'tillaten')).length, marginaler = v.egna.filter(r => r.typ === 'marginal').length;
   const utanTraff = kalla?.egnaUtanTraff.length ?? 0;

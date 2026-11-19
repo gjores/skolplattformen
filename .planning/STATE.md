@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "Veckans sökväljare och resursjämförelse i Följ passet installerade på 3012. UXF-53 väntar provbeslut."
+current_plan: "UXF-53 har en sparad provplan i Förbered. Läsårskalendern, provdatumvalet och krockberäkningen följer från frontend­skissen."
 status: in_progress
-stopped_at: "Veckans sökväljare och Följ passets resursjämförelse funktionsprovade inloggat på 3012 i cc131fd4. Eget användarprov återstår."
+stopped_at: "Provplanen verifierad lokalt. Installation på 3012 och provflödet i läsårskalendern återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Inloggat funktionsprov av veckans resursval och Följ passets jämförelserader."
+last_activity_desc: "Nationella prov i Förbered med avstämning mot Skolverkets källa och den bifogade frontend­skissen."
 state_head: cc131fd46df9b488c8df4dfe2102700a6601fd39
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: veckans_resursval_passed_6_groups_zero_migrations_11
 user_trial_status: schema_veckans_resursval_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – nationella prov i Förbered.** [UXF-53](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-PLAN.md) sparar gymnasiets daterade provbokningar per skola och läsår redan före första schemautkastet. Skissen styr den fortsatta kopplingen till läsårskalendern, val från källunderlag och förhandsgranskning per deltagare. Provtid redovisas separat från garanterad undervisningstid enligt Skolverket. Inget motorstöd för datumkrockar eller bortfall ännu. Den här etappen är verifierad lokalt. Installation och inloggat prov på 3012 återstår.
 
 **2026-11-19 – veckans resursval:** [Visa schema för](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL.md) samlar klass, undervisningsgrupp, lärare, sal och ämne. **Pass utan tid** ersätter Viloyta och passens längduppgifter finns i sidopanelen. 112 webbläsarfall och 88 domänprov godkändes över flera körningar. [Installerad och funktionsprovad inloggat på 3012](phases/05.2-schemamodul/05.2-SM-VECKANS-RESURSVAL-INSTALL.md). Byte mellan ämne, sal och grupp samt tillägg och borttagning i **Följ passet** behöll utkastets sparversion. Eget användarprov återstår.
 

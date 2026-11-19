@@ -17,8 +17,19 @@ test('sju områden i fast ordning, med värden och kontroll även innan något �
   assert.ok(p.every(x => x.varden.length && x.kontroll.length && /^[0-9a-f]{8}$/u.test(x.avtryck)));
   assert.match(id(p, 'salar').varden.join(' · '), new RegExp(`Inget salregister · 0 av ${fixtur.fordelning.length} undervisningar har salbehov · ${fixtur.fordelning.length} obesvarade`, 'u'));
   assert.equal(id(p, 'salar').saknas, fixtur.fordelning.length + 1);
-  assert.match(id(p, 'aktiviteter').varden[1], /inte byggt/u); assert.match(id(p, 'mal').kontroll[0], /går inte att välja ännu/u);
+  assert.equal(id(p, 'aktiviteter').nasta, 'Gå igenom nationella prov'); assert.match(id(p, 'mal').kontroll[0], /går inte att välja ännu/u);
   assert.match(id(p, 'larartider').kontroll[0], /kan inte avgöra/u);
+});
+test('provplanen räknas som en förutsättning och en sparad ändring upphäver områdets genomgång', () => {
+  const aktivitet = (provplan, provlasning = 'klar') => id(schemaForbered({ kalla: null, villkor: defaultSchemaVillkor(), las: 0, provplan, provlasning }), 'aktiviteter');
+  const osparad = aktivitet(null);
+  assert.equal(osparad.saknas, 1);
+  assert.equal(aktivitet(null, 'fel').nasta, 'Läs in provplanen');
+  assert.equal(aktivitet(null, 'ej-tillamplig').saknas, 0);
+  const bekräftad = aktivitet({ granskad: true, bokningar: [] });
+  assert.equal(bekräftad.saknas, 0);
+  assert.ok(bekräftad.varden.includes('Inga prov bekräftade'));
+  assert.equal(genomgangsStatus(bekräftad, { aktiviteter: { avtryck: osparad.avtryck, at: '2026-11-19T12:00:00Z' } }), 'andrat');
 });
 test('utan läst underlag går inget att kontrollera och underlaget är nästa uppgift', () => {
   const p = schemaForbered({ kalla: null, villkor: defaultSchemaVillkor(), las: 0 });

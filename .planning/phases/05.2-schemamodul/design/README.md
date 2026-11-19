@@ -14,7 +14,7 @@ Filerna är Design Component-sidor (`.dc.html`): vanlig HTML med inline-stilar. 
 | `Regler.dc.html` | Marginaler för pass | SM-MARGINAL | N95–N104 |
 | `Fonster.dc.html` | Flera fönster som uppdateras live | SM-FONSTER | O105–O109 |
 | `Aktiviteter.dc.html` | Aktiviteter utanför tjänstefördelningen | SM-AKTIVITETER (återkommande, formulär, lista, visning); förslagstabellen för inställda pass hör till senare paket med schema i tid | P110–P118 |
-| `Lasar.dc.html` | Läsåret med nationella prov (vald vy för att välja prov; provtid räknas som undervisning enligt beslut 2026-11-16) | Inte i denna spree: hör till läsårskalendern (05.1.1), kräver kontroll av Skolverkets underlag | P119–P120 |
+| `Lasar.dc.html` | Läsåret med provdagar, val av prov och förhandsgranskning per klass och grupp | Provplanen finns i Förbered. Kalender och datumval följer i [UXF-53](../05.2-SM-UXF-53-PROV-PLAN.md). | P119–P120 |
 
 ### Omgång 1 till UX-researchen (2026-11-16, designytans version `1794861092-ef28`)
 
@@ -33,7 +33,7 @@ Sex nya vyer för kedjan i [UX-researchens](../05.2-SM-UX-RESEARCH.md) genomför
 
 Användaren har samlat kopior av omgång 1 på en egen sida i designytan, **schemaläggningsprocessen** (filer med suffix, till exempel `Forbered-c6t4.dc.html`; innehållet är identiskt med originalen på sida 1).
 
-Förbereds checklista har efter användarens granskning sju punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Aktiviteter och nationella prov, Regler och önskemål samt Mål för schemat. Nationella prov räknas som undervisning i provets ämne och väljs före första schemaförslaget (användarbeslut 2026-11-16).
+Förbereds checklista har efter användarens granskning sju punkter: Underlag, Lektioner och block, Salar, Lärartider och fasta tider, Aktiviteter och nationella prov, Regler och önskemål samt Mål för schemat. Nationella prov kopplas till ämne och nivå före första schemaförslaget. Provtiden redovisas separat från garanterad undervisningstid enligt [Skolverkets vägledning](https://www.skolverket.se/styrning-och-ansvar/regler-och-ansvar/ansvar-i-skolfragor/undervisningstid-larotider-och-schema).
 
 Statusytor `warning-surface` och `destructive-surface` används som i tabellen nedan. Inspektör, uppgiftsöversikt, återkopplingskort och Vad händer om är nya mönster som ska föras in i Skolplattan när beteendet bestäms.
 
