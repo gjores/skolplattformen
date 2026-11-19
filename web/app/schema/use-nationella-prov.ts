@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '@/lib/server-client.ts';
 import {
-  NATIONELLA_PROV_VERSION, parseNationellaProvDocument, parseNationellaProvRegister, parseNationellaProvUnderlag,
+  NATIONELLA_PROV_VERSION, parseNationellaProvDocument, parseNationellaProvRegister, parseNationellaProvUnderlag, skapaProvId,
   type NationellaProvDocument, type NationellaProvRegister, type NationellaProvUnderlag,
 } from '@/lib/nationella-prov.ts';
 
@@ -55,7 +55,7 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
       setError('Det senaste sparandet saknar kvittens. Läs in provplanen innan du sparar andra ändringar.');
       return false;
     }
-    const next = previous ?? { commandId: crypto.randomUUID(), expectedRevision: state.register?.revision ?? 0, document: normalized, key };
+    const next = previous ?? { commandId: skapaProvId(), expectedRevision: state.register?.revision ?? 0, document: normalized, key };
     pending.current = next; inFlight.current = true;
     setSaving(true); setError(null);
     try {

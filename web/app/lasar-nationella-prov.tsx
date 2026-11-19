@@ -10,7 +10,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { formatDate, formatLong } from '@/lib/lasar-model.ts';
 import {
-  NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, parseNationellaProvDocument,
+  NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, parseNationellaProvDocument, skapaProvId,
   type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning, type Provniva, type Provtermin, type Provterminer,
 } from '@/lib/nationella-prov.ts';
 import {
@@ -245,7 +245,7 @@ function Provform({ schoolYear, underlag, document, prov, disabled, onPreview, o
       const deltagare = rad.deltagare, vald = rad.alternativ.find(option => option.ref === valtAlternativ(rad));
       if (!vald) return fail(`Välj undervisning för ${deltagare.name}.`);
       const mal = { slag: deltagare.slag, ref: deltagare.ref };
-      const bokning = { ...base, id: crypto.randomUUID(), mal, undervisning: vald.ref };
+      const bokning = { ...base, id: skapaProvId(), mal, undervisning: vald.ref };
       const fel = nationellaProvBokningsfel(bokning, underlag);
       if (fel) return fail(fel);
       const duplicate = taken.some(b => b.namn === namn && b.datum === datum && b.startMin === startMin

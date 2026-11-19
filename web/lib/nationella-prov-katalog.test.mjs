@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { NationellaProvError, parseNationellaProvUnderlag } from './nationella-prov.ts';
+import { NationellaProvError, parseNationellaProvUnderlag, skapaProvId } from './nationella-prov.ts';
 import { provDatumTillatet, provDeltagarforslag, provNivaNyckel, provTidTillaten, provvalForLasar } from './nationella-prov-katalog.ts';
 import { nationellaProvDeltagare } from './nationella-prov-deltagare.ts';
 import { findSubject } from './syllabus.ts';
@@ -13,6 +13,14 @@ const t = (ref, nivaer = [eng1], terminer = { ht: true, vt: true }) => ({ ref: '
 const klass = (id, ...undervisningar) => ({ slag: 'klass', ref: uid(id), name: 'Klass ' + id, undervisningar });
 const grupp = (id, klassRefs, ...undervisningar) => ({ slag: 'grupp', ref: uid(id), name: 'Grupp ' + id, klassRefs, undervisningar });
 const katalog = deltagare => ({ deltagare, gallerGymnasiet: true, salar: [], vakter: [], skoldagar: null });
+
+test('lokal HTTP kan skapa UUID v4 från kryptografiskt slumpade byte', t => {
+  Object.defineProperty(crypto, 'randomUUID', { configurable: true, value: undefined });
+  t.after(() => { delete crypto.randomUUID; });
+  const slump = t.mock.method(crypto, 'getRandomValues', bytes => bytes.fill(0xff));
+  assert.equal(skapaProvId(), 'ffffffff-ffff-4fff-bfff-ffffffffffff');
+  assert.equal(slump.mock.callCount(), 1);
+});
 
 test('gymnasiets publicerade delprov hör till 2026/27 och nivåerna finns i styrdokumentskatalogen', () => {
   const prov = provvalForLasar(2026);

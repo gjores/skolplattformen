@@ -10,7 +10,7 @@ import { Field, FieldDescription, FieldLabel, FieldLegend } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning } from '@/lib/nationella-prov.ts';
+import { NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, skapaProvId, type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning } from '@/lib/nationella-prov.ts';
 import type { SchemaForslag, SchemaResurs } from '@/lib/schema-contract.ts';
 
 const EMPTY: NationellaProvDocument = { granskad: false, bokningar: [] };
@@ -255,7 +255,7 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
     const salId = faltText(fields, 'sal') || null, kontrolleradDatum = faltText(fields, 'kontrollerad');
     const nya = selected.map(({ slag, ref }): NationellProvbokning => {
       const key = malNyckel({ slag, ref });
-      const bookingId = bokning?.id ?? ids.current.get(key) ?? crypto.randomUUID();
+      const bookingId = bokning?.id ?? ids.current.get(key) ?? skapaProvId();
       ids.current.set(key, bookingId);
       return { id: bookingId, namn, undervisning: valda[key], mal: { slag, ref }, datum, startMin, slutMin, tidsval, salId, vakter: provvakter, kontrolleradDatum };
     });

@@ -72,6 +72,15 @@ test('app får bara sin loopback-origin och appcookie; kroppslös utloggning bev
   assert.equal(f.calls[0].options.body,undefined);
 });
 
+test('bara appen får webbläsarens kontextversion',async t=>{
+  const f=await fixture(t);
+  const headers={Origin:f.origin,'X-Context-Epoch':'3'};
+  assert.equal((await f.send('/api/lasar/nationella-prov/lasa',{method:'POST',headers})).status,200);
+  assert.equal(f.calls[0].options.headers.get('x-context-epoch'),'3');
+  assert.equal((await f.send('/realms/skolplattform-test/login-actions/authenticate',{method:'POST',headers})).status,200);
+  assert.equal(f.calls[1].options.headers.get('x-context-epoch'),null);
+});
+
 test('OIDC-navigation behåller kodad originalcallback men visar mobilursprunget',async t=>{
   const location='http://host.docker.internal:8180/realms/skolplattform-test/protocol/openid-connect/auth?redirect_uri=http%3A%2F%2F127.0.0.1%3A3012%2Fapi%2Fauth%2Fcallback&state=synthetic';
   const f=await fixture(t,()=>new Response(null,{status:302,headers:{Location:location}}));

@@ -77,6 +77,7 @@ export function createMobilePreviewServer({origin,accessKey,expiresAt=Date.now()
     const target=new URL(base===OTP?'/otp':url.pathname+url.search,base);
     const headers=new Headers();
     for(const name of ['accept','accept-language','content-type','user-agent','sec-fetch-dest','sec-fetch-mode','sec-fetch-site']) if(request.headers[name]) headers.set(name,request.headers[name]);
+    if(base===APP && typeof request.headers['x-context-epoch']==='string') headers.set('X-Context-Epoch',request.headers['x-context-epoch']);
     const upstreamCookies=cookies.filter(c=>!c.startsWith(COOKIE+'='));
     if(upstreamCookies.length&&base!==OTP) headers.set('Cookie',upstreamCookies.join('; '));
     if(request.headers.origin) headers.set('Origin',base===OTP?IDP:base);
