@@ -13,8 +13,8 @@
 // protected-lasar-teaching.tsx. Med Alla behöriga skolor (unitId null) visar vyn
 // arbetssättskortet för huvudmannen och listan med kalenderstatus per skola
 // (protected-lasar-overview.tsx, plan 12).
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { AlertTriangle, CalendarCheck, CheckCheck, CircleCheck, ClipboardCheck, MessageSquareText, RotateCcw, Send, Undo2, Unlock, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import { api, ApiError } from '@/lib/server-client.ts';
@@ -44,6 +44,7 @@ import {
   type LasarTarget,
 } from '@/lib/lasar-contract.ts';
 import { lasarOps } from '@/lib/lasar-ops.ts';
+import { nationellaProvBokningsfel } from '@/lib/nationella-prov.ts';
 import {
   addDays,
   allIssues,
@@ -67,6 +68,9 @@ import {
   type SchoolYear,
 } from '@/lib/lasar-model.ts';
 import { LasarCalendar, selectionFacts, statusPlural, useCalendarSelection, type ClickModifiers, type DayMark } from './lasar-calendar.tsx';
+import { LasarNationellaProv } from './lasar-nationella-prov.tsx';
+import { NationellaProv } from './schema/nationella-prov.tsx';
+import { useNationellaProv } from './schema/use-nationella-prov.ts';
 import {
   DEMO_BOUNDARY,
   LasarActionDialog,
@@ -284,6 +288,24 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
   const olderSelected = Boolean(selected && latest && selected.versionId !== latest.versionId);
   const review = read?.review ?? [];
   const openReview = review.filter((r) => !r.resolved).length;
+  const provAktivt = shownScope === scope && phase === 'ready' && !frameTarget && types.includes('GY') && (actorRole === 'rektor' || actorRole === 'skoladministrator');
+  const prov = useNationellaProv({ unitId, schoolYear, enabled: provAktivt, onSessionLost });
+  useUnsavedChanges('navigation-block:lasar-prov', prov.saving);
+  const provBokningar = prov.document?.bokningar;
+  const provdagar = useMemo(() => {
+    const datum = new Map<string, number>();
+    for (const b of provBokningar ?? []) datum.set(b.datum, (datum.get(b.datum) ?? 0) + 1);
+    return datum;
+  }, [provBokningar]);
+  const provfel = useMemo(() => {
+    const fel = new Map<string, string>();
+    if (!prov.underlag) return fel;
+    for (const b of provBokningar ?? []) {
+      const besked = nationellaProvBokningsfel(actorRole === 'rektor' ? b : { ...b, vakter: [] }, prov.underlag);
+      if (besked) fel.set(b.id, besked);
+    }
+    return fel;
+  }, [prov.underlag, provBokningar, actorRole]);
   /** D-04: möjliga måldagar för ogranskade kopierade dagar får `ly-review`. */
   const reviewDates = new Set(review.filter((r) => !r.resolved).flatMap(reviewCandidates));
   /** A-06, D-05, D-06: jämförelse med ramen i skolvy och arbetssättet ram. */
@@ -294,6 +316,12 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
     if (reviewDates.has(d.date)) marks.push({ className: 'ly-review', title: 'att granska efter kopieringen' });
     const frameDiff = comparison?.days.get(d.date);
     if (frameDiff) marks.push({ className: 'ly-frame-day', title: `skiljer sig från ramen: ramen ${frameValueText(frameDiff.frame)}`, mark: <i key="frame" className="ly-frame-mark" aria-hidden="true" /> });
+    const antalProvbokningar = provAktivt && !prov.readFailed ? provdagar.get(d.date) : undefined;
+    if (antalProvbokningar) marks.push({
+      className: 'ly-provdag',
+      title: `nationellt prov, ${antalProvbokningar} ${antalProvbokningar === 1 ? 'bokning' : 'bokningar'}`,
+      mark: <ClipboardCheck key="prov" className="ly-provmark" aria-hidden="true" />,
+    });
     if (!marks.length) return undefined;
     return {
       className: marks.map((m) => m.className).filter(Boolean).join(' '),
@@ -824,11 +852,14 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
               />
               <LasarLegend
                 summary={summary}
-                extra={(isLocked || openReview > 0 || comparison) && (
+                extra={(isLocked || openReview > 0 || comparison || provAktivt) && (
                   <>
                     {comparison && <span className="ly-legend-item ly-frame-legend"><i aria-hidden="true" /> Skiljer sig från ramen</span>}
                     {isLocked && <span className="ly-legend-item ly-past"><i aria-hidden="true" /> Passerad dag (låst)</span>}
                     {openReview > 0 && <span className="ly-legend-item ly-review-legend"><i aria-hidden="true" /> Att granska</span>}
+                    {provAktivt && <a href="#lasar-provplan" className="ly-legend-item text-link">
+                      <ClipboardCheck className="size-4" aria-hidden="true" /> Nationella prov
+                    </a>}
                   </>
                 )}
               />
@@ -853,6 +884,13 @@ function LasarCalendarWorkspace({ unitId, schoolName, schoolYear, schoolTypes, o
               <PlanBoundary text={BOUNDARY} />
             </>
           )}
+          {provAktivt && prov.underlag?.gallerGymnasiet !== false && <div id="lasar-provplan" className="ly-provplan">
+            <LasarNationellaProv schoolYear={schoolYear} {...prov} />
+            {!prov.reading && !prov.readFailed && prov.underlag && <NationellaProv schoolYear={schoolYear} baraSparade
+              document={prov.document} deltagare={prov.underlag.deltagare} salar={prov.underlag.salar} vakter={prov.underlag.vakter}
+              skoldagar={prov.underlag.skoldagar} bokningsfel={provfel} reading={prov.reading} saving={prov.saving}
+              error={prov.error} onSave={prov.onSave} onReload={prov.onReload} />}
+          </div>}
         </section>
         {phase === 'ready' && sy && summary && (
           <aside className="ly-side">

@@ -163,6 +163,24 @@
   color: var(--warning-foreground);
 }
 
+.protected-lasar .ly-day .ly-provmark {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  width: 10px;
+  height: 10px;
+  color: var(--primary);
+  pointer-events: none;
+}
+
+.protected-lasar .ly-provplan {
+  display: grid;
+  min-width: 0;
+  gap: 16px;
+  padding: 16px clamp(16px, 2.5vw, 28px) 24px;
+  scroll-margin-top: 16px;
+}
+
 /* A-06, D-05, D-06: jämförelse med huvudmannens ram. Ramskillnad i --ring, ramens datum i --warning-foreground. */
 .protected-lasar .ly-frame-mark {
   position: absolute;

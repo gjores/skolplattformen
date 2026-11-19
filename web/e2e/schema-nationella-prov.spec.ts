@@ -65,7 +65,7 @@ async function angeProv(page: Page) {
   await provplan(page).getByRole('button', { name: 'Planera prov' }).click();
   const dialog = page.getByRole('dialog', { name: 'Planera nationellt prov' });
   await dialog.getByLabel('Provets namn').fill(PROV);
-  await dialog.getByLabel('Kontrollerat hos Skolverket').fill('2026-10-19');
+  await dialog.getByLabel('Underlag kontrollerat').fill('2026-10-19');
   await dialog.getByLabel('Provdatum').fill(DATUM);
   await dialog.getByLabel('Slut', { exact: true }).fill('11:00');
   await dialog.getByRole('checkbox', { name: /NA26/u }).check();

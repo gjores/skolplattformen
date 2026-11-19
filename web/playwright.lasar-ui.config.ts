@@ -11,7 +11,7 @@ const chromium=process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE??(existsSync('/opt/pw-
 const {defaultBrowserType:_engine,...iphone}=devices['iPhone 13'];void _engine;
 const phoneEngine=chromium?{browserName:'chromium' as const,launchOptions:{executablePath:chromium}}:{};
 const desktopEngine=chromium?{launchOptions:{executablePath:chromium}}:{};
-export default defineConfig({...base,testMatch:/lasar-(ui|start|basis)\.spec\.ts/,timeout:60_000,outputDir:`${out}/lasar-ui`,
+export default defineConfig({...base,testMatch:/lasar-(ui|start|basis|nationella-prov)\.spec\.ts/,timeout:60_000,outputDir:`${out}/lasar-ui`,
  projects:[
   {name:'desktop',use:{...devices['Desktop Chrome'],viewport:{width:1440,height:900},...desktopEngine}},
   {name:'desktop-small',use:{...devices['Desktop Chrome'],viewport:{width:1024,height:768},...desktopEngine}},

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 har en sparad provplan i Förbered. Läsårskalendern, provdatumvalet och krockberäkningen följer från frontend­skissen."
+current_plan: "UXF-53 har provval, deltagarförslag och förhandsgranskning i läsårskalendern. Krockberäkningen återstår."
 status: in_progress
-stopped_at: "Provplanen är installerad och flerurvalet provat inloggat på 3012. Användarprov med sparande och provflödet i läsårskalendern återstår."
+stopped_at: "Provplanen i Förbered är installerad på 3012. Kalenderflödet har lokala verifieringsprov och väntar på installation."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Provplanen installerad på 3012 med två migrationer och verifierat flerurval med rektorsuppdrag."
+last_activity_desc: "Provval i läsårskalendern, förslag per ämne och nivå, förhandsgranskning och sparande i samma provplan."
 state_head: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: nationella_prov_passed_8_groups_2_migrations_116_dra
 user_trial_status: schema_nationella_prov_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-19 – provval i läsårskalendern.** [UXF-53 Läsår](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-PLAN.md) visar Skolverkets provdatum för 2026/27 och låter skolan lägga in eget provunderlag för andra år. Entydiga deltagarförslag förväljs och osäkra lämnas för aktivt val. Förhandsgranskningen visar varje bokning innan den sparas. Sparade datum markeras och Förbered läser samma provplan. 24 riktade kalenderfall på dator och telefon samt 18 Förbered-fall godkändes. Det installerade bygget på 3012 är fortsatt `935c3c3b`.
 
 **2026-11-19 – nationella prov i Förbered.** [UXF-53](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-PLAN.md) sparar gymnasiets daterade provbokningar per skola och läsår redan före första schemautkastet. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-INSTALL.md) passerade åtta kontrollgrupper och tillämpade två migrationer. Ett inloggat prov valde två klasser och en undervisningsgrupp i samma formulär och avslutade före sparande. Skissen styr den fortsatta kopplingen till läsårskalendern, val från källunderlag och förhandsgranskning per deltagare. Provtid redovisas separat från garanterad undervisningstid enligt Skolverket. Datumkrockar och bortfall av undervisning återstår.
 

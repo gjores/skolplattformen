@@ -24,6 +24,7 @@
 //   mal=ram   huvudmannens ram i stället för skolan (D-08)
 //   last=1   arbetssättet är låst (läsåret har börjat)
 //   klasser=1   klasser, årskurser och timplaner för panelen Undervisning (A-09)
+//   prov=1   gymnasiekalender för komponentprov av nationella prov. Provrutterna simuleras via Playwright.
 //   vy=oversikt   kalenderstatus per skola (D-09, avsnitt 14) ur /api/lasar/oversikt;
 //                 Öppna kalendern visar Läsår & skoldagar för vald skola
 //   vy=alla   Läsår & skoldagar med Alla behöriga skolor: arbetssättskortet (huvudman) och listan;
@@ -78,7 +79,9 @@ import '../../app/tjanst.css';
 
 const tid = (n: number) => `51a50000-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const params = new URLSearchParams(location.search);
-const UNIT = tid(3), YEAR = Number(params.get('ar') ?? 2026), SCHOOL = 'Syntetiska grundskolan', TYPES = ['GR'];
+const provskola = params.get('prov') === '1';
+const UNIT = provskola ? '52a10000-0000-4000-8000-000000000001' : tid(3);
+const YEAR = Number(params.get('ar') ?? 2026), SCHOOL = provskola ? 'Syntetiska gymnasiet' : 'Syntetiska grundskolan', TYPES = [provskola ? 'GY' : 'GR'];
 const HASH = `sha256:${'0'.repeat(64)}`;
 let role = (params.get('roll') ?? 'rektor') as 'rektor' | 'huvudman' | 'lasare' | 'admin';
 const startStatus = (params.get('status') ?? 'utkast') as LasarDbStatus;
@@ -468,7 +471,7 @@ async function route(path: string, body: unknown): Promise<Reply> {
 const realFetch = window.fetch.bind(window);
 window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
   const url = new URL(typeof input === 'string' ? input : input instanceof URL ? input.href : input.url, location.href);
-  if (!url.pathname.startsWith('/api/lasar/')) return realFetch(input, init);
+  if (!url.pathname.startsWith('/api/lasar/') || url.pathname.startsWith('/api/lasar/nationella-prov/')) return realFetch(input, init);
   const reply = await route(url.pathname, JSON.parse(typeof init?.body === 'string' ? init.body : '{}'));
   return new Response(JSON.stringify(reply.json), { status: reply.status, headers: { 'Content-Type': 'application/json' } });
 };

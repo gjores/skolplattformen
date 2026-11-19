@@ -47,6 +47,7 @@ function ProvdatumLank() {
 
 type Props = {
   schoolYear: number;
+  baraSparade?: boolean;
   forslag?: SchemaForslag | null;
   deltagare?: NationellaProvDeltagare[];
   salar?: NationellaProvUnderlag['salar'];
@@ -63,7 +64,7 @@ type Props = {
 };
 
 /** Läsårets provplan och granskning från Förbered. */
-export function NationellaProv({ schoolYear, forslag, deltagare = [], salar = [], vakter = [], skoldagar = null, bokningsfel,
+export function NationellaProv({ schoolYear, baraSparade = false, forslag, deltagare = [], salar = [], vakter = [], skoldagar = null, bokningsfel,
   document: saved, reading, saving, error, disabled, onSave, onReload }: Props) {
   const [redigering, setRedigering] = useState<Redigering | null>(null);
   const [bort, setBort] = useState<NationellProvbokning | null>(null);
@@ -84,35 +85,37 @@ export function NationellaProv({ schoolYear, forslag, deltagare = [], salar = []
     : lasarPlan.granskad ? (bokningar.length ? 'Genomgånget' : 'Inga prov bekräftade') : 'Återstår att gå igenom';
   const ton = statusTillganglig && avvikelser ? 'warning' : statusTillganglig && lasarPlan.granskad ? 'success' : '';
   const uppdatera = (bokningar: NationellProvbokning[]) => onSave({ granskad: false, bokningar });
-  const visaFel = error && !redigering && !bort;
+  const visaFel = error && !redigering && !bort && !baraSparade;
   const bortKonflikt = bokningskonflikt(bort, bokningar);
 
   return <div className="space-y-4 rounded-lg border border-border bg-card p-4" aria-busy={reading || saving} data-nationella-prov>
     <div className="flex flex-wrap items-start justify-between gap-3">
       <div className="min-w-0 space-y-1">
         <div className="flex flex-wrap items-center gap-2">
-          <h3 className="font-semibold">Provplan {lasarsDatum(schoolYear)}</h3>
+          <h3 className="font-semibold">{baraSparade ? 'Sparade provbokningar' : `Provplan ${lasarsDatum(schoolYear)}`}</h3>
           <output className={`status-badge ${ton}`}>{status}</output>
         </div>
-        <p className="text-sm text-muted-foreground">Kontrollera provdatumen och boka en tid för varje klass eller undervisningsgrupp som ska skriva.</p>
-        <ProvdatumLank/>
+        {!baraSparade && <>
+          <p className="text-sm text-muted-foreground">Kontrollera provdatumen och boka en tid för varje klass eller undervisningsgrupp som ska skriva.</p>
+          <ProvdatumLank/>
+        </>}
       </div>
-      <Button ref={laggTill} type="button" className={CONTROL} disabled={skrivskydd || deltagare.length === 0 || bokningar.length >= 200} onClick={() => setRedigering('ny')}>
+      {!baraSparade && <Button ref={laggTill} type="button" className={CONTROL} disabled={skrivskydd || deltagare.length === 0 || bokningar.length >= 200} onClick={() => setRedigering('ny')}>
         <PlusIcon aria-hidden="true"/> Planera prov
-      </Button>
+      </Button>}
     </div>
     {visaFel && <div className="flex flex-wrap items-center gap-2">
       <p className="text-sm text-destructive" role="alert">{error}</p>
       <Button type="button" variant="outline" className={CONTROL} disabled={reading || saving} onClick={onReload}>Läs om provplanen</Button>
     </div>}
-    {!reading && !lasfel && deltagare.length === 0 && <p className="schema-note">Det behövs en klass eller undervisningsgrupp med undervisning i schemaunderlaget för att planera prov.</p>}
-    {!reading && !lasfel && deltagare.length > 0 && skoldagar === null && <p className="schema-note">Läsårskalendern saknas i underlaget. Kontrollera själv att provdatumet är en skoldag.</p>}
+    {!baraSparade && !reading && !lasfel && deltagare.length === 0 && <p className="schema-note">Det behövs en klass eller undervisningsgrupp med undervisning i schemaunderlaget för att planera prov.</p>}
+    {!baraSparade && !reading && !lasfel && deltagare.length > 0 && skoldagar === null && <p className="schema-note">Läsårskalendern saknas i underlaget. Kontrollera själv att provdatumet är en skoldag.</p>}
     {bokningar.length >= 200 && <p className="schema-note">Provplanen innehåller maximalt 200 bokningar. Ändra eller ta bort en bokning för att göra plats för fler.</p>}
     {bokningar.length > 0 ? (
       <Table aria-label="Planerade nationella prov">
         <TableHeader><TableRow>
           <TableHead>Prov och deltagare</TableHead><TableHead>Tid</TableHead><TableHead>Sal och provvakter</TableHead>
-          <TableHead>Kontrollerat hos Skolverket</TableHead><TableHead><span className="sr-only">Åtgärder</span></TableHead>
+          <TableHead>Underlag kontrollerat</TableHead><TableHead><span className="sr-only">Åtgärder</span></TableHead>
         </TableRow></TableHeader>
         <TableBody>{bokningar.map(b => (
           <TableRow key={b.id}>
@@ -143,7 +146,7 @@ export function NationellaProv({ schoolYear, forslag, deltagare = [], salar = []
       {lasarPlan.granskad ? 'Det är bekräftat att inga nationella prov ska planeras för läsåret.' : 'Inga prov är planerade för läsåret.'}</p>}
     <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p>Provbokningarna visas här i Förbered. Anpassa schemapassen manuellt på provdagarna.</p>
+        <p>{baraSparade ? 'Bokningarna visas också i Förbered.' : 'Provbokningarna visas också i läsårskalendern.'} Anpassa schemapassen manuellt på provdagarna.</p>
         <p>Provtid redovisas separat från den garanterade undervisningstiden.</p>
       </div>
       <Button type="button" variant="outline" className={CONTROL} disabled={skrivskydd || (avvikelser && !lasarPlan.granskad)}
@@ -285,7 +288,7 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
           <div className="grid gap-3 sm:grid-cols-2">
             <Field><FieldLabel htmlFor={`${id}-namn`}>Provets namn</FieldLabel>
               <Input id={`${id}-namn`} className={CONTROL} name="namn" placeholder="Till exempel Engelska nivå 1, delprov B" defaultValue={bokning?.namn} maxLength={160} required/></Field>
-            <Field><FieldLabel htmlFor={`${id}-kontrollerad`}>Kontrollerat hos Skolverket</FieldLabel>
+            <Field><FieldLabel htmlFor={`${id}-kontrollerad`}>Underlag kontrollerat</FieldLabel>
               <Input id={`${id}-kontrollerad`} className={CONTROL} name="kontrollerad" type="date" min="2000-01-01" max={idag} defaultValue={bokning?.kontrolleradDatum} required/>
               <FieldDescription>Ange dagen då du kontrollerade uppgifterna. <ProvdatumLank/></FieldDescription></Field>
           </div>

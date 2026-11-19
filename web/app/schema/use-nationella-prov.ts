@@ -15,7 +15,7 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
 }) {
   const [state, setState] = useState<State | null>(null), [attempt, setAttempt] = useState(0);
   const [reading, setReading] = useState(true), [saving, setSaving] = useState(false), [error, setError] = useState<string | null>(null);
-  const [readFailed, setReadFailed] = useState(false);
+  const [readFailed, setReadFailed] = useState(false), [needsReload, setNeedsReload] = useState(false);
   const pending = useRef<Pending | null>(null), inFlight = useRef(false), mustReload = useRef(false);
   const lost = useRef(onSessionLost);
   useEffect(() => { lost.current = onSessionLost; }, [onSessionLost]);
@@ -34,12 +34,12 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
       if (raw.contractVersion !== NATIONELLA_PROV_VERSION || raw.unitId !== unitId || raw.schoolYear !== schoolYear) throw new Error();
       const register = parseNationellaProvRegister(raw.register, schoolYear), underlag = parseNationellaProvUnderlag(raw.underlag);
       pending.current = null; mustReload.current = false;
-      setState({ register, underlag }); setError(null); setReadFailed(false);
+      setState({ register, underlag }); setError(null); setReadFailed(false); setNeedsReload(false);
     }).catch(caught => {
       if (abort.signal.aborted) return;
       mustReload.current = true;
       if (caught instanceof ApiError && caught.status === 401) { lost.current(); return; }
-      setReadFailed(true);
+      setReadFailed(true); setNeedsReload(true);
       setError('Provplanen kunde inte läsas. Läs in den igen.');
     }).finally(() => { if (!abort.signal.aborted) setReading(false); });
     return () => abort.abort();
@@ -73,6 +73,7 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
         if (caught.status === 401) { lost.current(); return false; }
         if (caught.status === 409) {
           pending.current = null; mustReload.current = true;
+          setNeedsReload(true);
           setError(caught.reason === 'nationella_prov_underlag_changed'
             ? 'Uppgifterna stämmer inte längre med skolans underlag. Läs in provplanen och kontrollera bokningen.'
             : 'Provplanen har ändrats. Läs in den nya versionen innan du sparar igen.');
@@ -91,5 +92,5 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
       setSaving(false);
     }
   }
-  return { document: state?.register?.document ?? null, underlag: state?.underlag ?? null, reading, saving, error, readFailed, onSave, onReload };
+  return { document: state?.register?.document ?? null, underlag: state?.underlag ?? null, reading, saving, error, readFailed, needsReload, onSave, onReload };
 }

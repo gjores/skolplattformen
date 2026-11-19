@@ -18,27 +18,72 @@ export type NationellProvbokning = {
 
 export type NationellaProvDocument = { granskad: boolean; bokningar: NationellProvbokning[] };
 export type NationellaProvRegister = { revision: number; document: NationellaProvDocument; savedAt: string };
-export type NationellaProvDeltagare = { slag: NationellProvbokning['mal']['slag']; ref: string; name: string; undervisningar: { ref: string; title: string }[] };
+export type Provniva = { amne: string; niva: string; namn: string };
+export type Provtermin = 'ht' | 'vt';
+export type Provterminer = Record<Provtermin, { start: string; end: string }>;
+type Provundervisning = {
+  ref: string;
+  title: string;
+  nivaer?: Provniva[];
+  /** Saknad uppgift för en termin betyder att undervisningstiden är okänd. */
+  terminer?: Partial<Record<Provtermin, boolean>>;
+};
+export type NationellaProvDeltagare = {
+  slag: NationellProvbokning['mal']['slag'];
+  ref: string;
+  name: string;
+  undervisningar: Provundervisning[];
+  /** Klasskopplingar i undervisningsorganisationen, inga uppgifter om enskilda elever. */
+  klassRefs?: string[];
+};
 export type NationellaProvUnderlag = {
   gallerGymnasiet: boolean;
   deltagare: NationellaProvDeltagare[];
   salar: { id: string; name: string }[];
   vakter: { ref: string; name: string }[];
   skoldagar: string[] | null;
+  /** Samma kalenderversion som skoldagarna. */
+  terminer?: Provterminer;
 };
 
 export class NationellaProvError extends Error {}
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const SAL = /^sal-[1-9]\d{0,8}$/u;
 const UNDERVISNING = /^(?:undervisning|samlasning):[^\p{Cc}]+$/u;
+const PROVKOD = /^\p{L}[\p{L}\p{N}_-]{0,79}$/u;
 const CONTROL = /\p{Cc}/u;
 const bad = (): never => { throw new NationellaProvError(); };
 
-function exact(value: unknown, keys: string[]): Record<string, unknown> {
+function exact(value: unknown, keys: string[], optional: string[] = []): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return bad();
   const r = value as Record<string, unknown>;
-  if (Object.keys(r).length !== keys.length || keys.some(key => !Object.hasOwn(r, key))) return bad();
+  if (keys.some(key => !Object.hasOwn(r, key)) || Object.keys(r).some(key => !keys.includes(key) && !optional.includes(key))) return bad();
   return r;
+}
+
+function provkod(value: unknown): string {
+  return typeof value === 'string' && PROVKOD.test(value) ? value : bad();
+}
+
+function parseProvundervisning(value: unknown): Provundervisning {
+  const u = exact(value, ['ref', 'title'], ['nivaer', 'terminer']);
+  const ref = text(u.ref, 500);
+  if (!UNDERVISNING.test(ref)) return bad();
+  const result: Provundervisning = { ref, title: text(u.title, 500) };
+  if (Object.hasOwn(u, 'nivaer')) {
+    if (!Array.isArray(u.nivaer) || u.nivaer.length < 1 || u.nivaer.length > 32) return bad();
+    result.nivaer = u.nivaer.map(value => {
+      const n = exact(value, ['amne', 'niva', 'namn']);
+      return { amne: provkod(n.amne), niva: provkod(n.niva), namn: text(n.namn, 500) };
+    });
+    if (new Set(result.nivaer.map(n => `${n.amne}:${n.niva}`)).size !== result.nivaer.length) return bad();
+  }
+  if (Object.hasOwn(u, 'terminer')) {
+    const t = exact(u.terminer, [], ['ht', 'vt']);
+    if (Object.values(t).some(value => typeof value !== 'boolean')) return bad();
+    result.terminer = t as Partial<Record<Provtermin, boolean>>;
+  }
+  return result;
 }
 
 function uuid(value: unknown): string {
@@ -113,16 +158,20 @@ export function parseNationellaProvRegister(raw: unknown, schoolYear: number): N
 }
 
 export function parseNationellaProvUnderlag(raw: unknown): NationellaProvUnderlag {
-  const r = exact(raw, ['gallerGymnasiet', 'deltagare', 'salar', 'vakter', 'skoldagar']);
+  const r = exact(raw, ['gallerGymnasiet', 'deltagare', 'salar', 'vakter', 'skoldagar'], ['terminer']);
   if (typeof r.gallerGymnasiet !== 'boolean' || !Array.isArray(r.deltagare) || !Array.isArray(r.salar) || !Array.isArray(r.vakter)
     || r.skoldagar !== null && !Array.isArray(r.skoldagar)) return bad();
   const deltagare = r.deltagare.map((value): NationellaProvDeltagare => {
-    const d = exact(value, ['slag', 'ref', 'name', 'undervisningar']);
+    const d = exact(value, ['slag', 'ref', 'name', 'undervisningar'], ['klassRefs']);
     if (d.slag !== 'klass' && d.slag !== 'grupp' || !Array.isArray(d.undervisningar)) return bad();
-    return { slag: d.slag, ref: uuid(d.ref), name: text(d.name, 500), undervisningar: d.undervisningar.map(value => {
-      const u = exact(value, ['ref', 'title']), ref = text(u.ref, 500);
-      return UNDERVISNING.test(ref) ? { ref, title: text(u.title, 500) } : bad();
-    }) };
+    const result: NationellaProvDeltagare = { slag: d.slag, ref: uuid(d.ref), name: text(d.name, 500),
+      undervisningar: d.undervisningar.map(parseProvundervisning) };
+    if (Object.hasOwn(d, 'klassRefs')) {
+      if (d.slag !== 'grupp' || !Array.isArray(d.klassRefs)) return bad();
+      result.klassRefs = d.klassRefs.map(uuid);
+      if (new Set(result.klassRefs).size !== result.klassRefs.length) return bad();
+    }
+    return result;
   });
   const salar = r.salar.map(value => {
     const room = exact(value, ['id', 'name']);
@@ -132,7 +181,15 @@ export function parseNationellaProvUnderlag(raw: unknown): NationellaProvUnderla
     const person = exact(value, ['ref', 'name']);
     return { ref: uuid(person.ref), name: text(person.name, 500) };
   });
-  return { gallerGymnasiet: r.gallerGymnasiet, deltagare, salar, vakter,
+  const span = (raw: unknown) => {
+    const t = exact(raw, ['start', 'end']);
+    const start = date(t.start, '2000-01-01', '2101-12-31'), end = date(t.end, '2000-01-01', '2101-12-31');
+    return start <= end ? { start, end } : bad();
+  };
+  const term = Object.hasOwn(r, 'terminer') ? exact(r.terminer, ['ht', 'vt']) : null;
+  const terminer = term ? { ht: span(term.ht), vt: span(term.vt) } : undefined;
+  if (terminer && terminer.ht.end >= terminer.vt.start) return bad();
+  return { gallerGymnasiet: r.gallerGymnasiet, deltagare, salar, vakter, ...(terminer && { terminer }),
     skoldagar: r.skoldagar?.map(value => date(value, '2000-01-01', '2101-12-31')) ?? null };
 }
 

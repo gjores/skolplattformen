@@ -1,35 +1,13 @@
 /** Katalogen hämtas med samma skolenhets- och läsårsmandat som källvyerna. Inga elevuppgifter lämnar servern. */
 import type { NationellaProvUnderlag } from '../nationella-prov.ts';
 import { schemaTime } from '../schema-kalender.ts';
-import { findSubject, label } from '../syllabus.ts';
-import type { TjanstPlanRead } from '../tjanst-contract.ts';
+import { nationellaProvDeltagare } from '../nationella-prov-deltagare.ts';
 import type { Context } from './authz.ts';
 import type { Tx } from './db.ts';
 import { logEvent } from './events.ts';
 import { lasarRead } from './lasar.ts';
 import { readSkolsalar } from './skolsalar.ts';
 import { personalRead, planRead } from './tjanst.ts';
-
-export function nationellaProvDeltagare(plan: Pick<TjanstPlanRead, 'classes' | 'groups'>): NationellaProvUnderlag['deltagare'] {
-  const klasser = plan.classes.filter(c => c.link?.schoolform === 'gymnasium');
-  const andraKlasser = new Set(plan.classes.filter(c => c.link && c.link.schoolform !== 'gymnasium').map(c => c.classId));
-  return [
-    ...klasser.flatMap(c => {
-      const undervisningar = c.needs.filter(n => !n.organizationPending && !n.rowKey.startsWith('block:'))
-        .map(n => ({ ref: `undervisning:${n.sourceKey}`, title: n.label }));
-      return undervisningar.length ? [{ slag: 'klass' as const, ref: c.classId, name: c.name, undervisningar }] : [];
-    }),
-    ...(plan.groups ?? []).flatMap(g => {
-      if (g.stale || !g.subjectCode || !g.levelCode || g.classIds.some(id => andraKlasser.has(id))) return [];
-      const subject = findSubject(g.subjectCode);
-      if (subject?.typeOfSyllabus === 'COURSE_SYLLABUS') return [];
-      const title = subject && subject.items.some(item => item.code === g.levelCode)
-        ? label({ subject: subject.code, item: g.levelCode, version: subject.version })
-        : `${g.label} (${g.subjectCode} · ${g.levelCode})`;
-      return [{ slag: 'grupp' as const, ref: g.groupId, name: g.name, undervisningar: [{ ref: `undervisning:${g.sourceKey}`, title }] }];
-    }),
-  ].sort((a, b) => a.slag.localeCompare(b.slag) || a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref));
-}
 
 export async function readNationellaProvUnderlag(tx: Tx, ctx: Context, unitId: string, schoolYear: number): Promise<NationellaProvUnderlag> {
   const target = { kind: 'school' as const, unitId };
@@ -56,7 +34,9 @@ export async function readNationellaProvUnderlag(tx: Tx, ctx: Context, unitId: s
     }
   }
   const time = schemaTime(lasar.body, plan.body.classes.map(c => c.classId));
+  const { ht, vt } = time.terms;
   return { gallerGymnasiet: true, deltagare: nationellaProvDeltagare(plan.body), salar,
     vakter: [...vakter].map(([ref, name]) => ({ ref, name })).sort((a, b) => a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref)),
+    ...(ht.span && vt.span && { terminer: { ht: ht.span, vt: vt.span } }),
     skoldagar: time.dates?.filter(d => d.schoolDay && d.term !== null).map(d => d.date) ?? null };
 }

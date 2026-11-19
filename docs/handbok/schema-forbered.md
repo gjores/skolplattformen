@@ -178,10 +178,10 @@ Att alla pass har tid betyder inte att salarna är klara.
 
 ## Planera gymnasiets nationella prov
 
-Öppna **Schema → Förbered → Aktiviteter och nationella prov**. Provplanen sparas för vald skola och valt läsår. Du kan börja innan det finns ett schemautkast.
+Öppna **Schema → Förbered → Aktiviteter och nationella prov**. Provplanen sparas för vald skola och valt läsår. Du kan börja innan det finns ett schemautkast. I [Läsår & skoldagar](./lasar-och-skoldagar.md#planera-gymnasiets-nationella-prov) kan du välja delprov, få deltagarförslag och förhandsgranska bokningarna i samma provplan.
 
 1. Följ länken **Provdatum hos Skolverket** och kontrollera datum, provtid och delprov. Om provdatumen för läsåret ännu saknas, lämna provplanen öppen för genomgång.
-2. Välj **Planera prov** och ange provets namn och dagen du kontrollerade källan. Välj **Fast provtid** för prov som börjar kl. 09.00 på en bestämd dag, eller **Inom en provperiod** för en tid som skolan väljer inom perioden.
+2. Välj **Planera prov** och ange provets namn och dagen du kontrollerade provunderlaget. Välj **Fast provtid** för prov som börjar kl. 09.00 på en bestämd dag, eller **Inom en provperiod** för en tid som skolan väljer inom perioden.
 3. Välj en eller flera klasser eller undervisningsgrupper. Kontrollera ämne och nivå för varje deltagare. När du sparar skapas en bokning per klass eller grupp.
 4. Välj sal från skolans salregister och provvakter om uppgifterna redan är klara. Kontrollera att salen och provvakterna är lediga på provdagen.
 5. När planen är klar väljer du **Markera som genomgånget**. Om skolan har kontrollerat att det inte finns några prov att planera väljer du **Bekräfta att inga prov ska planeras**.
