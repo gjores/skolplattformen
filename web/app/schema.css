@@ -65,6 +65,20 @@
 .schema-lesson span { display: block; color: var(--muted-foreground); }
 .schema-day .schema-free { display: none; color: var(--muted-foreground); font-size: .875rem; }
 
+.schema-terminsram { min-width: 0; max-width: 100%; overflow-x: auto; border-radius: var(--radius); }
+.schema-terminsram:focus-visible { outline: 3px solid var(--ring); outline-offset: 2px; }
+.schema-terminsvecka { min-width: calc(var(--days) * 13rem + 7rem); }
+.schema-terminsvecka .schema-hours { position: sticky; inset-inline-start: 0; z-index: 4; margin-top: 3.25rem; background: var(--card); }
+.schema-terminspar { min-width: 0; }
+.schema-terminspar h3 { height: 1.625rem; text-align: center; font-size: .875rem; font-weight: 600; }
+.schema-terminskolumner { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .25rem; }
+.schema-terminskolumn h4 { height: 1.625rem; text-align: center; font-size: .75rem; font-weight: 600; color: var(--muted-foreground); }
+.schema-terminskolumn abbr { text-decoration: none; }
+.schema-terminskolumn .schema-lesson { overflow-wrap: anywhere; }
+.schema-terminskolumn .schema-lesson time, .schema-terminskolumn .schema-lesson strong { display: block; }
+.schema-terminskolumn .schema-lesson time { margin-inline-end: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.schema-terminstom { padding: .5rem; color: var(--muted-foreground); font-size: .75rem; }
+
 .schema-workspace .schema-list { display: grid; gap: .5rem; padding: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); }
 .schema-workspace .schema-list h2 { font-size: 1rem; font-weight: 600; }
 .schema-workspace .schema-list ul { margin: 0; padding-left: 1.25rem; font-size: .875rem; }
@@ -145,11 +159,11 @@
 /* Smal yta: dagarna staplas och passen blir en lista i tidsordning. */
 .schema-workspace { container-type: inline-size; row-gap: .625rem; }
 @container (max-width: 760px) {
-  .schema-week { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
-  .schema-hours { display: none; }
-  .schema-day ol { height: auto; display: grid; gap: .375rem; background: none; }
-  .schema-lesson { position: static; width: auto; height: auto; font-size: .875rem; }
-  .schema-lesson button { padding: .5rem .75rem; }
+  .schema-week:not(.schema-terminsvecka) { grid-template-columns: minmax(0, 1fr); gap: 1rem; }
+  .schema-week:not(.schema-terminsvecka) .schema-hours { display: none; }
+  .schema-day:not(.schema-terminskolumn) ol { height: auto; display: grid; gap: .375rem; background: none; }
+  .schema-week:not(.schema-terminsvecka) .schema-lesson { position: static; width: auto; height: auto; font-size: .875rem; }
+  .schema-week:not(.schema-terminsvecka) .schema-lesson button { padding: .5rem .75rem; }
   .schema-day .schema-free { display: block; }
   .schema-falt, .schema-band, .schema-workspace .schema-lagerval { display: none; }
   .schema-workspace .schema-filter, .schema-workspace .schema-filter label { width: 100%; }

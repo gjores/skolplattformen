@@ -3,6 +3,7 @@
 .schema-workspace .schema-datumval .schema-note { margin-top:.375rem; }
 .schema-datumval-rad, .schema-datumintervall { display:flex; flex-wrap:wrap; align-items:center; gap:.75rem; min-width:0; }
 .schema-datumval-termin { display:flex; flex-wrap:wrap; gap:.25rem; min-width:0; }
+.schema-datumval-termin button { min-height:var(--control-height,44px); height:auto; max-width:100%; white-space:normal; }
 .schema-datumval .schema-note { margin:.75rem 0 0; }
 .schema-datumval-lagen { display:flex; flex-wrap:wrap; gap:0; border:1px solid var(--input); border-radius:var(--radius); overflow:hidden; height:auto; }
 .schema-datumval-lagen [data-slot="toggle-group-item"] { min-height:var(--control-height,44px); height:auto; padding:.5rem .875rem; white-space:normal; border-radius:0; border-inline-end:1px solid var(--border); }
