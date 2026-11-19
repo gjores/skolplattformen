@@ -5,11 +5,11 @@ current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
 current_plan: "UXF-53 har provval, deltagarförslag och förhandsgranskning i läsårskalendern. Krockberäkningen återstår."
 status: in_progress
-stopped_at: "Provplanen i Förbered är installerad på 3012. Kalenderflödet har lokala verifieringsprov och väntar på installation."
+stopped_at: "Kalenderflödet är installerat på 3012 och provat inloggat fram till förhandsgranskning. Användarprov med sparande återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Provval i läsårskalendern, förslag per ämne och nivå, förhandsgranskning och sparande i samma provplan."
-state_head: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
+last_activity_desc: "Installerat och inloggat provval, deltagarförslag och förhandsgranskning i läsårskalendern på 3012."
+state_head: b94a1251a24df4086e4a2c41590edb5537676b33
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,17 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
-schema_candidate_revision: 935c3c3bcd8fca6a2a38aea2589ce7a92e669735
-schema_candidate_status: nationella_prov_installed_authenticated_selection_verified
+schema_runtime_revision: b94a1251a24df4086e4a2c41590edb5537676b33
+schema_candidate_revision: b94a1251a24df4086e4a2c41590edb5537676b33
+schema_candidate_status: nationella_prov_lasar_installed_authenticated_preview_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: nationella_prov_passed_8_groups_2_migrations_116_draft_and_1_room_revisions_preserved
-user_trial_status: schema_nationella_prov_installed_awaiting_user_trial
+schema_installation_status: nationella_prov_lasar_passed_6_groups_zero_migrations_116_draft_and_1_room_revisions_preserved
+user_trial_status: schema_nationella_prov_lasar_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – provval i läsårskalendern.** [UXF-53 Läsår](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-PLAN.md) visar Skolverkets provdatum för 2026/27 och låter skolan lägga in eget provunderlag för andra år. Entydiga deltagarförslag förväljs och osäkra lämnas för aktivt val. Förhandsgranskningen visar varje bokning innan den sparas. Sparade datum markeras och Förbered läser samma provplan. 24 riktade kalenderfall på dator och telefon samt 18 Förbered-fall godkändes. Det installerade bygget på 3012 är fortsatt `935c3c3b`.
+**2026-11-19 – provval i läsårskalendern.** [UXF-53 Läsår](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-PLAN.md) visar Skolverkets provdatum för 2026/27 och låter skolan lägga in eget provunderlag för andra år. Entydiga deltagarförslag förväljs och osäkra lämnas för aktivt val. Förhandsgranskningen visar varje bokning innan den sparas. Sparade datum markeras och Förbered läser samma provplan. 24 riktade kalenderfall på dator och telefon samt 18 Förbered-fall godkändes. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-UXF-53-LASAR-INSTALL.md) med sex godkända kontrollgrupper och noll migrationer. Provval, klass- och gruppförslag samt förhandsgranskning verifierades inloggat före sparande.
 
 **2026-11-19 – nationella prov i Förbered.** [UXF-53](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-PLAN.md) sparar gymnasiets daterade provbokningar per skola och läsår redan före första schemautkastet. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-UXF-53-PROV-INSTALL.md) passerade åtta kontrollgrupper och tillämpade två migrationer. Ett inloggat prov valde två klasser och en undervisningsgrupp i samma formulär och avslutade före sparande. Skissen styr den fortsatta kopplingen till läsårskalendern, val från källunderlag och förhandsgranskning per deltagare. Provtid redovisas separat från garanterad undervisningstid enligt Skolverket. Datumkrockar och bortfall av undervisning återstår.
 
