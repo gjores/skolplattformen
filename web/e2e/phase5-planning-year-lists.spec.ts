@@ -416,7 +416,8 @@ test('L04: kombinerade årsfilter, omvänd sort, tomresultat och Rensa filter', 
   const initial = q({ grade: 1, cohortRelation: 'new', archive: 'active' }); const data = await enter(page, initial) as PlanningList;
   expect(data.count).toBeGreaterThan(0); expect(data.rows.every(row => row.relativeYear === 1 && row.relation === 'new' && !row.archived && row.plan?.status === 'utkast')).toBe(true);
   const sorted = nextList(page, input => input.sort === 'name' && input.direction === 'desc');
-  if (info.project.use.isMobile) await region(page).getByRole('button', { name: 'Byt till fallande sortering' }).click();
+  const cardSort = region(page).getByRole('button', { name: 'Byt till fallande sortering' });
+  if (await cardSort.isVisible()) await cardSort.click();
   else await region(page).getByRole('columnheader', { name: /^Utbildning/ }).getByRole('button').click();
   const reverse = await parsed(await sorted);
   expect(reverse.rows.map(row => row.offeringId)).toEqual([...data.rows].reverse().map(row => row.offeringId)); await rowsMatch(page, reverse);

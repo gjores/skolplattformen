@@ -24,3 +24,32 @@
 .planning-context-controls>strong{font-size:.8125rem;font-weight:600;color:var(--muted-foreground,#526075);text-transform:uppercase;letter-spacing:.04em}
 .planning-context-scope{font-size:.75rem;color:var(--muted-foreground,#526075)}
 @media(max-width:600px){.planning-context{top:0;border-radius:.5rem;padding:.5rem .65rem}.planning-context-controls{gap:.4rem}.planning-context-scope{display:none}.planning-context-controls>label{flex-basis:100%}.planning-context-years{flex-basis:auto;flex-grow:1}.planning-context-controls>button{font-size:.75rem;max-width:7rem}}
+
+.planning-context.planning-context-annual {
+  padding: .75rem 1rem; margin-bottom: 1rem;
+  background: var(--card); border-color: var(--border); border-radius: var(--radius-lg);
+}
+.planning-context-annual .planning-context-controls { align-items: center; }
+.planning-context-annual label, .planning-context-annual .planning-context-years label {
+  display: flex; flex-direction: row; align-items: center; gap: .5rem;
+}
+.planning-context-annual label > span { color: var(--muted-foreground); font-size: .8125rem; }
+.planning-context-annual .planning-context-school { flex: 1 1 12rem; max-width: none; }
+.planning-context-annual select { padding-inline: .65rem 2rem; font-size: .875rem; }
+.planning-context-annual .planning-context-years {
+  align-items: center; gap: 0; flex: 0 1 19rem; border: 1px solid var(--border);
+  border-radius: var(--radius-md); background: var(--background);
+}
+.planning-context-annual .planning-context-years :is(select, button) { border-color: transparent; background: transparent; }
+.planning-context-annual .planning-context-years select { padding-inline-start: .375rem; }
+.planning-context-annual .planning-context-years > button:hover:not(:disabled) { background: var(--muted); }
+.planning-context-annual .planning-context-controls > button { background: var(--card); font-size: .8125rem; }
+@media (max-width: 600px) {
+  .planning-context.planning-context-annual { padding: .75rem; }
+  .planning-context-annual .planning-context-school { flex-basis: 100%; }
+  .planning-context-annual .planning-context-years { flex: 1 1 14rem; }
+  .planning-context-annual .planning-context-controls > button { max-width: 100%; white-space: normal; }
+}
+@media (max-width: 380px) {
+  .planning-context-annual .planning-context-years label > span { display: none; }
+}

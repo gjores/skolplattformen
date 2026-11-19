@@ -13,7 +13,7 @@ import { parsePlanningOverview, type PlanningRow } from '@/lib/planning-year-con
 import type { OtherTimplanLocation } from '@/lib/protected-plan-location.ts';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { usePlanningContext } from './planning-context';
-import ProtectedPlanList from './protected-plan-list';
+import ProtectedPlanList, { PlanningCollectionHeading } from './protected-plan-list';
 import type { ActiveContext } from './context-switch';
 import MfaStepUpNotice from './mfa-step-up';
 import ProtectedGrimClassTimplans from './protected-grim-class-timplans';
@@ -293,16 +293,15 @@ export default function ProtectedTimplanWorkspace({ context, epoch, initialTarge
 
   return (
     <section className="protected-timplan" data-testid="protected-timplan-workspace" data-plan-id={plan?.id} data-plan-version={plan?.version} data-offering-id={plan?.offeringId} data-unit-id={plan?.unitId} aria-busy={busy}>
-      <div className="pt-heading"><span className="pt-heading-icon"><Clock3 size={24}/></span><div><h1>Timplaner</h1><p>Undervisningstid för grundskola och introduktionsprogram.</p></div></div>
+      {!plan && !draft && !chooseCurrent ? <PlanningCollectionHeading title="Timplaner" description="Undervisningstid för grundskola och introduktionsprogram."
+        actions={setup && selection && context.function !== 'administrator' && <Button variant="outline" className="min-h-11" disabled={busy}
+          onClick={() => void loadCurrentList(1)}>Välj aktuell utkastmatris</Button>}/>
+        : <div className="pt-heading"><span className="pt-heading-icon"><Clock3 size={24}/></span><div><h1>Timplaner</h1><p>Undervisningstid för grundskola och introduktionsprogram.</p></div></div>}
       {error && <div className="pt-alert" role="alert"><p>{error}</p><Button variant="outline" disabled={busy} onClick={()=>{if(chooseCurrent)void loadCurrentList(page);else if(initialTarget)void openPlan(initialTarget);else loadList();}}>Försök igen</Button></div>}
       {notice && <output className="pt-notice">{notice}</output>}
       {!plan && !draft && <>
         {busy && <output>Hämtar den valda timplanens årsrad och hela matris…</output>}
-        {!chooseCurrent && <>
-          {setup && selection && context.function !== 'administrator' && <Button variant="outline" disabled={busy}
-            onClick={() => void loadCurrentList(1)}>Välj aktuell utkastmatris</Button>}
-          <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
-        </>}
+        {!chooseCurrent && <ProtectedPlanList collection disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>}
         {chooseCurrent && <section aria-label="Välj aktuell utkastmatris">
           <Button variant="ghost" disabled={busy} onClick={loadList}><ArrowLeft size={18}/>Alla timplaner</Button>
           <h2>Aktuella utkastmatriser</h2><p>Välj en uttrycklig version. Dagens årskurskolumner visas här; valet är inget historiskt årsbevis.</p>

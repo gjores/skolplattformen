@@ -1,13 +1,16 @@
 .plan-list { min-width: 0; width: 100%; }
 .plan-list-filters { display: flex; flex-wrap: wrap; align-items: end; gap: .75rem; margin: 1rem 0; }
 .plan-list-filters label { display: flex; flex-direction: column; gap: .25rem; min-width: 0; flex: 1 1 10rem; }
-.plan-list-filters label:first-child { flex: 2 1 20rem; }
-.plan-list-extra-filters:not([hidden]) { display: flex; flex-wrap: wrap; gap: .75rem; flex: 1 1 100%; padding: 1rem; background: var(--card); border: 1px solid var(--border); border-radius: .65rem; }
+.plan-list-filters .plan-list-search { flex: 2 1 16rem; }
+.plan-list-search input[data-slot="input"] { padding-inline-start: 2.25rem; }
+.plan-list-filter-actions { display: flex; flex-wrap: wrap; gap: .25rem; }
+.plan-list-extra-filters:not([hidden]) { display: flex; flex-wrap: wrap; gap: .75rem; flex: 1 1 100%; padding: .75rem; background: var(--muted); border-radius: var(--radius-md); }
 .plan-list-extra-filters label:first-child { flex: 1 1 10rem; }
 .plan-filter-summary { flex: 1 1 100%; font-size: .8125rem; color: var(--muted-foreground); line-height: 1.5; }
-.plan-list input, .plan-list select, .plan-list button, .planning-overview button { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: .4rem; background: var(--background); color: inherit; font: inherit; }
-.plan-list input, .plan-list select { width: 100%; }
-.plan-list select { height: 44px; }
+.plan-list button:not([data-slot]), .planning-overview button:not([data-slot]) { box-sizing: border-box; min-height: 44px; min-width: 44px; max-width: 100%; padding: .5rem .7rem; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--background); color: inherit; font: inherit; }
+.plan-list-filters [data-slot="native-select"] { background-color: var(--background); }
+.plan-list :is(button, select) { min-height: 44px; max-width: 100%; }
+.plan-list button { white-space: normal; }
 .plan-list button, .planning-overview button { cursor: pointer; }
 .plan-list button:disabled { opacity: .55; cursor: default; }
 .plan-list :focus-visible, .planning-overview button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
@@ -21,6 +24,9 @@
 .plan-list-actions { white-space: nowrap; }
 .plan-list-actions button + button { margin-left: .4rem; }
 .plan-list-mobile-sort, .plan-list-details-toggle { display: none; }
+.plan-list-results { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.plan-list-count, .plan-list-feedback { color: var(--muted-foreground); font-size: .875rem; }
+.plan-list-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
 .plan-list-pages { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; margin: 1rem 0; }
 .planning-overview { display: grid; gap: 1rem; min-width: 0; margin-top: 1.5rem; }
 .planning-overview-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
@@ -52,7 +58,6 @@
   .plan-list-scroll tr:not([data-expanded="true"]) .plan-list-secondary { display: none; }
   .plan-list-actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .25rem; white-space: normal; }
   .plan-list-actions::before { display: none !important; }
-  .plan-list-actions > button:first-child { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); }
   .plan-list-actions button + button { margin-left: 0; }
   .plan-list-details-toggle { display: inline-flex; align-items: center; }
 }
@@ -64,7 +69,7 @@
 
 /* Programplaner: visible school-specific progress and two explicit next steps. */
 .plan-list-program table { table-layout: fixed; }
-.plan-list-program th, .plan-list-program td { min-width: 0; overflow-wrap: anywhere; padding: 1rem; }
+.plan-list-program th, .plan-list-program td { min-width: 0; overflow-wrap: break-word; padding: .85rem .75rem; }
 .plan-list-program thead th:nth-child(1) { width: 25%; }
 .plan-list-program thead th:nth-child(2) { width: 20%; }
 .plan-list-program thead th:nth-child(3) { width: 13%; }
@@ -76,9 +81,7 @@
 .plan-list-program .plan-list-actions { position: static; box-shadow: none; white-space: normal; }
 .program-row-actions button { display: block; width: 100%; white-space: normal; }
 .program-row-actions button + button { margin: .5rem 0 0; }
-.plan-list .program-row-primary { background: var(--primary); color: var(--primary-foreground); border-color: var(--primary); font-weight: 600; }
-.program-row-status { display: inline-block; padding: .25rem .5rem; border-radius: .35rem; background: var(--muted); font-size: .8125rem; font-weight: 600; }
-.program-row-status-created { color: #166534; background: #dcfce7; }
+.plan-list .status-badge { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .program-row-details { font-weight: normal; font-size: .8125rem; margin-top: .5rem; }
 .program-row-details summary { cursor: pointer; min-height: 44px; display: list-item; align-content: center; color: var(--muted-foreground); }
 .program-row-details p { margin: .3rem 0; }
@@ -90,10 +93,83 @@
   .plan-list-program td[data-label="Skola och elevkull"] { grid-column: 1 / -1; }
   .plan-list-program .program-row-actions { display: grid; grid-template-columns: 1fr; gap: .5rem; }
   .program-row-actions button + button { margin: 0; }
-  .plan-list-program .program-row-actions > button:not(.program-row-primary) { background: var(--background); color: var(--foreground); border-color: var(--border); }
 }
 .program-row-timplans{list-style:none;margin:0;padding:0;display:grid;gap:1rem}.program-row-timplans li+li{border-top:1px solid var(--border);padding-top:.75rem}.program-row-timplans button{margin-top:.5rem;width:100%;white-space:normal}
 .planning-overview summary{cursor:pointer;min-height:44px;align-content:center}.planning-overview-filters,.planning-overview-totals{border:1px solid var(--border);border-radius:.65rem;padding:.25rem .75rem}.planning-year-groups{display:grid;gap:1rem}.planning-year-group{border:1px solid var(--border);border-radius:.8rem;overflow:hidden;background:var(--card)}.planning-year-group>header{padding:1rem;background:var(--muted)}.planning-year-group h2{font-size:1rem;font-weight:650}.planning-year-group header p{font-size:.8125rem;color:var(--muted-foreground);margin:.25rem 0 0}.planning-year-variants{list-style:none;margin:0;padding:0}.planning-year-variants>li{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:.5rem 1rem;padding:1rem}.planning-year-variants>li+li{border-top:1px solid var(--border)}.planning-year-variants h3{font-weight:650;font-size:1rem;overflow-wrap:anywhere}.planning-year-variants p{font-size:.8125rem;color:var(--muted-foreground);margin:.25rem 0}.planning-variant-measure{display:grid;gap:.15rem;max-width:12rem}.planning-variant-measure strong{font-size:1.2rem}.planning-variant-measure span{font-size:.75rem;color:var(--muted-foreground)}.planning-variant-details{grid-column:1/-1;font-size:.8125rem}.planning-year-variants button{white-space:normal}.planning-year-group{scroll-margin-top:10rem}
 @media(max-width:700px){.planning-overview{gap:.75rem;margin-top:1rem}.planning-overview-heading h1{font-size:1.35rem}.planning-overview-heading p{font-size:.8125rem}.planning-overview-kulls{gap:.35rem}.planning-overview-kulls button{font-size:.75rem;flex:1 1 45%;padding:.5rem}.planning-year-group>header{padding:.75rem}.planning-year-variants>li{grid-template-columns:minmax(0,1fr) auto;padding:.75rem;gap:.5rem}.planning-year-variants>li>button{grid-column:1/-1;justify-self:stretch;background:var(--primary);color:var(--primary-foreground)}.planning-variant-measure{max-width:8rem;text-align:right}.planning-year-variants h3{font-size:.9375rem}.planning-variant-details{font-size:.75rem}.planning-overview-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.planning-overview-metrics div{padding:.65rem}}
 /* Long Swedish labels must wrap inside narrow controls, including enlarged text. */
 .planning-overview button,.planning-overview h1,.planning-year-group h2{overflow-wrap:anywhere}
+
+/* The annual collections share the same heading, filters and responsive row layout. */
+.page-heading.planning-collection-heading {
+  flex-wrap: wrap; min-width: 0; margin: 0 0 1rem; padding: 1rem;
+  color: var(--foreground); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.ppl > .planning-collection-heading { margin: 0; }
+.page-heading.planning-collection-heading h1 { margin: 0; font-size: clamp(1.8rem, 2.6vw, 2.7rem); letter-spacing: -.055em; font-weight: 550; }
+.page-heading.planning-collection-heading p { margin: .25rem 0 0; color: var(--muted-foreground); font-size: .9375rem; }
+.gt-tabs.planning-schoolforms {
+  width: fit-content; max-width: 100%; padding: .2rem; margin-bottom: .75rem;
+  gap: .25rem; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--card);
+}
+.planning-schoolforms button[aria-pressed="true"] { font-weight: 600; }
+.plan-list-collection {
+  container: annual-plans / inline-size; display: grid; gap: .75rem; padding: 1rem;
+  color: var(--foreground); background: var(--card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+.plan-list-collection .plan-list-filters, .plan-list-collection .plan-list-pages { margin: 0; }
+.plan-list-collection .plan-list-scroll { border-radius: var(--radius-md); }
+.plan-list-collection tr:last-child :is(th, td) { border-bottom: 0; }
+.plan-list .plan-list-empty {
+  padding: 1.25rem; margin: 0; text-align: left; border: 1px dashed var(--border);
+  border-radius: var(--radius-md); background: var(--background);
+}
+.plan-list .plan-list-empty h2 { margin: 0; color: var(--foreground); font-size: 1rem; font-weight: 600; }
+.plan-list .plan-list-empty p { margin: .3rem 0 0; color: var(--muted-foreground); font-size: .875rem; }
+.plan-list-empty button { margin-top: .75rem; }
+.plan-list-collection .plan-list-pages { border-top: 1px solid var(--border); padding-top: .75rem; }
+
+/* Keep the full timplan table for workspaces that can fit all ten columns. */
+@container annual-plans (max-width: 84rem) {
+  .plan-list-collection .plan-list-mobile-sort { display: flex; align-items: end; gap: .5rem; margin: 0; }
+  .plan-list-collection .plan-list-mobile-sort label { flex: 1; min-width: 0; font-size: .8125rem; }
+  .plan-list-collection .plan-list-scroll { border: 0; overflow: visible; }
+  .plan-list-collection table, .plan-list-collection tbody { display: block; }
+  .plan-list-collection thead { display: none; }
+  .plan-list-collection tr {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem 1rem;
+    margin: 0 0 .625rem; padding: 1rem; border: 1px solid var(--border);
+    border-radius: var(--radius-md); background: var(--card);
+  }
+  .plan-list-collection tbody tr:last-child { margin-bottom: 0; }
+  .plan-list-collection th, .plan-list-collection td { min-width: 0; padding: 0; border: 0; overflow-wrap: break-word; }
+  .plan-list-collection th[scope="row"] { grid-column: 1 / -1; font-size: 1.05rem; font-weight: 600; }
+  .plan-list-collection td::before { content: attr(data-label); display: block; color: var(--muted-foreground); font-size: .75rem; margin-bottom: .2rem; }
+  .plan-list-collection td[data-label="Skola och elevkull"] { grid-column: 1 / -1; }
+  .plan-list-collection tr:not([data-expanded="true"]) .plan-list-secondary:not(.plan-list-hours) { display: none; }
+  .plan-list-collection tr:not([data-expanded="true"]) .plan-list-hours { display: block; }
+  .plan-list-collection .plan-list-actions {
+    grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: .5rem; position: static; box-shadow: none;
+    margin: .25rem 0 0; padding-top: .75rem; border-top: 1px solid var(--border); background: transparent;
+  }
+  .plan-list-collection .plan-list-actions::before { display: none; }
+  .plan-list-collection .plan-list-actions button { width: fit-content; margin: 0; }
+  .plan-list-collection .program-row-timplans button { width: fit-content; }
+  .plan-list-collection .plan-list-details-toggle { display: inline-flex; align-items: center; }
+}
+
+@container annual-plans (43rem <= width <= 84rem) {
+  .plan-list-collection tr { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); }
+  .plan-list-collection .plan-list-scroll :is(th[scope="row"], .plan-list-school, td[data-label="Skola och elevkull"]) { grid-column: auto; }
+  .plan-list-collection.plan-list-program tr { grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)); }
+}
+
+@container annual-plans (60rem <= width <= 84rem) {
+  .plan-list-collection:not(.plan-list-program) tr { grid-template-columns: minmax(0, 1.5fr) repeat(5, minmax(0, 1fr)); }
+}
+
+@container annual-plans (max-width: 24rem) {
+  .plan-list-collection tr { padding: .75rem; gap: .75rem; }
+  .plan-list-collection .plan-list-mobile-sort { width: 100%; }
+  .plan-list-collection td[data-label="Skolans timplan"] { grid-column: 1 / -1; }
+}

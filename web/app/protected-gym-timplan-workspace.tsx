@@ -23,17 +23,18 @@ import ProtectedClassTimplans from './protected-class-timplans';
 import './protected-gym-timplan.css';
 import PlanSteps from './plan-steps';
 import { useTimplanChoiceRows, type ChoiceRowInfo } from './timplan-choice-rows';
-import ProtectedPlanList from './protected-plan-list';
+import ProtectedPlanList, { PlanningCollectionHeading } from './protected-plan-list';
 import { usePlanningContext, type PlanningMatrixYear } from './planning-context';
 import { projectGymTimplanYear } from '@/lib/planning-year-model.ts';
 import type { PlanningRow, PlanningSourceReference } from '@/lib/planning-year-contract.ts';
 
 type Props = { onValplaner?:(target:{unitId:string;schoolYear:number;valplanId:string|null;row:{timplanId:string;rowKey:string;year:number}|null})=>void; process?: 'timetable' | 'apl'; onApl?: (target: GymTimplanLocation) => void; onTimplan?: (target: GymTimplanLocation) => void; identityKey?: string | null; context: ActiveContext; epoch: number; initialTarget: GymTimplanLocation | null;
-  onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void; onProgramplan: (target: ProgramplanLocation) => void };
+  onSessionLost: () => void; onOpened: (target: GymTimplanLocation | null, sourcePlanId?: string) => void;
+  onProgramplan: (target: ProgramplanLocation) => void; onProgramplanList?: () => void };
 const aborted = (error: unknown) => error instanceof DOMException && error.name === 'AbortError';
 const message = (caught: unknown, fallback: string) => caught instanceof ApiError ? caught.message : fallback;
 
-export default function ProtectedGymTimplanWorkspace({ process = 'timetable', onValplaner, onApl, onTimplan, identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan }: Props) {
+export default function ProtectedGymTimplanWorkspace({ process = 'timetable', onValplaner, onApl, onTimplan, identityKey = null, context, epoch, initialTarget, onSessionLost, onOpened, onProgramplan, onProgramplanList }: Props) {
   const requestDiscard = useRequestDiscard();
   const { setup: planningSetup, selection: planningSelection, matrixYear, requestMatrixYear } = usePlanningContext();
   const planningUnit = planningSelection?.unitId ?? null;
@@ -223,8 +224,8 @@ export default function ProtectedGymTimplanWorkspace({ process = 'timetable', on
     {!plan && !underlag && !missing && (aplProcess ? <>
       <div className="gt-title"><Clock3 size={24}/><div><h1>APL-planering</h1><p>Planera perioder och arbetsmoment när timplanen är godkänd. Rektor bekräftar förläggningen och huvudmannen granskar APL separat.</p></div></div>
       <Button onClick={() => setAplPickerOpen(true)}>Välj timplan för APL</Button>
-    </> : <><div className="gt-title"><Clock3 size={24}/><div><h1>Timplaner</h1><p>Fördela undervisningstiden. Skapa fler namngivna timplaner när klasser behöver olika mycket tid.</p></div></div>
-      <ProtectedPlanList disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/>
+    </> : <><PlanningCollectionHeading title="Timplaner" description="Fördela undervisningstid och koppla klasser till skolans timplaner." />
+      <ProtectedPlanList collection disabled={busy} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow} onShowProgramplans={onProgramplanList}/>
     </>)}
     <Dialog open={aplPickerOpen} onOpenChange={setAplPickerOpen}><DialogContent className="gt-plan-picker"><DialogTitle>Välj timplan för APL</DialogTitle><DialogDescription>Listan visar skolans timplaner. APL gäller yrkesprogram; timplanen behöver vara godkänd innan perioderna kan ändras.</DialogDescription><ProtectedPlanList disabled={busy} unavailableReason={aplChoice} onSecurityFailure={securityFailure} onOpen={chooseAnnualRow}/></DialogContent></Dialog>
     {missing && <section aria-label="Välj programplanens underlag">

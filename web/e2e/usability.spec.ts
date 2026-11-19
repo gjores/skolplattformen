@@ -190,6 +190,46 @@ test('programrader visar skolans timplan och tydliga nästa steg', async ({ page
   verify();
 });
 
+test('programplaner och timplaner ryms i smal och bred arbetsyta', async ({ page, isMobile }, info) => {
+  await page.setViewportSize(isMobile ? { width: 320, height: 780 } : { width: 1110, height: 889 });
+  const verify = await mockApp(page);
+  await page.goto(`${base}?vy=programplaner&planeringslasar=2026&planeringsskola=all`);
+  const program = page.getByRole('region', { name: 'Alla programplaner', exact: true });
+  const row = program.locator('tbody tr').first();
+  await expect(program.getByLabel('Sortera efter')).toBeVisible();
+  await expect(row.getByRole('rowheader')).toContainText('Samhällsvetenskap');
+  const open = row.getByRole('button', { name: /^Öppna Samhällsvetenskap/ });
+  await open.scrollIntoViewIfNeeded();
+  await expect(open).toBeInViewport();
+  await expect(program.getByRole('navigation', { name: 'Planeringstabellens sidor' })).toHaveCount(0);
+  await fits(page);
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.screenshot({ path: info.outputPath('programplaner.png'), fullPage: true });
+
+  await page.goto(`${base}?vy=timplaner&planeringslasar=2026&planeringsskola=all`);
+  const time = page.getByRole('region', { name: 'Alla timplaner', exact: true });
+  await expect(time.getByRole('button', { name: /^Öppna Samhällsvetenskap, Exempelskolan Nord/ })).toBeVisible();
+  await expect(time.locator('tbody tr').first().getByText('80', { exact: true })).toBeVisible();
+  await expect(time.getByRole('navigation', { name: 'Planeringstabellens sidor' })).toHaveCount(0);
+  await fits(page);
+  await page.screenshot({ path: info.outputPath('timplaner.png'), fullPage: true });
+
+  if (!isMobile) {
+    await page.setViewportSize({ width: 1366, height: 889 });
+    const table = time.locator('.plan-list-scroll');
+    expect(await table.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
+    await fits(page);
+    await page.screenshot({ path: info.outputPath('timplaner-1366.png'), fullPage: true });
+  }
+
+  await page.getByLabel('Planeringsläsår', { exact: true }).selectOption('2025');
+  await expect(time.getByRole('heading', { name: 'Inga timplaner i urvalet' })).toBeVisible();
+  await time.getByRole('button', { name: 'Öppna Programplaner' }).click();
+  await expect(page.getByRole('heading', { name: 'Programplaner', exact: true })).toBeVisible();
+  await expect(page.getByLabel('Planeringsläsår', { exact: true })).toHaveValue('2025');
+  verify();
+});
+
 test('huvudmannen ser befintlig timplan men får ingen skapaknapp', async ({ page }) => {
   const verify = await mockApp(page, 'huvudman');
   await page.goto(`${base}?vy=programplaner&planeringsskola=all`);

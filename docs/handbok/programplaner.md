@@ -11,9 +11,11 @@ Skolverkets programversion gäller det nationella underlaget och finns under **P
 
 ## Startsidan
 
-**Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. Använd år-, skol-, status-, elevkulls- och arkivfiltren och sidknapparna för att hitta rätt rad. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.
+**Programplaner** visar underlagen för vald skola och valt planeringsår. Sök på utbildning, lokal kod, program eller inriktning. **Fler filter** samlar bland annat planstatus, elevkull och arkiv. **Rensa filter** visas när det finns filter eller en sökning att rensa. Sökningen gäller även senare sidor. Överblicken sammanfattar hela urvalet.
 
-- **Öppna** visar radens exakta programplansversion. Ett nyare utkast väljs inte automatiskt i stället för en äldre årsrad.
+I listan står skolans timplaner och åtgärder på samma rad som programplanen. Välj **Visa detaljer** för att se till exempel utbildningens start och årets poäng. När raderna visas som kort använder du **Sortera efter** och pilknappen för att ändra ordningen. Sidknapparna visas när listan har flera sidor.
+
+- **Öppna programplan** visar radens exakta programplansversion. Ett nyare utkast väljs inte automatiskt i stället för en äldre årsrad.
 - **Kopiera** skapar en ny utbildning med den valda planens underlag, programfördjupning och terminsfördelning. Rektors kopia gäller vald egen skola; huvudmannens kopia behåller skolvalet. Tidigare sparat skolutbud följer inte med. Ange namn, elevkull och ett verkligt startdatum efter både i dag och originalets start. Hela kopian sparas tillsammans och blir ett nytt utkast; originalet ändras inte. Knappen visas först när aktuellt mandat för att lägga till utbildningar har kunnat läsas. Om mandatet inte kan läsas visas möjlighet att försöka igen.
 - **Ny programplan** öppnar det befintliga valet av program och inriktning. Rektor och huvudman kan skapa en ny utbildning för en skola inom sitt aktuella uppdrag; en behörig användare kan förbereda plan för en befintlig utbildning enligt det aktuella mandatet.
 

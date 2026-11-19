@@ -1,6 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { NativeSelect } from '@/components/ui/native-select';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useRequestDiscard, useHasUnsaved } from '@/lib/unsaved-changes.tsx';
 import { parsePlanningSetup, type PlanningSelection, type PlanningSetup } from '@/lib/planning-year-contract.ts';
@@ -135,31 +138,32 @@ export function usePlanningContext(): PlanningContextValue {
 }
 export function PlanningContextBar() {
   const { setup, selection, loading, error, normalizationNotice, requestChange, retry } = usePlanningContext();
-  if (!setup || !selection) return <section className="planning-context" aria-label="Planeringsval" aria-busy={loading}>
-    {loading && <output>Läser planeringsval…</output>}{error && <p role="alert">{error} <button type="button" onClick={retry}>Försök igen</button></p>}
+  if (!setup || !selection) return <section className="planning-context planning-context-annual" aria-label="Planeringsval" aria-busy={loading}>
+    {loading && <output>Läser planeringsval…</output>}{error && <p role="alert">{error} <Button variant="outline" type="button" onClick={retry}>Försök igen</Button></p>}
   </section>;
   const units = setup.units.filter(unit => selection.view === 'programplan' ? unit.canRead.programplan : unit.canRead[selection.schoolform]);
-  return <section className="planning-context" aria-label="Planeringsval" aria-busy={loading}>
-    <div className="planning-context-controls"><strong>Planering</strong>
-      <label>Skola<select aria-label="Planeringsskola" value={selection.unitId ?? 'all'} disabled={loading || !units.length}
+  return <section className="planning-context planning-context-annual" aria-label="Planeringsval" aria-describedby="planeringsval-scope" aria-busy={loading}>
+    <div className="planning-context-controls">
+      <strong>Planering</strong>
+      <label className="planning-context-school"><span>Skola</span><NativeSelect className="w-full min-w-0" aria-label="Planeringsskola" value={selection.unitId ?? 'all'} disabled={loading || !units.length}
         onChange={e => requestChange({ unitId: e.target.value === 'all' ? null : e.target.value })}>
         <option value="all">Alla behöriga skolor</option>{units.map(unit => <option key={unit.unitId} value={unit.unitId}>{unit.schoolName}</option>)}
-      </select></label>
-      <div className="planning-context-years"><button type="button" aria-label="Föregående planeringsläsår" disabled={loading || selection.schoolYear <= setup.minimumYear}
-        onClick={() => requestChange({ schoolYear: selection.schoolYear - 1 })}>‹</button>
-        <label>Läsår<select aria-label="Planeringsläsår" value={selection.schoolYear} disabled={loading} onChange={e => requestChange({ schoolYear: Number(e.target.value) })}>
+      </NativeSelect></label>
+      <div className="planning-context-years"><Button type="button" variant="ghost" size="icon" aria-label="Föregående planeringsläsår" disabled={loading || selection.schoolYear <= setup.minimumYear}
+        onClick={() => requestChange({ schoolYear: selection.schoolYear - 1 })}><ChevronLeft size={16} aria-hidden="true" /></Button>
+        <label><span>Läsår</span><NativeSelect className="w-full min-w-0" aria-label="Planeringsläsår" value={selection.schoolYear} disabled={loading} onChange={e => requestChange({ schoolYear: Number(e.target.value) })}>
           {Array.from({ length: setup.maximumYear - setup.minimumYear + 1 }, (_, i) => setup.minimumYear + i)
             .map(year => <option key={year} value={year}>{planningYearLabel(year)}{year === setup.currentYear ? ' · aktuellt' : ''}</option>)}
-        </select></label>
-        <button type="button" aria-label="Nästa planeringsläsår" disabled={loading || selection.schoolYear >= setup.maximumYear}
-          onClick={() => requestChange({ schoolYear: selection.schoolYear + 1 })}>›</button>
+        </NativeSelect></label>
+        <Button type="button" variant="ghost" size="icon" aria-label="Nästa planeringsläsår" disabled={loading || selection.schoolYear >= setup.maximumYear}
+          onClick={() => requestChange({ schoolYear: selection.schoolYear + 1 })}><ChevronRight size={16} aria-hidden="true" /></Button>
       </div>
-      {selection.schoolYear === setup.currentYear ? <span className="planning-context-current">Aktuellt läsår</span> :
-        <button type="button" disabled={loading} onClick={() => requestChange({ schoolYear: setup.currentYear })}>Till aktuellt läsår</button>}
+      {selection.schoolYear !== setup.currentYear && <Button type="button" variant="outline" disabled={loading}
+        onClick={() => requestChange({ schoolYear: setup.currentYear })}>Till aktuellt läsår</Button>}
     </div>
-    <p className="planning-context-scope">{PLANNING_SCOPE_TEXT}</p>
+    <span id="planeringsval-scope" className="sr-only">{PLANNING_SCOPE_TEXT}</span>
     {!units.length && <output>Du har ingen läsbehörig skola för den här skolformen.</output>}
     {normalizationNotice && <output>{normalizationNotice}</output>}
-    {error && <p role="alert">{error} <button type="button" onClick={retry}>Försök igen</button></p>}
+    {error && <p role="alert">{error} <Button variant="outline" type="button" onClick={retry}>Försök igen</Button></p>}
   </section>;
 }

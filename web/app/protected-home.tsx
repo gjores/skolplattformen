@@ -877,18 +877,18 @@ function ProtectedShell() {
                 <ProtectedPlanningOverview onSecurityFailure={overviewSecurityFailure} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => void navigate(view)} onOpen={async row=>{if(!(await canNavigate()))return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>
               </LasarOverviewContext.Provider>}
               {!overview && view === 'timplaner' && <>
-                {!aplProcess && <nav className="gt-tabs" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'default' : 'outline'} aria-pressed={timplanMode === 'gym'} onClick={async () => {
+                {!aplProcess && <nav className="gt-tabs planning-schoolforms" aria-label="Timplanens skolform"><Button variant={timplanMode === 'gym' ? 'secondary' : 'ghost'} aria-pressed={timplanMode === 'gym'} onClick={async () => {
                   if (!(await canNavigate())) return;
                   const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'gymnasium', page: 1, selectionRevision: null } };
                   applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                 }}>Gymnasium</Button>
-                  {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'default' : 'outline'} aria-pressed={timplanMode === 'other'} onClick={async () => {
+                  {session.context!.function !== 'administrator' && <Button variant={timplanMode === 'other' ? 'secondary' : 'ghost'} aria-pressed={timplanMode === 'other'} onClick={async () => {
                     if (!(await canNavigate())) return;
                     const location: PlanLocation = { view: 'timplaner', gym: null, planning: { ...planningLocationRef.current?.planning, schoolform: 'grundskola', page: 1, selectionRevision: null } };
                     applyPlanningLocation(location); setPlanNavigation(value => value + 1); writePlanLocation(location);
                   }}>Grundskola och introduktionsprogram</Button>}</nav>}
                 {timplanMode === 'gym' ? <ProtectedGymTimplanWorkspace process={aplProcess ? 'apl' : 'timetable'} onValplaner={goToValplaner} onApl={goToApl} onTimplan={goToTimplan} identityKey={aplIdentityKey} key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={timplanTarget} onSessionLost={clearSession}
-                  onOpened={gymTimplanOpened} onProgramplan={goToProgramplan}/>
+                  onOpened={gymTimplanOpened} onProgramplan={goToProgramplan} onProgramplanList={() => void navigate('programplaner')}/>
                   : <ProtectedTimplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${selection.schoolform}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialTarget={otherTimplanTarget} onOpened={otherTimplanOpened} onSessionLost={clearSession}/>}
               </>}
               {!overview && view === 'programplaner' && <ProtectedProgramplanWorkspace key={`${contextKey}-${selection.schoolYear}-${selection.unitId}-${planNavigation}`} context={session.context!} epoch={session.epoch} initialPlan={programplanTarget} onSessionLost={clearSession} onTimplan={goToTimplan}
