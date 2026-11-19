@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-GRANSKA byggd som andra etapp. Installation och användarprov på 3012 återstår. UXF-53 väntar provbeslut."
+current_plan: "SM-GRANSKA installerad på 3012. Inloggat användarprov återstår. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Granska byggd i e61e014a och prövad med syntetiska uppgifter. App e832bc04 kör på 3012."
+stopped_at: "Granska e61e014a installerad på 3012 med sex godkända kontrollgrupper. Nästa är användarprovet."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "Granska med länk till exakt pass, tillfällig resursjämförelse och återgång till fyndet."
+last_activity_desc: "Installerad Granska med avvikelse till exakt pass, resursjämförelse och återgång till fyndet."
 state_head: e61e014a742c3c322d32db96166b30564b0f74b5
 progress:
   total_phases: 8
@@ -21,17 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: e832bc049e3b889e5d3d173de1e40bac7bbf54b7
+schema_runtime_revision: e61e014a742c3c322d32db96166b30564b0f74b5
 schema_candidate_revision: e61e014a742c3c322d32db96166b30564b0f74b5
-schema_candidate_status: review_verified_awaiting_installation
+schema_candidate_status: granska_installed_awaiting_user_trial
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: navigation_passed_6_groups_zero_migrations_80_draft_and_1_room_revisions_preserved
-user_trial_status: schema_navigation_installed_awaiting_user_trial
+schema_installation_status: granska_passed_6_groups_zero_migrations_81_draft_and_1_room_revisions_preserved
+user_trial_status: schema_granska_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – Granska:** [Andra etappen](phases/05.2-schemamodul/05.2-SM-GRANSKA-SUMMARY.md) öppnar rätt grundpass eller datumtillfälle från en avvikelse och låter schemaläggaren jämföra klasser, grupper, lärare och salar. Återgången behåller valt filter, fyndets position och fokus. Byggd och prövad med syntetiska uppgifter i `e61e014a`. Installation och användarprov återstår.
+**2026-11-19 – Granska:** [Andra etappen](phases/05.2-schemamodul/05.2-SM-GRANSKA-SUMMARY.md) öppnar rätt grundpass eller datumtillfälle från en avvikelse och låter schemaläggaren jämföra klasser, grupper, lärare och salar. Återgången behåller valt filter, fyndets position och fokus. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-GRANSKA-INSTALL.md) med sex godkända kontrollgrupper och noll migrationer. Inloggat användarprov återstår.
 
 **2026-11-19 – schemats navigation och passpanel:** [Första etappen](phases/05.2-schemamodul/05.2-SM-NAVIGATION-SUMMARY.md) ger kalendern mer plats, grupperar skola/läsår/period och sparbesked och flyttar passverktygen till en panel intill veckan och passtabellen. Beräkning och Till kontrollerna leder till befintliga verktyg. Byggd och prövad lokalt med syntetiska uppgifter. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-NAVIGATION-INSTALL.md) med 6 av 6 kontrollgrupper godkända. Användarprov återstår. Granska tas upp i en senare etapp.
 
