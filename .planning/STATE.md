@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "Terminsjämförelse byggd för Grundschema. Granska är installerad på 3012. UXF-53 väntar provbeslut."
+current_plan: "Terminsjämförelse och massval för aktiviteter installerade på 3012. UXF-53 väntar provbeslut."
 status: in_progress
-stopped_at: "Terminsjämförelsen och aktivitetsdialogens massval är verifierade med syntetiska uppgifter. Installation återstår för uppföljningen."
+stopped_at: "HT/VT-jämförelse och aktivitetsdialogens massval installerade på 3012 i 0591c225. Inloggat användarprov återstår."
 last_updated: "2026-11-19"
 last_activity: 2026-11-19
-last_activity_desc: "HT och VT sida vid sida per veckodag med passpanel i rätt termin."
-state_head: e61e014a742c3c322d32db96166b30564b0f74b5
+last_activity_desc: "Installerad HT/VT-jämförelse sida vid sida och aktiviteter per klass i följd."
+state_head: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,19 +21,19 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: e61e014a742c3c322d32db96166b30564b0f74b5
-schema_candidate_revision: e61e014a742c3c322d32db96166b30564b0f74b5
-schema_candidate_status: granska_installed_awaiting_user_trial
+schema_runtime_revision: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
+schema_candidate_revision: 0591c225dc57463ef0cc9642e6abe8643cafd5f8
+schema_candidate_status: terminsjamforelse_installed_awaiting_user_trial
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: granska_passed_6_groups_zero_migrations_81_draft_and_1_room_revisions_preserved
-user_trial_status: schema_granska_installed_awaiting_user_trial
+schema_installation_status: terminsjamforelse_passed_6_groups_zero_migrations_111_draft_and_1_room_revisions_preserved
+user_trial_status: schema_terminsjamforelse_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-19 – terminsjämförelse:** [Grundschema med HT och VT sida vid sida](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA.md) visar varje veckodag i två kolumner med rätt passlängder för vald klass, grupp eller lärare. Ett pass öppnas i sin terminsvy. Slutprovet gav 30 godkända webbläsarfall. Installation och användarprov återstår.
+**2026-11-19 – terminsjämförelse:** [Grundschema med HT och VT sida vid sida](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA.md) visar varje veckodag i två kolumner med rätt passlängder för vald klass, grupp eller lärare. Ett pass öppnas i sin terminsvy. Slutprovet gav 30 godkända webbläsarfall. [Installationen på 3012](phases/05.2-schemamodul/05.2-SM-TERMINER-SIDA-VID-SIDA-INSTALL.md) fick sex godkända kontrollgrupper. Inloggat användarprov återstår.
 
-**2026-11-19 – aktivitetsdialogen efter användarprov:** [Tillägget till UXF-52](phases/05.2-schemamodul/05.2-SM-UXF-52-SERIE-PLAN.md#tillägg-efter-användarprov-2026-11-19) gör **En aktivitet per klass** synligt före klassurvalet, lägger till **Välj alla klasser** och låter klasser boka exempelvis en matsal i följd. 20 domänprov och 26 webbläsarfall passerade. Installation av uppföljningen återstår.
+**2026-11-19 – aktivitetsdialogen efter användarprov:** [Tillägget till UXF-52](phases/05.2-schemamodul/05.2-SM-UXF-52-SERIE-PLAN.md#tillägg-efter-användarprov-2026-11-19) gör **En aktivitet per klass** synligt före klassurvalet, lägger till **Välj alla klasser** och låter klasser boka exempelvis en matsal i följd. 20 domänprov och 26 webbläsarfall passerade. Tillägget ingår i HT/VT-installationen på 3012.
 
 **2026-11-19 – Granska:** [Andra etappen](phases/05.2-schemamodul/05.2-SM-GRANSKA-SUMMARY.md) öppnar rätt grundpass eller datumtillfälle från en avvikelse och låter schemaläggaren jämföra klasser, grupper, lärare och salar. Återgången behåller valt filter, fyndets position och fokus. [Installerad på 3012](phases/05.2-schemamodul/05.2-SM-GRANSKA-INSTALL.md) med sex godkända kontrollgrupper och noll migrationer. Inloggat användarprov återstår.
 
