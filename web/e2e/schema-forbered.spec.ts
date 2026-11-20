@@ -57,9 +57,9 @@ test('misslyckad underlagsläsning hindrar inte villkoren och går att göra om'
   await expect(underlag).toContainText('Inget schemaförslag är beräknat.');
 });
 
-test('Förbered kan läsa ny tjänstefördelning när ett äldre tomt förslag finns sparat', async ({ page, schemaDraftServer }) => {
+test('alla schemaytor skiljer ett äldre tomt förslag från aktuell tjänstefördelning', async ({ page, schemaDraftServer }) => {
   const villkor = { ...defaultSchemaVillkor(), timeBasis: 'lasar' as const }, tidigare = olagt(villkor);
-  const tomtForslag: SchemaForslag = { ...tidigare, basis: null, classes: [], teachers: [], lessons: [], fordelning: [], teachings: [], trims: [], links: [],
+  const tomtForslag: SchemaForslag = { ...tidigare, status: 'input_missing', basis: null, classes: [], teachers: [], lessons: [], fordelning: [], teachings: [], trims: [], links: [],
     resurser: { klass: [], grupp: [], amne: [], larare: [], pass: [] },
     members: { pupils: 0, groupsWithoutMembers: [], classesWithoutPupils: [], withoutChoice: [] },
     metrics: { ...tidigare.metrics, lessons: 0, unplaced: 0 }, statistics: { iterations: 0, lessons: [], bottlenecks: [] } };
@@ -70,7 +70,7 @@ test('Förbered kan läsa ny tjänstefördelning när ett äldre tomt förslag f
   draft.stale = true;
   const scope = `${UNIT}:2026:lasar`;
   schemaDraftServer.drafts.set(scope, draft);
-  await page.addInitScript(unit => localStorage.setItem(`schema-yta:${unit}:2026`, 'forbered'), UNIT);
+  await page.addInitScript(unit => localStorage.setItem(`schema-yta:${unit}:2026`, 'schema'), UNIT);
   const berakningar = await utanBerakning(page), lasningar: SchemaForslagRequest[] = [];
   await page.route('**/api/schema/underlag', route => {
     const request = route.request().postDataJSON() as SchemaForslagRequest;
@@ -81,16 +81,30 @@ test('Förbered kan läsa ny tjänstefördelning när ett äldre tomt förslag f
   });
   await page.goto(URL);
 
+  const ytor = page.locator('[data-ytval]'), aktuellt = page.getByRole('region', { name: 'Aktuellt underlag' });
+  const felaktigtHinder = page.getByText(/saknar tjänstefördelning|ingen tjänstefördelning|Schemat kan inte läggas ännu|Förslag · Underlag saknas/iu);
+  await expect(ytor.getByRole('button', { name: 'Lägg schema' })).toHaveAttribute('aria-current', 'page');
+  await expect(aktuellt).toContainText('Det aktuella schemaunderlaget kunde inte läsas.');
+  await expect(felaktigtHinder).toHaveCount(0);
+  await aktuellt.getByRole('button', { name: 'Läs underlaget igen' }).click();
+  await expect(aktuellt).toContainText('Tjänstefördelning version 2 (publicerad)');
+  await expect(aktuellt).toContainText(`${base.lessons.length} pass i beräkningsunderlaget`);
+  await expect(page.getByText('Inaktuellt förslag', { exact: true })).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Kontroller och underlag' })).toContainText('Det sparade förslaget innehåller inga pass.');
+  await expect(felaktigtHinder).toHaveCount(0);
+
+  await ytor.getByRole('button', { name: 'Granska' }).click();
+  await expect(page.getByRole('heading', { name: 'Granska utkastet' })).toBeVisible();
+  await expect(aktuellt).toContainText('Tjänstefördelning version 2 (publicerad)');
+  await expect(felaktigtHinder).toHaveCount(0);
+
+  await ytor.getByRole('button', { name: 'Förbered' }).click();
   const underlag = omrade(page, 'underlag');
-  await expect(underlag).toContainText('Underlaget kunde inte läsas.');
-  await expect(punkt(page, 'underlag')).toContainText('Underlaget är inte läst');
-  await expect(page.getByText('Schemat kan inte läggas ännu', { exact: true })).toHaveCount(0);
-  await underlag.getByRole('button', { name: 'Läs underlaget igen' }).click();
   await expect(underlag).toContainText('tjänstefördelning version 2 (publicerad)');
   await expect(underlag).toContainText(`${base.fordelning.length} undervisningar`);
   await expect(punkt(page, 'underlag')).toContainText('Tjänstefördelning version 2');
   await expect(page.locator('[data-fraga="3"]')).toContainText('Inaktuellt förslag');
-  await expect(page.getByText(/saknar tjänstefördelning|ingen tjänstefördelning|Schemat kan inte läggas ännu/iu)).toHaveCount(0);
+  await expect(felaktigtHinder).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Ta fram nytt förslag från aktuellt underlag' })).toBeEnabled();
   expect(lasningar.map(r => r.period)).toEqual(['lasar', 'lasar']);
   expect(berakningar).toHaveLength(0);

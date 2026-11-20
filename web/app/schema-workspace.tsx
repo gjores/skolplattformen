@@ -270,7 +270,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const periodbyteStoppat = busy || checking || !spara.ready || sparstatus.phase === 'loading' || (sparstatus.phase === 'stale' && sparstatus.dirty);
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
   const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
-  const aktuelltUnderlagForbered = visaForbered && sparstatus.phase === 'stale';
+  const inaktuelltUnderlag = sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
   // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
   const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
@@ -295,16 +295,16 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   if (medSkolansSalar !== villkor) setVillkorLocal(medSkolansSalar);
   // Med salregister läses det också när ett förslag finns, så att passens tillåtna salar, elevantal och kapacitet följer registret och salbehoven (05.2-SM-UXF-21).
   const salNyckel = villkor.salregister ? villkorNyckel([villkor.salregister, villkor.salbehov ?? [], villkor.egna.filter(r => r.typ === 'sal')]) : '';
-  const underlagLas = useSchemaUnderlag({ enabled: !fonster && (aktuelltUnderlagForbered || !base || (!!villkor.salregister && !grundAndrad)) && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
-    request: { unitId, schoolYear, period: aktuelltUnderlagForbered ? period : base?.period ?? period, villkor: base && !aktuelltUnderlagForbered ? villkor : berakningsVillkor }, extra: salNyckel, onSessionLost });
-  const salbild = forslag && underlagLas.forslag && underlagLas.forslag.grundFingerprint === forslag.grundFingerprint ? underlagLas.forslag : null;
-  // Förbered visar nästa beräknings underlag. Det sparade förslaget hör fortfarande till den tidigare källan.
-  const forutsattningar = aktuelltUnderlagForbered
-    ? underlagLas.loading || underlagLas.error || issues.length ? null : underlagLas.forslag
-    : salbild ?? forslag ?? underlagLas.forslag;
+  const underlagLas = useSchemaUnderlag({ enabled: !fonster && (inaktuelltUnderlag || !base || (!!villkor.salregister && !grundAndrad)) && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
+    request: { unitId, schoolYear, period: inaktuelltUnderlag ? period : base?.period ?? period, villkor: base && !inaktuelltUnderlag ? villkor : berakningsVillkor },
+    extra: inaktuelltUnderlag ? `aktuellt:${salNyckel}` : salNyckel, onSessionLost });
+  const salbild = !inaktuelltUnderlag && forslag && underlagLas.forslag && underlagLas.forslag.grundFingerprint === forslag.grundFingerprint ? underlagLas.forslag : null;
+  // Nästa beräkning använder dagens underlag. Veckovyn och kontrollerna behåller det sparade förslagets källa.
+  const aktuelltUnderlag = !busy && !underlagLas.loading && !underlagLas.error && !issues.length ? underlagLas.forslag : null;
+  const forutsattningar = inaktuelltUnderlag ? aktuelltUnderlag : salbild ?? forslag ?? underlagLas.forslag;
   const granskaScope = JSON.stringify([period, forslag?.grundFingerprint]);
   const granskaMal = granskatPass?.scope === granskaScope ? granskatPass.mal : null;
-  const antalLas = aktuelltUnderlagForbered ? 0 : Object.keys(utkast.locked).length;
+  const antalLas = inaktuelltUnderlag ? 0 : Object.keys(utkast.locked).length;
   // Checklistan räknas bara när Förbered visas: den behövs inte i Lägg schema eller i utlyfta fönster och ska inte fördröja synk efter en flytt.
   const forberedPunkter = useMemo(() => visaForbered ? schemaForbered({ kalla: forutsattningar, villkor, las: antalLas, provplan: nationellaProv.document,
     provbokningsfel: provbokningsfel.size, provlasning: nationellaProv.reading ? 'laddar' : nationellaProv.readFailed ? 'fel' : provunderlag?.gallerGymnasiet === false ? 'ej-tillamplig' : 'klar' }) : [],
@@ -1210,7 +1210,9 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || checking || redigeringStoppad} onClick={() => void andra({ type: 'undo' })}>{datumSteg(utkast.undo.at(-1)) ? 'Ångra senaste datumändring' : medvetenSteg(utkast.undo.at(-1)) ? 'Ångra medveten krock' : aktivitetsSteg(utkast.undo.at(-1)) ? 'Ångra senaste aktivitet' : (villkorSteg(utkast.undo.at(-1)) || arbetsvillkorSteg(utkast.undo.at(-1))) ? 'Ångra senaste villkor' : 'Ångra senaste flytt'}</Button>
         <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || checking || redigeringStoppad} onClick={() => void andra({ type: 'redo' })}>Gör om</Button>
       </div>
-      {!visaForbered && forslag.status !== 'complete' && <span className={`status-badge ${STATUS[forslag.status].tone}`}>Förslag · {STATUS[forslag.status].text}</span>}
+      {!visaForbered && (inaktuelltUnderlag || forslag.status !== 'complete') && <span className={`status-badge ${inaktuelltUnderlag ? 'warning' : STATUS[forslag.status].tone}`}>
+        {inaktuelltUnderlag ? 'Inaktuellt förslag' : `Förslag · ${STATUS[forslag.status].text}`}
+      </span>}
       {!fonster && <div className="schema-arbetskommandon">
         <FonsterList synk={synk}><FonsterMeny synk={synk} resource={windowResource}/></FonsterList>
         {visaSchema && <>
@@ -1267,14 +1269,15 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const recoveryKey = JSON.stringify({ unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && aktivaLas.length && !recoveryLocks ? { locks: { grundFingerprint: base.grundFingerprint, placements: aktivaLas } } : {}) });
   const diagnosAktuell = fore?.key === recoveryKey ? fore : null;
   const recoveryFore = fore?.key === recoveryKey ? fore : null;
-  const hinderUnderlag = aktuelltUnderlagForbered ? forutsattningar : forslag;
+  const hinderUnderlag = inaktuelltUnderlag ? aktuelltUnderlag : forslag;
+  const underlagshinder = hinderUnderlag && hinderUnderlag.metrics.lessons === 0 && <UnderlagHinder forslag={hinderUnderlag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>;
   // Ytorna Förbered och Lägg schema (05.2-SM-UXF-31) visar samma utkast. Formuläret för regler och aktivitetslistan finns på båda och ritas där ytan står.
   const meddelanden = <>
     <output aria-live="polite" className="schema-note">{busy && !fortsatt?.loading ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. Därefter kontrolleras resultatet.` : ''}</output>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
-    {hinderUnderlag && hinderUnderlag.metrics.lessons === 0 && <UnderlagHinder forslag={hinderUnderlag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>}
+    {!inaktuelltUnderlag && underlagshinder}
     {!forslag && !busy && !error && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
   </>;
   const regelformId = `${resultHeading}-regler`;
@@ -1336,7 +1339,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const reviewLesson = granskaMal ? forslag?.lessons.find(l => l.id === granskaMal.lesson) : undefined;
   const reviewOccurrence = granskaMal?.originalDate && reviewLesson ? hamtaTillfalle({ lesson: reviewLesson.id, originalDate: granskaMal.originalDate }) : undefined;
   const visaJamfor = !!(forslag && reviewLesson && (!granskaMal?.originalDate || reviewOccurrence));
-  const granskaStale = grundAndrad || sparstatus.phase === 'stale' || (forslag !== null && period !== forslag.period) || issues.length > 0;
+  const granskaStale = grundAndrad || inaktuelltUnderlag || (forslag !== null && period !== forslag.period) || issues.length > 0;
   const granskaTerm = reviewOccurrence?.term ?? reviewLesson?.term ?? granskatPass?.term ?? viewTerm;
   const sparbesked = <Sparstatus state={sparstatus} name={draftName} disabled={busy || checking || !spara.ready} child={!!fonster} onName={setDraftName} onSave={() => void spara.flush()} onRead={() => void lasServerversion()} onNew={() => void run()}/>;
   if (fonster && !synk.live) return <section className="valplan-workspace schema-workspace"><FonsterList synk={synk} title={fonsterVyNamn[fonster.view]}/><p className="empty-state">Väntar på huvudfönstret. Inga ändringar kan göras innan kontakten är tillbaka.</p></section>;
@@ -1358,7 +1361,18 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     {!fonster && !forslag && <FonsterMeny synk={synk} disabled/>}
     {forslag && datumPicked && <DatumFlytt salScope={placeringsBas()} datedOverrides={datedOverrides} onSessionLost={onSessionLost} key={datumPicked.key} occurrence={datumPicked} forslag={forslag} busy={busy || checking} error={moveError} onSave={change => void andraDatum({ lesson: datumPicked.lesson.id, originalDate: datumPicked.originalDate }, change, undefined, datumPicked.expectedInputKey)} onClose={() => setDatumPicked(null)} onBase={() => oppnaGrundpass(datumPicked.lesson.id)}/>}
     {gemensamt}
-    {!fonster && visaGranska && (error || moveError) && meddelanden}
+    {!fonster && inaktuelltUnderlag && <>
+      {!visaForbered && <section aria-labelledby={`${resultHeading}-aktuellt`} className="rounded-lg border border-border bg-card p-4 space-y-2">
+        <h2 id={`${resultHeading}-aktuellt`} className="section-heading">Aktuellt underlag</h2>
+        {underlagLas.error ? <div className="flex flex-wrap items-center gap-3"><output>Det aktuella schemaunderlaget kunde inte läsas.</output><Button type="button" variant="outline" onClick={underlagLas.reload}>Läs underlaget igen</Button></div>
+          : aktuelltUnderlag ? <p>{aktuelltUnderlag.basis && `Tjänstefördelning version ${aktuelltUnderlag.basis.versionNo} (${BASIS[aktuelltUnderlag.basis.status] ?? aktuelltUnderlag.basis.status}). `}
+            {aktuelltUnderlag.fordelning.length} undervisningar, {aktuelltUnderlag.lessons.length} pass i beräkningsunderlaget.
+            {aktuelltUnderlag.lessons.length > 0 && ' Ta fram ett nytt schemaförslag för att lägga passen.'}</p>
+            : <output className="schema-note">{issues.length ? 'Underlaget läses när felen i villkoren är rättade.' : busy ? 'Tar fram ett nytt underlag…' : 'Läser aktuellt underlag…'}</output>}
+      </section>}
+      {underlagshinder}
+    </>}
+    {!fonster && visaGranska && (error || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
     {!fonster && <GranskaUtkast key={granskaScope} forslag={forslag} lessons={passMedSal} kontroll={kontroll} checking={checking || busy} stale={granskaStale}
       datum={datumSvar} datedOverrides={datedOverrides} intentional={intentionalKeys} active={visaGranska}
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}
@@ -1406,8 +1420,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       <ForberedOversikt punkter={forberedPunkter} genomgang={genomgang} disabled={busy} onGenomgang={setGenomgang}/>
       {berakningsform}
       <ForutsattningarKort punkter={forberedPunkter} busy={busy || checking || issues.length > 0 || !spara.ready} kontrollera={() => void kontrolleraUnderlag()} taFram={taFramKnapp}
-        provning={forslag ? { typ: 'forslag', status: forslag.status === 'complete' ? 'beräkningen blev klar' : STATUS[forslag.status].text.toLocaleLowerCase('sv'), inaktuellt: grundAndrad || aktuelltUnderlagForbered } : diagnosAktuell ? { typ: 'kontroll', fynd: diagnosAktuell.findings.length, tid: foreTid } : { typ: 'inte' }}
-        kvalitet={forslag && !aktuelltUnderlagForbered && forslag.metrics.lessons > 0 ? <div className="space-y-2"><p className="flex flex-wrap gap-2"><Lagesstatus lessons={passMedSal}/></p>
+        provning={forslag ? { typ: 'forslag', status: forslag.status === 'complete' ? 'beräkningen blev klar' : STATUS[forslag.status].text.toLocaleLowerCase('sv'), inaktuellt: grundAndrad || inaktuelltUnderlag } : diagnosAktuell ? { typ: 'kontroll', fynd: diagnosAktuell.findings.length, tid: foreTid } : { typ: 'inte' }}
+        kvalitet={forslag && !inaktuelltUnderlag && forslag.metrics.lessons > 0 ? <div className="space-y-2"><p className="flex flex-wrap gap-2"><Lagesstatus lessons={passMedSal}/></p>
           {forslag.metrics.placed > 0 && <p>Håltid per vecka: elever {forslag.metrics.studentGapMin} min, lärare {forslag.metrics.teacherGapMin} min.</p>}</div> : null}/>
       {meddelanden}
     </>}
@@ -1421,12 +1435,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
             <p className="schema-note">{forutsattningar.basis ? `Underlag: tjänstefördelning version ${forutsattningar.basis.versionNo} (${BASIS[forutsattningar.basis.status] ?? forutsattningar.basis.status}).` : 'Skolan har ingen tjänstefördelning för läsåret; bara behoven är underlag.'}{underlagLas.loading ? ' Läser om efter ändrade villkor…' : ''}</p>
           </>}
         </div>
-        {forslag && !aktuelltUnderlagForbered && <Underlag forslag={forslag}/>}
+        {forslag && !inaktuelltUnderlag && <Underlag forslag={forslag}/>}
     </Omrade>}
     <fieldset className="contents" disabled={redigeringStoppad}>
     {visaForbered && <>
       <Omrade id="lektioner" titel="Lektioner och block">
-        {forutsattningar && forutsattningar.fordelning.length > 0 ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Antal lektioner per undervisning</summary><Fordelning forslag={forutsattningar} villkor={villkor} kontroll={forslag && !aktuelltUnderlagForbered ? kontroll : null} disabled={busy || checking} onChange={andraArbetsvillkor}/></details>
+        {forutsattningar && forutsattningar.fordelning.length > 0 ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Antal lektioner per undervisning</summary><Fordelning forslag={forutsattningar} villkor={villkor} kontroll={forslag && !inaktuelltUnderlag ? kontroll : null} disabled={busy || checking} onChange={andraArbetsvillkor}/></details>
           : <p className="empty-state">Undervisningarna visas när underlaget är läst.</p>}
         <Samtidighetsblock villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}/>
       </Omrade>
@@ -1437,7 +1451,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       <Omrade id="larartider" titel="Lärartider och fasta tider">
         <p className="schema-note">Spärrad och tillåten tid och längsta dag per lärare anges i tabellen under fliken Lärare. En lärare utan tidsvillkor räknas som tillgänglig hela skoldagen.</p>
         {forutsattningar ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Villkor i tabell</summary>
-          <Villkorstabell villkor={villkor} setVillkor={setTabellVillkor} dispatch={dispatch} forslag={forutsattningar} kontroll={forslag && !aktuelltUnderlagForbered ? kontroll : null} disabled={busy || checking} mal={villkorMal}/></details>
+          <Villkorstabell villkor={villkor} setVillkor={setTabellVillkor} dispatch={dispatch} forslag={forutsattningar} kontroll={forslag && !inaktuelltUnderlag ? kontroll : null} disabled={busy || checking} mal={villkorMal}/></details>
           : <p className="empty-state">Lärarna visas när underlaget är läst.</p>}
       </Omrade>
       <Omrade id="aktiviteter" titel="Aktiviteter och nationella prov">
@@ -1513,18 +1527,22 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       <section className="schema-kontroller" aria-labelledby={fonster ? undefined : resultHeading}>
         {fonster ? null : <h2 id={resultHeading} ref={kontrollrubrik} tabIndex={-1} className="section-heading">Kontroller och underlag</h2>}
         <div className="schema-summary">
+          {inaktuelltUnderlag && <p>Kontrollerna nedan gäller det sparade förslaget för {PERIOD[forslag.period].toLocaleLowerCase('sv-SE')}.</p>}
           {forslag.metrics.lessons > 0 && <Lagesstatus lessons={passMedSal}/>}
           {forslag.metrics.lessons > 0 && <span className={`status-badge ${off ? 'warning' : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? '' : 'success'}`}>{off ? `Avviker från timplanen · ${off}` : forslag.villkor.timeBasis === 'lasar' && forslag.period !== 'lasar' ? 'Årsberäknad terminsdel' : 'Tiden följer timplanen'}</span>}
           {steps > 0 && <span className="status-badge warning">Ändrat för hand · {steps} {steps === 1 ? 'flytt' : 'flyttar'}</span>}
           {kontroll && kontroll.total > 0 && <span className="status-badge warning">{kontroll.total} {kontroll.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}</span>}
           {egnaSyns > 0 && <span className="status-badge">{egnaSyns} {egnaSyns === 1 ? 'eget villkor syns' : 'egna villkor syns'} i veckan</span>}
-          <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
-          {forslag.status === 'time_limit' && <p className="schema-note">Motorn slutade söka när omgångens räknetid var slut. Det betyder inte att schemat är omöjligt. Välj längre räknetid och Fortsätt förbättra för att arbeta vidare från de placeringar som finns.</p>}
-          <p className="schema-note">{forslag.basis ? `Underlag: tjänstefördelning version ${forslag.basis.versionNo} (${BASIS[forslag.basis.status] ?? forslag.basis.status}).` : 'Skolan har ingen tjänstefördelning för läsåret; bara behoven är underlag.'}
-            {forslag.time.source === 'kalender'
-              ? ` Tid: ${forslag.time.schoolDays} skoldagar${forslag.time.terms.length > 1 ? ` (${forslag.time.terms.map(t => `${t.term.toUpperCase()} ${t.schoolDays}`).join(', ')})` : ''} enligt läsårskalendern version ${forslag.time.version} (${CALENDAR[forslag.time.status ?? ''] ?? forslag.time.status}${forslag.time.current ? ', gällande' : ''}).`
-              : ` Läsårskalender saknas för läsåret: ${forslag.time.weeks} lika veckor har antagits.`}
-            {forslag.metrics.placed > 0 && ` Håltid per vecka: elever ${forslag.metrics.studentGapMin} min, lärare ${forslag.metrics.teacherGapMin} min.`}</p>
+          {inaktuelltUnderlag ? <p>{forslag.metrics.lessons ? `${forslag.metrics.placed} av ${forslag.metrics.lessons} pass har fått en tid.` : 'Det sparade förslaget innehåller inga pass.'}</p>
+            : <>
+              <p>{PERIOD[forslag.period]}. {forslag.metrics.placed} av {forslag.metrics.lessons} pass har fått en tid.</p>
+              {forslag.status === 'time_limit' && <p className="schema-note">Motorn slutade söka när omgångens räknetid var slut. Det betyder inte att schemat är omöjligt. Välj längre räknetid och Fortsätt förbättra för att arbeta vidare från de placeringar som finns.</p>}
+              <p className="schema-note">{forslag.basis ? `Underlag: tjänstefördelning version ${forslag.basis.versionNo} (${BASIS[forslag.basis.status] ?? forslag.basis.status}).` : 'Skolan har ingen tjänstefördelning för läsåret; bara behoven är underlag.'}
+                {forslag.time.source === 'kalender'
+                  ? ` Tid: ${forslag.time.schoolDays} skoldagar${forslag.time.terms.length > 1 ? ` (${forslag.time.terms.map(t => `${t.term.toUpperCase()} ${t.schoolDays}`).join(', ')})` : ''} enligt läsårskalendern version ${forslag.time.version} (${CALENDAR[forslag.time.status ?? ''] ?? forslag.time.status}${forslag.time.current ? ', gällande' : ''}).`
+                  : ` Läsårskalender saknas för läsåret: ${forslag.time.weeks} lika veckor har antagits.`}
+                {forslag.metrics.placed > 0 && ` Håltid per vecka: elever ${forslag.metrics.studentGapMin} min, lärare ${forslag.metrics.teacherGapMin} min.`}</p>
+            </>}
         </div>
 
         {salsattningsvy}
@@ -1550,7 +1568,9 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         {!fonster && <><Forklaring diagnoses={forslag.diagnoses}/>
         <SvarastAttLagga statistics={forslag.statistics} onFollow={foljPass} onCondition={diagnosVillkor}/></>}
         {(!fonster || fonster.view === 'tid' || fonster.view === 'veckor') && <Tid forslag={forslag} deviating={deviating} off={off} mode={fonster?.view === 'veckor' ? 'veckor' : fonster?.view === 'tid' ? 'tid' : 'all'} onOpen={() => synk.open({ view: 'tid' })} onOpenWeeks={() => synk.open({ view: 'veckor' })}/>}
-        {!fonster && <><Underlag forslag={forslag}/>{aktivitetsvy(forslag)}</>}
+        {!fonster && <>{inaktuelltUnderlag ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Underlag för det sparade förslaget</summary><Underlag forslag={forslag}/></details>
+          : <Underlag forslag={forslag}/>}
+          {aktivitetsvy(forslag)}</>}
       </section>
     </>}
     {/* Villkoren ligger på samma plats i båda ytorna, så att dess öppna läge och pågående val finns kvar när ytan byts. */}
