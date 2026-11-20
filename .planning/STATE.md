@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 har daterat provförslag med resurser, bortfall och ersättningstid i Granska på 3012. Revisionsbunden tillämpning återstår."
+current_plan: "UXF-53 visar sparade prov på bokat datum och kan spara ett komplett och bekräftat provförslag på 3012."
 status: in_progress
-stopped_at: "Aktuellt underlag syns i alla schemaytor på 3012. Granska kan lämna ett daterat provförslag för granskning."
+stopped_at: "Bokade nationella prov syns i schemats datumvy på 3012. Granska sparar ett komplett förslag i provplanen och schemautkastet."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat daterat provförslag i Granska och aktuellt underlag i alla schemaytor."
-state_head: f95979dcb93fa2c90b5ca4e08d863578cde608c0
+last_activity_desc: "Installerat provkort på bokat datum och kontrollerad tillämpning från Granska."
+state_head: 4478da28026db2fe5f15812967ac5aa6c05a287b
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,15 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: f95979dcb93fa2c90b5ca4e08d863578cde608c0
-schema_candidate_revision: f95979dcb93fa2c90b5ca4e08d863578cde608c0
-schema_candidate_status: provforslag_for_dated_resources_and_makeup_installed
+schema_runtime_revision: 4478da28026db2fe5f15812967ac5aa6c05a287b
+schema_candidate_revision: 4478da28026db2fe5f15812967ac5aa6c05a287b
+schema_candidate_status: booked_exams_visible_and_application_installed
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: provforslag_passed_6_groups_zero_migrations
-user_trial_status: provforslag_installed_awaiting_user_trial
+schema_installation_status: booked_exams_passed_6_groups_zero_migrations
+user_trial_status: booked_exams_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-20 – sparade prov i schemat.** [UXF-53 Tillämpa provförslag](phases/05.2-schemamodul/05.2-SM-UXF-53-TILLAMPA-PROV-PLAN.md) visar läsårskalenderns bokningar i veckans faktiska datum. Rektor kan bekräfta ett komplett provförslag från Granska. Sal och provvakter sparas i provplanen tillsammans med ersättningstillfällena i utkastet genom samma transaktion. På 3012 gav ett inloggat prov resurser till tolv bokningar och ersättning för samtliga 1 600 minuter. Ett separat syntetiskt databasprov verifierade sparande, återläsning och atomisk rollback. 3012 kör `4478da28`. [Installationsrapport](../work/schema/results/prov-i-schema-4478da28-install.json).
 
 **2026-11-20 – provdagen och aktuellt schemaunderlag.** [UXF-53 Provdagen](phases/05.2-schemamodul/05.2-SM-UXF-53-PROVDAGEN-PLAN.md) får bokade tider och deltagare från läsårsplanen. Granska föreslår sal, provvakt och nya tider för undanträngda undervisningstillfällen. Provtiden redovisas separat. Lägg schema och Granska läser aktuellt underlag även med äldre helårsutkast. 3012 kör `f95979dc`. Tillämpning av granskat provförslag är en öppen del. [Installationsrapport](../work/schema/results/provforslag-datum-f95979dc-install.json).
 

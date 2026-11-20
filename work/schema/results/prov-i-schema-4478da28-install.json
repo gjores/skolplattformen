@@ -1,0 +1,62 @@
+{
+  "revision": "4478da28026db2fe5f15812967ac5aa6c05a287b",
+  "previousAppRevision": "f95979dcb93fa2c90b5ca4e08d863578cde608c0",
+  "motorRevision": "66a4fb969bc71548768014da59bac2b7f1aedb7a",
+  "status": "PASS",
+  "checks": [
+    "lokalt skyddat mål, IdP, 174 journalrader och befintlig motor",
+    "förhandsprov, filinventering och föregående app verifierade",
+    "rätt appbygge, process och privat konfiguration på 3012",
+    "inloggningssida, exakta planerings-, kalender- och schemafiler och 23 skyddade rutter på 3012",
+    "samma motorprocess med frisk status och syntetiskt beräkningsprov",
+    "journal, katalog, provplaner, salregister och befintliga utkastrevisioner bevarade"
+  ],
+  "startedAt": "2026-11-20T07:16:29.391Z",
+  "migrationsApplied": 0,
+  "rollback": null,
+  "database": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 174,
+    "journalSha": "5f84463dc7c989871bf077c854a14bbb4883fbd08ab7488e8477689e277fdf39",
+    "catalogSha": "65a3fdcb590229163f845ef495268d63ddfd2ff6e5fe9559624eb0608d319489",
+    "counts": {
+      "tjanstVersions": 9,
+      "drafts": 123,
+      "roomRegister": 3,
+      "provkatalog": 1,
+      "examPlans": 4
+    },
+    "digests": {
+      "tjanstVersions": "e1545a097148aed33c7a9eb6a9fc761828ed05a6ca46882b0ed6e5cd9f6022ea",
+      "drafts": "5763eae0176d5974caafa5fb8f6f0622583d43e3be37ff3c186eea286569c031",
+      "roomRegister": "97cbb49ab294008db041ff8780aeb181a60856e1df4e92bb2a3cf930de3fabd7",
+      "provkatalog": "92b5b146e6f68f00b728bf6a16482f374108b44dbaed7c5fd7369d19f8b7ef82",
+      "examPlans": "e77044d177c657ccd7f36d32499c47fe13b8851bcd8c4e90e4046036d15d9b86"
+    }
+  },
+  "after": {
+    "target": "7aadffc97f42432a6b740a44e557b740a5701877ee9ad116dd28d215b9abda96",
+    "journalRows": 174,
+    "journalSha": "5f84463dc7c989871bf077c854a14bbb4883fbd08ab7488e8477689e277fdf39",
+    "catalogSha": "65a3fdcb590229163f845ef495268d63ddfd2ff6e5fe9559624eb0608d319489",
+    "counts": {
+      "tjanstVersions": 9,
+      "drafts": 123,
+      "roomRegister": 3,
+      "provkatalog": 1,
+      "examPlans": 4
+    },
+    "digests": {
+      "tjanstVersions": "e1545a097148aed33c7a9eb6a9fc761828ed05a6ca46882b0ed6e5cd9f6022ea",
+      "drafts": "5763eae0176d5974caafa5fb8f6f0622583d43e3be37ff3c186eea286569c031",
+      "roomRegister": "97cbb49ab294008db041ff8780aeb181a60856e1df4e92bb2a3cf930de3fabd7",
+      "provkatalog": "92b5b146e6f68f00b728bf6a16482f374108b44dbaed7c5fd7369d19f8b7ef82",
+      "examPlans": "e77044d177c657ccd7f36d32499c47fe13b8851bcd8c4e90e4046036d15d9b86"
+    }
+  },
+  "appListener": 84763,
+  "appRoot": 84751,
+  "motorListener": 42182,
+  "artifactSha256": "059794aa123f2a9258090f4ebc93f2737731947e46f32afe535037cb79a3aa9a",
+  "finishedAt": "2026-11-20T07:16:42.115Z"
+}
