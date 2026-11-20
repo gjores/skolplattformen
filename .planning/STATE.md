@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 söker effektivare efter ersättningar. Tolv prov är sparade och verifierade i helårsutkastet 2026/27 på 3012."
+current_plan: "SM-TOM-SCHEMA har verifierad tömning och ångring för vald revision."
 status: in_progress
-stopped_at: "Helårsutkastets version 11 och provplanens version 5 har verifierats efter begärt sparande på 3012."
+stopped_at: "Tömning och ångring har prövats i webbläsare och isolerad databas. Befintligt provschema finns på 3012."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat utökad ersättningssökning och sparat tolv prov med frigjorda salar och 23 ersättningstillfällen."
-state_head: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
+last_activity_desc: "Verifierat tömning av ett sparat schemautkast och ångring efter omladdning."
+state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
   completed_phases: 3
@@ -22,14 +22,16 @@ worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
 schema_runtime_revision: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
-schema_candidate_revision: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
-schema_candidate_status: exam_replacement_search_installed_and_applied
+schema_candidate_revision: 13700ccb1cf54462a80a8c7a1866a46defb57a80
+schema_candidate_status: clear_and_undo_verified_in_isolated_environment
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: exam_replacement_search_passed_app_only_zero_migrations
 user_trial_status: exam_proposal_applied_on_request_and_verified
 milestone_name: milestone
 ---
+
+**2026-11-20 – töm schema och ångra tömning.** [SM-TOM-SCHEMA](phases/05.2-schemamodul/05.2-SM-TOM-SCHEMA-PLAN.md) skriver ny revision för valt utkast. Ångring överlever omladdning medan den tömda revisionen är aktuell. 36 webbläsarprov på två datorbredder, 1 517 domän- och routeprov samt isolerade SQL-prov passerade. 3012 kör fortsatt det sparade provflödet.
 
 **2026-11-20 – provförslaget sparat i helårsutkastet.** [Ersättningstid i det nya helårsutkastet](phases/05.2-schemamodul/05.2-SM-UXF-53-TILLAMPA-PROV-PLAN.md#ersättningstid-i-det-nya-helårsutkastet) krävde fler motorkontroller. På begäran sparades provplanens version 5 och helårsutkastets version 11 på 3012. Tolv prov använder frigjorda salar, och 23 flyttade lektioner behåller 1 650 undervisningsminuter. Alla tre provdatum och fyra klassers kalender på respektive datum kontrollerades efter sparandet. [Installationsrapport](../work/schema/results/prov-ersattning-b0fd1171-install.json)
 
