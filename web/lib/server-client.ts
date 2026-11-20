@@ -1,6 +1,16 @@
 import { parseConflictDetails, type ConflictDetails } from './pupil-register-model.ts';
 import { messageText, reduceEpochHeader } from './session-channel.ts';
 
+type SchemaNyttProvHinder = { bookings: number; resourceIssues: number; remainingMinutes: number; dateIssues: number; unplaced?: number };
+
+function parseSchemaNyttProvHinder(value: unknown): SchemaNyttProvHinder | null {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
+  const { bookings, resourceIssues, remainingMinutes, dateIssues, unplaced } = value as Record<string, unknown>;
+  const count = (n: unknown, max: number): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= max;
+  return count(bookings, 200) && count(resourceIssues, 20_000) && count(remainingMinutes, 12_000_000) && count(dateIssues, 20_000)
+    && (unplaced === undefined || count(unplaced, 20_000)) ? { bookings, resourceIssues, remainingMinutes, dateIssues, ...(unplaced === undefined ? {} : { unplaced }) } : null;
+}
+
 export class ApiError extends Error {
   public code: string;
   public status: number;
@@ -11,6 +21,7 @@ export class ApiError extends Error {
   public reason: string | null;
   /** Validerade verksamhetsfel för undervisningens uppdelning. */
   public issues: string[];
+  public schemaNyttProv: SchemaNyttProvHinder | null;
   constructor(
     code: string,
     status: number,
@@ -19,6 +30,7 @@ export class ApiError extends Error {
     hasExplicitCode = false,
     reason: string | null = null,
     issues: string[] = [],
+    schemaNyttProv: SchemaNyttProvHinder | null = null,
   ) {
     super(messageText(code));
     this.name = 'ApiError';
@@ -29,6 +41,7 @@ export class ApiError extends Error {
     this.hasExplicitCode = hasExplicitCode;
     this.reason = reason;
     this.issues = issues;
+    this.schemaNyttProv = schemaNyttProv;
   }
 }
 
@@ -140,7 +153,8 @@ async function request<T>(
         ? (error.details as { issues?: unknown }).issues : null;
       const issues = Array.isArray(rawIssues) && rawIssues.length > 0 && rawIssues.length <= 20
         && rawIssues.every(x => typeof x === 'string' && x.length > 0 && x.length <= 4000 && !Array.from(x).some(c => c.charCodeAt(0) < 32 && !['\t', '\n', '\r'].includes(c))) ? rawIssues as string[] : [];
-      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason, issues);
+      const schemaNyttProv = response.status === 409 && reason === 'schema_nytt_prov_unresolved' ? parseSchemaNyttProvHinder(error.details) : null;
+      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason, issues, schemaNyttProv);
     }
     if (unexpectedEpoch) {
       throw new DOMException('Begäran tillhör en tidigare kontext.', 'AbortError');

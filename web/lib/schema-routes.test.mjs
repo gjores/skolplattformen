@@ -7,6 +7,8 @@ import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor } from './schema-contract
 import { laggTillSal, sattSalbehov, tomtSalbehov } from './schema-salregister.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
 import { parseSchemaFortsatt } from './schema-fortsatt.ts';
+import { parseSchemaNyttProvForslag } from './schema-nytt-prov.ts';
+import { NATIONELLA_PROV_VERSION } from './nationella-prov.ts';
 
 const id = n => `73111500-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const ISSUER = 'http://host.docker.internal:8180/realms/skolplattform-test';
@@ -43,6 +45,19 @@ const fake = globalThis.__schemaRoutesTest = {
       state.events.push({ action: values[8], outcome: values[11], details: values[12] }); return [];
     }
     if (sql.includes('select i.auth_user_id')) return [{ auth_user_id: id(4), function: state.role, organizer_id: id(8), unit_id: id(1) }];
+    const actor = { identityId: id(4), assignmentId: id(6) };
+    if (sql.includes('public.nationella_prov_read')) {
+      state.reads.push({ type: 'prov', input: values[0] });
+      return [{ result: { actor, contractVersion: NATIONELLA_PROV_VERSION, result: { register: state.provRegister ?? null } } }];
+    }
+    if (sql.includes('public.schema_read')) return [{ result: { actor, contractVersion: 'schema_draft_sql_v1', result: { draft: null } } }];
+    if (sql.includes('public.schema_dated_basis')) {
+      state.reads.push({ type: 'dated' });
+      return [{ result: { actor, contractVersion: 'schema_dated_basis_sql_v1', result: {
+        unitId: id(1), schoolYear: 2026, complete: true, placements: [{ id: id(60), pupilId: id(30), startsOn: '2026-07-01', endsOn: null }],
+        classMemberships: [{ placementId: id(60), pupilId: id(30), classId: id(10), startsOn: '2026-07-01', endsOn: null }], groups: [], memberships: [],
+      } } }];
+    }
     throw new Error('Unexpected synthetic SQL');
   },
   async planRead(_tx, input, ctx) {
@@ -56,9 +71,10 @@ const fake = globalThis.__schemaRoutesTest = {
   },
   async elective() { state.reads.push({ type: 'elective' }); return { body: { pupils: pupils(), placements: [] }, event: event('elective_blocks_read') }; },
   async study() { state.reads.push({ type: 'study' }); return { body: { pupils: pupils(), memberships: [] }, event: event('study_groups_read') }; },
-  async lasar() { state.reads.push({ type: 'lasar' }); return { body: { calendar: null, versions: [] }, event: event('lasar_read') }; },
+  async lasar() { state.reads.push({ type: 'lasar' }); return { body: state.calendar ?? { calendar: null, versions: [] }, event: event('lasar_read') }; },
   async solve(problem, timeMs, seed) {
     assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'), 'motorn nåddes före lyckad audit');
+    if (state.provRegister) assert.ok(state.reads.some(r => r.type === 'prov'), 'provplanen ska läsas före den första motorkörningen');
     state.solves.push(structuredClone(problem));
     state.solveTimes = [...state.solveTimes ?? [], timeMs];
     state.solveSeeds = [...state.solveSeeds ?? [], seed];
@@ -357,6 +373,56 @@ test('med salregister: kontrollen fyller ingen sal och motorn får passen utan s
   assert.equal(r2.status, 200); const s2 = await r2.json();
   assert.ok(Object.values(s2.rooms).length > 0 && Object.values(s2.rooms).every(r => r === 'sal-1'), 'äldre utkast fyller i sal');
 }));
+
+function bokatProv(datum = '2026-12-01') {
+  state.provRegister = { revision: 4, savedAt: '2026-10-18T10:00:00.000Z', document: { granskad: true, bokningar: [{
+    id: id(71), namn: 'Syntetiskt nationellt prov', undervisning: 'undervisning:source-1', mal: { slag: 'klass', ref: id(10) }, datum,
+    tidsval: 'fast', startMin: 540, slutMin: 600, salId: null, vakter: [], kontrolleradDatum: '2026-10-18',
+  }] } };
+}
+
+function kalenderForProv() {
+  state.calendar = { target: { kind: 'school', unitId: id(1) }, schoolYear: 2026, groups: [], versions: [{ versionId: id(70), current: true }],
+    calendar: { versionId: id(70), version: 1, status: 'faststalld', revision: 1,
+      terms: { ht: { start: '2026-08-17', end: '2026-12-18' }, vt: { start: '2027-01-11', end: '2027-06-11' } },
+      exceptions: {}, groupDays: {}, shortWeeks: {}, frameVersionId: null, contentHash: 'synthetic', decidedOn: '2026-03-18', history: [] } };
+}
+
+test('första beräkningen läser provplan, deltagare och kalender innan motorn och levererar en samlad plan utan att skriva', async () => {
+  reset(); bokatProv(); kalenderForProv();
+  const villkor = medSalregister(), input = scope(villkor);
+  globalThis.__schemaSkolsalar = { document: { nasta: 3, salar: villkor.salregister.salar } };
+  try {
+    const res = await routes.forslag(request('forslag', { ...input, planeraProv: true }));
+    assert.equal(res.status, 200);
+    const { forslag, provplanering } = parseSchemaNyttProvForslag(await res.json(), input);
+    assert.equal(forslag.metrics.unplaced, 0);
+    assert.deepEqual([provplanering.draftId, provplanering.expectedRevision, provplanering.provrevision, provplanering.bookings], [null, 0, 4, 1]);
+    assert.ok(state.reads.findIndex(r => r.type === 'prov') < state.reads.findIndex(r => r.type === 'dated'));
+    assert.ok(state.validations.some(x => x.problem.id === 'datum-2026-12-01'));
+    assert.equal(state.provRegister.document.bokningar[0].salId, null);
+  } finally { delete globalThis.__schemaSkolsalar; }
+});
+
+test('första förslaget kan lämnas som förut när termen saknar prov och stoppar oklart provunderlag före motorn', async () => {
+  const input = scope();
+  reset(); bokatProv('2027-05-12'); kalenderForProv();
+  const anotherTerm = await routes.forslag(request('forslag', { ...input, planeraProv: true }));
+  assert.equal(anotherTerm.status, 200);
+  assert.equal(parseSchemaNyttProvForslag(await anotherTerm.json(), input).provplanering, undefined);
+  assert.equal(state.reads.some(r => r.type === 'dated'), false);
+  reset(); bokatProv();
+  const missingCalendar = await routes.forslag(request('forslag', { ...input, planeraProv: true }));
+  assert.equal(missingCalendar.status, 409);
+  assert.equal((await missingCalendar.json()).details.reason, 'schema_nytt_prov_calendar');
+  assert.equal(state.solves.length, 0);
+  reset(); bokatProv(); kalenderForProv(); state.role = 'administrator';
+  const roleLimited = await routes.forslag(request('forslag', { ...input, planeraProv: true }));
+  assert.equal(roleLimited.status, 403);
+  assert.equal((await roleLimited.json()).details.reason, 'schema_nytt_prov_rektor');
+  assert.equal(state.reads.some(r => r.type === 'personal'), false);
+  assert.equal(state.solves.length, 0);
+});
 test('med salregister: lägena prövar tiden utan sal och behåller passets egen sal bara där den är ledig', () => dubbelt(async () => {
   reset(); const v = medSalregister(), value = body('lagen', v);
   const [forsta, andra] = value.placements;

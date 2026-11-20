@@ -198,6 +198,12 @@ Att alla pass har tid betyder inte att salarna är klara.
 
 Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver provplanen gås igenom igen. Vid samtidig redigering visas en uppmaning att läsa in aktuell plan före nästa sparning.
 
+### Ta fram ett schema med bokade prov
+
+Som rektor väljer du **Ta fram schemaförslag** efter att provbokningarna har sparats. Motorn räknar på grundschemat och provdagarna för vald period. Den försöker i första hand använda lämpliga salar och lärare som blir lediga när krockande lektioner flyttas. Lektionerna får nya datum inom terminen och provtiden räknas för sig.
+
+När alla prov har sal och provvakt och undervisningstiden har ersatts sparas förslaget automatiskt. Välj **Visa provdagen** för att kontrollera resultatet. Om något återstår visar beräkningen vad som saknas. Du kan komplettera underlaget och försöka igen. Ett tidigare sparat utkast finns kvar till nästa lyckade beräkning.
+
 ### Visa bokade prov i schemat
 
 När det finns ett schemautkast kan du öppna **Lägg schema → Bokade nationella prov**. Listan visar sparade bokningar från provplanen i **Läsår & skoldagar**. Välj **Visa provdagen** vid en bokning för att öppna datumet och den bokade klassen eller undervisningsgruppen.
@@ -206,7 +212,9 @@ Provrutan visar tid och deltagare på bokningsdatumet i **Vecka** eller **Datumi
 
 ### Granska provförslaget
 
-1. Lägg ett schema för läsåret eller terminen så att undervisningspassen har tider. Välj **Öppna provförslag** från provveckan eller gå till **Schema → Granska**. Välj **Ta fram provförslag**.
+Om provbokningarna ändras efter att schemat har lagts kan du komplettera det befintliga schemat i **Granska**.
+
+1. Välj **Öppna provförslag** från provveckan eller gå till **Schema → Granska**. Välj **Ta fram provförslag**.
 2. Kontrollera sal och provvakter för varje provbokning. Förslaget fördelar lämpliga salar mellan samtidiga prov och prioriterar de salar som frigörs när undervisningen flyttas. En sal behöver rymma deltagarna och vara ledig hela provtiden. Förslaget försöker även använda lärare som blir lediga. Granska eventuella krockar och bokningar där en lämplig resurs saknas.
 3. Kontrollera **Bortfall av undervisningstid**. Där visas för varje undervisning hur många minuter som faller bort, hur många som kan täckas av föreslagna ersättningstillfällen och hur mycket tid som återstår. Provtiden redovisas separat från gymnasiets garanterade undervisningstid.
 4. Granska **Föreslagna ersättningstillfällen**. Med **Visa tillfället** öppnar du lektionen i schemat.

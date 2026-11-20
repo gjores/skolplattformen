@@ -31,6 +31,8 @@ user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
+**2026-11-20 – nationella prov i första schemaförslaget.** [SM-PROV-I-FORSTA-FORSLAGET](phases/05.2-schemamodul/05.2-SM-PROV-I-FORSTA-FORSLAGET-PLAN.md) inkluderar provresurser och daterad ersättningstid från **Ta fram schemaförslag**. Veckomönster och provdagar kontrolleras före gemensam sparning. Isolerade verifieringar passerade. Installation på 3012 återstår.
+
 **2026-11-20 – töm schema och ångra tömning.** [SM-TOM-SCHEMA](phases/05.2-schemamodul/05.2-SM-TOM-SCHEMA-PLAN.md) skriver ny revision för valt utkast. Ångring överlever omladdning medan den tömda revisionen är aktuell. 36 webbläsarprov, 1 517 domän- och routeprov samt isolerade SQL-prov passerade. Efter installation på 3012 visas **Töm schema…** vid sparbeskedet. Provschemats version 11 och alla tolv provbokningar i provplanens version 5 bevarades. [Installationsrapport](../work/schema/results/tom-schema-13700ccb-install.json)
 
 **2026-11-20 – provförslaget sparat i helårsutkastet.** [Ersättningstid i det nya helårsutkastet](phases/05.2-schemamodul/05.2-SM-UXF-53-TILLAMPA-PROV-PLAN.md#ersättningstid-i-det-nya-helårsutkastet) krävde fler motorkontroller. På begäran sparades provplanens version 5 och helårsutkastets version 11 på 3012. Tolv prov använder frigjorda salar, och 23 flyttade lektioner behåller 1 650 undervisningsminuter. Alla tre provdatum och fyra klassers kalender på respektive datum kontrollerades efter sparandet. [Installationsrapport](../work/schema/results/prov-ersattning-b0fd1171-install.json)

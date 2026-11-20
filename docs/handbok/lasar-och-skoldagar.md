@@ -38,7 +38,7 @@ Provdatum och skolans bokningar finns under **Nationella prov** i skolans läså
 
 Sparade provdagar markeras i kalendern. Samma bokningar visas i [Förbered](./schema-forbered.md) och i listan **Sparade provbokningar**. När du väljer ett delprov från Skolverket sparas kopplingen mellan provet och skolans deltagare. Sparade provdagar ligger kvar när nya uppgifter hämtas. Om katalogen eller provplanen ändras medan du planerar behöver du läsa om och förhandsgranska igen. Provtid redovisas separat från gymnasiets garanterade undervisningstid.
 
-När undervisningspassen har fått tider kan du ta fram förslag på resurser och ersättningstid för proven. [Granska provförslaget i Schema](./schema-forbered.md#granska-provförslaget)
+Som rektor tar du fram ett schemaförslag i **Schema → Förbered**. Beräkningen inkluderar sparade provbokningar, sal, provvakter och ersättningslektioner för den valda perioden. Om bokningarna ändras när schemat är lagt kan du komplettera i **Granska**. [Ta fram ett schema med bokade prov](./schema-forbered.md#ta-fram-ett-schema-med-bokade-prov)
 
 ## Ändra och markera dagar
 

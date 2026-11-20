@@ -67,6 +67,7 @@ import { Aktiviteter } from './schema/aktiviteter.tsx';
 import { NationellaProv } from './schema/nationella-prov.tsx';
 import { Provforslag } from './schema/provforslag.tsx';
 import { parseSchemaProvApplyReply, schemaProvResultHash, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '@/lib/schema-provforslag.ts';
+import { parseSchemaNyttProvForslag, parseSchemaNyttProvSaveReply, type SchemaNyttProvSave } from '@/lib/schema-nytt-prov.ts';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
@@ -93,9 +94,22 @@ const REASON: Record<string, string> = {
   schema_engine_busy: 'Schemamotorn räknar redan på andra förslag. Försök igen om en stund.',
   schema_engine_bad_reply: 'Schemamotorns svar kunde inte kontrolleras. Inget förslag visas.',
 };
-function message(error: unknown): string {
+function message(error: unknown, planerarProv = false): string {
   if (error instanceof SchemaContractError) return 'Schemamotorns svar kunde inte kontrolleras. Läs om sidan och försök igen.';
   if (error instanceof ApiError) {
+    if (error.reason === 'schema_nytt_prov_unresolved') {
+      const hinder = error.schemaNyttProv;
+      const detaljer = hinder && [hinder.bookings ? `${hinder.bookings} ${hinder.bookings === 1 ? 'provbokning' : 'provbokningar'} kontrollerades.` : '',
+        hinder.unplaced ? `${hinder.unplaced} pass saknar tid.` : '',
+        hinder.resourceIssues ? `${hinder.resourceIssues} resursproblem behöver ses över.` : '',
+        hinder.remainingMinutes ? `${hinder.remainingMinutes} minuter undervisning återstår att ersätta.` : '',
+        hinder.dateIssues ? `${hinder.dateIssues} ${hinder.dateIssues === 1 ? 'datumavvikelse' : 'datumavvikelser'} behöver ses över.` : ''].filter(Boolean).join(' ');
+      return ['Nationella prov behöver ses över innan ett nytt schema kan sparas.', detaljer, 'Det sparade utkastet ligger kvar.'].filter(Boolean).join(' ');
+    }
+    if (error.reason === 'schema_nytt_prov_calendar') return 'Fastställ läsårskalendern innan du tar fram ett schema med bokade nationella prov.';
+    if (error.reason === 'schema_nytt_prov_rektor') return 'En rektor behöver ta fram schemat när nationella prov är bokade.';
+    if (error.reason === 'schema_nytt_prov_weekly') return 'Grundschemat fick en regelavvikelse vid slutkontrollen. Ta fram ett nytt förslag. Det sparade utkastet ligger kvar.';
+    if (planerarProv && error.status === 409 && error.reason) return 'Schemat, provplanen eller underlaget har ändrats. Läs in det aktuella utkastet och ta fram ett nytt förslag.';
     if (error.issues.length) return error.issues.join(' ');
     if (error.reason && REASON[error.reason]) return REASON[error.reason];
     if (error.status === 403) return 'Ditt uppdrag tillåter inte den här åtgärden.';
@@ -167,6 +181,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [tomningsMarkor, setTomningsMarkor] = useState<{ draftId: string; revision: number } | null>(null), [tomningsfel, setTomningsfel] = useState<string | null>(null);
   const tomningsknapp = useRef<HTMLButtonElement>(null), fokuseraTomning = useRef(false);
   const [provSparat, setProvSparat] = useState<{ period: SchemaPeriod; revision: number; provrevision: number; provdag: string } | null>(null);
+  const [schemalagdaProv, setSchemalagdaProv] = useState<{ period: SchemaPeriod; draftId: string; revision: number; antal: number; flyttar: number; minuter: number } | null>(null);
+  const [nyttProvSparfel, setNyttProvSparfel] = useState<string | null>(null);
   const [provFranDatumvy, setProvFranDatumvy] = useState<string | null>(null);
   const provSparas = useRef(false);
   const [datumPicked, setDatumPicked] = useState<(SchemaDatumTillfalle & { expectedInputKey: string; grundFingerprint: string; period: SchemaPeriod }) | null>(null);
@@ -195,7 +211,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   };
   // Tilldela salar och behåll tiderna (05.2-SM-UXF-41): förhandsgranskningen och kontrollens svar för just den.
   const [salsattning, setSalsattning] = useState<(SalsattningVisning & { svar: SchemaKontroll | null }) | null>(null);
-  const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve'>('diagnos');
+  const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve' | 'sparar-prov'>('diagnos');
+  const [avbrytNyttForslag, setAvbrytNyttForslag] = useState(false), [nyttForslagAvbrutet, setNyttForslagAvbrutet] = useState(false);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
   const [solveTimeMs, setSolveTimeMs] = useState<SchemaSolveTimeMs>(SCHEMA_SOLVE_DEFAULT_MS);
   const [fortsatt, setFortsatt] = useState<FortsattSokning | null>(null), currentContinueKey = useRef('');
@@ -244,6 +261,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const tabell = useRef<HTMLDivElement | null>(null), visaFokus = useRef<string | null>(null);
   const resursvy = useRef<HTMLDivElement | null>(null);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
+  const avbrytbarBerakning = useRef<AbortController | null>(null);
   const passRubrik = useRef<HTMLHeadingElement | null>(null);
   /** Passet att lägga fokus på: knappen i veckan, eller radens aktiva cell i passtabellen. */
   const passElement = useCallback((id: string): HTMLElement | null => {
@@ -359,6 +377,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     rememberPeriod(unitId, schoolYear, next);
     setJamforTerminer(false);
     setTomningsMarkor(null); setTomningsfel(null);
+    setSchemalagdaProv(null); setNyttProvSparfel(null); setNyttForslagAvbrutet(false);
     setProvSparat(null); setProvFranDatumvy(null);
     setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setGranskatPass(null); setPeriod(next);
   }
@@ -548,6 +567,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     const key = JSON.stringify(request), consentKey = JSON.stringify([key, datedOverrides, utkast.placements, gamlaPassregler]);
     const continuing = continueAnyway && fore?.key === key;
     const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('forbereder'); setError(null);
+    setNyttProvSparfel(null); setNyttForslagAvbrutet(false);
+    let spararProv = false;
     try {
       if ((datedOverrides.length || gamlaPassregler.length) && (!continuing || generationConsent.current !== consentKey)) {
         const passnamn = gamlaPassregler.slice(0, 5).map(r => base?.lessons.find(l => l.id === r.ref)?.title ?? r.ref).join(', ');
@@ -559,6 +580,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       if (controller.signal.aborted) return;
       if (sparstatus.phase !== 'stale' && !await spara.flush()) { setError('Spara det nuvarande utkastet innan du tar fram ett nytt förslag. Dina ändringar finns kvar här.'); return; }
       if (controller.signal.aborted) return;
+      avbrytbarBerakning.current = controller; setAvbrytNyttForslag(true);
       searchRunning.current?.abort(); searchRunning.current = null; setSokning(null); setVillkorsSokning(null);
       if (!continuing) {
         setBerakningssteg('diagnos');
@@ -568,8 +590,30 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         if (findings.length) return;
       }
       setBerakningssteg('solve');
-      const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', { ...request, solveTimeMs }, controller.signal), request);
+      const { forslag: next, provplanering } = parseSchemaNyttProvForslag(
+        await api.post<unknown>('/api/schema/forslag', { ...request, solveTimeMs, planeraProv: true }, controller.signal), request);
       if (controller.signal.aborted) return;
+      if (provplanering) {
+        const { draftId, expectedRevision, provrevision, sourceHash, resultHash, bookings, moveCount, replacedMinutes } = provplanering;
+        const saveRequest: SchemaNyttProvSave = {
+          save: { contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: crypto.randomUUID(), draftId, expectedRevision,
+            name: snapshot.name, basisVillkor: next.villkor, workingVillkor: next.villkor, grundFingerprint: next.grundFingerprint,
+            placements: next.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]),
+            locks: next.locks ?? [], intentional: [], datedOverrides: [], activityTypes: snapshot.activityTypes },
+          prov: { provrevision, sourceHash, resultHash },
+        };
+        spararProv = true;
+        avbrytbarBerakning.current = null;
+        setAvbrytNyttForslag(false); setBerakningssteg('sparar-prov');
+        const receipt = parseSchemaNyttProvSaveReply(await api.post<unknown>('/api/schema/forslag/spara', saveRequest, controller.signal), saveRequest);
+        if (controller.signal.aborted) return;
+        generationConsent.current = null;
+        setProvSparat(null); setSchemalagdaProv({ period, draftId: receipt.draftId, revision: receipt.revision, antal: bookings, flyttar: moveCount, minuter: replacedMinutes });
+        setBerakningOpen(false); setVisning(grundschemaVal()); setJamforTerminer(false); valjYta('schema');
+        spara.read(); nationellaProv.onReload();
+        return;
+      }
+      setProvSparat(null); setSchemalagdaProv(null);
       generationConsent.current = null; spara.acceptNewBasis(); setDatedOverrides([]); setDatumPicked(null); setGranskatPass(null);
       setBase(next); setVillkor(next.villkor); dispatch({ type: 'reset', forslag: next }); setFortsatt(null); setBerakningOpen(false); valjYta('schema'); setFolj(null); setShownTerm('ht'); setChosen('');
       if (next.metrics.lessons > 0) requestAnimationFrame(() => { if (!document.querySelector('[role="dialog"]')) berakningKnapp.current?.focus(); });
@@ -579,8 +623,15 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
-      setError(message(caught));
-    } finally { if (running.current === controller) { running.current = null; setBusy(false); } }
+      if (spararProv) {
+        setNyttProvSparfel(caught instanceof ApiError && caught.status >= 400 && caught.status < 500 ? message(caught, true)
+          : 'Sparandet av schemat och proven kunde inte bekräftas. Serverns aktuella utkast läses in.');
+        spara.read(); nationellaProv.onReload();
+      } else setError(message(caught, true));
+    } finally {
+      if (avbrytbarBerakning.current === controller) avbrytbarBerakning.current = null;
+      if (running.current === controller) { running.current = null; setAvbrytNyttForslag(false); setBusy(false); }
+    }
   }
 
   /** Fortsätter från utkastet, utan att ersätta det eller tömma dess historik. */
@@ -1201,6 +1252,10 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const sparadProvdag = sparatProvforslag && provBokningar.find(b => b.id === sparatProvforslag.provdag);
   const sparatProvAktuellt = sparatProvforslag && !sparstatus.dirty && sparstatus.phase === 'saved'
     && sparstatus.revision === sparatProvforslag.revision && nationellaProv.revision === sparatProvforslag.provrevision;
+  const sparadeNyaProv = schemalagdaProv && spara.ready && !sparstatus.dirty && sparstatus.phase === 'saved'
+    && schemalagdaProv.period === period && schemalagdaProv.draftId === spara.draftId && schemalagdaProv.revision === sparstatus.revision ? schemalagdaProv : null;
+  const forstaSparadeProvdag = sparadeNyaProv && !nationellaProv.reading && !nationellaProv.readFailed
+    && provBokningar.find(b => provDagar.get(b.datum) && options.some(r => r.key === provNyckel(b)));
   function visaProvdag(id: string) {
     const bokning = provBokningar.find(b => b.id === id);
     if (!bokning || !forslag?.time.calendar) return;
@@ -1420,10 +1475,23 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const hinderUnderlag = inaktuelltUnderlag ? aktuelltUnderlag : forslag;
   const underlagshinder = hinderUnderlag && hinderUnderlag.metrics.lessons === 0 && <UnderlagHinder forslag={hinderUnderlag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>;
   // Ytorna Förbered och Lägg schema (05.2-SM-UXF-31) visar samma utkast. Formuläret för regler och aktivitetslistan finns på båda och ritas där ytan står.
+  const berakningsbesked = busy && !fortsatt?.loading ? {
+    forbereder: 'Förbereder ett nytt schemaförslag…',
+    diagnos: 'Kontrollerar underlaget före beräkning…',
+    solve: `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. ${avbrytNyttForslag ? 'Bokade nationella prov planeras innan förslaget sparas.' : 'Därefter kontrolleras resultatet.'}`,
+    'sparar-prov': 'Sparar schema och nationella prov tillsammans…',
+  }[berakningssteg] : '';
   const meddelanden = <>
-    <output aria-live="polite" className="schema-note">{busy && !fortsatt?.loading ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. Därefter kontrolleras resultatet.` : ''}</output>
+    <div className="flex flex-wrap items-center gap-2">
+      <output aria-live="polite" className="schema-note">{berakningsbesked || (nyttForslagAvbrutet ? 'Beräkningen avbröts. Det sparade utkastet ligger kvar.' : '')}</output>
+      {!fonster && busy && avbrytNyttForslag && <Button type="button" variant="outline" className="h-auto min-h-11 whitespace-normal" onClick={() => {
+        if (!avbrytbarBerakning.current) return;
+        avbrytbarBerakning.current.abort(); setAvbrytNyttForslag(false); setNyttForslagAvbrutet(true);
+      }}>Avbryt beräkningen</Button>}
+    </div>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
+    {nyttProvSparfel && <div className="valplan-alert" role="alert"><p>{nyttProvSparfel}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
     {!inaktuelltUnderlag && underlagshinder}
     {!forslag && !busy && !error && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
@@ -1439,7 +1507,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const senasteSteg = utkast.undo.at(-1), angraText = senasteSteg && arbetsvillkorSteg(senasteSteg) ? `Ångra: ${senasteSteg.text.charAt(0).toLocaleLowerCase('sv')}${senasteSteg.text.slice(1)}` : 'Ångra';
   const granskarForslag = !!(sokning || fortsatt || diagnosAktuell?.findings.length);
   const harPass = !!forslag?.metrics.lessons;
-  const taFramKnapp = <Button type="submit" form={regelformId} variant={granskarForslag || (!visaForbered && harPass) ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
+  const taFramKnapp = <Button type="submit" form={regelformId} variant={granskarForslag || (!visaForbered && harPass) ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? berakningssteg === 'sparar-prov' ? 'Sparar…' : 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
   const berakningsform = <form id={regelformId} className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
       <label>Räknetid per omgång<select value={solveTimeMs} disabled={busy || checking} onChange={e => setSolveTimeMs(Number(e.target.value) as SchemaSolveTimeMs)}>
         {SCHEMA_SOLVE_TIMES.map(ms => <option key={ms} value={ms}>{ms / 1000} sekunder</option>)}
@@ -1513,6 +1581,14 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     {!fonster && !forslag && <FonsterMeny synk={synk} disabled/>}
     {forslag && datumPicked && <DatumFlytt salScope={placeringsBas()} datedOverrides={datedOverrides} onSessionLost={onSessionLost} key={datumPicked.key} occurrence={datumPicked} forslag={forslag} busy={busy || checking} error={moveError} onSave={change => void andraDatum({ lesson: datumPicked.lesson.id, originalDate: datumPicked.originalDate }, change, undefined, datumPicked.expectedInputKey)} onClose={() => setDatumPicked(null)} onBase={() => oppnaGrundpass(datumPicked.lesson.id)}/>}
     {gemensamt}
+    {!fonster && visaSchema && sparadeNyaProv && <section aria-label="Nationella prov i det sparade schemat" className="flex min-w-0 flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-4">
+      <div className="space-y-1">
+        <output className="status-badge success">Schema och nationella prov sparade</output>
+        <p className="schema-note">{sparadeNyaProv.antal} {sparadeNyaProv.antal === 1 ? 'provbokning planerad' : 'provbokningar planerade'}.
+          {' '}{sparadeNyaProv.flyttar > 0 ? `${sparadeNyaProv.flyttar} ${sparadeNyaProv.flyttar === 1 ? 'lektion flyttad' : 'lektioner flyttade'} med ${sparadeNyaProv.minuter} minuters ersatt undervisningstid.` : 'Ingen undervisning behövde flyttas.'}</p>
+      </div>
+      {forstaSparadeProvdag && <Button type="button" variant="outline" className="h-auto min-h-11 whitespace-normal" onClick={() => visaProvdag(forstaSparadeProvdag.id)}>Visa provdagen</Button>}
+    </section>}
     {!fonster && visaSchema && (provBokningar.length > 0 || nationellaProv.readFailed) && <details className="min-w-0 rounded-lg border border-border bg-card p-4">
       <summary className="cursor-pointer font-medium">Bokade nationella prov{provBokningar.length > 0 && <span className="ml-2 status-badge">{provBokningar.length}</span>}</summary>
       {nationellaProv.readFailed && <div className="flex flex-wrap items-center gap-2 pt-3"><p className="schema-note">Provplanen kunde inte läsas.</p><Button type="button" variant="outline" onClick={nationellaProv.onReload}>Läs in provplanen igen</Button></div>}
@@ -1539,7 +1615,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       </section>}
       {underlagshinder}
     </>}
-    {!fonster && visaGranska && (error || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
+    {!fonster && visaGranska && (busy || error || nyttProvSparfel || nyttForslagAvbrutet || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
     {!fonster && <GranskaUtkast key={granskaScope} forslag={forslag} lessons={passMedSal} kontroll={kontroll} checking={checking || busy} stale={granskaStale}
       datum={datumSvar} datedOverrides={datedOverrides} intentional={intentionalKeys} active={visaGranska}
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}
