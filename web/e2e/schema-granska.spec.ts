@@ -9,7 +9,7 @@ import {
   type SchemaKontrollRequest,
   type SchemaViolation,
 } from '../lib/schema-contract.ts';
-import { type SchemaDatumRequest } from '../lib/schema-datum.ts';
+import { schemaDatumOriginal, type SchemaDatumRequest } from '../lib/schema-datum.ts';
 import { samlingResurser, type SamlingResurs } from '../lib/schema-samling.ts';
 
 const url = '/e2e/fixtures/schema-preview.html';
@@ -19,7 +19,7 @@ const granskningsyta = (page: Page) => page.getByRole('region', { name: 'Granska
 const granskatPass = (page: Page) => page.getByRole('region', { name: 'Pass från granskningen', exact: true });
 const vyval = (page: Page) => page.getByRole('navigation', { name: 'Arbetsytor', exact: true });
 
-async function start(page: Page, proposal = base, violationsFor: (request: SchemaKontrollRequest) => SchemaViolation[] = () => []) {
+async function start(page: Page, proposal = base, violationsFor: (request: SchemaKontrollRequest) => SchemaViolation[] = () => [], entry = url) {
   const controlRequests: SchemaKontrollRequest[] = [];
   await page.route('**/api/schema/diagnos', route => route.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
   await page.route('**/api/schema/forslag', route => {
@@ -43,12 +43,50 @@ async function start(page: Page, proposal = base, violationsFor: (request: Schem
       rooms: Object.fromEntries(input.placements.filter(p => p.room !== null).map(p => [p.lesson, p.room])),
     } });
   });
-  await page.goto(url);
+  await page.goto(entry);
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect(page.locator('.schema-week')).toBeVisible();
   await expect(page.getByText('Sparat på servern', { exact: true })).toBeVisible();
   return controlRequests;
 }
+
+test('Granska tar fram ett daterat provförslag med resurser och ersättningstid utan att spara', async ({ page, schemaDraftServer }) => {
+  const originalDate = '2026-11-06', date = '2026-11-13';
+  const occurrence = base.lessons.flatMap(l => schemaDatumOriginal(base, { lesson: l.id, originalDate }) ?? []).find(o => !o.lesson.egenAktivitet)!;
+  const calls: SchemaDatumRequest[] = [];
+  await page.route('**/api/schema/provforslag', route => {
+    const request = route.request().postDataJSON() as SchemaDatumRequest;
+    calls.push(request);
+    const { contractVersion, unitId, schoolYear, period, grundFingerprint } = request;
+    return route.fulfill({ headers, json: { contractVersion, unitId, schoolYear, period, grundFingerprint, provrevision: 2,
+      bokningar: [{ id: '52a10000-0000-4000-8000-000000000090', namn: 'Läsförståelse', datum: originalDate, startMin: 540, slutMin: 660,
+        deltagarnamn: 'Klass 2', deltagare: 24, sal: { id: 'sal-1', name: 'Provsalen' },
+        vakter: [{ ref: '52a10000-0000-4000-8000-000000000091', name: 'Provlärare Ada' }], problem: [] }],
+      bortfall: [{ ref: 'undervisning:test', title: `${occurrence.lesson.title} · Klass 2`, bortfallMin: occurrence.length, ersattMin: occurrence.length, kvarMin: 0 }],
+      ersattningar: [{ lesson: occurrence.lesson.id, originalDate, date, startMin: 900, room: null, durationMin: occurrence.length }],
+    } });
+  });
+  await start(page, base, undefined, '/e2e/fixtures/schema-personal-preview.html');
+  const saved = structuredClone(schemaDraftServer.saves);
+  await vyval(page).getByRole('button', { name: 'Granska', exact: true }).click();
+  const calculate = page.getByRole('button', { name: 'Ta fram provförslag', exact: true });
+  await expect(calculate).toBeEnabled();
+  await calculate.click();
+  await expect(page.getByText('Läsförståelse', { exact: true })).toBeVisible();
+  await expect(page.getByText('Provsalen', { exact: true })).toBeVisible();
+  await expect(page.getByText('Provlärare Ada', { exact: true })).toBeVisible();
+  await expect(page.getByText(`${occurrence.lesson.title} · Klass 2`, { exact: true })).toBeVisible();
+  const original = page.getByRole('button', { name: /^Visa tillfället för/u });
+  await original.click();
+  await expect(granskatPass(page)).toContainText(occurrence.lesson.title);
+  await granskatPass(page).getByRole('button', { name: /^Tillbaka till/u }).click();
+  await expect(page.getByText('Läsförståelse', { exact: true })).toBeVisible();
+  await expect(original).toBeFocused();
+  expect(calls).toHaveLength(1);
+  expect(calls[0]).toMatchObject({ period: 'lasar', grundFingerprint: base.grundFingerprint, dates: [], datedOverrides: [] });
+  expect(calls[0].placements.some(p => p.lesson === occurrence.lesson.id)).toBe(true);
+  expect(schemaDraftServer.saves).toEqual(saved);
+});
 
 test('regelkrocken öppnar valt pass och tillfällig jämförelse återgår till samma fynd utan skrivning', async ({ page, schemaDraftServer }, info) => {
   const ena = base.lessons.find(l => l.id === 'pass-7')!;

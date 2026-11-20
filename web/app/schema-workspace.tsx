@@ -65,6 +65,7 @@ import { Folj } from './schema/folj.tsx';
 import { Samling, type SamlingStart } from './schema/samling.tsx';
 import { Aktiviteter } from './schema/aktiviteter.tsx';
 import { NationellaProv } from './schema/nationella-prov.tsx';
+import { Provforslag } from './schema/provforslag.tsx';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
@@ -178,6 +179,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [ytaVal, setYtaVal] = useState<SchemaYta | null>(() => storedYta(unitId, schoolYear)), [genomgang, setGenomgang] = useGenomgang(unitId, schoolYear);
   const [granskatPass, setGranskatPass] = useState<{ mal: GranskaMal; scope: string; term: SchemaTerm } | null>(null);
   const [jamforOpen, setJamforOpen] = useState(false), jamforId = useId();
+  const provforslagPanel = useRef<HTMLDivElement>(null), provGranskaRetur = useRef<HTMLElement | null>(null);
   const granskaFokus = useRef<GranskaMal | null>(null), granskaPassRubrik = useRef<HTMLHeadingElement | null>(null);
   const valjYta = (next: SchemaYta) => {
     if (next !== 'schema') { setGranskatPass(null); setJamforOpen(false); granskaFokus.current = null; }
@@ -270,6 +272,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const periodbyteStoppat = busy || checking || !spara.ready || sparstatus.phase === 'loading' || (sparstatus.phase === 'stale' && sparstatus.dirty);
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
   const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
+  useEffect(() => {
+    if (!visaGranska || !provGranskaRetur.current) return;
+    const knapp = provGranskaRetur.current;
+    provGranskaRetur.current = null;
+    if (knapp.isConnected) { knapp.focus({ preventScroll: true }); knapp.scrollIntoView({ block: 'nearest' }); }
+  }, [visaGranska]);
   const inaktuelltUnderlag = sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
   // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
@@ -1378,11 +1386,23 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}
       onOpen={visaGranskaPass} onToSchedule={() => valjYta('schema')}
       actions={visaGranska && forslag && <div className="space-y-3">
-        <Button type="button" variant="outline" disabled={redigeringStoppad || busy || checking || granskaStale} onClick={() => void kontrolleraGranskning()}>
+        <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={redigeringStoppad || busy || checking || granskaStale} onClick={() => void kontrolleraGranskning()}>
           {kontroll ? 'Kontrollera igen' : 'Kontrollera schemat'}
         </Button>
+          <Button type="button" variant="outline" onClick={() => {
+            provforslagPanel.current?.focus({ preventScroll: true });
+            provforslagPanel.current?.scrollIntoView({ block: 'start' });
+          }}>Till provförslaget</Button></div>
         {salsattningsvy}
       </div>}/>}
+    {!fonster && <div ref={provforslagPanel} tabIndex={-1} className="scroll-mt-24" hidden={!visaGranska}>
+      <Provforslag key={nationellaProv.revision ?? 'okand'} request={placementBase?.placements.length && !granskaStale ? { ...placementBase, datedOverrides, dates: [] } : null}
+        disabled={redigeringStoppad || busy || checking} personalLookup={personalLookup} lessons={passMedSal} onSessionLost={onSessionLost}
+        onOpen={(lesson, originalDate) => {
+          if (document.activeElement instanceof HTMLElement) provGranskaRetur.current = document.activeElement;
+          visaGranskaPass({ lesson, originalDate });
+        }}/>
+    </div>}
     {!fonster && visaSchema && granskaMal && <>
       <section className="schema-granska-kontext" aria-label="Pass från granskningen">
         <Button type="button" variant="ghost" onClick={() => valjYta('granska')}><ArrowLeftIcon aria-hidden="true"/>Tillbaka till granskningen</Button>

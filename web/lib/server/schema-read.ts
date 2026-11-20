@@ -14,6 +14,7 @@ import { SchemaVersionError, type SchemaForslagRequest } from '../schema-contrac
 import { schemaTime } from '../schema-kalender.ts';
 import { mergeSchemaMembers, type SchemaBasis } from '../schema-underlag.ts';
 import { readSkolsalar, skolsalarDokument } from './skolsalar.ts';
+import type { TjanstDuty } from '../tjanst-contract.ts';
 
 /**
  * Begäran till kontroll, möjliga starttider och Följ passet (05.2-SM-VILLKOR-DIREKT): samma läsning och storleksgräns som övriga schemarutter.
@@ -41,16 +42,19 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   // Skolans salregister (05.2-SM-UXF-23): samma aktör och skolenhet; läsningen granskas i databasen.
   basis.skolsalar = skolsalarDokument(await readSkolsalar(tx, ctx, input.unitId));
   // Personallistan har eget mandat: rektor får skolans personal. Administratörens planmandat utvidgas inte.
+  let schoolDuties: ({ ref: string; name: string } & Pick<TjanstDuty, 'startsOn' | 'endsOn'>)[] = [];
   if (ctx.accessFunction === 'rektor') {
     const personal = await personalRead(tx, { unitId: input.unitId }, ctx);
     await logEvent(tx, { ...ctx, request }, { ...personal.event, outcome: 'ok' });
-    basis.personer = personal.body.people.filter(p => p.status === 'active' && p.duties.some(d => d.unitId === input.unitId
-      && d.startsOn <= `${input.schoolYear + 1}-06-30` && (d.endsOn === null || d.endsOn >= `${input.schoolYear}-07-01`)))
-      .map(p => ({ ref: p.id, name: `${p.givenName} ${p.familyName}`.trim() })).sort((a, b) => a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref));
+    schoolDuties = personal.body.people.filter(p => p.status === 'active').flatMap(p => p.duties.filter(d => d.unitId === input.unitId
+      && d.startsOn <= `${input.schoolYear + 1}-06-30` && (d.endsOn === null || d.endsOn >= `${input.schoolYear}-07-01`))
+      .map(({ startsOn, endsOn }) => ({ ref: p.id, name: `${p.givenName} ${p.familyName}`.trim(), startsOn, endsOn })));
+    basis.personer = [...new Map(schoolDuties.map(({ ref, name }) => [ref, { ref, name }])).values()]
+      .sort((a, b) => a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref));
   }
   // Elevernas namn, bara de som läsningarna gav med användarens egen behörighet (Följ passet, 05.2-SM-FOLJ). Stannar på servern utom i elevväljaren.
   const pupilNames = new Map([...elective.body.pupils ?? [], ...study.body.pupils].map(p => [p.id, p.name] as const));
   // Stabil källidentitet för serverlagrade utkast. Inget elevnamn eller nytt klientfält tillförs motorunderlaget.
   const sourceRefs = { calendarVersionId: lasar.body.calendar?.versionId ?? null };
-  return { plan: result.body, basis, event: result.event, pupilNames, sourceRefs };
+  return { plan: result.body, basis, event: result.event, pupilNames, sourceRefs, schoolDuties };
 }

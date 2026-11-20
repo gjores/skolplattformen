@@ -99,5 +99,5 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
       setSaving(false);
     }
   }
-  return { document: state?.register?.document ?? null, underlag: state?.underlag ?? null, reading, saving, error, readFailed, needsReload, onSave, onReload };
+  return { document: state?.register?.document ?? null, revision: state?.register?.revision ?? null, underlag: state?.underlag ?? null, reading, saving, error, readFailed, needsReload, onSave, onReload };
 }
