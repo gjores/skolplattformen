@@ -192,12 +192,21 @@ Att alla pass har tid betyder inte att salarna är klara.
 
 Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver provplanen gås igenom igen. Vid samtidig redigering visas en uppmaning att läsa in aktuell plan före nästa sparning.
 
+### Visa bokade prov i schemat
+
+När det finns ett schemautkast kan du öppna **Lägg schema → Bokade nationella prov**. Listan visar sparade bokningar från provplanen i **Läsår & skoldagar**. Välj **Visa provdagen** vid en bokning för att öppna datumet och den bokade klassen eller undervisningsgruppen.
+
+Provrutan visar tid och deltagare på bokningsdatumet i **Vecka** eller **Datumintervall**. Salen visas när den är vald. Gå till **Granska** för att se vilka undervisningspass som behöver ersättas och vilka resurser som kan användas för provet.
+
 ### Granska provförslaget
 
 1. Lägg ett schema för läsåret eller terminen så att undervisningspassen har tider. Öppna **Schema → Granska** och välj **Ta fram provförslag**.
 2. Kontrollera sal och provvakter för varje provbokning. Förslaget försöker i första hand använda lärare och salar som blir lediga när provet ersätter ett undervisningspass. Granska eventuella krockar och bokningar där en lämplig resurs saknas.
 3. Kontrollera **Bortfall av undervisningstid**. Där visas för varje undervisning hur många minuter som faller bort, hur många som kan täckas av föreslagna ersättningstillfällen och hur mycket tid som återstår. Provtiden redovisas separat från gymnasiets garanterade undervisningstid.
-4. Granska **Föreslagna ersättningstillfällen**. Med **Visa tillfället** öppnar du lektionen i schemat. Förslaget är en osparad förhandsgranskning. Spara de datumändringar du vill göra i schemat.
+4. Granska **Föreslagna ersättningstillfällen**. Med **Visa tillfället** öppnar du lektionen i schemat.
+5. Som rektor väljer du **Lägg in provförslaget** och bekräftar med **Spara provförslaget**. Utkastet behöver vara sparat och alla bokningar behöver ha sal och provvakt. Eventuella krockar och kvarstående undervisningsminuter behöver vara lösta.
+
+När du sparar läggs sal och provvakter in i provplanen, samtidigt som de daterade ersättningstillfällena sparas i schemautkastet. Förslaget gäller de versioner av schemat och provplanen som det togs fram för. Har något ändrats tar du fram och granskar ett nytt förslag innan du sparar.
 
 Förslag på provvakter visas för rektor, som kan läsa skolans aktuella uppdrag. Skoladministratören kan granska sal, bortfall och ersättningstid och lämna provvakterna till rektor.
 
