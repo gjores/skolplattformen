@@ -250,7 +250,9 @@ Begränsningar:
 
 ## Fastställ och publicera
 
-Öppna **Fastställ och publicera** i statusraden. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
+Öppna **Fastställ och publicera** i statusraden när du arbetar i ett utkast. Panelen visar publiceringsläget, eventuella hinder och **Lärarnas återkoppling**. Om det finns hinder visas också antalet i statusraden, även när panelen är stängd. Välj **… hinder för publicering** för att öppna panelen.
+
+När den aktuella versionen redan är fastställd öppnar du **Publiceringsstatus** för att se vilken version som är publicerad. Nästa sparade ändring skapar ett utkast som rektor kan fastställa.
 
 För valrader kan du behöva skapa grupper från **Valbara block** eller spara grupper på nytt under **Undervisningsgrupper**. En gammal tilldelning på en ersatt klassrad behöver också stämmas av.
 

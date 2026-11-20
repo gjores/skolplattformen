@@ -12,6 +12,8 @@ Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan
 
 Förbered visas först när skolan inte har något schemaförslag för läsåret. Skolans klasser, grupper, ämnen, lärare och undervisningar läses från tjänstefördelningen, timplanerna, läsårskalendern och elevgrupperna. Inget schema räknas fram när du öppnar ytan.
 
+Om underlaget till ett sparat förslag har ändrats visar **Förbered** skolans aktuella underlag. Välj **Ta fram nytt förslag från aktuellt underlag** när du vill räkna om placeringarna.
+
 Överst står **Nästa uppgift**. Den pekar på det första området där en uppgift saknas, och annars på det första området som ingen har gått igenom. Du väljer själv ordning; inget område är låst.
 
 Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**. Villkoren går att ändra under tiden.

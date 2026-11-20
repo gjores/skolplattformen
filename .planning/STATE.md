@@ -8,8 +8,8 @@ status: in_progress
 stopped_at: "Nya planlistor och höstterminens provutkast på 3012. Inloggat schemaprov för Nystartsgymnasiet 2026/27 gav tider och salar för samtliga 71 pass."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat uppdaterade planlistor och lagt till syntetisk skolorganisation för första årskursen."
-state_head: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
+last_activity_desc: "Förtydligat publiceringsstatus i Tjänstefördelning och läst aktuellt underlag i Förbered."
+state_head: abde47e1eab14866d06c5c66f1d1400e637ea5b8
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,15 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
-schema_candidate_revision: 5ec3842c344e8e74fa7231f7f5a02e2d0b3044c4
-schema_candidate_status: planeringsvyer_periodbyte_and_roomed_ht_trial_installed
+schema_runtime_revision: abde47e1eab14866d06c5c66f1d1400e637ea5b8
+schema_candidate_revision: abde47e1eab14866d06c5c66f1d1400e637ea5b8
+schema_candidate_status: tjanst_publiceringsstatus_and_schema_current_preparation_installed
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: planeringsvyer_passed_6_groups_zero_migrations
+schema_installation_status: tjanst_publiceringsstatus_passed_6_groups_zero_migrations
 user_trial_status: planeringsvyer_och_testorganisation_2026_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-20 – fastställandet i Tjänstefördelning.** För Nystartsgymnasiet 2026/27 visar **Publiceringsstatus** att version 1 redan är fastställd och publicerad. **Förbered** hämtar aktuell tjänstefördelning när ett äldre schemaförslags underlag har ändrats. 3012 kör `abde47e1` med nio bevarade tjänstefördelningsversioner och 117 bevarade schemarevisioner. [Verifieringsanteckning](phases/05.2-schemamodul/05.2-PLANER-UX-TESTORGANISATION-PLAN.md#förtydligande-om-fastställande-2026-11-20) och [installationsrapport](../work/schema/results/tjanst-publiceringsstatus-abde47e1-install.json).
 
 **2026-11-20 – planeringsvyer och skolunderlag på 3012.** [Programplaner, timplaner och schemaprov](phases/05.2-schemamodul/05.2-PLANER-UX-TESTORGANISATION-PLAN.md) har responsiva listor enligt Skolplattan. Nystartsgymnasiet har fyra syntetiska åk 1-klasser med 120 elever, tre program, två undervisningsgrupper, 16 lärare och nio salar för 2026/27. **Höstterminen → Förbered** har ett eget villkorsutkast. Ett inloggat prov placerade alla 71 återkommande pass med kapacitetsanpassade salar och Granska visade noll regelbrott. Befintliga planeringsrader och utkastrevisioner bevarades. Åk 2 och 3 återstår för en flerårsorganisation. [Installation av listorna](../work/schema/results/planeringsvyer-22c85191-install.json) och [installation av periodbytet](../work/schema/results/planeringsvyer-5ec3842c-install.json).
 
