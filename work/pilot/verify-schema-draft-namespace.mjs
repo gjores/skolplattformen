@@ -19,7 +19,8 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const docker = args => execFileSync('docker', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120000 }).trim();
 const image = 'sha256:5b6c2c6cbc90b6085e3f9b3086110b1eccedb643374137bfdcd1d2f5c78f6cd1';
 const args = process.argv.slice(2);
-assert.ok(args.length === 8 || args.length === 9 && args[8] === '--hold-until-ui-finished');
+assert.ok(args.length === 8 || args.length === 9 && ['--hold-until-ui-finished', '--study-plan'].includes(args[8]));
+const studyPlan = args[8] === '--study-plan';
 assert.deepEqual([args[0], args[2], args[4], args[6]], ['--runtime', '--release', '--linux', '--out']);
 const [privateFile, release, linux, out] = [args[1], args[3], args[5], args[7]].map(file => path.resolve(file));
 assert.match(privateFile, /^\/private\/tmp\/schema-draft-actual-[a-z0-9-]+-evidence\/runtime-private\.json$/u);
@@ -30,33 +31,49 @@ assert.match(owner.runId, /^[a-f0-9-]{36}$/u); assert.equal(owner.database, 'nam
 for (const name of [owner.names.auth, owner.names.idp]) assert.equal(docker(['inspect', '--format', '{{index .Config.Labels "skolplattform.schema-actual"}}', name]), owner.runId);
 assert.equal(docker(['network', 'inspect', '--format', '{{index .Labels "skolplattform.schema-actual"}}', owner.names.network]), owner.runId);
 console.log(JSON.stringify({ stage: 'verifying-exact-release-and-installed-dependencies' }));
-const manifest = verifySchemaUatRelease(release, { nodeModules: path.join(root, 'web/node_modules') });
-const coreProofFile = path.join(parentDirectory, 'core-provenance.json');
-const coreProof = existsSync(coreProofFile) ? JSON.parse(readFileSync(coreProofFile, 'utf8')) : JSON.parse(readFileSync(parentDirectory.replace(/-evidence$/u, '.json'), 'utf8')).runtime;
-assert.equal(coreProof.noTargetReads, true); assert.equal(coreProof.noUserBrowserAuth, true);
-for (const sql of manifest.sql) assert.equal(coreProof.migrations.find(m => m.file === sql.file)?.sha256, sql.sha256);
-const integrity = JSON.parse(readFileSync(path.join(linux, 'integrity.json'), 'utf8'));
-const lock = JSON.parse(readFileSync(path.join(release, 'source/web/package-lock.json'), 'utf8'));
-const workerd = lock.packages['node_modules/@cloudflare/workerd-linux-arm64'], esbuild = lock.packages['node_modules/@esbuild/linux-arm64'];
-assert.equal(integrity.workerd.version, workerd.version); assert.equal(integrity.workerd.integrity, workerd.integrity);
-assert.equal('sha512-' + createHash('sha512').update(readFileSync(path.join(linux, 'workerd.tgz'))).digest('base64'), workerd.integrity);
-assert.equal(integrity.workerd.binarySha256, hash(readFileSync(path.join(linux, 'node_modules/@cloudflare/workerd-linux-arm64/bin/workerd'))));
-assert.equal(integrity.esbuild.integrity, esbuild.integrity); assert.equal(integrity.esbuild.binarySha256, hash(readFileSync(path.join(linux, 'node_modules/@esbuild/linux-arm64/bin/esbuild'))));
-assert.equal('sha512-' + createHash('sha512').update(readFileSync(path.join(linux, 'esbuild.tgz'))).digest('base64'), esbuild.integrity);
-assert.equal(integrity.node.archiveSha256, hash(readFileSync(path.join(linux, 'node.tar.xz'))));
-assert.equal(integrity.libatomic.archiveSha256, hash(readFileSync(path.join(linux, 'libatomic1_12.2.0-14+deb12u1_arm64.deb'))));
-assert.equal(integrity.node.binarySha256, hash(readFileSync(path.join(linux, 'node/bin/node'))));
-assert.equal(integrity.libatomic.binarySha256, hash(readFileSync(path.join(linux, 'libatomic/usr/lib/aarch64-linux-gnu/libatomic.so.1.2.0'))));
-assert.equal(docker(['image', 'inspect', image, '--format', '{{.Architecture}}']), 'arm64');
-// Den här kontrollen granskar commitblobben, inte den tidigare privata guardvarianten.
-const finalGuard = execFileSync('git', ['show', manifest.source.revision + ':web/lib/server/mandates.ts'], { cwd: root });
-assert.deepEqual(finalGuard, execFileSync('git', ['show', '95abc5a1:web/lib/server/mandates.ts'], { cwd: root }), 'Product security gate differs from the accepted unchanged baseline');
-const guardSha256 = hash(finalGuard);
+const studyMigrations = [
+  '20261120110000_individual_study_plans.sql',
+  '20261120111000_individual_study_plan_impact.sql',
+];
+
+function verifyInputs() {
+  const manifest = verifySchemaUatRelease(release, { nodeModules: path.join(root, 'web/node_modules') });
+  const coreProofFile = path.join(parentDirectory, 'core-provenance.json');
+  const coreProof = existsSync(coreProofFile) ? JSON.parse(readFileSync(coreProofFile, 'utf8')) : JSON.parse(readFileSync(parentDirectory.replace(/-evidence$/u, '.json'), 'utf8')).runtime;
+  assert.equal(coreProof.noTargetReads, true); assert.equal(coreProof.noUserBrowserAuth, true);
+  for (const sql of manifest.sql) assert.equal(coreProof.migrations.find(m => m.file === sql.file)?.sha256, sql.sha256);
+  const verifiedStudyMigrations = studyPlan ? studyMigrations.map(file => {
+    const relative = 'supabase/migrations/' + file;
+    const sha256 = hash(execFileSync('git', ['show', manifest.source.revision + ':' + relative], { cwd: root }));
+    assert.equal(hash(readFileSync(path.join(release, 'source', relative))), sha256, 'Release source differs for ' + file);
+    const applied = coreProof.migrations.filter(item => item.file === file);
+    assert.equal(applied.length, 1, 'Owned core must have applied ' + file);
+    assert.equal(applied[0].sha256, sha256, 'Owned core SQL differs for ' + file);
+    return { file, sha256 };
+  }) : null;
+  const integrity = JSON.parse(readFileSync(path.join(linux, 'integrity.json'), 'utf8'));
+  const lock = JSON.parse(readFileSync(path.join(release, 'source/web/package-lock.json'), 'utf8'));
+  const workerd = lock.packages['node_modules/@cloudflare/workerd-linux-arm64'], esbuild = lock.packages['node_modules/@esbuild/linux-arm64'];
+  assert.equal(integrity.workerd.version, workerd.version); assert.equal(integrity.workerd.integrity, workerd.integrity);
+  assert.equal('sha512-' + createHash('sha512').update(readFileSync(path.join(linux, 'workerd.tgz'))).digest('base64'), workerd.integrity);
+  assert.equal(integrity.workerd.binarySha256, hash(readFileSync(path.join(linux, 'node_modules/@cloudflare/workerd-linux-arm64/bin/workerd'))));
+  assert.equal(integrity.esbuild.integrity, esbuild.integrity); assert.equal(integrity.esbuild.binarySha256, hash(readFileSync(path.join(linux, 'node_modules/@esbuild/linux-arm64/bin/esbuild'))));
+  assert.equal('sha512-' + createHash('sha512').update(readFileSync(path.join(linux, 'esbuild.tgz'))).digest('base64'), esbuild.integrity);
+  assert.equal(integrity.node.archiveSha256, hash(readFileSync(path.join(linux, 'node.tar.xz'))));
+  assert.equal(integrity.libatomic.archiveSha256, hash(readFileSync(path.join(linux, 'libatomic1_12.2.0-14+deb12u1_arm64.deb'))));
+  assert.equal(integrity.node.binarySha256, hash(readFileSync(path.join(linux, 'node/bin/node'))));
+  assert.equal(integrity.libatomic.binarySha256, hash(readFileSync(path.join(linux, 'libatomic/usr/lib/aarch64-linux-gnu/libatomic.so.1.2.0'))));
+  assert.equal(docker(['image', 'inspect', image, '--format', '{{.Architecture}}']), 'arm64');
+  // Den här kontrollen granskar commitblobben, inte den tidigare privata guardvarianten.
+  const finalGuard = execFileSync('git', ['show', manifest.source.revision + ':web/lib/server/mandates.ts'], { cwd: root });
+  assert.deepEqual(finalGuard, execFileSync('git', ['show', '95abc5a1:web/lib/server/mandates.ts'], { cwd: root }), 'Product security gate differs from the accepted unchanged baseline');
+  return { manifest, coreProof, integrity, guardSha256: hash(finalGuard), verifiedStudyMigrations };
+}
 const freePort = async () => { const s = createServer(); await new Promise(resolve => s.listen(0, '127.0.0.1', resolve)); const port = s.address().port; await new Promise(resolve => s.close(resolve)); return port; };
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const ready = async (url, check = () => {}) => { for (let attempt = 0; attempt < 180; attempt++) { check(); try { const r = await fetch(url, { signal: AbortSignal.timeout(1000) }); if (r.ok) return; } catch {} await sleep(250); } throw new Error('Owned namespace readiness timed out: ' + new URL(url).pathname); };
 
-const runtimeFactory = async ({ directory, onStage }) => {
+const makeRuntimeFactory = ({ manifest, coreProof, integrity, guardSha256, verifiedStudyMigrations }) => async ({ directory, onStage }) => {
   const runId = randomUUID(), container = 'schema-worker-' + runId.replaceAll('-', ''), ports = { worker: await freePort(), motor: await freePort() };
   const baseURL = `http://127.0.0.1:${ports.worker}`, idpURL = owner.idpURL;
   const db = postgres({ path: path.join(owner.pg, `.s.PGSQL.${owner.ports.postgres}`), database: owner.database, username: 'postgres', max: 2, prepare: false, onnotice: () => {} });
@@ -108,6 +125,7 @@ const runtimeFactory = async ({ directory, onStage }) => {
       unchangedGuard: { revision: '95abc5a1', sha256: guardSha256 }, namespace: { container, image, ports: { postgres: 56322, auth: 56331 }, relays: 'real TCP/HTTP; no replacement claims or SQL' },
       linux: integrity, runner: { sha256: hash(readFileSync(path.join(runner, 'schema-draft-namespace-worker.mjs'))), moduleLoaderSha256: hash(readFileSync(path.join(runner, 'preview-worker-modules.mjs'))) },
       migrations: coreProof.migrations,
+      ...(verifiedStudyMigrations ? { studyPlanMigrations: verifiedStudyMigrations } : {}),
       motor: { binarySha256: hash(readFileSync(motorBinary)), source: 'exact frozen release Rust HTTP service' } };
   };
   const cleanup = async () => {
@@ -123,21 +141,47 @@ const runtimeFactory = async ({ directory, onStage }) => {
     reportLimits: ['Exact frozen release; unchanged product security gate, actual protected endpoints and school mandates',
       'Own initialized PostgreSQL/Keycloak/GoTrue in a previously created owned runtime; a separate new synthetic customer is seeded',
       'Native Linux workerd with locked binary integrity; only own TCP/HTTP relays inside its network namespace',
-      'Storage helpers are bootstrap facades; no Storage/municipal integration or target installation is claimed', 'Product UI acceptance is separate'] };
+      'Storage helpers are bootstrap facades; no Storage/municipal integration or target installation is claimed',
+      studyPlan ? 'Synthetic study-plan cases; human acceptance is separate' : 'Product UI acceptance is separate'] };
 };
-const result = await verifySchemaDraftActual({ out, holdSeconds: args[8] ? null : 0, runtimeFactory });
-// Den historiska varianten får aldrig återfå PASS när dess hållprocess senare sparar sin RAM-rapport.
-if (result.status === 'PASS') {
-  writeFileSync(path.join(parentDirectory, 'ui-finished'), 'Final namespace and its UI hold completed\n', { mode: 0o600 });
+
+async function finishOwnedCore() {
+  writeFileSync(path.join(parentDirectory, 'ui-finished'), 'Final namespace verification completed\n', { mode: 0o600 });
   for (let i = 0; i < 160 && JSON.parse(readFileSync(privateFile, 'utf8')).cleanup !== 'complete'; i++) await sleep(250);
   const stoppedCore = JSON.parse(readFileSync(privateFile, 'utf8'));
   assert.equal(stoppedCore.cleanup, 'complete', 'Owned core cleanup has not completed');
   delete stoppedCore.users; delete stoppedCore.secrets;
   writeFileSync(privateFile, JSON.stringify(stoppedCore, null, 2), { mode: 0o600 });
-  if (owner.build) {
-    const priorReportFile = parentDirectory.replace(/-evidence$/u, '.json'), prior = JSON.parse(readFileSync(priorReportFile, 'utf8'));
-    prior.caseStatus = prior.caseStatus ?? prior.status; prior.status = 'HISTORICAL_GUARD_VARIANT'; prior.notEligibleForFinal = true;
-    prior.approvalReview = { status: 'rejected', action: 'persistent local security-gate extension', reason: 'User authorization covered isolated tests; unchanged-product infrastructure is the safer alternative' };
-    writeFileSync(priorReportFile, JSON.stringify(prior, null, 2), { mode: 0o600 });
+}
+
+if (studyPlan) {
+  let cleanupNamespace;
+  try {
+    const createRuntime = makeRuntimeFactory(verifyInputs());
+    const runtimeFactory = async options => {
+      const runtime = await createRuntime(options);
+      let cleanup;
+      cleanupNamespace = () => (cleanup ??= runtime.cleanup());
+      return { ...runtime, cleanup: cleanupNamespace };
+    };
+    const { verifyStudyPlanActual } = await import('./verify-study-plan-actual.mjs');
+    const result = await verifyStudyPlanActual({ out, runtimeFactory });
+    if (result.status !== 'PASS') process.exitCode = 1;
+  } finally {
+    try { await cleanupNamespace?.(); }
+    finally { await finishOwnedCore(); }
+  }
+} else {
+  const runtimeFactory = makeRuntimeFactory(verifyInputs());
+  const result = await verifySchemaDraftActual({ out, holdSeconds: args[8] === '--hold-until-ui-finished' ? null : 0, runtimeFactory });
+  // Den historiska varianten får aldrig återfå PASS när dess hållprocess senare sparar sin RAM-rapport.
+  if (result.status === 'PASS') {
+    await finishOwnedCore();
+    if (owner.build) {
+      const priorReportFile = parentDirectory.replace(/-evidence$/u, '.json'), prior = JSON.parse(readFileSync(priorReportFile, 'utf8'));
+      prior.caseStatus = prior.caseStatus ?? prior.status; prior.status = 'HISTORICAL_GUARD_VARIANT'; prior.notEligibleForFinal = true;
+      prior.approvalReview = { status: 'rejected', action: 'persistent local security-gate extension', reason: 'User authorization covered isolated tests; unchanged-product infrastructure is the safer alternative' };
+      writeFileSync(priorReportFile, JSON.stringify(prior, null, 2), { mode: 0o600 });
+    }
   }
 }

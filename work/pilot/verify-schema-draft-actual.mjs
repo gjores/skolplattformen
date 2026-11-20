@@ -48,9 +48,9 @@ async function seedDates(db, seed) {
     return { classA: seed.grim.classes.gr, classB: created.id, before: `${seed.year}-09-27`, after: `${seed.year}-10-04` };
   });
 }
-async function createLogins(runtime, seed) {
+export async function createLogins(runtime, seed, roles = ROLES) {
   const users = {};
-  for (const role of ROLES) {
+  for (const role of roles) {
     const username = `schema-${runtime.runId}-${role.toLowerCase()}`, password = randomBytes(20).toString('hex'), secret = new OTP.Secret({ size: 20 }).base32;
     const credentials = [{ type: 'password', value: password, temporary: false }];
     if (role !== 'principalAB') credentials.push({ type: 'otp', userLabel: 'Own schema test', secretData: JSON.stringify({ value: secret }),

@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-01 till SP-05 verifierade i domän, SQL och webbläsarfixtur. Nästa plan är SP-06 med skyddat inloggat prov."
+current_plan: "SP-01 till SP-06 genomförda för den första individuella studieplanen. Användarprov och installation återstår."
 status: in_progress
-stopped_at: "Daterad klass- och gruppjämförelse kontrollerad i isolerad SQL och webbläsarfixtur."
+stopped_at: "Första Gy25-studieplanen verifierad på dator och i telefonprofil i isolerad skyddad app."
 last_updated: "2026-11-21"
 last_activity: 2026-11-21
-last_activity_desc: "SP-05 passerade 25 isolerade SQL-prov och tio studieplansprov på dator och i telefonprofil."
+last_activity_desc: "SP-06 passerade tolv inloggade prov med faktisk lagring, MFA och skolmandat."
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: clear_and_undo_installed_one_migration_existing_draf
 user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-21 – första individuella studieplanen verifierad.** SP-01–SP-06 är genomförda. I byggrevision `f4441713` passerade tolv inloggade prov med egen PostgreSQL, Keycloak och skyddad Worker. SA26 kunde upprättas utan timplanslänk och behöll samma plan-ID vid datumkomplettering. BF26 bevarade faktiska datum och daterade reduceringsbeslut. Ordinarie klass- och gruppbyten bevarade studieplanen och gjorde det sparade schemaunderlaget inaktuellt vid omläsning. Användarprov och installation återstår. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
 
 **2026-11-20 – omprövad research och planer för individuell studieplan.** Användaren bedömer schemat som tillräckligt för beta och prioriterar elevens nivåer, start- och slutdatum samt status. [Research](phases/05.3-klassorganisation/05.3-STUDIEPLAN-RESEARCH.md) skiljer planerade datum från faktisk start och avslut, samt reducering från beslutade bortval och avbrott. [GSD-planeringen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PLANERING.md) gäller en första leverans på elevkortet inom nationella Gy25-program. Framtida perioder kan planeras med läsår och termin och preciseras när undervisningsperioden är känd. Dokumenten beskriver föreslagen implementation och prov. STUDY-01 och fasernas verifieringsstatus är öppna.
 
