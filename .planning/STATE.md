@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-TOM-SCHEMA är installerad på 3012 för prov av tömning och ångring efter omladdning."
+current_plan: "SM-PROV-I-FORSTA-FORSLAGET och SM-UXF-54-BERAKNING är verifierade tillsammans och installerade på 3012."
 status: in_progress
-stopped_at: "Töm schema visas inloggat på 3012. Provschema version 11 och provplan version 5 är verifierade efter bytet."
+stopped_at: "Beräkningsläge och nationella prov installerade. Helårsutkast version 14, tidigare provschema version 11 och provplan version 5 är verifierade efter bytet."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat tömning och ångring på 3012 och verifierat att provschemat bevarades."
-state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
+last_activity_desc: "Installerat samordnat beräknings- och provflöde på 3012 och verifierat sparade scheman och provplan skrivskyddat."
+state_head: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,17 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 13700ccb1cf54462a80a8c7a1866a46defb57a80
-schema_candidate_revision: 13700ccb1cf54462a80a8c7a1866a46defb57a80
-schema_candidate_status: clear_and_undo_installed_and_button_verified
+schema_runtime_revision: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
+schema_candidate_revision: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
+schema_candidate_status: exam_and_calculation_dialog_verified_together
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: clear_and_undo_installed_one_migration_existing_drafts_preserved
-user_trial_status: clear_and_undo_installed_awaiting_user_trial
+schema_installation_status: exam_and_calculation_dialog_installed_no_migrations_saved_data_preserved
+user_trial_status: exam_and_calculation_dialog_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-20 – nationella prov i första schemaförslaget.** [SM-PROV-I-FORSTA-FORSLAGET](phases/05.2-schemamodul/05.2-SM-PROV-I-FORSTA-FORSLAGET-PLAN.md) inkluderar provresurser och daterad ersättningstid från **Ta fram schemaförslag**. Veckomönster och provdagar kontrolleras före gemensam sparning. Isolerade verifieringar passerade. Installation på 3012 återstår.
+**2026-11-20 – nationella prov och beräkningsläget på 3012.** [SM-PROV-I-FORSTA-FORSLAGET](phases/05.2-schemamodul/05.2-SM-PROV-I-FORSTA-FORSLAGET-PLAN.md) inkluderar provresurser och daterad ersättningstid från **Ta fram schemaförslag**. [SM-UXF-54-BERAKNING](phases/05.2-schemamodul/05.2-SM-UXF-54-BERAKNING-PLAN.md) visar räknetid och det samordnade sparsteget. Bygget `5dc8dbf9` passerade 124 webbläsarprov och installerades utan migration. Helårsutkastets aktuella version 14, det tidigare provschemat version 11 och provplanens version 5 bevarades.
 
 **2026-11-20 – töm schema och ångra tömning.** [SM-TOM-SCHEMA](phases/05.2-schemamodul/05.2-SM-TOM-SCHEMA-PLAN.md) skriver ny revision för valt utkast. Ångring överlever omladdning medan den tömda revisionen är aktuell. 36 webbläsarprov, 1 517 domän- och routeprov samt isolerade SQL-prov passerade. Efter installation på 3012 visas **Töm schema…** vid sparbeskedet. Provschemats version 11 och alla tolv provbokningar i provplanens version 5 bevarades. [Installationsrapport](../work/schema/results/tom-schema-13700ccb-install.json)
 
