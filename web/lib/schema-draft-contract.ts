@@ -21,13 +21,14 @@ export type SchemaDraftSave = SchemaDraftScope & { commandId: string; draftId: s
   basisVillkor: SchemaVillkor | null; workingVillkor: SchemaVillkor; grundFingerprint: string | null; placements: SchemaPlacement[]; locks: SchemaPlacement[];
   intentional: SchemaMedveten[]; datedOverrides: SchemaDraftDatedOverride[]; activityTypes: SchemaAktivitetsTyp[] };
 export type SchemaDraftStatusRequest = SchemaDraftScope & { commandId: string; draftId: string | null };
+export type SchemaDraftResetRequest = SchemaDraftScope & { commandId: string; draftId: string; expectedRevision: number; action: 'clear' | 'undo' };
 export type SchemaDraftLessonSource = { lesson: string; ref: string; term: 'ht' | 'vt' | null; ordinal: number };
 export type SchemaDraftSource = { planId: string | null; planRevision: number; calendarVersionId: string | null; calendarVersion: number | null;
   lessonSources: SchemaDraftLessonSource[]; digest: string };
 export type SchemaDraftDocument = { documentVersion: 1; base: SchemaForslag | null; basisVillkor: SchemaVillkor | null; workingVillkor: SchemaVillkor;
   placements: SchemaPlacement[]; locks: SchemaPlacement[]; intentional: SchemaMedveten[]; datedOverrides: SchemaDraftDatedOverride[];
   activityTypes: SchemaAktivitetsTyp[]; control: SchemaKontroll | null; requiresRecalculation: boolean; source: SchemaDraftSource };
-export type SchemaDraft = SchemaDraftDocument & { id: string; name: string; revision: number; savedAt: string; contentHash: string; sourceHash: string; stale: boolean };
+export type SchemaDraft = SchemaDraftDocument & { id: string; name: string; revision: number; savedAt: string; contentHash: string; sourceHash: string; stale: boolean; resetUndoRevision?: number };
 export type SchemaDraftReceipt = { commandId: string; draftId: string; revision: number; requestHash: string; contentHash: string; savedAt: string; replayed: boolean };
 export type SchemaDraftReadReply = SchemaDraftScope & { draft: SchemaDraft | null };
 export type SchemaDraftSaveReply = SchemaDraftScope & { draft: SchemaDraft; receipt: SchemaDraftReceipt };
@@ -130,6 +131,12 @@ export function parseSchemaDraftStatusRequest(value: unknown): SchemaDraftStatus
   const r = record(value), scope = parseSchemaDraftScope(value, ['commandId', 'draftId']);
   return { ...scope, commandId: uuid(r.commandId), draftId: r.draftId === null ? null : uuid(r.draftId) };
 }
+export function parseSchemaDraftResetRequest(value: unknown): SchemaDraftResetRequest {
+  const r = record(value), scope = parseSchemaDraftScope(value, ['commandId', 'draftId', 'expectedRevision', 'action']);
+  const action = r.action;
+  if (action !== 'clear' && action !== 'undo') return invalid();
+  return { ...scope, commandId: uuid(r.commandId), draftId: uuid(r.draftId), expectedRevision: integer(r.expectedRevision, 1, 2147483646), action };
+}
 const encoder = new TextEncoder();
 const compareUtf8 = (a: string, b: string): number => {
   const left = encoder.encode(a), right = encoder.encode(b);
@@ -166,6 +173,7 @@ export async function schemaDraftHash(value: unknown): Promise<string> {
   const bytes = encoder.encode(schemaDraftCanonicalSerialize(['schema_draft_v1', value])), digest = await crypto.subtle.digest('SHA-256', bytes);
   return `sha256:${Array.from(new Uint8Array(digest), n => n.toString(16).padStart(2, '0')).join('')}`;
 }
+export const schemaDraftResetHash = (input: SchemaDraftResetRequest): Promise<string> => schemaDraftHash({ operation: 'schema_draft_reset_v1', ...input });
 
 export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraftScope, 'unitId' | 'schoolYear' | 'period'>): SchemaDraftDocument {
   try {
@@ -203,9 +211,13 @@ export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraft
 }
 export function parseSchemaDraft(value: unknown, scope: SchemaDraftScope): SchemaDraft {
   const r = record(value), documentKeys = ['documentVersion', 'base', 'basisVillkor', 'workingVillkor', 'placements', 'locks', 'intentional', 'datedOverrides', 'activityTypes', 'control', 'requiresRecalculation', 'source'];
-  keys(r, ['id', 'name', 'revision', 'savedAt', 'contentHash', 'sourceHash', 'stale', ...documentKeys]);
-  return { ...parseSchemaDraftDocument(Object.fromEntries(documentKeys.map(k => [k, r[k]])), scope), id: uuid(r.id), name: text(r.name, 120), revision: integer(r.revision, 1, 2147483647),
-    savedAt: instant(r.savedAt), contentHash: hash(r.contentHash), sourceHash: hash(r.sourceHash), stale: bool(r.stale) };
+  const required = ['id', 'name', 'revision', 'savedAt', 'contentHash', 'sourceHash', 'stale', ...documentKeys];
+  keys(r, [...required, 'resetUndoRevision'], required);
+  const document = parseSchemaDraftDocument(Object.fromEntries(documentKeys.map(k => [k, r[k]])), scope), revision = integer(r.revision, 1, 2147483647), stale = bool(r.stale);
+  const resetUndoRevision = Object.hasOwn(r, 'resetUndoRevision') ? integer(r.resetUndoRevision, 1, revision - 1) : undefined;
+  if (resetUndoRevision !== undefined && (stale || document.base !== null || resetUndoRevision !== revision - 1)) invalid();
+  return { ...document, id: uuid(r.id), name: text(r.name, 120), revision,
+    savedAt: instant(r.savedAt), contentHash: hash(r.contentHash), sourceHash: hash(r.sourceHash), stale, ...(resetUndoRevision !== undefined && { resetUndoRevision }) };
 }
 export function parseSchemaDraftReceipt(value: unknown): SchemaDraftReceipt {
   const r = record(value); keys(r, ['commandId', 'draftId', 'revision', 'requestHash', 'contentHash', 'savedAt', 'replayed']);
@@ -217,7 +229,7 @@ export function parseSchemaDraftReadReply(value: unknown, expected: SchemaDraftS
   if (scope.unitId !== expected.unitId || scope.schoolYear !== expected.schoolYear || scope.period !== expected.period) invalid();
   return { ...scope, draft: r.draft === null ? null : parseSchemaDraft(r.draft, scope) };
 }
-export function parseSchemaDraftSaveReply(value: unknown, expected: SchemaDraftSave): SchemaDraftSaveReply {
+export function parseSchemaDraftSaveReply(value: unknown, expected: Pick<SchemaDraftSave, keyof SchemaDraftScope | 'commandId' | 'draftId' | 'expectedRevision'>): SchemaDraftSaveReply {
   const r = record(value), scope = parseSchemaDraftScope(value, ['draft', 'receipt']);
   if (scope.unitId !== expected.unitId || scope.schoolYear !== expected.schoolYear || scope.period !== expected.period) invalid();
   const draft = parseSchemaDraft(r.draft, scope), receipt = parseSchemaDraftReceipt(r.receipt);
@@ -246,5 +258,12 @@ export async function verifySchemaDraftSaveReply(value: unknown, expected: Schem
   const reply = parseSchemaDraftSaveReply(value, expected);
   if (reply.receipt.requestHash !== await schemaDraftHash(expected) || reply.draft.sourceHash !== reply.draft.source.digest
     || await schemaDraftHash(schemaDraftDocument(reply.draft)) !== reply.draft.contentHash) invalid();
+  return reply;
+}
+export async function verifySchemaDraftResetReply(value: unknown, expected: SchemaDraftResetRequest): Promise<SchemaDraftSaveReply> {
+  const reply = parseSchemaDraftSaveReply(value, expected);
+  if (reply.receipt.requestHash !== await schemaDraftResetHash(expected) || reply.draft.sourceHash !== reply.draft.source.digest
+    || await schemaDraftHash(schemaDraftDocument(reply.draft)) !== reply.draft.contentHash
+    || (expected.action === 'clear' ? reply.draft.base !== null : !reply.draft.placements.length)) invalid();
   return reply;
 }

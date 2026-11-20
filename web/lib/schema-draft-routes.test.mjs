@@ -5,7 +5,7 @@ import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { defaultSchemaVillkor } from './schema-contract.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
-import { parseSchemaDraftSave, schemaDraftHash, verifySchemaDraftReadReply, verifySchemaDraftSaveReply, parseSchemaDraftStatusReply } from './schema-draft-contract.ts';
+import { parseSchemaDraftSave, schemaDraftHash, schemaDraftResetHash, verifySchemaDraftReadReply, verifySchemaDraftResetReply, verifySchemaDraftSaveReply, parseSchemaDraftStatusReply } from './schema-draft-contract.ts';
 import { schemaDatumOriginal } from './schema-datum.ts';
 
 const id = n => `83111600-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -61,6 +61,19 @@ const fake = globalThis.__schemaDraftRoutesTest = {
       if (state.wrongReceipt && result.receipt) result.receipt.commandId = id(99);
       return [{ result: wire(result) }];
     }
+    if (sql.includes('public.schema_reset_previous')) {
+      const result = { previousRevision: null, draft: null }, head = state.draft;
+      if (head?.id === q.draftId && head.revision === q.expectedRevision && head.document.base === null) {
+        const revisions = [...state.commands.values()], current = revisions.find(r => r.draft.revision === head.revision);
+        const previous = revisions.find(r => r.draft.revision === head.revision - 1)?.draft;
+        if (current && previous?.document.placements.length && current.receipt.requestHash === await schemaDraftResetHash({ ...scope,
+          commandId: current.receipt.commandId, draftId: head.id, expectedRevision: previous.revision, action: 'clear' })) {
+          result.previousRevision = previous.revision;
+          result.draft = q.includeDraft ? previous : null;
+        }
+      }
+      return [{ result: wire(result) }];
+    }
     if (sql.includes('public.schema_command')) {
       state.commandCalls++;
       if (state.draft && (q.draftId !== state.draft.id || q.expectedRevision !== state.draft.revision)) throw Object.assign(new Error('synthetic-conflict'), { code: '40001' });
@@ -113,17 +126,18 @@ registerHooks({ load(url, context, next) {
 } });
 const { Deny } = await import('./server/db.ts');
 const { SchemaEngineError } = await import('./server/schemamotor.ts');
-const routes = Object.fromEntries(await Promise.all(['las', 'spara', 'status'].map(async name => [name, (await import(`../app/api/schema/utkast/${name}/route.ts`)).POST])));
+const routes = Object.fromEntries(await Promise.all(['las', 'spara', 'status', 'aterstall'].map(async name => [name, (await import(`../app/api/schema/utkast/${name}/route.ts`)).POST])));
 const reset = () => { state = { role: 'rektor', planRevision: 1, reads: [], events: [], validations: [], sqlCalls: [], commandCalls: 0, draft: null, commands: new Map() }; };
 const scope = { contractVersion: 1, unitId: id(1), schoolYear: 2026, period: 'ht' };
 const emptySave = extra => ({ ...scope, commandId: id(2), draftId: null, expectedRevision: 0, name: 'Schemautkast', basisVillkor: null, workingVillkor: defaultSchemaVillkor(),
   grundFingerprint: null, placements: [], locks: [], ...extra });
 const statusInput = commandId => ({ ...scope, commandId: commandId ?? id(2), draftId: null });
+const resetInput = (action = 'clear', number = 61, revision = state.draft?.revision ?? 1) => ({ ...scope, commandId: id(number), draftId: state.draft?.id ?? id(50), expectedRevision: revision, action });
 function calculated(extra = {}) {
-  const villkor = defaultSchemaVillkor(), basis = { members: { pupils: [{ id: id(30), classIds: [id(10)] }], memberships: [] }, time: defaultSchemaTime(), personer: [{ ref: id(20), name: 'Provlärare' }] };
+  const villkor = extra.basisVillkor ?? defaultSchemaVillkor(), basis = { members: { pupils: [{ id: id(30), classIds: [id(10)] }], memberships: [] }, time: defaultSchemaTime(), personer: [{ ref: id(20), name: 'Provlärare' }] };
   const u = buildSchemaUnderlag(plan, { ...scope, villkor }, basis);
-  return { ...emptySave(), basisVillkor: villkor, grundFingerprint: u.grundFingerprint,
-    placements: u.problem.lessons.map((l, i) => ({ lesson: l.id, day: 1, startMin: 600 + i * 120, room: null })), ...extra };
+  return { ...emptySave(), basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: u.grundFingerprint,
+    placements: u.problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: null })), ...extra };
 }
 const request = (name, value, headers = {}) => new Request(`http://localhost:3012/api/schema/utkast/${name}`, { method: 'POST', headers: {
   Origin: 'http://localhost:3012', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(value) });
@@ -135,10 +149,64 @@ test('utkastsrutterna prövar verkligt uppdrag, MFA, epoch och ursprung före da
     { change: { noMfa: true }, code: 'mfa_required', status: 403 }, { change: { liveEpoch: 2 }, code: 'context_changed', status: 409 },
     { change: {}, headers: { Origin: 'https://annan.example.test' }, code: 'csrf', status: 403 }];
   for (const name of Object.keys(routes)) for (const c of cases) {
-    reset(); Object.assign(state, c.change); const result = await call(name, name === 'spara' ? emptySave() : name === 'status' ? statusInput() : scope, c.headers);
+    reset(); Object.assign(state, c.change); const result = await call(name, name === 'spara' ? emptySave() : name === 'status' ? statusInput() : name === 'aterstall' ? resetInput() : scope, c.headers);
     assert.equal(result.response.status, c.status, `${name}: ${c.code}`); assert.equal(result.body.code, c.code);
     assert.equal(state.sqlCalls.length + state.reads.length + state.validations.length, 0); assert.equal(result.response.headers.get('Cache-Control'), 'no-store');
   }
+});
+test('tömning bevarar aktivitetsvillkor och lägger till en revision som kan ångras exakt', async () => {
+  reset();
+  const villkor = defaultSchemaVillkor();
+  villkor.aktiviteter = [{ id: 'aktivitet-1', typId: 'mentor', typ: 'Mentorstid', name: 'Mentorstid', classRefs: [id(10)], groupRefs: [], teacherRefs: [], rooms: [],
+    durationMin: 20, veckor: { typ: 'alla' }, visibleFor: 'alla', margin: null, tid: { typ: 'fast', day: 0, startMin: 540 } }];
+  villkor.egna.push({ slag: 'pass', ref: 'pass-1', typ: 'marginal', beforeMin: 0, afterMin: 5, occupies: ['elever'], label: 'Eget passvillkor', visibleFor: ['elever'], when: 'alltid' });
+  const seeded = calculated({ basisVillkor: villkor });
+  seeded.locks = [seeded.placements[0]];
+  const original = await call('spara', seeded);
+  assert.equal(original.response.status, 200);
+  const before = original.body.draft;
+  const clear = resetInput();
+  const reply = await call('aterstall', clear);
+  assert.equal(reply.response.status, 200);
+  const { draft } = await verifySchemaDraftResetReply(reply.body, clear);
+  assert.equal(draft.revision, 2);
+  assert.equal(draft.base, null);
+  assert.deepEqual(draft.placements, []);
+  assert.deepEqual(draft.locks, []);
+  assert.deepEqual(draft.workingVillkor.egna, []);
+  assert.deepEqual(draft.workingVillkor.aktiviteter, villkor.aktiviteter);
+  assert.equal((await call('aterstall', clear)).body.receipt.replayed, true);
+  assert.equal((await call('aterstall', { ...clear, action: 'undo' })).body.details.reason, 'schema_draft_command_conflict');
+  const reopened = await verifySchemaDraftReadReply((await call('las', scope)).body, scope);
+  assert.equal(reopened.draft.resetUndoRevision, 1);
+  const undo = resetInput('undo', 62);
+  const restored = await verifySchemaDraftResetReply((await call('aterstall', undo)).body, undo);
+  assert.equal(restored.draft.revision, 3);
+  assert.equal(restored.draft.contentHash, before.contentHash);
+  assert.deepEqual(restored.draft.placements, before.placements);
+  assert.deepEqual(restored.draft.locks, before.locks);
+  assert.equal((await call('las', scope)).body.draft.resetUndoRevision, undefined);
+  assert.equal(state.commandCalls, 3);
+});
+
+test('ångra spärras efter ny revision eller ändrat underlag och kräver audit', async () => {
+  reset();
+  assert.equal((await call('spara', calculated())).response.status, 200);
+  const clear = resetInput();
+  state.auditFails = true; state.auditAction = 'schema_draft_cleared';
+  assert.equal((await call('aterstall', clear)).response.status, 500);
+  assert.equal(state.draft.revision, 1);
+  state.auditFails = false;
+  assert.equal((await call('aterstall', clear)).response.status, 200);
+  const undo = resetInput('undo', 62);
+  state.planRevision++;
+  assert.equal((await call('aterstall', undo)).body.details.reason, 'schema_draft_source_changed');
+  state.planRevision--;
+  assert.equal((await call('spara', emptySave({ commandId: id(63), draftId: state.draft.id, expectedRevision: 2, name: 'Nyare utkast' }))).response.status, 200);
+  assert.equal((await call('las', scope)).body.draft.resetUndoRevision, undefined);
+  assert.equal((await call('aterstall', undo)).response.status, 409);
+  assert.equal((await call('aterstall', resetInput('undo', 64))).response.status, 409);
+  assert.equal(state.draft.revision, 3);
 });
 test('utkastsrutterna stoppar klientens snapshot, elevdata, gammal version och överstor kropp', async () => {
   for (const extra of [{ base: {} }, { pupilNames: ['otillåtet'] }, { role: 'rektor' }, { contractVersion: 0 }]) {

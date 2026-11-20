@@ -1,7 +1,8 @@
 // Produktens workspace, skrivkö och navigationsprovider i ett uttryckligt simulerat skal. Servern är en hashbunden mock, ingen faktisk DB/OIDC.
 import { test, expect, schemaTestDraft, type Page, type SchemaDraftTestServer } from './schema-test';
 import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaForslag } from '../lib/schema-contract.ts';
-import { parseSchemaDraftSave, type SchemaDraftSave } from '../lib/schema-draft-contract.ts';
+import { parseSchemaDraftResetRequest, parseSchemaDraftSave, schemaDraftResetHash, type SchemaDraftResetRequest, type SchemaDraftSave } from '../lib/schema-draft-contract.ts';
+import { schemaSparinnehall } from '../lib/schema-spara.ts';
 import { schemaDatumOriginal } from '../lib/schema-datum.ts';
 import { schemaWeekday } from '../lib/schema-vecka.ts';
 import proposal from './schema-fixture';
@@ -73,6 +74,82 @@ test('valt HT-utkast autosparas och återöppnas direkt efter omladdning utan ny
   await expect(page.locator('[data-lesson="pass-7"]').first()).toContainText('Låst');
   expect(reads.slice(readIndex).map(r => r.period)).toEqual(['ht']);
   expect(server.drafts.get(htKey)?.placements).toEqual(placements); expect(server.saves.filter(s => s.period === 'ht')).toHaveLength(writes);
+});
+
+test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', async ({ page, schemaDraftServer: server }) => {
+  const htKey = `${source.unitId}:2026:ht`;
+  const originalDate = '2026-11-06';
+  const datePass = source.lessons.flatMap(lesson => schemaDatumOriginal(source, { lesson: lesson.id, originalDate }) ?? [])
+    .find(occurrence => !occurrence.lesson.egenAktivitet)!;
+  const placements = source.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
+  const contents = { basisVillkor: source.villkor, workingVillkor: source.villkor, grundFingerprint: source.grundFingerprint, placements };
+  const annual = await seed(server, input({ ...contents, name: 'Hela läsårets schema' }));
+  const host = await seed(server, input({ ...contents, period: 'ht', name: 'Höstschemat', locks: [placements.find(p => p.lesson !== datePass.lesson.id)!],
+    datedOverrides: [{ lesson: datePass.lesson.id, originalDate, date: '2026-11-13', startMin: 900, room: null, durationMin: datePass.length }] }));
+  const changes: SchemaDraftResetRequest[] = [], reads: string[] = [], examWrites: string[] = [];
+  page.on('request', request => {
+    if (request.url().endsWith('/api/schema/utkast/las')) reads.push(request.postDataJSON().period);
+    if (request.url().endsWith('/api/lasar/nationella-prov/spara')) examWrites.push(request.url());
+  });
+  await page.route('**/api/schema/utkast/aterstall', async route => {
+    const request = parseSchemaDraftResetRequest(route.request().postDataJSON());
+    const { action, ...command } = request, { contractVersion, unitId, schoolYear, period, draftId, expectedRevision } = command;
+    const current = server.drafts.get(htKey)!;
+    expect({ unitId, schoolYear, period, draftId, expectedRevision }).toEqual({ unitId: source.unitId, schoolYear: 2026, period: 'ht', draftId: host.id, expectedRevision: current.revision });
+    changes.push(request);
+    const values = action === 'clear'
+      ? { name: current.name, workingVillkor: current.workingVillkor, activityTypes: current.activityTypes }
+      : schemaSparinnehall(host);
+    const { draft, receipt } = await schemaTestDraft(input({ ...command, ...values }), source, action === 'undo' ? host.control : null, current);
+    server.drafts.set(htKey, action === 'clear' ? { ...draft, resetUndoRevision: current.revision } : draft);
+    return route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { contractVersion, unitId, schoolYear, period,
+      draft, receipt: { ...receipt, requestHash: await schemaDraftResetHash(request) } } });
+  });
+  await setup(page);
+  const period = page.getByRole('combobox', { name: 'Schemat gäller', exact: true });
+  await period.selectOption('ht');
+  await expect(name(page)).toHaveValue(host.name);
+  const tom = saved(page).getByRole('button', { name: 'Töm schema…', exact: true });
+  const undo = saved(page).getByRole('button', { name: 'Ångra tömning', exact: true });
+  const yta = page.getByRole('navigation', { name: 'Arbetsytor', exact: true });
+  await yta.getByRole('button', { name: 'Lägg schema', exact: true }).click();
+  const week = page.locator('.schema-week');
+  await expect(week.locator('[data-lesson]').first()).toBeVisible();
+
+  await tom.click();
+  const confirm = page.getByRole('alertdialog', { name: 'Töm schema?' });
+  await expect(confirm).toContainText('Provskolan · läsår 2026/27 · Höstterminen');
+  const cancel = confirm.getByRole('button', { name: 'Behåll schemat', exact: true });
+  await expect(cancel).toBeFocused();
+  await cancel.click();
+  expect(changes).toHaveLength(0);
+  await expect(week.locator('[data-lesson]').first()).toBeVisible();
+
+  await tom.click();
+  await confirm.getByRole('button', { name: 'Töm schema', exact: true }).click();
+  await expect(undo).toBeFocused();
+  await expect(yta.getByRole('button', { name: 'Förbered', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(week).toHaveCount(0);
+  expect(server.drafts.get(htKey)).toMatchObject({ id: host.id, revision: host.revision + 1, base: null, placements: [], locks: [], datedOverrides: [],
+    intentional: [], workingVillkor: host.workingVillkor });
+  expect(server.drafts.get(key())).toEqual(annual);
+
+  const beforeReload = reads.length;
+  await page.reload();
+  await expect(period).toHaveValue('ht');
+  await expect(undo).toBeEnabled();
+  expect(reads.slice(beforeReload)).toEqual(['ht']);
+  await undo.click();
+  await expect(tom).toBeFocused();
+  await expect(yta.getByRole('button', { name: 'Lägg schema', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(week.locator('[data-lesson]').first()).toBeVisible();
+  await expect(undo).toHaveCount(0);
+  expect(changes.map(command => command.action)).toEqual(['clear', 'undo']);
+  expect(server.drafts.get(htKey)).toMatchObject({ id: host.id, revision: host.revision + 2, placements: host.placements, locks: host.locks,
+    datedOverrides: host.datedOverrides, workingVillkor: host.workingVillkor });
+  expect(server.drafts.get(key())).toEqual(annual);
+  expect(server.saves).toHaveLength(0);
+  expect(examWrites).toHaveLength(0);
 });
 
 test('ett inaktuellt utkast kan byta period när inga lokala ändringar väntar', async ({ page, schemaDraftServer: server }) => {

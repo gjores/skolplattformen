@@ -23,13 +23,16 @@ function fixture() {
       server.draft=draft;server.receipts.set(input.commandId,receipt);return {...scope,draft,receipt};
     }
   };
-  let seq=10; const states=[]; const queue=new SchemaSparko(scope,transport,s=>states.push(structuredClone(s)),()=>id(seq++));
-  return {server,transport,queue,states};
+  let seq=10; const states=[]; const draftIds=[];
+  const queue=new SchemaSparko(scope,transport,(s,_ack,draftId)=>{states.push(structuredClone(s));draftIds.push(draftId);},()=>id(seq++));
+  return {server,transport,queue,states,draftIds};
 }
 test('schema sparar endast efter läsning och visar Sparad först efter kontrollerad kvittens',async()=>{
-  const {queue,server,states}=fixture(); queue.update(snapshot()); assert.equal(await queue.flush(),false);assert.equal(server.calls.length,0);
-  assert.equal(await queue.load(),null);queue.update(snapshot());assert.equal(queue.state.dirty,true);assert.equal(await queue.flush(),true);
+  const {queue,server,states,draftIds}=fixture(); queue.update(snapshot()); assert.equal(await queue.flush(),false);assert.equal(server.calls.length,0);
+  assert.equal(await queue.load(),null);assert.equal(draftIds.at(-1),null);
+  queue.update(snapshot());assert.equal(queue.state.dirty,true);assert.equal(await queue.flush(),true);
   assert.equal(queue.state.phase,'saved');assert.equal(queue.state.revision,1);assert.equal(queue.state.dirty,false);assert.ok(states.some(s=>s.phase==='saving'));
+  assert.equal(draftIds.at(-1),server.draft.id);assert.ok(draftIds.every((draftId,i)=>states[i].phase!=='saving'||draftId===null));
 });
 test('schema serialiserar nya ändringar under pågående skrivning och använder kvitterad revision',async()=>{
   const {queue,server,transport}=fixture(), gate=deferred(),begun=deferred(),save=transport.save;

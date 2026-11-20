@@ -31,7 +31,7 @@ const status = (error: unknown): number | null => error && typeof error === 'obj
 export class SchemaSparko {
   private scope: SchemaDraftScope;
   private transport: SchemaSpartransport;
-  private notify: (state: SchemaSparstatus, acknowledgedKey: string | null) => void;
+  private notify: (state: SchemaSparstatus, acknowledgedKey: string | null, draftId: string | null) => void;
   private id: () => string;
   private active = true;
   private draftId: string | null = null;
@@ -44,14 +44,14 @@ export class SchemaSparko {
   private loaded = false;
   private invalidTarget = false;
   state: SchemaSparstatus = { phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null };
-  constructor(scope: SchemaDraftScope, transport: SchemaSpartransport, notify: (state: SchemaSparstatus, acknowledgedKey: string | null) => void, id: () => string = () => crypto.randomUUID()) {
+  constructor(scope: SchemaDraftScope, transport: SchemaSpartransport, notify: (state: SchemaSparstatus, acknowledgedKey: string | null, draftId: string | null) => void, id: () => string = () => crypto.randomUUID()) {
     this.scope = scope; this.transport = transport; this.notify = notify; this.id = id;
   }
   private publish(phase: SchemaSparstatus['phase'], message: string | null = null): void {
     if (!this.active) return;
     this.state = { phase, dirty: this.command !== null || !!this.target && schemaSparnyckel(this.target) !== this.acknowledged,
       revision: this.revision, savedAt: this.savedAt, message };
-    this.notify(this.state, this.acknowledged);
+    this.notify(this.state, this.acknowledged, this.draftId);
   }
   async load(): Promise<SchemaDraft | null> {
     this.publish('loading');

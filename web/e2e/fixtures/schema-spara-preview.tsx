@@ -17,7 +17,7 @@ function Shell() {
     <Button variant="outline" onClick={endContext}>Simulera avslutat uppdrag</Button>
     <a href="about:blank">Öppna annan sida</a>
   </nav><p className="text-sm text-muted-foreground">Testskal · läsår {year} · {active ? 'arbetsytan är öppen' : 'arbetsytan är stängd'}.</p>
-    {active && <SchemaWorkspace unitId="52a10000-0000-4000-8000-000000000001" schoolYear={year} scopeKey={`${epoch}:prov:prov`} onSessionLost={endContext}/>}
+    {active && <SchemaWorkspace unitId="52a10000-0000-4000-8000-000000000001" schoolName="Provskolan" schoolYear={year} scopeKey={`${epoch}:prov:prov`} onSessionLost={endContext}/>}
   </main>;
 }
 setKnownEpoch(1); createRoot(document.getElementById('root')!).render(<UnsavedChangesProvider><Shell/></UnsavedChangesProvider>);

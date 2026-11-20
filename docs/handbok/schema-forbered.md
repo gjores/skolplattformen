@@ -6,6 +6,12 @@ Under **Planering → Schema** växlar du mellan **Förbered**, **Lägg schema**
 
 Använd **Schemat gäller** för att öppna utkastet för hela läsåret eller för en av terminerna. Om underlaget har ändrats kan du fortfarande byta period från ett sparat utkast. Finns det osparade ändringar behöver du hantera dem först.
 
+### Töm ett schemautkast och ångra tömningen
+
+Välj skola, läsår och period. När utkastet är sparat och har placeringar finns **Töm schema…** vid sparbeskedet. Bekräftelsen visar vilket utkast som töms. Tömningen sparas som en ny version och öppnar **Förbered**. Passens tider och salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass försvinner från den nya versionen. Skolans övriga schemavillkor, inställningarna för återkommande aktiviteter och bokade nationella prov finns kvar. Provets ersättningslektioner är datumändringar i utkastet.
+
+Välj **Ångra tömning** vid sparbeskedet för att hämta versionen före tömningen. Den sparas som en ny version och öppnas i **Lägg schema**. Knappen finns även efter omladdning, så länge den tömda versionen är aktuell och underlaget fortfarande gäller.
+
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 
 ## Börja i Förbered

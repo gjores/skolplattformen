@@ -10,6 +10,7 @@ export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost
 }) {
   const [state, setState] = useState<SchemaSparstatus>({ phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null });
   const [acknowledgedKey, setAcknowledgedKey] = useState<string | null>(null);
+  const [draftId, setDraftId] = useState<string | null>(null);
   const [readyFor, setReadyFor] = useState<string | null>(null), [reload, setReload] = useState(0);
   const queue = useRef<SchemaSparko | null>(null), waiting = useRef<string | null>(null);
   const latest = useRef({ snapshot, onLoad, onSessionLost });
@@ -28,7 +29,7 @@ export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost
     };
     const value = new SchemaSparko({ contractVersion, unitId, schoolYear, period }, {
       read: input => post('/api/schema/utkast/las', input), save: input => post('/api/schema/utkast/spara', input), status: input => post('/api/schema/utkast/status', input),
-    }, (value, acknowledged) => { if (current) { setState(value); setAcknowledgedKey(acknowledged); } });
+    }, (value, acknowledged, id) => { if (current) { setState(value); setAcknowledgedKey(acknowledged); setDraftId(id); } });
     queue.current = value;
     void value.load().then(draft => {
       if (!current) return;
@@ -62,5 +63,5 @@ export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost
   const acceptNewBasis = useCallback(() => queue.current?.acceptNewBasis(), []);
   const read = useCallback(() => setReload(value => value + 1), []);
   const visible: SchemaSparstatus = { ...state, dirty, phase: state.phase === 'saved' && dirty ? 'idle' : state.phase };
-  return { state: visible, ready: !enabled || ready, flush, read, acceptNewBasis };
+  return { state: visible, ready: !enabled || ready, draftId: enabled && ready ? draftId : null, flush, read, acceptNewBasis };
 }

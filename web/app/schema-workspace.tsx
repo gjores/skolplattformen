@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, ChevronDownIcon, ListChecksIcon } from 'lucide-react';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useRequestConfirm } from '@/lib/unsaved-changes.tsx';
-import { SCHEMA_DRAFT_VERSION, type SchemaDraftDatedOverride } from '@/lib/schema-draft-contract.ts';
+import { SCHEMA_DRAFT_VERSION, verifySchemaDraftResetReply, type SchemaDraftDatedOverride, type SchemaDraftResetRequest } from '@/lib/schema-draft-contract.ts';
 import { type SchemaSparinnehall, type SchemaSparstatus } from '@/lib/schema-spara.ts';
 import { useSchemaSpara } from './schema/use-spara.ts';
 import { useSchemaUnderlag } from './schema/use-underlag.ts';
@@ -164,6 +164,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [berakningOpen, setBerakningOpen] = useState(false), berakningKnapp = useRef<HTMLButtonElement | null>(null);
   const confirm = useRequestConfirm();
   const [draftName, setDraftName] = useState('Schemautkast'), [datedOverrides, setDatedOverrides] = useState<SchemaDraftDatedOverride[]>([]);
+  const [tomningsMarkor, setTomningsMarkor] = useState<{ draftId: string; revision: number } | null>(null), [tomningsfel, setTomningsfel] = useState<string | null>(null);
+  const tomningsknapp = useRef<HTMLButtonElement>(null), fokuseraTomning = useRef(false);
   const [provSparat, setProvSparat] = useState<{ period: SchemaPeriod; revision: number; provrevision: number; provdag: string } | null>(null);
   const [provFranDatumvy, setProvFranDatumvy] = useState<string | null>(null);
   const provSparas = useRef(false);
@@ -259,6 +261,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     onLoad: draft => {
       setDatumPicked(null);
       setDraftName(draft?.name ?? 'Schemautkast');
+      setTomningsMarkor(draft?.resetUndoRevision ? { draftId: draft.id, revision: draft.revision } : null);
       setBase(draft?.base ?? null);
       setVillkorLocal(draft?.workingVillkor ?? villkor);
       setDatedOverrides(draft?.datedOverrides ?? []);
@@ -271,6 +274,13 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     },
   });
   const sparstatus = fonster ? remoteSave : spara.state;
+  const kanAngraTomning = !!tomningsMarkor && tomningsMarkor.draftId === spara.draftId && tomningsMarkor.revision === sparstatus.revision;
+  const tomningTillganglig = spara.ready && !busy && !checking && !sparstatus.dirty && sparstatus.phase === 'saved' && !grundAndrad;
+  useEffect(() => {
+    if (!spara.ready || !fokuseraTomning.current) return;
+    fokuseraTomning.current = false;
+    tomningsknapp.current?.focus({ preventScroll: true });
+  }, [spara.ready]);
   const byterGrund = base !== null && (grundAndrad || sparstatus.phase === 'stale' || period !== base.period || !sammaGrund(nyttArsvillkor, base.villkor));
   const gamlaPassregler = byterGrund ? villkor.egna.filter(r => r.slag === 'pass') : [];
   const berakningsVillkor: SchemaVillkor = gamlaPassregler.length ? { ...nyttArsvillkor, egna: nyttArsvillkor.egna.filter(r => r.slag !== 'pass') } : nyttArsvillkor;
@@ -348,6 +358,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (sparstatus.phase !== 'stale' && !await spara.flush()) return;
     rememberPeriod(unitId, schoolYear, next);
     setJamforTerminer(false);
+    setTomningsMarkor(null); setTomningsfel(null);
     setProvSparat(null); setProvFranDatumvy(null);
     setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setGranskatPass(null); setPeriod(next);
   }
@@ -355,6 +366,43 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (sparstatus.dirty && !await confirm({ title: 'Läs serverns version?', description: 'Dina lokala ändringar ersätts med det senast sparade utkastet på servern.', confirmLabel: 'Läs serverns version', cancelLabel: 'Behåll lokala ändringar' })) return;
     setGranskatPass(null);
     spara.read();
+  }
+
+  async function andraTomning(action: SchemaDraftResetRequest['action']) {
+    const draftId = spara.draftId;
+    if (fonster || !draftId || !tomningTillganglig || running.current || (action === 'clear' ? !snapshot.placements.length : !kanAngraTomning)) return;
+    const controller = new AbortController();
+    running.current = controller;
+    setTomningsfel(null);
+    try {
+      if (action === 'clear') {
+        const scope = [schoolName, `läsår ${planningYearLabel(schoolYear)}`, PERIOD[period]].filter(Boolean).join(' · ');
+        const ok = await confirm({ title: 'Töm schema?', description: `${scope}. Tider, salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass tas bort från utkastet. Övriga schemavillkor och bokade nationella prov finns kvar. Inställningarna för återkommande aktiviteter används vid nästa beräkning. Du kan ångra tömningen tills nästa version sparas.`,
+          confirmLabel: 'Töm schema', cancelLabel: 'Behåll schemat' });
+        if (!ok || controller.signal.aborted) return;
+      }
+      setChecking(true);
+      const request: SchemaDraftResetRequest = { contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period,
+        commandId: crypto.randomUUID(), draftId, expectedRevision: sparstatus.revision, action };
+      const raw = await api.post<unknown>('/api/schema/utkast/aterstall', request, controller.signal);
+      await verifySchemaDraftResetReply(raw, request);
+      if (controller.signal.aborted) return;
+      setProvSparat(null); setProvFranDatumvy(null);
+      if (action === 'clear') { setJamforTerminer(false); setVisning(grundschemaVal()); setVy('vecka'); }
+      fokuseraTomning.current = true;
+      valjYta(action === 'clear' ? 'forbered' : 'schema');
+      spara.read();
+    } catch (caught) {
+      if (controller.signal.aborted) return;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+      if (caught instanceof ApiError && caught.status === 403) { setTomningsfel('Ditt aktuella uppdrag tillåter inte den här schemaändringen.'); return; }
+      setTomningsfel(caught instanceof ApiError && caught.status === 409
+        ? 'Utkastet eller underlaget har ändrats. Serverns aktuella utkast läses in.'
+        : 'Ändringen kunde inte bekräftas. Serverns aktuella utkast läses in.');
+      spara.read();
+    } finally {
+      if (running.current === controller) { running.current = null; setChecking(false); }
+    }
   }
 
   async function tillampaProvforslag(svar: SchemaProvforslagSvar, commandId: string) {
@@ -1441,7 +1489,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const visaJamfor = !!(forslag && reviewLesson && (!granskaMal?.originalDate || reviewOccurrence));
   const granskaStale = grundAndrad || inaktuelltUnderlag || (forslag !== null && period !== forslag.period) || issues.length > 0;
   const granskaTerm = reviewOccurrence?.term ?? reviewLesson?.term ?? granskatPass?.term ?? viewTerm;
-  const sparbesked = <Sparstatus state={sparstatus} name={draftName} disabled={busy || checking || !spara.ready} child={!!fonster} onName={setDraftName} onSave={() => void spara.flush()} onRead={() => void lasServerversion()} onNew={() => void run()}/>;
+  const tomning = !fonster && (kanAngraTomning || spara.draftId && snapshot.placements.length > 0) ? {
+    undo: kanAngraTomning, disabled: !tomningTillganglig, onClick: () => void andraTomning(kanAngraTomning ? 'undo' : 'clear'),
+  } : undefined;
+  const sparbesked = <Sparstatus state={sparstatus} name={draftName} disabled={busy || checking || !spara.ready} child={!!fonster} onName={setDraftName} onSave={() => void spara.flush()} onRead={() => void lasServerversion()} onNew={() => void run()}
+    tomning={tomning} tomningsknapp={tomningsknapp} tomningsfel={tomningsfel}/>;
   if (fonster && !synk.live) return <section className="valplan-workspace schema-workspace"><FonsterList synk={synk} title={fonsterVyNamn[fonster.view]}/><p className="empty-state">Väntar på huvudfönstret. Inga ändringar kan göras innan kontakten är tillbaka.</p></section>;
   return <section className="valplan-workspace schema-workspace" data-granska-pass={visaSchema && granskaMal ? '' : undefined}>
     {fonster ? <>

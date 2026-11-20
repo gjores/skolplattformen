@@ -38,7 +38,8 @@ export async function verifySchemaDrafts(out) {
   assert.ok(out.startsWith('/private/tmp/') || out.startsWith('/tmp/'), 'report must be a new temporary file');
   let environment;
   try {
-    environment = await createEphemeralMigratedDb({ exclude: [OWN.split('/').at(-1), GRANT.split('/').at(-1)] });
+    // Återläsningen tillkom senare och kräver tabellerna som det här provet installerar självt.
+    environment = await createEphemeralMigratedDb({ exclude: [OWN.split('/').at(-1), GRANT.split('/').at(-1), '20261120100000_schema_reset_previous.sql'] });
     report.database = environment.provenance;
     const db = environment.db, before = await allPublicHashes(db);
     try { await db.begin(async tx => { await tx.unsafe(source(OWN)); throw rollback; }); } catch (error) { if (error !== rollback) throw error; }

@@ -12,8 +12,8 @@ import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../schema-un
 import { SchemaContractError, checkSchemaPlacements, sammaGrund, villkorNyckel, type SchemaForslagRequest, type SchemaSolution, type SchemaVillkor } from '../schema-contract.ts';
 import { avvikelseNyckel, medvetenKrock, medvetenMarkering, medvetnaAvvikelser } from '../schema-utkast.ts';
 import { SCHEMA_DRAFT_BYTES, SCHEMA_DRAFT_VERSION, SchemaDraftError, parseSchemaDraft, parseSchemaDraftDocument, parseSchemaDraftReceipt, parseSchemaDraftSaveReply,
-  parseSchemaDraftScope, parseSchemaDraftSave, parseSchemaDraftStatusRequest, schemaDraftHash,
-  type SchemaDraftDocument, type SchemaDraftLessonSource, type SchemaDraftReadReply, type SchemaDraftSave, type SchemaDraftSaveReply, type SchemaDraftScope,
+  parseSchemaDraftScope, parseSchemaDraftSave, parseSchemaDraftStatusRequest, parseSchemaDraftResetRequest, schemaDraftDocument, schemaDraftHash, schemaDraftResetHash,
+  type SchemaDraft, type SchemaDraftDocument, type SchemaDraftLessonSource, type SchemaDraftReadReply, type SchemaDraftSave, type SchemaDraftSaveReply, type SchemaDraftScope,
   type SchemaDraftStatusRequest, type SchemaDraftStatusReply } from '../schema-draft-contract.ts';
 import { logEvent, type EventInput } from './events.ts';
 import { salIfyllning } from '../schema-utan-sal.ts';
@@ -74,6 +74,17 @@ async function sqlRead(tx: Tx, ctx: Context, input: SchemaDraftScope) {
 async function sqlStatus(tx: Tx, ctx: Context, input: SchemaDraftStatusRequest) {
   const rows = await operation(() => tx<{ result: unknown }[]>`select public.schema_status(${tx.json(input)}) as result`);
   if (rows.length !== 1) throw new AuditUnavailable(); return envelope(rows[0].result, ctx).result;
+}
+async function resetPrevious(tx: Tx, ctx: Context, scope: SchemaDraftScope, head: SchemaDraft, includeDraft: boolean) {
+  const input = { ...scopeKeys(scope), draftId: head.id, expectedRevision: head.revision, includeDraft };
+  const rows = await operation(() => tx<{ result: unknown }[]>`select public.schema_reset_previous(${tx.json(input)}) as result`);
+  if (rows.length !== 1) throw new AuditUnavailable();
+  const { previousRevision, draft } = envelope(rows[0].result, ctx).result;
+  if (previousRevision === null && draft === null) return null;
+  if (head.revision <= 1 || previousRevision !== head.revision - 1 || (draft !== null) !== includeDraft) throw new AuditUnavailable();
+  const previous = includeDraft ? await rawDraft(draft, scope, false) : null;
+  if (previous && (previous.id !== head.id || previous.revision !== previousRevision || previous.name !== head.name || !previous.placements.length)) throw new AuditUnavailable();
+  return { revision: previousRevision, draft: previous };
 }
 const currentInput = (input: SchemaDraftScope, villkor: SchemaForslagRequest['villkor']): SchemaForslagRequest => ({ unitId: input.unitId, schoolYear: input.schoolYear, period: input.period, villkor });
 /** Digest räknas på faktisk källa. Rollens capabilities, actions och historik är inga källförändringar. */
@@ -200,7 +211,68 @@ export async function schemaDraftReadRoute(request: Request): Promise<Response> 
     if (!saved) return { body: { ...input, draft: null } satisfies SchemaDraftReadReply, event: event('schema_draft_read', input) };
     const read = await readDraftBasis(request, tx, ctx, currentInput(input, saved.basisVillkor ?? saved.workingVillkor));
     saved.stale = saved.sourceHash !== await schemaDraftSourceHash(read, [saved.basisVillkor, saved.workingVillkor]); checkProjection(saved, read, ctx);
+    if (!saved.stale && !saved.base && saved.revision > 1) {
+      const previous = await resetPrevious(tx, ctx, input, saved, false);
+      if (previous) saved.resetUndoRevision = previous.revision;
+    }
     return { body: { ...input, draft: saved } satisfies SchemaDraftReadReply, event: event('schema_draft_read', input, saved.id) };
+  });
+}
+
+/** En tömning och dess ångring lägger till var sin revision. Den föregående versionen hämtas bara för ett oförändrat, tömt utkast. */
+export async function schemaDraftResetRoute(request: Request): Promise<Response> {
+  return protectedRoute(request, 'schema_draft_reset', { mutating: true, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
+    requireSameOrigin(request);
+    const input = await schemaDraftRequest(request, parseSchemaDraftResetRequest), requestHash = await schemaDraftResetHash(input);
+    const action = input.action === 'clear' ? 'schema_draft_cleared' : 'schema_draft_reset_undone';
+    const status = await sqlStatus(tx, ctx, { ...scopeKeys(input), commandId: input.commandId, draftId: input.draftId });
+    if (status.state === 'completed') {
+      let receipt;
+      try { receipt = parseSchemaDraftReceipt(status.receipt); } catch { throw new AuditUnavailable(); }
+      if (receipt.requestHash !== requestHash) throw new Deny('conflict', 409, { reason: 'schema_draft_command_conflict' });
+      const draft = await rawDraft(status.draft, input, false);
+      const read = await readDraftBasis(request, tx, ctx, currentInput(input, draft.basisVillkor ?? draft.workingVillkor));
+      draft.stale = draft.sourceHash !== await schemaDraftSourceHash(read, [draft.basisVillkor, draft.workingVillkor]);
+      checkProjection(draft, read, ctx);
+      try { return { body: parseSchemaDraftSaveReply({ ...scopeKeys(input), draft, receipt }, input), event: event(action, input, input.draftId) }; }
+      catch { throw new AuditUnavailable(); }
+    }
+    if (status.state !== 'not_found') throw new AuditUnavailable();
+    const head = await readSchemaDraftSnapshot(tx, ctx, input);
+    if (!head || head.id !== input.draftId || head.revision !== input.expectedRevision) throw new Deny('conflict', 409, { reason: 'schema_draft_conflict' });
+    if (input.action === 'clear' && !head.placements.length) throw new Deny('conflict', 409, { reason: 'schema_draft_conflict' });
+    const previous = input.action === 'undo' ? (await resetPrevious(tx, ctx, input, head, true))?.draft : null;
+    if (input.action === 'undo' && !previous) throw new Deny('conflict', 409, { reason: 'schema_draft_conflict' });
+
+    const restored = previous ?? head;
+    const read = await readDraftBasis(request, tx, ctx, currentInput(input, restored.basisVillkor ?? restored.workingVillkor));
+    checkProjection(head, read, ctx);
+    if (previous) checkProjection(previous, read, ctx);
+    const sourceChanged = () => new Deny('conflict', 409, { reason: 'schema_draft_source_changed' });
+    if (head.sourceHash !== await schemaDraftSourceHash(read, [head.basisVillkor, head.workingVillkor])) throw sourceChanged();
+    // Ett nytt förslag får nya pass-ID:n. Villkor för enskilda gamla pass ligger kvar i versionen som kan återställas.
+    const workingVillkor = previous?.workingVillkor ?? { ...head.workingVillkor, egna: head.workingVillkor.egna.filter(r => r.slag !== 'pass') };
+    const save = parseSchemaDraftSave({ ...scopeKeys(input), commandId: input.commandId, draftId: head.id, expectedRevision: head.revision, name: head.name,
+      basisVillkor: previous?.basisVillkor ?? null, workingVillkor, grundFingerprint: previous?.base?.grundFingerprint ?? null,
+      placements: previous?.placements ?? [], locks: previous?.locks ?? [], intentional: previous?.intentional ?? [],
+      datedOverrides: previous?.datedOverrides ?? [], activityTypes: head.activityTypes });
+    let document: SchemaDraftDocument;
+    try {
+      if (previous?.basisVillkor && previous.base) {
+        const underlag = buildSchemaUnderlag(read.plan, currentInput(input, previous.basisVillkor), read.basis);
+        const rooms = new Map(underlag.problem.lessons.map(l => [l.id, l.rooms?.allowed]));
+        if (underlag.grundFingerprint !== previous.base.grundFingerprint || previous.placements.some(p => p.room !== null
+          && !rooms.get(p.lesson)?.includes(p.room))) throw sourceChanged();
+        document = schemaDraftDocument(previous);
+      } else {
+        document = await prepareSchemaDraft(read, save);
+      }
+    } catch (error) {
+      if (error instanceof SchemaDraftError || error instanceof SchemaContractError) throw sourceChanged();
+      throw error;
+    }
+    const body = await commitSchemaDraft(tx, ctx, save, document, read, requestHash);
+    return { body, event: event(action, input, input.draftId) };
   });
 }
 export async function schemaDraftStatusRoute(request: Request): Promise<Response> {
