@@ -801,6 +801,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-11-20: [Inspiration för bottennavigationen i lärar- och elevapparna](todos/pending/2026-11-20-bottennavigation-for-larar-och-elevapparna.md). Ta fram bildreferensen när apparnas navigation utformas.
 - 2026-11-20: [Superadmin förvaltar data från Skolverket](todos/pending/2026-11-20-superadmin-forvalta-skolverkets-data.md). Återkommande källkontroll, granskning av uppdateringar och besked till berörda skolor. Berör bland annat provkatalogen i fas 05.2, läroplansdata och Skolenhetsregistret.
 - 2026-11-19: [Versionshistorik och återställning för schemautkast](todos/pending/2026-11-19-versionshistorik-for-schemautkast.md). Användaren vill kunna välja en tidigare sparad revision från schemats sparbesked. Planeras i fas 05.2.
 
