@@ -1,0 +1,77 @@
+{
+  "status": "PASS",
+  "installedAt": "2026-11-20T18:47:39.247Z",
+  "previousAppRevision": "b0fd1171fcddb032cacc190b7d0519bbef0eafe6",
+  "revision": "13700ccb1cf54462a80a8c7a1866a46defb57a80",
+  "port": 3012,
+  "appListener": 17327,
+  "motorListener": 7667,
+  "assetsVerified": 3,
+  "migrationsApplied": 1,
+  "preflight": {
+    "revision": "13700ccb1cf54462a80a8c7a1866a46defb57a80",
+    "port": 5312,
+    "appListener": 16794,
+    "motorListener": 7667,
+    "assetsVerified": 3,
+    "migrationsApplied": 0
+  },
+  "protectedRoutesVerified": 24,
+  "sql": {
+    "status": "PASS",
+    "mode": "--apply",
+    "candidate": "13700ccb1cf54462a80a8c7a1866a46defb57a80",
+    "sourceSha256": "c51aa59c6f96b7f0efd6022280b51cac411d35bedca57a10ff22828a69a59838",
+    "journalBefore": 174,
+    "journalAfter": 175,
+    "originalRowsSha256": "773c8c7e141232e41ffa4e2ee55cd66b49e7874a5740ac8a93728160aa0b4c7d",
+    "resultRowsSha256": "773c8c7e141232e41ffa4e2ee55cd66b49e7874a5740ac8a93728160aa0b4c7d",
+    "scopeRows": {
+      "public.schema_drafts": 4,
+      "public.schema_draft_revisions": 126,
+      "public.schema_draft_commands": 126,
+      "public.nationella_prov_revisions": 5,
+      "public.nationella_prov_kataloger": 1,
+      "public.school_room_register_revisions": 3
+    },
+    "schemaBefore": "65a3fdcb590229163f845ef495268d63ddfd2ff6e5fe9559624eb0608d319489",
+    "schemaAfter": "31fc7fd0e8d2964ba66f4107b01559602b59e34871f92c85eb38d892d29e9d2b",
+    "backup": {
+      "tables": 6,
+      "bytes": 4625104,
+      "sha256": "1330a84d8e3629bb83e3cfc0478669899773485a85deeb1b6b3a4a89b0c44a78"
+    }
+  },
+  "readOnlyAfterCheck": {
+    "status": "PASS",
+    "annualRevision": 11,
+    "examRevision": 5,
+    "weeklyPlacements": 71,
+    "datedOverrides": 23,
+    "bookings": 12,
+    "bookingsWithRoom": 12,
+    "bookingsWithGuard": 12,
+    "unchangedDrafts": 4,
+    "unchangedDraftRevisions": 126,
+    "unchangedDraftCommands": 126,
+    "unchangedExamRevisions": 5
+  },
+  "authenticatedUi": {
+    "status": "PASS",
+    "onPort": 3012,
+    "clearButtonEnabled": true,
+    "year": 2026,
+    "period": "lasar",
+    "revision": 11
+  },
+  "isolated": {
+    "status": "PASS",
+    "browserWidths": [
+      1280,
+      1600
+    ],
+    "browserCases": 2,
+    "routeAndQueueCases": 27,
+    "postgresCases": 1
+  }
+}
