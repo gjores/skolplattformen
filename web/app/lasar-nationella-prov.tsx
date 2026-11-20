@@ -17,6 +17,7 @@ import {
   provDatumTillatet, provDeltagarforslag, provNivaNyckel, provtermin, provTidTillaten,
 } from '@/lib/nationella-prov-katalog.ts';
 import { provDeltagareForPlanering, provRekommendationer, provTidsforslag } from '@/lib/nationella-prov-forslag.ts';
+import { Provresursfalt, Provresursstatus } from './schema/provresurser';
 
 type Props = {
   schoolYear: number;
@@ -423,24 +424,10 @@ function Provform({ schoolYear, underlag, document, prov, idag, tidforslag, disa
             })}
           </ul>}
       </fieldset>}
-      <Field>
-        <FieldLabel htmlFor={`${id}-sal`}>Sal (valfri)</FieldLabel>
-        <NativeSelect id={`${id}-sal`} name="sal" className={SELECT}>
-          <option value="">Ingen sal vald</option>
-          {underlag.salar.map(sal => <option key={sal.id} value={sal.id}>{sal.name}</option>)}
-        </NativeSelect>
-      </Field>
-      {underlag.vakter.length > 0 && <fieldset className="min-w-0 rounded-md border border-border px-3 pb-2">
-        <FieldLegend variant="label" className="px-1">Provvakter (valfria)</FieldLegend>
-        <div className="flex max-h-32 flex-wrap items-center gap-x-4 overflow-y-auto">
-          {underlag.vakter.map(vakt => <label key={vakt.ref} className="inline-flex min-h-11 items-center gap-2">
-            <Checkbox disabled={disabled} checked={vakter.includes(vakt.ref)} onCheckedChange={checked => {
-              setVakter(previous => checked ? [...previous, vakt.ref] : previous.filter(ref => ref !== vakt.ref));
-              setError('');
-            }}/>{vakt.name}
-          </label>)}
-        </div>
-      </fieldset>}
+      <Provresursfalt salar={underlag.salar} vakter={underlag.vakter} valdaVakter={vakter} disabled={disabled} onVakt={(ref, checked) => {
+        setVakter(previous => checked ? [...previous, ref] : previous.filter(val => val !== ref));
+        setError('');
+      }}/>
     </fieldset>
     {error && <p ref={errorRef} tabIndex={-1} role="alert" className="text-sm text-destructive">{error}</p>}
     <div className="flex flex-wrap gap-2">
@@ -452,8 +439,6 @@ function Provform({ schoolYear, underlag, document, prov, idag, tidforslag, disa
 
 function Forhandsrader({ preview }: { preview: Forhandsvisning }) {
   const first = preview.rows[0].bokning;
-  const sal = preview.basis.salar.find(s => s.id === first.salId)?.name ?? 'Ingen sal vald';
-  const vakter = first.vakter.map(ref => preview.basis.vakter.find(v => v.ref === ref)?.name).filter(Boolean).join(', ') || 'Inga provvakter valda';
   return <>
     <p className="font-medium">{first.namn}</p>
     <p className="text-sm text-muted-foreground">{first.kallprov ? 'Provuppgifter hämtade' : 'Underlag kontrollerat'} {formatDate(first.kontrolleradDatum, true)}</p>
@@ -473,7 +458,7 @@ function Forhandsrader({ preview }: { preview: Forhandsvisning }) {
           <TableCell className="whitespace-normal">{formatLong(bokning.datum)}
             <div>{clock(bokning.startMin)}–{clock(bokning.slutMin)} · {bokning.slutMin - bokning.startMin} min</div>
           </TableCell>
-          <TableCell className="whitespace-normal [overflow-wrap:anywhere]">{sal}<div className="text-muted-foreground">{vakter}</div></TableCell>
+          <TableCell className="whitespace-normal [overflow-wrap:anywhere]"><Provresursstatus val={bokning} salar={preview.basis.salar} vakter={preview.basis.vakter}/></TableCell>
         </TableRow>)}
       </TableBody>
     </Table>

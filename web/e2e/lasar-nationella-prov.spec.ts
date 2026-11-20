@@ -60,7 +60,8 @@ const panel = (page: Page) => page.getByRole('region', { name: 'Nationella prov'
 const provrad = (page: Page, delprov: 'A' | 'C') => panel(page).getByRole('button', { name: new RegExp(`Engelska nivå 1 · Delprov ${delprov}`, 'u') });
 const chooseResources = async (page: Page) => {
   const form = panel(page);
-  await form.getByLabel('Sal (valfri)').selectOption('sal-1');
+  await form.getByText('Ange sal eller provvakter', { exact: true }).click();
+  await form.getByLabel('Lås sal').selectOption('sal-1');
   await form.getByRole('checkbox', { name: 'Provvakt A' }).check();
 };
 const review = (page: Page) => panel(page).getByRole('button', { name: 'Förhandsgranska bokningar', exact: true });
@@ -193,14 +194,21 @@ test('föreslaget muntligt provblock läggs in i läsårskalendern utan inmatnin
   await expect(form.getByLabel('Provdatum')).toHaveValue('2026-11-24');
   await expect(form.getByLabel('Start', { exact: true })).toHaveValue('09:00');
   await expect(form.getByLabel('Slut', { exact: true })).toHaveValue('10:30');
+  await expect(form.getByLabel('Lås sal')).toBeHidden();
+  await expect(form.getByRole('checkbox', { name: 'Provvakt A' })).toBeHidden();
   await review(page).click();
   await expect(previewRows(page)).toHaveCount(3);
+  await expect(previewRows(page).nth(1)).toContainText('Sal föreslås i Schema');
+  await expect(previewRows(page).nth(1)).toContainText('Provvakter föreslås i Schema');
   expect(state.saves).toHaveLength(0);
   await form.getByRole('button', { name: 'Spara 2 provbokningar' }).click();
   await expect(form.getByRole('status')).toContainText('2 provbokningar har sparats i läsårskalendern.');
   await expect(page.getByRole('button', { name: /tisdag 24 november 2026 · Skoldag/u })).toHaveAccessibleName(/nationellt prov, 2 bokningar/u);
-  expect(state.saves[0].document.bokningar.map(b => [b.datum, b.startMin, b.slutMin, b.tidsval, b.kallprov?.id])).toEqual([
-    ['2026-11-24', 540, 630, 'period', 'engelska1-a-ht'], ['2026-11-24', 540, 630, 'period', 'engelska1-a-ht'],
+  const saved = page.getByRole('table', { name: 'Planerade nationella prov' });
+  await expect(saved.getByText('Sal föreslås i Schema', { exact: true })).toHaveCount(2);
+  await expect(saved.getByText('Provvakter föreslås i Schema', { exact: true })).toHaveCount(2);
+  expect(state.saves[0].document.bokningar.map(b => [b.datum, b.startMin, b.slutMin, b.tidsval, b.kallprov?.id, b.salId, b.vakter])).toEqual([
+    ['2026-11-24', 540, 630, 'period', 'engelska1-a-ht', null, []], ['2026-11-24', 540, 630, 'period', 'engelska1-a-ht', null, []],
   ]);
 });
 

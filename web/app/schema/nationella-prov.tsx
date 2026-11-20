@@ -12,6 +12,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { NATIONELLA_PROV_KALLA, nationellaProvBokningsfel, skapaProvId, type NationellaProvDeltagare, type NationellaProvDocument, type NationellaProvUnderlag, type NationellProvbokning } from '@/lib/nationella-prov.ts';
 import type { SchemaForslag, SchemaResurs } from '@/lib/schema-contract.ts';
+import { Provresursfalt, Provresursstatus } from './provresurser';
 
 const EMPTY: NationellaProvDocument = { granskad: false, bokningar: [] };
 const CONTROL = 'min-h-11';
@@ -129,10 +130,7 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
               <p>{visaDatum(b.datum)}</p><p className="text-muted-foreground">{klocka(b.startMin)}–{klocka(b.slutMin)} · {b.slutMin - b.startMin} min</p>
               <p className="text-muted-foreground">{b.tidsval === 'fast' ? 'Fast provtid' : 'Inom provperiod'}</p>
             </TableCell>
-            <TableCell className="whitespace-normal">
-              <p>{b.salId === null ? 'Sal ej vald' : salar.find(s => s.id === b.salId)?.name ?? 'Sal saknas i underlaget'}</p>
-              {b.vakter.length > 0 && <p className="text-muted-foreground">{b.vakter.map(v => vakter.find(p => p.ref === v)?.name ?? 'Provvakt visas inte i underlaget').join(', ')}</p>}
-            </TableCell>
+            <TableCell className="whitespace-normal [overflow-wrap:anywhere]"><Provresursstatus val={b} salar={salar} vakter={vakter}/></TableCell>
             <TableCell>{visaDatum(b.kontrolleradDatum)}</TableCell>
             <TableCell>
               <div className="flex flex-wrap gap-1">
@@ -147,7 +145,7 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
       {lasarPlan.granskad ? 'Det är bekräftat att inga nationella prov ska planeras för läsåret.' : 'Inga prov är planerade för läsåret.'}</p>}
     <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
       <div className="space-y-1 text-sm text-muted-foreground">
-        <p>{baraSparade ? 'Bokningarna visas också i Förbered.' : 'Provbokningarna visas också i läsårskalendern.'} Anpassa schemapassen manuellt på provdagarna.</p>
+        <p>{baraSparade ? 'Bokningarna visas också i Förbered.' : 'Provbokningarna visas också i läsårskalendern.'}</p>
         <p>Provtid redovisas separat från den garanterade undervisningstiden.</p>
       </div>
       <Button type="button" variant="outline" className={CONTROL} disabled={skrivskydd || (avvikelser && !lasarPlan.granskad)}
@@ -337,27 +335,10 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
               </Field>;
             })}
           </fieldset>
-          <div className="grid gap-3 sm:grid-cols-[1fr_2fr]">
-            <Field><FieldLabel htmlFor={`${id}-sal`}>Sal (valfritt)</FieldLabel>
-              <NativeSelect className="w-full [&_select]:min-h-11" name="sal" id={`${id}-sal`} defaultValue={bokning?.salId ?? ''}>
-                <option value="">Ingen sal vald</option>
-                {bokning?.salId && !salar.some(s => s.id === bokning.salId) && <option value={bokning.salId}>Tidigare vald sal saknas</option>}
-                {salar.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </NativeSelect>
-              {salar.length === 0 && <FieldDescription>Skolans salregister har inga valbara salar.</FieldDescription>}
-            </Field>
-            <fieldset className="min-w-0 rounded-md border border-border px-3 pb-2">
-              <FieldLegend variant="label" className="px-1">Provvakter (valfritt)</FieldLegend>
-              <div className="flex max-h-32 flex-wrap items-center gap-x-4 overflow-y-auto">
-                {[...vakter, ...provvakter.filter(ref => !vakter.some(v => v.ref === ref)).map(ref => ({ ref, name: 'Tidigare vald provvakt saknas' }))].map(p =>
-                  <label className="inline-flex min-h-11 items-center gap-2" key={p.ref}><Checkbox disabled={saving || reading} checked={provvakter.includes(p.ref)} onCheckedChange={checked => {
-                    setProvvakter(old => checked ? [...old, p.ref] : old.filter(ref => ref !== p.ref));
-                  }}/>{p.name}</label>)}
-                {vakter.length === 0 && provvakter.length === 0 && <p className="text-sm text-muted-foreground">Inga provvakter finns i underlaget.</p>}
-              </div>
-            </fieldset>
-          </div>
-          {antal > 1 && <p className="text-sm text-muted-foreground">Tid, sal och provvakter gäller alla {antal} bokningar. Du kan ändra varje bokning för sig.</p>}
+          <Provresursfalt sparat={bokning} salar={salar} vakter={vakter} valdaVakter={provvakter} disabled={saving || reading} onVakt={(ref, checked) => {
+            setProvvakter(old => checked ? [...old, ref] : old.filter(val => val !== ref));
+          }}/>
+          {antal > 1 && <p className="text-sm text-muted-foreground">Tid och låsta resurser gäller alla {antal} bokningar. Du kan ändra varje bokning för sig.</p>}
         </fieldset>
         {redigeringskonflikt && <p className="text-sm text-destructive" role="alert">{redigeringskonflikt}</p>}
         {fel && <p className="text-sm text-destructive" role="alert">{fel}</p>}

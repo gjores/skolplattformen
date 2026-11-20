@@ -81,7 +81,8 @@ test('planerar prov per klass och grupp, ändrar, tar bort och bekräftar tom pr
   const dialog = await angeProv(page);
   await expect(dialog.getByLabel('Start', { exact: true })).toHaveValue('09:00');
   await dialog.getByRole('checkbox', { name: /SA engelska/u }).check();
-  await dialog.getByLabel('Sal (valfritt)').selectOption('sal-4');
+  await dialog.getByText('Ange sal eller provvakter', { exact: true }).click();
+  await dialog.getByLabel('Lås sal').selectOption('sal-4');
   await dialog.getByRole('checkbox', { name: 'Provvakt A' }).check();
   await dialog.getByLabel('Provdatum').fill('2027-03-17');
   await dialog.getByRole('button', { name: 'Spara 2 provbokningar' }).click();
@@ -104,13 +105,25 @@ test('planerar prov per klass och grupp, ändrar, tar bort och bekräftar tom pr
   await expect(plan.getByText('Genomgånget', { exact: true })).toBeVisible();
   await plan.getByRole('button', { name: `Ändra ${PROV} för NA26` }).click();
   const edit = page.getByRole('dialog', { name: 'Ändra provbokning' });
+  await expect(edit.getByLabel('Lås sal')).toHaveValue('sal-4');
+  await expect(edit.getByRole('checkbox', { name: 'Provvakt A' })).toBeChecked();
   await edit.getByLabel('Typ av provtid').selectOption('period');
   await edit.getByLabel('Provdatum').fill('2027-03-16');
   await edit.getByLabel('Start', { exact: true }).fill('10:00');
   await edit.getByRole('button', { name: 'Spara provbokning' }).click();
   await expect(edit).toHaveCount(0);
   await expect(plan.getByText('Återstår att gå igenom', { exact: true })).toBeVisible();
-  expect(state.saves[2].document.bokningar[0]).toMatchObject({ id: bokningar[0].id, datum: '2027-03-16', tidsval: 'period', startMin: 600 });
+  expect(state.saves[2].document.bokningar[0]).toMatchObject({ id: bokningar[0].id, datum: '2027-03-16', tidsval: 'period', startMin: 600, salId: 'sal-4', vakter: [VAKT] });
+
+  await plan.getByRole('button', { name: `Ändra ${PROV} för NA26` }).click();
+  await edit.getByLabel('Lås sal').selectOption('');
+  await edit.getByRole('checkbox', { name: 'Provvakt A' }).uncheck();
+  await edit.getByRole('button', { name: 'Spara provbokning' }).click();
+  await expect(edit).toHaveCount(0);
+  const row = plan.getByRole('row').filter({ hasText: 'NA26' });
+  await expect(row).toContainText('Sal föreslås i Schema');
+  await expect(row).toContainText('Provvakter föreslås i Schema');
+  expect(state.saves[3].document.bokningar.find(b => b.id === bokningar[0].id)).toMatchObject({ salId: null, vakter: [] });
 
   for (const target of ['SA engelska', 'NA26']) {
     await plan.getByRole('button', { name: `Ta bort ${PROV} för ${target}` }).click();
