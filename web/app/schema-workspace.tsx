@@ -28,7 +28,7 @@ import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, r
 import { GranskaUtkast, type GranskaMal } from './schema/granska.tsx';
 import { JamforResurser } from './schema/jamfor-resurser.tsx';
 import { schemaForbered } from '@/lib/schema-forbered.ts';
-import { nationellaProvBokningsfel } from '@/lib/nationella-prov.ts';
+import { nationellaProvBokningsfel, type NationellProvbokning } from '@/lib/nationella-prov.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
 import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
 import { flyttSal } from '@/lib/schema-utan-sal.ts';
@@ -39,7 +39,7 @@ import { fastAktivitet, lastAktivitetAndras, aktivitetsTyper, type SchemaAktivit
 import { schemaLager, type SchemaKalla } from '@/lib/schema-lager.ts';
 import { DAYS, PERIOD, TERM, clock, names, ruleText, startTimes } from './schema/delat.ts';
 import { FaltKalla, Lagerval, rememberLager, storedLager, visaVillkor } from './schema/lager.tsx';
-import { Vecka, Teckenforklaring, veckansSpann } from './schema/vecka.tsx';
+import { Vecka, Teckenforklaring, veckansSpann, type SchemaVeckoprov } from './schema/vecka.tsx';
 import { Terminsjamforelse } from './schema/terminsjamforelse.tsx';
 import { VeckaVal } from './schema/vecka-val.tsx';
 import { UnderlagHinder } from './schema/underlag-hinder.tsx';
@@ -66,6 +66,7 @@ import { Samling, type SamlingStart } from './schema/samling.tsx';
 import { Aktiviteter } from './schema/aktiviteter.tsx';
 import { NationellaProv } from './schema/nationella-prov.tsx';
 import { Provforslag } from './schema/provforslag.tsx';
+import { parseSchemaProvApplyReply, schemaProvResultHash, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '@/lib/schema-provforslag.ts';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
@@ -163,6 +164,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [berakningOpen, setBerakningOpen] = useState(false), berakningKnapp = useRef<HTMLButtonElement | null>(null);
   const confirm = useRequestConfirm();
   const [draftName, setDraftName] = useState('Schemautkast'), [datedOverrides, setDatedOverrides] = useState<SchemaDraftDatedOverride[]>([]);
+  const [provSparat, setProvSparat] = useState<SchemaPeriod | null>(null);
+  const provSparas = useRef(false);
   const [datumPicked, setDatumPicked] = useState<(SchemaDatumTillfalle & { expectedInputKey: string; grundFingerprint: string; period: SchemaPeriod }) | null>(null);
   const [datumKontroll, setDatumKontroll] = useState<{ key: string; reply: SchemaDatumSvar } | null>(null), [datumKlar, setDatumKlar] = useState('');
   const [datumOmprov, setDatumOmprov] = useState(0);
@@ -180,6 +183,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [granskatPass, setGranskatPass] = useState<{ mal: GranskaMal; scope: string; term: SchemaTerm } | null>(null);
   const [jamforOpen, setJamforOpen] = useState(false), jamforId = useId();
   const provforslagPanel = useRef<HTMLDivElement>(null), provGranskaRetur = useRef<HTMLElement | null>(null);
+  const fokuseraProv = useRef<string | null>(null);
   const granskaFokus = useRef<GranskaMal | null>(null), granskaPassRubrik = useRef<HTMLHeadingElement | null>(null);
   const valjYta = (next: SchemaYta) => {
     if (next !== 'schema') { setGranskatPass(null); setJamforOpen(false); granskaFokus.current = null; }
@@ -282,7 +286,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
   // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
   const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
-  const nationellaProv = useNationellaProv({ unitId, schoolYear, enabled: visaForbered, onSessionLost });
+  const nationellaProv = useNationellaProv({ unitId, schoolYear, enabled: !fonster, onSessionLost });
   const provunderlag = useMemo(() => {
     const underlag = nationellaProv.underlag;
     if (!underlag || skolsalar.status !== 'ok') return underlag;
@@ -331,6 +335,25 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (sparstatus.dirty && !await confirm({ title: 'Läs serverns version?', description: 'Dina lokala ändringar ersätts med det senast sparade utkastet på servern.', confirmLabel: 'Läs serverns version', cancelLabel: 'Behåll lokala ändringar' })) return;
     setGranskatPass(null);
     spara.read();
+  }
+
+  async function tillampaProvforslag(svar: SchemaProvforslagSvar, commandId: string) {
+    if (!personalLookup || !svar.provrevision || sparstatus.phase !== 'saved' || sparstatus.dirty || busy || checking || provSparas.current) return;
+    provSparas.current = true;
+    try {
+      const ok = await confirm({ title: 'Lägg in provförslaget?',
+        description: 'Salar och provvakter sparas i provplanen. Ersättningstillfällena sparas på sina datum i det här schemautkastet.',
+        confirmLabel: 'Spara provförslaget', cancelLabel: 'Behåll förslaget' });
+      if (!ok) return;
+      setChecking(true);
+      const request: SchemaProvApplyRequest = { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period,
+        commandId, expectedRevision: sparstatus.revision, provrevision: svar.provrevision, grundFingerprint: svar.grundFingerprint,
+        resultHash: await schemaProvResultHash(svar) };
+      parseSchemaProvApplyReply(await api.post<unknown>('/api/schema/provforslag/tillampa', request), request);
+      setProvSparat(period);
+      spara.read();
+      nationellaProv.onReload();
+    } finally { provSparas.current = false; setChecking(false); }
   }
 
   // Huvudfönstret äger reducer, nätanrop och ångring. Elevlistor och lokala resursval ingår inte i det delade tillståndet.
@@ -1084,6 +1107,46 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   // Justerad längd (05.2-SM-TIMPLAN-VECKA, W3): det passet kortas alla veckor i den termin som visas syns i veckan; kortning vissa veckor står i text.
   const viewTerm: SchemaTerm = !forslag || forslag.period === 'lasar' ? shownTerm : forslag.period;
   const datumVal = forslag ? schemaVeckaVal(forslag, viewTerm, visning) : visning;
+  const provDagar = new Map((forslag?.time.calendar ?? forutsattningar?.time.calendar)?.days.map(day => [day.date, day.term]));
+  const provBokningar = [...nationellaProv.document?.bokningar ?? []]
+    .filter(b => period === 'lasar' || provDagar.get(b.datum) === period)
+    .sort((a, b) => a.datum.localeCompare(b.datum) || a.startMin - b.startMin || a.id.localeCompare(b.id));
+  const provDeltagare = new Map(provunderlag?.deltagare.map(d => [`${d.slag}:${d.ref}`, d]));
+  const provSalar = new Map(provunderlag?.salar.map(s => [s.id, s.name]));
+  const provVakter = new Map(provunderlag?.vakter.map(v => [v.ref, v.name]));
+  const provNyckel = (b: NationellProvbokning) => `${b.mal.slag}:${b.mal.ref}`;
+  const provNamn = (b: NationellProvbokning) => provDeltagare.get(provNyckel(b))?.name ?? options.find(r => r.key === provNyckel(b))?.name ?? 'Bokade deltagare';
+  const veckansProv: SchemaVeckoprov[] = datumVal.mode === 'grundschema' ? [] : provBokningar.filter(b => {
+    if (selected?.key === provNyckel(b)) return true;
+    if (selected?.slag === 'sal' && b.salId) return provSalar.get(b.salId) === selected.name;
+    if (selected?.slag === 'larare') return b.vakter.includes(selected.villkor?.ref ?? selected.id);
+    if (selected?.slag === 'amne') return provDeltagare.get(provNyckel(b))?.undervisningar.some(u => u.ref === b.undervisning && u.title === selected.name) ?? false;
+    return false;
+  }).map(b => ({ id: b.id, datum: b.datum, namn: b.namn, startMin: b.startMin, slutMin: b.slutMin,
+    detail: [provNamn(b), b.salId ? provSalar.get(b.salId) ?? 'Kontrollera sal' : 'Sal återstår',
+      personalLookup ? b.vakter.length ? b.vakter.map(ref => provVakter.get(ref) ?? 'Vald provvakt').join(', ') : 'Provvakt återstår' : ''].filter(Boolean).join(' · ') }));
+  function visaProvdag(id: string) {
+    const bokning = provBokningar.find(b => b.id === id);
+    if (!bokning || !forslag?.time.calendar) return;
+    const resurs = options.find(r => r.key === provNyckel(bokning)), term = provDagar.get(bokning.datum);
+    if (!resurs || !term) return;
+    valjVeckoresurs(resurs);
+    setShownTerm(term);
+    setJamforTerminer(false);
+    setVisning({ mode: 'intervall', from: bokning.datum, to: bokning.datum, monday: '' });
+    setVy('vecka');
+    dispatch({ type: 'pick', lesson: null });
+    fokuseraProv.current = id;
+    valjYta('schema');
+  }
+  useEffect(() => {
+    const id = fokuseraProv.current;
+    if (!visaSchema || !id) return;
+    const kort = week.current?.querySelector<HTMLElement>(`[data-prov="${CSS.escape(id)}"]`);
+    if (!kort) return;
+    fokuseraProv.current = null;
+    kort.scrollIntoView({ block: 'nearest' });
+  }, [visaSchema, datumVal.mode, datumVal.from, selected?.key]);
   const jamforVecka = kanJamforaTerminer && jamforTerminer && datumVal.mode === 'grundschema' && visadVy(vy, true, true, foljt !== null) === 'vecka';
   const bytLagen = useSchemaBytLagen({ forslag, villkor: provade, lesson: jamforVecka ? null : drop?.lesson ?? picked, placements: placeringar, userLocks: utkastLas(utkast), unitId, schoolYear, onSessionLost });
   const valdResurs = (l: SchemaForslagLesson) => veckoresursPass(selected, l);
@@ -1369,6 +1432,18 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     {!fonster && !forslag && <FonsterMeny synk={synk} disabled/>}
     {forslag && datumPicked && <DatumFlytt salScope={placeringsBas()} datedOverrides={datedOverrides} onSessionLost={onSessionLost} key={datumPicked.key} occurrence={datumPicked} forslag={forslag} busy={busy || checking} error={moveError} onSave={change => void andraDatum({ lesson: datumPicked.lesson.id, originalDate: datumPicked.originalDate }, change, undefined, datumPicked.expectedInputKey)} onClose={() => setDatumPicked(null)} onBase={() => oppnaGrundpass(datumPicked.lesson.id)}/>}
     {gemensamt}
+    {!fonster && visaSchema && (provBokningar.length > 0 || nationellaProv.readFailed) && <details className="min-w-0 rounded-lg border border-border bg-card p-4">
+      <summary className="cursor-pointer font-medium">Bokade nationella prov{provBokningar.length > 0 && <span className="ml-2 status-badge">{provBokningar.length}</span>}</summary>
+      {nationellaProv.readFailed && <div className="flex flex-wrap items-center gap-2 pt-3"><p className="schema-note">Provplanen kunde inte läsas.</p><Button type="button" variant="outline" onClick={nationellaProv.onReload}>Läs in provplanen igen</Button></div>}
+      {provBokningar.length > 0 && <div className="space-y-2 pt-3">
+        <p className="schema-note">Proven visas på sitt bokade datum. I Granska kan rektor ordna sal, provvakter och ersättningstid.</p>
+        <ul className="divide-y divide-border">{provBokningar.map(b => <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
+          <div><p className="font-medium">{b.namn} · {provNamn(b)}</p><p className="schema-note">{schemaDateText(b.datum)} · {clock(b.startMin)}–{clock(b.slutMin)}</p></div>
+          {forslag?.time.calendar && provDagar.get(b.datum) && options.some(r => r.key === provNyckel(b)) && <Button type="button" variant="outline" onClick={() => visaProvdag(b.id)}
+            aria-label={`Visa provdagen för ${provNamn(b)} ${schemaDateText(b.datum)}`}>Visa provdagen</Button>}
+        </li>)}</ul>
+      </div>}
+    </details>}
     {!fonster && inaktuelltUnderlag && <>
       {!visaForbered && <section aria-labelledby={`${resultHeading}-aktuellt`} className="rounded-lg border border-border bg-card p-4 space-y-2">
         <h2 id={`${resultHeading}-aktuellt`} className="section-heading">Aktuellt underlag</h2>
@@ -1396,8 +1471,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         {salsattningsvy}
       </div>}/>}
     {!fonster && <div ref={provforslagPanel} tabIndex={-1} className="scroll-mt-24" hidden={!visaGranska}>
+      {provSparat === period && <output className="mb-3 block status-badge success">Provförslaget är sparat i schemat.</output>}
       <Provforslag key={nationellaProv.revision ?? 'okand'} request={placementBase?.placements.length && !granskaStale ? { ...placementBase, datedOverrides, dates: [] } : null}
         disabled={redigeringStoppad || busy || checking} personalLookup={personalLookup} lessons={passMedSal} onSessionLost={onSessionLost}
+        onOpenBooking={provBokningar.length ? visaProvdag : undefined} onApply={personalLookup ? tillampaProvforslag : undefined}
+        canApply={sparstatus.phase === 'saved' && !sparstatus.dirty}
         onOpen={(lesson, originalDate) => {
           if (document.activeElement instanceof HTMLElement) provGranskaRetur.current = document.activeElement;
           visaGranskaPass({ lesson, originalDate });
@@ -1522,7 +1600,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
             pickedOccurrence={reviewOccurrence?.key} locked={l => fastAktivitet(l, provade) || !!utkast.locked[l.id]}
             length={shownMin} detail={detail} extra={passRader} onGrab={grab} onPick={meny.onPick}
             overlays={[...(lager?.overlays ?? []), ...bytLagen.overlays]} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}
-            datum={{ forslag, overrides: datedOverrides, matches: valdResurs }} onOccurrence={valjDatum} kalender={forslag.time.calendar} visning={datumVal} trims={forslag.trims} classId={selected?.slag === 'klass' || selected?.slag === 'grupp' ? selected.id : null}/>)}{meny.panel}</div>
+            datum={{ forslag, overrides: datedOverrides, matches: valdResurs }} prov={veckansProv} onOccurrence={valjDatum} kalender={forslag.time.calendar} visning={datumVal} trims={forslag.trims} classId={selected?.slag === 'klass' || selected?.slag === 'grupp' ? selected.id : null}/>)}{meny.panel}</div>
           </div>
           <output aria-live="polite" className="schema-note schema-drag-status">{drop ? bytLagen.loading ? 'Läser möjliga starttider…' : bytLagen.error ?? bytLagen.status(drop.to ?? target) : ''}</output>
           <Teckenforklaring lessons={shown} picked={picked} flagged={markerade} overlays={[...(lager?.overlays ?? []), ...bytLagen.overlays]} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>

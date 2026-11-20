@@ -6,6 +6,7 @@ import { SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 import { datumFixture } from './schema-datum-fixture.mjs';
 import { parseSchemaDatumSvar } from './schema-datum.ts';
 import { parseSchemaProvforslagSvar } from './schema-provforslag.ts';
+import { SCHEMA_DRAFT_VERSION, schemaDraftHash } from './schema-draft-contract.ts';
 const id = n => `73111600-0000-4000-8000-${String(n).padStart(12, '0')}`, issuer = 'http://host.docker.internal:8180/realms/skolplattform-test';
 let state;
 const fake = globalThis.__schemaDatumServerTest = {
@@ -20,8 +21,11 @@ const fake = globalThis.__schemaDatumServerTest = {
   login: async (_corr, fn) => fn(fake.tx),
   async live(ctx, fn, ErrorClass) {
     if (state.liveDeny) throw new ErrorClass('assignment_ended', 403);
+    const before = { draft: structuredClone(state.draft), receipts: structuredClone(state.receipts), prov: structuredClone(state.prov), provRevision: state.provRevision };
     state.inTransaction = true;
-    try { return await fn(fake.tx, { ...ctx, accessFunction: state.role, epoch: state.epoch ?? 1, scopeKind: 'school' }); } finally { state.inTransaction = false; }
+    try { return await fn(fake.tx, { ...ctx, accessFunction: state.role, epoch: state.epoch ?? 1, scopeKind: 'school' }); }
+    catch (error) { Object.assign(state, before); throw error; }
+    finally { state.inTransaction = false; }
   },
   tx: async (strings, ...values) => {
     const sql = strings.join('?');
@@ -30,6 +34,22 @@ const fake = globalThis.__schemaDatumServerTest = {
       state.events.push({ action: values[8], outcome: values[11] }); return [];
     }
     if (sql.includes('select i.auth_user_id')) return [{ auth_user_id: id(4), function: state.role, organizer_id: id(8), unit_id: id(1) }];
+    if (sql.includes('pg_advisory_xact_lock')) return [];
+    if (sql.includes('public.schema_read')) return [{ result: draftWire({ draft: state.draft }) }];
+    if (sql.includes('public.schema_status')) {
+      const saved = state.receipts.get(values[0].commandId);
+      return [{ result: draftWire(saved ? { state: 'completed', ...saved } : { state: 'not_found', draft: null, receipt: null }) }];
+    }
+    if (sql.includes('public.schema_command')) {
+      const input = values[0];
+      if (state.rejectDraftCommit || input.expectedRevision !== (state.draft?.revision ?? 0)) throw Object.assign(Error('revision conflict'), { code: '40001' });
+      const revision = input.expectedRevision + 1, savedAt = '2026-11-20T12:00:00.000Z';
+      const draft = { id: state.draft?.id ?? id(110), name: input.name, revision, savedAt, contentHash: await schemaDraftHash(input.document),
+        sourceHash: input.sourceHash, document: input.document };
+      const receipt = { commandId: input.commandId, draftId: draft.id, revision, contentHash: draft.contentHash, requestHash: input.requestHash, savedAt, replayed: false };
+      state.draft = draft; state.receipts.set(input.commandId, { draft, receipt });
+      return [{ result: draftWire({ draft, receipt }) }];
+    }
     if (sql.includes('public.schema_dated_basis')) {
       state.reads.push('dated');
       if (state.sqlDeny) throw Object.assign(Error('denied'), { code: '42501' });
@@ -43,13 +63,21 @@ const fake = globalThis.__schemaDatumServerTest = {
     const { plan, basis } = state.fixture;
     return { plan: state.sourceChanged ? { ...plan, schoolName: 'Ändrad källa', classes: plan.classes.map(c => ({ ...c, name: 'Ändrad klass' })) } : plan,
       basis: state.prov ? { ...basis, skolsalar: { nasta: 3, salar: ['Provsal A', 'Provsal B'].map((name, i) => ({ id: `sal-${i + 1}`, name, typ: 'Allmän sal', platser: 30, utrustning: [] })) } } : basis,
+      sourceRefs: { calendarVersionId: id(70) },
       schoolDuties: state.role === 'rektor' ? plan.teachers.map(t => ({ ref: t.personId, name: t.displayName, startsOn: '2026-07-01', endsOn: null })) : [],
       event: { action: 'tjanst_plan_read', objectType: 'school', objectId: id(1), details: { unitId: id(1), schoolYear: 2026 } } };
   },
   prov(_tx, _ctx, unitId, schoolYear) {
     state.reads.push('prov');
     if (unitId !== id(1) || schoolYear !== 2026) throw new Deny('forbidden', 403);
-    return state.prov ? { revision: 1, document: { granskad: false, bokningar: [state.prov] } } : null;
+    return state.prov ? { revision: state.provRevision, document: { granskad: false, bokningar: [state.prov] } } : null;
+  },
+  async saveProv(_tx, _ctx, input) {
+    assert.equal(state.inTransaction, true);
+    assert.equal(input.expectedRevision, state.provRevision);
+    state.prov = input.document.bokningar[0];
+    state.provRevision++;
+    return { register: { revision: state.provRevision, document: input.document }, replayed: false };
   },
   async validate(problem, placements) {
     assert.equal(state.inTransaction, false, 'motorn får inte köras medan DB-transaktionen hålls');
@@ -59,6 +87,7 @@ const fake = globalThis.__schemaDatumServerTest = {
     return { violations: state.violation ? [{ code: 'room_clash', message: `${placements[0].lesson} krockar i provsalen.`, lessons: [placements[0].lesson], resources: ['sal-1'] }] : [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   },
 };
+const draftWire = result => ({ contractVersion: 'schema_draft_sql_v1', actor: { identityId: id(4), assignmentId: id(6) }, result });
 fake.tx.json = x => x;
 const server = new URL('./server/', import.meta.url);
 registerHooks({ load(url, context, next) {
@@ -70,14 +99,17 @@ registerHooks({ load(url, context, next) {
   if (is('schema-read.ts')) source = `import { Deny } from './db.ts';
     export const readSchemaBasis=(...a)=>globalThis.__schemaDatumServerTest.read(...a);
     export async function schemaBegaran(req, parse){try{return parse(await req.json());}catch{throw new Deny('bad_request',400);}}`;
-  if (is('nationella-prov.ts')) source = 'export const readNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.prov(...a);';
+  if (is('nationella-prov.ts')) source = `export const readNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.prov(...a);
+    export const sparaNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.saveProv(...a);`;
   if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const validateSchema=(...a)=>globalThis.__schemaDatumServerTest.validate(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
 const { Deny } = await import('./server/db.ts'), { SchemaEngineError } = await import('./server/schemamotor.ts');
 const { POST } = await import('../app/api/schema/datum/route.ts');
 const { POST: provforslag } = await import('../app/api/schema/provforslag/route.ts');
-const reset = () => { state = { fixture: datumFixture(), role: 'rektor', reads: [], events: [], validations: [] }; };
+const { POST: tillampa } = await import('../app/api/schema/provforslag/tillampa/route.ts');
+const { POST: sparaUtkast } = await import('../app/api/schema/utkast/spara/route.ts');
+const reset = () => { state = { fixture: datumFixture(), role: 'rektor', reads: [], events: [], validations: [], draft: null, receipts: new Map(), provRevision: 1 }; };
 const input = () => ({ ...state.fixture.request, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: state.fixture.f.grundFingerprint,
   placements: state.fixture.placements, datedOverrides: [state.fixture.change()], dates: [] });
 const request = (body = input(), headers = {}) => new Request('http://localhost:5199/api/schema/datum', { method: 'POST', headers: { Origin: 'http://localhost:5199', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(body) });
@@ -147,4 +179,55 @@ test('provförslaget lämnar inget underlag utan mandat, och tom provplan läser
   assert.deepEqual(parseSchemaProvforslagSvar(await response.json(), q).bokningar, []);
   assert.deepEqual(state.reads, ['prov', 'prov']);
   assert.equal(state.validations.length, 0);
+});
+
+async function applyFixture() {
+  reset();
+  const { plan } = state.fixture;
+  state.prov = { id: id(101), datum: '2027-01-25', startMin: 480, slutMin: 540, namn: 'Syntetiskt läsprov', undervisning: `undervisning:${plan.classes[1].needs[0].sourceKey}`,
+    mal: { slag: 'klass', ref: plan.classes[1].classId }, tidsval: 'period', salId: null, vakter: [], kontrolleradDatum: '2026-11-19' };
+  const preview = { ...input(), datedOverrides: [] };
+  const { unitId, schoolYear, period, grundFingerprint, villkor, placements } = preview;
+  const saved = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: id(109), draftId: null, expectedRevision: 0,
+    name: 'Syntetiskt utkast', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint, placements, locks: [] }));
+  assert.equal(saved.status, 200);
+  const calculated = await provforslag(request(preview));
+  assert.equal(calculated.status, 200);
+  const { bokningar, bortfall, ersattningar } = parseSchemaProvforslagSvar(await calculated.json(), preview);
+  assert.ok(bokningar[0].sal && bokningar[0].vakter.length);
+  assert.ok(ersattningar.length && bortfall.every(b => b.kvarMin === 0));
+  return { input: { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period, grundFingerprint, commandId: id(108), expectedRevision: 1,
+    provrevision: 1, resultHash: await schemaDraftHash({ bokningar, bortfall, ersattningar }) }, bokningar, ersattningar };
+}
+
+test('prov och ersättningstid sparas med ett rektorskommando och svarar med samma kvittens vid omförsök', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  const { input: command, bokningar, ersattningar } = await applyFixture();
+  const response = await tillampa(request(command));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  assert.equal(body.revision, 2); assert.equal(body.provrevision, 2);
+  assert.deepEqual(state.draft.document.datedOverrides, ersattningar);
+  assert.equal(state.prov.salId, bokningar[0].sal.id); assert.deepEqual(state.prov.vakter, bokningar[0].vakter.map(v => v.ref));
+  const repeat = await tillampa(request(command));
+  assert.equal(repeat.status, 200); assert.deepEqual(await repeat.json(), body);
+  assert.equal(state.draft.revision, 2); assert.equal(state.provRevision, 2);
+});
+
+test('tillämpning kräver rätt mandat och revision och rullar tillbaka provet om utkastet får konflikt', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  const { input: command } = await applyFixture();
+  state.role = 'administrator';
+  assert.equal((await tillampa(request(command))).status, 403);
+  state.role = 'rektor';
+  assert.equal((await tillampa(request({ ...command, expectedRevision: 2 }))).status, 409);
+  assert.equal((await tillampa(request({ ...command, provrevision: 2 }))).status, 409);
+  assert.equal((await tillampa(request({ ...command, resultHash: `sha256:${'a'.repeat(64)}` }))).status, 409);
+  state.rejectDraftCommit = true;
+  const out = await tillampa(request(command));
+  assert.equal(out.status, 409);
+  assert.equal((await out.json()).details.reason, 'schema_draft_conflict');
+  assert.equal(state.draft.revision, 1); assert.equal(state.provRevision, 1);
+  assert.deepEqual(state.draft.document.datedOverrides, []);
+  assert.equal(state.prov.salId, null); assert.deepEqual(state.prov.vakter, []);
 });

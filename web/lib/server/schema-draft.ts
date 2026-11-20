@@ -85,7 +85,7 @@ export const schemaDraftSourceHash = (read: ReadBasis, conditions: (SchemaVillko
     joints: p.joints, sharing: p.sharing }, members: read.basis.members, time: read.basis.time, sourceRefs: read.sourceRefs, datedBasis: read.datedBasis ?? null,
     usedPersonal: (read.basis.personer ?? []).filter(t => used.has(t.ref) && !p.teachers.some(p => p.personId === t.ref)) });
 };
-async function readDraftBasis(request: Request, tx: Tx, ctx: Context, input: SchemaForslagRequest): Promise<ReadBasis> {
+export async function readDraftBasis(request: Request, tx: Tx, ctx: Context, input: SchemaForslagRequest): Promise<ReadBasis> {
   const read = await readSchemaBasis(request, tx, ctx, input);
   const dated = await readSchemaDatedBasis(tx, ctx, { unitId: input.unitId, schoolYear: input.schoolYear });
   // De övriga källäsningarna loggas inne i läsaren; planhändelsen lämnas åt anroparen.
@@ -100,6 +100,21 @@ async function rawDraft(value: unknown, scope: SchemaDraftScope, stale: boolean)
     const draft = parseSchemaDraft({ id: r.id, name: r.name, revision: r.revision, savedAt: r.savedAt, contentHash: r.contentHash, sourceHash: r.sourceHash, stale, ...document }, scope);
     if (draft.contentHash !== await schemaDraftHash(document) || draft.sourceHash !== document.source.digest) throw new SchemaDraftError();
     return draft;
+  } catch { throw new AuditUnavailable(); }
+}
+export async function readSchemaDraftSnapshot(tx: Tx, ctx: Context, scope: SchemaDraftScope) {
+  const result = await sqlRead(tx, ctx, scope);
+  return result.draft === null ? null : rawDraft(result.draft, scope, false);
+}
+
+export async function readSchemaDraftReceipt(tx: Tx, ctx: Context, scope: SchemaDraftScope, commandId: string) {
+  const result = await sqlStatus(tx, ctx, { ...scopeKeys(scope), commandId, draftId: null });
+  try {
+    if (result.state === 'not_found' && result.receipt === null) return null;
+    if (result.state !== 'completed') throw new SchemaDraftError();
+    const receipt = parseSchemaDraftReceipt(result.receipt);
+    if (receipt.commandId !== commandId) throw new SchemaDraftError();
+    return receipt;
   } catch { throw new AuditUnavailable(); }
 }
 /** Förbereder bara servergenererade värden; detta är inte en DB-skrivning. */
@@ -163,11 +178,27 @@ function checkProjection(draft: SchemaDraftDocument, read: ReadBasis, ctx: Conte
   if (refs.some(ref => !visible.has(ref))) throw new Deny('forbidden', 403);
 }
 
+/** Den anropande transaktionen kan samordna utkastets revisionskontroll med ytterligare skolsparning. */
+export async function commitSchemaDraft(tx: Tx, ctx: Context, input: SchemaDraftSave, document: SchemaDraftDocument, current: ReadBasis, requestHash: string) {
+  if (await schemaDraftSourceHash(current, [document.basisVillkor, document.workingVillkor]) !== document.source.digest) throw new Deny('conflict', 409, { reason: 'schema_draft_source_changed' });
+  checkProjection(document, current, ctx);
+  const rows = await operation(() => tx<{ result: unknown }[]>`select public.schema_command(${tx.json({ ...scopeKeys(input), commandId: input.commandId, draftId: input.draftId,
+    expectedRevision: input.expectedRevision, name: input.name, requestHash, document, sourceHash: document.source.digest })}) as result`);
+  if (rows.length !== 1) throw new AuditUnavailable();
+  const result = envelope(rows[0].result, ctx).result;
+  let draft, receipt;
+  try { draft = await rawDraft(result.draft, input, false); receipt = parseSchemaDraftReceipt(result.receipt); }
+  catch { throw new AuditUnavailable(); }
+  if (receipt.commandId !== input.commandId || receipt.requestHash !== requestHash || receipt.draftId !== draft.id || input.draftId !== null && input.draftId !== draft.id || draft.revision !== receipt.revision
+    || receipt.revision !== input.expectedRevision + 1 || draft.contentHash !== receipt.contentHash || draft.savedAt !== receipt.savedAt) throw new AuditUnavailable();
+  return { ...scopeKeys(input), draft, receipt } satisfies SchemaDraftSaveReply;
+}
+
 export async function schemaDraftReadRoute(request: Request): Promise<Response> {
   return protectedRoute(request, 'schema_draft_read', { mutating: false, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
-    requireSameOrigin(request); const input = await schemaDraftRequest(request, parseSchemaDraftScope), result = await sqlRead(tx, ctx, input);
-    if (result.draft === null) return { body: { ...input, draft: null } satisfies SchemaDraftReadReply, event: event('schema_draft_read', input) };
-    const saved = await rawDraft(result.draft, input, false), read = await readDraftBasis(request, tx, ctx, currentInput(input, saved.basisVillkor ?? saved.workingVillkor));
+    requireSameOrigin(request); const input = await schemaDraftRequest(request, parseSchemaDraftScope), saved = await readSchemaDraftSnapshot(tx, ctx, input);
+    if (!saved) return { body: { ...input, draft: null } satisfies SchemaDraftReadReply, event: event('schema_draft_read', input) };
+    const read = await readDraftBasis(request, tx, ctx, currentInput(input, saved.basisVillkor ?? saved.workingVillkor));
     saved.stale = saved.sourceHash !== await schemaDraftSourceHash(read, [saved.basisVillkor, saved.workingVillkor]); checkProjection(saved, read, ctx);
     return { body: { ...input, draft: saved } satisfies SchemaDraftReadReply, event: event('schema_draft_read', input, saved.id) };
   });
@@ -218,17 +249,7 @@ export async function schemaDraftSaveRoute(request: Request): Promise<Response> 
   const input = capture.input, requestHash = capture.requestHash;
   return protectedRoute(request, 'schema_draft_saved', { mutating: true, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
     const current = await readDraftBasis(request, tx, ctx, currentInput(input, input.basisVillkor ?? input.workingVillkor));
-    if (await schemaDraftSourceHash(current, [document.basisVillkor, document.workingVillkor]) !== document.source.digest) throw new Deny('conflict', 409, { reason: 'schema_draft_source_changed' });
-    checkProjection(document, current, ctx);
-    const rows = await operation(() => tx<{ result: unknown }[]>`select public.schema_command(${tx.json({ ...scopeKeys(input), commandId: input.commandId, draftId: input.draftId,
-      expectedRevision: input.expectedRevision, name: input.name, requestHash, document, sourceHash: document.source.digest })}) as result`);
-    if (rows.length !== 1) throw new AuditUnavailable();
-    const result = envelope(rows[0].result, ctx).result;
-    let draft, receipt;
-    try { draft = await rawDraft(result.draft, input, false); receipt = parseSchemaDraftReceipt(result.receipt); }
-    catch { throw new AuditUnavailable(); }
-    if (receipt.commandId !== input.commandId || receipt.requestHash !== requestHash || receipt.draftId !== draft.id || input.draftId !== null && input.draftId !== draft.id || draft.revision !== receipt.revision
-      || receipt.revision !== input.expectedRevision + 1 || draft.contentHash !== receipt.contentHash || draft.savedAt !== receipt.savedAt) throw new AuditUnavailable();
-    return { body: { ...scopeKeys(input), draft, receipt } satisfies SchemaDraftSaveReply, event: event('schema_draft_saved', input, draft.id) };
+    const body = await commitSchemaDraft(tx, ctx, input, document, current, requestHash);
+    return { body, event: event('schema_draft_saved', input, body.draft.id) };
   });
 }

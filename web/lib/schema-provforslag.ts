@@ -1,10 +1,21 @@
 import { SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 import { SCHEMA_DATUM_LIMIT, SchemaDatumError, parseSchemaDatumAndringar, schemaDatumDate, schemaDatumNyckel, type SchemaDatumRequest } from './schema-datum.ts';
 import type { SchemaProvBerakningResultat } from './schema-provberakning.ts';
+import { schemaDraftHash } from './schema-draft-contract.ts';
 
 export type SchemaProvforslagSvar = Pick<SchemaDatumRequest, 'contractVersion' | 'unitId' | 'schoolYear' | 'period' | 'grundFingerprint'>
   & { provrevision: number | null } & SchemaProvBerakningResultat;
 export type SchemaProvProblem = SchemaProvBerakningResultat['bokningar'][number]['problem'][number];
+export type SchemaProvApplyRequest = Pick<SchemaDatumRequest, 'contractVersion' | 'unitId' | 'schoolYear' | 'period' | 'grundFingerprint'> & {
+  commandId: string;
+  expectedRevision: number;
+  provrevision: number;
+  resultHash: string;
+};
+export type SchemaProvApplyReply = Pick<SchemaProvApplyRequest, 'contractVersion' | 'unitId' | 'schoolYear' | 'period' | 'commandId' | 'provrevision'> & {
+  draftId: string;
+  revision: number;
+};
 
 const problems = new Set<SchemaProvProblem>(['deltagare_saknas', 'datum_utan_undervisning', 'provkrock', 'sal_saknas', 'last_sal_olamplig',
   'vakt_saknas', 'last_vakt_upptagen', 'aktivitet_krock', 'last_pass_krock', 'provtid_utanfor_skoltid']);
@@ -18,6 +29,28 @@ function record(raw: unknown, keys: string[]): Record<string, unknown> {
 const text = (value: unknown, max: number) => typeof value === 'string' && value.length > 0 && value.length <= max && !/\p{Cc}/u.test(value) ? value : fail();
 const int = (value: unknown, min: number, max: number) => typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max ? value : fail();
 const list = (raw: unknown, max: number): unknown[] => Array.isArray(raw) && raw.length <= max ? raw : fail();
+
+export function parseSchemaProvApplyRequest(raw: unknown): SchemaProvApplyRequest {
+  const v = record(raw, ['contractVersion', 'unitId', 'schoolYear', 'period', 'grundFingerprint', 'commandId', 'expectedRevision', 'provrevision', 'resultHash']);
+  const unitId = text(v.unitId, 36), commandId = text(v.commandId, 36), grundFingerprint = text(v.grundFingerprint, 28), resultHash = text(v.resultHash, 71);
+  if (v.contractVersion !== SCHEMA_CONTRACT_VERSION || !uuid.test(unitId) || !uuid.test(commandId) || !/^[0-9a-f]{28}$/u.test(grundFingerprint)
+    || !/^sha256:[0-9a-f]{64}$/u.test(resultHash) || (v.period !== 'lasar' && v.period !== 'ht' && v.period !== 'vt')) return fail();
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear: int(v.schoolYear, 1900, 2200), period: v.period, grundFingerprint, commandId,
+    expectedRevision: int(v.expectedRevision, 1, 2147483646), provrevision: int(v.provrevision, 1, 2147483646), resultHash };
+}
+
+export function parseSchemaProvApplyReply(raw: unknown, expected: SchemaProvApplyRequest): SchemaProvApplyReply {
+  const v = record(raw, ['contractVersion', 'unitId', 'schoolYear', 'period', 'commandId', 'draftId', 'revision', 'provrevision']);
+  const { contractVersion, unitId, schoolYear, period, commandId } = expected;
+  const draftId = text(v.draftId, 36), revision = expected.expectedRevision + 1, provrevision = expected.provrevision + 1;
+  if (v.contractVersion !== contractVersion || v.unitId !== unitId || v.schoolYear !== schoolYear || v.period !== period || v.commandId !== commandId
+    || !uuid.test(draftId) || v.revision !== revision || v.provrevision !== provrevision) return fail();
+  return { contractVersion, unitId, schoolYear, period, commandId, draftId, revision, provrevision };
+}
+
+export function schemaProvResultHash({ bokningar, bortfall, ersattningar }: SchemaProvBerakningResultat) {
+  return schemaDraftHash({ bokningar, bortfall, ersattningar: parseSchemaDatumAndringar(ersattningar) });
+}
 
 export function parseSchemaProvforslagSvar(raw: unknown, expected: SchemaDatumRequest): SchemaProvforslagSvar {
   const r = record(raw, ['contractVersion', 'unitId', 'schoolYear', 'period', 'grundFingerprint', 'provrevision', 'bokningar', 'bortfall', 'ersattningar']);

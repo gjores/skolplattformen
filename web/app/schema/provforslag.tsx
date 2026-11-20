@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { SchemaForslagLesson } from '@/lib/schema-contract.ts';
+import { skapaProvId } from '@/lib/nationella-prov.ts';
 import { schemaDatumNyckel, type SchemaDatumRequest } from '@/lib/schema-datum.ts';
 import { parseSchemaProvforslagSvar, type SchemaProvforslagSvar, type SchemaProvProblem } from '@/lib/schema-provforslag.ts';
 import { schemaDateText } from '@/lib/schema-vecka.ts';
@@ -16,6 +17,9 @@ type Props = {
   personalLookup?: boolean;
   onSessionLost: () => void;
   onOpen?: (lesson: string, originalDate: string) => void;
+  onOpenBooking?: (id: string) => void;
+  onApply?: (svar: SchemaProvforslagSvar, commandId: string) => Promise<void>;
+  canApply?: boolean;
   lessons: SchemaForslagLesson[];
 };
 type Lage = { fas: 'tom' | 'laddar' | 'avbruten' } | { fas: 'fel'; text: string } | { fas: 'klar'; svar: SchemaProvforslagSvar };
@@ -36,6 +40,7 @@ const problemText: Record<SchemaProvProblem, string> = {
 function feltext(error: unknown) {
   if (error instanceof ApiError) {
     if (error.reason === 'schema_datum_calendar_missing') return 'En fastställd läsårskalender behövs för att ta fram provförslag.';
+    if (error.reason === 'schema_provforslag_unresolved') return 'Provförslaget har fortfarande krockar, saknade resurser eller undervisningstid kvar att ersätta.';
     if (error.status === 409) return 'Schemat eller underlaget har ändrats. Läs det aktuella schemat och ta fram ett nytt provförslag.';
     if (error.status === 403) return 'Ditt aktuella uppdrag ger inte tillgång till provförslaget.';
     if (error.status === 503) return 'Schemamotorn kunde inte svara. Försök igen om en stund.';
@@ -48,10 +53,12 @@ export function Provforslag(props: Props) {
   return <ProvforslagInnehall key={JSON.stringify(props.request)} {...props}/>;
 }
 
-function ProvforslagInnehall({ request, disabled, personalLookup = false, onSessionLost, onOpen, lessons }: Props) {
+function ProvforslagInnehall({ request, disabled, personalLookup = false, onSessionLost, onOpen, onOpenBooking, onApply, canApply, lessons }: Props) {
   const heading = useId();
   const [lage, setLage] = useState<Lage>({ fas: 'tom' });
   const anrop = useRef<AbortController | null>(null);
+  const applyCommand = useRef<{ svar: SchemaProvforslagSvar; id: string } | null>(null);
+  const [applying, setApplying] = useState(false), [applyError, setApplyError] = useState<string | null>(null);
   const raknaKnapp = useRef<HTMLButtonElement>(null);
   useEffect(() => () => {
     anrop.current?.abort();
@@ -69,6 +76,7 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
     if (!request || disabled || anrop.current) return;
     const controller = new AbortController();
     anrop.current = controller;
+    setApplyError(null);
     setLage({ fas: 'laddar' });
     const timeout = window.setTimeout(() => {
       if (anrop.current !== controller) return;
@@ -91,6 +99,19 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
   }
 
   const svar = lage.fas === 'klar' ? lage.svar : null;
+  const komplett = !!svar?.provrevision && svar.bokningar.length > 0
+    && svar.bokningar.every(b => b.problem.length === 0 && b.sal && b.vakter.length > 0)
+    && svar.bortfall.every(b => b.kvarMin === 0);
+  async function tillampa() {
+    if (!onApply || !svar || !komplett || !canApply || applying || disabled) return;
+    if (applyCommand.current?.svar !== svar) applyCommand.current = { svar, id: skapaProvId() };
+    setApplying(true); setApplyError(null);
+    try { await onApply(svar, applyCommand.current.id); }
+    catch (error) {
+      if (error instanceof ApiError && error.status === 401) onSessionLost();
+      else setApplyError(error instanceof ApiError && error.status === 409 ? feltext(error) : 'Sparandet kunde inte bekräftas. Försök igen för att kontrollera samma ändring.');
+    } finally { setApplying(false); }
+  }
   const passnamn = svar?.ersattningar.length ? new Map(lessons.map(pass => [pass.id, pass.title])) : null;
   return <section aria-labelledby={heading} className="min-w-0 space-y-4 rounded-lg border border-border bg-card p-4">
     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -99,7 +120,7 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
         <p className="text-sm text-muted-foreground">Se förslag på salar, provvakter och tider som kan ersätta undervisning som faller bort.</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        <Button ref={raknaKnapp} type="button" variant="outline" disabled={!request || disabled || lage.fas === 'laddar'} onClick={() => void rakna()}>Ta fram provförslag</Button>
+        <Button ref={raknaKnapp} type="button" variant="outline" disabled={!request || disabled || applying || lage.fas === 'laddar'} onClick={() => void rakna()}>Ta fram provförslag</Button>
         {lage.fas === 'laddar' && <Button type="button" variant="ghost" onClick={avbryt}>Avbryt provförslaget</Button>}
       </div>
     </div>
@@ -107,6 +128,7 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
     {lage.fas === 'laddar' && <output className="block text-sm text-muted-foreground">Tar fram provförslag…</output>}
     {lage.fas === 'avbruten' && <output className="block text-sm text-muted-foreground">Provförslaget avbröts.</output>}
     {lage.fas === 'fel' && <p role="alert" className="text-sm text-destructive">{lage.text}</p>}
+    {applyError && <p role="alert" className="text-sm text-destructive">{applyError}</p>}
     {svar && (svar.bokningar.length === 0 ? <output className="block text-sm text-muted-foreground">Inga provbokningar finns i den valda perioden.</output> : <>
       <output className="status-badge">Förslag · ej sparat</output>
       {!personalLookup && <p className="text-sm text-muted-foreground">Förslag på provvakter visas för rektor, som kan läsa aktuella skoluppdrag.</p>}
@@ -122,7 +144,9 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
             <TableCell className="whitespace-normal [overflow-wrap:anywhere]"><p className="font-medium">{b.namn}</p>
               <p className="text-muted-foreground">{b.deltagarnamn} · {b.deltagare} {b.deltagare === 1 ? 'elev' : 'elever'}</p>
             </TableCell>
-            <TableCell className="whitespace-normal"><p>{schemaDateText(b.datum)}</p><p>{clock(b.startMin)}–{clock(b.slutMin)}</p></TableCell>
+          <TableCell className="whitespace-normal"><p>{schemaDateText(b.datum)}</p><p>{clock(b.startMin)}–{clock(b.slutMin)}</p>
+            {onOpenBooking && <Button type="button" variant="ghost" disabled={applying} onClick={() => onOpenBooking(b.id)}
+              aria-label={`Visa provdagen för ${b.deltagarnamn} ${schemaDateText(b.datum)}`}>Visa provdagen</Button>}</TableCell>
             <TableCell className="space-y-1 whitespace-normal [overflow-wrap:anywhere]">
               <p>{b.sal?.name ?? 'Sal saknar förslag'}</p>
               {personalLookup && <p className="text-muted-foreground">{b.vakter.length === 0 ? 'Provvakt saknar förslag' : b.vakter.map(vakt => vakt.name).join(', ')}</p>}
@@ -159,6 +183,11 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
             {onOpen && <Button type="button" variant="outline" onClick={() => onOpen(flytt.lesson, flytt.originalDate)} aria-label={`Visa tillfället för ${titel} ${schemaDateText(flytt.originalDate)}`}>Visa tillfället</Button>}
           </li>;
         })}</ul>
+      </div>}
+      {onApply && <div className="space-y-2 border-t border-border pt-3">
+        <Button type="button" disabled={!komplett || !canApply || disabled || applying} onClick={() => void tillampa()}>{applying ? 'Sparar provförslaget…' : 'Lägg in provförslaget'}</Button>
+        {!komplett ? <p className="text-sm text-muted-foreground">Lös återstående resurser, krockar och undervisningstid före sparandet.</p>
+          : !canApply ? <p className="text-sm text-muted-foreground">Spara det aktuella schemautkastet innan du lägger in provförslaget.</p> : null}
       </div>}
     </>)}
   </section>;

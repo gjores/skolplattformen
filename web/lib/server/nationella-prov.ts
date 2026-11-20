@@ -97,56 +97,62 @@ export function nationellaProvSparaRoute(request: Request): Promise<Response> {
   const action = 'nationella_prov_saved';
   return protectedRoute(request, action, { mutating: true, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
     const input = await requestInput(request, parseNationellaProvSave);
-    const { unitId, schoolYear, contractVersion } = input;
-    const previous = await readNationellaProv(tx, ctx, unitId, schoolYear);
-    const result = await query(() => tx<{ result: unknown }[]>`select public.nationella_prov_save(${tx.json(input)}) as result`, ctx);
-    const saved = register(result.register, schoolYear);
-    if (Object.keys(result).sort().join() !== 'register,replayed' || !saved || typeof result.replayed !== 'boolean'
-      || saved.revision !== input.expectedRevision + 1 || JSON.stringify(saved.document) !== JSON.stringify(input.document)) {
-      throw new AuditUnavailable();
-    }
-    if (!result.replayed) {
-      const previousBookings = new Map(previous?.document.bokningar.map(b => [b.id, b]));
-      const bookings = input.document.granskad ? input.document.bokningar : input.document.bokningar.filter(b =>
-        JSON.stringify(previousBookings.get(b.id)) !== JSON.stringify(b));
-      // Borttagning och öppning för ny genomgång ska fungera även om källunderlaget har ändrats.
-      if (input.document.granskad || bookings.length) {
-        const underlag = await readNationellaProvUnderlag(tx, ctx, unitId, schoolYear);
-        if (underlag.gallerGymnasiet === false) throw new Deny('forbidden', 403);
-        const katalogfel = () => new Deny('conflict', 409, { reason: 'nationella_prov_katalog_changed' });
-        const kataloger = new Map<number | null, Awaited<ReturnType<typeof readProvkatalog>>>();
-        for (const booking of bookings) {
-          const original = previousBookings.get(booking.id);
-          // Administratörens personalunderlag kan sakna tidigare val som rektor kunde se.
-          const valid = ctx.accessFunction === 'administrator' && original?.datum === booking.datum
-            ? { ...booking, vakter: booking.vakter.filter(ref => !original.vakter.includes(ref)) }
-            : booking;
-          if (nationellaProvBokningsfel(valid, underlag)) {
-            throw new Deny('conflict', 409, { reason: 'nationella_prov_underlag_changed' });
-          }
-          const kallprov = booking.kallprov;
-          if (!kallprov) {
-            if (original?.kallprov) throw katalogfel();
-            continue;
-          }
-          const bevaradKoppling = kallprov.id === original?.kallprov?.id && kallprov.revision === original.kallprov.revision
-            && booking.mal.slag === original.mal.slag && booking.mal.ref === original.mal.ref
-            && booking.undervisning === original.undervisning && booking.datum === original.datum
-            && booking.startMin === original.startMin && booking.tidsval === original.tidsval;
-          const revision = bevaradKoppling ? kallprov.revision : null;
-          if (!kataloger.has(revision)) {
-            if (revision === null) await tx`select pg_advisory_xact_lock_shared(2026111903, ${schoolYear}::integer)`;
-            kataloger.set(revision, await readProvkatalog(tx, schoolYear, revision));
-          }
-          const katalog = kataloger.get(revision);
-          const source = katalog?.revision === kallprov.revision && katalog.prov.find(p => p.id === kallprov.id);
-          if (!source) throw katalogfel();
-          if (!katalogbokningGiltig(source, booking, underlag, schoolYear)) {
-            throw new Deny('conflict', 409, { reason: 'nationella_prov_katalog_mapping_invalid' });
-          }
+    const { unitId, schoolYear } = input;
+    return { body: await sparaNationellaProv(tx, ctx, input), event: event(action, unitId, schoolYear) };
+  });
+}
+
+/** Samma skol-/katalogkontroll och kvittens för kalendern och samordnade schemasparningar. */
+export async function sparaNationellaProv(tx: Tx, ctx: Context, input: ReturnType<typeof parseNationellaProvSave>) {
+  const { unitId, schoolYear, contractVersion } = input;
+  const previous = await readNationellaProv(tx, ctx, unitId, schoolYear);
+  const result = await query(() => tx<{ result: unknown }[]>`select public.nationella_prov_save(${tx.json(input)}) as result`, ctx);
+  const saved = register(result.register, schoolYear);
+  if (Object.keys(result).sort().join() !== 'register,replayed' || !saved || typeof result.replayed !== 'boolean'
+    || saved.revision !== input.expectedRevision + 1 || JSON.stringify(saved.document) !== JSON.stringify(input.document)) {
+    throw new AuditUnavailable();
+  }
+  if (!result.replayed) {
+    const previousBookings = new Map(previous?.document.bokningar.map(b => [b.id, b]));
+    const bookings = input.document.granskad ? input.document.bokningar : input.document.bokningar.filter(b =>
+      JSON.stringify(previousBookings.get(b.id)) !== JSON.stringify(b));
+    // Borttagning och öppning för ny genomgång ska fungera även om källunderlaget har ändrats.
+    if (input.document.granskad || bookings.length) {
+      const underlag = await readNationellaProvUnderlag(tx, ctx, unitId, schoolYear);
+      if (underlag.gallerGymnasiet === false) throw new Deny('forbidden', 403);
+      const katalogfel = () => new Deny('conflict', 409, { reason: 'nationella_prov_katalog_changed' });
+      const kataloger = new Map<number | null, Awaited<ReturnType<typeof readProvkatalog>>>();
+      for (const booking of bookings) {
+        const original = previousBookings.get(booking.id);
+        // Administratörens personalunderlag kan sakna tidigare val som rektor kunde se.
+        const valid = ctx.accessFunction === 'administrator' && original?.datum === booking.datum
+          ? { ...booking, vakter: booking.vakter.filter(ref => !original.vakter.includes(ref)) }
+          : booking;
+        if (nationellaProvBokningsfel(valid, underlag)) {
+          throw new Deny('conflict', 409, { reason: 'nationella_prov_underlag_changed' });
+        }
+        const kallprov = booking.kallprov;
+        if (!kallprov) {
+          if (original?.kallprov) throw katalogfel();
+          continue;
+        }
+        const bevaradKoppling = kallprov.id === original?.kallprov?.id && kallprov.revision === original.kallprov.revision
+          && booking.mal.slag === original.mal.slag && booking.mal.ref === original.mal.ref
+          && booking.undervisning === original.undervisning && booking.datum === original.datum
+          && booking.startMin === original.startMin && booking.tidsval === original.tidsval;
+        const revision = bevaradKoppling ? kallprov.revision : null;
+        if (!kataloger.has(revision)) {
+          if (revision === null) await tx`select pg_advisory_xact_lock_shared(2026111903, ${schoolYear}::integer)`;
+          kataloger.set(revision, await readProvkatalog(tx, schoolYear, revision));
+        }
+        const katalog = kataloger.get(revision);
+        const source = katalog?.revision === kallprov.revision && katalog.prov.find(p => p.id === kallprov.id);
+        if (!source) throw katalogfel();
+        if (!katalogbokningGiltig(source, booking, underlag, schoolYear)) {
+          throw new Deny('conflict', 409, { reason: 'nationella_prov_katalog_mapping_invalid' });
         }
       }
     }
-    return { body: { unitId, schoolYear, contractVersion, register: saved, replayed: result.replayed }, event: event(action, unitId, schoolYear) };
-  });
+  }
+  return { unitId, schoolYear, contractVersion, register: saved, replayed: result.replayed };
 }
