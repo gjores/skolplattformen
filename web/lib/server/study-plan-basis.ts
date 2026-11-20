@@ -404,7 +404,7 @@ export async function prepareStudyPlanDraft(
     const complete = isExtra ? coveredByDecisions : rule.points === points && validProgression(rule, picks);
     const notApplicable = (rule.points === 0 || isExtra) && picks.length === 0;
     const confirmed = complete && (isExtra || confirm.has(rule.id) || !manual.has(rule.id)
-      || (prior?.state === 'confirmed' && sameIds(prior.levelIds, levelIds)));
+      || (payload.confirmedChoiceIds === undefined && prior?.state === 'confirmed' && sameIds(prior.levelIds, levelIds)));
     if (confirm.has(rule.id) && !complete && !isExtra) issues.push({ code: 'choice_scope_incomplete', field: rule.id });
     if (isExtra && picks.length && !coveredByDecisions) issues.push({ code: 'additional_level_decision_needed', field: rule.id });
     choices.push({ id: rule.id, kind: rule.kind, label: rule.label,

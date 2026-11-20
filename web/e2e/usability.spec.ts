@@ -1,6 +1,7 @@
 // Component evidence with synthetic responses. No IdP, database or actual mandates are tested here.
 import { test, expect, type Page } from '@playwright/test';
 import { parsePlanningList, parsePlanningOverview, type PlanningSelection, type PlanningRow } from '../lib/planning-year-contract';
+import { mockStudyPlan, studyPreviewListPupils, studyPreviewPupils } from './fixtures/study-plan-preview';
 
 const id = (n: number) => `77101200-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const schools = [{ id: id(2), name: 'Exempelskolan Nord' }, { id: id(3), name: 'Exempelskolan Syd' }];
@@ -31,17 +32,18 @@ function rowsFor(selection: PlanningSelection): PlanningRow[] {
     && (!selection.query || `${row.educationName} ${row.searchDetails!.localCode}`.toLocaleLowerCase('sv').includes(selection.query.toLocaleLowerCase('sv'))));
 }
 
-async function mockApp(page: Page, role = 'rektor') {
+async function mockApp(page: Page, roleSource: string | (() => string) = 'rektor', studyPlan = false) {
   const unexpected: string[] = [], errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));
   page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
   await page.route('**/api/**', async route => {
+    const role = typeof roleSource === 'function' ? roleSource() : roleSource;
     const path = new URL(route.request().url()).pathname;
     const body = route.request().method() === 'POST' ? route.request().postDataJSON() : null;
-    const context = { assignmentId: id(4), membershipId: id(5), customerId: id(1), customerName: 'Exempelhuvudmannen', organizerId: null, organizerName: null, unitId: null, unitName: null, function: role, label: role === 'huvudman' ? 'Huvudman' : role === 'administrator' ? 'Administratör' : 'Rektor', blocked: false, valid: true };
+    const context = { assignmentId: id(4), membershipId: id(5), customerId: id(1), customerName: 'Exempelhuvudmannen', organizerId: null, organizerName: null, unitId: null, unitName: null, function: role, label: role === 'huvudman' ? 'Huvudman' : role === 'administrator' ? 'Administratör' : 'Rektor', blocked: false, valid: true, ...(studyPlan ? { scopeKind: 'school' } : {}) };
     const assignment = { ...context, id: context.assignmentId, validFrom: '2026-01-01', validTo: null, endedAt: null, membershipStatus: 'active', state: 'giltigt' };
     let json: unknown;
-    if (path === '/api/session') json = { identity: { issuer: 'synthetic', subject: 'synthetic-ui', displayName: 'Exempelanvändare', email: null }, assignments: [assignment], assignmentGroups: { valid: [assignment], upcoming: [], ended: [] }, context, today: '2026-10-12', mfa: { acr: null, amr: [], authTime: null, proof: false }, epoch: 1, expiresAt: '2099-01-01T00:00:00Z', correlationId: 'synthetic-ui' };
+    if (path === '/api/session') json = { identity: { issuer: 'synthetic', subject: 'synthetic-ui', displayName: 'Exempelanvändare', email: null }, assignments: [assignment], assignmentGroups: { valid: [assignment], upcoming: [], ended: [] }, context, today: '2026-10-12', mfa: { acr: null, amr: [], authTime: null, proof: studyPlan }, epoch: 1, expiresAt: '2099-01-01T00:00:00Z', correlationId: 'synthetic-ui' };
     else if (path === '/api/planbeslut/inkorg') json = { items: [{ apl:null,series:role==='administrator'?{id:id(800),name:'Grundfördelning',revision:0}:null, kind: role === 'administrator' ? 'timplan' : 'programplan', planId: id(20), offeringId: id(10), unitId: role === 'administrator' ? id(2) : null, educationName: 'Plan att hantera', schoolName: role === 'administrator' ? schools[0].name : null, version: 1, stage: role === 'huvudman' ? 'submitted' : role === 'administrator' ? 'returned' : 'draft', nextActor: role === 'huvudman' ? 'huvudman' : 'rektor', task: role === 'huvudman' ? 'review' : role === 'administrator' ? 'revise' : 'prepare' }, {apl:null,series:null,kind: 'programplan', planId: id(99), offeringId: id(98), unitId: null, educationName: 'Arkiverad plan', schoolName: null, version: 1, stage: 'draft', nextActor: null, task: 'blocked'}], total: 2, actionCount: 1, decisionCount: role === 'huvudman' ? 1 : 0, truncated: false };
     else if (path === '/api/planering/urval') json = setup;
     else if (path === '/api/planering/lista') json = parsePlanningList({ selection: body, selectionRevision: revision, count: rowsFor(body).length, pageSize: 50, rows: rowsFor(body) }, body, setup);
@@ -52,10 +54,15 @@ async function mockApp(page: Page, role = 'rektor') {
     } else if (path === '/api/programplaner/val') json = { selection: body, units: schools, canCreateEducation: true, catalogs: [], programs: [], projection: null, decisionReady: false };
     else if (path === '/api/elever/urval') json = registerSetup;
     else if (path === '/api/elever/lista') {
-      const pupils = [{ id: id(50), displayName: 'Exempelelev Alfa', unitId: schools[0].id, unitName: schools[0].name, classId: id(60), className: 'SA26', educationId: id(10), educationName: 'Samhällsvetenskap', grade: 1, status: 'aktuell', capabilities }]
+      const fixturePupils = studyPlan ? studyPreviewListPupils() : [{ id: id(50), displayName: 'Exempelelev Alfa', unitId: schools[0].id, unitName: schools[0].name, classId: id(60), className: 'SA26', educationId: id(10), educationName: 'Samhällsvetenskap', grade: 1, status: 'aktuell', capabilities }];
+      const pupils = fixturePupils
         .filter(pupil => pupil.unitId === body.selection.unitId && (!body.search || pupil.displayName.includes(body.search)) && (body.selection.grade === null || body.selection.grade === pupil.grade));
+      const classes = studyPlan ? fixturePupils.map(pupil => ({ id: pupil.classId, name: pupil.className, unitId: pupil.unitId, educationId: pupil.educationId }))
+        : [{ id: id(60), name: 'SA26', unitId: id(2), educationId: id(10) }];
+      const educations = studyPlan ? fixturePupils.map(pupil => ({ id: pupil.educationId, name: pupil.educationName, unitId: pupil.unitId, startYear: 2026 }))
+        : [{ id: id(10), name: 'Samhällsvetenskap', unitId: id(2), startYear: 2026 }];
       json = { pupils, scope, capabilities, count: pupils.length, page: 1, pageSize: 50,
-        options: { schools, classes: [{ id: id(60), name: 'SA26', unitId: id(2), educationId: id(10) }], educations: [{ id: id(10), name: 'Samhällsvetenskap', unitId: id(2), startYear: 2026 }], grades: [1, 2], statuses: ['aktuell', 'framtida', 'avslutad'] } };
+        options: { schools, classes, educations, grades: [1, 2], statuses: ['aktuell', 'framtida', 'avslutad'] } };
     } else if (path === '/api/kund/mandat') json = { mandates: [] };
     else { unexpected.push(path); return route.fulfill({ status: 500, json: { code: 'unexpected_request' } }); }
     await route.fulfill({ json, headers: { 'X-Context-Epoch': '1' } });
@@ -506,4 +513,241 @@ test('programlistan filtrerar inskickat och återsänt utan att ändra utkastets
  await expect(page).toHaveURL(/planeringsstatus=forslag/);await expect(page.getByRole('region',{name:'Alla programplaner'})).toContainText('Inväntar beslut');
  await page.getByRole('combobox',{name:'Planstatus',exact:true}).selectOption('atersand');
  await expect(page).toHaveURL(/planeringsstatus=atersand/);await expect(page.getByRole('region',{name:'Alla programplaner'})).toContainText('Tillbaka för rättning');verify();
+});
+
+async function openStudyPlan(page: Page, pupil: typeof studyPreviewPupils.sa) {
+  if (pupil.unitId !== schools[0].id) {
+    const school = page.getByRole('combobox', { name: 'Skola', exact: true });
+    await expect(school).toBeEnabled();
+    if (await school.inputValue() !== pupil.unitId) await school.selectOption(pupil.unitId);
+  }
+  const openPupil = page.getByRole('button', { name: `${pupil.displayName}, öppna elevkortet` });
+  await openPupil.press('Enter');
+  await expect(page.getByRole('heading', { name: pupil.displayName, exact: true })).toBeFocused();
+  const openPlan = page.getByRole('button', { name: 'Öppna studieplan', exact: true });
+  await openPlan.press('Enter');
+  await expect(page.getByRole('heading', { name: `Studieplan för ${pupil.unitName}`, exact: true })).toBeFocused();
+}
+
+async function openStudyEditor(page: Page) {
+  const heading = page.getByRole('heading', { name: 'Redigera planerade datum', exact: true });
+  const trigger = page.getByRole('button', { name: 'Ändra studieplan', exact: true });
+  await expect(heading.or(trigger).first()).toBeVisible();
+  if (!(await heading.isVisible())) await trigger.click();
+  await expect(heading).toBeVisible();
+}
+
+async function dateFields(page: Page, levelName: string) {
+  const summary = page.locator('summary').filter({ hasText: levelName });
+  await summary.click();
+  return {
+    start: page.getByRole('group', { name: 'Planerad start', exact: true }),
+    end: page.getByRole('group', { name: 'Planerat slut', exact: true }),
+  };
+}
+
+async function studyDialogue(page: Page) {
+  await page.getByRole('button', { name: 'Granska med eleven', exact: true }).click();
+  const date = page.getByLabel('Datum för elevdialog', { exact: true });
+  await date.fill('2026-10-12');
+  await page.getByRole('button', { name: 'Registrera elevdialog', exact: true }).click();
+}
+
+async function makeStudyPlanCurrent(page: Page, options: { checkFocusReturn?: boolean } = {}) {
+  const trigger = page.getByRole('button', { name: 'Gör gällande', exact: true });
+  await trigger.press('Enter');
+  const dialog = page.getByRole('alertdialog').or(page.getByRole('dialog'));
+  const confirm = dialog.getByRole('button', { name: 'Bekräfta gällande', exact: true });
+  await expect(confirm).toBeVisible();
+  if (options.checkFocusReturn) {
+    await page.keyboard.press('Escape');
+    await expect(confirm).toBeHidden();
+    await expect(trigger).toBeFocused();
+    await trigger.press('Enter');
+  }
+  await confirm.click();
+}
+
+async function registerStudyReduction(page: Page, { levelName, points, reference }: { levelName?: string; points: number; reference: string }) {
+  await page.locator('summary').filter({ hasText: /^Registrera beslut$/u }).click();
+  const form = page.getByRole('form', { name: 'Registrera beslut', exact: true });
+  await form.getByLabel('Typ av beslut', { exact: true }).selectOption('reduced');
+  await form.getByLabel('Beslutsreferens', { exact: true }).fill(reference);
+  await form.getByLabel('Beslutsdatum', { exact: true }).fill('2026-10-01');
+  await form.getByLabel('Gäller från', { exact: true }).fill('2026-10-12');
+  await form.getByLabel('Beslutets omfattning i poäng', { exact: true }).fill(String(points));
+  if (levelName) {
+    await form.locator('summary').filter({ hasText: /^Berörda nivåer$/u }).click();
+    const checkbox = form.getByRole('checkbox', { name: levelName, exact: true });
+    await expect(checkbox).toBeVisible();
+    await checkbox.press('Space');
+    await expect(checkbox).toBeChecked();
+  }
+  await form.getByRole('button', { name: 'Registrera beslut', exact: true }).click();
+}
+
+test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan efter omladdning', async ({ page }, info) => {
+  test.setTimeout(60_000);
+  let role: 'administrator' | 'rektor' = 'administrator';
+  const verify = await mockApp(page, () => role, true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.sa, readRole: () => role });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await page.getByRole('button', { name: 'Skapa utkast', exact: true }).click();
+  await expect.poll(() => fixture.snapshots.length).toBe(1);
+  await openStudyEditor(page);
+  const first = await dateFields(page, fixture.levelName);
+  await first.start.getByLabel('Precision', { exact: true }).selectOption('term');
+  await first.start.getByLabel('Termin', { exact: true }).selectOption('HT');
+  await first.start.getByLabel('År', { exact: true }).fill('2028');
+  await first.end.getByLabel('Precision', { exact: true }).selectOption('term');
+  await first.end.getByLabel('Termin', { exact: true }).selectOption('VT');
+  await first.end.getByLabel('År', { exact: true }).fill('2029');
+  await page.getByLabel('Fjärrundervisning', { exact: true }).selectOption('applies');
+  const duration = page.getByLabel('Omfattning i minuter', { exact: true });
+  await expect(duration).toHaveValue('');
+  await fits(page);
+  await page.getByRole('form', { name: 'Redigera studieplan', exact: true }).screenshot({ path: info.outputPath('studieplan-terminsredigering.png') });
+  const release = fixture.holdCommand();
+  const save = page.getByRole('button', { name: 'Spara utkast', exact: true });
+  try {
+    await expect(save).toBeEnabled();
+    await save.evaluate(button => { (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click(); });
+    await expect.poll(() => fixture.commands.filter(command => command.action === 'prepare_draft').length).toBe(2);
+    await expect(save).toBeDisabled();
+  } finally { release(); }
+  await expect.poll(() => fixture.snapshots.length).toBe(2);
+  await expect(page.getByText('HT 2028', { exact: true })).toBeVisible();
+  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Gör gällande', exact: true })).toHaveCount(0);
+  expect(fixture.snapshots[1].content.distanceTeaching).toEqual({ kind: 'applies', minutes: null });
+
+  role = 'rektor';
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
+  await studyDialogue(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(3);
+  await makeStudyPlanCurrent(page);
+  await expect(page.getByText(/omfattning.*fjärrundervisning|fjärrundervisning.*omfattning/i).first()).toBeVisible();
+  expect(fixture.snapshots.every(version => version.state === 'draft')).toBe(true);
+  await openStudyEditor(page);
+  await page.getByLabel('Omfattning i minuter', { exact: true }).fill('120');
+  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
+  await expect.poll(() => fixture.snapshots.length).toBe(4);
+  await studyDialogue(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(5);
+  await makeStudyPlanCurrent(page, { checkFocusReturn: true });
+  await expect.poll(() => fixture.snapshots.length).toBe(6);
+  const termVersion = fixture.snapshots.at(-1)!;
+  expect(termVersion.state).toBe('current');
+  expect(termVersion.planId).toBe(fixture.planId);
+  expect(termVersion.content.levels[0].attempts[0].plannedEnd).toEqual({ kind: 'term', schoolYear: 2028, term: 'VT' });
+
+  fixture.addCalendar();
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await openStudyEditor(page);
+  const exact = await dateFields(page, fixture.levelName);
+  await exact.start.getByRole('button', { name: 'Använd 2028-08-21 som startdatum' }).click();
+  await expect(exact.start.getByLabel('Startdatum', { exact: true })).toHaveValue('2028-08-21');
+  await exact.end.getByRole('button', { name: 'Använd 2029-06-13 som slutdatum' }).click();
+  await expect(exact.end.getByLabel('Slutdatum', { exact: true })).toHaveValue('2029-06-13');
+  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
+  await expect.poll(() => fixture.snapshots.length).toBe(7);
+  await studyDialogue(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(8);
+  await makeStudyPlanCurrent(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(9);
+  expect(fixture.snapshots[8].planId).toBe(termVersion.planId);
+  expect(fixture.snapshots[8].content.levels[0].attempts[0].plannedEnd).toEqual({ kind: 'day', date: '2029-06-13' });
+
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await expect(page.getByText('2029-06-13', { exact: true })).toBeVisible();
+  await fits(page);
+  await page.getByRole('region', { name: `Studieplan för ${studyPreviewPupils.sa.unitName}`, exact: true })
+    .screenshot({ path: info.outputPath('studieplan-gallande.png') });
+  await page.getByRole('button', { name: 'Visa historik', exact: true }).click();
+  await page.getByRole('button', { name: `Läs version ${termVersion.revision}`, exact: true }).click();
+  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
+  expect(page.url()).not.toContain(studyPreviewPupils.sa.id);
+  await fits(page);
+  verify();
+});
+
+test('Studieplan i BF26 visar faktisk start, uppföljningsbehov och gällande reduceringsbeslut', async ({ page }, info) => {
+  test.setTimeout(60_000);
+  const verify = await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor', initial: 'published' });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(page.getByText('Påbörjad', { exact: true })).toBeVisible();
+  await expect(page.getByText('Behöver följas upp', { exact: true })).toBeVisible();
+  await expect(page.getByText(/^2026-08-19/u)).toBeVisible();
+
+  await registerStudyReduction(page, { levelName: fixture.levelName, points: 100, reference: id(475) });
+  await expect.poll(() => fixture.snapshots.length).toBe(2);
+  await expect(page.getByText('Omfattning 100 poäng')).toBeVisible();
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await page.getByRole('button', { name: 'Visa utkast', exact: true }).click();
+  await registerStudyReduction(page, { points: 50, reference: id(476) });
+  await expect.poll(() => fixture.snapshots.length).toBe(3);
+  await studyDialogue(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(4);
+  await makeStudyPlanCurrent(page);
+  await expect.poll(() => fixture.snapshots.length).toBe(5);
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(page.getByText('Reducerad', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/^2026-08-19/u)).toBeVisible();
+  await expect(page.getByText('Omfattning 50 poäng', { exact: true })).toBeVisible();
+  await expect(page.getByText('Beslutet anger omfattningen för studieplanen.', { exact: true })).toBeVisible();
+  await expect(page.getByText('Behöver följas upp', { exact: true })).toHaveCount(0);
+  await fits(page);
+  await page.getByRole('region', { name: `Studieplan för ${studyPreviewPupils.bf.unitName}`, exact: true })
+    .screenshot({ path: info.outputPath('studieplan-reducerad.png') });
+  await page.getByRole('button', { name: 'Visa historik', exact: true }).click();
+  await page.getByLabel('Visa vad som gällde den', { exact: true }).fill('2026-10-11');
+  await page.getByRole('button', { name: 'Läs på datum', exact: true }).click();
+  await expect(page.getByText('Reducerad', { exact: true })).toHaveCount(0);
+  await expect(page.getByText('Behöver följas upp', { exact: true })).toBeVisible();
+  verify();
+});
+
+test('Studieplan behåller inte tidigare elevinnehåll när skolplacering nekas efter omladdning', async ({ page }) => {
+  await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor', initial: 'published' });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(page.getByRole('heading', { name: fixture.levelName, exact: true })).toBeVisible();
+  fixture.deny();
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(page.getByRole('alert').filter({ hasText: 'Studieplanen är inte tillgänglig i ditt aktuella uppdrag.' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: fixture.levelName, exact: true })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ändra studieplan' })).toHaveCount(0);
+  expect(fixture.commands.length).toBe(0);
+  await fits(page);
+});
+
+test('Studieplan ber om omläsning när en annan redigering hunnit spara', async ({ page }) => {
+  const verify = await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.sa, readRole: () => 'rektor', initial: 'published' });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await openStudyEditor(page);
+  fixture.conflict();
+  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
+  await expect(page.getByText('Uppgifterna har ändrats. Hämta den senaste versionen innan du fortsätter.')).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Spara utkast', exact: true })).toHaveCount(0);
+  expect(fixture.snapshots.length).toBe(2);
+  expect(fixture.commands).toHaveLength(1);
+  expect(fixture.commands[0].expectedRevision).toBe(1);
+  await page.getByRole('button', { name: 'Hämta aktuell version', exact: true }).click();
+  await page.getByRole('button', { name: 'Visa utkast', exact: true }).click();
+  await expect(page.getByText('Version 2', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Ändra studieplan', exact: true })).toBeEnabled();
+  verify();
 });

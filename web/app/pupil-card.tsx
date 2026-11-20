@@ -1,10 +1,12 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { ArrowLeft, CheckCheck, History, ShieldAlert } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import type { AccessFunction } from '@/lib/access-rules.ts';
 import {
   groupPlacements, maskedPersonalNumber, referenceDate,
   type ChangeRequest, type HistoryEntry, type NamedOption, type PersonalNumberResult, type PupilCard as PupilCardData,
@@ -12,6 +14,7 @@ import {
 } from '@/lib/pupil-register-model.ts';
 import { api } from '@/lib/server-client.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import PupilStudyPlan from './pupil-study-plan';
 import {
   failure, fieldLabels, formatTime, originText, periodText, PupilChangeDialog, sourceName, sourceOwned, targetPlacement,
   valueText, Warning, type ChangeKind,
@@ -30,6 +33,8 @@ type Props = {
   schools: NamedOption[];
   returnTo: string;
   epoch: number;
+  accessFunction: AccessFunction;
+  scopeKind?: string | null;
   loadUnitOptions: (unitId: string) => Promise<RegisterOptions>;
   onBack: () => void;
   onChanged: () => void;
@@ -53,6 +58,9 @@ export default function PupilCard(props: Props) {
   const [dialog, setDialog] = useState<ChangeKind | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryState>(emptyHistory);
+  const [studyPlanOpen, setStudyPlanOpen] = useState(false);
+  const [studyPlacementId, setStudyPlacementId] = useState<string | null>(null);
+  const studyPlacementField = useId();
   const [resolving, setResolving] = useState<string | null>(null);
   const [sourceError, setSourceError] = useState<{ id: string; text: string } | null>(null);
   const heading = useRef<HTMLHeadingElement>(null);
@@ -192,6 +200,14 @@ export default function PupilCard(props: Props) {
   const className = (id: string) => classes.find(item => item.id === id)?.name ?? (id === card.classId && card.className ? card.className : 'Klassens namn saknas');
   const canEdit = card.capabilities.canEdit && !stale && !loading;
   const placement = targetPlacement(card, props.today);
+  const studyPlacements = card.placements.filter(item => item.unitId === card.unitId);
+  const studyPlacement = studyPlacements.find(item => item.id === studyPlacementId)
+    ?? studyPlacements.find(item => item.startsOn <= reference && (item.endsOn === null || item.endsOn >= reference))
+    ?? [...studyPlacements].sort((a, b) => b.startsOn.localeCompare(a.startsOn))[0];
+  const studyOn = studyPlacement?.endsOn && studyPlacement.endsOn < reference ? studyPlacement.endsOn
+    : studyPlacement && studyPlacement.startsOn > reference ? studyPlacement.startsOn : reference;
+  const canOpenStudyPlan = studyPlacement && !props.caseId && props.scopeKind === 'school'
+    && (props.accessFunction === 'rektor' || props.accessFunction === 'administrator');
   const currentClasses = card.classes.filter(item => item.startsOn <= reference && (item.endsOn === null || item.endsOn >= reference));
   const earlierClasses = card.classes.filter(item => item.endsOn !== null && item.endsOn < reference).reverse();
   const laterClasses = card.classes.filter(item => item.startsOn > reference);
@@ -268,6 +284,29 @@ export default function PupilCard(props: Props) {
         <Button variant="outline" onClick={() => setDialog('education')}>Byt utbildning</Button>
         <Button variant="outline" onClick={() => setDialog('end-placement')}>Avsluta placering</Button>
       </div>}
+    </div>}
+
+    {canOpenStudyPlan && <div className="protected-card min-w-0"><h2>Studieplan</h2>
+      <Collapsible open={studyPlanOpen} onOpenChange={setStudyPlanOpen}>
+        <CollapsibleTrigger render={<Button variant="outline" />}>{studyPlanOpen ? 'Dölj studieplanen' : 'Öppna studieplan'}</CollapsibleTrigger>
+        <CollapsibleContent>
+          {studyPlanOpen && <div className="mt-4 grid w-full min-w-0 gap-4">
+            {studyPlacements.length > 1 && <div className="grid gap-1">
+              <label htmlFor={studyPlacementField}>Placering för studieplanen</label>
+              <NativeSelect id={studyPlacementField} value={studyPlacement.id} onChange={event => setStudyPlacementId(event.target.value)}
+                className="max-w-full [&_select]:min-h-[var(--control-height)]">
+                {studyPlacements.map(item => <NativeSelectOption key={item.id} value={item.id}>
+                  {educationName(item.educationId)} · {periodText(item.startsOn, item.endsOn)}
+                </NativeSelectOption>)}
+              </NativeSelect>
+            </div>}
+            <PupilStudyPlan key={props.epoch + '/' + studyPlacement.id + '/' + studyOn} unitId={studyPlacement.unitId} pupilId={card.id}
+              placementId={studyPlacement.id} placementStartsOn={studyPlacement.startsOn} placementEndsOn={studyPlacement.endsOn}
+              schoolName={card.unitName} educationName={educationName(studyPlacement.educationId)}
+              initialOn={studyOn} today={props.today} returnTo={props.returnTo} onSessionLost={props.onSessionLost} />
+          </div>}
+        </CollapsibleContent>
+      </Collapsible>
     </div>}
 
     {(admin || card.classes.length > 0) && <div className="protected-card"><h2>Klasstillhörighet</h2>

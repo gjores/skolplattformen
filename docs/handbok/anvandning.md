@@ -58,6 +58,21 @@ Personnummer är maskerat i elevkortet. Välj **Visa personnummer** när du beh�
 
 Uppgifterna visar också sitt ursprung, till exempel manuell registrering eller en simulerad källa. Den simulerade källan är syntetisk och inte en riktig kommunanslutning. Om en ny källeverans skiljer sig från en lokal rättelse visas båda som en avvikelse. Rättelsen skrivs inte över automatiskt: välj om den lokala rättelsen eller källans värde ska gälla. Ändringshistoriken visar tidigare värden, tid och uppgiftens ursprung; personnumret återges inte där.
 
+### Arbeta med elevens studieplan
+
+Öppna elevkortet och välj **Öppna studieplan**. Rektor och administratör kan läsa och bereda studieplaner för nationella Gy25-program inom sitt skoluppdrag. När eleven har flera skolplaceringar väljer du utbildningsperioden du vill se. Läsning och ändring kräver verifiering med engångskod. För elever med skyddade personuppgifter kan en administratör med skolans särskilda skyddsbehörighet läsa och bereda planen.
+
+1. Välj **Skapa utkast** för att börja. Välj sedan **Ändra studieplan** för att komplettera elevens nivåer, val och övriga uppgifter. Studieplanen utgår från skolplaceringen och kan upprättas även när klassen saknar timplanskoppling.
+2. Ange planerad start och planerat slut på nivåns rad. När du bara känner till terminen kan du ange till exempel **HT 2028** eller **VT 2029**. Välj **Spara utkast**. Du kan återkomma och fylla i uppgifter som saknas, till exempel omfattningen av fjärrundervisning.
+3. Gå igenom utkastet med eleven. Välj **Granska med eleven**, fyll i samtalets datum och välj **Registrera elevdialog**. Rektor väljer **Gör gällande**, anger från vilket datum versionen ska gälla och väljer **Bekräfta gällande**. Om en uppgift behöver kompletteras visas den i beskedet så att du kan fortsätta i utkastet.
+4. När undervisningsperioden är känd öppnar du samma studieplan och väljer **Ändra studieplan**. Byt ut terminsuppgiften mot ett exakt datum. Om terminsgränserna är fastställda i skolans läsårskalender kan du använda dem som stöd. Spara, granska och gör den uppdaterade versionen gällande. När elevkortet öppnas igen visas den gällande versionen. Välj **Visa historik** för att läsa en tidigare version eller se vad som gällde på ett valt datum.
+
+Med **Registrera studiehändelse** fyller du i den faktiska start- eller slutdagen för en nivå. En nivå som väntar på start visas som **Kommande**. Den registrerade starten ger **Påbörjad** och det registrerade avslutet ger **Avslutad** eller **Avbruten**. När en nivå behöver följas upp efter att det exakta planerade slutdatumet passerat visas **Behöver följas upp**.
+
+Rektor kan använda **Registrera beslut** för att föra in ett redan fattat beslut. För reducerat program anger du beslutsreferensen inom åtgärdsprogrammet, datum och omfattning. Ange vilka nivåer som berörs när de framgår av beslutet. Nivåerna visas som **Reducerad** under beslutets giltighet. Om nivåerna ännu saknas visas omfattningen i planens beslutsavsnitt. Registrerade studiedatum finns kvar.
+
+Studiehändelser och beslut sparas i ett utkast till en ny version. Gå igenom ändringen med eleven inför att rektor gör versionen gällande. Om svaret på ett sparande uteblir väljer du **Kontrollera sparandet**. Om uppgifterna har ändrats sedan du öppnade studieplanen väljer du **Hämta aktuell version**.
+
 ### Exportera ett elevurval
 
 Välj **Exportera urval…** när du uttryckligen behöver en fil. Välj markerade elever eller alla elever i det aktuella urvalet, och välj vilka uppgifter som ska tas med. Personnummer följer bara med om du särskilt markerar **Ta med personnummer**. Servern prövar urvalet och uppgifterna igen innan filen lämnas ut. Exporten kräver extra verifiering när ett aktuellt bevis saknas och registreras i säkerhetsloggen. En markering i listan laddar inte ned någon fil.

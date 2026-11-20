@@ -206,6 +206,7 @@ export default function PupilRegisterWorkspace(props: Props) {
       <PupilCard key={`${openPupil}-${selection.schoolYear}`} pupilId={openPupil} schoolYear={selection.schoolYear} caseId={caseId}
         today={stockholmToday(props.setup.serverNow)} options={list?.options ?? null}
         schools={props.setup.scope.schools} returnTo={returnTo} epoch={props.epoch} loadUnitOptions={loadUnitOptions}
+        accessFunction={props.context.function} scopeKind={props.context.scopeKind}
         onBack={() => { if (window.history.state?.pupilCard === true) window.history.back(); else { returnFocus.current = openPupil; setOpenPupil(null); } }}
         onChanged={() => { changedInCard.current = true; }} onSessionLost={props.onSessionLost} />
     </div>;
