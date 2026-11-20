@@ -1,14 +1,14 @@
 ---
 gsd_state_version: "1.0"
 milestone: v1.0
-current_phase: "05.2"
-current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-TOM-SCHEMA är installerad på 3012 för prov av tömning och ångring efter omladdning."
+current_phase: "05.3"
+current_phase_name: Klassorganisation
+current_plan: "SP-01–SP-06 planerade för individuell studieplan. Nästa genomförandeplan är SP-01."
 status: in_progress
-stopped_at: "Töm schema visas inloggat på 3012. Provschema version 11 och provplan version 5 är verifierade efter bytet."
+stopped_at: "Omgranskning och GSD-planering för den första studieplansleveransen."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat tömning och ångring på 3012 och verifierat att provschemat bevarades."
+last_activity_desc: "Omprövat rättsliga och tekniska förutsättningar och planerat elevens daterade studieplan."
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
@@ -30,6 +30,8 @@ schema_installation_status: clear_and_undo_installed_one_migration_existing_draf
 user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-20 – omprövad research och planer för individuell studieplan.** Användaren bedömer schemat som tillräckligt för beta och prioriterar elevens nivåer, start- och slutdatum samt status. [Research](phases/05.3-klassorganisation/05.3-STUDIEPLAN-RESEARCH.md) skiljer planerade datum från faktisk start och avslut, samt reducering från beslutade bortval och avbrott. [GSD-planeringen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PLANERING.md) gäller en första leverans på elevkortet inom nationella Gy25-program. Dokumenten beskriver föreslagen implementation och prov. STUDY-01 och fasernas verifieringsstatus är öppna.
 
 **2026-11-20 – beräkningsläge medan schemamotorn räknar.** [UXF-54](phases/05.2-schemamodul/05.2-SM-UXF-54-BERAKNING-PLAN.md) lägger ett läge över arbetsytan vid **Ta fram schemaförslag** och **Fortsätt förbättra**. Läget visar en minivecka, räknetid och steg. **Avbryt beräkningen** lämnar utkastet orört. Förloppet visar förbrukad räknetid, inte andel lagda pass. 16 nya webbläsarfall passerade på två datorbredder. Hela schemasviten på 1280 px har bara de 8 fel som också finns på ren HEAD. Installation på 3012 och inloggat prov mot verklig motor återstår.
 

@@ -575,6 +575,8 @@ Det är ingen backendomskrivning. Rust-tjänstens driftplats och motorval (till 
 
 Etapp A–B (CLASS-COHORT) är levererade i fas 5 och omprövas inte. Huvudmannen får inget nytt klassmandat utan separat beslut.
 
+**Planering 2026-11-20 — individuella studieplaner.** [Omprövad research](phases/05.3-klassorganisation/05.3-STUDIEPLAN-RESEARCH.md) och [första studieplansleveransen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PLANERING.md) beskriver en egen studieplan på elevkortet för nationella Gy25-program. Nivåer, individuella datum, status och historik är grund för leveransen. Daterade klass- och gruppändringar får en jämförelse med studieplanen. Detta är planerad del av STUDY-01 med anknytning till KLASS-04 och SCHEMA-07. Planen för klassorganisation och kravens verifieringsstatus följs upp separat.
+
 ### Phase 05.4: Lärarbehörigheter (INSERTED)
 
 **Goal**: Rektor kan se om tjänstefördelning och schema stämmer med lärarnas legitimation och undervisningsbehörighet enligt Skolverkets underlag, med okänt underlag skilt från konstaterad avvikelse.
