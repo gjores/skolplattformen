@@ -199,6 +199,8 @@ Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver 
 3. Kontrollera **Bortfall av undervisningstid**. Där visas för varje undervisning hur många minuter som faller bort, hur många som kan täckas av föreslagna ersättningstillfällen och hur mycket tid som återstår. Provtiden redovisas separat från gymnasiets garanterade undervisningstid.
 4. Granska **Föreslagna ersättningstillfällen**. Med **Visa tillfället** öppnar du lektionen i schemat. Förslaget är en osparad förhandsgranskning. Spara de datumändringar du vill göra i schemat.
 
+Förslag på provvakter visas för rektor, som kan läsa skolans aktuella uppdrag. Skoladministratören kan granska sal, bortfall och ersättningstid och lämna provvakterna till rektor.
+
 ## Aktivitet för flera klasser
 
 Mentorstid eller tid i matsalen kan läggas in för många klasser på en gång.

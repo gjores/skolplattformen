@@ -109,26 +109,30 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
     {lage.fas === 'fel' && <p role="alert" className="text-sm text-destructive">{lage.text}</p>}
     {svar && (svar.bokningar.length === 0 ? <output className="block text-sm text-muted-foreground">Inga provbokningar finns i den valda perioden.</output> : <>
       <output className="status-badge">Förslag · ej sparat</output>
+      {!personalLookup && <p className="text-sm text-muted-foreground">Förslag på provvakter visas för rektor, som kan läsa aktuella skoluppdrag.</p>}
       <Table aria-label="Förslag på provresurser">
         <TableHeader><TableRow>
           <TableHead scope="col">Prov och deltagare</TableHead><TableHead scope="col">Datum och tid</TableHead>
-          <TableHead scope="col">Sal och provvakter</TableHead><TableHead scope="col">Status</TableHead>
+          <TableHead scope="col">{personalLookup ? 'Sal och provvakter' : 'Sal'}</TableHead><TableHead scope="col">Status</TableHead>
         </TableRow></TableHeader>
-        <TableBody>{svar.bokningar.map(b => <TableRow key={b.id}>
-          <TableCell className="whitespace-normal [overflow-wrap:anywhere]"><p className="font-medium">{b.namn}</p>
-            <p className="text-muted-foreground">{b.deltagarnamn} · {b.deltagare} {b.deltagare === 1 ? 'elev' : 'elever'}</p>
-          </TableCell>
-          <TableCell className="whitespace-normal"><p>{schemaDateText(b.datum)}</p><p>{clock(b.startMin)}–{clock(b.slutMin)}</p></TableCell>
-          <TableCell className="space-y-1 whitespace-normal [overflow-wrap:anywhere]">
-            <p>{b.sal?.name ?? 'Sal saknar förslag'}</p>
-            <p className="text-muted-foreground">{b.vakter.length === 0 ? 'Provvakt saknar förslag' : personalLookup
-              ? b.vakter.map(vakt => vakt.name).join(', ') : `${b.vakter.length} ${b.vakter.length === 1 ? 'provvakt' : 'provvakter'}`}</p>
-          </TableCell>
-          <TableCell className="whitespace-normal">{b.problem.length === 0 ? 'Förslag framtaget' : <>
-            <span className="status-badge warning">Behöver ses över</span>
-            <ul className="mt-1 space-y-1">{b.problem.map(problem => <li key={problem}>{problemText[problem]}</li>)}</ul>
-          </>}</TableCell>
-        </TableRow>)}</TableBody>
+        <TableBody>{svar.bokningar.map(b => {
+          const problem = [...new Set(b.problem.map(kod => !personalLookup && (kod === 'vakt_saknas' || kod === 'last_vakt_upptagen')
+            ? 'Provvakt behöver kontrolleras av rektor.' : problemText[kod]))];
+          return <TableRow key={b.id}>
+            <TableCell className="whitespace-normal [overflow-wrap:anywhere]"><p className="font-medium">{b.namn}</p>
+              <p className="text-muted-foreground">{b.deltagarnamn} · {b.deltagare} {b.deltagare === 1 ? 'elev' : 'elever'}</p>
+            </TableCell>
+            <TableCell className="whitespace-normal"><p>{schemaDateText(b.datum)}</p><p>{clock(b.startMin)}–{clock(b.slutMin)}</p></TableCell>
+            <TableCell className="space-y-1 whitespace-normal [overflow-wrap:anywhere]">
+              <p>{b.sal?.name ?? 'Sal saknar förslag'}</p>
+              {personalLookup && <p className="text-muted-foreground">{b.vakter.length === 0 ? 'Provvakt saknar förslag' : b.vakter.map(vakt => vakt.name).join(', ')}</p>}
+            </TableCell>
+            <TableCell className="whitespace-normal">{problem.length === 0 ? 'Förslag framtaget' : <>
+              <span className="status-badge warning">Behöver ses över</span>
+              <ul className="mt-1 space-y-1">{problem.map(text => <li key={text}>{text}</li>)}</ul>
+            </>}</TableCell>
+          </TableRow>;
+        })}</TableBody>
       </Table>
       <div className="space-y-2">
         <h3 className="font-semibold">Bortfall av undervisningstid</h3>
