@@ -799,6 +799,7 @@ Fullständiga beslut finns i PROJECT.md.
 
 ## Pending Todos
 
+- 2026-11-20: [Superadmin bereder och uppdaterar Skolverkets fasta provdatum](todos/pending/2026-11-20-superadmin-uppdatera-skolverkets-fasta-provdatum.md). Gemensam katalog per läsår, återkommande källkontroll och uppföljning av ändringar som berör skolornas bokningar. Planeras i fas 05.2.
 - 2026-11-19: [Versionshistorik och återställning för schemautkast](todos/pending/2026-11-19-versionshistorik-for-schemautkast.md). Användaren vill kunna välja en tidigare sparad revision från schemats sparbesked. Planeras i fas 05.2.
 
 - 2026-10-21: [prestandatodon för programplaner och timplaner kompletterad med tjänstefördelningen](todos/pending/2026-10-14-snabbare-inlasning-av-programplaner-och-timplaner.md), som användaren upplever som långsammast. Kodfynd: full omläsning vid termin/filter, upprepade kataloguppslag och behovssökningar, sen sidindelning samt möjlig köbildning bakom sessions-/kundlås. Fas 05.1/05; aktuell mätning, rättning och verifiering återstår. Ingen ändring av fasordning eller kravstatus.
