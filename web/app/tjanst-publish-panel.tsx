@@ -14,21 +14,24 @@ export const dateText = (instant: string) => new Date(instant).toLocaleDateStrin
 export const timeText = (instant: string) => new Date(instant).toLocaleString('sv-SE', { timeZone: 'Europe/Stockholm', dateStyle: 'short', timeStyle: 'short' });
 export const ackSummary = (feedback: TjanstFeedback) => `Kvitterad av ${feedback.teachers.filter(t => t.acknowledgedAt).length} av ${feedback.teachers.length} lärare`;
 
-type Props = { id?: string; navigationBusy?: boolean; onBlockerAction?: (target: BlockerTarget, origin: HTMLElement) => void; data: TjanstPlanRead; phone: boolean; busy: boolean; feedback?: TjanstFeedback; onPublish: () => void; onDiscard: () => void;
+type Props = { id?: string; navigationBusy?: boolean; onBlockerAction?: (target: BlockerTarget, origin: HTMLElement) => void; data: TjanstPlanRead; currentPublication: boolean; phone: boolean; busy: boolean; feedback?: TjanstFeedback; onPublish: () => void; onDiscard: () => void;
   /** Rektor i ett utkast. Servern utelämnar publish så länge det finns hinder; då visas knappen inaktiv (UI-SPEC Skärm 6). */
   rector?: boolean };
 /** Skärm 6. Beslutsknappen visas bara när serverns actions innehåller publish (D-01); servern prövar ändå anropet. Inget steg för facklig samverkan (D-20). */
-export default function TjanstPublishPanel({ data, phone, busy, feedback, onPublish, onDiscard, rector = false, id, navigationBusy = false, onBlockerAction }: Props) {
+export default function TjanstPublishPanel({ data, currentPublication, phone, busy, feedback, onPublish, onDiscard, rector = false, id, navigationBusy = false, onBlockerAction }: Props) {
   const version = data.version, draft = version?.status === 'draft';
   const blockers = data.blockers.length;
+  const title = currentPublication ? 'Publiceringsstatus' : 'Fastställ och publicera';
   // Beslutsknappen kommer från serverns actions. Med hinder saknas publish i svaret; rektor ser då knappen inaktiv
   // tillsammans med punkterna. Servern prövar ändå varje anrop (409 tjanst_publish_blocked).
   const blockedRector = rector && blockers > 0 && data.capabilities.canEdit;
   const canPublish = (data.actions.includes('publish') || blockedRector) && !phone, canDiscard = data.actions.includes('discard_draft') && !phone;
 
-  return <section id={id} tabIndex={-1} className="tjanst-panel protected-card" aria-label="Fastställ och publicera">
-    <h2>Fastställ och publicera</h2>
-    <p>{draft ? data.versions.some(v => v.status === 'published') ? 'Ändringarna är ännu inte publicerade. Lärarna ser den senaste publiceringen tills du publicerar på nytt.' : 'Planeringen pågår. Lärarna ser den när rektor har fastställt och publicerat.' : 'Du kan fortsätta planera i samma arbetsyta. Nästa ändring sparas utan att ändra det lärarna redan ser.'}</p>
+  return <section id={id} tabIndex={-1} className="tjanst-panel protected-card" aria-label={title}>
+    <h2>{title}</h2>
+    {currentPublication && version
+      ? <p>Version {version.versionNo} är redan fastställd och publicerad. Nästa ändring som sparas skapar ett nytt utkast. Rektor kan sedan fastställa och publicera det.</p>
+      : <p>{draft ? data.versions.some(v => v.status === 'published') ? 'Ändringarna är ännu inte publicerade. Lärarna ser den senaste publiceringen tills du publicerar på nytt.' : 'Planeringen pågår. Lärarna ser den när rektor har fastställt och publicerat.' : 'Du kan fortsätta planera i samma arbetsyta. Nästa ändring sparas utan att ändra det lärarna redan ser.'}</p>}
     {blockers > 0 && <div className="validation-warning tjanst-blockers"><p><TriangleAlert size={16} aria-hidden="true"/>{blockers} {blockers === 1 ? 'punkt behöver' : 'punkter behöver'} åtgärdas innan du kan fastställa.</p>
       <p>Listan visar publiceringshinder. Vanliga planeringsavvikelser visas i fördelningen.</p>
       <ul>{data.blockers.map((b, index) => { const action = blockerActions(data, b.code); return <li key={`${b.code}:${index}`}>

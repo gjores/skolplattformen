@@ -259,6 +259,11 @@ test.describe('dator',()=>{
   expect(published).toHaveLength(2);expect(published[1].body).toMatchObject({action:'publish',expectedContentHash:expect.stringMatching(/^sha256:/)});
   expect((await commands(page)).filter(c=>c.path.endsWith('/plan/kommando')&&c.body.action==='publish')).toHaveLength(0);
   await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-24.')).toBeVisible();
+  await ws(page).getByRole('button',{name:'Dölj publiceringsstatus',exact:true}).click();
+  await ws(page).getByRole('button',{name:'Publiceringsstatus',exact:true}).click();
+  const publication=ws(page).getByRole('region',{name:'Publiceringsstatus',exact:true});
+  await expect(publication).toContainText('Version 2 är redan fastställd och publicerad. Nästa ändring som sparas skapar ett nytt utkast.');
+  await expect(publication.getByRole('button',{name:'Fastställ och publicera…'})).toHaveCount(0);
   await expect(matrix(page).getByRole('button',{name:'Cecilia Dahl, Matematik 1c, TE26A: ingen tid. Tilldela.'})).toBeVisible();
   await ws(page).getByRole('button',{name:'Historik',exact:true}).click();
   await expect(ws(page).getByLabel('Historisk publicering')).toHaveValue(published[1].body.payload.mutationContext.baseVersionId);
@@ -268,6 +273,7 @@ test.describe('dator',()=>{
   await page.getByRole('dialog').getByRole('button',{name:'Välj Cecilia Dahl',exact:true}).click();
   await expect(ws(page).getByText('Ändringar ännu inte publicerade',{exact:true})).toBeVisible();
   await expect(ws(page).getByText('Lärarna ser version 2, publicerad 2026-10-24.')).toBeVisible();
+  await expect(panel.getByRole('button',{name:'Fastställ och publicera…'})).toBeEnabled();
   expect((await commands(page)).filter(c=>c.body.action==='create_draft')).toHaveLength(0);
   void dialog;dialog=page.getByRole('dialog');await expect(dialog).toHaveCount(0);
  });

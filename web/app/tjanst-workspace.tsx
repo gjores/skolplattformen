@@ -463,6 +463,8 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const effectiveClass = classId && data?.classes.some(c => c.classId === classId) ? classId : data?.classes[0]?.classId ?? '';
   const published = data?.versions.find(v => v.status === 'published') ?? null;
   const viewingOld = !!versionId && !!data?.version && data.version.status !== 'draft';
+  const currentPublication = !viewingOld && data?.version?.status === 'published';
+  const showPublicationStatus = phone || currentPublication;
   // Skrivskyddat (Bemanning) listar väljaren bara publicerade och ersatta versioner; inget val leder till utkastet (WR-07).
   const choices = data ? [...data.versions].filter(v => v.status === 'published' || v.status === 'superseded')
     .sort((a, b) => b.versionNo - a.versionNo) : [];
@@ -635,10 +637,10 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
           {!readOnly && <Button variant="outline" onClick={() => setVersionId('')}>Tillbaka till planeringen</Button>}</>}
         {feedback && <span>{ackSummary(feedback)}</span>}
         {!readOnly && !versionId && data.blockers.length > 0 && <Button variant="outline" className="tjanst-blocker-count" aria-label={`Visa ${data.blockers.length} hinder för publicering`} aria-controls={`${headingId}-publish`} disabled={loading || busy || quickBusy || checking || pendingCheck} onClick={showPublishPanel}>{data.blockers.length} hinder för publicering</Button>}
-        {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{phone ? panelOpen ? 'Dölj publiceringsstatus' : 'Publiceringsstatus' : panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
+        {!readOnly && <Button variant="outline" aria-expanded={panelOpen} onClick={() => setPanelOpen(v => !v)}>{showPublicationStatus ? panelOpen ? 'Dölj publiceringsstatus' : 'Publiceringsstatus' : panelOpen ? 'Dölj Fastställ och publicera' : 'Fastställ och publicera'}</Button>}
       </div>
       {viewingOld && data.version && <p className="tjanst-readonly">Du läser version {data.version.versionNo} skrivskyddat{data.version.publishedAt ? `, publicerad ${dateText(data.version.publishedAt)} av ${data.version.publishedByName}` : ''}. {published && published.id !== data.version.id ? `Lärarna ser version ${published.versionNo}.` : data.version.status === 'published' ? `Lärarna ser den här versionen.` : ''}</p>}
-      {panelOpen && !readOnly && <TjanstPublishPanel id={`${headingId}-publish`} onBlockerAction={openBlockerTarget} navigationBusy={loading || busy || quickBusy || checking || pendingCheck} data={data} phone={phone} busy={!editable || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
+      {panelOpen && !readOnly && <TjanstPublishPanel id={`${headingId}-publish`} onBlockerAction={openBlockerTarget} navigationBusy={loading || busy || quickBusy || checking || pendingCheck} data={data} currentPublication={currentPublication} phone={phone} busy={!editable || loading} feedback={feedback} rector={context.function === 'rektor'} onPublish={() => open({ kind: 'confirm', confirm: 'publish', id: data.version!.id }, document.activeElement as HTMLElement)}
         onDiscard={() => open({ kind: 'confirm', confirm: 'discard', id: data.version!.id }, document.activeElement as HTMLElement)}/>}
     </div>}
     {phone ? <><label className="tjanst-inline-field tjanst-view-select">Vy<select value={shownView} onChange={e => chooseView(e.target.value as TjanstView)}>
