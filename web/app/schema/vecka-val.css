@@ -29,3 +29,5 @@
 .schema-day.schema-utan-undervisning h3 { color:var(--muted-foreground); }
 .schema-dagorsak { font-size:.8125rem; font-weight:400; display:block; white-space:normal; }
 .schema-tillfalleslista { list-style:none; margin:0; padding:0; }
+.schema-lesson.schema-prov { padding:.125rem .375rem; border-color:var(--info-foreground); background:var(--info-surface); overflow-wrap:anywhere; }
+.schema-prov time { display:block; white-space:nowrap; }

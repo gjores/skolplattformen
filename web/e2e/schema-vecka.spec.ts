@@ -11,6 +11,33 @@ test.beforeEach(async ({ page }) => {
 
 const URL = '/e2e/fixtures/schema-preview.html', headers = { 'X-Context-Epoch': '1' };
 
+test('sparade nationella prov visas på rätt datum och ryms bredvid överlappande lektioner', async ({ page }) => {
+  const preview = '/e2e/fixtures/schema-vecka-preview.html';
+  await page.goto(`${preview}?prov=vecka`);
+  const day = page.locator('[data-date="2026-11-09"]');
+  const booked = day.locator('[data-prov="prov-1"]');
+  await expect(booked).toContainText('Nationellt prov');
+  await expect(booked).toContainText('Delprov A');
+  await expect(booked).toContainText('Klass 1 · Ateljén');
+  await expect(booked.locator('time')).toHaveText('07:30–09:00');
+  await expect(day.locator('ol')).toHaveAttribute('data-start', '450');
+  await expect(page.locator('[data-prov="prov-2"]')).toHaveCount(0);
+  await expect(booked.getByRole('button')).toHaveCount(0);
+
+  const lesson = day.locator('[data-occurrence="pass-36@2026-11-09"]');
+  await expect(lesson).toBeVisible();
+  const examBox = (await booked.boundingBox())!, lessonBox = (await lesson.boundingBox())!;
+  expect(examBox.y + examBox.height).toBeGreaterThan(lessonBox.y);
+  expect(examBox.x + examBox.width).toBeLessThanOrEqual(lessonBox.x + 1);
+
+  await page.goto(`${preview}?prov=intervall`);
+  await expect(booked).toBeVisible();
+  await expect(page.locator('[data-date]')).toHaveCount(1);
+  await page.goto(`${preview}?prov=grundschema`);
+  await expect(page.locator('.schema-week [data-lesson]').first()).toBeVisible();
+  await expect(page.locator('[data-prov]')).toHaveCount(0);
+});
+
 async function start(page: Page, proposal = forslag as unknown as SchemaForslag, period?: 'vt') {
   await page.route('**/api/schema/forslag', route => route.fulfill({ headers, json: { ...proposal, contractVersion: SCHEMA_CONTRACT_VERSION } }));
   await page.route('**/api/schema/kontroll', route => route.fulfill({ headers, json: { ...kontroll.clash, contractVersion: SCHEMA_CONTRACT_VERSION, violations: [], total: 0 } }));

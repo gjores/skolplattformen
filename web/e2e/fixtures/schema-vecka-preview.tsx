@@ -1,9 +1,10 @@
 // Veckorutnätet med syntetiska lager (05.2-SM-YTA): fält, nedtoning och band ritas från fixturen, inte från villkor.
 import React from 'react';
 import { createRoot } from 'react-dom/client';
-import { Vecka, Teckenforklaring } from '../../app/schema/vecka';
+import { Vecka, Teckenforklaring, type SchemaVeckoprov } from '../../app/schema/vecka';
 import type { SchemaForslag } from '../../lib/schema-contract';
 import type { SchemaBand, SchemaDimmed, SchemaOverlay } from '../../lib/schema-utkast';
+import type { SchemaVeckaVal } from '../../lib/schema-vecka';
 import data from '../schema-fixture';
 import '../../app/globals.css';
 import '../../app/schema.css';
@@ -23,11 +24,18 @@ const bands: SchemaBand[] = [
 ];
 const flagged = new Set(['pass-7']);
 const noop = () => {};
+const prov: SchemaVeckoprov[] = [
+  { id: 'prov-1', namn: 'Delprov A', datum: '2026-11-09', startMin: 450, slutMin: 540, detail: 'Klass 1 · Ateljén' },
+  { id: 'prov-2', namn: 'Delprov B', datum: '2026-11-16', startMin: 420, slutMin: 600 },
+];
 function Preview() {
-  const layers = new URLSearchParams(location.search).get('lager') !== 'nej';
-  const shown = layers ? { overlays, bands, dimmed } : {};
+  const query = new URLSearchParams(location.search), mode = query.get('prov');
+  const shown = query.get('lager') !== 'nej' ? { overlays, bands, dimmed } : {};
+  const visning: SchemaVeckaVal | undefined = mode === 'vecka' || mode === 'intervall' || mode === 'grundschema'
+    ? { mode, monday: '2026-11-09', from: '2026-11-09', to: '2026-11-09' } : undefined;
   return <section className="valplan-workspace schema-workspace">
-    <Vecka days={forslag.days} lessons={lessons} picked="pass-34" drop={null} flagged={flagged} disabled={false} length={l => l.durationMin} detail={() => 'Provlärare'} onGrab={noop} onPick={noop} {...shown}/>
+    <Vecka days={forslag.days} lessons={lessons} picked="pass-34" drop={null} flagged={flagged} disabled={false} length={l => l.durationMin} detail={() => 'Provlärare'} onGrab={noop} onPick={noop}
+      kalender={forslag.time.calendar} visning={visning} prov={visning ? prov : undefined} {...shown}/>
     <Teckenforklaring lessons={lessons} picked="pass-34" flagged={flagged} {...shown}/>
   </section>;
 }
