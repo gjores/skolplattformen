@@ -1,7 +1,8 @@
 // 05.2-SM-UXFLODE: Förbered-ytan och förutsättningar före första förslaget, mot uttryckligt simulerade rutter och syntetiska uppgifter. Inget användarprov.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, schemaTestDraft, type Page } from './schema-test';
 import { bas as base, headers, mockUnderlag, olagt, utanBerakning } from './schema-underlag-mock';
-import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaVillkor } from '../lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaForslag, type SchemaForslagRequest, type SchemaVillkor } from '../lib/schema-contract.ts';
+import { parseSchemaDraftSave } from '../lib/schema-draft-contract.ts';
 import { nastaUppgift, schemaForbered } from '../lib/schema-forbered.ts';
 import { laggTillSal } from '../lib/schema-salregister.ts';
 
@@ -54,6 +55,47 @@ test('misslyckad underlagsläsning hindrar inte villkoren och går att göra om'
   await mockUnderlag(page);
   await underlag.getByRole('button', { name: 'Läs underlaget igen' }).click();
   await expect(underlag).toContainText('Inget schemaförslag är beräknat.');
+});
+
+test('Förbered kan läsa ny tjänstefördelning när ett äldre tomt förslag finns sparat', async ({ page, schemaDraftServer }) => {
+  const villkor = { ...defaultSchemaVillkor(), timeBasis: 'lasar' as const }, tidigare = olagt(villkor);
+  const tomtForslag: SchemaForslag = { ...tidigare, basis: null, classes: [], teachers: [], lessons: [], fordelning: [], teachings: [], trims: [], links: [],
+    resurser: { klass: [], grupp: [], amne: [], larare: [], pass: [] },
+    members: { pupils: 0, groupsWithoutMembers: [], classesWithoutPupils: [], withoutChoice: [] },
+    metrics: { ...tidigare.metrics, lessons: 0, unplaced: 0 }, statistics: { iterations: 0, lessons: [], bottlenecks: [] } };
+  const input = parseSchemaDraftSave({ contractVersion: 1, unitId: UNIT, schoolYear: 2026, period: 'lasar', commandId: crypto.randomUUID(),
+    draftId: null, expectedRevision: 0, name: 'Tidigare sparat förslag', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: tomtForslag.grundFingerprint,
+    placements: [], locks: [], intentional: [], datedOverrides: [], activityTypes: [] });
+  const { draft } = await schemaTestDraft(input, tomtForslag);
+  draft.stale = true;
+  const scope = `${UNIT}:2026:lasar`;
+  schemaDraftServer.drafts.set(scope, draft);
+  await page.addInitScript(unit => localStorage.setItem(`schema-yta:${unit}:2026`, 'forbered'), UNIT);
+  const berakningar = await utanBerakning(page), lasningar: SchemaForslagRequest[] = [];
+  await page.route('**/api/schema/underlag', route => {
+    const request = route.request().postDataJSON() as SchemaForslagRequest;
+    lasningar.push(request);
+    if (lasningar.length === 1) return route.fulfill({ headers, status: 503, json: { code: 'unavailable' } });
+    return route.fulfill({ headers, json: { contractVersion: SCHEMA_CONTRACT_VERSION, beraknat: false,
+      forslag: { ...olagt(request.villkor), basis: { versionNo: 2, status: 'published' } } } });
+  });
+  await page.goto(URL);
+
+  const underlag = omrade(page, 'underlag');
+  await expect(underlag).toContainText('Underlaget kunde inte läsas.');
+  await expect(punkt(page, 'underlag')).toContainText('Underlaget är inte läst');
+  await expect(page.getByText('Schemat kan inte läggas ännu', { exact: true })).toHaveCount(0);
+  await underlag.getByRole('button', { name: 'Läs underlaget igen' }).click();
+  await expect(underlag).toContainText('tjänstefördelning version 2 (publicerad)');
+  await expect(underlag).toContainText(`${base.fordelning.length} undervisningar`);
+  await expect(punkt(page, 'underlag')).toContainText('Tjänstefördelning version 2');
+  await expect(page.locator('[data-fraga="3"]')).toContainText('Inaktuellt förslag');
+  await expect(page.getByText(/saknar tjänstefördelning|ingen tjänstefördelning|Schemat kan inte läggas ännu/iu)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ta fram nytt förslag från aktuellt underlag' })).toBeEnabled();
+  expect(lasningar.map(r => r.period)).toEqual(['lasar', 'lasar']);
+  expect(berakningar).toHaveLength(0);
+  expect(schemaDraftServer.saves).toHaveLength(0);
+  expect(schemaDraftServer.drafts.get(scope)).toEqual(draft);
 });
 
 test('checklistan har sju punkter, en nästa uppgift och en genomgång som blir inaktuell när innehållet ändras', async ({ page }, info) => {
