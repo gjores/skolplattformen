@@ -11,7 +11,8 @@ export type SchemaDatedBasis = { unitId: string; schoolYear: number; complete: b
   classMemberships: ({ placementId: string; pupilId: string; classId: string } & Period)[];
   groups: ({ id: string; active: boolean } & Period)[];
   memberships: ({ groupId: string; pupilId: string } & Period)[] };
-export type SchemaDatumDagUnderlag = { date: string; problem: SchemaProblem; placements: SchemaPlacement[]; occurrences: Map<string, SchemaDatumTillfalle> };
+export type SchemaDatumDagUnderlag = { date: string; problem: SchemaProblem; placements: SchemaPlacement[]; occurrences: Map<string, SchemaDatumTillfalle>;
+  groupIdsByRef: ReadonlyMap<string, string>; pupilsByGroup: ReadonlyMap<string, ReadonlySet<string>> };
 export type SchemaDatumUnderlag = { datedOverrides: SchemaDatumAndring[]; days: SchemaDatumDagUnderlag[]; sources: { lesson: string; ref: string }[]; violations: SchemaDatumAvvikelse[] };
 const fail = (reason: ConstructorParameters<typeof SchemaDatumError>[0] = 'schema_datum_source_unknown'): never => { throw new SchemaDatumError(reason); };
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
@@ -73,7 +74,7 @@ function datumSources(plan: TjanstPlanRead, u: SchemaUnderlag) {
 
 type Span = [number, number];
 type TimeRule = Extract<SchemaRegel, { typ: 'sparrad' | 'tillaten' }>;
-function available(rules: TimeRule[], day: number): SchemaInterval[] {
+export function schemaDatumTillganglighet(rules: TimeRule[], day: number): SchemaInterval[] {
   let spans: Span[] = [[0, 1440]];
   for (const key of unique(rules.filter(r => r.typ === 'tillaten').map(r => JSON.stringify([r.slag, r.ref])))) {
     const open = rules.filter(r => r.typ === 'tillaten' && JSON.stringify([r.slag, r.ref]) === key && r.days.includes(day));
@@ -84,9 +85,9 @@ function available(rules: TimeRule[], day: number): SchemaInterval[] {
   return spans.map(([start_min, end_min]) => ({ day, start_min, end_min }));
 }
 
-/** Bevarar den årsbyggda pass-/undervisningsidentiteten; datumet ändrar bara deltagarnas anonyma kluster. */
+/** Bevarar den årsbyggda passidentiteten. Vid jämförelser mellan datum kan servern dessutom be om gruppens faktiska deltagare. */
 export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: SchemaForslag, basis: SchemaDatedBasis,
-  overrides: SchemaDatumAndring[], extraDates: string[] = []): SchemaDatumUnderlag {
+  overrides: SchemaDatumAndring[], extraDates: string[] = [], behallDeltagare = false): SchemaDatumUnderlag {
   if (basis.unitId !== f.unitId || basis.schoolYear !== f.schoolYear || !basis.complete) fail('schema_datum_participants_unavailable');
   if (!f.time.calendar) fail('schema_datum_calendar_missing');
   const datedOverrides = kontrolleraSchemaDatum(f, overrides), dates = unique([...extraDates.map(schemaDatumDate), ...datedOverrides.flatMap(a => [a.originalDate, a.date])]).sort();
@@ -111,7 +112,9 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
     for (const c of basis.classMemberships) if (classIds.has(c.classId) && active(c, date) && validPlacements.get(c.placementId) === c.pupilId) mark(c.pupilId, c.classId);
     for (const m of basis.memberships) if (registered.has(m.pupilId) && active(m, date) && groupOpen(m.groupId, date)) mark(m.pupilId, m.groupId);
     const signatures = new Map<string, { groups: string[]; size: number }>();
-    for (const groups of ofPupil.values()) {
+    const pupilsByGroup = new Map<string, Set<string>>(behallDeltagare ? [...ids.values()].map(id => [id, new Set<string>()]) : []);
+    for (const [pupil, groups] of ofPupil) {
+      if (behallDeltagare) for (const id of groups) pupilsByGroup.get(id)!.add(pupil);
       const sorted = [...groups].sort(), key = sorted.join('|'), signature = signatures.get(key) ?? { groups: sorted, size: 0 };
       signature.size++; signatures.set(key, signature);
     }
@@ -135,7 +138,7 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
       // Samma datum delar period, även när en höstundervisning flyttas till våren. Timplansavvikelsen redovisas separat.
       placements.push({ lesson: id, day, startMin: occurrence.lesson.startMin!, room: occurrence.lesson.roomId });
       return { ...remaining, id, duration_min: occurrence.length, groups: unique([...source.parts.classes, ...source.parts.groups]).map(ref => ids.get(ref) ?? fail()),
-        ...(rules.length ? { allowed: available(rules, day) } : {}) };
+        ...(rules.length ? { allowed: schemaDatumTillganglighet(rules, day) } : {}) };
     });
     const links: NonNullable<SchemaProblem['links']> = [];
     for (const link of u.problem.links ?? []) {
@@ -149,7 +152,8 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
         if (linked[i][1].lesson.id !== linked[j][1].lesson.id) links.push({ kind: link.kind, lessons: [linked[i][0], linked[j][0]] });
     }
     const { periods: _periods, reference: _reference, links: _links, ...problem } = u.problem;
-    return { date, occurrences, placements, problem: { ...problem, id: `datum-${date}`, groups, clusters, activities: u.problem.activities.map(a => ({ id: a.id })), lessons, ...(links.length ? { links } : {}) } };
+    return { date, occurrences, placements, groupIdsByRef: ids, pupilsByGroup,
+      problem: { ...problem, id: `datum-${date}`, groups, clusters, activities: u.problem.activities.map(a => ({ id: a.id })), lessons, ...(links.length ? { links } : {}) } };
   });
   const violations: SchemaDatumAvvikelse[] = [];
   // Ett samplaceringsvillkor får inte försvinna bara för att ena tillfället har flyttats till en annan dag.
