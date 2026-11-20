@@ -303,7 +303,8 @@ export default function PupilCard(props: Props) {
             <PupilStudyPlan key={props.epoch + '/' + studyPlacement.id + '/' + studyOn} unitId={studyPlacement.unitId} pupilId={card.id}
               placementId={studyPlacement.id} placementStartsOn={studyPlacement.startsOn} placementEndsOn={studyPlacement.endsOn}
               schoolName={card.unitName} educationName={educationName(studyPlacement.educationId)}
-              initialOn={studyOn} today={props.today} returnTo={props.returnTo} onSessionLost={props.onSessionLost} />
+              initialOn={studyOn} today={props.today} returnTo={props.returnTo} onSessionLost={props.onSessionLost}
+              onOpenClassChange={canEdit && placement?.id === studyPlacement.id ? () => setDialog('class') : undefined} />
           </div>}
         </CollapsibleContent>
       </Collapsible>

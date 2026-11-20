@@ -15,6 +15,8 @@ import {
 } from '../../web/lib/study-plan-contract.ts';
 import { parseStudyPlanContent, studyAttemptStatus } from '../../web/lib/study-plan-model.ts';
 import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
+import { defaultSchemaVillkor } from '../../web/lib/schema-contract.ts';
+import { parseStudyGroupCommand, parseStudyGroupReply, STUDY_GROUP_CONTRACT_VERSION } from '../../web/lib/study-group-contract.ts';
 
 const catalog = JSON.parse(readFileSync(new URL('../../web/lib/programplan-catalog.generated.json', import.meta.url)));
 const currentDay = '2026-11-20';
@@ -31,28 +33,35 @@ const businessTableNames = [
   'timplans', 'class_timplans', 'tjanst_distributions', 'tjanst_versions', 'tjanst_rows',
   'schema_drafts', 'schema_draft_revisions',
 ];
+const comparisonTables = [...businessTableNames, ...ownTableNames, 'schema_draft_commands', 'study_group_classes',
+  'study_group_history', 'study_group_commands', 'study_group_snapshots', 'tjanst_version_study_group_sources'];
+
+async function seedNationalOffering(tx, { customerId, organizerId, unitId, programCode, orientationCode, label }) {
+  const offeringId = randomUUID(), classId = randomUUID(), nextClassId = randomUUID();
+  await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year)
+    values (${offeringId},${organizerId},${unitId},'gymnasium',${`Syntetiskt ${programCode}`},${label},${programCode},${orientationCode},2026)`;
+  const program = catalog.programs.find(program => program.code === programCode);
+  const reference = { catalogId: catalog.catalogId, programRef: { code: program.code, version: program.version },
+    orientationCode, startedOn: startsOn, specializationRefs: [],
+    choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode) };
+  // The class register needs a catalog-backed cohort start. No timetable is created.
+  await tx`insert into public.point_plans(organizer_id,offering_id,version,catalog_id,basis_reference)
+    values (${organizerId},${offeringId},1,${catalog.catalogId},${tx.json(reference)})`;
+  await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
+    values (${classId},${customerId},${organizerId},${unitId},${offeringId},${label},2026),
+    (${nextClassId},${customerId},${organizerId},${unitId},${offeringId},${label + 'B'},2026)`;
+  return { unitId, offeringId, classId, nextClassId, programCode, orientationCode };
+}
 
 /** Ordinary register rows for national programmes without a timetable. The caller owns an isolated test DB. */
 export async function seedIndividualStudyPlanPupils(tx, { customerId, organizerId, schoolAId, schoolBId }) {
   assert.ok([customerId, organizerId, schoolAId, schoolBId].every(Boolean));
   assert.notEqual(schoolAId, schoolBId);
   await tx`insert into public.school_unit_types(unit_id,school_type) values (${schoolAId},'GY'),(${schoolBId},'GY') on conflict do nothing`;
-  const sa = { unitId: schoolAId, offeringId: randomUUID(), classId: randomUUID(), nextClassId: randomUUID(), programCode: 'SA25', orientationCode: 'SABEP' };
-  const bf = { unitId: schoolBId, offeringId: randomUUID(), classId: randomUUID(), nextClassId: randomUUID(), programCode: 'BF25', orientationCode: 'BFPES' };
-  for (const [row, label] of [[sa, 'SA26'], [bf, 'BF26']]) {
-    await tx`insert into public.offerings(id,organizer_id,unit_id,kind,name,cohort,program_code,orientation_code,start_year)
-      values (${row.offeringId},${organizerId},${row.unitId},'gymnasium',${`Syntetiskt ${row.programCode}`},${label},${row.programCode},${row.orientationCode},2026)`;
-    const program = catalog.programs.find(program => program.code === row.programCode);
-    const reference = { catalogId: catalog.catalogId, programRef: { code: program.code, version: program.version },
-      orientationCode: row.orientationCode, startedOn: startsOn, specializationRefs: [],
-      choiceBlocks: defaultProgramplanChoiceBlocks(program, row.orientationCode) };
-    // The class register needs its cohort start from a programplan. The class has no timetable link.
-    await tx`insert into public.point_plans(organizer_id,offering_id,version,catalog_id,basis_reference)
-      values (${organizerId},${row.offeringId},1,${catalog.catalogId},${tx.json(reference)})`;
-    await tx`insert into public.school_classes(id,customer_id,organizer_id,unit_id,offering_id,name,start_year)
-      values (${row.classId},${customerId},${organizerId},${row.unitId},${row.offeringId},${label},2026),
-      (${row.nextClassId},${customerId},${organizerId},${row.unitId},${row.offeringId},${label + 'B'},2026)`;
-  }
+  const sa = await seedNationalOffering(tx, { customerId, organizerId, unitId: schoolAId, programCode: 'SA25',
+    orientationCode: 'SABEP', label: 'SA26' });
+  const bf = await seedNationalOffering(tx, { customerId, organizerId, unitId: schoolBId, programCode: 'BF25',
+    orientationCode: 'BFPES', label: 'BF26' });
   const numbers = (await tx`select number from (
       select 'TEST-20100101-'||lpad(n::text,4,'0') number from generate_series(100,800) n
     ) synthetic where public.phase4_synthetic_birth_date(number) is not null
@@ -75,21 +84,68 @@ export async function seedIndividualStudyPlanPupils(tx, { customerId, organizerI
   return pupils;
 }
 
+function catalogCourse(itemCode, languageCode = null) {
+  const subject = catalog.subjects.find(row => row.typeOfSyllabus === 'GRADE_SUBJECT_SYLLABUS'
+    && row.schoolTypes.includes('GY') && row.items.some(item => item.code === itemCode));
+  assert.ok(subject, 'synthetic group course found in catalog');
+  return { subjectCode: subject.code, subjectVersion: subject.version, itemCode, languageCode,
+    points: subject.items.find(row => row.code === itemCode).points };
+}
+
 function firstDraft(basis, programCode, settings = {}) {
-  const subject = catalog.subjects.find(row => row.code === 'ENGE' && row.schoolTypes.includes('GY') && row.version === 1);
-  const level = subject.items.find(row => row.code === 'ENGE1000X');
   const attempt = () => ({ id: randomUUID(), plannedStart: null, plannedEnd: null, actual: { certainty: 'recorded', start: null, end: null } });
+  const level = (course, label) => ({ ...course, id: randomUUID(), kind: 'gy25_level', label, attempts: [attempt()] });
+  const optionalLanguages = programCode === 'SA25' ? [
+    level(catalogCourse('MODY1000X', 'es'), 'Spanska, nybörjare'),
+    level(catalogCourse('MODY1000X', 'de'), 'Tyska, nybörjare'),
+  ] : [];
   return parseStudyPlanContent({
     source: basis.source, path: { ...basis.path, apprenticeship: false },
     levels: [
-      { id: randomUUID(), kind: 'gy25_level', subjectCode: subject.code, subjectVersion: subject.version, itemCode: level.code,
-        label: 'Engelska, nivå 1', languageCode: null, points: level.points, attempts: [attempt()] },
+      level(catalogCourse('ENGE1000X'), 'Engelska, nivå 1'), ...optionalLanguages,
       { id: randomUUID(), kind: 'diploma_work', subjectCode: null, subjectVersion: null, itemCode: `GYAR${programCode.slice(0, 2)}25`,
         label: 'Gymnasiearbete', languageCode: null, points: 100, attempts: [attempt()] },
     ],
     choices: [], decisions: [], dialogue: null, sourceIssues: [], compulsorySchoolSubjects: [],
     distanceTeaching: { kind: 'none', minutes: null }, ...settings,
   });
+}
+
+/** Calls the existing group flow in a caller's isolated fixture transaction with an actor already set. */
+export async function studyPlanFixtureGroupCommand(tx, unitId, action, payload) {
+  const input = parseStudyGroupCommand({ contractVersion: STUDY_GROUP_CONTRACT_VERSION, commandId: randomUUID(),
+    unitId, schoolYear: 2026, action, payload });
+  const [{ result }] = await tx`select public.study_group_command(${tx.json(input)}) as result`;
+  return parseStudyGroupReply(result.result, input);
+}
+
+/** Parallel English groups and two languages with a shared level code. Uses only real group commands. */
+export async function seedStudyPlanImpactGroups(tx, pupil, { otherPupilId } = {}) {
+  const set = randomUUID(), groupStarts = '2026-08-17', groupEnds = '2027-06-15';
+  const group = (name, course, parallelSetId = randomUUID(), endsOn = groupEnds) => ({
+    id: randomUUID(), name, expectedRevision: 0, startsOn: groupStarts, endsOn, course,
+    minutesHt: 900, minutesVt: 900, parallelSetId, classIds: [pupil.classId, pupil.nextClassId].filter(Boolean), origin: { kind: 'manual' },
+  });
+  const groups = {
+    englishFrom: group('Syntetisk engelska A', catalogCourse('ENGE1000X'), set),
+    englishTo: group('Syntetisk engelska B', catalogCourse('ENGE1000X'), set, '2027-06-11'),
+    englishSame: group('Syntetisk engelska D', catalogCourse('ENGE1000X'), set),
+    englishOther: group('Syntetisk engelska C', catalogCourse('ENGE1000X')),
+    spanish: group('Syntetisk spanska', catalogCourse('MODY1000X', 'es')),
+    german: group('Syntetisk tyska', catalogCourse('MODY1000X', 'de')),
+    unknown: group('Syntetisk grupp utan ämne', null),
+  };
+  for (const item of Object.values(groups)) await studyPlanFixtureGroupCommand(tx, pupil.unitId, 'save_group', item);
+  async function addTo(item, id, startsOn, endsOn) {
+    const { receipt } = await studyPlanFixtureGroupCommand(tx, pupil.unitId, 'add_members', {
+      groupId: item.id, members: [{ pupilId: id, startsOn, endsOn, source: 'manual', sourceRef: null }],
+    });
+    return receipt.membershipIds[0];
+  }
+  const english = await addTo(groups.englishFrom, pupil.pupilId, '2027-01-18', '2027-06-14');
+  const spanish = await addTo(groups.spanish, pupil.pupilId, '2026-09-01', '2027-06-10');
+  const other = otherPupilId ? await addTo(groups.englishTo, otherPupilId, '2026-09-01', '2027-06-10') : null;
+  return { ...groups, memberships: { english, spanish, other } };
 }
 
 function unwrap(result, f, actor) {
@@ -154,6 +210,178 @@ function fileSource(name) {
   return readFileSync(new URL(`../../supabase/migrations/${name}`, import.meta.url), 'utf8');
 }
 
+async function seedComparisonDraft(tx, unitId) {
+  const hash = `sha256:${'a'.repeat(64)}`;
+  const document = {
+    documentVersion: 1, base: null, basisVillkor: null, workingVillkor: defaultSchemaVillkor(),
+    placements: [], locks: [], intentional: [], datedOverrides: [], activityTypes: [], control: null, requiresRecalculation: true,
+    source: { planId: null, planRevision: 0, calendarVersionId: null, calendarVersion: null, lessonSources: [], digest: hash },
+  };
+  const input = { contractVersion: 1, unitId, schoolYear: 2026, period: 'lasar', commandId: randomUUID(), draftId: null,
+    expectedRevision: 0, name: 'Syntetiskt schemautkast för studieplansjämförelse', requestHash: hash, document, sourceHash: hash };
+  const [{ value }] = await tx`select public.schema_command(${tx.json(input)}) as value`;
+  assert.equal(value.result.draft.revision, 1);
+}
+
+async function verifyComparisons({ db, f, read, sa, bf, check, logStage }) {
+  logStage('comparison fixture');
+  const alternative = await db.begin(tx => seedNationalOffering(tx, { customerId: f.id(1), organizerId: f.id(2), unitId: sa.unitId,
+    programCode: 'BF25', orientationCode: 'BFPES', label: 'SPBF26' }));
+  const group = await db.begin(async tx => {
+    await setActor(tx, f, 'principalA');
+    const groups = await seedStudyPlanImpactGroups(tx, sa, { otherPupilId: f.pupils.inGroup2 });
+    await seedComparisonDraft(tx, sa.unitId);
+    return groups;
+  });
+  const foreign = await db.begin(async tx => {
+    await setActor(tx, f, 'principalB');
+    return seedStudyPlanImpactGroups(tx, bf);
+  });
+  const before = await tableHashes(db, comparisonTables);
+  assert.ok(before.schema_draft_revisions.n > 0 && before.study_group_history.n > 0 && before.individual_study_plan_revisions.n > 0);
+  const compareOn = '2027-02-15';
+  const compare = async (target, on = compareOn, actor = 'principalA', pupil = sa) => {
+    const reply = (await read(actor, pupil, { view: 'impact', on, target })).result;
+    assert.deepEqual(reply.target, target, 'projection echoes dated target');
+    assert.equal(reply.on, on);
+    return reply;
+  };
+  const compared = async (...args) => {
+    const reply = await compare(...args);
+    assert.equal(reply.status, 'compared', 'comparison available');
+    return reply.impact;
+  };
+  const original = (await read('principalA', sa, { on: compareOn })).result.current;
+  const plannedEnglish = original.content.levels.find(item => item.itemCode === 'ENGE1000X');
+  const checkPlan = impact => assert.deepEqual(impact.plan, { planId: original.planId, revision: original.revision });
+
+  logStage('dated class comparison and scoped options');
+  const options = (await read('principalA', sa, { view: 'options', on: compareOn })).result;
+  assert.equal(options.status, 'available');
+  assert.ok(options.options.some(option => option.kind === 'class' && option.classId === sa.nextClassId));
+  assert.ok(options.options.some(option => option.kind === 'class' && option.classId === alternative.classId));
+  assert.ok(options.options.some(option => option.kind === 'group' && option.groupId === group.englishTo.id));
+  assert.ok(options.options.some(option => option.kind === 'membership' && option.membershipId === group.memberships.english));
+  for (const item of options.options) {
+    assert.notEqual(item.classId, bf.classId, 'no target class from another school');
+    assert.notEqual(item.groupId, foreign.englishTo.id, 'no target group from another school');
+    assert.notEqual(item.membershipId, group.memberships.other, 'no other pupil membership');
+  }
+  const sameClass = await compared({ kind: 'class_move', classId: sa.nextClassId });
+  checkPlan(sameClass);
+  assert.equal(sameClass.result, 'same_level');
+  assert.equal(sameClass.sources.classId, sa.classId);
+  assert.equal(sameClass.sources.classMembershipId, sa.membershipId);
+  assert.equal(sameClass.sources.offeringId, sa.offeringId);
+  assert.equal(sameClass.sources.targetOfferingId, sa.offeringId);
+  const differentClass = await compared({ kind: 'class_move', classId: alternative.classId });
+  checkPlan(differentClass);
+  assert.equal(differentClass.result, 'review_education');
+  assert.equal(differentClass.sources.offeringId, sa.offeringId);
+  assert.equal(differentClass.sources.targetOfferingId, alternative.offeringId);
+  assert.equal(original.content.path.programCode, 'SA25');
+  check('Daterad klassjämförelse läser befintlig utbildning. Annat erbjudande visas för granskning inom samma skola.');
+
+  logStage('inclusive parallel dates and source revisions');
+  const move = { kind: 'group_move', membershipId: group.memberships.english, toGroupId: group.englishSame.id };
+  const same = await compared(move);
+  checkPlan(same);
+  assert.equal(same.result, 'same_level');
+  assert.equal(same.comparedOn, compareOn);
+  const sameRow = same.levels.find(row => row.levelId === plannedEnglish.id);
+  assert.equal(sameRow.change, 'same_level');
+  assert.equal(sameRow.before.groupId, group.englishFrom.id);
+  assert.deepEqual([sameRow.before.startsOn, sameRow.before.endsOn], ['2027-01-18', '2027-06-14']);
+  assert.equal(sameRow.after.groupId, group.englishSame.id);
+  assert.deepEqual([sameRow.after.startsOn, sameRow.after.endsOn], [compareOn, '2027-06-14']);
+  assert.ok(same.sources.groups.some(row => row.membershipId === group.memberships.english && row.revision === 1));
+  assert.ok(same.sources.groups.some(row => row.groupId === group.englishSame.id && row.revision === 1));
+  assert.equal(same.sourceRemainder.endsOn, '2027-02-14');
+  const truncated = await compared({ ...move, toGroupId: group.englishTo.id });
+  const truncatedRow = truncated.levels.find(row => row.levelId === plannedEnglish.id);
+  assert.equal(truncated.result, 'follow_up');
+  assert.equal(truncatedRow.change, 'same_level');
+  assert.equal(truncatedRow.after.endsOn, '2027-06-11');
+  assert.ok(truncated.issues.some(issue => issue.code === 'planned_period_review'));
+  check('Direkt parallellbyte visar vald källrelation, gruppversion, sista källdag och klippt målperiod.');
+
+  const early = await compared(move, '2027-01-13');
+  assert.equal(early.comparedOn, '2027-01-18');
+  assert.equal(early.sourceRemainder, null);
+  assert.equal(early.levels.find(row => row.levelId === plannedEnglish.id).after.startsOn, '2027-01-18');
+  const oldRevision = (await read('principalA', sa, { on: '2026-11-20' })).result.current;
+  const oldDate = await compared({ kind: 'class_move', classId: sa.nextClassId }, '2026-11-20');
+  assert.deepEqual(oldDate.plan, { planId: original.planId, revision: oldRevision.revision });
+  assert.notEqual(oldRevision.revision, original.revision);
+  check('Begärt tidigt byte drar tillbaka tidigare planerad start. Jämförelsedatum väljer rätt gällande studieplansrevision.');
+
+  logStage('group addition, end, separate language, missing source and school boundary');
+  const add = await compared({ kind: 'group_add', groupId: group.german.id, startsOn: compareOn, endsOn: '2027-04-28' });
+  const addedRow = add.levels.find(row => row.ref.languageCode === 'de');
+  assert.equal(addedRow.after.groupId, group.german.id);
+  assert.deepEqual([addedRow.after.startsOn, addedRow.after.endsOn], [compareOn, '2027-04-28']);
+  assert.equal(addedRow.before, null);
+  const end = await compared({ kind: 'group_end', membershipId: group.memberships.spanish });
+  assert.equal(end.result, 'follow_up');
+  const endedRow = end.levels.find(row => row.ref.languageCode === 'es');
+  assert.equal(endedRow.change, 'missing_group');
+  assert.equal(endedRow.before.endsOn, '2027-06-10');
+  assert.equal(endedRow.after.groupId, group.spanish.id);
+  assert.equal(endedRow.after.endsOn, compareOn, 'last day remains included');
+  const outsideStudyPeriod = await compared({ kind: 'group_end', membershipId: group.memberships.english });
+  assert.equal(outsideStudyPeriod.result, 'same_level', 'no missing group when the planned level starts later');
+  check('Grupptillägg visar valt slutdatum. Avslut behåller sista närvarodagen och synliggör fortsatt uppföljning.');
+
+  const otherSet = await compared({ ...move, toGroupId: group.englishOther.id });
+  assert.equal(otherSet.result, 'follow_up');
+  assert.ok(otherSet.issues.some(issue => issue.code === 'different_parallel_set'));
+  const languages = await compared({ kind: 'group_move', membershipId: group.memberships.spanish, toGroupId: group.german.id });
+  assert.equal(languages.result, 'follow_up');
+  assert.ok(languages.issues.some(issue => issue.code === 'different_parallel_set'));
+  const languageRows = languages.levels.filter(row => row.ref.itemCode === 'MODY1000X');
+  assert.deepEqual(languageRows.map(row => row.ref.languageCode).sort(), ['de', 'es']);
+  assert.notEqual(languageRows[0].levelId, languageRows[1].levelId);
+  check('Annat parallellblock kan granskas. Spanska och tyska med gemensam nivåkod förblir separata planrader.');
+
+  const noCourse = await compared({ kind: 'group_add', groupId: group.unknown.id, startsOn: compareOn, endsOn: '2027-04-28' });
+  assert.equal(noCourse.result, 'unknown');
+  assert.ok(noCourse.issues.some(issue => issue.code === 'group_course_missing'));
+  const beforePlan = await compared({ kind: 'class_move', classId: sa.nextClassId }, '2026-08-25');
+  assert.equal(beforePlan.plan, null);
+  assert.equal(beforePlan.result, 'unknown');
+  for (const target of [{ kind: 'class_move', classId: bf.classId },
+    { ...move, toGroupId: foreign.englishTo.id },
+    { kind: 'group_end', membershipId: group.memberships.other }]) {
+    const response = await compare(target);
+    assert.equal(response.status, 'unavailable');
+    assert.equal(response.impact, null);
+  }
+  await denied(() => compare(move, compareOn, 'principalB'));
+  await denied(() => read('principalB', sa, { view: 'options', on: compareOn }));
+  check('Okänd nivåkälla eller saknad gällande plan visas som sådana. Främmande mål och andra elevers medlemskap ger inget underlag.');
+
+  logStage('comparison fingerprints and ordinary group command parity');
+  assert.deepEqual(await tableHashes(db, comparisonTables), before);
+  const unchanged = (await read('principalA', sa, { on: compareOn })).result.current;
+  assert.deepEqual(unchanged, original, 'planned and actual dates preserved');
+  check('Skrivskyddad jämförelse bevarar sparade studieplaner, grupp- och klasskällor, tjänstefördelning samt ett faktiskt sparat schemautkast.');
+
+  const rollback = new Error('synthetic comparison command parity rollback');
+  await assert.rejects(() => db.begin(async tx => {
+    await setActor(tx, f, 'principalA');
+    const moveResult = await studyPlanFixtureGroupCommand(tx, sa.unitId, 'move_member', {
+      membershipId: group.memberships.english, toGroupId: group.englishTo.id, on: compareOn,
+    });
+    const actual = moveResult.read.memberships.find(row => row.id === moveResult.receipt.membershipIds[0]);
+    const previous = moveResult.read.memberships.find(row => row.id === group.memberships.english);
+    assert.deepEqual([actual.startsOn, actual.endsOn], [truncatedRow.after.startsOn, truncatedRow.after.endsOn]);
+    assert.equal(previous.endsOn, same.sourceRemainder.endsOn);
+    throw rollback;
+  }), error => error === rollback);
+  assert.deepEqual(await tableHashes(db, comparisonTables), before);
+  check('Ordinarie gruppkommando i återställd provtransaktion bekräftar tidigare förhandsvisade gränsdagar och slutdatum.');
+}
+
 export async function verifyIndividualStudyPlanSql(out) {
   const report = { kind: 'ephemeral-individual-study-plan-sql', status: 'FAIL', checks: [], startedAt: new Date().toISOString() };
   const check = name => { report.checks.push({ name, status: 'PASS' }); console.log(`PASS ${name}`); };
@@ -162,6 +390,7 @@ export async function verifyIndividualStudyPlanSql(out) {
   try {
     const migrations = migrationFiles().filter(name => name.includes('_individual_study_plan'));
     assert.ok(migrations.includes('20261120110000_individual_study_plans.sql'), 'expected SP-02 migration present');
+    assert.ok(migrations.includes('20261120111000_individual_study_plan_impact.sql'), 'expected SP-05 migration present');
     environment = await createEphemeralMigratedDb({ exclude: migrations });
     report.database = environment.provenance;
     report.migrations = migrations.map(name => ({ name, sha256: createHash('sha256').update(fileSource(name)).digest('hex') }));
@@ -415,6 +644,8 @@ export async function verifyIndividualStudyPlanSql(out) {
     });
     assert.deepEqual(await tableHashes(db, businessTableNames), businessBaseline);
     check('Studieplanskommandon och gruppläsning bevarar elev-, klass-, val-, grupp-, timplans-, tjänste- och schemadata.');
+
+    await verifyComparisons({ db, f, read, sa, bf, check, logStage: description => { stage = description; } });
 
     stage = 'ordinary class change';
     const beforeClassChange = await tableHashes(db, ownTableNames);

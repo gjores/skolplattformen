@@ -87,9 +87,13 @@ export type StudyPlanImpact = {
   comparedOn: string; plan: { planId: string; revision: number } | null;
   result: 'same_level' | 'follow_up' | 'review_education' | 'unknown';
   issues: StudyPlanIssue[];
+  sourceRemainder?: ImpactParticipation | null;
   sources: {
     classId: string | null; classMembershipId: string | null; offeringId: string;
     targetOfferingId: string | null; groups: ImpactSourceGroup[];
+    className?: string | null; targetClassName?: string | null;
+    classStartsOn?: string | null; classEndsOn?: string | null;
+    pupilVersion?: number; offeringRevision?: number; targetOfferingRevision?: number | null;
   };
   levels: ImpactLevel[];
 };
@@ -305,14 +309,15 @@ function parseImpactLevel(value: unknown): ImpactLevel {
     before: studyPlanNullable(r.before, parseParticipation), after: studyPlanNullable(r.after, parseParticipation) };
 }
 function parseImpact(value: unknown, on: string, target: StudyPlanImpactTarget): StudyPlanImpact {
-  const r = studyPlanFields(value, ['comparedOn', 'plan', 'result', 'issues', 'sources', 'levels']);
+  const r = studyPlanFields(value, ['comparedOn', 'plan', 'result', 'issues', 'sources', 'levels'], ['sourceRemainder']);
   const comparedOn = studyPlanDate(r.comparedOn);
   if (target.kind === 'group_move' ? comparedOn < on : comparedOn !== on) invalidStudyPlan();
   const plan = studyPlanNullable(r.plan, value => {
     const p = studyPlanFields(value, ['planId', 'revision']);
     return { planId: studyPlanUuid(p.planId), revision: studyPlanInt(p.revision) };
   });
-  const s = studyPlanFields(r.sources, ['classId', 'classMembershipId', 'offeringId', 'targetOfferingId', 'groups']);
+  const s = studyPlanFields(r.sources, ['classId', 'classMembershipId', 'offeringId', 'targetOfferingId', 'groups'],
+    ['className', 'targetClassName', 'classStartsOn', 'classEndsOn', 'pupilVersion', 'offeringRevision', 'targetOfferingRevision']);
   const groups = studyPlanList(s.groups, value => {
     const g = studyPlanFields(value, ['groupId', 'revision', 'membershipId', 'startsOn', 'endsOn']);
     return { groupId: studyPlanUuid(g.groupId), revision: studyPlanInt(g.revision), membershipId: studyPlanNullable(g.membershipId, studyPlanUuid), ...period(g.startsOn, g.endsOn) };
@@ -320,11 +325,27 @@ function parseImpact(value: unknown, on: string, target: StudyPlanImpactTarget):
   const sourceMembership = target.kind === 'group_end' || target.kind === 'group_move'
     ? groups.find(item => item.membershipId === target.membershipId) : undefined;
   if (comparedOn !== on && sourceMembership?.startsOn !== comparedOn) invalidStudyPlan();
+  const remainder = Object.hasOwn(r, 'sourceRemainder') ? studyPlanNullable(r.sourceRemainder, parseParticipation) : undefined;
+  if (remainder !== undefined && (target.kind !== 'group_move' || !sourceMembership ||
+    (remainder === null ? comparedOn !== sourceMembership.startsOn
+      : remainder.groupId !== sourceMembership.groupId || remainder.startsOn !== sourceMembership.startsOn
+        || Date.parse(comparedOn + 'T00:00:00Z') - Date.parse(remainder.endsOn + 'T00:00:00Z') !== 86400000))) invalidStudyPlan();
+  const classStartsOn = Object.hasOwn(s, 'classStartsOn') ? studyPlanNullable(s.classStartsOn, studyPlanDate) : undefined;
+  const classEndsOn = Object.hasOwn(s, 'classEndsOn') ? studyPlanNullable(s.classEndsOn, studyPlanDate) : undefined;
+  if (classStartsOn && classEndsOn && classStartsOn > classEndsOn) invalidStudyPlan();
   return {
     comparedOn, plan, result: studyPlanEnum(r.result, ['same_level', 'follow_up', 'review_education', 'unknown']),
     issues: studyPlanList(r.issues, parseStudyPlanIssue),
+    ...(remainder !== undefined ? { sourceRemainder: remainder } : {}),
     sources: { classId: studyPlanNullable(s.classId, studyPlanUuid), classMembershipId: studyPlanNullable(s.classMembershipId, studyPlanUuid),
-      offeringId: studyPlanUuid(s.offeringId), targetOfferingId: studyPlanNullable(s.targetOfferingId, studyPlanUuid), groups },
+      offeringId: studyPlanUuid(s.offeringId), targetOfferingId: studyPlanNullable(s.targetOfferingId, studyPlanUuid), groups,
+      ...(Object.hasOwn(s, 'className') ? { className: studyPlanNullable(s.className, studyPlanLabel) } : {}),
+      ...(Object.hasOwn(s, 'targetClassName') ? { targetClassName: studyPlanNullable(s.targetClassName, studyPlanLabel) } : {}),
+      ...(classStartsOn !== undefined ? { classStartsOn } : {}),
+      ...(classEndsOn !== undefined ? { classEndsOn } : {}),
+      ...(Object.hasOwn(s, 'pupilVersion') ? { pupilVersion: studyPlanInt(s.pupilVersion) } : {}),
+      ...(Object.hasOwn(s, 'offeringRevision') ? { offeringRevision: studyPlanInt(s.offeringRevision, 0) } : {}),
+      ...(Object.hasOwn(s, 'targetOfferingRevision') ? { targetOfferingRevision: studyPlanNullable(s.targetOfferingRevision, x => studyPlanInt(x, 0)) } : {}) },
     levels: studyPlanList(r.levels, parseImpactLevel),
   };
 }

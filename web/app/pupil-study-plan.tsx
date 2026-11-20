@@ -14,6 +14,7 @@ import {
   type PlannedStudyDate, type StudyPlanIssue, type StudyPlanLevel, type StudyPlanSnapshot,
 } from '@/lib/study-plan-model.ts';
 import MfaStepUpNotice from './mfa-step-up';
+import PupilStudyPlanImpact from './pupil-study-plan-impact';
 import { StudyPlanActualForm, StudyPlanDecisionForm, StudyPlanEditor } from './pupil-study-plan-fields';
 
 type Props = {
@@ -28,6 +29,7 @@ type Props = {
   educationName: string;
   returnTo: string;
   onSessionLost: () => void;
+  onOpenClassChange?: () => void;
 };
 
 type ActionInput = StudyPlanCommand extends infer Command
@@ -430,6 +432,9 @@ export default function PupilStudyPlan(props: Props) {
           </ul>
         </section>}
       </div>}
+      <PupilStudyPlanImpact key={(read.current?.planId ?? 'ingen') + '/' + (read.current?.revision ?? 0)} scope={scope}
+        initialOn={initialOn} placementStartsOn={props.placementStartsOn} placementEndsOn={props.placementEndsOn}
+        onSessionLost={onSessionLost} onOpenClassChange={props.onOpenClassChange} />
       <AlertDialog open={confirm} onOpenChange={setConfirm}>
         <AlertDialogContent className="pupil-register-dialog" initialFocus={cancel} finalFocus={() => publishButton.current ?? title.current}>
           <AlertDialogHeader><AlertDialogTitle>Gör studieplanen gällande</AlertDialogTitle>

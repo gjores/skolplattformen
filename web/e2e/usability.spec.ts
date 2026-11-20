@@ -1,7 +1,7 @@
 // Component evidence with synthetic responses. No IdP, database or actual mandates are tested here.
 import { test, expect, type Page } from '@playwright/test';
 import { parsePlanningList, parsePlanningOverview, type PlanningSelection, type PlanningRow } from '../lib/planning-year-contract';
-import { mockStudyPlan, studyPreviewListPupils, studyPreviewPupils } from './fixtures/study-plan-preview';
+import { mockStudyPlan, studyImpactPreview, studyPreviewListPupils, studyPreviewPupils } from './fixtures/study-plan-preview';
 
 const id = (n: number) => `77101200-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const schools = [{ id: id(2), name: 'Exempelskolan Nord' }, { id: id(3), name: 'Exempelskolan Syd' }];
@@ -519,7 +519,10 @@ async function openStudyPlan(page: Page, pupil: typeof studyPreviewPupils.sa) {
   if (pupil.unitId !== schools[0].id) {
     const school = page.getByRole('combobox', { name: 'Skola', exact: true });
     await expect(school).toBeEnabled();
-    if (await school.inputValue() !== pupil.unitId) await school.selectOption(pupil.unitId);
+    if (await school.inputValue() !== pupil.unitId) {
+      await school.selectOption(pupil.unitId);
+      await expect(page.getByRole('heading', { name: /Elever läsåret/u })).toBeFocused();
+    }
   }
   const openPupil = page.getByRole('button', { name: `${pupil.displayName}, öppna elevkortet` });
   await openPupil.press('Enter');
@@ -749,5 +752,72 @@ test('Studieplan ber om omläsning när en annan redigering hunnit spara', async
   await page.getByRole('button', { name: 'Visa utkast', exact: true }).click();
   await expect(page.getByText('Version 2', { exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Ändra studieplan', exact: true })).toBeEnabled();
+  verify();
+});
+
+test('Studieplan jämför daterade klass- och gruppändringar utan att skriva till planen', async ({ page }, info) => {
+  test.setTimeout(60_000);
+  const verify = await mockApp(page, 'rektor', true);
+  const pupil = studyPreviewPupils.sa;
+  const fixture = await mockStudyPlan(page, { pupil, readRole: () => 'rektor', initial: 'published', impact: true });
+  const original = structuredClone(fixture.snapshots[0]);
+  const { currentMembership, parallelGroup, differentGroup, otherEducationClass } = studyImpactPreview;
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, pupil);
+  const panel = page.getByRole('region', { name: `Studieplan för ${pupil.unitName}`, exact: true });
+  await expect(panel.getByText('Avslutad', { exact: true })).toBeVisible();
+  await panel.getByRole('button', { name: 'Jämför förändring', exact: true }).press('Enter');
+  const date = panel.getByLabel('Jämförelsedatum', { exact: true });
+  await date.fill('2026-10-12');
+  const options = panel.getByRole('button', { name: 'Hämta alternativ', exact: true });
+  await options.press('Enter');
+  const change = panel.getByRole('combobox', { name: 'Typ av förändring', exact: true });
+  await change.selectOption('group_move');
+  await panel.getByRole('combobox', { name: 'Medlemskap', exact: true }).selectOption(currentMembership.membershipId);
+  const target = panel.getByRole('combobox', { name: 'Målgrupp', exact: true });
+  await target.selectOption(parallelGroup.groupId);
+  const compare = panel.getByRole('button', { name: 'Visa jämförelse', exact: true });
+  await compare.press('Enter');
+  const same = panel.getByText('Samma nivå', { exact: true }).first();
+  await expect(same).toBeVisible();
+  await expect(panel.getByText(/Engelska grupp A.*2026-10-11|2026-10-11/u).first()).toBeVisible();
+  await expect(panel.getByText(/Engelska grupp B.*2026-10-12/u).first()).toBeVisible();
+  await expect(panel.getByText(/studieplan.*version 1/iu).first()).toBeVisible();
+  await fits(page);
+  await panel.locator('section').filter({ has: page.getByRole('heading', { name: 'Klass- och gruppändringar', exact: true }) })
+    .screenshot({ path: info.outputPath('studieplan-gruppbyte.png') });
+
+  await target.selectOption(differentGroup.groupId);
+  await expect(same).toHaveCount(0);
+  await compare.click();
+  const followUp = panel.getByText('Behöver följas upp', { exact: true }).first();
+  await expect(followUp).toBeVisible();
+  await expect(panel.getByText(/Moderna språk.*Spanska/u).first()).toBeVisible();
+  await expect(panel.getByText(/Ändringen behöver hanteras separat i gruppflödet/u)).toBeVisible();
+
+  await date.fill('2026-10-14');
+  await expect(followUp).toHaveCount(0);
+  await options.click();
+  await change.selectOption('class_move');
+  await panel.getByRole('combobox', { name: 'Målklass', exact: true }).selectOption(otherEducationClass.classId);
+  await compare.click();
+  await expect(panel.getByText('Utbildningen behöver granskas', { exact: true }).first()).toBeVisible();
+  await expect(panel.getByText(pupil.className!, { exact: true })).toBeVisible();
+  await expect(panel.getByText(otherEducationClass.name, { exact: true }).last()).toBeVisible();
+  expect(fixture.comparisonReads.flatMap(read => read.view === 'impact' ? [{ on: read.on, target: read.target }] : [])).toEqual([
+    { on: '2026-10-12', target: { kind: 'group_move', membershipId: currentMembership.membershipId, toGroupId: parallelGroup.groupId } },
+    { on: '2026-10-12', target: { kind: 'group_move', membershipId: currentMembership.membershipId, toGroupId: differentGroup.groupId } },
+    { on: '2026-10-14', target: { kind: 'class_move', classId: otherEducationClass.classId } },
+  ]);
+
+  await page.reload();
+  await openStudyPlan(page, pupil);
+  await expect(panel.getByText('Avslutad', { exact: true })).toBeVisible();
+  await expect(panel.getByText(/^2026-08-19/u)).toBeVisible();
+  await expect(panel.getByText(/^2026-10-06/u)).toBeVisible();
+  await expect(panel.getByText('Utbildningen behöver granskas', { exact: true })).toHaveCount(0);
+  expect(fixture.commands).toHaveLength(0);
+  expect(fixture.snapshots).toEqual([original]);
+  await fits(page);
   verify();
 });

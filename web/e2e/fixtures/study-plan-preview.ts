@@ -1,9 +1,9 @@
 // Stateful preview responses live in the Playwright process and survive a browser reload.
 import { expect, type Page } from '@playwright/test';
 import {
-  parseStudyPlanCommand, parseStudyPlanReadRequest, parseStudyPlanStatusRequest,
-  STUDY_PLAN_CONTRACT_VERSION, type StudyPlanCommand, type StudyPlanCurrentReply, type StudyPlanReceipt,
-  type StudyPlanScope,
+  parseStudyPlanCommand, parseStudyPlanReadReply, parseStudyPlanReadRequest, parseStudyPlanStatusRequest,
+  STUDY_PLAN_CONTRACT_VERSION, type StudyPlanCommand, type StudyPlanCurrentReply, type StudyPlanImpact,
+  type StudyPlanImpactOption, type StudyPlanReadRequest, type StudyPlanReceipt, type StudyPlanScope,
 } from '../../lib/study-plan-contract.ts';
 import { studyPlanAt, studyPlanContentIssues, type StudyPlanContent, type StudyPlanSnapshot } from '../../lib/study-plan-model.ts';
 import type { PupilCard, PupilListItem } from '../../lib/pupil-register-model.ts';
@@ -32,6 +32,55 @@ function scopeOf(pupil: FixturePupil): StudyPlanScope {
 }
 
 const levelName = 'Engelska · Nivå 1';
+const course = { subjectCode: 'ENGE', subjectVersion: 1, itemCode: 'ENGE1000X', languageCode: null };
+const groupPeriod = { startsOn: '2026-08-17', endsOn: '2026-12-18' };
+const currentGroup = { groupId: id(490), name: 'Engelska grupp A', revision: 2, parallelSetId: id(494), course, ...groupPeriod };
+const parallelGroup = { ...currentGroup, groupId: id(491), name: 'Engelska grupp B', revision: 3 };
+const differentGroup = { ...currentGroup, groupId: id(492), name: 'Spanska grupp C', revision: 1, parallelSetId: id(495),
+  course: { subjectCode: 'MODY', subjectVersion: 1, itemCode: 'MODY1000X', languageCode: 'es' } };
+const currentMembership = { ...currentGroup, membershipId: id(493), groupStartsOn: groupPeriod.startsOn, groupEndsOn: groupPeriod.endsOn };
+const otherEducationClass = { classId: id(496), name: 'BF26N', offeringId: id(497) };
+export const studyImpactPreview = { currentMembership, parallelGroup, differentGroup, otherEducationClass };
+
+const impactOptions: StudyPlanImpactOption[] = [
+  { kind: 'class', classId: otherEducationClass.classId, name: otherEducationClass.name },
+  { kind: 'group', ...parallelGroup }, { kind: 'group', ...differentGroup },
+  { kind: 'membership', ...currentMembership },
+];
+
+function previewImpact(pupil: FixturePupil, plan: StudyPlanSnapshot, { on, target }: Extract<StudyPlanReadRequest, { view: 'impact' }>): StudyPlanImpact {
+  const { groupId, name, startsOn, endsOn } = currentMembership;
+  const before = { groupId, name, startsOn, endsOn };
+  const base: Omit<StudyPlanImpact, 'result'> = {
+    comparedOn: on, plan: { planId: plan.planId, revision: plan.revision }, issues: [], levels: [],
+    sources: { classId: pupil.classId, classMembershipId: id(405), className: pupil.className,
+      offeringId: pupil.educationId, targetOfferingId: null,
+      groups: [{ groupId, revision: currentMembership.revision, startsOn, endsOn, membershipId: currentMembership.membershipId }] },
+  };
+  if (target.kind === 'class_move') {
+    expect(target.classId).toBe(otherEducationClass.classId);
+    return { ...base, result: 'review_education', issues: [{ code: 'target_offering_changed', field: 'path' }],
+      sources: { ...base.sources, targetOfferingId: otherEducationClass.offeringId, targetClassName: otherEducationClass.name } };
+  }
+  if (target.kind !== 'group_move') throw new Error('Unexpected comparison target in the study plan fixture');
+  expect(target.membershipId).toBe(currentMembership.membershipId);
+  const proposed = [parallelGroup, differentGroup].find(group => group.groupId === target.toGroupId);
+  if (!proposed) throw new Error('Unexpected comparison group in the study plan fixture');
+  base.sources.groups.push({ groupId: proposed.groupId, revision: proposed.revision, startsOn: proposed.startsOn,
+    endsOn: proposed.endsOn, membershipId: null });
+  const levelId = plan.content.levels[0].id;
+  if (proposed.parallelSetId !== currentMembership.parallelSetId) {
+    return { ...base, result: 'follow_up', issues: [{ code: 'different_parallel_set', field: 'group' }],
+      levels: [{ levelId, ref: course, label: levelName, change: 'needs_review', before, after: null },
+      { levelId: null, ref: proposed.course, label: 'Moderna språk · Spanska', change: 'new_level', before: null,
+        after: { groupId: proposed.groupId, name: proposed.name, startsOn: on, endsOn: proposed.endsOn } }] };
+  }
+  const previousDay = new Date(Date.parse(on) - 86_400_000).toISOString().slice(0, 10);
+  return { ...base, result: 'same_level', sourceRemainder: { ...before, endsOn: previousDay },
+    levels: [{ levelId, ref: course, label: levelName, change: 'same_level', before,
+    after: { groupId: proposed.groupId, name: proposed.name, startsOn: on, endsOn: proposed.endsOn } }] };
+}
+
 function contentFor(pupil: FixturePupil): StudyPlanContent {
   return {
     path: { regime: 'national_gy25', programCode: pupil.programCode, orientationCode: pupil.orientationCode,
@@ -50,12 +99,13 @@ function contentFor(pupil: FixturePupil): StudyPlanContent {
   };
 }
 
-export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; readRole: () => Role; initial?: 'published' }) {
+export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; readRole: () => Role; initial?: 'published'; impact?: boolean }) {
   const { pupil, readRole } = options;
   const scope = scopeOf(pupil), planId = id(pupil.programCode === 'SA25' ? 420 : 421);
   const headers = { 'X-Context-Epoch': '1', 'Cache-Control': 'no-store' };
   const snapshots: StudyPlanSnapshot[] = [];
   const commands: StudyPlanCommand[] = [];
+  const comparisonReads: Extract<StudyPlanReadRequest, { view: 'options' | 'impact' }>[] = [];
   const receipts = new Map<string, { command: StudyPlanCommand; receipt: StudyPlanReceipt }>();
   let calendar: StudyPlanCurrentReply['calendar'] = [];
   let allowed = true, forceConflict = false, holdNext: Promise<void> | null = null;
@@ -72,6 +122,7 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
     attempt.plannedStart = { kind: 'day', date: '2026-08-17' };
     attempt.plannedEnd = { kind: 'day', date: '2026-10-01' };
     attempt.actual.start = { on: '2026-08-19', source: { kind: 'school_record', id: id(480) } };
+    if (options.impact) attempt.actual.end = { kind: 'completed', on: '2026-10-06', source: { kind: 'school_record', id: id(481) } };
     save(content, '2026-09-01');
   }
 
@@ -97,7 +148,15 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
       const latest = snapshots.at(-1) ?? null, current = studyPlanAt(snapshots, read.on);
       if (read.view === 'history') return route.fulfill({ json: { ...scope, view: read.view, on: read.on,
         version: read.revision === undefined ? current : snapshots.find(r => r.revision === read.revision) ?? null, history: history() }, headers });
-      if (read.view === 'options') return route.fulfill({ json: { ...scope, view: read.view, on: read.on, status: 'unavailable', options: [] }, headers });
+      if (read.view === 'options' || read.view === 'impact') {
+        comparisonReads.push(read);
+        const result = read.view === 'options'
+          ? { ...read, status: options.impact ? 'available' : 'unavailable', options: options.impact ? impactOptions : [] }
+          : options.impact && current
+            ? { ...read, status: 'compared', impact: previewImpact(pupil, current, read) }
+            : { ...read, status: 'unavailable', impact: null };
+        return route.fulfill({ json: parseStudyPlanReadReply(result, read), headers });
+      }
       expect(read.view).toBe('current');
       const result: StudyPlanCurrentReply = { ...scope, on: read.on, view: 'current',
         current, draft: latest?.state === 'draft' ? latest : null, history: history(), latestRevision: latest?.revision ?? 0,
@@ -176,7 +235,7 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
   });
 
   return {
-    planId, levelName, snapshots, commands,
+    planId, levelName, snapshots, commands, comparisonReads,
     addCalendar() {
       calendar = [{ schoolYear: 2028, htStart: '2028-08-21', htEnd: '2028-12-22', vtStart: '2029-01-10', vtEnd: '2029-06-13' }];
     },

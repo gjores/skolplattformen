@@ -3,12 +3,12 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-01 till SP-04 verifierade. Nästa genomförandeplan för individuell studieplan är SP-05."
+current_plan: "SP-01 till SP-05 verifierade i domän, SQL och webbläsarfixtur. Nästa plan är SP-06 med skyddat inloggat prov."
 status: in_progress
-stopped_at: "Studieplan på elevkortet verifierad på dator och telefon med syntetiska API-svar."
+stopped_at: "Daterad klass- och gruppjämförelse kontrollerad i isolerad SQL och webbläsarfixtur."
 last_updated: "2026-11-21"
 last_activity: 2026-11-21
-last_activity_desc: "SP-04 passerade åtta webbläsarprov med datumkomplettering, historik, behörighet och reducering."
+last_activity_desc: "SP-05 passerade 25 isolerade SQL-prov och tio studieplansprov på dator och i telefonprofil."
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8

@@ -73,6 +73,14 @@ Rektor kan använda **Registrera beslut** för att föra in ett redan fattat bes
 
 Studiehändelser och beslut sparas i ett utkast till en ny version. Gå igenom ändringen med eleven inför att rektor gör versionen gällande. Om svaret på ett sparande uteblir väljer du **Kontrollera sparandet**. Om uppgifterna har ändrats sedan du öppnade studieplanen väljer du **Hämta aktuell version**.
 
+#### Förhandsgranska en klass- eller gruppändring
+
+Välj **Jämför förändring** i studieplanen. Ange **Jämförelsedatum** och välj **Hämta alternativ**. Välj vilken klass eller grupp eleven föreslås byta till, vilken grupp eleven föreslås börja i eller vilket gruppmedlemskap som ska avslutas. Vid gruppbyte är jämförelsedatumet den önskade första dagen i den nya gruppen. När eleven föreslås börja i en grupp fyller du även i **Sista dag i gruppen**. Vid avslut är jämförelsedatumet elevens sista dag i gruppen.
+
+Välj **Visa jämförelse**. Jämförelsen visar vilken version av studieplanen den utgår från och vilka nivåer som berörs. För gruppmedlemskap visas datum före och efter den föreslagna ändringen. **Samma nivå** visar att nivån är densamma vid bytet. **Behöver följas upp** visar att till exempel grupp, ämnesnivå eller språk behöver kontrolleras. Om målklassen hör till en annan utbildning visas **Utbildningen behöver granskas**.
+
+Jämförelsen är ett läsunderlag. Genomför och bekräfta ändringen under **Byt klass** på elevkortet eller i **Undervisningsgrupper**, enligt ditt uppdrag.
+
 ### Exportera ett elevurval
 
 Välj **Exportera urval…** när du uttryckligen behöver en fil. Välj markerade elever eller alla elever i det aktuella urvalet, och välj vilka uppgifter som ska tas med. Personnummer följer bara med om du särskilt markerar **Ta med personnummer**. Servern prövar urvalet och uppgifterna igen innan filen lämnas ut. Exporten kräver extra verifiering när ett aktuellt bevis saknas och registreras i säkerhetsloggen. En markering i listan laddar inte ned någon fil.
