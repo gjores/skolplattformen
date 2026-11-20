@@ -1,5 +1,5 @@
 import type { NationellProvbokning } from './nationella-prov.ts';
-import type { SchemaCheck, SchemaForslag, SchemaPlacement, SchemaProblem, SchemaRegel } from './schema-contract.ts';
+import type { SchemaCheck, SchemaDatedDay, SchemaForslag, SchemaPlacement, SchemaProblem, SchemaRegel } from './schema-contract.ts';
 import { SchemaDatumError, schemaDatumNyckel, schemaDatumTermTillaten, type SchemaDatumAndring, type SchemaDatumTillfalle } from './schema-datum.ts';
 import { schemaDatumTillganglighet, schemaDatumUnderlag, type SchemaDatedBasis, type SchemaDatumDagUnderlag } from './schema-datum-underlag.ts';
 import type { SchemaSal } from './schema-salregister.ts';
@@ -37,14 +37,16 @@ type MotorPass = SchemaProblem['lessons'][number];
 type DatumPass = { pass: MotorPass; tillfalle: SchemaDatumTillfalle; elever: ReadonlySet<string> };
 type Prov = { bokning: NationellProvbokning; status: Bokning; elever: ReadonlySet<string>; dag?: SchemaDatumDagUnderlag };
 type Bortfall = DatumPass & { ref: string; flyttbar: boolean };
+type Ersattningssokning = { pass: Bortfall; dagar: SchemaDatedDay[]; salar: (string | null)[]; datumIndex: number; provadeStarter: Set<number>; klar: boolean };
+type Ersattningskandidat = { flytt: SchemaDatumAndring; problem: SchemaProblem; placeringar: SchemaPlacement[] };
 type Part = keyof NonNullable<MotorPass['margin']>;
 type Tid = Pick<Bokning, 'startMin' | 'slutMin'>;
 
 const EMPTY = new Set<string>();
-const MAX_MOTORANROP = 24;
+const MAX_MOTORANROP = 48;
 const MAX_MOTORANROP_PER_DATUM = 3;
 const MAX_DATUM_PER_PASS = 12;
-const SOKTID_MS = 3500;
+const SOKTID_MS = 5000;
 
 function overlap(a: Tid, b: Tid, gap = 0) {
   return a.startMin < b.slutMin + gap && b.startMin < a.slutMin + gap;
@@ -199,21 +201,33 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
   }
 
   const ersattningar: SchemaDatumAndring[] = [], ersatt = new Set<string>();
-  const sluttid = Date.now() + SOKTID_MS;
-  let motoranrop = 0;
-  for (const { pass, tillfalle, elever: tidigareElever, flyttbar } of bortfall.values()) {
-    if (!flyttbar || !tidigareElever.size || motoranrop >= MAX_MOTORANROP || Date.now() > sluttid) continue;
+  const sokningar: Ersattningssokning[] = [];
+  for (const pass of bortfall.values()) {
+    if (!pass.flyttbar || !pass.elever.size) continue;
+    const tillfalle = pass.tillfalle;
     const ursprung = tillfalle.lesson;
-    const sokdagar = skoldagar.filter(dag => dag.date >= tillfalle.date && (!tidigasteErsattning || dag.date >= tidigasteErsattning)
+    const dagar = skoldagar.filter(dag => dag.date >= tillfalle.date && (!tidigasteErsattning || dag.date >= tidigasteErsattning)
       && (dag.term === tillfalle.term || underlag.villkor.timeBasis === 'lasar' && ursprung.term === null)
       && ursprung.classIds.every(id => schemaDagStatus(dag, id).schoolDay)).slice(0, MAX_DATUM_PER_PASS);
-    const salval = [...new Set([ursprung.roomId, ...ursprung.roomIds])].filter(id => id !== null || ursprung.roomIds.length === 0);
+    const salar = [...new Set([ursprung.roomId, ...ursprung.roomIds])].filter(id => id !== null || ursprung.roomIds.length === 0);
+    sokningar.push({ pass, dagar, salar, datumIndex: 0, provadeStarter: new Set(), klar: false });
+  }
+  const sluttid = Date.now() + SOKTID_MS;
+  function nastaKandidat(sokning: Ersattningssokning): Ersattningskandidat | null {
+    const { pass, tillfalle, elever: tidigareElever } = sokning.pass;
+    const ursprung = tillfalle.lesson;
     const historik = [...prep.datedOverrides, ...ersattningar];
-    for (const dag of sokdagar) {
-      if (ersatt.has(tillfalle.key) || motoranrop >= MAX_MOTORANROP || Date.now() > sluttid) break;
+    for (let i = sokning.datumIndex; i < sokning.dagar.length && Date.now() <= sluttid; i++) {
+      if (i !== sokning.datumIndex) {
+        sokning.datumIndex = i;
+        sokning.provadeStarter.clear();
+      }
+      const provade = sokning.provadeStarter;
+      if (provade.size >= MAX_MOTORANROP_PER_DATUM) continue;
+      const dag = sokning.dagar[i];
       const vecka = schemaWeekday(dag.date), ramar = underlag.problem.time.days[vecka];
       if (!ramar) continue;
-      const preliminar = { lesson: ursprung.id, originalDate: tillfalle.originalDate, date: dag.date, startMin: ramar.start_min, room: salval[0] ?? null, durationMin: tillfalle.length };
+      const preliminar = { lesson: ursprung.id, originalDate: tillfalle.originalDate, date: dag.date, startMin: ramar.start_min, room: sokning.salar[0] ?? null, durationMin: tillfalle.length };
       let datumbild: SchemaDatumDagUnderlag | undefined;
       try {
         const kandidat = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, [...historik, preliminar], [], true);
@@ -247,20 +261,39 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
           || room !== null && [tentamen.bokning.salId, tentamen.status.sal?.id ?? null].some(id => id !== null && salnummer.get(id) === room)
             && passKrock(start, eget.pass, 'rooms', tentamen.status, 0));
       };
-      const motoranropVidStart = motoranrop;
-      for (let startMin = Math.ceil(ramar.start_min / steg) * steg; startMin + pass.duration_min <= ramar.end_min && !ersatt.has(tillfalle.key); startMin += steg) {
-        for (const room of salval) {
-          if (motoranrop >= MAX_MOTORANROP || motoranrop - motoranropVidStart >= MAX_MOTORANROP_PER_DATUM || Date.now() > sluttid) break;
-          if (!tidslucka(startMin, room)) continue;
-          const placeringar = datumbild.placements.map(p => p.lesson === eget.pass.id ? { ...p, startMin, room } : p);
-          motoranrop++;
-          if ((await validate(datumbild.problem, placeringar)).violations.length) continue;
-          ersattningar.push({ ...preliminar, startMin, room });
-          ersatt.add(tillfalle.key);
-          break;
-        }
-        if (motoranrop >= MAX_MOTORANROP || motoranrop - motoranropVidStart >= MAX_MOTORANROP_PER_DATUM || Date.now() > sluttid) break;
+      const starter: number[] = [];
+      for (let start = Math.ceil(ramar.start_min / steg) * steg; start + pass.duration_min <= ramar.end_min; start += steg) starter.push(start);
+      // Pröva olika delar av dagen. Näraliggande starttider leder ofta till samma regelutfall.
+      if (provade.size === 1) starter.reverse();
+      if (provade.size === 2) starter.sort((a, b) => Math.abs(a - ursprung.startMin!) - Math.abs(b - ursprung.startMin!));
+      for (const startMin of starter) {
+        if (Date.now() > sluttid) return null;
+        if (provade.has(startMin)) continue;
+        const room = sokning.salar.find(sal => tidslucka(startMin, sal));
+        if (room === undefined) continue;
+        provade.add(startMin);
+        const placeringar = datumbild.placements.map(p => p.lesson === eget.pass.id ? { ...p, startMin, room } : p);
+        return { flytt: { ...preliminar, startMin, room }, problem: datumbild.problem, placeringar };
       }
+    }
+    return null;
+  }
+
+  // Varje öppet tillfälle får en kandidat per omgång. Ett svårplacerat pass använder därför inte de andras första chans.
+  let motoranrop = 0, provadeNagon = true;
+  while (provadeNagon && motoranrop < MAX_MOTORANROP && Date.now() <= sluttid) {
+    provadeNagon = false;
+    for (const sokning of sokningar) {
+      if (motoranrop >= MAX_MOTORANROP || Date.now() > sluttid) break;
+      if (sokning.klar) continue;
+      const kandidat = nastaKandidat(sokning);
+      if (!kandidat) { sokning.klar = true; continue; }
+      provadeNagon = true;
+      motoranrop++;
+      if ((await validate(kandidat.problem, kandidat.placeringar)).violations.length) continue;
+      ersattningar.push(kandidat.flytt);
+      ersatt.add(sokning.pass.tillfalle.key);
+      sokning.klar = true;
     }
   }
   const undervisning = new Map<string, SchemaProvBerakningResultat['bortfall'][number]>();

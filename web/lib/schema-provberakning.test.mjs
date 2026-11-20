@@ -95,9 +95,38 @@ test('senare ersättning kräver samma elever och en godkänd motorkontroll inom
     assert.ok(placements.length > 0);
     return { ...godkant, violations: [{ code: 'syntetiskt_hinder' }] };
   } }));
-  assert.ok(calls > 1 && calls <= 24);
+  assert.ok(calls > 1 && calls <= 48);
   assert.equal(stillInClass.ersattningar.length, 0);
   assert.equal(stillInClass.bortfall[0].kvarMin, noLongerInClass.bortfall[0].kvarMin);
+});
+
+test('ett svårplacerat tillfälle får inte använda söktiden för de övriga', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.classMemberships.splice(1, 1);
+  fixture.datedBasis.classMemberships[0].endsOn = null;
+  fixture.datedBasis.placements.push({ id: id(91), pupilId: id(81), startsOn: '2026-07-01', endsOn: null });
+  fixture.datedBasis.classMemberships.push({ placementId: id(91), pupilId: id(81), classId: id(11), startsOn: '2026-07-01', endsOn: null });
+  const second = prov(102, { mal: { slag: 'klass', ref: id(11) } });
+  const calls = [];
+  const data = input(fixture, { bokningar: [prov(101), second], validate: async (problem, placements) => {
+    const date = problem.id.slice('datum-'.length);
+    const math = new Set(problem.lessons.filter(lesson => lesson.teachers.some(teacher => fixture.underlag.teacherRefs[teacher] === id(20))).map(lesson => lesson.id));
+    const attempted = placements.find(placement => math.has(placement.lesson) && (placement.day !== 0 || placement.startMin !== 480));
+    calls.push({ date, subject: attempted ? 'Matematik' : 'Historia', start: attempted?.startMin });
+    return attempted ? { ...godkant, violations: [{ code: 'syntetiskt_hinder' }] } : godkant;
+  } });
+  const result = await schemaProvBerakning(data);
+  assert.deepEqual(calls.slice(0, 2).map(call => call.subject), ['Matematik', 'Historia']);
+  const mathStartsOnExamDate = calls.filter(call => call.date === dag && call.subject === 'Matematik').map(call => call.start);
+  assert.equal(mathStartsOnExamDate.length, 3);
+  assert.ok(mathStartsOnExamDate[1] - mathStartsOnExamDate[0] > 60);
+  assert.equal(result.ersattningar.length, 1);
+  assert.equal(result.ersattningar[0].lesson, fixture.of('Historia').id);
+  assert.ok(result.bortfall.find(row => row.title.startsWith('Matematik')).kvarMin > 0);
+  assert.equal(result.bortfall.find(row => row.title.startsWith('Historia')).kvarMin, 0);
+  const firstRun = calls.splice(0);
+  assert.deepEqual(await schemaProvBerakning(data), result);
+  assert.deepEqual(calls, firstRun);
 });
 
 test('ersättningspasset godkänns av fristående Rustmotorn med faktiskt datumproblem', { skip: process.env.SCHEMA_PROV_ENGINE !== '1' }, async () => {
