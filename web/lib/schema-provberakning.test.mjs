@@ -5,6 +5,7 @@ import { schemaDatumOriginal } from './schema-datum.ts';
 import { datumFixture, datumId as id } from './schema-datum-fixture.mjs';
 import { schemaProvBerakning } from './schema-provberakning.ts';
 import { motorProblem } from './schema-utan-sal.ts';
+import { schemaWeekday } from './schema-vecka.ts';
 
 const dag = '2026-11-02';
 const prov = (num, extra = {}) => ({ id: id(num), namn: 'Nationellt prov', undervisning: `undervisning:class_timplan:${id(10)}:2026:prov`,
@@ -166,6 +167,36 @@ test('ett svårplacerat tillfälle får inte använda söktiden för de övriga'
   const firstRun = calls.splice(0);
   assert.deepEqual(await schemaProvBerakning(data), result);
   assert.deepEqual(calls, firstRun);
+});
+
+test('många prov får var sin sökomgång även när de första 48 försöken att ersätta tid misslyckas', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.classMemberships[0].endsOn = null;
+  fixture.datedBasis.classMemberships.splice(1);
+  const dagar = fixture.f.time.calendar.days.filter(d => d.schoolDay && d.term === 'ht' && schemaWeekday(d.date) === 0).slice(0, 16);
+  assert.equal(dagar.length, 16);
+  const provdagar = new Set(dagar.map(d => `datum-${d.date}`));
+  let forsok = 0;
+  const result = await schemaProvBerakning(input(fixture, {
+    bokningar: dagar.map((d, i) => prov(101 + i, { datum: d.date })),
+    vakter: [20, 21, 22].map(n => vakt(n, '2026-08-17')),
+    validate: async problem => {
+      forsok++;
+      return provdagar.has(problem.id) ? { ...godkant, violations: [{ code: 'syntetiskt_hinder' }] } : godkant;
+    },
+  }));
+  assert.ok(forsok > 48);
+  assert.equal(result.ersattningar.length, dagar.length);
+  assert.equal(result.bortfall[0].kvarMin, 0);
+});
+
+test('ersättningspass följer startrutnätet räknat från skoldagens start', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.underlag.problem.time.days[0].start_min = 485;
+  fixture.underlag.problem.time.start_grid_min = 10;
+  const result = await schemaProvBerakning(input(fixture, { bokningar: [prov(101, { startMin: 485, slutMin: 545 })] }));
+  assert.equal(result.ersattningar[0].date, dag);
+  assert.equal((result.ersattningar[0].startMin - 485) % 10, 0);
 });
 
 test('ersättningspasset godkänns av fristående Rustmotorn med faktiskt datumproblem', { skip: process.env.SCHEMA_PROV_ENGINE !== '1' }, async () => {

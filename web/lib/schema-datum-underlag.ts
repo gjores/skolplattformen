@@ -85,12 +85,13 @@ export function schemaDatumTillganglighet(rules: TimeRule[], day: number): Schem
   return spans.map(([start_min, end_min]) => ({ day, start_min, end_min }));
 }
 
-/** Bevarar den årsbyggda passidentiteten. Vid jämförelser mellan datum kan servern dessutom be om gruppens faktiska deltagare. */
+/** Bevarar den årsbyggda passidentiteten. Ett begränsat datumurval ritar färre dagar men kontrollerar fortfarande alla ändringar. */
 export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: SchemaForslag, basis: SchemaDatedBasis,
-  overrides: SchemaDatumAndring[], extraDates: string[] = [], behallDeltagare = false): SchemaDatumUnderlag {
+  overrides: SchemaDatumAndring[], extraDates: string[] = [], behallDeltagare = false, urval: 'allaAndringar' | 'valdaDatum' = 'allaAndringar'): SchemaDatumUnderlag {
   if (basis.unitId !== f.unitId || basis.schoolYear !== f.schoolYear || !basis.complete) fail('schema_datum_participants_unavailable');
   if (!f.time.calendar) fail('schema_datum_calendar_missing');
-  const datedOverrides = kontrolleraSchemaDatum(f, overrides), dates = unique([...extraDates.map(schemaDatumDate), ...datedOverrides.flatMap(a => [a.originalDate, a.date])]).sort();
+  const datedOverrides = kontrolleraSchemaDatum(f, overrides);
+  const dates = unique([...extraDates.map(schemaDatumDate), ...(urval === 'allaAndringar' ? datedOverrides.flatMap(a => [a.originalDate, a.date]) : [])]).sort();
   if (dates.length > 366) fail('schema_datum_invalid');
   const { sources, byLesson } = datumSources(plan, u), classIds = new Set(plan.classes.map(c => c.classId)), planGroups = plan.groups ?? [];
   const groupBasis = new Map(basis.groups.map(g => [g.id, g]));

@@ -47,10 +47,12 @@ type Tid = Pick<Bokning, 'startMin' | 'slutMin'>;
 
 const EMPTY = new Set<string>();
 const MAX_SALSTEG_PER_DAG = 5000;
-const MAX_MOTORANROP = 48;
+const MIN_MOTORBUDGET = 48;
+const MAX_MOTORBUDGET = 192;
+const MOTORANROP_PER_BORTFALL = 8;
 const MAX_MOTORANROP_PER_DATUM = 3;
-const MAX_DATUM_PER_PASS = 12;
-const SOKTID_MS = 5000;
+const MAX_DATUM_PER_PASS = 25;
+const SOKTID_MS = 10_000;
 
 function overlap(a: Tid, b: Tid, gap = 0) {
   return a.startMin < b.slutMin + gap && b.startMin < a.slutMin + gap;
@@ -149,7 +151,7 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
   const skoldagar = kalender.days.filter(dag => dag.schoolDay && schemaDatumTermTillaten(forslag.period, dag.term) && schemaWeekday(dag.date) < 5);
   const skoldagsdatum = new Set(skoldagar.map(dag => dag.date));
   const prep = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, datedOverrides,
-    forPeriod.filter(b => skoldagsdatum.has(b.datum)).map(b => b.datum), true);
+    forPeriod.filter(b => skoldagsdatum.has(b.datum)).map(b => b.datum), true, 'valdaDatum');
   const dagar = new Map(prep.days.map(dag => [dag.date, dag]));
   const refs = new Map(prep.sources.map(kalla => [kalla.lesson, kalla.ref]));
   const undervisningar = new Map(forslag.teachings.map(undervisning => [undervisning.ref, undervisning]));
@@ -263,12 +265,12 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     const salar = [...new Set([ursprung.roomId, ...ursprung.roomIds])].filter(id => id !== null || ursprung.roomIds.length === 0);
     sokningar.push({ pass, dagar, salar, datumIndex: 0, provadeStarter: new Set(), klar: false });
   }
-  const sluttid = Date.now() + SOKTID_MS;
+  const sluttid = performance.now() + SOKTID_MS;
   function nastaKandidat(sokning: Ersattningssokning): Ersattningskandidat | null {
     const { pass, tillfalle, elever: tidigareElever } = sokning.pass;
     const ursprung = tillfalle.lesson;
     const historik = [...prep.datedOverrides, ...ersattningar];
-    for (let i = sokning.datumIndex; i < sokning.dagar.length && Date.now() <= sluttid; i++) {
+    for (let i = sokning.datumIndex; i < sokning.dagar.length && performance.now() <= sluttid; i++) {
       if (i !== sokning.datumIndex) {
         sokning.datumIndex = i;
         sokning.provadeStarter.clear();
@@ -281,9 +283,9 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
       const preliminar = { lesson: ursprung.id, originalDate: tillfalle.originalDate, date: dag.date, startMin: ramar.start_min, room: sokning.salar[0] ?? null, durationMin: tillfalle.length };
       let datumbild: SchemaDatumDagUnderlag | undefined;
       try {
-        const kandidat = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, [...historik, preliminar], [], true);
+        const kandidat = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, [...historik, preliminar], [dag.date], true, 'valdaDatum');
         if (kandidat.violations.length) continue;
-        datumbild = kandidat.days.find(d => d.date === dag.date);
+        [datumbild] = kandidat.days;
       } catch (error) {
         if (error instanceof SchemaDatumError && error.reason === 'schema_datum_date_invalid') continue;
         throw error;
@@ -298,6 +300,11 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
       const gap = datumbild.problem.rules.break_min, steg = datumbild.problem.time.start_grid_min;
       const tidslucka = (start: number, room: string | null) => {
         const tid = passTid(start, eget.pass);
+        const delar: Part[] = ['students', 'teachers', ...(room === null ? [] : ['rooms'] as const)];
+        if (delar.some(part => {
+          const medMarginal = passTid(start, eget.pass, part);
+          return medMarginal.startMin < ramar.start_min || medMarginal.slutMin > ramar.end_min;
+        })) return false;
         if (eget.pass.allowed && !eget.pass.allowed.some(f => f.day === vecka && f.start_min <= tid.startMin && f.end_min >= tid.slutMin)) return false;
         if (room !== null && eget.pass.rooms && !salLedig(datumbild.problem, datumbild.placements, eget.pass.id, room, vecka, start)) return false;
         return !andra.some(p => {
@@ -313,12 +320,12 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
             && passKrock(start, eget.pass, 'rooms', tentamen.status, 0));
       };
       const starter: number[] = [];
-      for (let start = Math.ceil(ramar.start_min / steg) * steg; start + pass.duration_min <= ramar.end_min; start += steg) starter.push(start);
+      for (let start = ramar.start_min; start + pass.duration_min <= ramar.end_min; start += steg) starter.push(start);
       // Pröva olika delar av dagen. Näraliggande starttider leder ofta till samma regelutfall.
       if (provade.size === 1) starter.reverse();
       if (provade.size === 2) starter.sort((a, b) => Math.abs(a - ursprung.startMin!) - Math.abs(b - ursprung.startMin!));
       for (const startMin of starter) {
-        if (Date.now() > sluttid) return null;
+        if (performance.now() > sluttid) return null;
         if (provade.has(startMin)) continue;
         const room = sokning.salar.find(sal => tidslucka(startMin, sal));
         if (room === undefined) continue;
@@ -331,11 +338,12 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
   }
 
   // Varje öppet tillfälle får en kandidat per omgång. Ett svårplacerat pass använder därför inte de andras första chans.
+  const motorbudget = Math.min(MAX_MOTORBUDGET, Math.max(MIN_MOTORBUDGET, sokningar.length * MOTORANROP_PER_BORTFALL));
   let motoranrop = 0, provadeNagon = true;
-  while (provadeNagon && motoranrop < MAX_MOTORANROP && Date.now() <= sluttid) {
+  while (provadeNagon && motoranrop < motorbudget && performance.now() <= sluttid) {
     provadeNagon = false;
     for (const sokning of sokningar) {
-      if (motoranrop >= MAX_MOTORANROP || Date.now() > sluttid) break;
+      if (motoranrop >= motorbudget || performance.now() > sluttid) break;
       if (sokning.klar) continue;
       const kandidat = nastaKandidat(sokning);
       if (!kandidat) { sokning.klar = true; continue; }
