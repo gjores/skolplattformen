@@ -117,7 +117,7 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
     <div className="flex flex-wrap items-center justify-between gap-3">
       <div className="min-w-0 space-y-1">
         <h2 id={heading} className="font-semibold">Provförslag</h2>
-        <p className="text-sm text-muted-foreground">Se förslag på salar, provvakter och tider som kan ersätta undervisning som faller bort.</p>
+        <p className="text-sm text-muted-foreground">Ta fram förslag på salar, provvakter och ersättningstid. När förslaget sparas flyttas undervisningen som krockar med proven i det här schemautkastet.</p>
       </div>
       <div className="flex flex-wrap gap-2">
         <Button ref={raknaKnapp} type="button" variant="outline" disabled={!request || disabled || applying || lage.fas === 'laddar'} onClick={() => void rakna()}>Ta fram provförslag</Button>
@@ -130,7 +130,14 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
     {lage.fas === 'fel' && <p role="alert" className="text-sm text-destructive">{lage.text}</p>}
     {applyError && <p role="alert" className="text-sm text-destructive">{applyError}</p>}
     {svar && (svar.bokningar.length === 0 ? <output className="block text-sm text-muted-foreground">Inga provbokningar finns i den valda perioden.</output> : <>
-      <output className="status-badge">Förslag · ej sparat</output>
+      <div className="space-y-2 border-b border-border pb-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <output className="status-badge">Förslag · ej sparat</output>
+          {onApply && <Button type="button" disabled={!komplett || !canApply || disabled || applying} onClick={() => void tillampa()}>{applying ? 'Sparar provförslaget…' : 'Lägg in provförslaget'}</Button>}
+        </div>
+        {onApply && (!komplett ? <p className="text-sm text-muted-foreground">Se över återstående resurser, krockar och undervisningstid före sparandet.</p>
+          : !canApply ? <p className="text-sm text-muted-foreground">Spara det aktuella schemautkastet innan du lägger in provförslaget.</p> : null)}
+      </div>
       {!personalLookup && <p className="text-sm text-muted-foreground">Förslag på provvakter visas för rektor, som kan läsa aktuella skoluppdrag.</p>}
       <Table aria-label="Förslag på provresurser">
         <TableHeader><TableRow>
@@ -183,11 +190,6 @@ function ProvforslagInnehall({ request, disabled, personalLookup = false, onSess
             {onOpen && <Button type="button" variant="outline" onClick={() => onOpen(flytt.lesson, flytt.originalDate)} aria-label={`Visa tillfället för ${titel} ${schemaDateText(flytt.originalDate)}`}>Visa tillfället</Button>}
           </li>;
         })}</ul>
-      </div>}
-      {onApply && <div className="space-y-2 border-t border-border pt-3">
-        <Button type="button" disabled={!komplett || !canApply || disabled || applying} onClick={() => void tillampa()}>{applying ? 'Sparar provförslaget…' : 'Lägg in provförslaget'}</Button>
-        {!komplett ? <p className="text-sm text-muted-foreground">Lös återstående resurser, krockar och undervisningstid före sparandet.</p>
-          : !canApply ? <p className="text-sm text-muted-foreground">Spara det aktuella schemautkastet innan du lägger in provförslaget.</p> : null}
       </div>}
     </>)}
   </section>;

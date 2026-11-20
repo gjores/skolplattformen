@@ -53,6 +53,45 @@ test('samtidiga prov för olika elever delar inte sal eller vakt och respekterar
   assert.ok(result.bortfall.every(r => r.kvarMin === 0));
 });
 
+test('två samtidiga prov använder salarna från respektive klass flyttade undervisning', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.placements.push({ id: id(91), pupilId: id(81), startsOn: '2026-07-01', endsOn: null });
+  fixture.datedBasis.classMemberships.push({ placementId: id(91), pupilId: id(81), classId: id(11), startsOn: '2026-07-01', endsOn: null });
+  const second = prov(102, { mal: { slag: 'klass', ref: id(11) } });
+  const data = input(fixture, { bokningar: [second, prov(101)] });
+  const result = await schemaProvBerakning(data);
+  assert.deepEqual(result.bokningar.map(b => [b.id, b.sal?.id, b.problem]), [
+    [id(101), 'sal-7', []], [id(102), 'sal-6', []],
+  ]);
+  assert.ok(result.bortfall.every(r => r.kvarMin === 0));
+  assert.deepEqual(await schemaProvBerakning({ ...data, bokningar: [...data.bokningar].reverse(), salar: [...data.salar].reverse() }), result);
+});
+
+test('överlappande prov delar upp salarna även när ett tidigare prov behöver välja bort sin frigjorda sal', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.placements.push(...[81, 82].map((pupil, i) => ({ id: id(91 + i), pupilId: id(pupil), startsOn: '2026-07-01', endsOn: null })));
+  fixture.datedBasis.classMemberships.push({ placementId: id(91), pupilId: id(81), classId: id(11), startsOn: '2026-07-01', endsOn: null });
+  fixture.datedBasis.memberships[0].pupilId = id(82);
+  fixture.underlag.villkor.egna.push(
+    { slag: 'sal', ref: 'Provsal B', typ: 'tillaten', days: [0], startMin: 480, endMin: 540 },
+    { slag: 'sal', ref: 'Ledig sal', typ: 'tillaten', days: [0], startMin: 510, endMin: 570 },
+  );
+  const bokningar = [prov(101), prov(102, { mal: { slag: 'klass', ref: id(11) }, startMin: 510, slutMin: 570 }),
+    prov(103, { mal: { slag: 'grupp', ref: id(40) }, startMin: 510, slutMin: 570 })];
+  const result = await schemaProvBerakning(input(fixture, { bokningar, salar: [sal(7, 'Provsal A', 20), ...salregister.slice(1)] }));
+  assert.equal(result.bokningar[0].sal.id, 'sal-6');
+  assert.deepEqual(new Set(result.bokningar.slice(1).map(b => b.sal?.id)), new Set(['sal-7', 'sal-5']));
+  assert.ok(result.bokningar.every(b => b.problem.length === 0));
+});
+
+test('ett flyttat pass utan sal frigör ingen sal och provet får en ledig sal med kontrollerad kapacitet', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.of('Matematik').roomId = null;
+  const result = await schemaProvBerakning(input(fixture));
+  assert.deepEqual(result.bokningar[0].sal, { id: 'sal-5', name: 'Ledig sal' });
+  assert.equal(result.bortfall[0].kvarMin, 0);
+});
+
 test('provkrock med gemensam elev flaggas och samma bortfall summeras bara en gång', async () => {
   const fixture = datumFixture({ year: true });
   const group = prov(102, { mal: { slag: 'grupp', ref: id(40) } });

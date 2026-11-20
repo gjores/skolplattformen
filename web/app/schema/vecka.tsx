@@ -182,7 +182,7 @@ export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flag
             if ('prov' in post) {
               const p = post.prov;
               const tid = `${clock(p.startMin)}–${clock(p.slutMin)}`;
-              return <li key={post.id} data-prov={p.id} className="schema-lesson schema-prov"
+              return <li key={post.id} data-prov={p.id} tabIndex={-1} className="schema-lesson schema-prov"
                 style={{ ...at(p.startMin, p.slutMin, start), '--lane': place.lane, '--lanes': place.lanes } as CSSProperties}
                 title={['Nationellt prov', p.namn, tid, p.detail].filter(Boolean).join(' · ')}>
                 <time>{tid}</time><span>Nationellt prov</span><strong>{p.namn}</strong>{p.detail && <span>{p.detail}</span>}

@@ -13,6 +13,7 @@ import { schemaDatumOriginal, type SchemaDatumRequest } from '../lib/schema-datu
 import { schemaSparinnehall } from '../lib/schema-spara.ts';
 import { parseSchemaProvApplyRequest, schemaProvResultHash, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '../lib/schema-provforslag.ts';
 import { samlingResurser, type SamlingResurs } from '../lib/schema-samling.ts';
+import type { NationellProvbokning, NationellaProvUnderlag } from '../lib/nationella-prov.ts';
 
 const url = '/e2e/fixtures/schema-preview.html';
 const headers = { 'X-Context-Epoch': '1' };
@@ -52,20 +53,31 @@ async function start(page: Page, proposal = base, violationsFor: (request: Schem
   return controlRequests;
 }
 
-test('Granska förhandsvisar prov och sparar först ett komplett, bekräftat förslag', async ({ page, schemaDraftServer }) => {
+test('Bokningen leder till provförslaget och bekräftat sparande uppdaterar provdagen', async ({ page, schemaDraftServer }) => {
   const originalDate = '2026-11-06', date = '2026-11-13';
-  const occurrence = base.lessons.flatMap(l => schemaDatumOriginal(base, { lesson: l.id, originalDate }) ?? []).find(o => !o.lesson.egenAktivitet)!;
+  const klass = base.resurser.klass[1], klassId = base.classes.find(c => c.name === klass.name)!.id;
+  const occurrence = base.lessons.filter(l => l.classIds.includes(klassId) && l.startMin !== null && l.startMin >= 540 && l.startMin < 660)
+    .flatMap(l => schemaDatumOriginal(base, { lesson: l.id, originalDate }) ?? []).find(o => !o.lesson.egenAktivitet)!;
+  const sal = { id: 'sal-1', name: 'Provsalen' }, vakt = { ref: '52a10000-0000-4000-8000-000000000091', name: 'Provlärare Ada' };
+  const undervisning = { ref: 'undervisning:test', title: occurrence.lesson.title };
+  const bokning: NationellProvbokning = { id: '52a10000-0000-4000-8000-000000000090', namn: 'Läsförståelse', datum: originalDate,
+    startMin: 540, slutMin: 660, undervisning: undervisning.ref, mal: { slag: 'klass', ref: klass.ref }, tidsval: 'fast', salId: null,
+    vakter: [], kontrolleradDatum: '2026-10-19' };
+  const underlag: NationellaProvUnderlag = { gallerGymnasiet: true, deltagare: [{ ...klass, slag: 'klass', undervisningar: [undervisning] }],
+    salar: [sal], vakter: [vakt], skoldagar: [originalDate] };
   const calls: SchemaDatumRequest[] = [];
   const applyCalls: SchemaProvApplyRequest[] = [];
+  let provrevision = 2;
+  await page.route('**/api/lasar/nationella-prov/lasa', route => route.fulfill({ headers, json: { ...route.request().postDataJSON(),
+    register: { revision: provrevision, savedAt: '2026-10-19T08:00:00.000Z', document: { granskad: true, bokningar: [bokning] } }, underlag } }));
   let full = false, result: SchemaProvforslagSvar | undefined;
   await page.route('**/api/schema/provforslag', route => {
     const request = route.request().postDataJSON() as SchemaDatumRequest;
     calls.push(request);
     const { contractVersion, unitId, schoolYear, period, grundFingerprint } = request;
-    result = { contractVersion, unitId, schoolYear, period, grundFingerprint, provrevision: 2,
-      bokningar: [{ id: '52a10000-0000-4000-8000-000000000090', namn: 'Läsförståelse', datum: originalDate, startMin: 540, slutMin: 660,
-        deltagarnamn: 'Klass 2', deltagare: 24, sal: { id: 'sal-1', name: 'Provsalen' },
-        vakter: [{ ref: '52a10000-0000-4000-8000-000000000091', name: 'Provlärare Ada' }], problem: [] }],
+    result = { contractVersion, unitId, schoolYear, period, grundFingerprint, provrevision,
+      bokningar: [{ id: bokning.id, namn: bokning.namn, datum: originalDate, startMin: 540, slutMin: 660,
+        deltagarnamn: klass.name, deltagare: 24, sal, vakter: [vakt], problem: [] }],
       bortfall: [{ ref: 'undervisning:test', title: `${occurrence.lesson.title} · Klass 2`, bortfallMin: occurrence.length,
         ersattMin: full ? occurrence.length : 0, kvarMin: full ? 0 : occurrence.length }],
       ersattningar: full ? [{ lesson: occurrence.lesson.id, originalDate, date, startMin: 900, room: null, durationMin: occurrence.length }] : [],
@@ -75,24 +87,42 @@ test('Granska förhandsvisar prov och sparar först ett komplett, bekräftat fö
   await page.route('**/api/schema/provforslag/tillampa', async route => {
     const command = parseSchemaProvApplyRequest(route.request().postDataJSON());
     applyCalls.push(command);
-    const { contractVersion, unitId, schoolYear, period, commandId, expectedRevision, provrevision } = command;
+    const { contractVersion, unitId, schoolYear, period, commandId, expectedRevision } = command;
     const key = `${unitId}:${schoolYear}:${period}`, old = schemaDraftServer.drafts.get(key)!;
     expect(command.resultHash).toBe(await schemaProvResultHash(result!));
     expect(expectedRevision).toBe(old.revision);
+    expect(command.provrevision).toBe(provrevision);
     const { draft } = await schemaTestDraft({ ...schemaSparinnehall(old), contractVersion: 1, unitId, schoolYear, period, commandId,
       draftId: old.id, expectedRevision, datedOverrides: result!.ersattningar }, old.base!, old.control, old);
     schemaDraftServer.drafts.set(key, draft);
-    return route.fulfill({ headers, json: { contractVersion, unitId, schoolYear, period, commandId, draftId: draft.id, revision: draft.revision, provrevision: provrevision + 1 } });
+    provrevision++; bokning.salId = sal.id; bokning.vakter = [vakt.ref];
+    return route.fulfill({ headers, json: { contractVersion, unitId, schoolYear, period, commandId, draftId: draft.id, revision: draft.revision, provrevision } });
   });
   await start(page, base, undefined, '/e2e/fixtures/schema-personal-preview.html');
   const saved = structuredClone(schemaDraftServer.saves);
-  await vyval(page).getByRole('button', { name: 'Granska', exact: true }).click();
+  const bokningar = page.locator('details').filter({ has: page.locator('summary').filter({ hasText: 'Bokade nationella prov' }) });
+  const granskaProv = page.getByRole('region', { name: 'Provgranskning', exact: true });
+  await bokningar.locator('summary').click();
+  await bokningar.getByRole('button', { name: 'Öppna provförslag', exact: true }).click();
+  await expect(granskaProv).toBeFocused();
+  await vyval(page).getByRole('button', { name: 'Lägg schema', exact: true }).click();
+  await bokningar.locator('summary').click();
+  await bokningar.getByRole('button', { name: /^Visa provdagen för Klass 2/u }).click();
+  const provkort = page.locator(`[data-prov="${bokning.id}"]`);
+  const kolliderande = page.locator(`[data-occurrence="${occurrence.key}"]`);
+  await expect(provkort).toBeFocused();
+  await expect(provkort).toContainText('Sal återstår');
+  await expect(kolliderande).toBeVisible();
+  const provdag = page.getByRole('region', { name: 'Nationella prov i datumvyn', exact: true });
+  await provdag.getByRole('button', { name: 'Öppna provförslag', exact: true }).click();
+  await expect(granskaProv).toBeFocused();
   const calculate = page.getByRole('button', { name: 'Ta fram provförslag', exact: true });
   await expect(calculate).toBeEnabled();
   await calculate.click();
   await expect(page.getByText('Läsförståelse', { exact: true })).toBeVisible();
   const apply = page.getByRole('button', { name: 'Lägg in provförslaget', exact: true });
   await expect(apply).toBeDisabled();
+  expect(await apply.evaluate(button => Boolean(button.compareDocumentPosition(button.closest('section')!.querySelector('table')!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
   full = true;
   await calculate.click();
   await expect(page.getByText('Provsalen', { exact: true })).toBeVisible();
@@ -120,6 +150,12 @@ test('Granska förhandsvisar prov och sparar först ett komplett, bekräftat fö
   expect(latest.revision).toBe(applyCalls[0].expectedRevision + 1);
   expect(latest.datedOverrides).toEqual(result!.ersattningar);
   expect(latest.placements).toEqual(saved.at(-1)?.placements);
+  await granskaProv.getByRole('button', { name: /^Visa sparad provdag för Klass 2/u }).click();
+  await expect(provkort).toBeFocused();
+  await expect(provkort).toContainText('Provsalen');
+  await expect(provkort).toContainText('Provlärare Ada');
+  await expect(kolliderande).toHaveCount(0);
+  await expect(provdag).toContainText('Provförslaget finns i den här versionen av schemautkastet.');
 });
 
 test('regelkrocken öppnar valt pass och tillfällig jämförelse återgår till samma fynd utan skrivning', async ({ page, schemaDraftServer }, info) => {

@@ -37,12 +37,16 @@ type MotorPass = SchemaProblem['lessons'][number];
 type DatumPass = { pass: MotorPass; tillfalle: SchemaDatumTillfalle; elever: ReadonlySet<string> };
 type Prov = { bokning: NationellProvbokning; status: Bokning; elever: ReadonlySet<string>; dag?: SchemaDatumDagUnderlag };
 type Bortfall = DatumPass & { ref: string; flyttbar: boolean };
+type Provsal = SchemaSal & { platser: number };
+type Salalternativ = { sal: Provsal; prioritet: number };
+type Salurval = { status: Bokning; alternativ: Salalternativ[] };
 type Ersattningssokning = { pass: Bortfall; dagar: SchemaDatedDay[]; salar: (string | null)[]; datumIndex: number; provadeStarter: Set<number>; klar: boolean };
 type Ersattningskandidat = { flytt: SchemaDatumAndring; problem: SchemaProblem; placeringar: SchemaPlacement[] };
 type Part = keyof NonNullable<MotorPass['margin']>;
 type Tid = Pick<Bokning, 'startMin' | 'slutMin'>;
 
 const EMPTY = new Set<string>();
+const MAX_SALSTEG_PER_DAG = 5000;
 const MAX_MOTORANROP = 48;
 const MAX_MOTORANROP_PER_DATUM = 3;
 const MAX_DATUM_PER_PASS = 12;
@@ -88,6 +92,48 @@ function valjbaraVakter(vakter: SchemaProvBerakningIndata['vakter'], datum: stri
     if ((startsOn === undefined || startsOn <= datum) && (endsOn == null || datum <= endsOn)) aktiva.set(ref, { ref, name });
   }
   return aktiva;
+}
+
+function fordelaProvsalar(urval: Salurval[]) {
+  const antal = urval.length, vikt = antal + 1;
+  // En bokning med sal väger tyngre än återanvändningen, och en egen frigjord sal väger mest bland återanvända salar.
+  const salpoang = (prioritet: number) => vikt ** 2 + (prioritet === 2 ? vikt : 0) + (prioritet > 0 ? 1 : 0);
+  const ordnade = [...urval].sort((a, b) => a.alternativ.length - b.alternativ.length || b.status.deltagare - a.status.deltagare);
+  const maxKvar = Array<number>(antal + 1).fill(0);
+  for (let i = antal - 1; i >= 0; i--) {
+    const [basta] = ordnade[i].alternativ;
+    maxKvar[i] = maxKvar[i + 1] + (basta ? salpoang(basta.prioritet) : 0);
+  }
+  const upptagna = new Map<string, Bokning[]>();
+  const valda = Array<Provsal | null>(antal).fill(null);
+  let basta = [...valda], bastaPoang = 0, steg = 0;
+  function sok(index: number, poang: number) {
+    if (poang > bastaPoang) {
+      basta = [...valda];
+      bastaPoang = poang;
+    }
+    if (poang + maxKvar[index] <= bastaPoang || steg >= MAX_SALSTEG_PER_DAG) return;
+    steg++;
+    const { status, alternativ } = ordnade[index];
+    for (const { sal, prioritet } of alternativ) {
+      const bokningar = upptagna.get(sal.id) ?? [];
+      if (bokningar.some(b => overlap(b, status))) continue;
+      bokningar.push(status);
+      upptagna.set(sal.id, bokningar);
+      valda[index] = sal;
+      sok(index + 1, poang + salpoang(prioritet));
+      valda[index] = null;
+      bokningar.pop();
+      if (steg >= MAX_SALSTEG_PER_DAG) return;
+    }
+    sok(index + 1, poang);
+  }
+  sok(0, 0);
+  ordnade.forEach(({ status }, index) => {
+    const sal = basta[index];
+    if (sal) status.sal = { id: sal.id, name: sal.name };
+    else status.problem.push('sal_saknas');
+  });
 }
 
 /** Bokningens tid ligger fast. Förhandsgranskningen räknar provtiden separat och sparar inga ändringar. */
@@ -139,6 +185,7 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
   const overrideNycklar = new Set(prep.datedOverrides.map(schemaDatumNyckel));
   const fastPass = new Set([...lastaPass, ...(underlag.problem.links ?? []).filter(l => l.kind === 'simultaneous').flatMap(l => l.lessons)]);
   const bortfall = new Map<string, Bortfall>();
+  const salurval = new Map<string, Salurval[]>();
   for (const tentamen of prov) {
     if (!tentamen.dag || !tentamen.elever.size) continue;
     const { bokning, status } = tentamen;
@@ -172,22 +219,25 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     const andraProv = prov.filter(annat => annat !== tentamen && annat.status.datum === status.datum);
     const salLedig = (sal: SchemaSal) => oppet(underlag.villkor, 'sal', sal.name, vecka, status)
       && !upptagna.some(p => p.tillfalle.lesson.roomId !== null && p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen))
-      && !andraProv.some(p => (p.bokning.salId === sal.id || p.status.sal?.id === sal.id) && overlap(p.status, status));
+      && !andraProv.some(p => p.bokning.salId === sal.id && overlap(p.status, status));
     const vaktLedig = (ref: string) => oppet(underlag.villkor, 'larare', ref, vecka, status)
       && !upptagna.some(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === ref) && partKrock(p, 'teachers', tentamen))
       && !andraProv.some(p => (p.bokning.vakter.includes(ref) || p.status.vakter.some(v => v.ref === ref)) && overlap(p.status, status, gap));
     const aktiva = valjbaraVakter(vakter, status.datum);
-    const salLamplig = (sal: SchemaSal) => sal.platser !== null && sal.platser >= status.deltagare && salLedig(sal);
+    const salLamplig = (sal: SchemaSal): sal is Provsal => sal.platser !== null && sal.platser >= status.deltagare && salLedig(sal);
     const kanForesla = !status.problem.includes('provkrock') && !status.problem.includes('provtid_utanfor_skoltid');
     if (bokning.salId !== null) {
       const sal = salar.find(s => s.id === bokning.salId);
       if (!sal || !salLamplig(sal)) status.problem.push('last_sal_olamplig');
     } else if (kanForesla) {
-      const lediga = salar.filter(salLamplig).map(sal => ({ sal, frigjord: frigorda.some(p => p.tillfalle.lesson.roomId !== null
-        && p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen)) }));
-      lediga.sort((a, b) => Number(b.frigjord) - Number(a.frigjord) || a.sal.platser! - b.sal.platser! || a.sal.id.localeCompare(b.sal.id));
-      status.sal = salregister.get(lediga[0]?.sal.id ?? '') ?? null;
-      if (!status.sal) status.problem.push('sal_saknas');
+      const alternativ = salar.filter(salLamplig).map(sal => {
+        const frigjordaPass = frigorda.filter(p => p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen));
+        const egenFrigjordSal = frigjordaPass.some(p => shares(tentamen.elever, p.elever) && partKrock(p, 'students', tentamen));
+        return { sal, prioritet: egenFrigjordSal ? 2 : frigjordaPass.length ? 1 : 0 };
+      }).sort((a, b) => b.prioritet - a.prioritet || a.sal.platser - b.sal.platser || a.sal.id.localeCompare(b.sal.id));
+      const urval = salurval.get(status.datum) ?? [];
+      urval.push({ status, alternativ });
+      salurval.set(status.datum, urval);
     }
     if (bokning.vakter.length) {
       if (bokning.vakter.some(ref => !aktiva.has(ref) || !vaktLedig(ref))) status.problem.push('last_vakt_upptagen');
@@ -199,6 +249,7 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
       else status.problem.push('vakt_saknas');
     }
   }
+  for (const urval of salurval.values()) fordelaProvsalar(urval);
 
   const ersattningar: SchemaDatumAndring[] = [], ersatt = new Set<string>();
   const sokningar: Ersattningssokning[] = [];

@@ -46,7 +46,7 @@ import { UnderlagHinder } from './schema/underlag-hinder.tsx';
 import { Fordelning } from './schema/fordelning.tsx';
 import { schemaDatumNyckel, schemaDatumTillfallen, schemaDatumErsatt, parseSchemaDatumSvar, type SchemaDatumNyckel, type SchemaDatumTillfalle, type SchemaDatumAndring, type SchemaDatumSvar } from '@/lib/schema-datum.ts';
 import { DatumFlytt } from './schema/datum-flytt.tsx';
-import { grundschemaVal, schemaDateText, schemaVeckaVal, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
+import { grundschemaVal, schemaDateText, schemaVeckaVal, schemaVisningsDagar, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import { Viloyta } from './schema/viloyta.tsx';
 import { Villkor, storedVillkor } from './schema/villkor.tsx';
 import { Tid, tidAvvikelser } from './schema/tid.tsx';
@@ -164,7 +164,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [berakningOpen, setBerakningOpen] = useState(false), berakningKnapp = useRef<HTMLButtonElement | null>(null);
   const confirm = useRequestConfirm();
   const [draftName, setDraftName] = useState('Schemautkast'), [datedOverrides, setDatedOverrides] = useState<SchemaDraftDatedOverride[]>([]);
-  const [provSparat, setProvSparat] = useState<SchemaPeriod | null>(null);
+  const [provSparat, setProvSparat] = useState<{ period: SchemaPeriod; revision: number; provrevision: number; provdag: string } | null>(null);
+  const [provFranDatumvy, setProvFranDatumvy] = useState<string | null>(null);
   const provSparas = useRef(false);
   const [datumPicked, setDatumPicked] = useState<(SchemaDatumTillfalle & { expectedInputKey: string; grundFingerprint: string; period: SchemaPeriod }) | null>(null);
   const [datumKontroll, setDatumKontroll] = useState<{ key: string; reply: SchemaDatumSvar } | null>(null), [datumKlar, setDatumKlar] = useState('');
@@ -182,7 +183,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [ytaVal, setYtaVal] = useState<SchemaYta | null>(() => storedYta(unitId, schoolYear)), [genomgang, setGenomgang] = useGenomgang(unitId, schoolYear);
   const [granskatPass, setGranskatPass] = useState<{ mal: GranskaMal; scope: string; term: SchemaTerm } | null>(null);
   const [jamforOpen, setJamforOpen] = useState(false), jamforId = useId();
-  const provforslagPanel = useRef<HTMLDivElement>(null), provGranskaRetur = useRef<HTMLElement | null>(null);
+  const provforslagPanel = useRef<HTMLElement>(null), provGranskaRetur = useRef<HTMLElement | null>(null);
+  const fokuseraProvforslag = useRef(false);
   const fokuseraProv = useRef<string | null>(null);
   const granskaFokus = useRef<GranskaMal | null>(null), granskaPassRubrik = useRef<HTMLHeadingElement | null>(null);
   const valjYta = (next: SchemaYta) => {
@@ -277,11 +279,28 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
   const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
   useEffect(() => {
-    if (!visaGranska || !provGranskaRetur.current) return;
+    if (!visaGranska) return;
+    if (fokuseraProvforslag.current) {
+      fokuseraProvforslag.current = false;
+      provforslagPanel.current?.focus({ preventScroll: true });
+      provforslagPanel.current?.scrollIntoView({ block: 'start' });
+      return;
+    }
     const knapp = provGranskaRetur.current;
     provGranskaRetur.current = null;
-    if (knapp.isConnected) { knapp.focus({ preventScroll: true }); knapp.scrollIntoView({ block: 'nearest' }); }
+    if (knapp?.isConnected) { knapp.focus({ preventScroll: true }); knapp.scrollIntoView({ block: 'nearest' }); }
   }, [visaGranska]);
+  function visaProvforslag(provdag: string | null) {
+    setProvFranDatumvy(provdag);
+    provGranskaRetur.current = null;
+    if (visaGranska) {
+      provforslagPanel.current?.focus({ preventScroll: true });
+      provforslagPanel.current?.scrollIntoView({ block: 'start' });
+      return;
+    }
+    fokuseraProvforslag.current = true;
+    valjYta('granska');
+  }
   const inaktuelltUnderlag = sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
   // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
@@ -329,6 +348,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (sparstatus.phase !== 'stale' && !await spara.flush()) return;
     rememberPeriod(unitId, schoolYear, next);
     setJamforTerminer(false);
+    setProvSparat(null); setProvFranDatumvy(null);
     setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setGranskatPass(null); setPeriod(next);
   }
   async function lasServerversion() {
@@ -342,15 +362,16 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     provSparas.current = true;
     try {
       const ok = await confirm({ title: 'Lägg in provförslaget?',
-        description: 'Salar och provvakter sparas i provplanen. Ersättningstillfällena sparas på sina datum i det här schemautkastet.',
+        description: 'Salar och provvakter sparas i provplanen. Undervisning som krockar med proven flyttas till ersättningstillfällen i det här utkastet.',
         confirmLabel: 'Spara provförslaget', cancelLabel: 'Behåll förslaget' });
       if (!ok) return;
       setChecking(true);
       const request: SchemaProvApplyRequest = { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period,
         commandId, expectedRevision: sparstatus.revision, provrevision: svar.provrevision, grundFingerprint: svar.grundFingerprint,
         resultHash: await schemaProvResultHash(svar) };
-      parseSchemaProvApplyReply(await api.post<unknown>('/api/schema/provforslag/tillampa', request), request);
-      setProvSparat(period);
+      const receipt = parseSchemaProvApplyReply(await api.post<unknown>('/api/schema/provforslag/tillampa', request), request);
+      const provdag = svar.bokningar.find(b => b.id === provFranDatumvy) ?? svar.bokningar[0];
+      setProvSparat({ period, revision: receipt.revision, provrevision: receipt.provrevision, provdag: provdag.id });
       spara.read();
       nationellaProv.onReload();
     } finally { provSparas.current = false; setChecking(false); }
@@ -1125,6 +1146,13 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }).map(b => ({ id: b.id, datum: b.datum, namn: b.namn, startMin: b.startMin, slutMin: b.slutMin,
     detail: [provNamn(b), b.salId ? provSalar.get(b.salId) ?? 'Kontrollera sal' : 'Sal återstår',
       personalLookup ? b.vakter.length ? b.vakter.map(ref => provVakter.get(ref) ?? 'Vald provvakt').join(', ') : 'Provvakt återstår' : ''].filter(Boolean).join(' · ') }));
+  const datumIVyn = new Set(schemaVisningsDagar(forslag?.time.calendar, datumVal).map(dag => dag.date));
+  const provIDatumvy = veckansProv.find(prov => datumIVyn.has(prov.datum));
+  const bokatProvIDatumvy = provBokningar.find(prov => prov.id === provIDatumvy?.id);
+  const sparatProvforslag = provSparat?.period === period ? provSparat : null;
+  const sparadProvdag = sparatProvforslag && provBokningar.find(b => b.id === sparatProvforslag.provdag);
+  const sparatProvAktuellt = sparatProvforslag && !sparstatus.dirty && sparstatus.phase === 'saved'
+    && sparstatus.revision === sparatProvforslag.revision && nationellaProv.revision === sparatProvforslag.provrevision;
   function visaProvdag(id: string) {
     const bokning = provBokningar.find(b => b.id === id);
     if (!bokning || !forslag?.time.calendar) return;
@@ -1145,8 +1173,9 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     const kort = week.current?.querySelector<HTMLElement>(`[data-prov="${CSS.escape(id)}"]`);
     if (!kort) return;
     fokuseraProv.current = null;
+    kort.focus({ preventScroll: true });
     kort.scrollIntoView({ block: 'nearest' });
-  }, [visaSchema, datumVal.mode, datumVal.from, selected?.key]);
+  }, [visaSchema, visning, selected?.key]);
   const jamforVecka = kanJamforaTerminer && jamforTerminer && datumVal.mode === 'grundschema' && visadVy(vy, true, true, foljt !== null) === 'vecka';
   const bytLagen = useSchemaBytLagen({ forslag, villkor: provade, lesson: jamforVecka ? null : drop?.lesson ?? picked, placements: placeringar, userLocks: utkastLas(utkast), unitId, schoolYear, onSessionLost });
   const valdResurs = (l: SchemaForslagLesson) => veckoresursPass(selected, l);
@@ -1436,7 +1465,10 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       <summary className="cursor-pointer font-medium">Bokade nationella prov{provBokningar.length > 0 && <span className="ml-2 status-badge">{provBokningar.length}</span>}</summary>
       {nationellaProv.readFailed && <div className="flex flex-wrap items-center gap-2 pt-3"><p className="schema-note">Provplanen kunde inte läsas.</p><Button type="button" variant="outline" onClick={nationellaProv.onReload}>Läs in provplanen igen</Button></div>}
       {provBokningar.length > 0 && <div className="space-y-2 pt-3">
-        <p className="schema-note">Proven visas på sitt bokade datum. I Granska kan rektor ordna sal, provvakter och ersättningstid.</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="schema-note max-w-prose">Bokningen anger datum och deltagare. När rektor lägger in provförslaget tilldelas salar och provvakter och undervisningen som krockar flyttas i det här utkastet.</p>
+          <Button type="button" variant="outline" onClick={() => visaProvforslag(null)}>Öppna provförslag</Button>
+        </div>
         <ul className="divide-y divide-border">{provBokningar.map(b => <li key={b.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
           <div><p className="font-medium">{b.namn} · {provNamn(b)}</p><p className="schema-note">{schemaDateText(b.datum)} · {clock(b.startMin)}–{clock(b.slutMin)}</p></div>
           {forslag?.time.calendar && provDagar.get(b.datum) && options.some(r => r.key === provNyckel(b)) && <Button type="button" variant="outline" onClick={() => visaProvdag(b.id)}
@@ -1464,14 +1496,15 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={redigeringStoppad || busy || checking || granskaStale} onClick={() => void kontrolleraGranskning()}>
           {kontroll ? 'Kontrollera igen' : 'Kontrollera schemat'}
         </Button>
-          <Button type="button" variant="outline" onClick={() => {
-            provforslagPanel.current?.focus({ preventScroll: true });
-            provforslagPanel.current?.scrollIntoView({ block: 'start' });
-          }}>Till provförslaget</Button></div>
+          <Button type="button" variant="outline" onClick={() => visaProvforslag(null)}>Till provförslaget</Button></div>
         {salsattningsvy}
       </div>}/>}
-    {!fonster && <div ref={provforslagPanel} tabIndex={-1} className="scroll-mt-24" hidden={!visaGranska}>
-      {provSparat === period && <output className="mb-3 block status-badge success">Provförslaget är sparat i schemat.</output>}
+    {!fonster && <section ref={provforslagPanel} tabIndex={-1} className="scroll-mt-24" aria-label="Provgranskning" hidden={!visaGranska}>
+      {sparatProvforslag && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+        <output className="status-badge success">Provförslaget är sparat i schemat.</output>
+        {sparadProvdag && <Button type="button" variant="outline" disabled={!spara.ready || !sparatProvAktuellt || nationellaProv.reading}
+          onClick={() => visaProvdag(sparadProvdag.id)} aria-label={`Visa sparad provdag för ${provNamn(sparadProvdag)} ${schemaDateText(sparadProvdag.datum)}`}>Visa provdagen</Button>}
+      </div>}
       <Provforslag key={nationellaProv.revision ?? 'okand'} request={placementBase?.placements.length && !granskaStale ? { ...placementBase, datedOverrides, dates: [] } : null}
         disabled={redigeringStoppad || busy || checking} personalLookup={personalLookup} lessons={passMedSal} onSessionLost={onSessionLost}
         onOpenBooking={provBokningar.length ? visaProvdag : undefined} onApply={personalLookup ? tillampaProvforslag : undefined}
@@ -1480,7 +1513,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
           if (document.activeElement instanceof HTMLElement) provGranskaRetur.current = document.activeElement;
           visaGranskaPass({ lesson, originalDate });
         }}/>
-    </div>}
+    </section>}
     {!fonster && visaSchema && granskaMal && <>
       <section className="schema-granska-kontext" aria-label="Pass från granskningen">
         <Button type="button" variant="ghost" onClick={() => valjYta('granska')}><ArrowLeftIcon aria-hidden="true"/>Tillbaka till granskningen</Button>
@@ -1590,6 +1623,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
               <output className="schema-note">Visar gruppens pass från utkastet. Hela gruppens schema kunde inte läsas.</output>
               <Button type="button" variant="outline" onClick={() => setVeckansGruppunderlag(null)}>Läs gruppen igen</Button>
             </div>}
+            {!fonster && bokatProvIDatumvy && <section aria-label="Nationella prov i datumvyn" className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
+              <p className="schema-note max-w-prose">{sparatProvAktuellt ? 'Provförslaget finns i den här versionen av schemautkastet.'
+                : bokatProvIDatumvy.salId && (!personalLookup || bokatProvIDatumvy.vakter.length) ? 'Granska provets resurser och undervisningen i det här utkastet.'
+                  : 'Lägg in provförslaget för att tilldela provresurser och flytta undervisningen som krockar.'}</p>
+              <Button type="button" variant="outline" onClick={() => visaProvforslag(bokatProvIDatumvy.id)}>Öppna provförslag</Button>
+            </section>}
             {jamforVecka ? <p className="schema-note">Välj ett pass för att öppna det i sin terminsvy.</p> :
           <div className="schema-verktygsrad">{datumVal.mode === 'grundschema' ? meny.verktyg : <p className="schema-note">Välj ett tillfälle för att ändra just den dagens lektion.</p>}
             <Lagerval layers={utkast.layers} onChange={(layer, on) => { dispatch({ type: 'layer', layer, on }); rememberLager({ ...utkast.layers, [layer]: on }); }}/></div>}
