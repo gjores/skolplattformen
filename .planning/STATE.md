@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "UXF-53 gör sparsteget tillgängligt från provdagen och prioriterar frigjorda salar för samtidiga prov."
+current_plan: "UXF-53 söker effektivare efter ersättningar. Tolv prov är sparade och verifierade i helårsutkastet 2026/27 på 3012."
 status: in_progress
-stopped_at: "Provdagen leder direkt till Granska. Beslutet sparar provresurser och ersättningstillfällen och leder tillbaka till datumvyn."
+stopped_at: "Helårsutkastets version 11 och provplanens version 5 har verifierats efter begärt sparande på 3012."
 last_updated: "2026-11-20"
 last_activity: 2026-11-20
-last_activity_desc: "Installerat direktväg från provdagen, synligt sparsteg och gemensamt salval för samtidiga prov."
-state_head: 4eb0af25850ad304e059b9278143cd2bf249879e
+last_activity_desc: "Installerat utökad ersättningssökning och sparat tolv prov med frigjorda salar och 23 ersättningstillfällen."
+state_head: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,15 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 4eb0af25850ad304e059b9278143cd2bf249879e
-schema_candidate_revision: 4eb0af25850ad304e059b9278143cd2bf249879e
-schema_candidate_status: exam_day_apply_entry_and_released_room_allocation_installed
+schema_runtime_revision: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
+schema_candidate_revision: b0fd1171fcddb032cacc190b7d0519bbef0eafe6
+schema_candidate_status: exam_replacement_search_installed_and_applied
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: exam_rooms_passed_6_groups_zero_migrations
-user_trial_status: exam_day_apply_entry_installed_awaiting_save_in_existing_draft
+schema_installation_status: exam_replacement_search_passed_app_only_zero_migrations
+user_trial_status: exam_proposal_applied_on_request_and_verified
 milestone_name: milestone
 ---
+
+**2026-11-20 – provförslaget sparat i helårsutkastet.** [Ersättningstid i det nya helårsutkastet](phases/05.2-schemamodul/05.2-SM-UXF-53-TILLAMPA-PROV-PLAN.md#ersättningstid-i-det-nya-helårsutkastet) krävde fler motorkontroller. På begäran sparades provplanens version 5 och helårsutkastets version 11 på 3012. Tolv prov använder frigjorda salar, och 23 flyttade lektioner behåller 1 650 undervisningsminuter. Alla tre provdatum och fyra klassers kalender på respektive datum kontrollerades efter sparandet. [Installationsrapport](../work/schema/results/prov-ersattning-b0fd1171-install.json)
 
 **2026-11-20 – frigjorda provsalar och synligt sparsteg.** [Uppföljning efter användarprov](phases/05.2-schemamodul/05.2-SM-UXF-53-TILLAMPA-PROV-PLAN.md#uppföljning-efter-användarprov) visar **Öppna provförslag** vid bokningarna och i provveckan. Sparsteget ligger vid förslagets sammanfattning. Salvalen bedöms gemensamt för överlappande prov med företräde för lämpliga salar som frigörs. 3012 kör `4eb0af25` med sex godkända installationsgrupper och noll migrationer. [Installationsrapport](../work/schema/results/provsalar-4eb0af25-install.json).
 

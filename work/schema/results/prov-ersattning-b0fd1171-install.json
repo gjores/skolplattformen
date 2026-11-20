@@ -1,0 +1,19 @@
+{
+  "status": "PASS",
+  "installedAt": "2026-11-20T18:25:16.189Z",
+  "previousAppRevision": "4eb0af25850ad304e059b9278143cd2bf249879e",
+  "revision": "b0fd1171fcddb032cacc190b7d0519bbef0eafe6",
+  "port": 3012,
+  "appListener": 11103,
+  "motorListener": 7667,
+  "assetsVerified": 3,
+  "migrationsApplied": 0,
+  "preflight": {
+    "revision": "b0fd1171fcddb032cacc190b7d0519bbef0eafe6",
+    "port": 5312,
+    "appListener": 10473,
+    "motorListener": 7667,
+    "assetsVerified": 3,
+    "migrationsApplied": 0
+  }
+}
