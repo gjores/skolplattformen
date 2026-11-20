@@ -39,7 +39,7 @@ export type StudyPlanLevelRef = {
   itemCode: string;
   languageCode: string | null;
 };
-export type StudyPlanCatalogLevel = StudyPlanLevelRef & { label: string; points: number };
+export type StudyPlanCatalogLevel = StudyPlanLevelRef & { label: string; points: number; choiceIds?: string[] };
 
 export type StudyFactSource = { kind: 'school_record' | 'previous_school'; id: string };
 export type StudyFact = { on: string; source: StudyFactSource };

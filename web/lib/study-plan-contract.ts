@@ -266,8 +266,11 @@ function parseCalendarYear(value: unknown): StudyPlanCalendarYear {
   return { schoolYear, htStart: ht.startsOn, htEnd: ht.endsOn, vtStart: vt.startsOn, vtEnd: vt.endsOn };
 }
 function parseCatalogLevel(value: unknown): StudyPlanCatalogLevel {
-  const { label, points, ...rest } = studyPlanFields(value, ['subjectCode', 'subjectVersion', 'itemCode', 'languageCode', 'label', 'points']);
-  return { ...parseStudyPlanLevelRef(rest), label: studyPlanLabel(label), points: studyPlanInt(points, 1, 10000) };
+  const { label, points, choiceIds, ...rest } = studyPlanFields(value, ['subjectCode', 'subjectVersion', 'itemCode', 'languageCode', 'label', 'points'], ['choiceIds']);
+  return {
+    ...parseStudyPlanLevelRef(rest), label: studyPlanLabel(label), points: studyPlanInt(points, 1, 10000),
+    ...(Object.hasOwn(value as object, 'choiceIds') ? { choiceIds: studyPlanUnique(studyPlanList(choiceIds, studyPlanCode, 20), id => id) } : {}),
+  };
 }
 function parseOption(value: unknown): StudyPlanImpactOption {
   const groupKeys = ['kind', 'groupId', 'name', 'revision', 'startsOn', 'endsOn', 'course', 'parallelSetId'];

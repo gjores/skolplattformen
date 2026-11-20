@@ -223,7 +223,7 @@ begin
  -- Ett elevval saknar placerings-ID. Vid två placeringar på samma skola
  -- under valets läsår måste skolan granska vilken utbildning valet gäller.
  with pupil_choices as materialized (
-  select c.id,c.revision,c.course_ids,v.id as valplan_id,
+  select c.id,c.revision,c.course_ids,v.id as valplan_id,v.kind as source_kind,
    case v.kind when 'modernLanguage' then 'language' when 'languageSubject' then 'language'
     when 'specialization' then 'specialization' when 'naturalScience' then 'optional' else 'individual' end as kind,
    case when not exists(
@@ -239,7 +239,7 @@ begin
  )
  select coalesce(jsonb_agg(jsonb_build_object('id',c.id,'revision',c.revision) order by c.id),'[]'::jsonb),
   coalesce(jsonb_agg(jsonb_build_object(
-   'id',c.id,'revision',c.revision,'kind',c.kind,'state',c.state,
+   'id',c.id,'revision',c.revision,'kind',c.kind,'sourceKind',c.source_kind,'state',c.state,
    'levels',case when c.state='confirmed' then (
     select coalesce(jsonb_agg(jsonb_build_object(
      'subjectCode',l.subject_code,'subjectVersion',l.subject_version,'itemCode',l.item_code,
