@@ -187,12 +187,17 @@ Att alla pass har tid betyder inte att salarna är klara.
 1. Följ länken **Provdatum hos Skolverket** och kontrollera datum, provtid och delprov. Om provdatumen för läsåret ännu saknas, lämna provplanen öppen för genomgång.
 2. Välj **Planera prov** och ange provets namn och dagen du kontrollerade provunderlaget. Välj **Fast provtid** för prov som börjar kl. 09.00 på en bestämd dag, eller **Inom en provperiod** för en tid som skolan väljer inom perioden.
 3. Välj en eller flera klasser eller undervisningsgrupper. Kontrollera ämne och nivå för varje deltagare. När du sparar skapas en bokning per klass eller grupp.
-4. Välj sal från skolans salregister och provvakter om uppgifterna redan är klara. Kontrollera att salen och provvakterna är lediga på provdagen.
+4. Lämna sal och provvakter för förslag i Schema. Öppna **Ange sal eller provvakter** om en resurs behöver låsas på bokningen.
 5. När planen är klar väljer du **Markera som genomgånget**. Om skolan har kontrollerat att det inte finns några prov att planera väljer du **Bekräfta att inga prov ska planeras**.
 
 Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver provplanen gås igenom igen. Vid samtidig redigering visas en uppmaning att läsa in aktuell plan före nästa sparning.
 
-Provtiden redovisas separat från gymnasiets garanterade undervisningstid. Planera också hur undervisning, salar och personal ska fördelas på provdagarna. Provplanen ändrar ännu inga lektionstillfällen i schemat.
+### Granska provförslaget
+
+1. Lägg ett schema för läsåret eller terminen så att undervisningspassen har tider. Öppna **Schema → Granska** och välj **Ta fram provförslag**.
+2. Kontrollera sal och provvakter för varje provbokning. Förslaget försöker i första hand använda lärare och salar som blir lediga när provet ersätter ett undervisningspass. Granska eventuella krockar och bokningar där en lämplig resurs saknas.
+3. Kontrollera **Bortfall av undervisningstid**. Där visas för varje undervisning hur många minuter som faller bort, hur många som kan täckas av föreslagna ersättningstillfällen och hur mycket tid som återstår. Provtiden redovisas separat från gymnasiets garanterade undervisningstid.
+4. Granska **Föreslagna ersättningstillfällen**. Med **Visa tillfället** öppnar du lektionen i schemat. Förslaget är en osparad förhandsgranskning. Spara de datumändringar du vill göra i schemat.
 
 ## Aktivitet för flera klasser
 
@@ -266,7 +271,7 @@ Du kan göra detta utan att något schema har räknats fram:
 ## Begränsningar
 
 - **Önskad sal** sparas och visas men vägs inte av schemamotorn.
-- Provplanen bygger på uppgifter som skolan kontrollerar hos Skolverket. Bokningarna granskas i Förbered och används ännu inte vid schemaberäkningen.
+- Provförslaget utgår från den sparade provplanen och det aktuella schemat. Ta fram ett nytt förslag efter en ändring av provplanen eller schemat.
 - Målen för schemat går inte att prioritera om.
 - Appen kan inte avgöra om en lärare utan tidsvillkor har svarat. Läraren räknas som tillgänglig hela skoldagen.
 - En matsalsbokning i en serie reserverar salen för en klass i taget.
