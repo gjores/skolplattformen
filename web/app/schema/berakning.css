@@ -1,0 +1,35 @@
+/* Beräkningsläget (05.2-SM-UXF-54). Miniveckan illustrerar sökningen och är inte schemat:
+   passen ritas som schema-lesson (accent, kant av primary 35 %) och sökmarkören som schema-drop (streckad primary, yta primary 12 %). */
+.schema-berakning-vecka { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: .25rem; padding: .75rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--background); }
+.schema-berakning-dag { text-align: center; font-size: .75rem; font-weight: 600; color: var(--muted-foreground); }
+.schema-berakning-ytan { --gap: .25rem; --hojd: 1.5rem; --bredd: calc((100% - 4 * var(--gap)) / 5); position: relative; grid-column: 1 / -1; height: calc(6 * var(--hojd) + 5 * var(--gap)); overflow: hidden; }
+.schema-berakning-ytan > span { position: absolute; left: calc(var(--dag, 0) * (var(--bredd) + var(--gap))); top: calc(var(--rad, 0) * (var(--hojd) + var(--gap))); width: var(--bredd); height: var(--hojd); border-radius: var(--radius-sm); }
+.schema-berakning-plats { border: 1px dashed var(--border); background: var(--card); }
+.schema-berakning-pass { z-index: 1; border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--card)); background: var(--accent); transition: left .6s ease-in-out, top .6s ease-in-out; animation: schema-berakning-lagg .45s ease-out both; }
+.schema-berakning-pass::before, .schema-berakning-pass::after { content: ''; position: absolute; left: .375rem; border-radius: 999px; }
+.schema-berakning-pass::before { top: .375rem; width: var(--w1); height: .25rem; background: color-mix(in srgb, var(--primary) 55%, var(--accent)); }
+.schema-berakning-pass::after { top: .8125rem; width: var(--w2); height: .1875rem; background: color-mix(in srgb, var(--muted-foreground) 40%, var(--accent)); }
+.schema-berakning-provar { z-index: 2; border: 2px dashed var(--primary); background: color-mix(in srgb, var(--primary) 12%, var(--card)); transition: left .35s ease-out, top .35s ease-out; }
+.schema-berakning-ytan > .schema-berakning-skanna { z-index: 3; top: 0; height: 100%; background: color-mix(in srgb, var(--primary) 10%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 30%, transparent);
+  animation: schema-berakning-skanna 2.4s ease-in-out infinite alternate; }
+@keyframes schema-berakning-lagg { from { opacity: 0; transform: translateY(-.375rem) scale(.9); } }
+@keyframes schema-berakning-skanna { to { transform: translateX(calc(4 * (100% + var(--gap)))); } }
+@media (prefers-reduced-motion: reduce) { .schema-berakning-provar, .schema-berakning-ytan > .schema-berakning-skanna { display: none; } }
+
+.schema-berakning-tid [data-slot='progress-label'] { font-size: .875rem; font-weight: 600; }
+.schema-berakning-tid [data-slot='progress-track'] { height: .5rem; }
+.schema-berakning-tid [data-slot='progress-indicator'] { transition: width .2s linear; }
+.schema-berakning-not { font-size: .8125rem; line-height: 1.45; color: var(--muted-foreground); }
+
+.schema-berakning-steg { display: grid; gap: .5rem; margin: 0; padding: 0; list-style: none; }
+.schema-berakning-steg li { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem .625rem; font-size: .875rem; color: var(--muted-foreground); }
+.schema-berakning-steg li[data-lage='klart'] { color: var(--foreground); }
+.schema-berakning-steg li[data-lage='pagar'] { color: var(--foreground); font-weight: 600; }
+.schema-berakning-ikon { display: grid; flex: none; place-items: center; width: 1.25rem; height: 1.25rem; }
+.schema-berakning-ikon svg { width: 1rem; height: 1rem; }
+.schema-berakning-steg li[data-lage='klart'] .schema-berakning-ikon { color: var(--success-foreground); }
+.schema-berakning-steg li[data-lage='pagar'] .schema-berakning-ikon { color: var(--primary); }
+.schema-berakning-punkt { width: .5rem; height: .5rem; border: 1.5px solid currentColor; border-radius: 999px; }
+.schema-berakning-namn { flex: 1 1 12rem; min-width: 0; }
+.schema-berakning-steg .status-badge { font-weight: 500; }
+.schema-berakning-vantar { padding: 6px 10px; font-size: .75rem; }

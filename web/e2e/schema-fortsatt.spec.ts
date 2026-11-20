@@ -205,9 +205,14 @@ test('avbruten granskning under körning lämnar sparat schema kvar även när e
   const state = await start(page), original = placements(state.last!); await saved(server, original);
   state.delay = 1_000; await page.getByRole('button', { name: 'Fortsätt förbättra', exact: true }).click();
   await expect.poll(() => state.continues.length).toBe(1);
-  await panel(page).getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
-  await expect(panel(page)).toHaveCount(0);
+  // Beräkningsläget (05.2-SM-UXF-54) täcker arbetsytan under körningen. Dess Avbryt gör samma sak som Behåll nuvarande schema.
+  const lage = page.getByRole('dialog', { name: 'Förbättrar schemat', exact: true });
+  await expect(lage.getByRole('heading', { name: 'Förbättrar schemat', exact: true })).toBeFocused();
+  await expect(lage.getByRole('listitem').filter({ hasText: 'Sökning från ditt schema' })).toContainText('Pågår');
+  await lage.getByRole('button', { name: 'Avbryt beräkningen', exact: true }).click();
+  await expect(lage).toBeHidden(); await expect(panel(page)).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Fortsätt förbättra', exact: true })).toBeFocused();
   // Fördröjningen i mockservern är avsiktlig: även ett svar efter stängningen ska ignoreras.
   await page.waitForTimeout(1_100);
   await expect(panel(page)).toHaveCount(0); expect(server.drafts.get(draftKey)?.placements).toEqual(original);

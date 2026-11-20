@@ -160,6 +160,8 @@ Sök på raden **Visas** efter en klass, undervisningsgrupp, lärare eller sal. 
 
 Välj **Räknetid per omgång**: 10, 30 eller 60 sekunder. Förvalet är 30 sekunder. En längre omgång ger motorn mer tid att söka, men garanterar inte att alla pass får plats.
 
+Medan motorn räknar visas ett beräkningsläge över arbetsytan. Där ser du stegen i beräkningen och hur stor del av räknetiden som har gått. Den lilla veckan visar hur motorn arbetar, inte ditt schema. När räknetiden är slut kontrolleras resultatet innan det visas. Välj **Avbryt beräkningen** eller tryck Esc om du inte vill vänta. Ditt utkast lämnas då som det var.
+
 **Mer räknetid kan behövas** betyder att motorn nådde omgångens tidsgräns med ett ofullständigt resultat. Det är inte ett besked om att schemat är omöjligt.
 
 När du har ett schema kan du välja **Beräkning → Fortsätt förbättra** i Lägg schema. Motorn använder dina nuvarande placeringar som utgångspunkt. Låsta pass och grundplaceringarna för pass med datumändringar ligger kvar. Andra pass kan flyttas för att ge plats eller förbättra schemat. Pass utan sal får ingen ny sal i den fortsatta beräkningen när skolan har ett salregister.
@@ -170,7 +172,7 @@ När du har ett schema kan du välja **Beräkning → Fortsätt förbättra** i 
 
 Förslaget kontrolleras på nytt när du använder det. Ändringen sparas i samma utkast och kan ångras som **Fortsatt beräkning**, i ett steg. Du kan sedan fortsätta igen från den nya versionen. Har du ändrat schemat eller villkoren efter sökningen behöver du söka igen.
 
-Om du väljer **Behåll nuvarande schema** under sökningen slutar arbetsytan vänta på svaret. Motorn kan fortsätta räkna tills omgångens tidsgräns är nådd. Ditt utkast finns kvar. Beräkningen är ingen bakgrundskörning som sparar ett nytt resultat när sidan har stängts.
+Om du väljer **Avbryt beräkningen** under sökningen slutar arbetsytan vänta på svaret. Motorn kan fortsätta räkna tills omgångens tidsgräns är nådd, och under tiden kan en ny beräkning få beskedet att motorn redan räknar. Ditt utkast finns kvar. Beräkningen är ingen bakgrundskörning som sparar ett nytt resultat när sidan har stängts.
 
 Har du ändrat vilka pass som ska finnas, till exempel deras uppdelning eller samtidighetsblock, behöver du först ta fram ett nytt schemaförslag. Fortsättningen använder samma pass och räknar inte om underlaget.
 

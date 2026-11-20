@@ -66,6 +66,7 @@ import { Samling, type SamlingStart } from './schema/samling.tsx';
 import { Aktiviteter } from './schema/aktiviteter.tsx';
 import { NationellaProv } from './schema/nationella-prov.tsx';
 import { Provforslag } from './schema/provforslag.tsx';
+import { Berakningslage, type Motorlage } from './schema/berakning.tsx';
 import { parseSchemaProvApplyReply, schemaProvResultHash, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '@/lib/schema-provforslag.ts';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
@@ -196,6 +197,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   // Tilldela salar och behåll tiderna (05.2-SM-UXF-41): förhandsgranskningen och kontrollens svar för just den.
   const [salsattning, setSalsattning] = useState<(SalsattningVisning & { svar: SchemaKontroll | null }) | null>(null);
   const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve'>('diagnos');
+  // Beräkningsläget (05.2-SM-UXF-54) gäller nytt förslag och Fortsätt förbättra, inte Kontrollera underlaget.
+  const [motor, setMotor] = useState<Motorlage | null>(null);
   const [busy, setBusy] = useState(false), [error, setError] = useState<string | null>(null), [base, setBase] = useState<SchemaForslag | null>(null);
   const [solveTimeMs, setSolveTimeMs] = useState<SchemaSolveTimeMs>(SCHEMA_SOLVE_DEFAULT_MS);
   const [fortsatt, setFortsatt] = useState<FortsattSokning | null>(null), currentContinueKey = useRef('');
@@ -547,7 +550,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     const request: SchemaForslagRequest = { unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && locks.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: locks } } : {}) };
     const key = JSON.stringify(request), consentKey = JSON.stringify([key, datedOverrides, utkast.placements, gamlaPassregler]);
     const continuing = continueAnyway && fore?.key === key;
-    const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('forbereder'); setError(null);
+    const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('forbereder'); setError(null); setMotor({ typ: 'nytt', sedan: null });
     try {
       if ((datedOverrides.length || gamlaPassregler.length) && (!continuing || generationConsent.current !== consentKey)) {
         const passnamn = gamlaPassregler.slice(0, 5).map(r => base?.lessons.find(l => l.id === r.ref)?.title ?? r.ref).join(', ');
@@ -567,7 +570,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         setFore({ key, findings, releaseLocks });
         if (findings.length) return;
       }
-      setBerakningssteg('solve');
+      setBerakningssteg('solve'); setMotor({ typ: 'nytt', sedan: performance.now() });
       const next = parseSchemaForslag(await api.post<unknown>('/api/schema/forslag', { ...request, solveTimeMs }, controller.signal), request);
       if (controller.signal.aborted) return;
       generationConsent.current = null; spara.acceptNewBasis(); setDatedOverrides([]); setDatumPicked(null); setGranskatPass(null);
@@ -596,7 +599,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     }
     const request: SchemaFortsattRequest = { ...original, ...(locks.size ? { locks: { grundFingerprint: original.grundFingerprint, placements: [...locks.values()] } } : {}), solveTimeMs };
     const key = currentContinueKey.current, controller = new AbortController();
-    running.current = controller; setBusy(true); setError(null); setBerakningssteg('solve');
+    running.current = controller; setBusy(true); setError(null); setBerakningssteg('solve'); setMotor({ typ: 'fortsatt', sedan: performance.now() });
     searchRunning.current?.abort(); setSokning(null); setVillkorsSokning(null); setSalsattning(null);
     setFortsatt({ key, request, result: null, loading: true, error: null });
     try {
@@ -619,6 +622,20 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (checking) return;
     if (fortsatt?.loading) { running.current?.abort(); running.current = null; setBusy(false); }
     setFortsatt(null); requestAnimationFrame(() => { (continueButton.current?.getClientRects().length ? continueButton.current : berakningKnapp.current)?.focus(); });
+  }
+
+  /** Avbryt i beräkningsläget: webbläsaren slutar vänta och utkastet lämnas orört. Motorn kan räkna klart omgången på servern. */
+  function avbrytBerakning() {
+    if (!busy || !motor) return;
+    if (motor.typ === 'fortsatt') { behallNuvarande(); return; }
+    running.current?.abort(); setMotor({ ...motor, avbrutet: true });
+  }
+  /** Fokus när beräkningsläget stängs: Beräkning efter ett nytt förslag, granskningen efter Fortsätt förbättra, annars knappen som startade. */
+  function fokusEfterBerakning(): HTMLElement | null {
+    const synlig = (el: HTMLElement | null | undefined) => el?.isConnected && el.getClientRects().length > 0 && !el.matches(':disabled') ? el : null;
+    if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? synlig(continueButton.current) ?? synlig(berakningKnapp.current);
+    // Efter ett nytt förslag är Ta fram schemaförslag dold och Beräkning tar fokus; efter avbrott eller fel står startknappen kvar.
+    return [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current);
   }
 
   async function anvandFortsatt() {
@@ -690,7 +707,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (!spara.ready || busy || issues.length || running.current) return;
     const locks = sparstatus.phase === 'stale' ? [] : utkastLas(utkast);
     const request: SchemaForslagRequest = { unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && locks.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: locks } } : {}) };
-    const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('diagnos'); setError(null);
+    const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('diagnos'); setError(null); setMotor(null);
     try {
       const findings = parseSchemaDiagnos(await api.post<unknown>('/api/schema/diagnos', request, controller.signal));
       if (controller.signal.aborted) return;
@@ -1421,7 +1438,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const underlagshinder = hinderUnderlag && hinderUnderlag.metrics.lessons === 0 && <UnderlagHinder forslag={hinderUnderlag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>;
   // Ytorna Förbered och Lägg schema (05.2-SM-UXF-31) visar samma utkast. Formuläret för regler och aktivitetslistan finns på båda och ritas där ytan står.
   const meddelanden = <>
-    <output aria-live="polite" className="schema-note">{busy && !fortsatt?.loading ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. Därefter kontrolleras resultatet.` : ''}</output>
+    <output aria-live="polite" className="schema-note">{busy && !fortsatt?.loading ? berakningssteg === 'forbereder' ? 'Förbereder ett nytt schemaförslag…' : berakningssteg === 'diagnos' ? 'Kontrollerar underlaget före beräkning…' : `Schemamotorn räknar, upp till ${solveTimeMs / 1000} sekunder. Därefter kontrolleras resultatet.` : motor?.avbrutet ? 'Beräkningen avbröts. Utkastet är oförändrat.' : ''}</output>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
@@ -1496,6 +1513,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     tomning={tomning} tomningsknapp={tomningsknapp} tomningsfel={tomningsfel}/>;
   if (fonster && !synk.live) return <section className="valplan-workspace schema-workspace"><FonsterList synk={synk} title={fonsterVyNamn[fonster.view]}/><p className="empty-state">Väntar på huvudfönstret. Inga ändringar kan göras innan kontakten är tillbaka.</p></section>;
   return <section className="valplan-workspace schema-workspace" data-granska-pass={visaSchema && granskaMal ? '' : undefined}>
+    {!fonster && <Berakningslage oppen={busy && motor !== null && berakningssteg !== 'forbereder'} motor={motor} steg={berakningssteg === 'diagnos' ? 'diagnos' : 'solve'} solveTimeMs={solveTimeMs}
+      onAvbryt={avbrytBerakning} aterFokus={fokusEfterBerakning}/>}
     {fonster ? <>
       <FonsterList synk={synk} title={fonsterVyNamn[fonster.view]}><FonsterMeny synk={synk} disabled={!forslag} resource={windowResource}/></FonsterList>
       {sparbesked}
