@@ -26,7 +26,7 @@ function vantan() {
   return { svar, slapp };
 }
 
-async function setup(page: Page, server: SchemaDraftTestServer, lage: 'komplett' | 'ofullstandigt' | 'avbryt') {
+async function setup(page: Page, server: SchemaDraftTestServer, lage: 'komplett' | 'ofullstandigt' | 'avbryt' | 'spar-konflikt') {
   const { draft } = await schemaTestDraft(parseSchemaDraftSave({ ...scope, commandId: crypto.randomUUID(), draftId: null, expectedRevision: 0,
     name: 'Sparat schema', basisVillkor: base.villkor, workingVillkor: base.villkor, grundFingerprint: base.grundFingerprint,
     placements: [placements.find(p => p.lesson === occurrence.lesson.id)!], locks: [], intentional: [], datedOverrides: [], activityTypes: [] }), base);
@@ -46,7 +46,7 @@ async function setup(page: Page, server: SchemaDraftTestServer, lage: 'komplett'
     const request = route.request().postDataJSON();
     expect(request).toMatchObject({ planeraProv: true, unitId: scope.unitId, schoolYear: scope.schoolYear, period: scope.period });
     calculations++;
-    if (lage === 'avbryt') await hallBerakning.svar;
+    if (lage !== 'ofullstandigt') await hallBerakning.svar;
     if (lage === 'ofullstandigt') return route.fulfill({ headers, status: 409, json: { code: 'conflict', details: {
       reason: 'schema_nytt_prov_unresolved', bookings: 3, unplaced: 2, resourceIssues: 1, remainingMinutes: 90, dateIssues: 2 } } });
     return route.fulfill({ headers, json: { ...base, villkor: request.villkor,
@@ -58,6 +58,7 @@ async function setup(page: Page, server: SchemaDraftTestServer, lage: 'komplett'
     expect(request.save).toMatchObject({ ...scope, name: draft.name, draftId: draft.id, expectedRevision: draft.revision, placements, datedOverrides: [] });
     saves.push(request);
     await hallSparande.svar;
+    if (lage === 'spar-konflikt') return route.fulfill({ headers, status: 409, json: { code: 'conflict', details: { reason: 'schema_draft_conflict' } } });
     const stored = await schemaTestDraft({ ...request.save, datedOverrides: [replacement] }, base, null, draft);
     server.drafts.set(key, stored.draft);
     bokning.salId = sal.id; bokning.vakter = [vakt.ref]; revision++;
@@ -68,23 +69,36 @@ async function setup(page: Page, server: SchemaDraftTestServer, lage: 'komplett'
   await page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Lägg schema', exact: true }).click();
   await expect(page.getByText('Sparat på servern', { exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
-  return { draft, saves, calculations: () => calculations, hallBerakning, hallSparande };
+  return { draft, saves, calculations: () => calculations, provrevision: () => revision, hallBerakning, hallSparande };
 }
 
 const taFram = (page: Page) => page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true });
-const avbryt = (page: Page) => page.getByRole('button', { name: 'Avbryt beräkningen', exact: true });
+const dialog = (page: Page) => page.getByRole('dialog', { name: 'Tar fram schemaförslag', exact: true });
+const avbryt = (page: Page) => dialog(page).getByRole('button', { name: 'Avbryt beräkningen', exact: true });
 
 test('ett klick sparar schema, provresurser och ersättningstid tillsammans', async ({ page, schemaDraftServer: server }) => {
   const state = await setup(page, server, 'komplett');
   await taFram(page).click();
-  await expect(page.getByText('Sparar schema och nationella prov tillsammans…', { exact: true })).toBeVisible();
-  await expect(avbryt(page)).toHaveCount(0);
+  await expect(dialog(page)).toBeVisible();
+  await expect(dialog(page).getByRole('heading', { name: 'Tar fram schemaförslag', exact: true })).toBeFocused();
+  await expect.poll(state.calculations).toBe(1);
+  await expect(dialog(page).getByRole('listitem').filter({ hasText: 'Placering av passen' })).toContainText('Pågår');
+  await expect(avbryt(page)).toBeEnabled();
+  state.hallBerakning.slapp();
+  await expect(dialog(page).getByText('Sparar schema och nationella prov tillsammans…', { exact: true })).toBeVisible();
+  await expect(dialog(page).getByRole('listitem').filter({ hasText: 'Spara schema och nationella prov' })).toContainText('Pågår');
+  await expect(avbryt(page)).toBeDisabled();
+  await page.keyboard.press('Escape');
+  await expect(dialog(page)).toBeVisible();
+  await expect(avbryt(page)).toBeDisabled();
+  await expect.poll(() => state.saves.length).toBe(1);
   await expect(page.getByText('Schema och nationella prov sparade', { exact: true })).toHaveCount(0);
   expect(server.drafts.get(key)).toEqual(state.draft);
   expect(server.saves).toHaveLength(0);
   state.hallSparande.slapp();
 
   const resultat = page.getByRole('region', { name: 'Nationella prov i det sparade schemat', exact: true });
+  await expect(dialog(page)).toBeHidden();
   await expect(resultat).toContainText('Schema och nationella prov sparade');
   await expect(resultat).toContainText(`1 lektion flyttad med ${replacement.durationMin} minuters ersatt undervisningstid.`);
   await resultat.getByRole('button', { name: 'Visa provdagen', exact: true }).click();
@@ -94,6 +108,24 @@ test('ett klick sparar schema, provresurser och ersättningstid tillsammans', as
   expect(server.drafts.get(key)?.datedOverrides).toEqual([replacement]);
   expect(state.calculations()).toBe(1);
   expect(state.saves).toHaveLength(1);
+  expect(state.provrevision()).toBe(2);
+  expect(server.saves).toHaveLength(0);
+});
+
+test('sparningskonflikt stänger läget och läser om utan att ersätta utkast eller provplan', async ({ page, schemaDraftServer: server }) => {
+  const state = await setup(page, server, 'spar-konflikt');
+  const tidigareLasningar = server.reads;
+  await taFram(page).click();
+  await expect.poll(state.calculations).toBe(1);
+  state.hallBerakning.slapp();
+  await expect(dialog(page).getByText('Sparar schema och nationella prov tillsammans…', { exact: true })).toBeVisible();
+  await expect.poll(() => state.saves.length).toBe(1);
+  state.hallSparande.slapp();
+  await expect(dialog(page)).toBeHidden();
+  await expect(page.getByRole('alert').filter({ hasText: 'Schemat, provplanen eller underlaget har ändrats.' })).toBeVisible();
+  await expect.poll(() => server.reads).toBeGreaterThan(tidigareLasningar);
+  expect(server.drafts.get(key)).toEqual(state.draft);
+  expect(state.provrevision()).toBe(1);
   expect(server.saves).toHaveLength(0);
 });
 
@@ -101,6 +133,7 @@ test('ofullständig planering visar olösta prov och undervisning utan att ersä
   const state = await setup(page, server, 'ofullstandigt');
   await taFram(page).click();
   const fel = page.getByRole('alert').filter({ hasText: 'Nationella prov behöver ses över' });
+  await expect(dialog(page)).toBeHidden();
   await expect(fel).toContainText('3 provbokningar kontrollerades. 2 pass saknar tid. 1 resursproblem behöver ses över. 90 minuter undervisning återstår att ersätta. 2 datumavvikelser behöver ses över.');
   await expect(fel).toContainText('Det sparade utkastet ligger kvar.');
   expect(state.calculations()).toBe(1);
@@ -113,10 +146,12 @@ test('avbrott under beräkningen lämnar det sparade schemat', async ({ page, sc
   const state = await setup(page, server, 'avbryt');
   await taFram(page).click();
   await expect.poll(state.calculations).toBe(1);
-  await expect(page.getByText(/Bokade nationella prov planeras innan förslaget sparas/u)).toBeVisible();
+  await expect(dialog(page)).toBeVisible();
+  await expect(dialog(page).getByRole('listitem').filter({ hasText: 'Placering av passen' })).toContainText('Pågår');
   await avbryt(page).click();
   state.hallBerakning.slapp();
-  await expect(page.getByText('Beräkningen avbröts. Det sparade utkastet ligger kvar.', { exact: true })).toBeVisible();
+  await expect(dialog(page)).toBeHidden();
+  await expect(page.getByText('Beräkningen avbröts. Utkastet är oförändrat.', { exact: true })).toBeVisible();
   expect(state.saves).toHaveLength(0);
   expect(server.saves).toHaveLength(0);
   expect(server.drafts.get(key)).toEqual(state.draft);

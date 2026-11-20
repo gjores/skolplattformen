@@ -65,7 +65,7 @@ test('hopfälld sökstatistik öppnas med tangentbord och leder till Följ passe
 test('nekad fördiagnos visar begripligt fel och kör aldrig förslaget',async({page})=>{
   const calls=await setup(page,{code:'forbidden',correlationId:'syntetiskt-prov'},403);
   await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
-  await expect(page.getByRole('alert')).toBeVisible();expect(calls.solves()).toBe(0);
+  await expect(page.getByRole('alert').filter({hasText:'Ditt uppdrag tillåter inte den här åtgärden.'})).toBeVisible();expect(calls.solves()).toBe(0);
   await expect(page.getByText('Tid · Alla pass har tid',{exact:true})).toHaveCount(0);
   await expect(page.getByRole('button',{name:'Ta fram schemaförslag',exact:true})).toBeEnabled();
 });
@@ -73,6 +73,6 @@ test('nekad fördiagnos visar begripligt fel och kör aldrig förslaget',async({
 test('gammal diagnostikversion godtas inte som fyndfri beräkning',async({page})=>{
   const calls=await setup(page,{version:SCHEMA_CONTRACT_VERSION-1,findings:[]});
   await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
-  await expect(page.getByRole('alert')).toContainText('Schemamotorns svar kunde inte kontrolleras. Läs om sidan och försök igen.');
+  await expect(page.getByRole('alert').filter({hasText:'Schemamotorns svar kunde inte kontrolleras. Läs om sidan och försök igen.'})).toBeVisible();
   expect(calls.solves()).toBe(0);
 });
