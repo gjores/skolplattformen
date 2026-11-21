@@ -107,6 +107,7 @@ type Curriculum = {
   fixed: StudyPlanCatalogLevel[]; rules: ChoiceRule[]; sourceChoices: TakenChoice[];
   program: CatalogProgram | null;
 };
+type CatalogLevelIndexes = Map<string, Map<string, StudyPlanCatalogLevel>>;
 
 const sourceChoiceLabels: Record<SourceChoice['kind'], string> = {
   language: 'Språkval från skolans valplan', specialization: 'Programfördjupning från skolans valplan',
@@ -160,7 +161,7 @@ function getSourceChoices(basis: StudyPlanBasis, curriculum: Curriculum, pinned:
   return choices;
 }
 
-async function curriculumFor(basis: StudyPlanBasis): Promise<Curriculum> {
+async function curriculumFor(basis: StudyPlanBasis, indexes?: CatalogLevelIndexes): Promise<Curriculum> {
   const curriculum: Curriculum = { basisStatus: 'ready', issues: [], levelIndex: new Map(), fixed: [], rules: [], sourceChoices: [], program: null };
   function incomplete(code: string): Curriculum {
     curriculum.basisStatus = code === 'unsupported_path' ? 'unsupported' : 'incomplete';
@@ -197,8 +198,9 @@ async function curriculumFor(basis: StudyPlanBasis): Promise<Curriculum> {
   } else {
     curriculum.program = program;
   }
-  const allLevels = offeredLevels(catalog, basis.startedOn);
-  curriculum.levelIndex = new Map(allLevels.map(l => [studyPlanLevelKey(l), l]));
+  const indexKey = `${catalog.catalogId}/${basis.startedOn}`;
+  curriculum.levelIndex = indexes?.get(indexKey) ?? new Map(offeredLevels(catalog, basis.startedOn).map(l => [studyPlanLevelKey(l), l]));
+  indexes?.set(indexKey, curriculum.levelIndex);
   const fixedByBlock = (subjects: CatalogBlockSubject[]) => subjects.flatMap(subject => subject.levels.flatMap(item => {
     if (subject.subjectVersion === null) return [];
     const level = curriculum.levelIndex.get(studyPlanLevelKey({
@@ -305,6 +307,21 @@ export async function projectStudyPlanBasis(basis: StudyPlanBasis): Promise<Proj
     return choiceIds.length ? [{ ...level, choiceIds }] : [];
   });
   return { basisStatus: curriculum.basisStatus, basisIssues: uniqueIssues(curriculum.issues), availableLevels };
+}
+
+/** Klassgranskningen behöver varken hela nivåväljaren eller nya nivå- och försöks-ID:n. */
+export async function assessStudyPlanClassBasis(basis: StudyPlanBasis, indexes: CatalogLevelIndexes): Promise<'unsupported' | 'catalog' | 'details' | 'choice' | null> {
+  if (basis.path.regime !== 'national_gy25') return 'unsupported';
+  const curriculum = await curriculumFor(basis, indexes);
+  if (!curriculum.fixed.length || curriculum.issues.some(issue => issue.code === 'fixed_level_source_missing')) return 'catalog';
+  if (curriculum.issues.length) return 'details';
+  const assigned = sourceAssignments(curriculum);
+  const needsChoice = curriculum.sourceChoices.some(choice => choice.state === 'unresolved') || curriculum.rules.some(rule => {
+    if (rule.id === 'extra' || rule.points === 0) return false;
+    const levels = uniqueLevels(assigned.get(rule.id) ?? []);
+    return rule.points !== levels.reduce((total, level) => total + level.points, 0) || !validProgression(rule, levels);
+  });
+  return needsChoice ? 'choice' : null;
 }
 
 function uniqueIssues(issues: StudyPlanIssue[]): StudyPlanIssue[] {

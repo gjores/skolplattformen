@@ -27,6 +27,7 @@ const scopeOf = pupil => ({ contractVersion: STUDY_PLAN_CONTRACT_VERSION, unitId
 const day = date => ({ kind: 'day', date });
 const term = (schoolYear, term) => ({ kind: 'term', schoolYear, term });
 const ownTableNames = ['individual_study_plans', 'individual_study_plan_revisions', 'individual_study_plan_receipts'];
+const classTableNames = ['individual_study_plan_class_runs', 'individual_study_plan_class_items'];
 const businessTableNames = [
   'pupils', 'pupil_placements', 'school_classes', 'pupil_class_memberships', 'offerings', 'offering_units',
   'point_plans',
@@ -211,6 +212,188 @@ async function tableHashes(db, names) {
 
 function fileSource(name) {
   return readFileSync(new URL(`../../supabase/migrations/${name}`, import.meta.url), 'utf8');
+}
+
+async function verifyClassDrafts({ db, f, pupils, read, send, check, logStage }) {
+  const { sa, protected: protectedPupil } = pupils;
+  const on = '2027-01-01', swapOn = '2026-12-30';
+  const where = { unitId: sa.unitId, classId: sa.classId };
+  const ask = { action: 'preview', ...where, on };
+  const rpc = async (tx, input) => (await tx`select public.individual_study_plan_class(${tx.json(input)}) r`)[0].r;
+  const request = (actor, input) => db.begin(async tx => { await setActor(tx, f, actor); return rpc(tx, input); });
+  const preview = (actor = 'principalA', date = on) => request(actor, { ...ask, on: date });
+  const hash = text => 'sha256:' + createHash('sha256').update(text).digest('hex');
+  const selectRow = ({ pupilId, placementId, membershipId, memberStartsOn, memberEndsOn, basis }) =>
+    ({ pupilId, placementId, membershipId, memberStartsOn, memberEndsOn, sourceToken: basis.token });
+  const start = (review, selected) => {
+    const runId = randomUUID();
+    return { ...ask, action: 'start', runId, previewToken: hash(JSON.stringify(review)), startToken: hash(runId),
+      rows: selected.map(pupil => selectRow(review.rows.find(row => row.pupilId === pupil.pupilId))) };
+  };
+  const replyRow = (run, pupil) => run.rows.find(row => row.pupilId === pupil.pupilId);
+  const recheck = error => error?.code === '40001' && error.hint === 'study_plan_class_changed';
+
+  logStage('class draft dated fixture and permissions');
+  const [writer, leaving, joining, auditPupil, concurrent, authorizedAfter] = await db.begin(async tx => {
+    const numbers = await tx`select number from (
+      select 'TEST-20100101-'||lpad(n::text,4,'0') number from generate_series(100,800) n
+      ) entries where public.phase4_synthetic_birth_date(number) is not null
+      and not exists(select 1 from public.synthetic_pupil_numbers x where x.personal_number=entries.number)
+      order by number limit 6`;
+    assert.equal(numbers.length, 6);
+    const records = [];
+    for (const [index, { number }] of numbers.entries()) {
+      const pupil = { ...sa, pupilId: randomUUID(), placementId: randomUUID(), membershipId: randomUUID() };
+      const classId = index === 2 ? sa.nextClassId : sa.classId;
+      await tx`insert into public.synthetic_pupil_numbers(personal_number) values(${number})`;
+      await tx`insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+        values(${pupil.pupilId},${f.id(1)},${f.id(2)},${'Syntetiskt klassutkast ' + index},${number},${'Syntetiskt alias för klassutkast ' + index})`;
+      await tx`insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+        values(${pupil.placementId},${f.id(1)},${f.id(2)},${pupil.pupilId},${sa.unitId},${sa.offeringId},${startsOn})`;
+      await tx`insert into public.pupil_class_memberships(id,customer_id,organizer_id,pupil_id,unit_id,class_id,placement_id,starts_on)
+        values(${pupil.membershipId},${f.id(1)},${f.id(2)},${pupil.pupilId},${sa.unitId},${classId},${pupil.placementId},${startsOn})`;
+      records.push(pupil);
+    }
+    return records;
+  });
+
+  async function move(tx, pupil, classId, startedOn, expectedVersion = 1) {
+    await setActor(tx, f, 'admin');
+    const payload = { pupilId: pupil.pupilId, schoolYear: 2026, caseId: null, expectedVersion, kind: 'class',
+      payload: { placementId: pupil.placementId, classId, startsOn: startedOn, endsOn: null } };
+    const [{ changed }] = await tx`select public.phase4_change_pupil(${tx.json(payload)}) changed`;
+    assert.equal(changed.kind, 'success');
+  }
+
+  const tables = [...ownTableNames, ...classTableNames];
+  const beforePreview = await tableHashes(db, tables);
+  const original = await preview();
+  assert.deepEqual(new Set(original.rows.map(row => row.pupilId)),
+    new Set([sa, writer, leaving, auditPupil, concurrent, authorizedAfter].map(pupil => pupil.pupilId)));
+  assert.ok(replyRow({ rows: original.rows }, sa).latestRevision > 0);
+  assert.equal(replyRow({ rows: original.rows }, sa).basis, null);
+  assert.equal((await preview('principalA', '2026-08-16')).rows.length, 0);
+  assert.ok((await preview('principalA', '2026-08-17')).rows.some(row => row.pupilId === leaving.pupilId));
+  assert.ok((await preview('admin')).rows.some(row => row.pupilId === protectedPupil.pupilId));
+  await denied(() => preview('principalB'));
+  await denied(() => preview('teacherGroup'));
+  assert.deepEqual(await tableHashes(db, tables), beforePreview);
+  check('Daterad klassgranskning tar med första giltiga dagen, hittar befintlig plan och döljer obehöriga elever även i antalet. Granskningen skriver inget utkast.');
+
+  logStage('class draft same-count replacement and idempotent start');
+  const stale = start(original, [leaving]);
+  await db.begin(async tx => { await move(tx, leaving, sa.nextClassId, swapOn); await move(tx, joining, sa.classId, swapOn); });
+  const review = await preview();
+  assert.equal(review.rows.length, original.rows.length);
+  assert.ok(review.rows.some(row => row.pupilId === joining.pupilId && row.memberStartsOn === swapOn));
+  assert.ok(!review.rows.some(row => row.pupilId === leaving.pupilId));
+  await assert.rejects(() => request('principalA', stale), recheck);
+  await assert.rejects(() => request('principalA', { ...start(review, [joining]), rows: [
+    { ...selectRow(review.rows.find(row => row.pupilId === joining.pupilId)), memberStartsOn: startsOn },
+  ] }), recheck);
+  assert.equal(await request('principalA', { action: 'status', ...where }), null);
+
+  const begin = start(review, [writer, joining, auditPupil, concurrent]);
+  const begun = await request('principalA', begin);
+  const runScope = { ...where, runId: begin.runId };
+  assert.equal(begun.hasPending, true);
+  assert.deepEqual(begun.rows.map(row => row.outcome), ['pending', 'pending', 'pending', 'pending']);
+  assert.deepEqual(await request('principalA', begin), begun);
+  await assert.rejects(() => request('principalA', { ...begin, startToken: hash('different request') }), recheck);
+  await assert.rejects(() => request('principalA', { ...begin, runId: randomUUID() }),
+    error => error?.code === '40001' && error.hint === 'study_plan_class_in_progress');
+  assert.equal(await request('admin', { action: 'status', ...runScope }), null);
+  check('Ett byte med samma antal kräver en ny granskning. Identisk bekräftelse återläser exakt samma körning och ett annat skoluppdrag får inget resultat.');
+
+  async function finish(pupil) {
+    const prepared = review.rows.find(row => row.pupilId === pupil.pupilId);
+    const basis = parseStudyPlanBasis(prepared.basis);
+    const content = await prepareStudyPlanDraft(basis, null, { dates: [] });
+    return db.begin(async tx => {
+      await setActor(tx, f, 'principalA');
+      const { next } = await rpc(tx, { action: 'advance', ...runScope });
+      assert.equal(next.pupilId, pupil.pupilId);
+      assert.equal(next.placementId, pupil.placementId);
+      const command = parseStudyPlanCommand({ ...scopeOf(pupil), action: 'prepare_draft', payload: { dates: [] },
+        commandId: next.commandId, expectedRevision: 0, expectedSourceToken: next.sourceToken });
+      const [{ r }] = await tx`select public.individual_study_plan_command(${tx.json({ command, content })}) r`;
+      const snapshot = saved(parseStudyPlanCommandReply(unwrap(r, f, 'principalA').result, command));
+      assert.equal(snapshot.revision, 1);
+      assert.equal(snapshot.state, 'draft');
+      const finishInput = { action: 'finish', ...runScope, outcome: 'saved', commandId: command.commandId };
+      const run = await rpc(tx, finishInput);
+      assert.deepEqual(await rpc(tx, finishInput), run);
+      return run;
+    });
+  }
+
+  logStage('class draft durable outcomes and replay');
+  const initialCandidate = await request('principalA', { action: 'advance', ...runScope });
+  assert.equal(initialCandidate.next.pupilId, writer.pupilId);
+  await denied(() => request('principalA', { action: 'finish', ...runScope, commandId: initialCandidate.next.commandId, outcome: 'saved' }), '55000');
+  const oneSaved = await finish(writer);
+  assert.equal(replyRow(oneSaved, writer).outcome, 'saved');
+  assert.deepEqual(await request('principalA', { action: 'status', ...where, schoolYear: 2026 }), oneSaved);
+  assert.equal(await request('principalA', { action: 'status', ...where, schoolYear: 2027 }), null);
+  await db.begin(tx => move(tx, joining, sa.nextClassId, on, 2));
+  const late = await request('principalA', { action: 'advance', ...runScope });
+  assert.equal(replyRow(late.run, joining).outcome, 'changed');
+  assert.equal(late.next, null);
+  assert.equal((await read('principalA', joining)).result.latestRevision, 0);
+  assert.equal((await read('principalA', writer)).result.latestRevision, 1);
+  check('Revision 1 och dess kvitto sparas gemensamt. Omläsning återger sparandet och byte på urvalsdagen ger ändrad rad utan nytt utkast.');
+
+  logStage('class draft partial rollback and concurrent existing plan');
+  const beforeAudit = await tableHashes(db, tables);
+  await db.unsafe(`create function public.synthetic_class_draft_audit_fail() returns trigger language plpgsql as $$
+    begin if new.action='individual_study_plan_saved' then raise exception 'synthetic audit unavailable' using errcode='55000'; end if; return new; end $$;
+    create trigger synthetic_class_draft_audit_fail before insert on public.security_events for each row execute function public.synthetic_class_draft_audit_fail();`);
+  try { await denied(() => finish(auditPupil), '55000'); }
+  finally { await db.unsafe('drop trigger synthetic_class_draft_audit_fail on public.security_events; drop function public.synthetic_class_draft_audit_fail();'); }
+  assert.deepEqual(await tableHashes(db, tables), beforeAudit);
+  const retried = await finish(auditPupil);
+  assert.equal(replyRow(retried, auditPupil).outcome, 'saved');
+
+  const beforeIndividual = await read('principalA', concurrent);
+  const individual = saved(await send('principalA', commandFor(concurrent, beforeIndividual.result, 'prepare_draft', { dates: [] }),
+    await prepareStudyPlanDraft(parseStudyPlanBasis(beforeIndividual.basis), null, { dates: [] })));
+  const final = await request('principalA', { action: 'advance', ...runScope });
+  assert.equal(replyRow(final.run, concurrent).outcome, 'existing');
+  assert.equal(final.run.hasPending, false);
+  assert.equal(final.next, null);
+  const actual = await read('principalA', concurrent);
+  assert.equal(actual.result.latestRevision, 1);
+  assert.equal(actual.result.draft.planId, individual.planId);
+  assert.deepEqual(await request('principalA', begin), final.run);
+  check('Auditfel rullar tillbaka den berörda raden och tidigare utkast består. Omtag skapar en gång och en plan som tillkom från elevkortet behåller sitt ID.');
+
+  logStage('class draft revoked mandate');
+  await db`update public.access_assignments set ended_at=clock_timestamp() where id=${f.roles.principalA}`;
+  try {
+    await denied(() => request('principalA', { action: 'status', ...runScope }));
+    await denied(() => request('principalA', { action: 'advance', ...runScope }));
+  } finally {
+    await db`update public.access_assignments set ended_at=null where id=${f.roles.principalA}`;
+  }
+  const protectedRun = await request('admin', start(await preview('admin'), [protectedPupil, authorizedAfter]));
+  assert.equal(replyRow(protectedRun, protectedPupil).outcome, 'pending');
+  assert.equal(replyRow(protectedRun, authorizedAfter).outcome, 'pending');
+  const [{ id: permissionId }] = await db`select id from public.protected_identity_permissions
+    where assignment_id=${f.roles.admin} and unit_id=${sa.unitId} and revoked_at is null`;
+  await db.begin(async tx => {
+    await setActor(tx, f, 'hm');
+    await tx`select public.phase4_revoke_protected_permission(${permissionId})`;
+  });
+  const protectedScope = { ...where, runId: protectedRun.runId };
+  const hidden = await request('admin', { action: 'status', ...protectedScope });
+  assert.deepEqual(hidden.rows.map(row => row.pupilId), [authorizedAfter.pupilId]);
+  assert.equal(hidden.hasPending, true);
+  const noWrite = await request('admin', { action: 'advance', ...protectedScope });
+  assert.deepEqual(noWrite.run, hidden);
+  assert.equal(noWrite.next.pupilId, authorizedAfter.pupilId);
+  assert.equal((await db`select count(*)::int n from public.individual_study_plans
+    where placement_id=${protectedPupil.placementId}`)[0].n, 0);
+  check('Återkallat skoluppdrag stoppar läsning och bearbetning. Vid återkallad skyddsbehörighet döljs raden och nästa behöriga elev kan behandlas.');
 }
 
 async function seedComparisonDraft(tx, unitId) {
@@ -427,6 +610,7 @@ export async function verifyIndividualStudyPlanSql(out) {
     const migrations = migrationFiles().filter(name => name.includes('_individual_study_plan'));
     assert.ok(migrations.includes('20261120110000_individual_study_plans.sql'), 'expected SP-02 migration present');
     assert.ok(migrations.includes('20261120111000_individual_study_plan_impact.sql'), 'expected SP-05 migration present');
+    assert.ok(migrations.includes('20261121120000_individual_study_plan_class.sql'), 'expected SP-09 migration present');
     environment = await createEphemeralMigratedDb({ exclude: migrations });
     report.database = environment.provenance;
     report.migrations = migrations.map(name => ({ name, sha256: createHash('sha256').update(fileSource(name)).digest('hex') }));
@@ -449,7 +633,7 @@ export async function verifyIndividualStudyPlanSql(out) {
     for (const name of migrations) await db.begin(tx => tx.unsafe(fileSource(name)));
     assert.deepEqual(await tableHashes(db, existingTables), beforeMigration, 'existing table fingerprints');
     check('Migrationen bevarar innehållet i varje befintlig tabell.');
-    for (const table of ownTableNames) {
+    for (const table of [...ownTableNames, ...classTableNames]) {
       const qualified = `public.${table}`;
       const [rls] = await db`select relrowsecurity as enabled,relforcerowsecurity as forced from pg_class where oid=${qualified}::regclass`;
       assert.ok(rls.enabled && rls.forced, 'forced RLS');
@@ -458,14 +642,22 @@ export async function verifyIndividualStudyPlanSql(out) {
         assert.equal(grant.allowed, false, 'no direct table grants');
       }
     }
-    for (const suffix of ['read', 'command', 'status']) {
+    for (const suffix of ['read', 'command', 'status', 'class']) {
       const fn = `public.individual_study_plan_${suffix}(jsonb)`;
       for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker']) {
         const [grant] = await db`select has_function_privilege(${role},${fn},'EXECUTE') as allowed`;
         assert.equal(grant.allowed, role === 'skolplattform_worker', 'workload-only RPC grant');
       }
     }
-    check('Tre avgränsade RPC:er är tillgängliga för Worker. Tabellerna har tvingat RLS och saknar direkta klient- och Worker-rättigheter.');
+    for (const helper of ['membership_token(date,date)', 'members(public.access_assignments,public.school_classes,date)',
+      'visible_items(public.individual_study_plan_class_runs,public.access_assignments)',
+      'result(public.individual_study_plan_class_runs,public.access_assignments)']) {
+      for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker']) {
+        const [grant] = await db`select has_function_privilege(${role},${'public.individual_study_plan_class_' + helper},'EXECUTE') as allowed`;
+        assert.equal(grant.allowed, false, 'no direct access to class projections');
+      }
+    }
+    check('Fyra avgränsade RPC:er är tillgängliga för Worker. Tabellerna har tvingat RLS och saknar direkta klient- och Worker-rättigheter.');
 
     stage = 'program sources and scope';
     const initial = await read('principalA', sa);
@@ -765,6 +957,8 @@ export async function verifyIndividualStudyPlanSql(out) {
     assert.equal((await read('principalA', sa, { on: '2027-01-11' })).result.current.planId, exact.planId);
     assert.deepEqual(await tableHashes(db, ownTableNames), beforeClassChange);
     check('Ordinarie daterat klassbyte inom placeringen bevarar plan-ID, historik och kvitton.');
+
+    await verifyClassDrafts({ db, f, pupils, read, send, check, logStage: description => { stage = description; } });
 
     report.status = 'PASS';
   } catch (error) {
