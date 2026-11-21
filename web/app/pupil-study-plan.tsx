@@ -356,7 +356,8 @@ export default function PupilStudyPlan(props: Props) {
   }
 
   const reload = useCallback(async (signal: AbortSignal) => {
-    const request: StudyPlanReadRequest = { contractVersion: STUDY_PLAN_CONTRACT_VERSION, unitId, pupilId, placementId, on: initialOn, view: 'current' };
+    const request: StudyPlanReadRequest = { contractVersion: STUDY_PLAN_CONTRACT_VERSION, unitId, pupilId, placementId,
+      on: initialOn, view: 'current', includeTermDateSuggestions: true };
     const body = parseStudyPlanReadReply(await api.post<unknown>('/api/studieplaner/lasa', request, signal), request);
     if (signal.aborted || body.view !== 'current') return;
     setRead(body);

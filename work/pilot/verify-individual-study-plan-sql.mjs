@@ -14,6 +14,7 @@ import {
   parseStudyPlanStatusReply, STUDY_PLAN_CONTRACT_VERSION,
 } from '../../web/lib/study-plan-contract.ts';
 import { parseStudyPlanContent, studyAttemptStatus } from '../../web/lib/study-plan-model.ts';
+import { parseStudyPlanBasis, prepareStudyPlanDraft } from '../../web/lib/server/study-plan-basis.ts';
 import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 import { defaultSchemaVillkor } from '../../web/lib/schema-contract.ts';
 import { parseStudyGroupCommand, parseStudyGroupReply, STUDY_GROUP_CONTRACT_VERSION } from '../../web/lib/study-group-contract.ts';
@@ -158,7 +159,7 @@ function unwrap(result, f, actor) {
 const readWith = (db, f) => async (actor, pupil, { view = 'current', on = currentDay, legacy = false, ...details } = {}) => db.begin(async tx => {
   const request = parseStudyPlanReadRequest({ ...scopeOf(pupil), view, on, ...details });
   await setActor(tx, f, actor);
-  const input = view === 'current' && !legacy ? { ...request, includeDateSuggestions: true } : request;
+  const input = view === 'current' && !legacy ? { ...request, includeDateSuggestions: true, includeProgramTerms: true } : request;
   const value = (await tx`select public.individual_study_plan_read(${tx.json(input)}) r`)[0].r;
   const envelope = unwrap(value, f, actor);
   return { ...envelope, result: parseStudyPlanReadReply(envelope.result, request) };
@@ -264,6 +265,29 @@ async function verifyComparisons({ db, f, read, sa, bf, check, logStage }) {
   assert.equal(spanish.attempts[0].actual.end, null);
   assert.equal(Object.hasOwn((await read('principalA', sa, { on: compareOn, legacy: true })).result, 'dateSuggestions'), false);
   check('Entydigt språk- och nivåmatchat gruppmedlemskap ger ett valbart datumförslag utan att fylla i faktisk start eller slut.');
+  const termDates = { levelId: spanish.id, attemptId: spanish.attempts[0].id,
+    plannedStart: term(2026, 'HT'), plannedEnd: term(2026, 'VT') };
+  const planned = structuredClone((readWithGroups.draft ?? original).content);
+  Object.assign(planned.levels.find(level => level.id === spanish.id).attempts[0], {
+    plannedStart: termDates.plannedStart, plannedEnd: termDates.plannedEnd,
+  });
+  planned.dialogue = null;
+  const datesCommand = commandFor(sa, readWithGroups, 'prepare_draft', { dates: [termDates] });
+  const rollbackDates = new Error('synthetic term suggestion rollback');
+  await assert.rejects(() => db.begin(async tx => {
+    await setActor(tx, f, 'principalA');
+    const [{ r: savedDates }] = await tx`select public.individual_study_plan_command(${tx.json({ command: datesCommand, content: planned })}) r`;
+    assert.equal(savedDates.result.status, 'saved');
+    const request = { ...scopeOf(sa), on: compareOn, view: 'current', includeDateSuggestions: true, includeProgramTerms: true };
+    const [{ r: legacyDates }] = await tx`select public.individual_study_plan_read(${tx.json(request)}) r`;
+    assert.deepEqual(legacyDates.result.dateSuggestions, []);
+    const [{ r: suggestedDates }] = await tx`select public.individual_study_plan_read(${tx.json({ ...request, includeTermDateSuggestions: true })}) r`;
+    assert.deepEqual(suggestedDates.result.dateSuggestions, readWithGroups.dateSuggestions);
+    const attempt = suggestedDates.result.draft.content.levels.find(level => level.id === spanish.id).attempts[0];
+    assert.deepEqual([attempt.plannedStart, attempt.plannedEnd, attempt.actual], [termDates.plannedStart, termDates.plannedEnd, spanish.attempts[0].actual]);
+    throw rollbackDates;
+  }), error => error === rollbackDates);
+  check('Den utökade gruppläsningen kan precisera två planerade terminer. Äldre klienter får bara förslag för tomma datumfält.');
   const plannedEnglish = original.content.levels.find(item => item.itemCode === 'ENGE1000X');
   const checkPlan = impact => assert.deepEqual(impact.plan, { planId: original.planId, revision: original.revision });
 
@@ -457,6 +481,36 @@ export async function verifyIndividualStudyPlanSql(out) {
     assert.equal((await db`select count(*)::int n from public.class_timplans where class_id in (${sa.classId},${bf.classId})`)[0].n, 0);
     assert.equal((await db`select count(*)::int n from public.school_years where unit_id in (${sa.unitId},${bf.unitId}) and start_year=2028`)[0].n, 0);
     check('SA26 och BF26 får nationella Gy25-källor i rätt katalog utan klassernas timplanskoppling eller framtida kalender.');
+    const distribution = [{ rowKey: 'meta:diplomaWork', points: [0, 0, 0, 0, 50, 50] }];
+    assert.equal(vocational.basis.programTerms, undefined, 'draft plan is not a source');
+    const published = await db.begin(async tx => {
+      await f.actor(tx, 'hm');
+      const [programPlan] = await tx`update public.point_plans set term_distribution=${tx.json(distribution)},revision=revision+1
+        where offering_id=${bf.offeringId} and status='utkast' returning id,revision`;
+      await tx`insert into public.plan_decision_write_permits values(txid_current(),pg_backend_pid(),
+        'programplan',${programPlan.id},'utkast','faststalld',${programPlan.revision})`;
+      const [locked] = await tx`update public.point_plans set status='faststalld',revision=revision+1,
+        decided_on=public.phase5_programplan_today(),decided_identity_id=public.current_identity_id()
+        where id=${programPlan.id} returning id,revision,version`;
+      await tx`delete from public.plan_decision_write_permits
+        where transaction_id=txid_current() and backend_id=pg_backend_pid() and plan_id=${programPlan.id}`;
+      return locked;
+    });
+    const ratedVocational = await read('principalB', bf);
+    const legacyVocational = await read('principalB', bf, { legacy: true });
+    assert.deepEqual(ratedVocational.basis.programTerms, { cohortStartYear: 2026, distribution });
+    assert.deepEqual(ratedVocational.basis.programPlan, { ...published, specializationRefs: [] });
+    assert.equal(legacyVocational.basis.programTerms, undefined);
+    assert.equal(ratedVocational.result.sourceToken, legacyVocational.result.sourceToken);
+    assert.notEqual(ratedVocational.result.sourceToken, vocational.result.sourceToken);
+    assert.equal((await read('principalA', sa)).basis.programTerms, undefined);
+    check('Bara den fastställda programplansrevisionen ger kullens terminsunderlag. Den utökade läsningen bevarar källtoken.');
+    const bfDraft = await prepareStudyPlanDraft(parseStudyPlanBasis(ratedVocational.basis), null, { dates: [] });
+    const [diplomaWork] = bfDraft.levels.filter(level => level.kind === 'diploma_work');
+    assert.deepEqual(diplomaWork.attempts[0].plannedStart, term(2028, 'HT'));
+    assert.deepEqual(diplomaWork.attempts[0].plannedEnd, term(2028, 'VT'));
+    assert.deepEqual(diplomaWork.attempts[0].actual, { certainty: 'recorded', start: null, end: null });
+    check('Det skyddade BF26-underlaget ger HT 2028 och VT 2029 när servern bereder gymnasiearbetet i första utkastet.');
 
     // The baseline contains register, placement, class, choice, schedule and group data.
     const businessBaseline = await tableHashes(db, businessTableNames);
@@ -525,8 +579,9 @@ export async function verifyIndividualStudyPlanSql(out) {
     assert.equal(termVersion.content.dialogue, null);
     assert.deepEqual(termVersion.content.levels[0].attempts[0].plannedEnd, term(2028, 'VT'));
     assert.equal(termVersion.planId, firstDraftVersion.planId);
-    const bfContent = firstDraft(vocational.basis, 'BF25');
-    saved(await send('principalB', commandFor(bf, vocational.result, 'prepare_draft', {
+    const bfContent = firstDraft(ratedVocational.basis, 'BF25');
+    assert.equal((await send('principalB', commandFor(bf, vocational.result, 'prepare_draft', { dates: [] }), bfContent)).reason, 'source');
+    saved(await send('principalB', commandFor(bf, ratedVocational.result, 'prepare_draft', {
       dates: [], apprenticeship: false, distanceTeaching: bfContent.distanceTeaching, compulsorySchoolSubjects: [],
     }), bfContent));
     assert.equal((await saveAndPublish('principalB', bf, firstEffective)).content.path.programCode, 'BF25');

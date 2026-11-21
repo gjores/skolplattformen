@@ -210,6 +210,24 @@ test('läsresultat måste överensstämma med rättelse, framtida giltighet och 
   assert.throws(() => parseStudyPlanReadReply({ ...historical, history, version: null }, exact), StudyPlanContractError);
 });
 
+test('entydiga gruppdatum kan precisera två terminer när klienten begär det', () => {
+  const legacy = parseStudyPlanReadRequest({ ...scope, view: 'current', on: '2027-06-10' });
+  const request = parseStudyPlanReadRequest({ ...legacy, includeTermDateSuggestions: true });
+  assert.equal(request.includeTermDateSuggestions, true);
+  assert.throws(() => parseStudyPlanReadRequest({ ...legacy, includeTermDateSuggestions: false }), StudyPlanContractError);
+  assert.throws(() => parseStudyPlanReadRequest({ ...request, view: 'history' }), StudyPlanContractError);
+  const current = snapshot();
+  const dates = { levelId: id(4), attemptId: id(5), plannedStart: day('2028-08-24'), plannedEnd: day('2029-06-11') };
+  const result = { ...legacy, history: [historyEntry(current)], latestRevision: 1, draft: null, current, canMakeCurrent: true,
+    sourceToken, basisStatus: 'ready', basisIssues: [], availableLevels: [], dateSuggestions: [dates] };
+  assert.deepEqual(parseStudyPlanReadReply(result, request).dateSuggestions, [dates]);
+  assert.throws(() => parseStudyPlanReadReply(result, legacy), StudyPlanContractError);
+  for (const plannedStart of [null, day('2028-08-20')]) {
+    const mixed = { ...current, content: content({ levels: [level({ attempts: [attempt({ plannedStart })] }), diplomaWork] }) };
+    assert.throws(() => parseStudyPlanReadReply({ ...result, current: mixed }, request), StudyPlanContractError);
+  }
+});
+
 test('jämförelse kräver måltypens egna ID:n och datum med inkluderande semantik', () => {
   const on = '2027-02-01';
   const base = { ...scope, on, view: 'impact' };

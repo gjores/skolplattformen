@@ -54,7 +54,7 @@ function event(action: string, scope: StudyPlanScope) {
 }
 
 async function read(tx: Tx, ctx: StudyPlanAuthority, request: StudyPlanReadRequest) {
-  const sqlRequest = request.view === 'current' ? { ...request, includeDateSuggestions: true } : request;
+  const sqlRequest = request.view === 'current' ? { ...request, includeDateSuggestions: true, includeProgramTerms: true } : request;
   const rows = await query(() => tx<StudyPlanDbRow[]>`select public.individual_study_plan_read(${tx.json(sqlRequest)}) as result`);
   try {
     const { result, basis, latest } = requireEnvelope(rows, ctx, true);

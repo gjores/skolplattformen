@@ -80,7 +80,8 @@ export function programplanLevelRanks(program: CatalogProgram): Map<string, numb
     const next = counts.get(s.code) ?? 0; ranks.set(`${s.code}:${l.code}`, next); counts.set(s.code, next + 1);
   }
   for (const subjects of blocks) for (const group of programplanAlternativeGroups(subjects)) group[0].levels.forEach((level, i) => {
-    ranks.set(`alternative:${group.map(s => `${s.code}:${s.subjectVersion}:${s.levels[i].code}`).join('+')}`, i);
+    const key = `alternative:${group.map(s => `${s.code}:${s.subjectVersion}:${s.levels[i].code}`).join('+')}`;
+    if (!ranks.has(key)) ranks.set(key, i);
   });
   return ranks;
 }

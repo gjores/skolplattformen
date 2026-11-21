@@ -25,6 +25,21 @@ const createBasis = () => ({
   path: { ...studyPath }, source: structuredClone(source), token, startedOn: '2026-08-17', offeringRevision: 0,
   programPlan: null, choices: [], calendar: [],
 });
+const bfBasis = () => ({
+  ...createBasis(), path: { ...studyPath, programCode: 'BF25', orientationCode: 'BFFRH' },
+  source: { ...source, programVersion: 5, placementStartsOn: '2027-08-16' },
+  programPlan: { id: id(70), revision: 2, version: 1, specializationRefs: [] },
+  programTerms: { cohortStartYear: 2026, distribution: [
+    { rowKey: 'meta:diplomaWork', points: [0, 0, 0, 0, 50, 50] },
+    { rowKey: 'foundation:ENGE:1:ENGE1000X', points: [0, 50, 50, 0, 0, 0] },
+    { rowKey: 'foundation:ENGE:1:ENGE2000X', points: [0, 0, 0, 50, 0, 0] },
+    { rowKey: 'foundation:IDRO:1:IDRO1000X', points: [0, 50, 0, 50, 0, 0] },
+    { rowKey: 'alternative:foundation:SVEN:1:SVEN1000X+SVEA:1:SVEA1000X', points: [100, 0, 0, 0, 0, 0] },
+    { rowKey: 'alternative:foundation:SVEN:1:SVEN2000X+SVEA:1:SVEA2000X', points: [0, 0, 0, 0, 50, 50] },
+    { rowKey: 'alternative:foundation:SVEN:1:SVEN3000X+SVEA:1:SVEA3000X', points: [0, 0, 50, 50, 0, 0] },
+    { rowKey: 'block:iv1', points: [0, 0, 100, 0, 100, 0] },
+  ] },
+});
 const baseContent = () => ({
   path: { ...studyPath, apprenticeship: false }, source: structuredClone(source),
   levels: [
@@ -64,7 +79,8 @@ const wrap = (result, extra = {}) => ({
   contractVersion: 'individual_study_plan_sql_v1', actor: { identityId, assignmentId }, result, ...extra,
 });
 const readWrap = (result, basis = null, latest = null) => wrap(result, { basis, latest });
-const currentReply = ({ includeDateSuggestions: _includeDateSuggestions, ...request }, { current = null, draft = null, basis = createBasis(), latest = draft ?? current,
+const currentReply = ({ includeDateSuggestions: _includeDateSuggestions, includeProgramTerms: _includeProgramTerms,
+  includeTermDateSuggestions: _includeTermDateSuggestions, ...request }, { current = null, draft = null, basis = createBasis(), latest = draft ?? current,
   history = [current, draft].filter(Boolean).map(metadata), extra = {} } = {}) => readWrap({
   ...request, current, draft, latestRevision: latest?.revision ?? 0, history, canMakeCurrent: state.fn === 'rektor',
   sourceToken: basis.token, basisStatus: 'ready', basisIssues: [], availableLevels: [], calendar: basis.calendar, ...extra,
@@ -163,7 +179,7 @@ async function errorResponse(response, status, errorCode) {
 
 test('studieplansläsning härleder nivåval från katalog och avgränsar svaret till placeringen', async () => {
   reset({ read: request => currentReply(request) }, { fn: 'administrator' });
-  const request = currentRequest(), response = await read(post('lasa', request));
+  const request = currentRequest({ includeTermDateSuggestions: true }), response = await read(post('lasa', request));
   assert.equal(response.status, 200);
   assert.equal(response.headers.get('cache-control'), 'no-store');
   assert.equal(response.headers.get('x-context-epoch'), '1');
@@ -172,7 +188,7 @@ test('studieplansläsning härleder nivåval från katalog och avgränsar svaret
   assert.equal(body.canMakeCurrent, false);
   assert.ok(body.availableLevels.some(item => item.itemCode === 'SVEN1000X' && item.choiceIds.includes('svenska')));
   assert.ok(!body.availableLevels.some(item => item.itemCode === 'ENGE1000X'));
-  assert.deepEqual(calls(), [['read', { ...request, includeDateSuggestions: true }]]);
+  assert.deepEqual(calls(), [['read', { ...request, includeDateSuggestions: true, includeProgramTerms: true }]]);
   assert.equal(successes().length, 1);
   assert.equal(successes()[0].details.unitId, unitId);
   assert.ok(!('pupilId' in successes()[0].details || 'plan' in successes()[0].details));
@@ -226,6 +242,59 @@ test('administratör bereder utkast från elevens underlag och får kvitto för 
   assert.deepEqual(calls().map(([operation]) => operation), ['read', 'command']);
   assert.equal(state.writes.length, 1);
   assert.equal(successes().length, 1);
+});
+
+test('ny BF26-plan får entydiga terminer från kullens programplan även vid sen placering utan läsårskalender', async () => {
+  const basis = bfBasis();
+  const swedish = ['SVEA1000X', 'SVEA2000X', 'SVEA3000X'].map(itemCode => ({
+    choiceId: 'svenska', level: { subjectCode: 'SVEA', subjectVersion: 1, itemCode, languageCode: null },
+  }));
+  const individual = { choiceId: 'individual', level: { subjectCode: 'ENGE', subjectVersion: 1, itemCode: 'ENGE3000X', languageCode: null } };
+  const input = command('prepare_draft', { dates: [], selections: [...swedish, individual], confirmedChoiceIds: ['svenska'] });
+  reset({
+    read: request => currentReply(request, { basis }),
+    command: ({ command: passed, content }) => okReply(passed, revision(1, content)),
+  });
+  const response = await write(post('kommando', input));
+  assert.equal(response.status, 200);
+  const result = parseStudyPlanCommandReply(await response.json(), parseStudyPlanCommand(input));
+  const { content } = result.receipt.snapshot;
+  const terms = itemCode => {
+    const { plannedStart, plannedEnd } = content.levels.find(item => item.itemCode === itemCode).attempts[0];
+    return [plannedStart, plannedEnd];
+  };
+  const term = (schoolYear, semester) => ({ kind: 'term', schoolYear, term: semester });
+  assert.deepEqual(terms('GYARBF25'), [term(2028, 'HT'), term(2028, 'VT')]);
+  assert.deepEqual(terms('ENGE1000X'), [term(2026, 'VT'), term(2027, 'HT')]);
+  assert.deepEqual(terms('SVEA1000X'), [term(2026, 'HT'), term(2026, 'HT')]);
+  assert.ok(!content.levels.some(item => item.itemCode === 'SVEN1000X'));
+  for (const itemCode of ['ENGE2000X', 'ENGE3000X', 'IDRO1000X', 'RELI1000X', 'SVEA3000X']) {
+    assert.deepEqual(terms(itemCode), [null, null], itemCode);
+  }
+  assert.ok(content.levels.every(level => level.attempts.every(attempt => attempt.actual.start === null && attempt.actual.end === null)));
+});
+
+test('befintlig plan behåller individuella och faktiska datum när programplanens version ändras', async () => {
+  const basis = bfBasis();
+  basis.programPlan = { ...basis.programPlan, id: id(71), revision: 3, version: 2 };
+  const previous = baseContent();
+  previous.path = { ...basis.path, apprenticeship: false };
+  previous.source = basis.source;
+  previous.levels[0].attempts[0].plannedStart = { kind: 'day', date: '2027-08-19' };
+  previous.levels[0].attempts[0].actual.start = { on: '2027-08-20', source: { kind: 'school_record', id: id(72) } };
+  previous.levels[1].itemCode = 'GYARBF25';
+  const draft = revision(3, previous);
+  const input = prepare({ kind: 'none', minutes: null }, 3);
+  reset({
+    read: request => currentReply(request, { basis, draft }),
+    command: ({ command: passed, content }) => okReply(passed, revision(4, content)),
+  });
+  const response = await write(post('kommando', input));
+  assert.equal(response.status, 200);
+  const result = parseStudyPlanCommandReply(await response.json(), parseStudyPlanCommand(input));
+  assert.equal(result.receipt.snapshot.planId, draft.planId);
+  const updated = result.receipt.snapshot.content.levels;
+  for (const level of previous.levels) assert.deepEqual(updated.find(item => item.id === level.id).attempts, level.attempts);
 });
 
 test('bekräftat elevval tas med med källrevision och skiljs från samma nivåkod i ett annat språk', async () => {

@@ -1,13 +1,16 @@
 import generatedCatalog from '../programplan-catalog.generated.json' with { type: 'json' };
 import {
-  resolveProgramplanBasis, verifyProgramplanCatalog, type CatalogBlockSubject, type CatalogSubject,
+  resolveProgramplanBasis, verifyProgramplanCatalog, type CatalogBlockSubject, type CatalogProgram, type CatalogSubject,
   type ProgramplanLevelRef, type VerifiedProgramplanCatalog,
 } from '../programplan-catalog.ts';
+import { programplanLevelOrderIssues } from '../programplan-analysis.ts';
 import { defaultProgramplanChoiceBlocks } from '../programplan-choice-blocks.ts';
 import { requiresProgramplanExamination } from '../programplan-examination.ts';
 import { PROGRAMPLAN_LANGUAGES, programplanLanguageName } from '../programplan-languages.ts';
 import { programplanProfile, VOCATIONAL_GY25_CODES } from '../programplan-profile.ts';
 import { DIPLOMA_WORK_POINTS, INDIVIDUAL_CHOICE_POINTS, programFrame } from '../programplan-table.ts';
+import { parseProgramplanTermDistribution } from '../programplan-terms-contract.ts';
+import { programplanLevelRanks, programplanTermRows, type ProgramplanTermDistribution } from '../programplan-terms.ts';
 import type { StudyPlanCalendarYear, StudyPlanCurrentReply, StudyPlanDraftEdit } from '../study-plan-contract.ts';
 import {
   invalidStudyPlan, parseStudyPlanContent, parseStudyPlanLevelRef, parseStudyPlanSource,
@@ -15,7 +18,7 @@ import {
   studyPlanInt, studyPlanLabel, studyPlanLevelKey, studyPlanList, studyPlanNullable, studyPlanUnique,
   studyPlanUuid,
   type StudyPlanCatalogLevel, type StudyPlanChoice, type StudyPlanContent, type StudyPlanIssue,
-  type StudyPlanLevel, type StudyPlanPath, type StudyPlanSnapshot, type StudyPlanSource,
+  type StudyPlanAttempt, type StudyPlanLevel, type StudyPlanPath, type StudyPlanSnapshot, type StudyPlanSource,
 } from '../study-plan-model.ts';
 import { valplanLanguageRule, valplanSubjectAllowed } from '../valplan-model.ts';
 
@@ -29,6 +32,7 @@ type SourceChoice = {
 type StudyPlanBasis = {
   path: StudyPlanPath; source: StudyPlanSource; startedOn: string; offeringRevision: number;
   programPlan: PlanPin | null; choices: SourceChoice[]; calendar: StudyPlanCalendarYear[]; token: string;
+  programTerms?: { cohortStartYear: number; distribution: ProgramplanTermDistribution };
 };
 type Projection = Pick<StudyPlanCurrentReply, 'basisStatus' | 'basisIssues' | 'availableLevels'>;
 const sourceKindsToChoice = {
@@ -43,7 +47,7 @@ function catalogLevel(value: unknown): StudyPlanCatalogLevel {
 }
 
 export function parseStudyPlanBasis(value: unknown): StudyPlanBasis {
-  const r = studyPlanFields(value, ['path', 'source', 'startedOn', 'offeringRevision', 'programPlan', 'choices', 'calendar', 'token']);
+  const r = studyPlanFields(value, ['path', 'source', 'startedOn', 'offeringRevision', 'programPlan', 'choices', 'calendar', 'token'], ['programTerms']);
   const path = studyPlanFields(r.path, ['regime', 'programCode', 'orientationCode', 'apprenticeship', 'specialVariantCode']);
   if (path.apprenticeship !== null || path.specialVariantCode !== null) invalidStudyPlan();
   if (typeof r.token !== 'string' || !/^sha256:[0-9a-f]{64}$/u.test(r.token)) invalidStudyPlan();
@@ -70,6 +74,12 @@ export function parseStudyPlanBasis(value: unknown): StudyPlanBasis {
     return { id: studyPlanUuid(p.id), revision: studyPlanInt(p.revision, 0), version: studyPlanInt(p.version), specializationRefs };
   });
   if (programPlan && !source.catalogId) invalidStudyPlan();
+  let programTerms: StudyPlanBasis['programTerms'];
+  if (Object.hasOwn(r, 'programTerms')) {
+    if (!programPlan || path.regime !== 'national_gy25') invalidStudyPlan();
+    const terms = studyPlanFields(r.programTerms, ['cohortStartYear', 'distribution']);
+    programTerms = { cohortStartYear: studyPlanInt(terms.cohortStartYear, 1900, 9996), distribution: parseProgramplanTermDistribution(terms.distribution) };
+  }
   const calendar = studyPlanUnique(studyPlanList(r.calendar, value => {
     const y = studyPlanFields(value, ['schoolYear', 'htStart', 'htEnd', 'vtStart', 'vtEnd']);
     const schoolYear = studyPlanInt(y.schoolYear, 1900, 9998);
@@ -83,7 +93,7 @@ export function parseStudyPlanBasis(value: unknown): StudyPlanBasis {
     path: { regime: studyPlanEnum(path.regime, STUDY_PLAN_REGIMES), programCode: studyPlanCode(path.programCode),
       orientationCode: studyPlanNullable(path.orientationCode, studyPlanCode), apprenticeship: null, specialVariantCode: null },
     source, startedOn: studyPlanDate(r.startedOn), offeringRevision: studyPlanInt(r.offeringRevision, 0),
-    programPlan, choices, calendar, token: r.token,
+    programPlan, choices, calendar, token: r.token, ...(programTerms ? { programTerms } : {}),
   };
 }
 
@@ -95,6 +105,7 @@ type TakenChoice = { id: string; kind: StudyPlanChoice['kind']; label: string; s
 type Curriculum = {
   basisStatus: Projection['basisStatus']; issues: StudyPlanIssue[]; levelIndex: Map<string, StudyPlanCatalogLevel>;
   fixed: StudyPlanCatalogLevel[]; rules: ChoiceRule[]; sourceChoices: TakenChoice[];
+  program: CatalogProgram | null;
 };
 
 const sourceChoiceLabels: Record<SourceChoice['kind'], string> = {
@@ -150,7 +161,7 @@ function getSourceChoices(basis: StudyPlanBasis, curriculum: Curriculum, pinned:
 }
 
 async function curriculumFor(basis: StudyPlanBasis): Promise<Curriculum> {
-  const curriculum: Curriculum = { basisStatus: 'ready', issues: [], levelIndex: new Map(), fixed: [], rules: [], sourceChoices: [] };
+  const curriculum: Curriculum = { basisStatus: 'ready', issues: [], levelIndex: new Map(), fixed: [], rules: [], sourceChoices: [], program: null };
   function incomplete(code: string): Curriculum {
     curriculum.basisStatus = code === 'unsupported_path' ? 'unsupported' : 'incomplete';
     curriculum.issues.push({ code, field: 'path' });
@@ -183,6 +194,8 @@ async function curriculumFor(basis: StudyPlanBasis): Promise<Curriculum> {
     curriculum.issues.push({ code: orientationCode === null ? 'orientation_required' : 'orientation_not_found', field: 'orientation' });
   } else if (resolved.status !== 'resolved') {
     curriculum.issues.push(...resolved.diagnostics.map(d => ({ code: d.code, field: d.blockId ?? 'path' })));
+  } else {
+    curriculum.program = program;
   }
   const allLevels = offeredLevels(catalog, basis.startedOn);
   curriculum.levelIndex = new Map(allLevels.map(l => [studyPlanLevelKey(l), l]));
@@ -312,10 +325,57 @@ function validProgression(rule: ChoiceRule, picks: StudyPlanCatalogLevel[]): boo
   return rule.id !== 'svenska' || new Set(picks.map(l => l.subjectCode)).size === 1;
 }
 
+type PlannedPeriod = Pick<StudyPlanAttempt, 'plannedStart' | 'plannedEnd'>;
+
+function termRowLevelKeys(rowKey: string, programCode: string): string[] {
+  if (rowKey === 'meta:diplomaWork') return [studyPlanLevelKey({ kind: 'diploma_work',
+    subjectCode: null, subjectVersion: null, itemCode: `GYAR${programCode}`, languageCode: null })];
+  const [part, ...key] = rowKey.split(':');
+  if (part === 'block' || part === 'meta') return [];
+  const levels = part === 'alternative' ? key.slice(1).join(':').split('+') : [key.join(':')];
+  return levels.flatMap(level => {
+    const [subjectCode, version, itemCode] = level.split(':');
+    const language = valplanLanguageRule(subjectCode);
+    if (language?.required && !language.fixed) return [];
+    return [studyPlanLevelKey({ subjectCode, subjectVersion: Number(version), itemCode, languageCode: language?.fixed ?? null })];
+  });
+}
+
+function programPeriods(basis: StudyPlanBasis, program: CatalogProgram | null): Map<string, PlannedPeriod | null> {
+  const periods = new Map<string, PlannedPeriod | null>();
+  const { programPlan, programTerms, source, startedOn } = basis;
+  if (!program || !programPlan || !programTerms || !source.catalogId) return periods;
+  const { cohortStartYear, distribution } = programTerms;
+  const { orientationCode } = basis.path;
+  const rows = programplanTermRows(program, {
+    catalogId: source.catalogId, programRef: { code: program.code, version: program.version }, orientationCode, startedOn,
+    specializationRefs: programPlan.specializationRefs, choiceBlocks: defaultProgramplanChoiceBlocks(program, orientationCode),
+  });
+  const byRow = new Map(distribution.map(item => [item.rowKey, item.points]));
+  const review = new Set(programplanLevelOrderIssues(rows, distribution, programplanLevelRanks(program)).flatMap(issue =>
+    issue.target?.kind === 'row' ? [issue.target.rowKey] : []));
+  const toTerm = (index: number): NonNullable<PlannedPeriod['plannedStart']> => ({
+    kind: 'term', schoolYear: cohortStartYear + Math.floor(index / 2), term: index % 2 === 0 ? 'HT' : 'VT',
+  });
+  for (const row of rows) {
+    const points = byRow.get(row.key);
+    let period: PlannedPeriod | null = null;
+    if (points && !review.has(row.key) && points.reduce((sum, value) => sum + value, 0) === row.points) {
+      const first = points.findIndex(value => value > 0), last = points.findLastIndex(value => value > 0);
+      if (first !== -1 && points.slice(first, last + 1).every(value => value > 0)) {
+        period = { plannedStart: toTerm(first), plannedEnd: toTerm(last) };
+      }
+    }
+    for (const key of termRowLevelKeys(row.key, program.code)) periods.set(key, periods.has(key) ? null : period);
+  }
+  return periods;
+}
+
 export async function prepareStudyPlanDraft(
   basis: StudyPlanBasis, latest: StudyPlanSnapshot | null, payload: StudyPlanDraftEdit,
 ): Promise<StudyPlanContent> {
   const curriculum = await curriculumFor(basis);
+  const periods = latest === null ? programPeriods(basis, curriculum.program) : null;
   const old = latest?.content;
   const oldByKey = new Map(old?.levels.map(level => [studyPlanLevelKey(level), level]));
   const oldById = new Map(old?.levels.map(level => [level.id, level]));
@@ -327,10 +387,11 @@ export async function prepareStudyPlanDraft(
   const addLevel = (level: Omit<StudyPlanLevel, 'id' | 'attempts'>): string => {
     const key = studyPlanLevelKey(level);
     const prior = levels.get(key) ?? oldByKey.get(key);
+    const period = periods?.get(key);
     const saved = {
       ...level, id: prior?.id ?? crypto.randomUUID(),
       attempts: prior?.attempts ?? [{
-        id: crypto.randomUUID(), plannedStart: null, plannedEnd: null,
+        id: crypto.randomUUID(), plannedStart: period?.plannedStart ?? null, plannedEnd: period?.plannedEnd ?? null,
         actual: { certainty: 'recorded', start: null, end: null },
       } as const],
     } satisfies StudyPlanLevel;

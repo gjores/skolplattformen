@@ -43,7 +43,7 @@ export type StudyPlanImpactTarget =
   | { kind: 'group_move'; membershipId: string; toGroupId: string }
   | { kind: 'group_end'; membershipId: string };
 export type StudyPlanReadRequest = StudyPlanScope & { on: string } & (
-  | { view: 'current' }
+  | { view: 'current'; includeTermDateSuggestions?: true }
   | { view: 'history'; revision?: number }
   | { view: 'options' }
   | { view: 'impact'; target: StudyPlanImpactTarget }
@@ -148,7 +148,7 @@ function parseTarget(value: unknown, on: string): StudyPlanImpactTarget {
 }
 export function parseStudyPlanReadRequest(value: unknown): StudyPlanReadRequest {
   const keys = [...scopeFields, 'view', 'on'];
-  const r = studyPlanFields(value, keys, ['target', 'revision']);
+  const r = studyPlanFields(value, keys, ['target', 'revision', 'includeTermDateSuggestions']);
   const view = studyPlanEnum(r.view, ['current', 'history', 'options', 'impact']);
   const base = { ...scope(r), on: studyPlanDate(r.on) };
   if (view === 'impact') {
@@ -158,6 +158,11 @@ export function parseStudyPlanReadRequest(value: unknown): StudyPlanReadRequest 
   if (view === 'history') {
     studyPlanFields(value, keys, ['revision']);
     return Object.hasOwn(r, 'revision') ? { ...base, view, revision: studyPlanInt(r.revision) } : { ...base, view };
+  }
+  if (view === 'current' && Object.hasOwn(r, 'includeTermDateSuggestions')) {
+    studyPlanFields(value, [...keys, 'includeTermDateSuggestions']);
+    if (r.includeTermDateSuggestions !== true) invalidStudyPlan();
+    return { ...base, view, includeTermDateSuggestions: true };
   }
   studyPlanFields(value, keys);
   return { ...base, view };
@@ -392,7 +397,10 @@ export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRe
       if (dateSuggestions?.some(edit => {
         const level = snapshot?.content.levels.find(level => level.id === edit.levelId);
         const attempt = level?.attempts.find(attempt => attempt.id === edit.attemptId);
-        return snapshot?.revision !== latestRevision || !attempt || attempt.plannedStart !== null || attempt.plannedEnd !== null
+        const empty = attempt?.plannedStart === null && attempt.plannedEnd === null;
+        const terms = request.includeTermDateSuggestions === true
+          && attempt?.plannedStart?.kind === 'term' && attempt.plannedEnd?.kind === 'term';
+        return snapshot?.revision !== latestRevision || (!empty && !terms)
           || edit.plannedStart?.kind !== 'day' || edit.plannedEnd?.kind !== 'day';
       })) invalidStudyPlan();
       return { ...base, view: request.view, current, draft, latestRevision, history, canMakeCurrent: r.canMakeCurrent, sourceToken: sourceToken(r.sourceToken),
