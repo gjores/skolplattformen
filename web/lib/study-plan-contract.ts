@@ -10,7 +10,7 @@ import {
 
 export { StudyPlanContractError } from './study-plan-model.ts';
 export const STUDY_PLAN_CONTRACT_VERSION = 'individual_study_plan_v1' as const;
-export const STUDY_PLAN_ACTIONS = ['prepare_draft', 'record_actual', 'record_decision', 'record_dialogue', 'make_current'] as const;
+export const STUDY_PLAN_ACTIONS = ['prepare_draft', 'update_planned_dates', 'record_actual', 'record_decision', 'record_dialogue', 'make_current'] as const;
 export type StudyPlanAction = typeof STUDY_PLAN_ACTIONS[number];
 export type StudyPlanScope = { contractVersion: typeof STUDY_PLAN_CONTRACT_VERSION; unitId: string; pupilId: string; placementId: string };
 
@@ -30,6 +30,7 @@ export type StudyPlanCommand = StudyPlanScope & {
   expectedSourceToken: string;
 } & (
   | { action: 'prepare_draft'; payload: StudyPlanDraftEdit }
+  | { action: 'update_planned_dates'; payload: { dates: StudyPlanDateEdit[] } }
   | { action: 'record_actual'; payload: { levelId: string; attemptId: string; event: StudyPlanEvent } }
   | { action: 'record_decision'; payload: { decision: StudyPlanDecision } }
   | { action: 'record_dialogue'; payload: { on: string } }
@@ -63,6 +64,7 @@ export type StudyPlanCurrentReply = StudyPlanReadBase & {
   sourceToken: string; basisStatus: 'ready' | 'incomplete' | 'unsupported';
   basisIssues: StudyPlanIssue[]; availableLevels: StudyPlanCatalogLevel[];
   calendar?: StudyPlanCalendarYear[];
+  dateSuggestions?: StudyPlanDateEdit[];
 };
 export type StudyPlanHistoryReply = StudyPlanReadBase & { view: 'history'; version: StudyPlanSnapshot | null; history: StudyPlanRevision[] };
 type DatedGroup = {
@@ -171,9 +173,12 @@ function parseDateEdit(value: unknown): StudyPlanDateEdit {
   if (!validPlannedStudyPeriod(plannedStart, plannedEnd)) invalidStudyPlan();
   return { levelId: studyPlanUuid(r.levelId), attemptId: studyPlanUuid(r.attemptId), plannedStart, plannedEnd };
 }
+function parseDateEdits(value: unknown): StudyPlanDateEdit[] {
+  return studyPlanUnique(studyPlanList(value, parseDateEdit, 1500), item => item.attemptId);
+}
 function parseDraft(value: unknown): StudyPlanDraftEdit {
   const r = studyPlanFields(value, ['dates'], ['selections', 'confirmedChoiceIds', 'apprenticeship', 'compulsorySchoolSubjects', 'distanceTeaching']);
-  const edit: StudyPlanDraftEdit = { dates: studyPlanUnique(studyPlanList(r.dates, parseDateEdit, 1500), item => item.attemptId) };
+  const edit: StudyPlanDraftEdit = { dates: parseDateEdits(r.dates) };
   if (Object.hasOwn(r, 'selections')) edit.selections = studyPlanUnique(studyPlanList(r.selections, value => {
     const selection = studyPlanFields(value, ['choiceId', 'level']);
     return { choiceId: studyPlanCode(selection.choiceId), level: parseStudyPlanLevelRef(selection.level) };
@@ -196,6 +201,12 @@ export function parseStudyPlanCommand(value: unknown): StudyPlanCommand {
   const action = studyPlanEnum(r.action, STUDY_PLAN_ACTIONS);
   switch (action) {
     case 'prepare_draft': return { ...base, action, payload: parseDraft(r.payload) };
+    case 'update_planned_dates': {
+      const p = studyPlanFields(r.payload, ['dates']);
+      const dates = parseDateEdits(p.dates);
+      if (!dates.length) invalidStudyPlan();
+      return { ...base, action, payload: { dates } };
+    }
     case 'record_actual': {
       const p = studyPlanFields(r.payload, ['levelId', 'attemptId', 'event']);
       const e = studyPlanFields(p.event, ['kind', 'on', 'source']);
@@ -221,7 +232,8 @@ function parseReceipt(value: unknown, commandId: string): StudyPlanReceipt {
   const r = studyPlanFields(value, ['commandId', 'action', 'snapshot']);
   if (studyPlanUuid(r.commandId) !== commandId) invalidStudyPlan();
   const action = studyPlanEnum(r.action, STUDY_PLAN_ACTIONS), snapshot = parseStudyPlanSnapshot(r.snapshot);
-  if ((action === 'make_current') !== (snapshot.state === 'current')) invalidStudyPlan();
+  const requiresCurrent = action === 'make_current' || action === 'update_planned_dates';
+  if (action !== 'record_actual' && requiresCurrent !== (snapshot.state === 'current')) invalidStudyPlan();
   return { commandId, action, snapshot };
 }
 export function parseStudyPlanCommandReply(value: unknown, request: StudyPlanCommand): StudyPlanCommandReply {
@@ -235,6 +247,14 @@ export function parseStudyPlanCommandReply(value: unknown, request: StudyPlanCom
     const receipt = parseReceipt(r.receipt, request.commandId);
     if (receipt.action !== request.action || receipt.snapshot.revision !== request.expectedRevision + 1) invalidStudyPlan();
     if (request.action === 'make_current' && receipt.snapshot.effectiveOn !== request.payload.effectiveOn) invalidStudyPlan();
+    if (request.action === 'update_planned_dates') {
+      for (const edit of request.payload.dates) {
+        const level = receipt.snapshot.content.levels.find(level => level.id === edit.levelId);
+        const attempt = level?.attempts.find(attempt => attempt.id === edit.attemptId);
+        if (!attempt || JSON.stringify(attempt.plannedStart) !== JSON.stringify(edit.plannedStart)
+          || JSON.stringify(attempt.plannedEnd) !== JSON.stringify(edit.plannedEnd)) invalidStudyPlan();
+      }
+    }
     return { ...base, status, receipt };
   }
   if (status === 'conflict') {
@@ -353,12 +373,12 @@ function parseImpact(value: unknown, on: string, target: StudyPlanImpactTarget):
 export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRequest): StudyPlanReadReply {
   const keys = [...scopeFields, 'on', 'view'];
   const r = studyPlanFields(value, keys, ['current', 'draft', 'latestRevision', 'history', 'version', 'canMakeCurrent',
-    'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels', 'calendar', 'status', 'options', 'target', 'impact']);
+    'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels', 'calendar', 'dateSuggestions', 'status', 'options', 'target', 'impact']);
   const base = { ...expectScope(r, request), on: studyPlanDate(r.on) };
   if (base.on !== request.on || r.view !== request.view) invalidStudyPlan();
   switch (request.view) {
     case 'current': {
-      studyPlanFields(value, [...keys, 'current', 'draft', 'latestRevision', 'history', 'canMakeCurrent', 'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels'], ['calendar']);
+      studyPlanFields(value, [...keys, 'current', 'draft', 'latestRevision', 'history', 'canMakeCurrent', 'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels'], ['calendar', 'dateSuggestions']);
       const latestRevision = studyPlanInt(r.latestRevision, 0), history = parseHistory(r.history);
       const current = studyPlanNullable(r.current, parseStudyPlanSnapshot), draft = studyPlanNullable(r.draft, parseStudyPlanSnapshot);
       const latest = history.find(item => item.revision === latestRevision);
@@ -367,9 +387,18 @@ export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRe
         || latestRevision !== history.reduce((max, item) => Math.max(max, item.revision), 0)
         || typeof r.canMakeCurrent !== 'boolean') invalidStudyPlan();
       const calendar = Object.hasOwn(r, 'calendar') ? { calendar: studyPlanUnique(studyPlanList(r.calendar, parseCalendarYear, 30), item => String(item.schoolYear)) } : {};
+      const dateSuggestions = Object.hasOwn(r, 'dateSuggestions') ? parseDateEdits(r.dateSuggestions) : undefined;
+      const snapshot = draft ?? current;
+      if (dateSuggestions?.some(edit => {
+        const level = snapshot?.content.levels.find(level => level.id === edit.levelId);
+        const attempt = level?.attempts.find(attempt => attempt.id === edit.attemptId);
+        return snapshot?.revision !== latestRevision || !attempt || attempt.plannedStart !== null || attempt.plannedEnd !== null
+          || edit.plannedStart?.kind !== 'day' || edit.plannedEnd?.kind !== 'day';
+      })) invalidStudyPlan();
       return { ...base, view: request.view, current, draft, latestRevision, history, canMakeCurrent: r.canMakeCurrent, sourceToken: sourceToken(r.sourceToken),
         basisStatus: studyPlanEnum(r.basisStatus, ['ready', 'incomplete', 'unsupported']), basisIssues: studyPlanList(r.basisIssues, parseStudyPlanIssue),
-        availableLevels: studyPlanUnique(studyPlanList(r.availableLevels, parseCatalogLevel, 3000), studyPlanLevelKey), ...calendar };
+        availableLevels: studyPlanUnique(studyPlanList(r.availableLevels, parseCatalogLevel, 3000), studyPlanLevelKey), ...calendar,
+        ...(dateSuggestions !== undefined ? { dateSuggestions } : {}) };
     }
     case 'history': {
       studyPlanFields(value, [...keys, 'version', 'history']);

@@ -119,11 +119,18 @@ async function openPupilPlan(page, baseURL, pupil, { reload = false } = {}) {
   ]);
   assert.equal(pupilReply.status(), 200, 'ordinary pupil card HTTP read');
   await expect(page.getByRole('heading', { name: pupil.displayName, exact: true })).toBeFocused({ timeout: 15000 });
-  await page.getByRole('button', { name: 'Öppna studieplan', exact: true }).press('Enter');
+  const tab = page.getByRole('tab', { name: 'Studieplan', exact: true });
+  await tab.press('Enter');
+  await expect(tab).toHaveAttribute('aria-selected', 'true');
   const plan = page.getByRole('region', { name: /^Studieplan för /u });
-  await expect(plan.getByRole('heading', { name: /^Studieplan för /u })).toBeFocused({ timeout: 15000 });
+  await expect(plan.getByRole('heading', { name: /^Studieplan för /u })).toBeVisible({ timeout: 15000 });
   assert.equal(new URL(page.url()).searchParams.has('pupilId'), false);
   return plan;
+}
+
+function planLevel(panel, label) {
+  return panel.getByRole('table', { name: 'Ämnesnivåer och gymnasiearbete', exact: true }).getByRole('row')
+    .filter({ has: panel.getByRole('rowheader', { name: label }) });
 }
 
 async function clickCommand(page, button, action) {
@@ -213,10 +220,7 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     const saved = result => { assert.equal(result.status, 'saved', 'typed command outcome'); return result.receipt.snapshot; };
     const requestCommand = async (role, pupil, action, payload) => command(pupil, await read(role, pupil), action, payload);
     const change = async (role, pupil, action, payload) => saved(await execute(role, await requestCommand(role, pupil, action, payload)));
-    const approve = async (role, pupil) => {
-      await change(role, pupil, 'record_dialogue', { on: today });
-      return change(role, pupil, 'make_current', { effectiveOn: firstEffective });
-    };
+    const approve = (role, pupil) => change(role, pupil, 'make_current', { effectiveOn: firstEffective });
     const screenshot = async (panel, filename) => {
       await panel.screenshot({ path: join(directory, filename) });
       report.screenshots.push(filename);
@@ -254,11 +258,12 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     const first = saved(await clickCommand(administrator, adminPanel.getByRole('button', { name: 'Skapa utkast', exact: true }), 'prepare_draft'));
     assert.equal(first.state, 'draft');
     const sourceChoices = selecting(initial.availableLevels, 'SA25');
-    const dates = [dateEdit(rowFor(first), termStart, termEnd)];
+    const firstDiplomaWork = first.content.levels.find(level => level.kind === 'diploma_work');
+    assert.ok(firstDiplomaWork);
+    const dates = [dateEdit(rowFor(first), termStart, termEnd), dateEdit(firstDiplomaWork, null, termEnd)];
     const termDraft = await change('admin', sa, 'prepare_draft', { ...sourceChoices, dates, apprenticeship: false, compulsorySchoolSubjects: [],
       distanceTeaching: { kind: 'applies', minutes: null } });
     assert.deepEqual(studyPlanContentIssues(termDraft.content), [{ code: 'distance_teaching_incomplete', field: 'distanceTeaching' }]);
-    await change('admin', sa, 'record_dialogue', { on: today });
     const make = await requestCommand('principalA', sa, 'make_current', { effectiveOn: firstEffective });
     const forbidden = await api('admin', 'kommando', make);
     assert.equal(forbidden.status, 403);
@@ -278,13 +283,16 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     assert.equal(termVersion.planId, first.planId);
     assert.deepEqual(rowFor(termVersion).attempts[0].plannedEnd, termEnd);
     assert.equal(rowFor(termVersion).attempts[0].actual.start, null);
+    assert.equal(termVersion.content.dialogue, null);
     const principalPage = sessions.principalA.page;
     const termPanel = await openPupilPlan(principalPage, baseURL, sa);
-    await expect(termPanel.getByText('HT 2028', { exact: true })).toBeVisible();
-    await expect(termPanel.getByText('VT 2029', { exact: true })).toBeVisible();
+    const selectedLevel = rowFor(termVersion);
+    await expect(planLevel(termPanel, selectedLevel.label)).toContainText('HT 2028');
+    await expect(planLevel(termPanel, selectedLevel.label)).toContainText('VT 2029');
     await expect(termPanel.getByText('Gällande', { exact: true })).toBeVisible();
+    await expect(termPanel.getByRole('button', { name: 'Granska med eleven', exact: true })).toHaveCount(0);
     const reloadedTerms = await openPupilPlan(principalPage, baseURL, sa, { reload: true });
-    await expect(reloadedTerms.getByText('VT 2029', { exact: true })).toBeVisible();
+    await expect(planLevel(reloadedTerms, selectedLevel.label)).toContainText('VT 2029');
     await viewportFits(principalPage);
     await screenshot(reloadedTerms, 'terminer-dator.png');
     pass('SA26 kan göras gällande med HT 2028–VT 2029 utan timplanskoppling, framtida kalender eller betygsdatum.');
@@ -293,30 +301,38 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     await runtime.db`insert into public.school_years(organizer_id,unit_id,start_year,ht_start,ht_end,vt_start,vt_end,status,decided_on)
       values(${seed.organizerId},${sa.unitId},2028,${exactStart},'2028-12-21','2029-01-10',${exactEnd},'faststalld','2026-11-20')`;
     const planBeforeDates = await openPupilPlan(principalPage, baseURL, sa, { reload: true });
-    await planBeforeDates.getByRole('button', { name: 'Ändra studieplan', exact: true }).click();
-    const selectedLevel = rowFor(termVersion);
-    const editor = planBeforeDates.getByRole('form', { name: 'Redigera studieplan', exact: true });
-    await editor.locator('summary').filter({ hasText: selectedLevel.label }).click();
-    await editor.getByRole('button', { name: 'Använd ' + exactStart + ' som startdatum', exact: true }).click();
-    await editor.getByRole('button', { name: 'Använd ' + exactEnd + ' som slutdatum', exact: true }).click();
-    const exactDraft = saved(await clickCommand(principalPage, editor.getByRole('button', { name: 'Spara utkast', exact: true }), 'prepare_draft'));
-    assert.equal(exactDraft.planId, first.planId);
-    assert.equal(rowFor(exactDraft).attempts[0].id, rowFor(first).attempts[0].id);
-    assert.deepEqual(rowFor(exactDraft).attempts[0].plannedEnd, { kind: 'day', date: exactEnd });
-    const precise = await approve('principalA', sa);
+    const currentDiplomaWork = rowFor(termVersion, firstDiplomaWork.itemCode);
+    const englishRow = planLevel(planBeforeDates, selectedLevel.label);
+    const diplomaRow = planLevel(planBeforeDates, currentDiplomaWork.label);
+    await englishRow.getByRole('button', { name: 'Ändra planerad period för ' + selectedLevel.label, exact: true }).click();
+    await englishRow.getByRole('button', { name: 'Använd ' + exactStart + ' som startdatum', exact: true }).click();
+    await englishRow.getByRole('button', { name: 'Använd ' + exactEnd + ' som slutdatum', exact: true }).click();
+    await diplomaRow.getByRole('button', { name: 'Ändra planerad period för ' + currentDiplomaWork.label, exact: true }).click();
+    await diplomaRow.getByRole('button', { name: 'Använd ' + exactEnd + ' som slutdatum', exact: true }).click();
+    const precise = saved(await clickCommand(principalPage, planBeforeDates.getByRole('button', { name: 'Spara ändringar', exact: true }), 'update_planned_dates'));
+    assert.equal(precise.planId, first.planId);
+    assert.equal(precise.state, 'current');
+    assert.equal(precise.revision, termVersion.revision + 1, 'both dates were saved in one revision');
+    assert.equal(rowFor(precise).attempts[0].id, rowFor(first).attempts[0].id);
+    assert.deepEqual(rowFor(precise).attempts[0].plannedEnd, { kind: 'day', date: exactEnd });
+    assert.deepEqual(rowFor(precise, firstDiplomaWork.itemCode).attempts[0].plannedEnd, { kind: 'day', date: exactEnd });
+    const forbiddenDates = await api('admin', 'kommando', await requestCommand('admin', sa, 'update_planned_dates',
+      { dates: [dateEdit(rowFor(precise), termStart, termEnd)] }));
+    assert.equal(forbiddenDates.status, 403);
     const desktopPanel = await openPupilPlan(principalPage, baseURL, sa, { reload: true });
-    await expect(desktopPanel.getByText(exactStart, { exact: true })).toBeVisible();
-    await expect(desktopPanel.getByText(exactEnd, { exact: true })).toBeVisible();
+    await expect(planLevel(desktopPanel, selectedLevel.label)).toContainText(exactStart);
+    await expect(planLevel(desktopPanel, selectedLevel.label)).toContainText(exactEnd);
+    await expect(planLevel(desktopPanel, currentDiplomaWork.label)).toContainText(exactEnd);
     await viewportFits(principalPage);
     await screenshot(desktopPanel, 'gallande-dator.png');
 
     await desktopPanel.getByRole('button', { name: 'Visa historik', exact: true }).click();
     await desktopPanel.getByRole('button', { name: `Läs version ${termVersion.revision}`, exact: true }).click();
-    await expect(desktopPanel.getByText('VT 2029', { exact: true })).toBeVisible();
+    await expect(planLevel(desktopPanel, selectedLevel.label)).toContainText('VT 2029');
     const old = (await read('principalA', sa, { view: 'history', revision: termVersion.revision })).version;
     assert.equal(old.planId, precise.planId);
     assert.deepEqual(rowFor(old).attempts[0].plannedEnd, termEnd);
-    pass('Kalenderförslag sparar exakta datum på samma plan och försök. Efter verklig omladdning är båda versionerna läsbara på dator.');
+    pass('Rektor sparar två rader från tabellen i samma gällande revision. Administratörens direkta gällandeändring nekas. Historiken går att läsa efter omladdning.');
 
     stage = 'populated plan forbidden across school boundary';
     const priorSchoolBoundary = await hashes(runtime.db);
@@ -342,14 +358,14 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     assert.equal(mobileSession.status(), 200);
     assert.equal((await mobileSession.json()).mfa.proof, true);
     const mobile = await openPupilPlan(phone, baseURL, sa);
-    await expect(mobile.getByText(exactEnd, { exact: true })).toBeVisible();
+    await expect(planLevel(mobile, selectedLevel.label)).toContainText(exactEnd);
     await viewportFits(phone);
     await screenshot(mobile, 'gallande-telefon.png');
     const mobileReloaded = await openPupilPlan(phone, baseURL, sa, { reload: true });
-    await expect(mobileReloaded.getByText(exactEnd, { exact: true })).toBeVisible();
+    await expect(planLevel(mobileReloaded, selectedLevel.label)).toContainText(exactEnd);
     await mobileReloaded.getByRole('button', { name: 'Visa historik', exact: true }).click();
     await mobileReloaded.getByRole('button', { name: `Läs version ${termVersion.revision}`, exact: true }).click();
-    await expect(mobileReloaded.getByText('VT 2029', { exact: true })).toBeVisible();
+    await expect(planLevel(mobileReloaded, selectedLevel.label)).toContainText('VT 2029');
     await viewportFits(phone);
     await screenshot(mobileReloaded, 'historik-telefon.png');
     pass('Inloggad iPhone 13-profil visar precisa datum och äldre termin även efter omladdning, utan sidledsrullning.');
@@ -365,28 +381,35 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
     const bfDraft = await populate('principalB', bf);
     const english = rowFor(bfDraft), attemptId = english.attempts[0].id;
     await change('principalB', bf, 'prepare_draft', { dates: [dateEdit(english, { kind: 'day', date: '2026-08-18' }, { kind: 'day', date: '2026-10-05' })] });
+    await approve('principalB', bf);
     const actual = (kind, on) => ({ levelId: english.id, attemptId, event: { kind, on, source: { kind: 'school_record', id: randomUUID() } } });
     const started = await change('principalB', bf, 'record_actual', actual('started', '2026-08-20'));
+    assert.equal(started.state, 'current');
+    assert.equal((await read('principalB', bf)).draft, null);
     assert.deepEqual(studyAttemptStatus(rowFor(started).attempts[0], today, [], english.id),
       { progress: 'started', reduced: false, needsFollowUp: true });
+    const ended = await change('principalB', bf, 'record_actual', actual('completed', '2026-10-20'));
+    assert.equal(ended.state, 'current');
+    assert.deepEqual((await read('principalB', bf)).current, ended);
+    const bfPage = sessions.principalB.page;
+    const completedBF = await openPupilPlan(bfPage, baseURL, bf);
+    await expect(planLevel(completedBF, english.label).getByText('Avslutad', { exact: true })).toBeVisible();
     const reduction = (levelIds, scopePoints) => ({ id: randomUUID(), kind: 'reduced',
       reference: { kind: 'action_programme_decision', id: randomUUID() }, decidedOn: '2026-10-15', effectiveOn: '2026-10-22', endsOn: null,
       scopePoints, levelIds, replacementLevelIds: [] });
     await change('principalB', bf, 'record_decision', { decision: reduction([english.id], 100) });
-    await change('principalB', bf, 'record_decision', { decision: reduction([], 50) });
-    const ended = await change('principalB', bf, 'record_actual', actual('completed', '2026-10-20'));
-    assert.equal(studyAttemptStatus(rowFor(ended).attempts[0], '2026-10-21', ended.content.decisions, english.id).reduced, false);
-    assert.deepEqual(studyAttemptStatus(rowFor(ended).attempts[0], today, ended.content.decisions, english.id),
+    const decisions = await change('principalB', bf, 'record_decision', { decision: reduction([], 50) });
+    assert.equal(studyAttemptStatus(rowFor(decisions).attempts[0], '2026-10-21', decisions.content.decisions, english.id).reduced, false);
+    assert.deepEqual(studyAttemptStatus(rowFor(decisions).attempts[0], today, decisions.content.decisions, english.id),
       { progress: 'completed', reduced: true, needsFollowUp: false });
     const bfActive = await approve('principalB', bf);
-    const bfPanel = await openPupilPlan(sessions.principalB.page, baseURL, bf);
-    await expect(bfPanel.getByText('Avslutad', { exact: true })).toBeVisible();
+    const bfPanel = await openPupilPlan(bfPage, baseURL, bf, { reload: true });
     await expect(bfPanel.getByText('Reducerad', { exact: true })).toBeVisible();
     await expect(bfPanel.getByText('Omfattning 50 poäng', { exact: true })).toBeVisible();
     await screenshot(bfPanel, 'reducering-dator.png');
     assert.equal(rowFor(bfActive).attempts[0].actual.start.on, '2026-08-20');
     assert.equal(rowFor(bfActive).attempts[0].actual.end.on, '2026-10-20');
-    pass('BF26 bevarar faktiskt start- och slutdatum. Reducering från beslutsdatumets giltighet visas med nivå eller bara omfattning.');
+    pass('BF26 visar faktiskt start- och slutdatum direkt på den gällande planen. Reducering visas från beslutets giltighet med nivå eller bara omfattning.');
 
     stage = 'protected CAS, status, and audit rollback';
     const beforeCas = await read('principalA', sa);
@@ -456,6 +479,13 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
       const separate = await seedStudyPlanImpactGroups(tx, moved);
       return { primary, separate };
     });
+    const movedRead = await read('principalA', moved);
+    const suggestedEnglish = movedRead.dateSuggestions?.find(suggestion => suggestion.levelId === rowFor(movedPlan).id);
+    assert.deepEqual(suggestedEnglish, dateEdit(rowFor(movedPlan), { kind: 'day', date: '2027-01-18' }, { kind: 'day', date: '2027-06-14' }));
+    assert.equal(rowFor(movedRead.current).attempts[0].actual.start, null);
+    assert.equal(rowFor(movedRead.current).attempts[0].plannedStart, null);
+    assert.ok(!(await read('principalA', sa)).dateSuggestions?.some(suggestion => suggestion.levelId === rowFor(precise).id));
+    pass('Entydigt undervisningsgruppsmedlemskap ger ett förslag på planerade datum utan skrivning. Tidigare datum får inget nytt förslag.');
     const scheduleScope = { contractVersion: 1, unitId: sa.unitId, schoolYear: year, period: 'ht' };
     const scheduleReq = parseSchemaDraftSave({ ...scheduleScope, commandId: randomUUID(), draftId: null, expectedRevision: 0,
       name: 'Syntetiskt schemautkast för studieplansprov', basisVillkor: null, workingVillkor: defaultSchemaVillkor(),

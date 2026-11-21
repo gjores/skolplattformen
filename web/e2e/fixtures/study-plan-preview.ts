@@ -3,7 +3,7 @@ import { expect, type Page } from '@playwright/test';
 import {
   parseStudyPlanCommand, parseStudyPlanReadReply, parseStudyPlanReadRequest, parseStudyPlanStatusRequest,
   STUDY_PLAN_CONTRACT_VERSION, type StudyPlanCommand, type StudyPlanCurrentReply, type StudyPlanImpact,
-  type StudyPlanImpactOption, type StudyPlanReadRequest, type StudyPlanReceipt, type StudyPlanScope,
+  type StudyPlanDateEdit, type StudyPlanImpactOption, type StudyPlanReadRequest, type StudyPlanReceipt, type StudyPlanScope,
 } from '../../lib/study-plan-contract.ts';
 import { studyPlanAt, studyPlanContentIssues, type StudyPlanContent, type StudyPlanSnapshot } from '../../lib/study-plan-model.ts';
 import type { PupilCard, PupilListItem } from '../../lib/pupil-register-model.ts';
@@ -32,6 +32,7 @@ function scopeOf(pupil: FixturePupil): StudyPlanScope {
 }
 
 const levelName = 'Engelska · Nivå 1';
+const diplomaWorkName = 'Gymnasiearbete';
 const course = { subjectCode: 'ENGE', subjectVersion: 1, itemCode: 'ENGE1000X', languageCode: null };
 const groupPeriod = { startsOn: '2026-08-17', endsOn: '2026-12-18' };
 const currentGroup = { groupId: id(490), name: 'Engelska grupp A', revision: 2, parallelSetId: id(494), course, ...groupPeriod };
@@ -91,7 +92,7 @@ function contentFor(pupil: FixturePupil): StudyPlanContent {
       { id: id(401), kind: 'gy25_level', subjectCode: 'ENGE', subjectVersion: 1, itemCode: 'ENGE1000X', points: 100, label: levelName,
         languageCode: null, attempts: [{ id: id(402), plannedStart: null, plannedEnd: null, actual: { certainty: 'recorded', start: null, end: null } }] },
       { id: id(403), kind: 'diploma_work', subjectCode: null, subjectVersion: null, itemCode: `GYAR${pupil.programCode}`, points: 100,
-        label: 'Gymnasiearbete', languageCode: null,
+        label: diplomaWorkName, languageCode: null,
         attempts: [{ id: id(404), plannedStart: null, plannedEnd: null, actual: { certainty: 'recorded', start: null, end: null } }] },
     ],
     choices: [], decisions: [], dialogue: null, compulsorySchoolSubjects: [],
@@ -99,7 +100,17 @@ function contentFor(pupil: FixturePupil): StudyPlanContent {
   };
 }
 
-export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; readRole: () => Role; initial?: 'published'; impact?: boolean }) {
+function setPlannedDates(content: StudyPlanContent, dates: StudyPlanDateEdit[]) {
+  for (const edit of dates) {
+    const attempt = content.levels.find(level => level.id === edit.levelId)?.attempts.find(row => row.id === edit.attemptId);
+    expect(attempt).toBeDefined();
+    Object.assign(attempt!, { plannedStart: edit.plannedStart, plannedEnd: edit.plannedEnd });
+  }
+}
+
+export async function mockStudyPlan(page: Page, options: {
+  pupil: FixturePupil; readRole: () => Role; initial?: 'published'; impact?: boolean; dateSuggestion?: boolean;
+}) {
   const { pupil, readRole } = options;
   const scope = scopeOf(pupil), planId = id(pupil.programCode === 'SA25' ? 420 : 421);
   const headers = { 'X-Context-Epoch': '1', 'Cache-Control': 'no-store' };
@@ -158,9 +169,16 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
         return route.fulfill({ json: parseStudyPlanReadReply(result, read), headers });
       }
       expect(read.view).toBe('current');
+      const suggestedLevel = latest?.content.levels[0];
+      const suggestedAttempt = suggestedLevel?.attempts[0];
+      const dateSuggestions: StudyPlanDateEdit[] = options.dateSuggestion && suggestedLevel && suggestedAttempt
+        && !suggestedAttempt.plannedStart && !suggestedAttempt.plannedEnd
+        ? [{ levelId: suggestedLevel.id, attemptId: suggestedAttempt.id,
+          plannedStart: { kind: 'day', date: '2027-01-18' }, plannedEnd: { kind: 'day', date: '2027-06-14' } }]
+        : [];
       const result: StudyPlanCurrentReply = { ...scope, on: read.on, view: 'current',
         current, draft: latest?.state === 'draft' ? latest : null, history: history(), latestRevision: latest?.revision ?? 0,
-        canMakeCurrent: readRole() === 'rektor', sourceToken: token, basisStatus: 'ready', basisIssues: [], availableLevels: [], calendar,
+        canMakeCurrent: readRole() === 'rektor', sourceToken: token, basisStatus: 'ready', basisIssues: [], availableLevels: [], calendar, dateSuggestions,
       };
       return route.fulfill({ json: result, headers });
     }
@@ -189,18 +207,20 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
     }
     expect(command.expectedSourceToken).toBe(token);
     const content = structuredClone(snapshots.at(-1)?.content ?? contentFor(pupil));
-    let effectiveOn = null;
+    let effectiveOn: string | null = null;
     switch (command.action) {
       case 'prepare_draft':
         if (command.payload.apprenticeship !== undefined) content.path.apprenticeship = command.payload.apprenticeship;
         if (command.payload.distanceTeaching) content.distanceTeaching = command.payload.distanceTeaching;
         if (command.payload.compulsorySchoolSubjects !== undefined) content.compulsorySchoolSubjects = command.payload.compulsorySchoolSubjects;
-        for (const dates of command.payload.dates) {
-          const attempt = content.levels.find(level => level.id === dates.levelId)?.attempts.find(row => row.id === dates.attemptId);
-          expect(attempt).toBeDefined();
-          Object.assign(attempt!, { plannedStart: dates.plannedStart, plannedEnd: dates.plannedEnd });
-        }
+        setPlannedDates(content, command.payload.dates);
         content.dialogue = null;
+        break;
+      case 'update_planned_dates':
+        expect(readRole()).toBe('rektor');
+        expect(snapshots.at(-1)?.state).toBe('current');
+        setPlannedDates(content, command.payload.dates);
+        effectiveOn = on;
         break;
       case 'record_dialogue':
         content.dialogue = { on: command.payload.on, reviewedRevision: command.expectedRevision };
@@ -208,7 +228,6 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
       case 'make_current': {
         expect(readRole()).toBe('rektor');
         const issues = studyPlanContentIssues(content);
-        if (!content.dialogue) issues.push({ code: 'dialogue_required', field: 'dialogue' });
         if (issues.length) return route.fulfill({ json: { ...reply, status: 'incomplete', issues }, headers });
         effectiveOn = command.payload.effectiveOn;
         break;
@@ -220,7 +239,7 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
         const { kind, ...fact } = payload.event;
         if (kind === 'started') row!.actual.start = fact;
         else row!.actual.end = { kind, ...fact };
-        content.dialogue = null;
+        if (snapshots.at(-1)?.state === 'current') effectiveOn = on;
         break;
       }
       case 'record_decision':
@@ -235,7 +254,7 @@ export async function mockStudyPlan(page: Page, options: { pupil: FixturePupil; 
   });
 
   return {
-    planId, levelName, snapshots, commands, comparisonReads,
+    planId, levelName, diplomaWorkName, snapshots, commands, comparisonReads,
     addCalendar() {
       calendar = [{ schoolYear: 2028, htStart: '2028-08-21', htEnd: '2028-12-22', vtStart: '2029-01-10', vtEnd: '2029-06-13' }];
     },

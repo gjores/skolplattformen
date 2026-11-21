@@ -54,7 +54,8 @@ function event(action: string, scope: StudyPlanScope) {
 }
 
 async function read(tx: Tx, ctx: StudyPlanAuthority, request: StudyPlanReadRequest) {
-  const rows = await query(() => tx<StudyPlanDbRow[]>`select public.individual_study_plan_read(${tx.json(request)}) as result`);
+  const sqlRequest = request.view === 'current' ? { ...request, includeDateSuggestions: true } : request;
+  const rows = await query(() => tx<StudyPlanDbRow[]>`select public.individual_study_plan_read(${tx.json(sqlRequest)}) as result`);
   try {
     const { result, basis, latest } = requireEnvelope(rows, ctx, true);
     const body = parseStudyPlanReadReply(result, request);
@@ -91,7 +92,8 @@ export async function readStudyPlan(tx: Tx, ctx: StudyPlanAuthority, request: St
 
 export async function commandStudyPlan(tx: Tx, ctx: StudyPlanAuthority, command: StudyPlanCommand) {
   authorize(ctx);
-  if ((command.action === 'make_current' || command.action === 'record_decision') && ctx.accessFunction !== 'rektor') {
+  if ((command.action === 'make_current' || command.action === 'record_decision' || command.action === 'update_planned_dates')
+    && ctx.accessFunction !== 'rektor') {
     throw new Deny('forbidden', 403);
   }
   let content = null;
@@ -109,7 +111,8 @@ export async function commandStudyPlan(tx: Tx, ctx: StudyPlanAuthority, command:
       }
     }
   }
-  const rows = await query(() => tx<StudyPlanDbRow[]>`select public.individual_study_plan_command(${tx.json({ command, content })}) as result`);
+  const input = { command, content, ...(command.action === 'record_actual' ? { keepCurrentActual: true } : {}) };
+  const rows = await query(() => tx<StudyPlanDbRow[]>`select public.individual_study_plan_command(${tx.json(input)}) as result`);
   try {
     const body = parseStudyPlanCommandReply(requireEnvelope(rows, ctx, false).result, command);
     if (body.status === 'saved' && content && JSON.stringify(body.receipt.snapshot.content) !== JSON.stringify(content)) {

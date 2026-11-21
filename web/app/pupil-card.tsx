@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import type { AccessFunction } from '@/lib/access-rules.ts';
 import {
   groupPlacements, maskedPersonalNumber, referenceDate,
@@ -59,6 +60,7 @@ export default function PupilCard(props: Props) {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryState>(emptyHistory);
   const [studyPlanOpen, setStudyPlanOpen] = useState(false);
+  const [studyPlanVisited, setStudyPlanVisited] = useState(false);
   const [studyPlacementId, setStudyPlacementId] = useState<string | null>(null);
   const studyPlacementField = useId();
   const [resolving, setResolving] = useState<string | null>(null);
@@ -234,107 +236,114 @@ export default function PupilCard(props: Props) {
     {mfa && <MfaStepUpNotice className="pupil-warning" returnTo={props.returnTo} message={mfa === 'reveal' ? 'Att visa personnummer kräver verifiering med engångskod.' : 'Att ändra elevuppgifter kräver verifiering med engångskod.'} detail="Efter verifieringen kommer du tillbaka till elevlistan." />}
     {loading && <output>Hämtar elevkortet…</output>}
 
-    <div className="protected-card"><h2>Basuppgifter</h2>
-      <dl className="mandate-facts">
-        <div><dt>Namn</dt><dd>{card.displayName}</dd>{origin('displayName')}{owned('displayName') && <small>Uppgiften ägs av {sourceName(origins.displayName!)}. Rätta den där; ändringen syns här efter nästa leverans.</small>}</div>
-        {'birthDate' in card && card.birthDate && <div><dt>Födelsedatum</dt><dd className="pupil-number">{card.birthDate}</dd></div>}
-        {'birthDate' in card && card.birthDate && card.capabilities.canRevealPersonalNumber && <div><dt>Personnummer</dt>
-          <dd className="pupil-number">{personalNumber ?? <>{maskedPersonalNumber(card.birthDate).replace('-••••', '-')}<span aria-hidden="true">••••</span><span className="sr-only">de fyra sista siffrorna är dolda</span></>}</dd>
-          <Button variant="outline" disabled={busy} onClick={() => personalNumber ? setPersonalNumber(null) : void reveal()}>{revealing ? 'Hämtar…' : personalNumber ? 'Dölj personnummer' : 'Visa personnummer'}</Button>
-          <small>Visningen registreras i säkerhetsloggen.</small>{origin('personalNumber')}</div>}
-        {admin && <div><dt>Hemkommun</dt><dd>{'municipalityCode' in card && card.municipalityCode ? `Kommunkod ${card.municipalityCode}` : 'Uppgift saknas'}</dd>{origin('municipality')}</div>}
-        <div><dt>Skola</dt><dd>{card.unitName}</dd></div>
-        <div><dt>Klass</dt><dd>{card.className ?? 'Ingen klass'}</dd></div>
-        <div><dt>Utbildning</dt><dd>{card.educationName}</dd></div>
-        <div><dt>Årskurs</dt><dd>{card.grade === null ? 'Uppgift saknas' : `åk ${card.grade}`}</dd></div>
-        <div><dt>Elev-ID</dt><dd className="pupil-number">{card.id}</dd><small>Elevens ID i registret. Det ändras inte vid namnbyte, skolbyte eller nytt inloggningskonto.</small></div>
-      </dl>
-      {admin && municipalities.length > 0 && <><h3>Hemkommun över tid</h3><ul className="pupil-rows">{[...municipalities].reverse().map(item => <li key={item.id} className="protected-assignment"><span>Kommunkod {item.municipalityCode}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul></>}
-      {canEdit && <div className="mandate-actions">
-        {(!owned('displayName') || !owned('personalNumber')) && <Button variant="outline" onClick={() => setDialog('basics')}>Ändra basuppgifter</Button>}
-        {admin && <Button variant="outline" onClick={() => setDialog('municipality')}>Registrera ny hemkommun</Button>}
-      </div>}
-    </div>
-
-    {conflicts.map((conflict, index) => {
-      const label = fieldLabels[conflict.field] ?? 'Uppgift';
-      const local = origins[conflict.field];
-      return <div key={conflict.id} className="protected-card pupil-conflict">
-        <h2 ref={index === 0 ? firstConflict : undefined} tabIndex={-1}>Avvikelse från källan: {label}</h2>
-        {conflict.field === 'personalNumber'
-          ? <><p>Lokal rättelse: personnumret i registret{local ? ` (${formatTime(local.changedAt)})` : ''}</p><p>Simulerad källa (syntetisk): ett annat personnummer (levererad {formatTime(conflict.origin.changedAt)})</p></>
-          : <><p>Lokal rättelse: {valueText(conflict.local)}{local ? ` (${formatTime(local.changedAt)})` : ''}</p><p>Simulerad källa (syntetisk): {valueText(conflict.incoming)} (levererad {formatTime(conflict.origin.changedAt)})</p></>}
-        <p>Den lokala rättelsen gäller tills du väljer. Källans värde skriver inte över den.</p>
-        {sourceError?.id === conflict.id && <Warning>{sourceError.text} <Button variant="outline" disabled={loading} onClick={() => { setSourceError(null); void load('refresh'); }}>Hämta aktuellt läge</Button></Warning>}
-        {canEdit && <div className="mandate-actions">
-          <Button variant="outline" disabled={busy} onClick={() => void resolveSource(conflict, 'local')}>{resolving === conflict.id ? 'Sparar…' : 'Behåll lokal rättelse'}</Button>
-          <Button variant="outline" disabled={busy} onClick={() => void resolveSource(conflict, 'source')}>Använd källans värde</Button>
-        </div>}
-      </div>;
-    })}
-
-    {(admin || card.placements.length > 0) && <div className="protected-card"><h2>Skolplacering</h2>
-      {(['aktuell', 'framtida', 'avslutad'] as const).map(status => <div key={status}>
-        <h3>{status === 'aktuell' ? 'Aktuell' : status === 'framtida' ? 'Framtida' : 'Avslutade'}</h3>
-        {groups[status].length === 0 ? <p>{status === 'aktuell' ? 'Ingen aktuell placering.' : status === 'framtida' ? 'Inga framtida placeringar.' : 'Inga avslutade placeringar.'}</p>
-          : <ul className="pupil-rows">{groups[status].map(item => <li key={item.id} className="protected-assignment"><span>{card.unitName} · {educationName(item.educationId)}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul>}
-      </div>)}
-      {canEdit && placement && <div className="mandate-actions">
-        {props.schools.length > 1 && <Button variant="outline" onClick={() => setDialog('transfer')}>Registrera skolbyte</Button>}
-        <Button variant="outline" onClick={() => setDialog('education')}>Byt utbildning</Button>
-        <Button variant="outline" onClick={() => setDialog('end-placement')}>Avsluta placering</Button>
-      </div>}
-    </div>}
-
-    {canOpenStudyPlan && <div className="protected-card min-w-0"><h2>Studieplan</h2>
-      <Collapsible open={studyPlanOpen} onOpenChange={setStudyPlanOpen}>
-        <CollapsibleTrigger render={<Button variant="outline" />}>{studyPlanOpen ? 'Dölj studieplanen' : 'Öppna studieplan'}</CollapsibleTrigger>
-        <CollapsibleContent>
-          {studyPlanOpen && <div className="mt-4 grid w-full min-w-0 gap-4">
-            {studyPlacements.length > 1 && <div className="grid gap-1">
-              <label htmlFor={studyPlacementField}>Placering för studieplanen</label>
-              <NativeSelect id={studyPlacementField} value={studyPlacement.id} onChange={event => setStudyPlacementId(event.target.value)}
-                className="max-w-full [&_select]:min-h-[var(--control-height)]">
-                {studyPlacements.map(item => <NativeSelectOption key={item.id} value={item.id}>
-                  {educationName(item.educationId)} · {periodText(item.startsOn, item.endsOn)}
-                </NativeSelectOption>)}
-              </NativeSelect>
+    <Tabs className="min-w-0 gap-4" value={studyPlanOpen && canOpenStudyPlan ? 'study-plan' : 'overview'} onValueChange={value => {
+      setStudyPlanOpen(value === 'study-plan');
+      if (value === 'study-plan') setStudyPlanVisited(true);
+    }}>
+      {canOpenStudyPlan && <TabsList aria-label="Elevkort" className="min-h-[var(--control-height)] max-w-full">
+        <TabsTrigger value="overview" className="min-h-[var(--control-height)] px-3">Översikt</TabsTrigger>
+        <TabsTrigger value="study-plan" className="min-h-[var(--control-height)] px-3">Studieplan</TabsTrigger>
+      </TabsList>}
+      <TabsContent value="overview" className="min-w-0">
+        <div className="grid min-w-0 gap-6">
+          <div className="protected-card"><h2>Basuppgifter</h2>
+            <dl className="mandate-facts">
+              <div><dt>Namn</dt><dd>{card.displayName}</dd>{origin('displayName')}{owned('displayName') && <small>Uppgiften ägs av {sourceName(origins.displayName!)}. Rätta den där; ändringen syns här efter nästa leverans.</small>}</div>
+              {'birthDate' in card && card.birthDate && <div><dt>Födelsedatum</dt><dd className="pupil-number">{card.birthDate}</dd></div>}
+              {'birthDate' in card && card.birthDate && card.capabilities.canRevealPersonalNumber && <div><dt>Personnummer</dt>
+                <dd className="pupil-number">{personalNumber ?? <>{maskedPersonalNumber(card.birthDate).replace('-••••', '-')}<span aria-hidden="true">••••</span><span className="sr-only">de fyra sista siffrorna är dolda</span></>}</dd>
+                <Button variant="outline" disabled={busy} onClick={() => personalNumber ? setPersonalNumber(null) : void reveal()}>{revealing ? 'Hämtar…' : personalNumber ? 'Dölj personnummer' : 'Visa personnummer'}</Button>
+                <small>Visningen registreras i säkerhetsloggen.</small>{origin('personalNumber')}</div>}
+              {admin && <div><dt>Hemkommun</dt><dd>{'municipalityCode' in card && card.municipalityCode ? `Kommunkod ${card.municipalityCode}` : 'Uppgift saknas'}</dd>{origin('municipality')}</div>}
+              <div><dt>Skola</dt><dd>{card.unitName}</dd></div>
+              <div><dt>Klass</dt><dd>{card.className ?? 'Ingen klass'}</dd></div>
+              <div><dt>Utbildning</dt><dd>{card.educationName}</dd></div>
+              <div><dt>Årskurs</dt><dd>{card.grade === null ? 'Uppgift saknas' : `åk ${card.grade}`}</dd></div>
+              <div><dt>Elev-ID</dt><dd className="pupil-number">{card.id}</dd><small>Elevens ID i registret. Det ändras inte vid namnbyte, skolbyte eller nytt inloggningskonto.</small></div>
+            </dl>
+            {admin && municipalities.length > 0 && <><h3>Hemkommun över tid</h3><ul className="pupil-rows">{[...municipalities].reverse().map(item => <li key={item.id} className="protected-assignment"><span>Kommunkod {item.municipalityCode}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul></>}
+            {canEdit && <div className="mandate-actions">
+              {(!owned('displayName') || !owned('personalNumber')) && <Button variant="outline" onClick={() => setDialog('basics')}>Ändra basuppgifter</Button>}
+              {admin && <Button variant="outline" onClick={() => setDialog('municipality')}>Registrera ny hemkommun</Button>}
             </div>}
-            <PupilStudyPlan key={props.epoch + '/' + studyPlacement.id + '/' + studyOn} unitId={studyPlacement.unitId} pupilId={card.id}
-              placementId={studyPlacement.id} placementStartsOn={studyPlacement.startsOn} placementEndsOn={studyPlacement.endsOn}
-              schoolName={card.unitName} educationName={educationName(studyPlacement.educationId)}
-              initialOn={studyOn} today={props.today} returnTo={props.returnTo} onSessionLost={props.onSessionLost}
-              onOpenClassChange={canEdit && placement?.id === studyPlacement.id ? () => setDialog('class') : undefined} />
-          </div>}
-        </CollapsibleContent>
-      </Collapsible>
-    </div>}
-
-    {(admin || card.classes.length > 0) && <div className="protected-card"><h2>Klasstillhörighet</h2>
-      {currentClasses.length === 0 ? <p>Eleven har ingen klass just nu.</p> : <ul className="pupil-rows">{currentClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · från {item.startsOn}</span></li>)}</ul>}
-      {laterClasses.length > 0 && <><h3>Kommande klasser</h3><ul className="pupil-rows">{laterClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · {educationName(placementOf(item.placementId)?.educationId ?? '')}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul></>}
-      <h3>Tidigare klasser</h3>
-      {earlierClasses.length === 0 ? <p>Inga tidigare klasser.</p> : <ul className="pupil-rows">{earlierClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · {educationName(placementOf(item.placementId)?.educationId ?? '')}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul>}
-      {canEdit && placement && <div className="mandate-actions"><Button variant="outline" onClick={() => setDialog('class')}>Byt klass</Button></div>}
-    </div>}
-
-    {card.capabilities.canReadHistory && <div className="protected-card"><h2>Historik</h2>
-      <Collapsible open={historyOpen} onOpenChange={open => { setHistoryOpen(open); if (open) void loadHistory(1); else { historyGeneration.current += 1; setHistory(emptyHistory); } }}>
-        <CollapsibleTrigger render={<Button variant="outline" />}><History size={16} aria-hidden="true" />{historyOpen ? 'Dölj ändringshistorik' : 'Visa ändringshistorik'}</CollapsibleTrigger>
-        <CollapsibleContent>
-          <div aria-busy={history.busy}>
-            {history.error && <Warning>{history.error}</Warning>}
-            {history.busy && history.entries.length === 0 && <output>Hämtar ändringshistorik…</output>}
-            {!history.busy && !history.error && history.page > 0 && history.entries.length === 0 && <p>Inga ändringar ännu.</p>}
-            {history.entries.length > 0 && <ol className="pupil-history">{history.entries.map(entry => <li key={entry.id}>
-              <span>{fieldLabels[entry.field] ?? 'Uppgift'}: {entry.field === 'personalNumber' ? 'ändrat (numret visas inte här)' : `${valueText(entry.before)} → ${valueText(entry.after)}`}</span>
-              <small>{formatTime(entry.changedAt)} · Källa: {sourceName(entry.origin)}{entry.resolution === 'local' ? ' · lokal rättelse behölls' : entry.resolution === 'source' ? " · källans värde valdes" : ''}</small>
-            </li>)}</ol>}
-            {history.entries.length < history.count && <Button variant="outline" disabled={history.busy} onClick={() => void loadHistory(history.page + 1)}>{history.busy ? 'Hämtar…' : 'Visa fler ändringar'}</Button>}
           </div>
-        </CollapsibleContent>
-      </Collapsible>
-    </div>}
+
+          {conflicts.map((conflict, index) => {
+            const label = fieldLabels[conflict.field] ?? 'Uppgift';
+            const local = origins[conflict.field];
+            return <div key={conflict.id} className="protected-card pupil-conflict">
+              <h2 ref={index === 0 ? firstConflict : undefined} tabIndex={-1}>Avvikelse från källan: {label}</h2>
+              {conflict.field === 'personalNumber'
+                ? <><p>Lokal rättelse: personnumret i registret{local ? ` (${formatTime(local.changedAt)})` : ''}</p><p>Simulerad källa (syntetisk): ett annat personnummer (levererad {formatTime(conflict.origin.changedAt)})</p></>
+                : <><p>Lokal rättelse: {valueText(conflict.local)}{local ? ` (${formatTime(local.changedAt)})` : ''}</p><p>Simulerad källa (syntetisk): {valueText(conflict.incoming)} (levererad {formatTime(conflict.origin.changedAt)})</p></>}
+              <p>Den lokala rättelsen gäller tills du väljer. Källans värde skriver inte över den.</p>
+              {sourceError?.id === conflict.id && <Warning>{sourceError.text} <Button variant="outline" disabled={loading} onClick={() => { setSourceError(null); void load('refresh'); }}>Hämta aktuellt läge</Button></Warning>}
+              {canEdit && <div className="mandate-actions">
+                <Button variant="outline" disabled={busy} onClick={() => void resolveSource(conflict, 'local')}>{resolving === conflict.id ? 'Sparar…' : 'Behåll lokal rättelse'}</Button>
+                <Button variant="outline" disabled={busy} onClick={() => void resolveSource(conflict, 'source')}>Använd källans värde</Button>
+              </div>}
+            </div>;
+          })}
+
+          {(admin || card.placements.length > 0) && <div className="protected-card"><h2>Skolplacering</h2>
+            {(['aktuell', 'framtida', 'avslutad'] as const).map(status => <div key={status}>
+              <h3>{status === 'aktuell' ? 'Aktuell' : status === 'framtida' ? 'Framtida' : 'Avslutade'}</h3>
+              {groups[status].length === 0 ? <p>{status === 'aktuell' ? 'Ingen aktuell placering.' : status === 'framtida' ? 'Inga framtida placeringar.' : 'Inga avslutade placeringar.'}</p>
+                : <ul className="pupil-rows">{groups[status].map(item => <li key={item.id} className="protected-assignment"><span>{card.unitName} · {educationName(item.educationId)}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul>}
+            </div>)}
+            {canEdit && placement && <div className="mandate-actions">
+              {props.schools.length > 1 && <Button variant="outline" onClick={() => setDialog('transfer')}>Registrera skolbyte</Button>}
+              <Button variant="outline" onClick={() => setDialog('education')}>Byt utbildning</Button>
+              <Button variant="outline" onClick={() => setDialog('end-placement')}>Avsluta placering</Button>
+            </div>}
+          </div>}
+
+          {(admin || card.classes.length > 0) && <div className="protected-card"><h2>Klasstillhörighet</h2>
+            {currentClasses.length === 0 ? <p>Eleven har ingen klass just nu.</p> : <ul className="pupil-rows">{currentClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · från {item.startsOn}</span></li>)}</ul>}
+            {laterClasses.length > 0 && <><h3>Kommande klasser</h3><ul className="pupil-rows">{laterClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · {educationName(placementOf(item.placementId)?.educationId ?? '')}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul></>}
+            <h3>Tidigare klasser</h3>
+            {earlierClasses.length === 0 ? <p>Inga tidigare klasser.</p> : <ul className="pupil-rows">{earlierClasses.map(item => <li key={item.id} className="protected-assignment"><span>{className(item.classId)} · {educationName(placementOf(item.placementId)?.educationId ?? '')}</span><small>{periodText(item.startsOn, item.endsOn)}</small></li>)}</ul>}
+            {canEdit && placement && <div className="mandate-actions"><Button variant="outline" onClick={() => setDialog('class')}>Byt klass</Button></div>}
+          </div>}
+
+          {card.capabilities.canReadHistory && <div className="protected-card"><h2>Historik</h2>
+            <Collapsible open={historyOpen} onOpenChange={open => { setHistoryOpen(open); if (open) void loadHistory(1); else { historyGeneration.current += 1; setHistory(emptyHistory); } }}>
+              <CollapsibleTrigger render={<Button variant="outline" />}><History size={16} aria-hidden="true" />{historyOpen ? 'Dölj ändringshistorik' : 'Visa ändringshistorik'}</CollapsibleTrigger>
+              <CollapsibleContent>
+                <div aria-busy={history.busy}>
+                  {history.error && <Warning>{history.error}</Warning>}
+                  {history.busy && history.entries.length === 0 && <output>Hämtar ändringshistorik…</output>}
+                  {!history.busy && !history.error && history.page > 0 && history.entries.length === 0 && <p>Inga ändringar ännu.</p>}
+                  {history.entries.length > 0 && <ol className="pupil-history">{history.entries.map(entry => <li key={entry.id}>
+                    <span>{fieldLabels[entry.field] ?? 'Uppgift'}: {entry.field === 'personalNumber' ? 'ändrat (numret visas inte här)' : `${valueText(entry.before)} → ${valueText(entry.after)}`}</span>
+                    <small>{formatTime(entry.changedAt)} · Källa: {sourceName(entry.origin)}{entry.resolution === 'local' ? ' · lokal rättelse behölls' : entry.resolution === 'source' ? " · källans värde valdes" : ''}</small>
+                  </li>)}</ol>}
+                  {history.entries.length < history.count && <Button variant="outline" disabled={history.busy} onClick={() => void loadHistory(history.page + 1)}>{history.busy ? 'Hämtar…' : 'Visa fler ändringar'}</Button>}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
+          </div>}
+        </div>
+      </TabsContent>
+      {canOpenStudyPlan && <TabsContent value="study-plan" keepMounted className="min-w-0">
+        {studyPlanVisited && <div className="protected-card grid w-full min-w-0 gap-4">
+          {studyPlacements.length > 1 && <div className="grid gap-1">
+            <label htmlFor={studyPlacementField}>Placering för studieplanen</label>
+            <NativeSelect id={studyPlacementField} value={studyPlacement.id} onChange={event => setStudyPlacementId(event.target.value)}
+              className="max-w-full [&_select]:min-h-[var(--control-height)]">
+              {studyPlacements.map(item => <NativeSelectOption key={item.id} value={item.id}>
+                {educationName(item.educationId)} · {periodText(item.startsOn, item.endsOn)}
+              </NativeSelectOption>)}
+            </NativeSelect>
+          </div>}
+          <PupilStudyPlan key={props.epoch + '/' + studyPlacement.id + '/' + studyOn} unitId={studyPlacement.unitId} pupilId={card.id}
+            placementId={studyPlacement.id} placementStartsOn={studyPlacement.startsOn} placementEndsOn={studyPlacement.endsOn}
+            schoolName={card.unitName} educationName={educationName(studyPlacement.educationId)}
+            initialOn={studyOn} today={props.today} returnTo={props.returnTo} onSessionLost={props.onSessionLost}
+            onOpenClassChange={canEdit && placement?.id === studyPlacement.id ? () => setDialog('class') : undefined} />
+        </div>}
+      </TabsContent>}
+    </Tabs>
 
     {dialog && <PupilChangeDialog key={dialog} kind={dialog} card={card} schoolYear={props.schoolYear} caseId={props.caseId} today={props.today}
       options={props.options} schools={props.schools} returnTo={props.returnTo} epoch={props.epoch}

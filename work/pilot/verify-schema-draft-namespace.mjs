@@ -34,6 +34,7 @@ console.log(JSON.stringify({ stage: 'verifying-exact-release-and-installed-depen
 const studyMigrations = [
   '20261120110000_individual_study_plans.sql',
   '20261120111000_individual_study_plan_impact.sql',
+  '20261121100000_individual_study_plan_table.sql',
 ];
 
 function verifyInputs() {

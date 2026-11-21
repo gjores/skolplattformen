@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { NativeSelect, NativeSelectOption } from '@/components/ui/native-select';
 import { VOCATIONAL_GY25_CODES } from '@/lib/programplan-profile.ts';
-import type { StudyPlanCalendarYear, StudyPlanCommand, StudyPlanDateEdit, StudyPlanDraftEdit, StudyPlanEvent } from '@/lib/study-plan-contract.ts';
+import type { StudyPlanCalendarYear, StudyPlanCommand, StudyPlanDraftEdit, StudyPlanEvent } from '@/lib/study-plan-contract.ts';
 import {
   parsePlannedStudyDate, parseStudyPlanCompulsorySubjects, parseStudyPlanDecision, parseStudyPlanDistanceTeaching,
   studyPlanDate, studyPlanLevelKey, studyPlanUuid, validPlannedStudyPeriod,
@@ -43,7 +43,8 @@ function FormError({ message }: { message: string | null }) {
 }
 
 type DateValues = { precision: 'missing' | 'term' | 'day'; day: string; term: 'HT' | 'VT'; year: string };
-type PeriodEdit = { start: DateValues; end: DateValues };
+export type StudyPlanPeriodEdit = { start: DateValues; end: DateValues };
+
 function dateValues(date: PlannedStudyDate): DateValues {
   return {
     precision: date?.kind ?? 'missing', day: date?.kind === 'day' ? date.date : '',
@@ -56,6 +57,28 @@ function plannedDate(value: DateValues): PlannedStudyDate {
   if (value.precision === 'day') return parsePlannedStudyDate({ kind: 'day', date: value.day });
   return parsePlannedStudyDate({ kind: 'term', schoolYear: Number(value.year) - (value.term === 'VT' ? 1 : 0), term: value.term });
 }
+
+export function studyPlanPeriodValues(attempt: Pick<StudyPlanAttempt, 'plannedStart' | 'plannedEnd'>): StudyPlanPeriodEdit {
+  return { start: dateValues(attempt.plannedStart), end: dateValues(attempt.plannedEnd) };
+}
+
+export function parseStudyPlanPeriodEdit(value: StudyPlanPeriodEdit) {
+  const plannedStart = plannedDate(value.start);
+  const plannedEnd = plannedDate(value.end);
+  if (!validPlannedStudyPeriod(plannedStart, plannedEnd)) throw new Error('Invalid planned period');
+  return { plannedStart, plannedEnd };
+}
+
+export function StudyPlanPeriodFields({ value, calendar, disabled, onChange }: {
+  value: StudyPlanPeriodEdit; calendar: readonly StudyPlanCalendarYear[]; disabled: boolean;
+  onChange: (value: StudyPlanPeriodEdit) => void;
+}) {
+  return <div className="grid min-w-0 gap-3 @sm/study-plan:grid-cols-2">
+    <DateFields edge="start" value={value.start} onChange={start => onChange({ ...value, start })} disabled={disabled} calendar={calendar} />
+    <DateFields edge="end" value={value.end} onChange={end => onChange({ ...value, end })} disabled={disabled} calendar={calendar} />
+  </div>;
+}
+
 function DateFields({ edge, value, onChange, calendar, disabled }: {
   edge: 'start' | 'end'; value: DateValues; disabled: boolean;
   onChange: (value: DateValues) => void; calendar: readonly StudyPlanCalendarYear[];
@@ -163,13 +186,12 @@ function StudyChoiceFields({
 
 type EditorProps = {
   snapshot: StudyPlanSnapshot; availableLevels: readonly StudyPlanCatalogLevel[];
-  calendar?: readonly StudyPlanCalendarYear[]; disabled: boolean;
+  disabled: boolean;
   onSave: (payload: StudyPlanDraftEdit) => void; onCancel: () => void;
 };
-export function StudyPlanEditor({ snapshot, availableLevels, calendar = [], disabled, onSave, onCancel }: EditorProps) {
+export function StudyPlanEditor({ snapshot, availableLevels, disabled, onSave, onCancel }: EditorProps) {
   const id = useId();
   const { content } = snapshot;
-  const [periods, setPeriods] = useState<Record<string, PeriodEdit>>({});
   const [apprenticeship, setApprenticeship] = useState(content.path.apprenticeship === null ? '' : content.path.apprenticeship ? 'yes' : 'no');
   const [subjectsMode, setSubjectsMode] = useState(!content.compulsorySchoolSubjects ? 'unknown' : content.compulsorySchoolSubjects.length ? 'applies' : 'none');
   const [subjects, setSubjects] = useState<StudyPlanCompulsorySubject[]>(content.compulsorySchoolSubjects ?? []);
@@ -204,33 +226,6 @@ export function StudyPlanEditor({ snapshot, availableLevels, calendar = [], disa
     event.preventDefault();
     if (disabled) return;
     setError(null);
-    const dates: StudyPlanDateEdit[] = [];
-    const removedKeys = new Set(content.choices.flatMap(choice => choice.levelIds.flatMap(levelId => {
-      const level = levelById.get(levelId);
-      const option = level ? available.get(studyPlanLevelKey(level)) : undefined;
-      return option?.choiceIds?.includes(choice.id) ? [studyPlanLevelKey(option)] : [];
-    })));
-    for (const item of selections) removedKeys.delete(studyPlanLevelKey(item.level));
-    for (const level of content.levels) {
-      for (const attempt of level.attempts) {
-        const edit = periods[attempt.id];
-        const removed = selectionsChanged && removedKeys.has(studyPlanLevelKey(level));
-        const preserve = attempt.actual.certainty === 'unknown' || attempt.actual.start !== null || attempt.actual.end !== null
-          || content.decisions.some(decision => decision.levelIds.includes(level.id) || decision.replacementLevelIds.includes(level.id));
-        if (!edit || (removed && !preserve)) continue;
-        try {
-          const plannedStart = plannedDate(edit.start), plannedEnd = plannedDate(edit.end);
-          if (!validPlannedStudyPeriod(plannedStart, plannedEnd)) throw new Error();
-          dates.push({ levelId: level.id, attemptId: attempt.id, plannedStart, plannedEnd });
-        } catch {
-          setError(`Kontrollera de planerade datumen för ${level.label}. Starten behöver ligga före eller på slutdagen.`);
-          const row = document.getElementById(id + '-' + attempt.id);
-          row?.setAttribute('open', '');
-          row?.querySelector('summary')?.focus();
-          return;
-        }
-      }
-    }
     let compulsorySchoolSubjects: StudyPlanDraftEdit['compulsorySchoolSubjects'];
     try {
       compulsorySchoolSubjects = parseStudyPlanCompulsorySubjects(subjectsMode === 'unknown' ? null
@@ -247,7 +242,7 @@ export function StudyPlanEditor({ snapshot, availableLevels, calendar = [], disa
       return;
     }
     onSave({
-      dates, compulsorySchoolSubjects, distanceTeaching,
+      dates: [], compulsorySchoolSubjects, distanceTeaching,
       ...(apprenticeship ? { apprenticeship: apprenticeship === 'yes' } : {}),
       ...(selectionsChanged ? { selections } : {}),
       confirmedChoiceIds: [...confirmations].filter(choiceId => editableOptions.has(choiceId) && choiceId !== 'extra'),
@@ -308,7 +303,7 @@ export function StudyPlanEditor({ snapshot, availableLevels, calendar = [], disa
       </div>
     </section>
 
-    {editableOptions.size > 0 && <section aria-labelledby={id + '-choices'} className="min-w-0 space-y-2">
+    {editableOptions.size > 0 && <section aria-labelledby={id + '-choices'} className="min-w-0 space-y-2" data-study-plan-field="levels">
       <h3 className="section-heading" id={id + '-choices'}>Val av nivåer</h3>
       {content.choices.map(choice => {
         const options = editableOptions.get(choice.id), chosen = selections.flatMap(selection => {
@@ -328,20 +323,6 @@ export function StudyPlanEditor({ snapshot, availableLevels, calendar = [], disa
       })}
     </section>}
 
-    {content.levels.length > 0 && <section aria-labelledby={id + '-dates'} className="min-w-0 space-y-2" data-study-plan-field="levels" tabIndex={-1}>
-      <h3 className="section-heading" id={id + '-dates'}>Redigera planerade datum</h3>
-      {content.levels.flatMap(level => level.attempts.map((attempt, index) => {
-        const value = periods[attempt.id] ?? { start: dateValues(attempt.plannedStart), end: dateValues(attempt.plannedEnd) };
-        const onChange = (edge: keyof PeriodEdit, date: DateValues) => setPeriods(previous => ({ ...previous, [attempt.id]: { ...value, [edge]: date } }));
-        return <details key={attempt.id} id={id + '-' + attempt.id} className={detail}>
-          <summary className={summary}>{level.label}{level.attempts.length > 1 ? ` · Försök ${index + 1}` : ''}</summary>
-          <div className="grid min-w-0 gap-4 pb-3 md:grid-cols-2">
-            <DateFields edge="start" value={value.start} onChange={date => onChange('start', date)} disabled={disabled} calendar={calendar} />
-            <DateFields edge="end" value={value.end} onChange={date => onChange('end', date)} disabled={disabled} calendar={calendar} />
-          </div>
-        </details>;
-      }))}
-    </section>}
     <FormError message={error} />
     <div className="flex flex-wrap gap-2">
       <Button type="submit" className={action} disabled={disabled}>Spara utkast</Button>

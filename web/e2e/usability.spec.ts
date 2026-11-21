@@ -527,33 +527,32 @@ async function openStudyPlan(page: Page, pupil: typeof studyPreviewPupils.sa) {
   const openPupil = page.getByRole('button', { name: `${pupil.displayName}, öppna elevkortet` });
   await openPupil.press('Enter');
   await expect(page.getByRole('heading', { name: pupil.displayName, exact: true })).toBeFocused();
-  const openPlan = page.getByRole('button', { name: 'Öppna studieplan', exact: true });
+  const openPlan = page.getByRole('tab', { name: 'Studieplan', exact: true });
   await openPlan.press('Enter');
-  await expect(page.getByRole('heading', { name: `Studieplan för ${pupil.unitName}`, exact: true })).toBeFocused();
+  await expect(openPlan).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { name: `Studieplan för ${pupil.unitName}`, exact: true })).toBeVisible();
 }
 
 async function openStudyEditor(page: Page) {
-  const heading = page.getByRole('heading', { name: 'Redigera planerade datum', exact: true });
-  const trigger = page.getByRole('button', { name: 'Ändra studieplan', exact: true });
-  await expect(heading.or(trigger).first()).toBeVisible();
-  if (!(await heading.isVisible())) await trigger.click();
-  await expect(heading).toBeVisible();
+  await page.getByRole('button', { name: 'Ändra övriga uppgifter', exact: true }).click();
+  await expect(page.getByRole('form', { name: 'Redigera studieplan', exact: true })).toBeVisible();
+}
+
+function studyLevelTable(page: Page) {
+  return page.getByRole('table', { name: 'Ämnesnivåer och gymnasiearbete', exact: true });
+}
+
+function studyLevelRow(page: Page, levelName: string) {
+  return studyLevelTable(page).getByRole('row').filter({ has: page.getByRole('rowheader', { name: levelName }) });
 }
 
 async function dateFields(page: Page, levelName: string) {
-  const summary = page.locator('summary').filter({ hasText: levelName });
-  await summary.click();
+  const row = studyLevelRow(page, levelName);
+  await row.getByRole('button', { name: `Ändra planerad period för ${levelName}`, exact: true }).click();
   return {
-    start: page.getByRole('group', { name: 'Planerad start', exact: true }),
-    end: page.getByRole('group', { name: 'Planerat slut', exact: true }),
+    start: row.getByRole('group', { name: 'Planerad start', exact: true }),
+    end: row.getByRole('group', { name: 'Planerat slut', exact: true }),
   };
-}
-
-async function studyDialogue(page: Page) {
-  await page.getByRole('button', { name: 'Granska med eleven', exact: true }).click();
-  const date = page.getByLabel('Datum för elevdialog', { exact: true });
-  await date.fill('2026-10-12');
-  await page.getByRole('button', { name: 'Registrera elevdialog', exact: true }).click();
 }
 
 async function makeStudyPlanCurrent(page: Page, options: { checkFocusReturn?: boolean } = {}) {
@@ -598,7 +597,8 @@ test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan ef
   await openStudyPlan(page, studyPreviewPupils.sa);
   await page.getByRole('button', { name: 'Skapa utkast', exact: true }).click();
   await expect.poll(() => fixture.snapshots.length).toBe(1);
-  await openStudyEditor(page);
+  const table = studyLevelTable(page);
+  await expect(table).toBeVisible();
   const first = await dateFields(page, fixture.levelName);
   await first.start.getByLabel('Precision', { exact: true }).selectOption('term');
   await first.start.getByLabel('Termin', { exact: true }).selectOption('HT');
@@ -606,13 +606,14 @@ test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan ef
   await first.end.getByLabel('Precision', { exact: true }).selectOption('term');
   await first.end.getByLabel('Termin', { exact: true }).selectOption('VT');
   await first.end.getByLabel('År', { exact: true }).fill('2029');
-  await page.getByLabel('Fjärrundervisning', { exact: true }).selectOption('applies');
-  const duration = page.getByLabel('Omfattning i minuter', { exact: true });
-  await expect(duration).toHaveValue('');
+  const diploma = await dateFields(page, fixture.diplomaWorkName);
+  await diploma.end.getByLabel('Precision', { exact: true }).selectOption('term');
+  await diploma.end.getByLabel('Termin', { exact: true }).selectOption('VT');
+  await diploma.end.getByLabel('År', { exact: true }).fill('2029');
   await fits(page);
-  await page.getByRole('form', { name: 'Redigera studieplan', exact: true }).screenshot({ path: info.outputPath('studieplan-terminsredigering.png') });
+  await table.screenshot({ path: info.outputPath('studieplan-terminsredigering.png') });
   const release = fixture.holdCommand();
-  const save = page.getByRole('button', { name: 'Spara utkast', exact: true });
+  const save = page.getByRole('button', { name: 'Spara ändringar', exact: true });
   try {
     await expect(save).toBeEnabled();
     await save.evaluate(button => { (button as HTMLButtonElement).click(); (button as HTMLButtonElement).click(); });
@@ -620,17 +621,22 @@ test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan ef
     await expect(save).toBeDisabled();
   } finally { release(); }
   await expect.poll(() => fixture.snapshots.length).toBe(2);
-  await expect(page.getByText('HT 2028', { exact: true })).toBeVisible();
-  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
+  expect(fixture.commands[1].payload).toMatchObject({ dates: [{ plannedEnd: { term: 'VT' } }, { plannedEnd: { term: 'VT' } }] });
+  await expect(studyLevelRow(page, fixture.levelName)).toContainText('HT 2028');
+  await expect(studyLevelRow(page, fixture.diplomaWorkName)).toContainText('VT 2029');
   await expect(page.getByRole('button', { name: 'Gör gällande', exact: true })).toHaveCount(0);
-  expect(fixture.snapshots[1].content.distanceTeaching).toEqual({ kind: 'applies', minutes: null });
+  await openStudyEditor(page);
+  await page.getByLabel('Fjärrundervisning', { exact: true }).selectOption('applies');
+  await expect(page.getByLabel('Omfattning i minuter', { exact: true })).toHaveValue('');
+  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
+  await expect.poll(() => fixture.snapshots.length).toBe(3);
+  expect(fixture.snapshots[2].content.distanceTeaching).toEqual({ kind: 'applies', minutes: null });
 
   role = 'rektor';
   await page.reload();
   await openStudyPlan(page, studyPreviewPupils.sa);
-  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
-  await studyDialogue(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(3);
+  await expect(studyLevelRow(page, fixture.levelName)).toContainText('VT 2029');
+  await expect(page.getByRole('button', { name: 'Granska med eleven', exact: true })).toHaveCount(0);
   await makeStudyPlanCurrent(page);
   await expect(page.getByText(/omfattning.*fjärrundervisning|fjärrundervisning.*omfattning/i).first()).toBeVisible();
   expect(fixture.snapshots.every(version => version.state === 'draft')).toBe(true);
@@ -638,10 +644,8 @@ test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan ef
   await page.getByLabel('Omfattning i minuter', { exact: true }).fill('120');
   await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
   await expect.poll(() => fixture.snapshots.length).toBe(4);
-  await studyDialogue(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(5);
   await makeStudyPlanCurrent(page, { checkFocusReturn: true });
-  await expect.poll(() => fixture.snapshots.length).toBe(6);
+  await expect.poll(() => fixture.snapshots.length).toBe(5);
   const termVersion = fixture.snapshots.at(-1)!;
   expect(termVersion.state).toBe('current');
   expect(termVersion.planId).toBe(fixture.planId);
@@ -650,30 +654,35 @@ test('Studieplan på elevkortet i SA26 bevarar terminer, datum och samma plan ef
   fixture.addCalendar();
   await page.reload();
   await openStudyPlan(page, studyPreviewPupils.sa);
-  await openStudyEditor(page);
   const exact = await dateFields(page, fixture.levelName);
   await exact.start.getByRole('button', { name: 'Använd 2028-08-21 som startdatum' }).click();
   await expect(exact.start.getByLabel('Startdatum', { exact: true })).toHaveValue('2028-08-21');
   await exact.end.getByRole('button', { name: 'Använd 2029-06-13 som slutdatum' }).click();
   await expect(exact.end.getByLabel('Slutdatum', { exact: true })).toHaveValue('2029-06-13');
-  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
-  await expect.poll(() => fixture.snapshots.length).toBe(7);
-  await studyDialogue(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(8);
-  await makeStudyPlanCurrent(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(9);
-  expect(fixture.snapshots[8].planId).toBe(termVersion.planId);
-  expect(fixture.snapshots[8].content.levels[0].attempts[0].plannedEnd).toEqual({ kind: 'day', date: '2029-06-13' });
+  const second = await dateFields(page, fixture.diplomaWorkName);
+  await second.end.getByRole('button', { name: 'Använd 2029-06-13 som slutdatum' }).click();
+  const commandCount = fixture.commands.length;
+  await save.click();
+  await expect.poll(() => fixture.snapshots.length).toBe(6);
+  expect(fixture.commands).toHaveLength(commandCount + 1);
+  expect(fixture.commands.at(-1)).toMatchObject({ action: 'update_planned_dates', payload: { dates: [
+    { plannedEnd: { kind: 'day', date: '2029-06-13' } }, { plannedEnd: { kind: 'day', date: '2029-06-13' } },
+  ] } });
+  expect(fixture.snapshots[5].planId).toBe(termVersion.planId);
+  expect(fixture.snapshots[5].state).toBe('current');
+  expect(fixture.snapshots[5].content.levels[0].attempts[0].plannedEnd).toEqual({ kind: 'day', date: '2029-06-13' });
 
   await page.reload();
   await openStudyPlan(page, studyPreviewPupils.sa);
-  await expect(page.getByText('2029-06-13', { exact: true })).toBeVisible();
+  await expect(studyLevelRow(page, fixture.levelName)).toContainText('2029-06-13');
+  await expect(studyLevelRow(page, fixture.diplomaWorkName)).toContainText('2029-06-13');
+  await expect(page.getByRole('button', { name: 'Visa utkast', exact: true })).toHaveCount(0);
   await fits(page);
   await page.getByRole('region', { name: `Studieplan för ${studyPreviewPupils.sa.unitName}`, exact: true })
     .screenshot({ path: info.outputPath('studieplan-gallande.png') });
   await page.getByRole('button', { name: 'Visa historik', exact: true }).click();
   await page.getByRole('button', { name: `Läs version ${termVersion.revision}`, exact: true }).click();
-  await expect(page.getByText('VT 2029', { exact: true })).toBeVisible();
+  await expect(studyLevelRow(page, fixture.levelName)).toContainText('VT 2029');
   expect(page.url()).not.toContain(studyPreviewPupils.sa.id);
   await fits(page);
   verify();
@@ -685,9 +694,21 @@ test('Studieplan i BF26 visar faktisk start, uppföljningsbehov och gällande re
   const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor', initial: 'published' });
   await page.goto(`${base}?vy=elever`);
   await openStudyPlan(page, studyPreviewPupils.bf);
-  await expect(page.getByText('Påbörjad', { exact: true })).toBeVisible();
-  await expect(page.getByText('Behöver följas upp', { exact: true })).toBeVisible();
-  await expect(page.getByText(/^2026-08-19/u)).toBeVisible();
+  const level = studyLevelRow(page, fixture.levelName);
+  await expect(level.getByText('Påbörjad', { exact: true })).toBeVisible();
+  await expect(level.getByText('Behöver följas upp', { exact: true })).toBeVisible();
+  await expect(level.getByText('2026-08-19', { exact: true })).toBeVisible();
+  const source = page.getByRole('definition').filter({ hasText: /^Skolans registrering$/u });
+  await expect(source).toHaveCount(0);
+  await page.getByRole('button', { name: /^Behöver följas upp/u }).click();
+  await expect(studyLevelRow(page, fixture.diplomaWorkName)).toHaveCount(0);
+  await level.getByRole('button', { name: `Visa detaljer för ${fixture.levelName}`, exact: true }).press('Enter');
+  await expect(source).toBeVisible();
+  const exception = page.locator('summary').filter({ hasText: /^Rätta eller registrera studiehändelse$/u });
+  await expect(exception).toBeVisible();
+  await page.getByRole('button', { name: /^Alla nivåer/u }).click();
+  await expect(studyLevelRow(page, fixture.diplomaWorkName)).toBeVisible();
+  expect(fixture.commands).toHaveLength(0);
 
   await registerStudyReduction(page, { levelName: fixture.levelName, points: 100, reference: id(475) });
   await expect.poll(() => fixture.snapshots.length).toBe(2);
@@ -697,17 +718,15 @@ test('Studieplan i BF26 visar faktisk start, uppföljningsbehov och gällande re
   await page.getByRole('button', { name: 'Visa utkast', exact: true }).click();
   await registerStudyReduction(page, { points: 50, reference: id(476) });
   await expect.poll(() => fixture.snapshots.length).toBe(3);
-  await studyDialogue(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(4);
   await makeStudyPlanCurrent(page);
-  await expect.poll(() => fixture.snapshots.length).toBe(5);
+  await expect.poll(() => fixture.snapshots.length).toBe(4);
   await page.reload();
   await openStudyPlan(page, studyPreviewPupils.bf);
   await expect(page.getByText('Reducerad', { exact: true }).first()).toBeVisible();
   await expect(page.getByText(/^2026-08-19/u)).toBeVisible();
   await expect(page.getByText('Omfattning 50 poäng', { exact: true })).toBeVisible();
   await expect(page.getByText('Beslutet anger omfattningen för studieplanen.', { exact: true })).toBeVisible();
-  await expect(page.getByText('Behöver följas upp', { exact: true })).toHaveCount(0);
+  await expect(level.getByText('Behöver följas upp', { exact: true })).toHaveCount(0);
   await fits(page);
   await page.getByRole('region', { name: `Studieplan för ${studyPreviewPupils.bf.unitName}`, exact: true })
     .screenshot({ path: info.outputPath('studieplan-reducerad.png') });
@@ -715,7 +734,7 @@ test('Studieplan i BF26 visar faktisk start, uppföljningsbehov och gällande re
   await page.getByLabel('Visa vad som gällde den', { exact: true }).fill('2026-10-11');
   await page.getByRole('button', { name: 'Läs på datum', exact: true }).click();
   await expect(page.getByText('Reducerad', { exact: true })).toHaveCount(0);
-  await expect(page.getByText('Behöver följas upp', { exact: true })).toBeVisible();
+  await expect(level.getByText('Behöver följas upp', { exact: true })).toBeVisible();
   verify();
 });
 
@@ -724,15 +743,37 @@ test('Studieplan behåller inte tidigare elevinnehåll när skolplacering nekas 
   const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor', initial: 'published' });
   await page.goto(`${base}?vy=elever`);
   await openStudyPlan(page, studyPreviewPupils.bf);
-  await expect(page.getByRole('heading', { name: fixture.levelName, exact: true })).toBeVisible();
+  await expect(studyLevelRow(page, fixture.levelName)).toBeVisible();
   fixture.deny();
   await page.reload();
   await openStudyPlan(page, studyPreviewPupils.bf);
   await expect(page.getByRole('alert').filter({ hasText: 'Studieplanen är inte tillgänglig i ditt aktuella uppdrag.' })).toBeVisible();
-  await expect(page.getByRole('heading', { name: fixture.levelName, exact: true })).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Ändra studieplan' })).toHaveCount(0);
+  await expect(studyLevelRow(page, fixture.levelName)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Ändra övriga uppgifter' })).toHaveCount(0);
   expect(fixture.commands.length).toBe(0);
   await fits(page);
+});
+
+test('Studieplan föreslår gruppens datum som planerad period', async ({ page }) => {
+  const verify = await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.sa, readRole: () => 'rektor', dateSuggestion: true });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.sa);
+  await page.getByRole('button', { name: 'Skapa utkast', exact: true }).click();
+  const level = studyLevelRow(page, fixture.levelName);
+  await level.getByRole('button', { name: 'Använd gruppens datum', exact: true }).click();
+  expect(fixture.commands).toHaveLength(1);
+  await page.getByRole('button', { name: 'Spara ändringar', exact: true }).click();
+  await expect.poll(() => fixture.snapshots.length).toBe(2);
+  expect(fixture.commands).toHaveLength(2);
+  const attempt = fixture.snapshots[1].content.levels[0].attempts[0];
+  expect(attempt.plannedStart).toEqual({ kind: 'day', date: '2027-01-18' });
+  expect(attempt.plannedEnd).toEqual({ kind: 'day', date: '2027-06-14' });
+  expect(attempt.actual).toEqual({ certainty: 'recorded', start: null, end: null });
+  await expect(level.getByText('Kommande', { exact: true })).toBeVisible();
+  await expect(level.getByRole('button', { name: 'Använd gruppens datum', exact: true })).toHaveCount(0);
+  await fits(page);
+  verify();
 });
 
 test('Studieplan ber om omläsning när en annan redigering hunnit spara', async ({ page }) => {
@@ -740,18 +781,19 @@ test('Studieplan ber om omläsning när en annan redigering hunnit spara', async
   const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.sa, readRole: () => 'rektor', initial: 'published' });
   await page.goto(`${base}?vy=elever`);
   await openStudyPlan(page, studyPreviewPupils.sa);
-  await openStudyEditor(page);
+  const period = await dateFields(page, fixture.diplomaWorkName);
+  await period.end.getByLabel('Precision', { exact: true }).selectOption('term');
+  await period.end.getByLabel('År', { exact: true }).fill('2029');
   fixture.conflict();
-  await page.getByRole('button', { name: 'Spara utkast', exact: true }).click();
+  await page.getByRole('button', { name: 'Spara ändringar', exact: true }).click();
   await expect(page.getByText('Uppgifterna har ändrats. Hämta den senaste versionen innan du fortsätter.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Spara utkast', exact: true })).toHaveCount(0);
   expect(fixture.snapshots.length).toBe(2);
   expect(fixture.commands).toHaveLength(1);
   expect(fixture.commands[0].expectedRevision).toBe(1);
   await page.getByRole('button', { name: 'Hämta aktuell version', exact: true }).click();
   await page.getByRole('button', { name: 'Visa utkast', exact: true }).click();
   await expect(page.getByText('Version 2', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Ändra studieplan', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Ändra övriga uppgifter', exact: true })).toBeEnabled();
   verify();
 });
 

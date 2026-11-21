@@ -155,10 +155,11 @@ function unwrap(result, f, actor) {
   return result;
 }
 
-const readWith = (db, f) => async (actor, pupil, { view = 'current', on = currentDay, ...details } = {}) => db.begin(async tx => {
+const readWith = (db, f) => async (actor, pupil, { view = 'current', on = currentDay, legacy = false, ...details } = {}) => db.begin(async tx => {
   const request = parseStudyPlanReadRequest({ ...scopeOf(pupil), view, on, ...details });
   await setActor(tx, f, actor);
-  const value = (await tx`select public.individual_study_plan_read(${tx.json(request)}) r`)[0].r;
+  const input = view === 'current' && !legacy ? { ...request, includeDateSuggestions: true } : request;
+  const value = (await tx`select public.individual_study_plan_read(${tx.json(input)}) r`)[0].r;
   const envelope = unwrap(value, f, actor);
   return { ...envelope, result: parseStudyPlanReadReply(envelope.result, request) };
 });
@@ -172,9 +173,10 @@ function commandFor(pupil, latest, action, payload) {
   return parseStudyPlanCommand({ ...scopeOf(pupil), action, payload,
     commandId: randomUUID(), expectedRevision: latest.latestRevision, expectedSourceToken: latest.sourceToken });
 }
-const sendWith = (db, f) => async (actor, command, content = null) => db.begin(async tx => {
+const sendWith = (db, f) => async (actor, command, content = null, legacy = false) => db.begin(async tx => {
   await setActor(tx, f, actor);
-  const value = (await tx`select public.individual_study_plan_command(${tx.json({ command, content })}) r`)[0].r;
+  const input = { command, content, ...(command.action === 'record_actual' && !legacy ? { keepCurrentActual: true } : {}) };
+  const value = (await tx`select public.individual_study_plan_command(${tx.json(input)}) r`)[0].r;
   return parseStudyPlanCommandReply(unwrap(value, f, actor).result, command);
 });
 const statusWith = (db, f) => async (actor, pupil, commandId) => db.begin(async tx => {
@@ -251,7 +253,17 @@ async function verifyComparisons({ db, f, read, sa, bf, check, logStage }) {
     assert.equal(reply.status, 'compared', 'comparison available');
     return reply.impact;
   };
-  const original = (await read('principalA', sa, { on: compareOn })).result.current;
+  const readWithGroups = (await read('principalA', sa, { on: compareOn })).result;
+  const original = readWithGroups.current;
+  const spanish = (readWithGroups.draft ?? original).content.levels.find(item => item.languageCode === 'es');
+  assert.deepEqual(readWithGroups.dateSuggestions, [{
+    levelId: spanish.id, attemptId: spanish.attempts[0].id,
+    plannedStart: day('2026-09-01'), plannedEnd: day('2027-06-10'),
+  }]);
+  assert.equal(spanish.attempts[0].actual.start, null);
+  assert.equal(spanish.attempts[0].actual.end, null);
+  assert.equal(Object.hasOwn((await read('principalA', sa, { on: compareOn, legacy: true })).result, 'dateSuggestions'), false);
+  check('Entydigt språk- och nivåmatchat gruppmedlemskap ger ett valbart datumförslag utan att fylla i faktisk start eller slut.');
   const plannedEnglish = original.content.levels.find(item => item.itemCode === 'ENGE1000X');
   const checkPlan = impact => assert.deepEqual(impact.plan, { planId: original.planId, revision: original.revision });
 
@@ -494,8 +506,6 @@ export async function verifyIndividualStudyPlanSql(out) {
     Object.assign(termsDocument.levels[0].attempts[0], { plannedStart: termDates.plannedStart, plannedEnd: termDates.plannedEnd });
     saved(await send('admin', commandFor(sa, latest, 'prepare_draft', { dates: [termDates] }), termsDocument));
     latest = (await read('admin', sa)).result;
-    saved(await send('admin', commandFor(sa, latest, 'record_dialogue', { on: firstEffective })));
-    latest = (await read('principalA', sa)).result;
     const publish = commandFor(sa, latest, 'make_current', { effectiveOn: firstEffective });
     await denied(() => send('admin', publish));
     const incomplete = await send('principalA', publish);
@@ -507,17 +517,12 @@ export async function verifyIndividualStudyPlanSql(out) {
     const edited = (await read('principalA', sa)).result;
     assert.equal(edited.draft.content.dialogue, null);
     assert.equal(edited.latestRevision, supplemented.revision);
-    const noReview = await send('principalA', commandFor(sa, edited, 'make_current', { effectiveOn: firstEffective }));
-    assert.equal(noReview.status, 'incomplete');
-    check('Saknad omfattning av fjärrundervisning sparas som utkast. Gör gällande kräver komplettering och ny elevdialog.');
-
     const saveAndPublish = async (actor, pupil, effectiveOn) => {
-      const beforeDialogue = (await read(actor, pupil)).result;
-      saved(await send(actor, commandFor(pupil, beforeDialogue, 'record_dialogue', { on: firstEffective })));
-      const reviewed = (await read(actor, pupil)).result;
-      return saved(await send(actor, commandFor(pupil, reviewed, 'make_current', { effectiveOn })));
+      const beforePublication = (await read(actor, pupil)).result;
+      return saved(await send(actor, commandFor(pupil, beforePublication, 'make_current', { effectiveOn })));
     };
     const termVersion = await saveAndPublish('principalA', sa, firstEffective);
+    assert.equal(termVersion.content.dialogue, null);
     assert.deepEqual(termVersion.content.levels[0].attempts[0].plannedEnd, term(2028, 'VT'));
     assert.equal(termVersion.planId, firstDraftVersion.planId);
     const bfContent = firstDraft(vocational.basis, 'BF25');
@@ -525,7 +530,7 @@ export async function verifyIndividualStudyPlanSql(out) {
       dates: [], apprenticeship: false, distanceTeaching: bfContent.distanceTeaching, compulsorySchoolSubjects: [],
     }), bfContent));
     assert.equal((await saveAndPublish('principalB', bf, firstEffective)).content.path.programCode, 'BF25');
-    check('Rektor kan göra terminsplanering gällande för både högskoleförberedande program och yrkesprogram.');
+    check('Rektor gör kompletta studieplaner gällande utan separat dialogregistrering. Saknade innehållsuppgifter stannar som utkast.');
 
     stage = 'historical date precision and outcomes';
     latest = (await read('principalA', sa)).result;
@@ -539,13 +544,55 @@ export async function verifyIndividualStudyPlanSql(out) {
     assert.deepEqual(withCalendar.current.content.levels[0].attempts[0].plannedStart, term(2028, 'HT'));
     check('Fastställd framtida kalender ger datumstöd och bevarar den sparade terminsuppgiften.');
     const exactDates = { ...termDates, plannedStart: day('2028-08-21'), plannedEnd: day('2029-06-13') };
+    const secondLevel = latest.current.content.levels.at(-1);
+    const secondDates = { levelId: secondLevel.id, attemptId: secondLevel.attempts[0].id,
+      plannedStart: term(2027, 'HT'), plannedEnd: term(2027, 'VT') };
+    const combined = commandFor(sa, latest, 'update_planned_dates', { dates: [exactDates, secondDates] });
+    await denied(() => send('admin', combined));
+    await denied(() => send('principalB', combined));
+    await denied(() => send('principalA', { ...combined, payload: { dates: [exactDates, { ...secondDates, levelId: eng.id }] } }), '22023');
+    assert.equal((await read('principalA', sa)).result.latestRevision, latest.latestRevision);
+    const combinedResult = await send('principalA', combined);
+    const combinedVersion = saved(combinedResult);
+    assert.equal(combinedVersion.planId, termVersion.planId);
+    assert.equal(combinedVersion.revision, latest.latestRevision + 1);
+    const exactRead = (await read('principalA', sa, { on: combinedVersion.effectiveOn })).result;
+    assert.equal(exactRead.draft, null);
+    assert.deepEqual(exactRead.current.content.levels[0].attempts[0].plannedEnd, exactDates.plannedEnd);
+    assert.deepEqual(exactRead.current.content.levels.at(-1).attempts[0].plannedEnd, secondDates.plannedEnd);
+    assert.deepEqual(await send('principalA', combined), combinedResult);
+    assert.deepEqual((await status('principalA', sa, combined.commandId)).receipt, combinedResult.receipt);
+    check('Två planerade perioder sparas atomiskt på samma gällande studieplan i en revision. Ogiltig rad rullar tillbaka hela kommandot.');
+    const currentBeforeActual = (await read('principalB', bf)).result;
+    const [pupilEnglish] = currentBeforeActual.current.content.levels;
+    const starts = { kind: 'started', on: firstEffective, source: { kind: 'school_record', id: randomUUID() } };
+    const eventCommand = commandFor(bf, currentBeforeActual, 'record_actual', {
+      levelId: pupilEnglish.id, attemptId: pupilEnglish.attempts[0].id, event: starts,
+    });
+    const newFact = saved(await send('principalB', eventCommand));
+    assert.equal(newFact.effectiveOn, currentBeforeActual.current.effectiveOn);
+    assert.equal(newFact.state, 'current');
+    const afterCurrentActual = (await read('principalB', bf)).result;
+    assert.equal(afterCurrentActual.draft, null);
+    assert.equal(afterCurrentActual.current.revision, newFact.revision);
+    assert.equal(studyAttemptStatus(afterCurrentActual.current.content.levels[0].attempts[0], currentDay, [], pupilEnglish.id).progress, 'started');
+    check('En bekräftad studiehändelse uppdaterar status direkt i den gällande planen med samma giltighetsdag.');
+    assert.equal(Object.hasOwn((await read('principalB', bf, { legacy: true })).result, 'dateSuggestions'), false);
+    const legacyCompletion = commandFor(bf, afterCurrentActual, 'record_actual', {
+      levelId: pupilEnglish.id, attemptId: pupilEnglish.attempts[0].id,
+      event: { ...starts, kind: 'completed', on: '2026-11-10' },
+    });
+    assert.equal(saved(await send('principalB', legacyCompletion, null, true)).state, 'draft');
+    check('Den tidigare appen kan fortfarande läsa studieplanen och få sitt utkastskvitto efter migrationen.');
+
+    latest = (await read('principalA', sa)).result;
     const exactContent = structuredClone(latest.current.content);
     exactContent.dialogue = null;
     Object.assign(exactContent.levels[0].attempts[0], { plannedStart: exactDates.plannedStart, plannedEnd: exactDates.plannedEnd });
     saved(await send('admin', commandFor(sa, latest, 'prepare_draft', { dates: [exactDates] }), exactContent));
     const exact = await saveAndPublish('principalA', sa, '2026-12-01');
     assert.equal(exact.planId, termVersion.planId);
-    assert.equal((await read('principalA', sa)).result.current.revision, termVersion.revision);
+    assert.equal((await read('principalA', sa, { on: firstEffective })).result.current.revision, termVersion.revision);
     assert.deepEqual((await read('principalA', sa, { on: '2026-12-01' })).result.current.content.levels[0].attempts[0].plannedEnd, exactDates.plannedEnd);
     const historical = (await read('principalA', sa, { on: '2027-01-01', view: 'history', revision: termVersion.revision })).result.version;
     assert.deepEqual(historical.content.levels[0].attempts[0].plannedStart, term(2028, 'HT'));
@@ -557,7 +604,8 @@ export async function verifyIndividualStudyPlanSql(out) {
     latest = (await read('principalA', sa)).result;
     const actualEvent = { kind: 'started', on: '2026-09-05', source: { kind: 'school_record', id: randomUUID() } };
     const actual = commandFor(sa, latest, 'record_actual', { levelId: eng.id, attemptId: eng.attempts[0].id, event: actualEvent });
-    const actualVersion = saved(await send('admin', actual));
+    // Bevara den andra tidslinjen i jämförelseprovet och pröva äldre sparformat.
+    const actualVersion = saved(await send('admin', actual, null, true));
     assert.equal(actualVersion.content.levels[0].attempts[0].actual.start.on, actualEvent.on);
     latest = (await read('principalA', sa)).result;
     const reduction = {

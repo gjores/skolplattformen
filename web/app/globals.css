@@ -2117,6 +2117,39 @@ textarea:disabled {
 .pupil-card .mandate-facts dt { font-weight: 500; }
 .pupil-card .mandate-facts > div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; min-width: 0; }
 .pupil-card .mandate-facts dd { margin: 0; overflow-wrap: anywhere; }
+.study-plan-table { table-layout: fixed; }
+.study-plan-table thead th:nth-child(1) { width: 22%; }
+.study-plan-table thead th:nth-child(2) { width: 30%; }
+.study-plan-table thead th:nth-child(3),
+.study-plan-table thead th:nth-child(4) { width: 12%; }
+.study-plan-table thead th:nth-child(6) { width: 10%; }
+.study-plan-table .study-plan-level > :is(th, td) { overflow-wrap: anywhere; }
+.study-plan-table .study-plan-level > td { vertical-align: middle; }
+.study-plan-table .study-plan-details-label { display: none; }
+.study-plan-save { position: sticky; z-index: 1; bottom: 0; }
+@container study-plan (max-width: 43rem) {
+  .study-plan-table { display: block; }
+  .study-plan-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .study-plan-table tbody { display: grid; gap: 8px; }
+  .study-plan-table .study-plan-level,
+  .study-plan-table .study-plan-row-details {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .study-plan-table .study-plan-level > :is(th, .study-plan-period),
+  .study-plan-table .study-plan-row-details > td { grid-column: 1 / -1; }
+  .study-plan-table .study-plan-level > [data-label]::before {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted-foreground);
+    font-size: .75rem;
+    content: attr(data-label);
+  }
+  .study-plan-table .study-plan-details-toggle { justify-self: end; }
+  .study-plan-table .study-plan-details-label { display: inline; }
+}
 .pupil-number { font-variant-numeric: tabular-nums; }
 .pupil-badges { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 .pupil-register .pupil-badge { height: auto; min-height: 28px; padding: 4px 8px; gap: 8px; font-size: 14px; font-weight: 500; white-space: normal; color: var(--foreground); border-color: var(--muted-foreground); background: var(--card); }

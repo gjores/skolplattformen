@@ -64,7 +64,7 @@ const wrap = (result, extra = {}) => ({
   contractVersion: 'individual_study_plan_sql_v1', actor: { identityId, assignmentId }, result, ...extra,
 });
 const readWrap = (result, basis = null, latest = null) => wrap(result, { basis, latest });
-const currentReply = (request, { current = null, draft = null, basis = createBasis(), latest = draft ?? current,
+const currentReply = ({ includeDateSuggestions: _includeDateSuggestions, ...request }, { current = null, draft = null, basis = createBasis(), latest = draft ?? current,
   history = [current, draft].filter(Boolean).map(metadata), extra = {} } = {}) => readWrap({
   ...request, current, draft, latestRevision: latest?.revision ?? 0, history, canMakeCurrent: state.fn === 'rektor',
   sourceToken: basis.token, basisStatus: 'ready', basisIssues: [], availableLevels: [], calendar: basis.calendar, ...extra,
@@ -172,7 +172,7 @@ test('studieplansläsning härleder nivåval från katalog och avgränsar svaret
   assert.equal(body.canMakeCurrent, false);
   assert.ok(body.availableLevels.some(item => item.itemCode === 'SVEN1000X' && item.choiceIds.includes('svenska')));
   assert.ok(!body.availableLevels.some(item => item.itemCode === 'ENGE1000X'));
-  assert.deepEqual(calls(), [['read', request]]);
+  assert.deepEqual(calls(), [['read', { ...request, includeDateSuggestions: true }]]);
   assert.equal(successes().length, 1);
   assert.equal(successes()[0].details.unitId, unitId);
   assert.ok(!('pupilId' in successes()[0].details || 'plan' in successes()[0].details));
@@ -266,17 +266,45 @@ test('gör gällande ger riktat besked före komplettering och bevarar terminsda
   assert.deepEqual(issue.issues, [{ code: 'distance_teaching_incomplete', field: 'distanceTeaching' }]);
   assert.equal(state.writes.length, 0);
   const revised = publish(4);
-  const reviewed = { ...baseContent(), distanceTeaching: { kind: 'applies', minutes: 120 }, dialogue: { on: '2026-11-17', reviewedRevision: 3 } };
+  const complete = { ...baseContent(), distanceTeaching: { kind: 'applies', minutes: 120 } };
   reset({ command: ({ command: passed, content }) => {
     assert.equal(content, null);
-    return okReply(passed, revision(5, reviewed, true));
+    return okReply(passed, revision(5, complete, true));
   } });
   const response = await write(post('kommando', revised));
   assert.equal(response.status, 200);
   const result = parseStudyPlanCommandReply(await response.json(), parseStudyPlanCommand(revised));
   assert.equal(result.receipt.snapshot.effectiveOn, revised.payload.effectiveOn);
+  assert.equal(result.receipt.snapshot.content.dialogue, null);
   assert.deepEqual(result.receipt.snapshot.content.levels[0].attempts[0].plannedStart, { kind: 'term', term: 'HT', schoolYear: 2028 });
   assert.equal(calls().length, 1);
+});
+
+test('ett skyddat sparande för två datumrader uppdaterar gällande plan och kräver ett exakt kvitto', async () => {
+  const dates = [
+    { levelId: id(18), attemptId: id(19), plannedStart: { kind: 'day', date: '2028-08-20' }, plannedEnd: { kind: 'day', date: '2029-06-11' } },
+    { levelId: id(20), attemptId: id(21), plannedStart: null, plannedEnd: { kind: 'term', schoolYear: 2028, term: 'VT' } },
+  ];
+  const input = command('update_planned_dates', { dates }, 3);
+  const changed = baseContent();
+  dates.forEach(({ plannedStart, plannedEnd }, index) => Object.assign(changed.levels[index].attempts[0], { plannedStart, plannedEnd }));
+  reset({ command: ({ command: passed, content }) => {
+    assert.equal(content, null);
+    assert.deepEqual(passed, input);
+    return okReply(passed, revision(4, changed, true, on));
+  } });
+  const response = await write(post('kommando', input));
+  assert.equal(response.status, 200);
+  const result = parseStudyPlanCommandReply(await response.json(), parseStudyPlanCommand(input));
+  assert.equal(result.receipt.snapshot.planId, planId);
+  assert.equal(result.receipt.snapshot.state, 'current');
+  assert.equal(calls().length, 1);
+  reset({ command: ({ command: passed }) => okReply(passed, revision(4, baseContent(), true, on)) });
+  await errorResponse(await write(post('kommando', input)), 500);
+  assert.equal(state.writes.length, 0);
+  reset({}, { fn: 'administrator' });
+  await errorResponse(await write(post('kommando', input)), 403, 'forbidden');
+  assert.equal(calls().length, 0);
 });
 
 test('Rektor registrerar beslutseffekt i skyddat kommando; endast beslutstypens nödvändiga uppgifter skickas', async () => {
@@ -405,7 +433,8 @@ test('återförsök får samma kommando och kvittots separata route är läsande
   assert.equal(checked.status, 200);
   assert.equal(checked.headers.get('cache-control'), 'no-store');
   assert.deepEqual(parseStudyPlanStatusReply(await checked.json(), ref).receipt, saved.result.receipt);
-  assert.deepEqual(calls(), [['command', { command: input, content: null }], ['command', { command: input, content: null }], ['status', ref]]);
+  assert.deepEqual(calls(), [['command', { command: input, content: null, keepCurrentActual: true }],
+    ['command', { command: input, content: null, keepCurrentActual: true }], ['status', ref]]);
   reset({ status: req => wrap({ ...req, receipt: null }) });
   assert.deepEqual(await (await status(post('status', ref))).json(), { ...ref, receipt: null });
   reset({ status: req => wrap({ ...req, placementId: id(47), receipt: saved.result.receipt }) });
