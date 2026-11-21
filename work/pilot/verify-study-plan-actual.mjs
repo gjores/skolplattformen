@@ -130,7 +130,7 @@ async function openPupilPlan(page, baseURL, pupil, { reload = false } = {}) {
 
 function planLevel(panel, label) {
   return panel.getByRole('table', { name: 'Ämnesnivåer och gymnasiearbete', exact: true }).getByRole('row')
-    .filter({ has: panel.getByRole('rowheader', { name: label }) });
+    .filter({ has: panel.page().getByRole('rowheader', { name: label }) });
 }
 
 async function clickCommand(page, button, action) {

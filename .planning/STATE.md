@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-01 till SP-06 genomförda. Första studieplansleveransen är installerad för användarprov på 3012."
+current_plan: "SP-07 genomförd och installerad för användarprov på 3012."
 status: in_progress
-stopped_at: "Första Gy25-studieplanen installerad på 3012 och öppnad med syntetiskt rektorsuppdrag på dator och i telefonprofil."
+stopped_at: "Studieplanstabellen öppnades inloggad på 3012 på dator, efter omladdning och i telefonprofil."
 last_updated: "2026-11-21"
 last_activity: 2026-11-21
-last_activity_desc: "Skyddad lokal provmiljö på 3012 klar för verksamhetens syntetiska studieplansprov."
-study_plan_trial_revision: f684ad34dd36797fcaa78ac474cc1443944f9918
-study_plan_trial_status: installed_authenticated_smoke_pass_awaiting_user_trial
+last_activity_desc: "Studieplanstabell med gemensamt sparande och gruppförslag installerad i lokal skyddad provmiljö."
+study_plan_trial_revision: efcd255cae293e4ea84fd023eb0de78d0cdcc058
+study_plan_trial_status: table_installed_authenticated_smoke_pass_awaiting_user_trial
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
@@ -33,7 +33,7 @@ user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-21 – återkoppling på studieplanen.** [Tabell och enklare uppdatering](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PLANERING.md#tabell-och-enklare-uppdatering) beskriver ett föreslaget flöde med planerade och faktiska datum på samma nivårader, ett gemensamt sparande, källdrivna studiehändelser samt elevdialog i framtida samtalsstöd.
+**2026-11-21 – studieplanstabell installerad på 3012.** [SP-07](phases/05.3-klassorganisation/05.3-SP-07-SUMMARY.md) visar planerade och faktiska datum på samma nivårader och låter personalen spara flera perioder i samma kommando. Entydiga gruppperioder ger datumförslag. En registrerad faktisk händelse kan ge status direkt i gällande plan. Elevdialogens digitala steg har flyttats till planeringen för samtalsstöd. Den installerade kandidaten passerade läsprov med rektorsuppdrag och MFA på dator och i iPhone-profil. Befintliga studieplans- och schemarevisioner bevarades vid migrationen. Verksamhetens användarprov återstår.
 
 **2026-11-21 – första individuella studieplanen klar för användarprov på 3012.** Det lokala provbygget `f684ad34` kombinerar studieplanen med schemaversionen som redan kördes. Båda migrationerna bevarade befintliga rader. Inloggad rektor öppnade studieplanen på samma syntetiska elevkort på dator, efter omladdning och i iPhone-profil. De tolv isolerade SP-06-proven i `f4441713` omfattar även datumkomplettering på samma plan-ID, reduceringsbeslut, behörighet mellan skolor och ordinarie klass- och gruppbyten. Verksamhetens användarprov och installation i ordinarie miljö återstår. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
 
