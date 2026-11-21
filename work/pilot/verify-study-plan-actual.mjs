@@ -272,10 +272,10 @@ export async function verifyStudyPlanActual({ out, runtimeFactory, classOnly = f
       pass('En studieplan som skapats individuellt efter granskningen ger konflikt före klassvis bekräftelse.');
 
       async function openClass(page) {
+        comparisonPage = page;
         await page.goto(baseURL + '/?vy=elever&lasar=' + year + '&skola=' + sa.unitId + '&sida=1', { waitUntil: 'domcontentloaded' });
-        const classes = page.getByLabel('Klass', { exact: true });
-        await expect(classes.locator('option', { hasText: 'SA26' }).first()).toBeAttached();
-        await classes.selectOption(sa.classId);
+        const classes = page.getByRole('combobox', { name: 'Klass', exact: true });
+        await classes.selectOption(sa.classId, { timeout: 20000 });
         await page.getByRole('button', { name: 'Skapa studieplansutkast…', exact: true }).click();
         return page.getByRole('dialog', { name: 'Studieplansutkast för SA26' });
       }

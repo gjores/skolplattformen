@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-08 genomförd och verifierad med nytt BF26-utkast på 3012."
+current_plan: "SP-09 och SP-10 genomförda. Klassvisa studieplansutkast är installerade för användarprov på 3012."
 status: in_progress
-stopped_at: "Nytt BF26-utkast med förifylld period för gymnasiearbetet sparat och återläst på 3012."
+stopped_at: "Klassvis beredning verifierad i skyddat isolerat prov och installerad på 3012."
 last_updated: "2026-11-21"
 last_activity: 2026-11-21
-last_activity_desc: "Planerade perioder från kullens fastställda programplan verifierade med ett nytt BF26-utkast på dator och telefonprofil."
-study_plan_trial_revision: 83087a0e3cfaede4482609452630051808828454
-study_plan_trial_status: program_terms_installed_bf26_draft_verified
+last_activity_desc: "Daterad klassgranskning, individbaserade första utkast och sparresultat finns för användarprov."
+study_plan_trial_revision: 2988ed4736595c63098a2c81b242199fa29a757c
+study_plan_trial_status: class_drafts_installed_awaiting_user_trial
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
@@ -32,6 +32,8 @@ schema_installation_status: clear_and_undo_installed_one_migration_existing_draf
 user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-21 – klassvisa studieplansutkast installerade på 3012.** [SP-09](phases/05.3-klassorganisation/05.3-SP-09-SUMMARY.md) och [SP-10](phases/05.3-klassorganisation/05.3-SP-10-SUMMARY.md) ger daterat urval, förhandsgranskning och sparresultat per elev. Ett skyddat isolerat prov sparade första utkastet med programplanens terminer, bevarade en befintlig plan och återläste resultatet i iPhone-profil. Det lokala provbygget bevarar den tidigare schemaversionen och befintliga uppgifter. Verksamhetens användarprov återstår.
 
 **2026-11-21 – programplanens perioder verifierade på 3012.** [SP-08](phases/05.3-klassorganisation/05.3-SP-08-SUMMARY.md) förifyller entydiga planerade perioder i nya studieplansutkast. Ett nytt syntetiskt BF26-utkast på Nystartsgymnasiet fick **HT 2028–VT 2029** på gymnasiearbetet. Utkastet bekräftades i databasen och återlästes inloggat på dator och i telefonprofil. Det finns kvar för användarprov. Övriga förslag i [researchen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PROGRAMUNDERLAG-RESEARCH.md) följs upp separat.
 

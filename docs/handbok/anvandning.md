@@ -77,7 +77,7 @@ En registrerad studiehändelse visas direkt när du arbetar med den senaste gäl
 
 #### Skapa studieplansutkast för en klass
 
-Gå till **Elever**, välj skola, läsår och klass och öppna **Skapa studieplansutkast…**. Rektor och administratör kan använda åtgärden inom sitt skoluppdrag med verifierad inloggning.
+Gå till **Elever**, välj skola, läsår och klass och öppna **Skapa studieplansutkast…**. Rektor och administratör kan använda åtgärden inom sitt skoluppdrag med verifierad inloggning. Ett klassurval kan omfatta upp till 100 elever som uppdraget får läsa.
 
 1. Välj **Elever i klassen den** och sedan **Förhandsgranska**. Datumet styr vilka elever som ingår. För en kommande kull kan du välja klassens startdag. Entydiga planerade studieperioder fylls i från kullens fastställda programplan.
 2. Granska vilka som kan få ett utkast och välj bort elever som ska vänta. Förhandsgranskningen visar klassens daterade urval även om elevlistan har flera sidor. Elever med en befintlig studieplan behåller den. En rad kan visa att ett val kan kompletteras senare på elevkortet.
