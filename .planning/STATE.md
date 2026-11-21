@@ -33,6 +33,8 @@ user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
+**2026-11-21 – uppföljning av perioder och behörighetsnivåer.** [Research för nästa studieplansetapp](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PROGRAMUNDERLAG-RESEARCH.md) visar att BF26:s fastställda programplan redan har terminsuppgifter för gymnasiearbetet. Förslaget omfattar periodförslag, ett samlat svenskämnesval och särskild hantering av elevens anmälan om bortval.
+
 **2026-11-21 – studieplanstabell installerad på 3012.** [SP-07](phases/05.3-klassorganisation/05.3-SP-07-SUMMARY.md) visar planerade och faktiska datum på samma nivårader och låter personalen spara flera perioder i samma kommando. Entydiga gruppperioder ger datumförslag. En registrerad faktisk händelse kan ge status direkt i gällande plan. Elevdialogens digitala steg har flyttats till planeringen för samtalsstöd. Den installerade kandidaten passerade läsprov med rektorsuppdrag och MFA på dator och i iPhone-profil. Befintliga studieplans- och schemarevisioner bevarades vid migrationen. Verksamhetens användarprov återstår.
 
 **2026-11-21 – första individuella studieplanen klar för användarprov på 3012.** Det lokala provbygget `f684ad34` kombinerar studieplanen med schemaversionen som redan kördes. Båda migrationerna bevarade befintliga rader. Inloggad rektor öppnade studieplanen på samma syntetiska elevkort på dator, efter omladdning och i iPhone-profil. De tolv isolerade SP-06-proven i `f4441713` omfattar även datumkomplettering på samma plan-ID, reduceringsbeslut, behörighet mellan skolor och ordinarie klass- och gruppbyten. Verksamhetens användarprov och installation i ordinarie miljö återstår. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
