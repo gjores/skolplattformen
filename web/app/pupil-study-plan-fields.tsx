@@ -55,6 +55,7 @@ function dateValues(date: PlannedStudyDate): DateValues {
 function plannedDate(value: DateValues): PlannedStudyDate {
   if (value.precision === 'missing') return null;
   if (value.precision === 'day') return parsePlannedStudyDate({ kind: 'day', date: value.day });
+  if (!/^\d{4}$/.test(value.year)) throw new Error('Invalid planned year');
   return parsePlannedStudyDate({ kind: 'term', schoolYear: Number(value.year) - (value.term === 'VT' ? 1 : 0), term: value.term });
 }
 
@@ -95,7 +96,7 @@ function DateFields({ edge, value, onChange, calendar, disabled }: {
     <Labelled id={id} label="Precision">
       <NativeSelect id={id} className={selectClass} value={value.precision} disabled={disabled}
         onChange={event => onChange({ ...value, precision: event.target.value as DateValues['precision'] })}>
-        <NativeSelectOption value="missing">Uppgift saknas</NativeSelectOption>
+        <NativeSelectOption value="missing">Ej planerat</NativeSelectOption>
         <NativeSelectOption value="term">Termin</NativeSelectOption>
         <NativeSelectOption value="day">Exakt datum</NativeSelectOption>
       </NativeSelect>
@@ -108,7 +109,7 @@ function DateFields({ edge, value, onChange, calendar, disabled }: {
         </NativeSelect>
       </Labelled>
       <Labelled id={id + '-year'} label="År">
-        <Input id={id + '-year'} className={control} type="number" min={1900} max={9999} step={1}
+        <Input id={id + '-year'} className={control + ' px-1.5 tabular-nums'} type="text" maxLength={4}
           inputMode="numeric" value={value.year} disabled={disabled} onChange={event => onChange({ ...value, year: event.target.value })} />
       </Labelled>
     </div>}

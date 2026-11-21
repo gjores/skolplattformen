@@ -2124,7 +2124,7 @@ textarea:disabled {
 .study-plan-table thead th:nth-child(4) { width: 12%; }
 .study-plan-table thead th:nth-child(6) { width: 10%; }
 .study-plan-table .study-plan-level > :is(th, td) { overflow-wrap: anywhere; }
-.study-plan-table .study-plan-level > td { vertical-align: middle; }
+.study-plan-table .status-badge.warning { background: var(--warning-surface); color: var(--warning-foreground); }
 .study-plan-table .study-plan-details-label { display: none; }
 .study-plan-save { position: sticky; z-index: 1; bottom: 0; }
 @container study-plan (max-width: 43rem) {

@@ -159,7 +159,6 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
       ...previous,
       ...Object.fromEntries(entries.map(([key, value]) => [key, studyPlanPeriodValues(value)])),
     }));
-    setOpenPeriods(previous => new Set([...previous, ...entries.map(([key]) => key)]));
     setFormError(null);
     setFollowUpOnly(false);
     onPending(true);
@@ -189,7 +188,9 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
           const editing = canEdit && openPeriods.has(key);
           const actualStart = attempt.actual.start && attempt.actual.start.on <= on ? attempt.actual.start : null;
           const actualEnd = attempt.actual.end && attempt.actual.end.on <= on ? attempt.actual.end : null;
-          const period = periodLabel(attempt.plannedStart, attempt.plannedEnd);
+          const pendingPeriod = periods[key] && !openPeriods.has(key) ? parseStudyPlanPeriodEdit(periods[key]) : null;
+          const period = pendingPeriod ? periodLabel(pendingPeriod.plannedStart, pendingPeriod.plannedEnd)
+            : periodLabel(attempt.plannedStart, attempt.plannedEnd);
           const suggestion = suggested.get(key);
           return <Fragment key={key}>
             <TableRow {...studyTableRoles.row} className="study-plan-level align-top">
@@ -212,6 +213,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                         requestAnimationFrame(() => document.getElementById(editId)?.querySelector('select')?.focus());
                       }}><Pencil aria-hidden="true" />{period}</Button>
                     : period}
+                {pendingPeriod && <small className="block text-muted-foreground">Osparat</small>}
                 {canEdit && suggestion && <div className="grid justify-items-start">
                   <small className="text-muted-foreground">{periodLabel(suggestion.plannedStart, suggestion.plannedEnd)}</small>
                   <Button variant="ghost" className="h-auto min-h-[var(--control-height)] whitespace-normal px-1.5 text-primary" disabled={disabled}
@@ -229,7 +231,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                   <span className={'status-badge whitespace-normal' + (!status.reduced && status.progress === 'completed' ? ' success' : '')}>
                     {status.reduced ? 'Reducerad' : progressLabels[status.progress]}
                   </span>
-                  {status.needsFollowUp && <span className="status-badge warn whitespace-normal">Behöver följas upp</span>}
+                  {status.needsFollowUp && <span className="status-badge warning whitespace-normal">Behöver följas upp</span>}
                   {relevant.filter(decision => decision.levelIds.includes(level.id) && studyDecisionEffective(decision, on)
                     && (decision.kind === 'eligibility_opt_out' || decision.kind === 'replaced')).map(decision =>
                     <span key={decision.id} className="status-badge whitespace-normal">{decisionLabels[decision.kind]}</span>)}
@@ -247,6 +249,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
             {details === key && <TableRow className="study-plan-row-details bg-muted/25" {...studyTableRoles.row} id={rowDetails}>
               <TableCell colSpan={6} {...studyTableRoles.cell} className="whitespace-normal">
                 <div className="grid min-w-0 gap-2 px-1">
+                  {status.reduced && <p>Studieförlopp · {progressLabels[status.progress]}</p>}
                   <dl className="grid min-w-0 gap-2 sm:grid-cols-2">
                     <div><dt className="font-medium">Källa för faktisk start</dt><dd>{actualStart ? factSources[actualStart.source.kind] : 'Uppgift saknas'}</dd></div>
                     <div><dt className="font-medium">Källa för faktiskt slut</dt><dd>{actualEnd ? factSources[actualEnd.source.kind] : 'Uppgift saknas'}</dd></div>
@@ -267,9 +270,9 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
     </Table>
     {followUpOnly && followUp === 0 && <p className="empty-state">Inga nivåer behöver följas upp.</p>}
     {formError && <p role="alert" className="validation-warning">{formError}</p>}
-    {openPeriods.size > 0 && <div className="study-plan-save flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
+    {(openPeriods.size > 0 || pending > 0) && <div className="study-plan-save flex flex-wrap items-center gap-2 rounded-lg border border-border bg-card p-2">
       <Button disabled={disabled || pending === 0} onClick={save}>Spara ändringar</Button>
-      <Button variant="outline" disabled={disabled} onClick={cancelPeriods}>Avbryt datumändringar</Button>
+      <Button variant="outline" aria-label="Avbryt datumändringar" disabled={disabled} onClick={cancelPeriods}>Avbryt</Button>
       {pending > 0 && <output className="text-sm text-muted-foreground">{pending === 1 ? '1 rad har ändrats' : `${pending} rader har ändrats`}</output>}
     </div>}
   </section>;
