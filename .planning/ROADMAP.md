@@ -577,7 +577,7 @@ Etapp A–B (CLASS-COHORT) är levererade i fas 5 och omprövas inte. Huvudmanne
 
 **Planering 2026-11-20 — individuella studieplaner.** [Omprövad research](phases/05.3-klassorganisation/05.3-STUDIEPLAN-RESEARCH.md) och [första studieplansleveransen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PLANERING.md) beskriver en egen studieplan på elevkortet för nationella Gy25-program. Nivåer, individuella datum, status och historik är grund för leveransen. Daterade klass- och gruppändringar får en jämförelse med studieplanen. Detta är planerad del av STUDY-01 med anknytning till KLASS-04 och SCHEMA-07. Planen för klassorganisation och kravens verifieringsstatus följs upp separat.
 
-**Genomfört 2026-11-21 — SP-01–SP-06.** Första Gy25-leveransen passerade skyddade prov med syntetiska elever och faktiska databasskrivningar. Det omfattar studieplan utan timplanslänk, datumkomplettering på samma plan, revisionshistorik och daterad jämförelse. Resultatet bidrar till STUDY-01, KLASS-04 och SCHEMA-07. Användarprov, installation och återstående delar av kraven följs upp separat. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
+**Genomfört 2026-11-21 — SP-01–SP-06.** Första Gy25-leveransen passerade skyddade prov med syntetiska elever och faktiska databasskrivningar. Det omfattar studieplan utan timplanslänk, datumkomplettering på samma plan, revisionshistorik och daterad jämförelse. Resultatet bidrar till STUDY-01, KLASS-04 och SCHEMA-07. Leveransen finns för användarprov i den lokala skyddade miljön på port 3012. Installation i ordinarie miljö och återstående delar av kraven följs upp separat. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
 
 ### Phase 05.4: Lärarbehörigheter (INSERTED)
 
