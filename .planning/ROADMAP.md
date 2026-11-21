@@ -579,6 +579,8 @@ Etapp A–B (CLASS-COHORT) är levererade i fas 5 och omprövas inte. Huvudmanne
 
 **Genomfört 2026-11-21 — SP-01–SP-06.** Första Gy25-leveransen passerade skyddade prov med syntetiska elever och faktiska databasskrivningar. Det omfattar studieplan utan timplanslänk, datumkomplettering på samma plan, revisionshistorik och daterad jämförelse. Resultatet bidrar till STUDY-01, KLASS-04 och SCHEMA-07. Leveransen finns för användarprov i den lokala skyddade miljön på port 3012. Installation i ordinarie miljö och återstående delar av kraven följs upp separat. [Samlad verifiering](phases/05.3-klassorganisation/05.3-SP-VERIFICATION.md)
 
+**Verifierat 2026-11-21 — SP-08.** Nya utkast får entydiga planerade perioder från kullens fastställda programplan. Ett syntetiskt BF26-utkast sparades på 3012. Gymnasiearbetets **HT 2028–VT 2029** verifierades i databasen och på elevkortet i dator- och telefonprofil. [Periodförifyllning och prov](phases/05.3-klassorganisation/05.3-SP-08-SUMMARY.md)
+
 ### Phase 05.4: Lärarbehörigheter (INSERTED)
 
 **Goal**: Rektor kan se om tjänstefördelning och schema stämmer med lärarnas legitimation och undervisningsbehörighet enligt Skolverkets underlag, med okänt underlag skilt från konstaterad avvikelse.

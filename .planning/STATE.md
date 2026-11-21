@@ -3,14 +3,14 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-07 genomförd och installerad för användarprov på 3012."
+current_plan: "SP-08 genomförd och verifierad med nytt BF26-utkast på 3012."
 status: in_progress
-stopped_at: "Studieplanstabellen öppnades inloggad på 3012 på dator, efter omladdning och i telefonprofil."
+stopped_at: "Nytt BF26-utkast med förifylld period för gymnasiearbetet sparat och återläst på 3012."
 last_updated: "2026-11-21"
 last_activity: 2026-11-21
-last_activity_desc: "Studieplanstabell med gemensamt sparande och gruppförslag installerad i lokal skyddad provmiljö."
-study_plan_trial_revision: efcd255cae293e4ea84fd023eb0de78d0cdcc058
-study_plan_trial_status: table_installed_authenticated_smoke_pass_awaiting_user_trial
+last_activity_desc: "Planerade perioder från kullens fastställda programplan verifierade med ett nytt BF26-utkast på dator och telefonprofil."
+study_plan_trial_revision: 83087a0e3cfaede4482609452630051808828454
+study_plan_trial_status: program_terms_installed_bf26_draft_verified
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
@@ -33,7 +33,9 @@ user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-21 – uppföljning av perioder och behörighetsnivåer.** [Research för nästa studieplansetapp](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PROGRAMUNDERLAG-RESEARCH.md) visar att BF26:s fastställda programplan redan har terminsuppgifter för gymnasiearbetet. Det kommande flödet ska prövas genom att skapa nya studieplaner med förifyllda perioder. På användarens begäran tömdes studieplanslagringen på 3012 efter säkerhetskopia. Noll planer, revisioner och kvitton verifierades efter återställningen. Kontrollen av 181 övriga tabeller visade att befintligt innehåll bevarades.
+**2026-11-21 – programplanens perioder verifierade på 3012.** [SP-08](phases/05.3-klassorganisation/05.3-SP-08-SUMMARY.md) förifyller entydiga planerade perioder i nya studieplansutkast. Ett nytt syntetiskt BF26-utkast på Nystartsgymnasiet fick **HT 2028–VT 2029** på gymnasiearbetet. Utkastet bekräftades i databasen och återlästes inloggat på dator och i telefonprofil. Det finns kvar för användarprov. Övriga förslag i [researchen](phases/05.3-klassorganisation/05.3-STUDIEPLAN-PROGRAMUNDERLAG-RESEARCH.md) följs upp separat.
+
+**2026-11-21 – återställning inför studieplansprovet.** På användarens begäran tömdes studieplanslagringen på 3012 efter säkerhetskopia. Noll planer, revisioner och kvitton verifierades efter återställningen. Kontrollen av 181 övriga tabeller visade att befintligt innehåll bevarades.
 
 **2026-11-21 – studieplanstabell installerad på 3012.** [SP-07](phases/05.3-klassorganisation/05.3-SP-07-SUMMARY.md) visar planerade och faktiska datum på samma nivårader och låter personalen spara flera perioder i samma kommando. Entydiga gruppperioder ger datumförslag. En registrerad faktisk händelse kan ge status direkt i gällande plan. Elevdialogens digitala steg har flyttats till planeringen för samtalsstöd. Den installerade kandidaten passerade läsprov med rektorsuppdrag och MFA på dator och i iPhone-profil. Befintliga studieplans- och schemarevisioner bevarades vid migrationen. Verksamhetens användarprov återstår.
 
