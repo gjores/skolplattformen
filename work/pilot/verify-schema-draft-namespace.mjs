@@ -19,8 +19,9 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const docker = args => execFileSync('docker', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120000 }).trim();
 const image = 'sha256:5b6c2c6cbc90b6085e3f9b3086110b1eccedb643374137bfdcd1d2f5c78f6cd1';
 const args = process.argv.slice(2);
-assert.ok(args.length === 8 || args.length === 9 && ['--hold-until-ui-finished', '--study-plan'].includes(args[8]));
-const studyPlan = args[8] === '--study-plan';
+assert.ok(args.length === 8 || args.length === 9 && ['--hold-until-ui-finished', '--study-plan', '--study-plan-class'].includes(args[8]));
+const classStudyPlan = args[8] === '--study-plan-class';
+const studyPlan = args[8] === '--study-plan' || classStudyPlan;
 assert.deepEqual([args[0], args[2], args[4], args[6]], ['--runtime', '--release', '--linux', '--out']);
 const [privateFile, release, linux, out] = [args[1], args[3], args[5], args[7]].map(file => path.resolve(file));
 assert.match(privateFile, /^\/private\/tmp\/schema-draft-actual-[a-z0-9-]+-evidence\/runtime-private\.json$/u);
@@ -36,6 +37,10 @@ const studyMigrations = [
   '20261120111000_individual_study_plan_impact.sql',
   '20261121100000_individual_study_plan_table.sql',
 ];
+if (classStudyPlan) studyMigrations.push(
+  '20261121110000_individual_study_plan_program_terms.sql',
+  '20261121120000_individual_study_plan_class.sql',
+);
 
 function verifyInputs() {
   const manifest = verifySchemaUatRelease(release, { nodeModules: path.join(root, 'web/node_modules') });
@@ -166,7 +171,7 @@ if (studyPlan) {
       return { ...runtime, cleanup: cleanupNamespace };
     };
     const { verifyStudyPlanActual } = await import('./verify-study-plan-actual.mjs');
-    const result = await verifyStudyPlanActual({ out, runtimeFactory });
+    const result = await verifyStudyPlanActual({ out, runtimeFactory, classOnly: classStudyPlan });
     if (result.status !== 'PASS') process.exitCode = 1;
   } finally {
     try { await cleanupNamespace?.(); }

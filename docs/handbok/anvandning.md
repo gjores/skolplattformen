@@ -75,6 +75,16 @@ Rektor kan använda **Registrera beslut** för att föra in ett redan fattat bes
 
 En registrerad studiehändelse visas direkt när du arbetar med den senaste gällande planen. Om du arbetar i ett utkast sparas händelsen där. Registrerade beslut sparas i utkastet tills rektor gör det gällande. Om svaret på ett sparande uteblir väljer du **Kontrollera sparandet**. Om uppgifterna har ändrats sedan du öppnade studieplanen väljer du **Hämta aktuell version**.
 
+#### Skapa studieplansutkast för en klass
+
+Gå till **Elever**, välj skola, läsår och klass och öppna **Skapa studieplansutkast…**. Rektor och administratör kan använda åtgärden inom sitt skoluppdrag med verifierad inloggning.
+
+1. Välj **Elever i klassen den** och sedan **Förhandsgranska**. Datumet styr vilka elever som ingår. För en kommande kull kan du välja klassens startdag. Entydiga planerade studieperioder fylls i från kullens fastställda programplan.
+2. Granska vilka som kan få ett utkast och välj bort elever som ska vänta. Förhandsgranskningen visar klassens daterade urval även om elevlistan har flera sidor. Elever med en befintlig studieplan behåller den. En rad kan visa att ett val kan kompletteras senare på elevkortet.
+3. Välj **Skapa utkast** med det angivna antalet. Du ser utfallet per elev under **Sparresultat**. Välj **Öppna elevkort** för att fortsätta med en sparad eller befintlig studieplan. Gå igenom innehållet med eleven inför att rektor gör planen gällande.
+
+Om underlaget har ändrats kan du välja **Förhandsgranska på nytt**. Om svaret på sparandet uteblir kan du välja **Kontrollera sparandet**. Efter omladdning öppnar du klassens studieplansutkast igen för att läsa det senaste sparresultatet. Välj **Fortsätt skapa utkast** om elever återstår.
+
 #### Förhandsgranska en klass- eller gruppändring
 
 Välj **Jämför förändring** i studieplanen. Ange **Jämförelsedatum** och välj **Hämta alternativ**. Välj vilken klass eller grupp eleven föreslås byta till, vilken grupp eleven föreslås börja i eller vilket gruppmedlemskap som ska avslutas. Vid gruppbyte är jämförelsedatumet den önskade första dagen i den nya gruppen. När eleven föreslås börja i en grupp fyller du även i **Sista dag i gruppen**. Vid avslut är jämförelsedatumet elevens sista dag i gruppen.

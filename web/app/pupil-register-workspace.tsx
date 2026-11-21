@@ -9,6 +9,7 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { schoolYearLabel, selectionFromQuery, selectionToQuery, type PupilList, type PupilListItem, type RegisterOptions, type Selection } from '@/lib/pupil-register-model.ts';
 import type { ActiveContext } from './context-switch';
 import PupilCard from './pupil-card';
+import PupilClassStudyPlan from './pupil-class-study-plan';
 import { PupilExportDialog, stockholmToday } from './pupil-dialogs';
 import type { RegisterSetup } from './school-year-picker';
 
@@ -77,12 +78,15 @@ export default function PupilRegisterWorkspace(props: Props) {
   const returnFocus = useRef<string | null>(null);
   const changedInCard = useRef(false);
   const [exporting, setExporting] = useState(false);
+  const [classStudyPlan, setClassStudyPlan] = useState<{ id: string; name: string } | null>(null);
+  const classStudyPlanTrigger = useRef<HTMLButtonElement>(null);
   const selectionRef = useRef(selection);
   useEffect(() => { callbacks.current = props; });
 
   const move = useCallback((next: Selection, mode: 'push' | 'replace' = 'push') => {
     controller.current?.abort(); setList(null); setBusy(true); setError(null); setMarked([]);
     selectedPupil.current = null; setOpenPupil(null); returnFocus.current = null; setExporting(false);
+    setClassStudyPlan(null);
     callbacks.current.onOpenPupil?.(null, next, null);
     window.history[mode === 'push' ? 'pushState' : 'replaceState'](null, '', selectionToQuery(next));
     setSelection(next); callbacks.current.onSchoolYear(next.schoolYear); focusResults.current = true;
@@ -109,6 +113,7 @@ export default function PupilRegisterWorkspace(props: Props) {
       } else {
         callbacks.current.onOpenPupil?.(null, safe, caseRef.current);
         setOpenPupil(null); selectedPupil.current = null;
+        setClassStudyPlan(null);
         setMarked([]); setSelection(safe); callbacks.current.onSchoolYear(safe.schoolYear);
         focusResults.current = true;
       }
@@ -177,18 +182,21 @@ export default function PupilRegisterWorkspace(props: Props) {
   const hasFilters = selection.classId !== null || selection.educationId !== null || selection.grade !== null || selection.status !== null;
   const pages = Math.max(1, Math.ceil((list?.count ?? 0) / 50));
   const distinguish = (pupil: PupilListItem) => `${'birthDate' in pupil ? `Född ${pupil.birthDate} · ` : ''}${pupil.className ?? 'Ingen klass'} · ${pupil.unitName}`;
-  const openCard = (pupil: PupilListItem) => {
-    selectedPupil.current = pupil.id; changedInCard.current = false;
+  const openCard = (pupilId: string) => {
+    selectedPupil.current = pupilId; changedInCard.current = false;
     window.history.pushState({ pupilCard: true }, '', window.location.href);
-    setOpenPupil(pupil.id);
-    props.onOpenPupil?.(pupil.id, selection, caseId);
+    setOpenPupil(pupilId);
+    props.onOpenPupil?.(pupilId, selection, caseId);
   };
   const buttonRef = (id: string) => (element: HTMLButtonElement | null) => { if (element) nameButtons.current.set(id, element); else nameButtons.current.delete(id); };
   // Märket visas bara när servern flaggat raden, alltså bara för behörig administratör (D-17, D-19).
   const protectedBadge = (pupil: PupilListItem) => pupil.protectedIdentity === true && <span className="pupil-badges"><Badge variant="outline" className="pupil-badge"><ShieldAlert size={16} aria-hidden="true" />Skyddade personuppgifter</Badge></span>;
-  const name = (pupil: PupilListItem, layout: 'table' | 'card') => <><span className="pupil-name"><button type="button" ref={layout === 'table' ? buttonRef(pupil.id) : buttonRef(`${pupil.id}-card`)} aria-label={`${pupil.displayName}, öppna elevkortet`} onClick={() => openCard(pupil)}>{pupil.displayName}</button></span><small>{distinguish(pupil)}</small>{protectedBadge(pupil)}</>;
+  const name = (pupil: PupilListItem, layout: 'table' | 'card') => <><span className="pupil-name"><button type="button" ref={layout === 'table' ? buttonRef(pupil.id) : buttonRef(`${pupil.id}-card`)} aria-label={`${pupil.displayName}, öppna elevkortet`} onClick={() => openCard(pupil.id)}>{pupil.displayName}</button></span><small>{distinguish(pupil)}</small>{protectedBadge(pupil)}</>;
   const mark = (pupil: PupilListItem) => pupil.capabilities.canExport && <label className="pupil-mark"><input type="checkbox" aria-label={`Markera ${pupil.displayName}`} checked={marked.includes(pupil.id)} onChange={event => setMarked(ids => event.target.checked ? [...ids, pupil.id] : ids.filter(id => id !== pupil.id))} /><span className="sr-only">Markera {pupil.displayName}</span></label>;
   const options = list?.options;
+  const selectedClass = options?.classes.find(item => item.id === selection.classId && item.unitId === selection.unitId);
+  const classStudyPlanAllowed = props.context.scopeKind === 'school' && props.setup.scope.cases.length === 0
+    && (props.context.function === 'rektor' || props.context.function === 'administrator');
   const extraFilters = [selection.educationId !== null, selection.grade !== null, selection.status !== null].filter(Boolean).length;
   const filterLabels = [selection.classId && (options?.classes.find(item => item.id === selection.classId)?.name ?? 'Vald klass'),
     selection.educationId && (options?.educations.find(item => item.id === selection.educationId)?.name ?? 'Vald utbildning'),
@@ -236,7 +244,13 @@ export default function PupilRegisterWorkspace(props: Props) {
       <label>Status<select value={selection.status ?? ''} disabled={busy} onChange={event => filter({ status: event.target.value as Selection['status'] || null })}><option value="">Alla statusar</option>{options?.statuses.map(status => <option key={status} value={status}>{statusLabels[status]}</option>)}</select></label>
       </div>
     </form>}
-    <div className="mandate-actions"><Button variant="outline" disabled={busy} onClick={() => setRevision(n => n + 1)}>{error ? 'Försök igen' : 'Hämta aktuellt läge'}</Button>{list?.capabilities.canExport && list.count > 0 && <Button variant="outline" disabled={busy} onClick={() => { setNotice(null); setExporting(true); }}><Download size={16} aria-hidden="true" />Exportera urval…</Button>}{marked.length > 0 && <><output>{marked.length} elever markerade</output><Button variant="outline" onClick={() => setMarked([])}>Avmarkera alla</Button></>}</div>
+    <div className="mandate-actions">
+      <Button variant="outline" disabled={busy} onClick={() => setRevision(n => n + 1)}>{error ? 'Försök igen' : 'Hämta aktuellt läge'}</Button>
+      {classStudyPlanAllowed && selectedClass && <Button type="button" ref={classStudyPlanTrigger} variant="outline" disabled={busy}
+        aria-haspopup="dialog" onClick={() => setClassStudyPlan({ id: selectedClass.id, name: selectedClass.name })}>Skapa studieplansutkast…</Button>}
+      {list?.capabilities.canExport && list.count > 0 && <Button variant="outline" disabled={busy} onClick={() => { setNotice(null); setExporting(true); }}><Download size={16} aria-hidden="true" />Exportera urval…</Button>}
+      {marked.length > 0 && <><output>{marked.length} elever markerade</output><Button variant="outline" onClick={() => setMarked([])}>Avmarkera alla</Button></>}
+    </div>
     <section aria-label="Elevlista"><h2 ref={resultHeading} tabIndex={-1}>Elever läsåret {schoolYearLabel(selection.schoolYear)}</h2>
       {busy && <output>Hämtar elever…</output>}
       {!busy && !caseId && props.setup.scope.cases.length > 0 && <p>Välj ett tilldelat ärende för att se den elev ärendet gäller.</p>}
@@ -252,5 +266,12 @@ export default function PupilRegisterWorkspace(props: Props) {
       total={list.count} canReadProtected={list.capabilities.canReadProtected}
       protectedIds={list.capabilities.canReadProtected ? list.protectedIds ?? [] : []} returnTo={returnTo}
       onClose={() => setExporting(false)} onDone={message => { setExporting(false); setNotice(message); }} onSessionLost={props.onSessionLost} />}
+    {classStudyPlanAllowed && classStudyPlan && classStudyPlan.id === selection.classId && <PupilClassStudyPlan
+      key={`${props.epoch}-${selection.unitId}-${classStudyPlan.id}-${selection.schoolYear}`}
+      unitId={selection.unitId} classId={classStudyPlan.id} className={classStudyPlan.name}
+      schoolName={props.setup.scope.schools.find(school => school.id === selection.unitId)?.name ?? 'Vald skola'}
+      schoolYear={selection.schoolYear} today={stockholmToday(props.setup.serverNow)} returnTo={returnTo}
+      returnFocus={classStudyPlanTrigger} onClose={() => setClassStudyPlan(null)}
+      onOpenPupil={openCard} onSessionLost={props.onSessionLost} />}
   </div>;
 }

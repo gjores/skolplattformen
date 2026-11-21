@@ -17,6 +17,7 @@ import { studyAttemptStatus, studyPlanContentIssues, studyPlanLevelKey } from '.
 import { parseStudyGroupReply, STUDY_GROUP_CONTRACT_VERSION } from '../../web/lib/study-group-contract.ts';
 import { defaultSchemaVillkor } from '../../web/lib/schema-contract.ts';
 import { parseSchemaDraftSave, verifySchemaDraftReadReply, verifySchemaDraftSaveReply } from '../../web/lib/schema-draft-contract.ts';
+import { parseStudyPlanClassPreview, parseStudyPlanClassRun } from '../../web/lib/study-plan-class-contract.ts';
 
 const require = createRequire(new URL('../../web/package.json', import.meta.url));
 const { chromium, webkit, expect, devices } = require('@playwright/test');
@@ -149,13 +150,13 @@ async function viewportFits(page) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth), true, 'study plan fits viewport');
 }
 
-export async function verifyStudyPlanActual({ out, runtimeFactory }) {
+export async function verifyStudyPlanActual({ out, runtimeFactory, classOnly = false }) {
   assert.equal(typeof runtimeFactory, 'function', 'prepared own-runtime factory required');
   out = resolve(out);
   assert.ok(out.startsWith('/private/tmp/') && out.endsWith('.json') && !existsSync(out));
   const directory = join(dirname(out), out.split('/').at(-1).slice(0, -5) + '-evidence');
   mkdirSync(directory, { mode: 0o700 });
-  const report = { kind: 'individual-study-plan-actual-protected', status: 'FAIL', startedAt: new Date().toISOString(), checks: [],
+  const report = { kind: classOnly ? 'individual-study-plan-class-actual-protected' : 'individual-study-plan-actual-protected', status: 'FAIL', startedAt: new Date().toISOString(), checks: [],
     limits: ['Own prepared release and synthetic pupils, schools and assignments only', 'Local actual OIDC/MFA, no municipal production integration or product installation',
       'Phone profile uses the actual session in WebKit device emulation. Human acceptance is separate.'], screenshots: [] };
   const saveReport = () => writeFileSync(out, JSON.stringify(report, null, 2) + '\n', { mode: 0o600 });
@@ -225,6 +226,106 @@ export async function verifyStudyPlanActual({ out, runtimeFactory }) {
       await panel.screenshot({ path: join(directory, filename) });
       report.screenshots.push(filename);
     };
+
+    if (classOnly) {
+      stage = 'class access and reviewed source';
+      const target = { unitId: sa.unitId, classId: sa.classId, on: today };
+      const previewRequest = { action: 'preview', ...target };
+      for (const [role, code] of [['principalB', 'forbidden'], ['principalAB', 'mfa_required']]) {
+        const outcome = await api(role, 'klass', previewRequest);
+        assert.equal(outcome.status, 403);
+        assert.equal(outcome.body.code, code);
+        assert.ok(!('rows' in outcome.body || 'previewToken' in outcome.body));
+      }
+      const noSession = await fetch(baseURL + '/api/studieplaner/klass', { method: 'POST',
+        headers: { Origin: baseURL, 'Content-Type': 'application/json' }, body: JSON.stringify(previewRequest) });
+      assert.equal(noSession.status, 401);
+      const reply = await api('principalA', 'klass', previewRequest);
+      assert.equal(reply.status, 200);
+      assert.equal(reply.cache, 'no-store');
+      const preview = parseStudyPlanClassPreview(reply.body);
+      assert.deepEqual(preview.rows.map(row => row.pupilId).sort(), [sa.pupilId, moved.pupilId].sort());
+      assert.ok(preview.rows.every(row => row.status === 'ready' || row.status === 'needs_completion'));
+      assert.ok(!JSON.stringify(reply.body).includes(protectedPupil.pupilId));
+      assert.equal((await read('principalA', moved)).latestRevision, 0);
+      pass('Klassurvalet är skrivskyddat och visar endast behöriga elever. Annan skola, otillräcklig MFA och saknad session nekas.');
+
+      const before = await change('principalA', sa, 'prepare_draft', { dates: [] });
+      const stale = await api('principalA', 'klass', { action: 'start', scope: target, runId: randomUUID(),
+        previewToken: preview.previewToken, pupilIds: [sa.pupilId, moved.pupilId] });
+      assert.equal(stale.status, 409);
+      assert.equal(stale.body.details.reason, 'study_plan_class_changed');
+      const distribution = [{ rowKey: 'meta:diplomaWork', points: [0, 0, 0, 0, 50, 50] }];
+      await runtime.db.begin(async tx => {
+        await tx`select set_config('app.identity_id',${seed.actors.hm.identityId},true)`;
+        const [plan] = await tx`update public.point_plans set term_distribution=${tx.json(distribution)},revision=revision+1
+          where offering_id=${sa.offeringId} and status='utkast' returning id, revision`;
+        await tx`insert into public.plan_decision_write_permits values(txid_current(),pg_backend_pid(),
+          'programplan',${plan.id},'utkast','faststalld',${plan.revision})`;
+        const [locked] = await tx`update public.point_plans set status='faststalld',revision=revision+1,
+          decided_on=public.phase5_programplan_today(),decided_identity_id=public.current_identity_id()
+          where id=${plan.id} returning id`;
+        assert.equal(locked.id, plan.id);
+        await tx`delete from public.plan_decision_write_permits
+          where transaction_id=txid_current() and backend_id=pg_backend_pid() and plan_id=${plan.id}`;
+      });
+      pass('En studieplan som skapats individuellt efter granskningen ger konflikt före klassvis bekräftelse.');
+
+      async function openClass(page) {
+        await page.goto(baseURL + '/?vy=elever&lasar=' + year + '&skola=' + sa.unitId + '&sida=1', { waitUntil: 'domcontentloaded' });
+        const classes = page.getByLabel('Klass', { exact: true });
+        await expect(classes.locator('option', { hasText: 'SA26' }).first()).toBeAttached();
+        await classes.selectOption(sa.classId);
+        await page.getByRole('button', { name: 'Skapa studieplansutkast…', exact: true }).click();
+        return page.getByRole('dialog', { name: 'Studieplansutkast för SA26' });
+      }
+
+      stage = 'desktop class preview and write';
+      const page = sessions.principalA.page;
+      const panel = await openClass(page);
+      await panel.getByRole('button', { name: 'Förhandsgranska', exact: true }).click();
+      await expect(panel.getByText('1 kan skapas · 1 har redan en studieplan · 0 kan inte skapas', { exact: true })).toBeVisible();
+      await expect(panel.getByRole('checkbox', { name: 'Ta med ' + moved.displayName })).toBeChecked();
+      await expect(panel.getByRole('checkbox', { name: 'Ta med ' + sa.displayName })).toHaveCount(0);
+      await panel.getByRole('button', { name: 'Skapa 1 utkast', exact: true }).click();
+      await expect(panel.getByText('1 utkast skapat', { exact: true })).toBeVisible({ timeout: 30000 });
+      const runReply = await api('principalA', 'klass', { action: 'status', unitId: sa.unitId, classId: sa.classId, schoolYear: year });
+      assert.equal(runReply.status, 200);
+      const run = parseStudyPlanClassRun(runReply.body);
+      assert.equal(run.hasPending, false);
+      assert.deepEqual(run.rows.map(row => [row.pupilId, row.outcome]), [[moved.pupilId, 'saved']]);
+      const stored = (await read('principalA', moved)).draft;
+      assert.equal(stored.revision, 1);
+      assert.equal(stored.content.path.programCode, 'SA25');
+      const diploma = stored.content.levels.find(level => level.kind === 'diploma_work');
+      assert.deepEqual(diploma.attempts[0].plannedStart, termStart);
+      assert.deepEqual(diploma.attempts[0].plannedEnd, termEnd);
+      assert.equal(diploma.attempts[0].actual.start, null);
+      assert.deepEqual((await read('principalA', sa)).draft, before);
+      await panel.getByRole('button', { name: 'Öppna elevkort för ' + moved.displayName, exact: true }).click();
+      await expect(page.getByRole('heading', { name: moved.displayName, exact: true })).toBeVisible();
+      pass('Chromium skapar ett första utkast från klassgranskningen och öppnar det ordinarie elevkortet. Befintlig plan bevaras och gymnasiearbetet får HT 2028–VT 2029.');
+
+      stage = 'phone class status and card';
+      phoneBrowser = await webkit.launch({ headless: true });
+      phoneContext = await phoneBrowser.newContext({ ...devices['iPhone 13'], locale: 'sv-SE',
+        storageState: await sessions.principalA.context.storageState() });
+      const phone = await phoneContext.newPage();
+      const phonePanel = await openClass(phone);
+      await expect(phonePanel.getByText('1 utkast skapat', { exact: true })).toBeVisible();
+      await expect(phonePanel.getByRole('button', { name: 'Öppna elevkort för ' + moved.displayName, exact: true })).toBeVisible();
+      assert.equal(await phonePanel.evaluate(el => el.scrollWidth <= el.clientWidth + 1), true);
+      await phone.reload({ waitUntil: 'domcontentloaded' });
+      await phone.getByRole('button', { name: 'Skapa studieplansutkast…', exact: true }).click();
+      await expect(phonePanel.getByText('1 utkast skapat', { exact: true })).toBeVisible();
+      const retry = await api('principalA', 'klass', { action: 'advance', unitId: sa.unitId, classId: sa.classId, runId: run.runId });
+      assert.equal(retry.status, 200);
+      assert.deepEqual(parseStudyPlanClassRun(retry.body), run);
+      assert.equal((await read('principalA', moved)).latestRevision, 1);
+      pass('iPhone 13 med WebKit återläser resultatet efter omladdning. Fortsatt anrop på avslutad körning skapar ingen ny revision.');
+      report.status = 'PASS';
+      return report;
+    }
 
     stage = 'read permissions and empty scoped plan';
     const initial = await read('admin', sa);
