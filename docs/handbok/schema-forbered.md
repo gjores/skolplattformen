@@ -4,6 +4,14 @@ title: Förbered schemat
 
 Under **Planering → Schema** växlar du mellan **Förbered**, **Lägg schema** och **Granska** i sidhuvudet. Alla tre visar samma utkast. Där ser du också skolan, läsåret, vilken period schemat gäller och om utkastet är sparat. Ändringar sparas automatiskt. Vid behov kan du välja **Spara nu**.
 
+### Publicera ett schema
+
+Rektor kan publicera en sparad version från **Schema → Granska → Publicering** efter verifiering med engångskod.
+
+1. Kontrollera att rätt skola, läsår och period är valda och att utkastet är sparat. Alla pass ska ha tid. Publiceringen kontrollerar schemat mot den aktuella tjänstefördelningen, läsårskalendern och schemareglerna.
+2. Välj **Publicera schema…** och bekräfta versionsnumret och perioden. Det publicerade schemat ger underlag till matchande ämnesnivåer på elevkortet. En senare publicering gäller för de terminer den omfattar.
+3. Vid uteblivet svar väljer du **Kontrollera publiceringen**. Om underlaget har ändrats, läs det aktuella läget, uppdatera utkastet och granska på nytt.
+
 Använd **Schemat gäller** för att öppna utkastet för hela läsåret eller för en av terminerna. Om underlaget har ändrats kan du fortfarande byta period från ett sparat utkast. Finns det osparade ändringar behöver du hantera dem först.
 
 ### Töm ett schemautkast och ångra tömningen

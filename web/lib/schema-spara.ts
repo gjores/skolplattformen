@@ -31,10 +31,11 @@ const status = (error: unknown): number | null => error && typeof error === 'obj
 export class SchemaSparko {
   private scope: SchemaDraftScope;
   private transport: SchemaSpartransport;
-  private notify: (state: SchemaSparstatus, acknowledgedKey: string | null, draftId: string | null) => void;
+  private notify: (state: SchemaSparstatus, acknowledgedKey: string | null, draftId: string | null, contentHash: string | null) => void;
   private id: () => string;
   private active = true;
   private draftId: string | null = null;
+  private contentHash: string | null = null;
   private revision = 0;
   private savedAt: string | null = null;
   private acknowledged: string | null = null;
@@ -44,14 +45,14 @@ export class SchemaSparko {
   private loaded = false;
   private invalidTarget = false;
   state: SchemaSparstatus = { phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null };
-  constructor(scope: SchemaDraftScope, transport: SchemaSpartransport, notify: (state: SchemaSparstatus, acknowledgedKey: string | null, draftId: string | null) => void, id: () => string = () => crypto.randomUUID()) {
+  constructor(scope: SchemaDraftScope, transport: SchemaSpartransport, notify: SchemaSparko['notify'], id: () => string = () => crypto.randomUUID()) {
     this.scope = scope; this.transport = transport; this.notify = notify; this.id = id;
   }
   private publish(phase: SchemaSparstatus['phase'], message: string | null = null): void {
     if (!this.active) return;
     this.state = { phase, dirty: this.command !== null || !!this.target && schemaSparnyckel(this.target) !== this.acknowledged,
       revision: this.revision, savedAt: this.savedAt, message };
-    this.notify(this.state, this.acknowledged, this.draftId);
+    this.notify(this.state, this.acknowledged, this.draftId, this.contentHash);
   }
   async load(): Promise<SchemaDraft | null> {
     this.publish('loading');
@@ -60,6 +61,7 @@ export class SchemaSparko {
       if (!this.active) return null;
       const draft = reply.draft;
       this.draftId = draft?.id ?? null; this.revision = draft?.revision ?? 0; this.savedAt = draft?.savedAt ?? null;
+      this.contentHash = draft?.contentHash ?? null;
       this.target = draft ? schemaSparinnehall(draft) : null; this.acknowledged = this.target ? schemaSparnyckel(this.target) : null;
       this.command = null; this.loaded = true;
       this.publish(draft?.stale ? 'stale' : draft ? 'saved' : 'idle', draft?.stale ? 'Underlaget har ändrats sedan utkastet sparades. Det sparade schemat visas. Ta fram ett nytt förslag innan du fortsätter redigera.' : null);
@@ -125,6 +127,7 @@ export class SchemaSparko {
   }
   private accept(input: SchemaDraftSave, draft: SchemaDraft): void {
     this.draftId = draft.id; this.revision = draft.revision; this.savedAt = draft.savedAt;
+    this.contentHash = draft.contentHash;
     const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes } = input;
     this.acknowledged = schemaSparnyckel({ name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes });
     this.command = null;

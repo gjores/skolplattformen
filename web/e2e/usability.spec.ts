@@ -754,6 +754,110 @@ test('Studieplan behåller inte tidigare elevinnehåll när skolplacering nekas 
   await fits(page);
 });
 
+test('Studieplan bekräftar faktisk start från nivåraden och visar Påbörjad', async ({ page }) => {
+  const verify = await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor', initial: 'published' });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.bf);
+
+  const diploma = studyLevelRow(page, fixture.diplomaWorkName);
+  const alreadyStarted = studyLevelRow(page, fixture.levelName);
+  const openConfirmation = diploma.getByRole('button', { name: 'Bekräfta faktisk start för ' + fixture.diplomaWorkName, exact: true });
+  const form = page.getByRole('form', { name: 'Bekräfta faktisk start', exact: true });
+  const date = form.getByLabel('Faktiskt startdatum', { exact: true });
+  const confirm = form.getByRole('button', { name: 'Bekräfta start', exact: true });
+  await expect(diploma.getByText('Kommande', { exact: true })).toBeVisible();
+  await expect(alreadyStarted.getByRole('button', { name: /^Bekräfta faktisk start/u })).toHaveCount(0);
+  await openConfirmation.press('Enter');
+  await expect(date).toBeFocused();
+  await expect(date).toHaveValue('');
+  await expect(confirm).toBeDisabled();
+  await form.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(openConfirmation).toBeFocused();
+  expect(fixture.commands).toHaveLength(0);
+
+  await openConfirmation.click();
+  await date.fill('2026-10-13');
+  await expect(date).toHaveAttribute('aria-invalid', 'true');
+  await confirm.click();
+  expect(fixture.commands).toHaveLength(0);
+  await date.fill('2026-08-20');
+  await fits(page);
+  await confirm.click();
+  await expect(diploma.getByText('Påbörjad', { exact: true })).toBeVisible();
+  await expect(diploma.getByText('2026-08-20', { exact: true })).toBeVisible();
+  expect(fixture.commands).toHaveLength(1);
+  expect(fixture.commands[0]).toMatchObject({
+    action: 'record_actual',
+    expectedRevision: 1,
+    payload: { event: { kind: 'started', on: '2026-08-20', source: { kind: 'school_record' } } },
+  });
+  expect(fixture.snapshots.at(-1)).toMatchObject({ planId: fixture.planId, revision: 2, state: 'current' });
+  await expect(openConfirmation).toHaveCount(0);
+
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(diploma.getByText('Påbörjad', { exact: true })).toBeVisible();
+  verify();
+});
+
+test('Studieplan visar publicerat schema och håller förslag skilt från faktisk start', async ({ page }) => {
+  test.setTimeout(60_000);
+  const verify = await mockApp(page, 'rektor', true);
+  const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.bf, readRole: () => 'rektor',
+    initial: 'published_unstarted', publishedSchedule: true });
+  await page.goto(`${base}?vy=elever`);
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  const level = studyLevelRow(page, fixture.levelName);
+  const scheduleBadge = level.getByText('Schemalagd nu', { exact: true });
+  const useFirstLesson = level.getByRole('button', { name: 'Använd första passets datum för ' + fixture.levelName, exact: true });
+  await expect(scheduleBadge).toBeVisible();
+  await expect(level.getByText('Kommande', { exact: true })).toBeVisible();
+  await expect(level.getByText('Första passet i publicerat schema · 2026-08-24', { exact: true })).toBeVisible();
+  await expect(studyLevelRow(page, fixture.diplomaWorkName).getByText('Schemalagd nu', { exact: true })).toHaveCount(0);
+  expect(fixture.commands).toHaveLength(0);
+
+  const dates = await dateFields(page, fixture.levelName);
+  const plannedStart = dates.start.getByLabel('Startdatum', { exact: true });
+  const plannedEnd = dates.end.getByLabel('Slutdatum', { exact: true });
+  await plannedEnd.fill('2026-08-20');
+  await expect(useFirstLesson).toHaveCount(0);
+  await expect(level.getByText('Kontrollera planerat slut för att använda datumet.', { exact: true })).toBeVisible();
+  await plannedEnd.fill('2026-09-30');
+  await useFirstLesson.click();
+  await expect(plannedStart).toBeFocused();
+  await expect(plannedStart).toHaveValue('2026-08-24');
+  await expect(plannedEnd).toHaveValue('2026-09-30');
+  expect(fixture.commands).toHaveLength(0);
+  await page.getByRole('button', { name: 'Spara ändringar', exact: true }).click();
+  await expect(level.getByText('2026-08-24 – 2026-09-30', { exact: true })).toBeVisible();
+  expect(fixture.snapshots.at(-1)?.content.levels[0].attempts[0].actual.start).toBeNull();
+
+  await level.getByRole('button', { name: 'Bekräfta faktisk start för ' + fixture.levelName, exact: true }).click();
+  const form = page.getByRole('form', { name: 'Bekräfta faktisk start', exact: true });
+  const date = form.getByLabel('Faktiskt startdatum', { exact: true });
+  await expect(date).toHaveValue('');
+  await form.getByRole('button', { name: 'Välj första passets datum i formuläret', exact: true }).click();
+  await expect(date).toHaveValue('2026-08-24');
+  expect(fixture.commands).toHaveLength(1);
+  await form.getByRole('button', { name: 'Bekräfta start', exact: true }).click();
+  await expect(level.getByText('Påbörjad', { exact: true })).toBeVisible();
+  await expect(scheduleBadge).toBeVisible();
+  expect(fixture.snapshots.at(-1)?.content.levels[0].attempts[0].actual.start?.on).toBe('2026-08-24');
+  await fits(page);
+
+  await page.getByRole('button', { name: 'Visa historik', exact: true }).click();
+  await page.getByRole('button', { name: 'Läs version 1', exact: true }).click();
+  await expect(level.getByText('Kommande', { exact: true })).toBeVisible();
+  await expect(scheduleBadge).toHaveCount(0);
+  fixture.withdrawSchedule();
+  await page.reload();
+  await openStudyPlan(page, studyPreviewPupils.bf);
+  await expect(level.getByText('Påbörjad', { exact: true })).toBeVisible();
+  await expect(scheduleBadge).toHaveCount(0);
+  verify();
+});
+
 test('Studieplan föreslår gruppens datum som planerad period', async ({ page }) => {
   const verify = await mockApp(page, 'rektor', true);
   const fixture = await mockStudyPlan(page, { pupil: studyPreviewPupils.sa, readRole: () => 'rektor', dateSuggestion: true });

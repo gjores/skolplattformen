@@ -484,15 +484,23 @@ export async function verifyStudyPlanActual({ out, runtimeFactory, classOnly = f
     await change('principalB', bf, 'prepare_draft', { dates: [dateEdit(english, { kind: 'day', date: '2026-08-18' }, { kind: 'day', date: '2026-10-05' })] });
     await approve('principalB', bf);
     const actual = (kind, on) => ({ levelId: english.id, attemptId, event: { kind, on, source: { kind: 'school_record', id: randomUUID() } } });
-    const started = await change('principalB', bf, 'record_actual', actual('started', '2026-08-20'));
+    const bfPage = sessions.principalB.page;
+    const beforeStart = await openPupilPlan(bfPage, baseURL, bf);
+    const startLevel = planLevel(beforeStart, english.label);
+    await startLevel.getByRole('button', { name: 'Bekräfta faktisk start för ' + english.label, exact: true }).click();
+    const startForm = beforeStart.getByRole('form', { name: 'Bekräfta faktisk start', exact: true });
+    const startDate = startForm.getByLabel('Faktiskt startdatum', { exact: true });
+    await expect(startDate).toHaveValue('');
+    await startDate.fill('2026-08-20');
+    const started = saved(await clickCommand(bfPage, startForm.getByRole('button', { name: 'Bekräfta start', exact: true }), 'record_actual'));
     assert.equal(started.state, 'current');
     assert.equal((await read('principalB', bf)).draft, null);
     assert.deepEqual(studyAttemptStatus(rowFor(started).attempts[0], today, [], english.id),
       { progress: 'started', reduced: false, needsFollowUp: true });
+    await expect(startLevel.getByText('Påbörjad', { exact: true })).toBeVisible();
     const ended = await change('principalB', bf, 'record_actual', actual('completed', '2026-10-20'));
     assert.equal(ended.state, 'current');
     assert.deepEqual((await read('principalB', bf)).current, ended);
-    const bfPage = sessions.principalB.page;
     const completedBF = await openPupilPlan(bfPage, baseURL, bf);
     await expect(planLevel(completedBF, english.label).getByText('Avslutad', { exact: true })).toBeVisible();
     const reduction = (levelIds, scopePoints) => ({ id: randomUUID(), kind: 'reduced',

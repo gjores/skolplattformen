@@ -71,6 +71,10 @@ När en entydig period finns från elevens undervisningsgrupp kan du välja **An
 
 I tabellen visas planerade datum, faktiska datum och status. Öppna radens detaljer för att se källan till en registrerad händelse. Vid en rättelse eller ett undantag väljer du **Rätta eller registrera studiehändelse** och anger det faktiska datumet. En nivå som väntar på start visas som **Kommande**. Den registrerade starten ger **Påbörjad** och det registrerade avslutet ger **Avslutad** eller **Avbruten**. Välj **Behöver följas upp** för att visa nivåer vars exakta planerade slutdatum har passerat och som behöver kontrolleras.
 
+När eleven har undervisning på nivån i det publicerade schemat visas **Schemalagd nu** under den aktuella passperioden. Första passets datum kan användas som planerad start. Välj **Använd första passets datum**, kontrollera perioden och spara ändringen.
+
+Välj **Bekräfta faktisk start** när skolan har kontrollerat att eleven har börjat. Ange datumet och välj **Bekräfta start**. Du kan välja första passets datum i formuläret om det stämmer med elevens faktiska start. När bekräftelsen har sparats visar nivån **Påbörjad** automatiskt.
+
 Rektor kan använda **Registrera beslut** för att föra in ett redan fattat beslut. För reducerat program anger du beslutsreferensen inom åtgärdsprogrammet, datum och omfattning. Ange vilka nivåer som berörs när de framgår av beslutet. Nivåerna visas som **Reducerad** under beslutets giltighet. Om nivåerna ännu saknas visas omfattningen i planens beslutsavsnitt. Registrerade studiedatum finns kvar.
 
 En registrerad studiehändelse visas direkt när du arbetar med den senaste gällande planen. Om du arbetar i ett utkast sparas händelsen där. Registrerade beslut sparas i utkastet tills rektor gör det gällande. Om svaret på ett sparande uteblir väljer du **Kontrollera sparandet**. Om uppgifterna har ändrats sedan du öppnade studieplanen väljer du **Hämta aktuell version**.

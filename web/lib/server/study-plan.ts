@@ -3,7 +3,7 @@ import {
   parseStudyPlanCommandReply, parseStudyPlanReadReply, parseStudyPlanStatusReply,
   type StudyPlanCommand, type StudyPlanReadRequest, type StudyPlanScope, type StudyPlanStatusRequest,
 } from '../study-plan-contract.ts';
-import { parseStudyPlanContent, parseStudyPlanSnapshot, StudyPlanContractError, studyPlanFields, studyPlanUuid } from '../study-plan-model.ts';
+import { parseStudyPlanContent, parseStudyPlanSnapshot, StudyPlanContractError, studyPlanFields, studyPlanList, studyPlanUuid } from '../study-plan-model.ts';
 import { AuditUnavailable } from './authz.ts';
 import { Deny, type SessionContext, type Tx } from './db.ts';
 import { requireSyntheticMandates } from './mandate-route.ts';
@@ -85,9 +85,23 @@ export async function readStudyPlan(tx: Tx, ctx: StudyPlanAuthority, request: St
   if (body.view !== 'current' || !basis) return { body, event: event('individual_study_plan_read', request) };
   try {
     const projection = await projectStudyPlanBasis(basis);
-    const scoped = parseStudyPlanReadReply({ ...body, ...projection }, request);
+    const schedule = [];
+    for (const snapshot of [body.current, body.draft]) {
+      if (!snapshot || !snapshot.content.levels.some(level => level.kind === 'gy25_level' && level.attempts.length === 1)) continue;
+      const input = { contractVersion: request.contractVersion, unitId: request.unitId, pupilId: request.pupilId,
+        placementId: request.placementId, planId: snapshot.planId, revision: snapshot.revision, on: request.on };
+      const rows = await query(() => tx<StudyPlanDbRow[]>`select public.schema_study_schedule(${tx.json(input)}) as result`);
+      if (rows.length !== 1) throw new AuditUnavailable();
+      schedule.push(...studyPlanList(rows[0].result, item => ({
+        ...studyPlanFields(item, ['levelId', 'attemptId', 'firstPassOn', 'scheduledNow']), revision: snapshot.revision,
+      }), 500));
+    }
+    const scoped = parseStudyPlanReadReply({ ...body, ...projection, ...(schedule.length ? { schedule } : {}) }, request);
     return { body: scoped, event: event('individual_study_plan_read', request) };
-  } catch { throw new AuditUnavailable(); }
+  } catch (error) {
+    if (error instanceof Deny) throw error;
+    throw new AuditUnavailable();
+  }
 }
 
 export async function commandStudyPlan(tx: Tx, ctx: StudyPlanAuthority, command: StudyPlanCommand) {

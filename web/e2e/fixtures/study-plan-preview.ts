@@ -109,7 +109,7 @@ function setPlannedDates(content: StudyPlanContent, dates: StudyPlanDateEdit[]) 
 }
 
 export async function mockStudyPlan(page: Page, options: {
-  pupil: FixturePupil; readRole: () => Role; initial?: 'published'; impact?: boolean; dateSuggestion?: boolean;
+  pupil: FixturePupil; readRole: () => Role; initial?: 'published' | 'published_unstarted'; impact?: boolean; dateSuggestion?: boolean; publishedSchedule?: boolean;
 }) {
   const { pupil, readRole } = options;
   const scope = scopeOf(pupil), planId = id(pupil.programCode === 'SA25' ? 420 : 421);
@@ -119,6 +119,7 @@ export async function mockStudyPlan(page: Page, options: {
   const comparisonReads: Extract<StudyPlanReadRequest, { view: 'options' | 'impact' }>[] = [];
   const receipts = new Map<string, { command: StudyPlanCommand; receipt: StudyPlanReceipt }>();
   let calendar: StudyPlanCurrentReply['calendar'] = [];
+  let publishedSchedule = options.publishedSchedule === true;
   let allowed = true, forceConflict = false, holdNext: Promise<void> | null = null;
   const history = () => [...snapshots].reverse().map(({ content: _content, ...revision }) => revision);
   const save = (content: StudyPlanContent, effectiveOn: string | null = null): StudyPlanSnapshot => {
@@ -127,12 +128,12 @@ export async function mockStudyPlan(page: Page, options: {
     snapshots.push(version);
     return version;
   };
-  if (options.initial === 'published') {
+  if (options.initial) {
     const content = contentFor(pupil);
     const attempt = content.levels[0].attempts[0];
     attempt.plannedStart = { kind: 'day', date: '2026-08-17' };
     attempt.plannedEnd = { kind: 'day', date: '2026-10-01' };
-    attempt.actual.start = { on: '2026-08-19', source: { kind: 'school_record', id: id(480) } };
+    if (options.initial === 'published') attempt.actual.start = { on: '2026-08-19', source: { kind: 'school_record', id: id(480) } };
     if (options.impact) attempt.actual.end = { kind: 'completed', on: '2026-10-06', source: { kind: 'school_record', id: id(481) } };
     save(content, '2026-09-01');
   }
@@ -179,6 +180,8 @@ export async function mockStudyPlan(page: Page, options: {
       const result: StudyPlanCurrentReply = { ...scope, on: read.on, view: 'current',
         current, draft: latest?.state === 'draft' ? latest : null, history: history(), latestRevision: latest?.revision ?? 0,
         canMakeCurrent: readRole() === 'rektor', sourceToken: token, basisStatus: 'ready', basisIssues: [], availableLevels: [], calendar, dateSuggestions,
+        ...(publishedSchedule && current ? { schedule: [{ revision: current.revision, levelId: current.content.levels[0].id,
+          attemptId: current.content.levels[0].attempts[0].id, firstPassOn: '2026-08-24', scheduledNow: true }] } : {}),
       };
       return route.fulfill({ json: result, headers });
     }
@@ -258,6 +261,7 @@ export async function mockStudyPlan(page: Page, options: {
     addCalendar() {
       calendar = [{ schoolYear: 2028, htStart: '2028-08-21', htEnd: '2028-12-22', vtStart: '2029-01-10', vtEnd: '2029-06-13' }];
     },
+    withdrawSchedule() { publishedSchedule = false; },
     deny() { allowed = false; },
     conflict() {
       const previous = snapshots.at(-1);

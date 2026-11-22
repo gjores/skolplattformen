@@ -40,6 +40,7 @@ type Props = {
 type ActionInput = StudyPlanCommand extends infer Command
   ? Command extends StudyPlanCommand ? Pick<Command, 'action' | 'payload'> : never
   : never;
+type StudyPlanScheduleItem = NonNullable<StudyPlanCurrentReply['schedule']>[number];
 
 const progressLabels = {
   unknown: 'Tidigare uppgift okänd', upcoming: 'Kommande', started: 'Påbörjad', completed: 'Avslutad', interrupted: 'Avbruten',
@@ -77,6 +78,15 @@ function periodLabel(start: PlannedStudyDate, end: PlannedStudyDate) {
   return from === to ? from : from + ' – ' + to;
 }
 
+function plannedStartHasPassed(start: PlannedStudyDate, today: string, calendar: readonly StudyPlanCalendarYear[]) {
+  if (!start) return true;
+  if (start.kind === 'day') return start.date <= today;
+  const year = calendar.find(item => item.schoolYear === start.schoolYear);
+  const firstDay = start.term === 'HT' ? year?.htStart ?? `${start.schoolYear}-07-01`
+    : year?.vtStart ?? `${start.schoolYear + 1}-01-01`;
+  return firstDay <= today;
+}
+
 const factSources = { school_record: 'Skolans registrering', previous_school: 'Tidigare skola' } as const;
 
 // Safari needs explicit table semantics when the same native table stacks its rows in a narrow container.
@@ -101,9 +111,10 @@ function IssueList({ issues, snapshot, onEdit }: { issues: StudyPlanIssue[]; sna
   </div>;
 }
 
-function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disabled, onPending, onSave, onActual }: {
+function LevelTable({ snapshot, calendar, suggestions, schedule, on, today, placementStartsOn, canEdit, disabled, onPending, onSave, onActual }: {
   snapshot: StudyPlanSnapshot; calendar: readonly StudyPlanCalendarYear[]; suggestions: readonly StudyPlanDateEdit[];
-  on: string; today: string; canEdit: boolean; disabled: boolean;
+  schedule: readonly StudyPlanScheduleItem[];
+  on: string; today: string; placementStartsOn: string; canEdit: boolean; disabled: boolean;
   onPending: (pending: boolean) => void;
   onSave: (dates: StudyPlanDateEdit[]) => void;
   onActual: (payload: Extract<StudyPlanCommand, { action: 'record_actual' }>['payload']) => void;
@@ -111,7 +122,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
   const id = useId();
   const [followUpOnly, setFollowUpOnly] = useState(false);
   const [openPeriods, setOpenPeriods] = useState<Set<string>>(() => new Set());
-  const [details, setDetails] = useState<string | null>(null);
+  const [openRow, setOpenRow] = useState<{ key: string; mode: 'details' | 'confirm-start' } | null>(null);
   const [periods, setPeriods] = useState<Record<string, StudyPlanPeriodEdit>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const { levels, decisions } = snapshot.content;
@@ -127,6 +138,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
     const key = suggestion.levelId + '-' + suggestion.attemptId;
     return periods[key] ? [] : [[key, suggestion] as const];
   }));
+  const scheduleByAttempt = new Map(schedule.map(item => [item.levelId + '-' + item.attemptId, item]));
 
   function save() {
     const dates: StudyPlanDateEdit[] = [];
@@ -153,12 +165,9 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
     onPending(false);
   }
 
-  function applySuggestions(entries: [string, StudyPlanDateEdit][]) {
+  function applyPeriods(entries: [string, StudyPlanPeriodEdit][]) {
     if (!entries.length) return;
-    setPeriods(previous => ({
-      ...previous,
-      ...Object.fromEntries(entries.map(([key, value]) => [key, studyPlanPeriodValues(value)])),
-    }));
+    setPeriods(previous => ({ ...previous, ...Object.fromEntries(entries) }));
     setFormError(null);
     setFollowUpOnly(false);
     onPending(true);
@@ -172,7 +181,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
         Behöver följas upp <span className="tabular-nums" aria-hidden="true">{followUp}</span>
       </Button>
       {canEdit && suggested.size > 1 && <Button variant="outline" disabled={disabled}
-        onClick={() => applySuggestions([...suggested])}>Använd datumförslag</Button>}
+        onClick={() => applyPeriods([...suggested].map(([key, value]) => [key, studyPlanPeriodValues(value)]))}>Använd datumförslag</Button>}
     </div>
     <Table className="study-plan-table" {...studyTableRoles.table} aria-labelledby={id + '-heading'}>
       <TableHeader {...studyTableRoles.group}>
@@ -192,6 +201,29 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
           const period = pendingPeriod ? periodLabel(pendingPeriod.plannedStart, pendingPeriod.plannedEnd)
             : periodLabel(attempt.plannedStart, attempt.plannedEnd);
           const suggestion = suggested.get(key);
+          const inactiveDecisions = relevant.filter(decision => decision.levelIds.includes(level.id) && studyDecisionEffective(decision, on)
+            && (decision.kind === 'eligibility_opt_out' || decision.kind === 'replaced'));
+          const active = !status.reduced && inactiveDecisions.length === 0
+            && status.progress !== 'completed' && status.progress !== 'interrupted';
+          const timetable = active ? scheduleByAttempt.get(key) : undefined;
+          const firstPassOn = timetable?.firstPassOn;
+          const displayedPeriod = periods[key] ?? studyPlanPeriodValues(attempt);
+          const alreadyUsesFirstPass = displayedPeriod.start.precision === 'day' && displayedPeriod.start.day === firstPassOn;
+          let proposedPeriod: StudyPlanPeriodEdit | null = null;
+          if (canEdit && firstPassOn && !alreadyUsesFirstPass) {
+            const proposed = { ...displayedPeriod, start: { ...displayedPeriod.start, precision: 'day' as const, day: firstPassOn } };
+            try {
+              parseStudyPlanPeriodEdit(proposed);
+              proposedPeriod = proposed;
+            } catch { /* Låt personalen ändra det planerade slutet innan förslaget används. */ }
+          }
+          const canConfirmStart = canEdit && on === today && placementStartsOn <= today && !attempt.actual.start && !attempt.actual.end
+            && active && (plannedStartHasPassed(attempt.plannedStart, today, calendar) || (!!firstPassOn && firstPassOn <= today));
+          const showDetails = openRow?.key === key && openRow.mode === 'details';
+          const showStart = canConfirmStart && openRow?.key === key && openRow.mode === 'confirm-start';
+          const periodButtonId = editId + '-period';
+          const startButtonId = editId + '-confirm-start';
+          const startDateId = editId + '-actual-start';
           return <Fragment key={key}>
             <TableRow {...studyTableRoles.row} className="study-plan-level align-top">
               <th scope="row" {...studyTableRoles.header} className="px-2 py-3 text-left font-medium wrap-anywhere">
@@ -206,7 +238,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                     onPending(true);
                   }} /></div>
                   : canEdit
-                    ? <Button variant="ghost" aria-label={'Ändra planerad period för ' + label}
+                    ? <Button id={periodButtonId} variant="ghost" aria-label={'Ändra planerad period för ' + label}
                       className="h-auto min-h-[var(--control-height)] max-w-full justify-start whitespace-normal px-1.5 text-left"
                       disabled={disabled} onClick={() => {
                         setOpenPeriods(previous => new Set(previous).add(key));
@@ -217,11 +249,31 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                 {canEdit && suggestion && <div className="grid justify-items-start">
                   <small className="text-muted-foreground">{periodLabel(suggestion.plannedStart, suggestion.plannedEnd)}</small>
                   <Button variant="ghost" className="h-auto min-h-[var(--control-height)] whitespace-normal px-1.5 text-primary" disabled={disabled}
-                    onClick={() => applySuggestions([[key, suggestion]])}>Använd gruppens datum</Button>
+                    onClick={() => applyPeriods([[key, studyPlanPeriodValues(suggestion)]])}>Använd gruppens datum</Button>
+                </div>}
+                {firstPassOn && <div className="grid justify-items-start">
+                  <small className="text-muted-foreground">Första passet i publicerat schema · <time dateTime={firstPassOn}>{firstPassOn}</time></small>
+                  {canEdit && !alreadyUsesFirstPass && (proposedPeriod
+                    ? <Button variant="ghost" className="h-auto min-h-[var(--control-height)] max-w-full whitespace-normal px-1.5 text-left text-primary"
+                      disabled={disabled} onClick={() => {
+                        applyPeriods([[key, proposedPeriod]]);
+                        requestAnimationFrame(() => (document.getElementById(editId)?.querySelector<HTMLInputElement>('input[type="date"]')
+                          ?? document.getElementById(periodButtonId))?.focus());
+                      }}
+                      aria-label={'Använd första passets datum för ' + label}>Använd första passets datum</Button>
+                    : <small className="text-muted-foreground">Kontrollera planerat slut för att använda datumet.</small>)}
                 </div>}
               </TableCell>
               <TableCell {...studyTableRoles.cell} data-label="Faktisk start" className="whitespace-normal tabular-nums align-top">
-                {actualStart?.on ?? '—'}
+                {canConfirmStart
+                  ? <Button id={startButtonId} variant="outline"
+                    className="h-auto min-h-[var(--control-height)] max-w-full whitespace-normal text-left"
+                    disabled={disabled || pending > 0} aria-expanded={showStart} aria-controls={rowDetails}
+                    aria-label={'Bekräfta faktisk start för ' + label} onClick={() => {
+                      setOpenRow({ key, mode: 'confirm-start' });
+                      requestAnimationFrame(() => document.getElementById(startDateId)?.focus());
+                    }}>Bekräfta faktisk start</Button>
+                  : actualStart?.on ?? '—'}
               </TableCell>
               <TableCell {...studyTableRoles.cell} data-label="Faktiskt slut" className="whitespace-normal tabular-nums align-top">
                 {actualEnd?.on ?? '—'}
@@ -231,24 +283,32 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                   <span className={'status-badge whitespace-normal' + (!status.reduced && status.progress === 'completed' ? ' success' : '')}>
                     {status.reduced ? 'Reducerad' : progressLabels[status.progress]}
                   </span>
+                  {timetable?.scheduledNow && <span className="status-badge whitespace-normal">Schemalagd nu</span>}
                   {status.needsFollowUp && <span className="status-badge warning whitespace-normal">Behöver följas upp</span>}
-                  {relevant.filter(decision => decision.levelIds.includes(level.id) && studyDecisionEffective(decision, on)
-                    && (decision.kind === 'eligibility_opt_out' || decision.kind === 'replaced')).map(decision =>
+                  {inactiveDecisions.map(decision =>
                     <span key={decision.id} className="status-badge whitespace-normal">{decisionLabels[decision.kind]}</span>)}
                 </div>
               </TableCell>
               <TableCell {...studyTableRoles.cell} className="study-plan-details-toggle whitespace-normal align-top">
-                <Button variant="ghost" className="min-h-[var(--control-height)]" aria-expanded={details === key} aria-controls={rowDetails}
-                  aria-label={(details === key ? 'Dölj' : 'Visa') + ' detaljer för ' + label}
-                  onClick={() => setDetails(previous => previous === key ? null : key)}>
-                  <ChevronDown className={details === key ? 'rotate-180' : undefined} aria-hidden="true" />
+                <Button variant="ghost" className="min-h-[var(--control-height)]" aria-expanded={showDetails} aria-controls={rowDetails}
+                  aria-label={(showDetails ? 'Dölj' : 'Visa') + ' detaljer för ' + label}
+                  onClick={() => setOpenRow(showDetails ? null : { key, mode: 'details' })}>
+                  <ChevronDown className={showDetails ? 'rotate-180' : undefined} aria-hidden="true" />
                   <span className="study-plan-details-label">Detaljer</span>
                 </Button>
               </TableCell>
             </TableRow>
-            {details === key && <TableRow className="study-plan-row-details bg-muted/25" {...studyTableRoles.row} id={rowDetails}>
+            {(showDetails || showStart) && <TableRow className="study-plan-row-details bg-muted/25" {...studyTableRoles.row} id={rowDetails}>
               <TableCell colSpan={6} {...studyTableRoles.cell} className="whitespace-normal">
-                <div className="grid min-w-0 gap-2 px-1">
+                {showStart ? <div className="grid min-w-0 gap-2 px-1">
+                  <p className="font-medium">{label}</p>
+                  <StudyPlanActualForm key="confirm-start" level={level} attempt={attempt} today={today} disabled={disabled || pending > 0}
+                    confirmStart={{ dateId: startDateId, earliest: placementStartsOn,
+                      suggestedOn: firstPassOn && firstPassOn >= placementStartsOn && firstPassOn <= today ? firstPassOn : undefined, onCancel: () => {
+                      setOpenRow(null);
+                      requestAnimationFrame(() => document.getElementById(startButtonId)?.focus());
+                    } }} onRecord={onActual} />
+                </div> : <div className="grid min-w-0 gap-2 px-1">
                   {status.reduced && <p>Studieförlopp · {progressLabels[status.progress]}</p>}
                   <dl className="grid min-w-0 gap-2 sm:grid-cols-2">
                     <div><dt className="font-medium">Källa för faktisk start</dt><dd>{actualStart ? factSources[actualStart.source.kind] : 'Uppgift saknas'}</dd></div>
@@ -261,7 +321,7 @@ function LevelTable({ snapshot, calendar, suggestions, on, today, canEdit, disab
                     <summary className="flex min-h-[var(--control-height)] cursor-pointer items-center font-medium text-primary">Rätta eller registrera studiehändelse</summary>
                     <StudyPlanActualForm level={level} attempt={attempt} today={today} disabled={disabled || pending > 0} onRecord={onActual} />
                   </details>}
-                </div>
+                </div>}
               </TableCell>
             </TableRow>}
           </Fragment>;
@@ -411,6 +471,7 @@ export default function PupilStudyPlan(props: Props) {
       : receipt.snapshot.effectiveOn ? 'Version ' + receipt.snapshot.revision + ' gäller från ' + receipt.snapshot.effectiveOn + '.'
       : 'Utkastet är sparat.');
     await reload(signal);
+    if (!signal.aborted && receipt.action === 'record_actual') title.current?.focus();
   }
 
   async function send(command: StudyPlanCommand) {
@@ -542,7 +603,8 @@ export default function PupilStudyPlan(props: Props) {
           : <>
             {snapshot.content.levels.length > 0 ? <LevelTable key={snapshot.revision + '/' + (history?.on ?? '')}
               snapshot={snapshot} calendar={read.calendar ?? []} suggestions={read.dateSuggestions ?? []}
-              on={on} today={today} canEdit={Boolean(canEdit)} disabled={disabled} onPending={setPeriodsPending}
+              schedule={history ? [] : read.schedule?.filter(item => item.revision === snapshot.revision) ?? []}
+              on={on} today={today} placementStartsOn={props.placementStartsOn} canEdit={Boolean(canEdit)} disabled={disabled} onPending={setPeriodsPending}
               onSave={dates => snapshot.state === 'current' && read.canMakeCurrent
                 ? submit({ action: 'update_planned_dates', payload: { dates } })
                 : submit({ action: 'prepare_draft', payload: { dates } })}

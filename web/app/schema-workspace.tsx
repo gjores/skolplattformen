@@ -11,6 +11,7 @@ import { type SchemaSparinnehall, type SchemaSparstatus } from '@/lib/schema-spa
 import { useSchemaSpara } from './schema/use-spara.ts';
 import { useSchemaUnderlag } from './schema/use-underlag.ts';
 import { Sparstatus } from './schema/sparstatus.tsx';
+import { SchemaPublicering } from './schema/publicering.tsx';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, sammaGrund, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
   SchemaContractError, type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm, type SchemaVillkor, type SchemaViolation } from '@/lib/schema-contract.ts';
@@ -1559,6 +1560,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       {underlagshinder}
     </>}
     {!fonster && visaGranska && (error || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
+    {!fonster && visaGranska && <SchemaPublicering key={`${unitId}/${schoolYear}/${period}`} scope={{ unitId, schoolYear, period }} canPublish={personalLookup}
+      saved={spara.ready && spara.draftId && spara.contentHash && sparstatus.phase === 'saved' && !sparstatus.dirty
+        && forslag && forslag.metrics.placed > 0 && forslag.metrics.unplaced === 0
+          ? { draftId: spara.draftId, revision: sparstatus.revision, contentHash: spara.contentHash } : null}
+      disabled={busy || checking || granskaStale} onSessionLost={onSessionLost} />}
     {!fonster && <GranskaUtkast key={granskaScope} forslag={forslag} lessons={passMedSal} kontroll={kontroll} checking={checking || busy} stale={granskaStale}
       datum={datumSvar} datedOverrides={datedOverrides} intentional={intentionalKeys} active={visaGranska}
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}

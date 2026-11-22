@@ -129,6 +129,10 @@ const fixture = globalThis.__studyPlanRouteTest = {
       state.events.push({ action: values[8], objectType: values[9], objectId: values[10], outcome: values[11], details: values[12] });
       return [];
     }
+    if (sql.includes('public.schema_study_schedule(')) {
+      state.calls.push({ operation: 'schedule', values });
+      return [{ result: structuredClone(state.script.schedule?.(values[0]) ?? []) }];
+    }
     const operation = /\bpublic\.individual_study_plan_(read|command|status)\(/u.exec(sql)?.[1];
     assert.ok(operation, 'test query must use protected study-plan RPC');
     state.calls.push({ operation, values });
@@ -205,6 +209,23 @@ test('källa som behöver kompletteras får en läsbar status utan nivåer från
   assert.equal(body.basisStatus, 'incomplete');
   assert.deepEqual(body.availableLevels, []);
   assert.ok(body.basisIssues.some(item => item.field === 'path'));
+});
+
+test('publicerade pass är ett revisionsbundet datumförslag och ändrar inte den faktiska starten', async () => {
+  const snapshot = revision(1, baseContent(), true), request = currentRequest({ on: '2026-11-21' });
+  const level = snapshot.content.levels[0];
+  const match = { levelId: level.id, attemptId: level.attempts[0].id, firstPassOn: '2026-08-20', scheduledNow: true };
+  reset({ read: input => currentReply(input, { current: snapshot, history: [metadata(snapshot)] }),
+    schedule: input => {
+      assert.deepEqual(input, { ...scope, planId: snapshot.planId, revision: snapshot.revision, on: request.on });
+      return [match];
+    } });
+  const response = await read(post('lasa', request));
+  assert.equal(response.status, 200);
+  const body = parseStudyPlanReadReply(await response.json(), parseStudyPlanReadRequest(request));
+  assert.deepEqual(body.schedule, [{ ...match, revision: 1 }]);
+  assert.deepEqual(body.current.content.levels[0].attempts[0].actual, level.attempts[0].actual);
+  assert.equal(state.writes.length, 0);
 });
 
 test('historisk läsning visar begärd revision utan kataloginläsning', async () => {

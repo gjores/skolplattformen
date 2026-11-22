@@ -333,13 +333,16 @@ export function StudyPlanEditor({ snapshot, availableLevels, disabled, onSave, o
 }
 
 type ActualPayload = Extract<StudyPlanCommand, { action: 'record_actual' }>['payload'];
-export function StudyPlanActualForm({ level, attempt, today, disabled, onRecord }: {
+export function StudyPlanActualForm({ level, attempt, today, disabled, onRecord, confirmStart }: {
   level: StudyPlanLevel; attempt: StudyPlanAttempt; today: string; disabled: boolean; onRecord: (payload: ActualPayload) => void;
+  confirmStart?: { dateId: string; earliest: string; suggestedOn?: string; onCancel: () => void };
 }) {
   const id = useId();
+  const dateId = confirmStart?.dateId ?? id + '-date';
+  const suggestedOn = confirmStart?.suggestedOn;
   const canEnd = attempt.actual.start !== null || attempt.actual.certainty === 'unknown';
-  const [kind, setKind] = useState<StudyPlanEvent['kind']>(canEnd ? 'completed' : 'started');
-  const [on, setOn] = useState(today);
+  const [kind, setKind] = useState<StudyPlanEvent['kind']>(!confirmStart && canEnd ? 'completed' : 'started');
+  const [on, setOn] = useState(confirmStart ? '' : today);
   const [sourceKind, setSourceKind] = useState<StudyPlanEvent['source']['kind']>('school_record');
   const [reference, setReference] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -357,7 +360,7 @@ export function StudyPlanActualForm({ level, attempt, today, disabled, onRecord 
     }
     try {
       studyPlanDate(on);
-      if (on > today || (kind === 'started' && attempt.actual.end && on > attempt.actual.end.on)
+      if (on > today || (confirmStart && on < confirmStart.earliest) || (kind === 'started' && attempt.actual.end && on > attempt.actual.end.on)
         || (kind !== 'started' && attempt.actual.start && on < attempt.actual.start.on)) throw new Error();
     } catch {
       setError('Kontrollera datumet mot den registrerade studietiden och dagens datum.');
@@ -365,6 +368,23 @@ export function StudyPlanActualForm({ level, attempt, today, disabled, onRecord 
     }
     onRecord({ levelId: level.id, attemptId: attempt.id, event: { kind, on, source: { kind: sourceKind, id: sourceId } } });
   }
+
+  if (confirmStart) return <form className="min-w-0 space-y-3" aria-label="Bekräfta faktisk start" onSubmit={submit}>
+    <p className="text-sm text-muted-foreground">Ange den dag eleven faktiskt började på nivån.</p>
+    <Labelled id={dateId} label="Faktiskt startdatum">
+      <DatePicker id={dateId} value={on} min={confirmStart.earliest} max={today} required disabled={disabled} onValueChange={setOn} />
+    </Labelled>
+    {suggestedOn && on !== suggestedOn &&
+      <Button type="button" className={action} variant="outline" disabled={disabled}
+        onClick={() => { setOn(suggestedOn); document.getElementById(dateId)?.focus(); }}>
+        Välj första passets datum i formuläret
+      </Button>}
+    <FormError message={error} />
+    <div className="flex flex-wrap gap-2">
+      <Button type="submit" className={action} disabled={disabled || !on}>Bekräfta start</Button>
+      <Button type="button" className={action} variant="outline" disabled={disabled} onClick={confirmStart.onCancel}>Avbryt</Button>
+    </div>
+  </form>;
 
   return <form className="min-w-0 space-y-3" aria-label="Registrera studiehändelse" onSubmit={submit} noValidate>
     <Labelled id={id + '-kind'} label="Händelse">
@@ -374,8 +394,8 @@ export function StudyPlanActualForm({ level, attempt, today, disabled, onRecord 
         {canEnd && <><NativeSelectOption value="completed">Faktiskt avslut</NativeSelectOption><NativeSelectOption value="interrupted">Avbrott</NativeSelectOption></>}
       </NativeSelect>
     </Labelled>
-    <Labelled id={id + '-date'} label="Datum för studiehändelse">
-      <DatePicker id={id + '-date'} value={on} max={today} required disabled={disabled} onValueChange={setOn} />
+    <Labelled id={dateId} label="Datum för studiehändelse">
+      <DatePicker id={dateId} value={on} max={today} required disabled={disabled} onValueChange={setOn} />
     </Labelled>
     <Labelled id={id + '-source'} label="Uppgiftskälla">
       <NativeSelect id={id + '-source'} className={selectClass} value={sourceKind} disabled={disabled}

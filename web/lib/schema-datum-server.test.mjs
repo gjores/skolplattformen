@@ -7,10 +7,12 @@ import { datumFixture } from './schema-datum-fixture.mjs';
 import { parseSchemaDatumSvar } from './schema-datum.ts';
 import { parseSchemaProvforslagSvar } from './schema-provforslag.ts';
 import { SCHEMA_DRAFT_VERSION, schemaDraftHash } from './schema-draft-contract.ts';
+import { buildSchemaUnderlag } from './schema-underlag.ts';
 const id = n => `73111600-0000-4000-8000-${String(n).padStart(12, '0')}`, issuer = 'http://host.docker.internal:8180/realms/skolplattform-test';
 let state;
 const fake = globalThis.__schemaDatumServerTest = {
-  env: { APP_MODE: 'protected', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'skolplattform-worker', MFA_MAX_AGE_SECONDS: '28800' },
+  env: { APP_MODE: 'protected', OIDC_ISSUER: issuer, OIDC_CLIENT_ID: 'skolplattform-worker', MFA_MAX_AGE_SECONDS: '28800',
+    DATABASE_URL: 'postgresql://127.0.0.1:56322/named_timplan_11111111111111111111111111111111', SUPABASE_URL: 'http://127.0.0.1:56331' },
   session() {
     if (state.noSession) return null;
     const now = new Date(Date.now() - 1000), future = new Date(Date.now() + 60000);
@@ -21,7 +23,8 @@ const fake = globalThis.__schemaDatumServerTest = {
   login: async (_corr, fn) => fn(fake.tx),
   async live(ctx, fn, ErrorClass) {
     if (state.liveDeny) throw new ErrorClass('assignment_ended', 403);
-    const before = { draft: structuredClone(state.draft), receipts: structuredClone(state.receipts), prov: structuredClone(state.prov), provRevision: state.provRevision };
+    const before = { draft: structuredClone(state.draft), receipts: structuredClone(state.receipts), prov: structuredClone(state.prov), provRevision: state.provRevision,
+      publication: structuredClone(state.publication) };
     state.inTransaction = true;
     try { return await fn(fake.tx, { ...ctx, accessFunction: state.role, epoch: state.epoch ?? 1, scopeKind: 'school' }); }
     catch (error) { Object.assign(state, before); throw error; }
@@ -31,6 +34,7 @@ const fake = globalThis.__schemaDatumServerTest = {
     const sql = strings.join('?');
     if (sql.includes('insert into public.security_events')) {
       if (state.auditFails && values[8] === 'schema_dated_basis_read' && values[11] === 'ok') throw Error('synthetic-audit-failure');
+      if (state.publicationAuditFails && values[8] === 'schema_publication_published' && values[11] === 'ok') throw Error('synthetic-publication-audit-failure');
       state.events.push({ action: values[8], outcome: values[11] }); return [];
     }
     if (sql.includes('select i.auth_user_id')) return [{ auth_user_id: id(4), function: state.role, organizer_id: id(8), unit_id: id(1) }];
@@ -54,6 +58,21 @@ const fake = globalThis.__schemaDatumServerTest = {
       state.reads.push('dated');
       if (state.sqlDeny) throw Object.assign(Error('denied'), { code: '42501' });
       return [{ result: { contractVersion: 'schema_dated_basis_sql_v1', actor: { identityId: state.forgedActor ? id(99) : id(4), assignmentId: id(6) }, result: { ...state.fixture.datedBasis, complete: !state.incomplete } } }];
+    }
+    if (sql.includes('public.study_group_read')) {
+      return [{ result: { contractVersion: 'study_group_sql_v1', actor: { identityId: id(4), assignmentId: id(6) }, result: {
+        contractVersion: 'study_group_v1', unitId: id(1), schoolYear: 2026, groups: [state.publicationGroup], memberships: [], pupils: [], classes: [],
+      } } }];
+    }
+    if (sql.includes('public.schema_publication')) {
+      const input = values[0];
+      if (input.unitId !== id(1)) throw Object.assign(Error('scope denied'), { code: '42501' });
+      if (input.action === 'publish') {
+        const { unitId, schoolYear, period, draftId, revision, contentHash } = input;
+        state.publication = { unitId, schoolYear, period, draftId, revision, contentHash, id: id(120), publishedAt: '2026-11-20T12:00:00.000Z' };
+        state.tracks = input.tracks;
+      }
+      return [{ result: { publication: state.publication ?? null } }];
     }
     throw Error('Unexpected SQL in synthetic date route');
   },
@@ -83,6 +102,7 @@ const fake = globalThis.__schemaDatumServerTest = {
     assert.equal(state.inTransaction, false, 'motorn får inte köras medan DB-transaktionen hålls');
     assert.ok(state.events.some(e => e.action === 'schema_dated_basis_read' && e.outcome === 'ok'));
     state.validations.push({ problem, placements });
+    if (state.changeDuringDatedValidation && problem.id.startsWith('datum-')) state.sourceChanged = true;
     if (state.engineFailure) throw new SchemaEngineError('schema_engine_unreachable');
     return { violations: state.violation ? [{ code: 'room_clash', message: `${placements[0].lesson} krockar i provsalen.`, lessons: [placements[0].lesson], resources: ['sal-1'] }] : [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   },
@@ -109,10 +129,81 @@ const { POST } = await import('../app/api/schema/datum/route.ts');
 const { POST: provforslag } = await import('../app/api/schema/provforslag/route.ts');
 const { POST: tillampa } = await import('../app/api/schema/provforslag/tillampa/route.ts');
 const { POST: sparaUtkast } = await import('../app/api/schema/utkast/spara/route.ts');
+const { POST: publicering } = await import('../app/api/schema/publicering/route.ts');
 const reset = () => { state = { fixture: datumFixture(), role: 'rektor', reads: [], events: [], validations: [], draft: null, receipts: new Map(), provRevision: 1 }; };
 const input = () => ({ ...state.fixture.request, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: state.fixture.f.grundFingerprint,
   placements: state.fixture.placements, datedOverrides: [state.fixture.change()], dates: [] });
 const request = (body = input(), headers = {}) => new Request('http://localhost:5199/api/schema/datum', { method: 'POST', headers: { Origin: 'http://localhost:5199', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(body) });
+
+async function savedPublicationDraft() {
+  reset();
+  const { plan, basis, request: proposal } = state.fixture;
+  plan.version = { id: id(71), status: 'published', versionNo: 1 };
+  plan.classes.forEach((c, i) => {
+    const key = i === 0 ? 'foundation:MATE:1:MATE1000X' : 'alternative:foundation:HIST:1:HIST1000X+MATE:1:MATE1000X';
+    const sourceKey = `class_timplan:${c.classId}:2026:${key}`;
+    c.link = { schoolform: 'gymnasium' };
+    Object.assign(c.needs[0], { rowKey: key, sourceKey });
+    Object.assign(plan.rows[i], { rowKey: key, sourceKey });
+  });
+  const g = plan.groups[0], groupId = g.groupId, sourceKey = `study_group:${groupId}:2026`;
+  Object.assign(g, { sourceKind: 'study_group', sourceKey, subjectCode: 'MODY', levelCode: 'MODY1000X', language: 'fr' });
+  Object.assign(plan.rows.at(-1), { sourceKind: 'study_group', sourceKey });
+  state.publicationGroup = { id: groupId, unitId: id(1), schoolYear: 2026, name: 'Franska', startsOn: '2026-08-17', endsOn: '2027-06-11',
+    course: { subjectCode: 'MODY', subjectVersion: 8, itemCode: 'MODY1000X', languageCode: 'fr', points: 100 },
+    minutesHt: 900, minutesVt: 900, parallelSetId: id(41), classIds: g.classIds, origin: { kind: 'manual' }, revision: 1, active: true };
+  const underlag = buildSchemaUnderlag(plan, proposal, basis);
+  const placements = underlag.labels.lessons.map(l => ({ lesson: l.id, day: l.title === 'Franska' ? 1 : 0, startMin: 480, room: l.title === 'Matematik' ? 'sal-1' : 'sal-2' }));
+  const { unitId, schoolYear, period, villkor } = proposal;
+  const saved = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: id(109), draftId: null, expectedRevision: 0,
+    name: 'Syntetiskt schema för publicering', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: underlag.grundFingerprint, placements,
+    locks: [], intentional: [], datedOverrides: [], activityTypes: [] }));
+  assert.equal(saved.status, 200, await saved.clone().text());
+  const { id: draftId, revision, contentHash } = state.draft;
+  return { action: 'publish', unitId, schoolYear, period, draftId, revision, contentHash, commandId: id(119) };
+}
+
+test('publicering använder bara aktuell sparad revision och exakta Gy25-källor och kan läsas om utan motorkontroll', async () => {
+  const publication = await savedPublicationDraft();
+  const { unitId, schoolYear, period } = publication, status = { action: 'status', unitId, schoolYear, period };
+  assert.deepEqual(await (await publicering(request(status))).json(), { publication: null });
+  state.role = 'administrator';
+  assert.equal((await publicering(request(publication))).status, 403);
+  state.role = 'rektor';
+  assert.equal((await publicering(request(publication, { Origin: 'https://annan.example.test' }))).status, 403);
+  assert.equal((await publicering(request({ ...publication, revision: publication.revision + 1 }))).status, 409);
+  const published = await publicering(request(publication));
+  assert.equal(published.status, 200, await published.clone().text());
+  assert.equal((await published.json()).publication.draftId, publication.draftId);
+  const ht = state.tracks.filter(track => track.term === 'ht');
+  assert.deepEqual(ht.map(({ kind, subjectCode, subjectVersion, languageCode }) => ({ kind, subjectCode, subjectVersion, languageCode })), [
+    { kind: 'class', subjectCode: 'MATE', subjectVersion: 1, languageCode: null },
+    { kind: 'group', subjectCode: 'MODY', subjectVersion: 8, languageCode: 'fr' },
+  ]);
+  assert.equal(ht[0].days[0], '2026-08-17');
+  assert.equal(ht[0].days.includes('2026-11-09'), false);
+  assert.equal(ht[1].days[0], '2026-08-18');
+  const validations = state.validations.length;
+  state.engineFailure = true;
+  assert.equal((await publicering(request(publication))).status, 200);
+  state.role = 'administrator';
+  assert.equal((await publicering(request(status))).status, 200);
+  assert.equal((await publicering(request({ ...status, unitId: id(2) }))).status, 403);
+  assert.equal(state.validations.length, validations);
+});
+
+test('publicering rullas tillbaka vid auditfel och stoppas om källan ändras under daterad kontroll', async () => {
+  const publication = await savedPublicationDraft();
+  state.publicationAuditFails = true;
+  assert.equal((await publicering(request(publication))).status, 500);
+  assert.equal(state.publication, undefined);
+  state.publicationAuditFails = false;
+  state.changeDuringDatedValidation = true;
+  const stale = await publicering(request(publication));
+  assert.equal(stale.status, 409);
+  assert.equal((await stale.json()).details.reason, 'schema_publication_draft_changed');
+  assert.equal(state.publication, undefined);
+});
 
 test('datumrutt stoppar session, live-mandat, roll, MFA, epoch och ursprung före käll-/motorläsning', async () => {
   for (const c of [{ change: { noSession: true }, status: 401 }, { change: { revoked: true }, status: 401 }, { change: { liveDeny: true }, status: 403 },
