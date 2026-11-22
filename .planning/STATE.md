@@ -3,20 +3,20 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "SP-09 och SP-10 genomförda. Klassvisa studieplansutkast är installerade för användarprov på 3012."
+current_plan: "SP-11 genomförd. Schemapublicering och bekräftad studiestart är installerade för användarprov på 3012."
 status: in_progress
-stopped_at: "Klassvis beredning verifierad i skyddat isolerat prov och installerad på 3012."
-last_updated: "2026-11-21"
-last_activity: 2026-11-21
-last_activity_desc: "Daterad klassgranskning, individbaserade första utkast och sparresultat finns för användarprov."
-study_plan_trial_revision: 2988ed4736595c63098a2c81b242199fa29a757c
-study_plan_trial_status: class_drafts_installed_awaiting_user_trial
+stopped_at: "Schemapublicering och elevkort verifierade i skyddade isolerade prov och installerade på 3012."
+last_updated: "2026-11-22"
+last_activity: 2026-11-22
+last_activity_desc: "Publicerade pass ger schemamarkering och första passdatum. Bekräftad faktisk start visas som Påbörjad."
+study_plan_trial_revision: 7aa66ed3e1bfcac723156317b42967e3b3c65b2f
+study_plan_trial_status: schema_publication_installed_awaiting_user_trial
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
 progress:
   total_phases: 8
   completed_phases: 3
-  total_plans: 101
-  completed_plans: 100
+  total_plans: 102
+  completed_plans: 101
 verification_worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_worker_status: calendar_actual_36_pass_tjanst_regression_88_pass_cleanup_complete
 worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_159_pass
@@ -32,6 +32,8 @@ schema_installation_status: clear_and_undo_installed_one_migration_existing_draf
 user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-22 – schemapublicering och bekräftad studiestart installerade på 3012.** Rektor publicerar en exakt sparad schemarevision. Elevkortet visar **Schemalagd nu** och första datum för entydigt matchade pass. Skolans bekräftade start ger **Påbörjad** automatiskt. Isolerade prov kontrollerade publicering, skolgränser och samma studieplan efter datumkomplettering och omladdning. Provbygget bevarade befintlig data, och verksamhetens användarprov återstår. [SP-11](phases/05.3-klassorganisation/05.3-SP-11-SUMMARY.md)
 
 **2026-11-21 – klassvisa studieplansutkast installerade på 3012.** [SP-09](phases/05.3-klassorganisation/05.3-SP-09-SUMMARY.md) och [SP-10](phases/05.3-klassorganisation/05.3-SP-10-SUMMARY.md) ger daterat urval, förhandsgranskning och sparresultat per elev. Ett skyddat isolerat prov sparade första utkastet med programplanens terminer, bevarade en befintlig plan och återläste resultatet i iPhone-profil. Det lokala provbygget bevarar den tidigare schemaversionen och befintliga uppgifter. Verksamhetens användarprov återstår.
 
