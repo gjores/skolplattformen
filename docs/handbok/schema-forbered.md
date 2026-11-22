@@ -280,7 +280,7 @@ Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fä
 
 ### När ett enskilt tillfälle redan har ändrats
 
-Om ett pass redan har ändrats för ett enskilt datum stoppas ändringen i grundschemat. Beskedet visar vilka pass det gäller och deras ordinarie och ändrade datum och tider. Välj **Visa tillfället** vid den rad du vill öppna. I dialogen kan du ändra det enskilda tillfället eller välja **Återställ ordinarie tillfälle** inför en ändring av grundschemat.
+Om ett pass redan har ändrats för ett enskilt datum stoppas ändringen i grundschemat. Beskedet visar vilka pass det gäller och deras ordinarie och ändrade datum och tider. Välj **Visa tillfället** vid den rad du vill öppna. Veckan där det ändrade passet ligger öppnas och passet markeras. Välj passet i kalendern för att ändra det enskilda tillfället eller använda **Återställ ordinarie tillfälle** inför en ändring av grundschemat.
 
 ### Salen när du flyttar ett pass
 

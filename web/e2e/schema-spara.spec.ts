@@ -4,7 +4,7 @@ import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaForslag } fro
 import { parseSchemaDraftResetRequest, parseSchemaDraftSave, schemaDraftResetHash, type SchemaDraftResetRequest, type SchemaDraftSave } from '../lib/schema-draft-contract.ts';
 import { schemaSparinnehall } from '../lib/schema-spara.ts';
 import { schemaDatumOriginal } from '../lib/schema-datum.ts';
-import { schemaWeekday } from '../lib/schema-vecka.ts';
+import { schemaMonday, schemaWeekday } from '../lib/schema-vecka.ts';
 import proposal from './schema-fixture';
 const URL = '/e2e/fixtures/schema-spara-preview.html', source = proposal as unknown as SchemaForslag;
 const key = (year = 2026) => `${source.unitId}:${year}:lasar`;
@@ -217,7 +217,7 @@ test('serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och 
   await page.screenshot({ path: info.outputPath('ateroppnat-utkast.png'), fullPage: false });
 });
 
-test('blockerad grundflytt visar båda datumtillfällena och öppnar rätt ändring utan att spara', async ({ page, schemaDraftServer: server }) => {
+test('blockerad grundflytt visar båda datumtillfällena och går till rätt pass i datumveckan utan att spara', async ({ page, schemaDraftServer: server }) => {
   const lesson = 'pass-18';
   const tillfallen = [
     { originalDate: '2026-11-06', date: '2026-11-13', startMin: 900, time: '15:00', originalDag: '6 nov',
@@ -238,32 +238,46 @@ test('blockerad grundflytt visar båda datumtillfällena och öppnar rätt ändr
   const pass = page.locator(`.schema-week [data-lesson="${lesson}"]`);
   await expect(pass).toBeVisible();
   const grundtid = await pass.locator('time').innerText();
-  await pass.press('Enter');
+  const vy = page.getByRole('region', { name: 'Grundschema eller faktiska tillfällen', exact: true });
+  const grundschema = vy.getByRole('button', { name: 'Grundschema', exact: true });
   const flytt = page.getByRole('form', { name: 'Flytta pass', exact: true });
-  await flytt.getByRole('combobox', { name: 'Dag', exact: true }).selectOption({ label: 'Torsdag' });
-  await flytt.getByRole('button', { name: 'Flytta hit', exact: true }).click();
-
   const hinder = page.getByRole('alert').filter({ has: page.getByRole('heading', { name: 'Grundschemat kunde inte ändras', exact: true }) });
-  await expect(hinder).toBeFocused();
   const rader = hinder.getByRole('listitem');
-  await expect(rader).toHaveCount(2);
   const dialog = page.getByRole('dialog', { name: 'Ändra ett tillfälle', exact: true });
   for (const [index, tillfalle] of tillfallen.entries()) {
+    await pass.press('Enter');
+    await flytt.getByRole('combobox', { name: 'Dag', exact: true }).selectOption({ label: 'Torsdag' });
+    await flytt.getByRole('button', { name: 'Flytta hit', exact: true }).click();
+    await expect(hinder).toBeFocused();
+    await expect(rader).toHaveCount(2);
     const rad = rader.nth(index);
     await expect(rad).toContainText('Idrott och hälsa · Klass 1');
     await expect(rad.getByText('Ordinarie tillfälle', { exact: true })).toBeVisible();
     await expect(rad.getByText(tillfalle.ordinarie, { exact: true })).toBeVisible();
     await expect(rad.getByText('Ändrat tillfälle', { exact: true })).toBeVisible();
     await expect(rad.getByText(tillfalle.andrat, { exact: true })).toBeVisible();
-    const öppna = rad.getByRole('button', { name: /^Visa tillfället för Idrott och hälsa/u });
-    await öppna.click();
+    await rad.getByRole('button', { name: /^Visa tillfället för Idrott och hälsa/u }).click();
+    await expect(vy.getByRole('button', { name: 'Vecka', exact: true })).toHaveAttribute('aria-pressed', 'true');
+    await expect(vy.getByRole('combobox', { name: 'Vecka', exact: true })).toHaveValue(schemaMonday(tillfalle.date));
+    const dag = page.locator(`.schema-week [data-date="${tillfalle.date}"]`);
+    const andrat = dag.locator(`[data-occurrence="${lesson}@${tillfalle.originalDate}"]`);
+    const ordinarie = dag.locator(`[data-occurrence="${lesson}@${tillfalle.date}"]`);
+    await expect(andrat).toBeFocused();
+    await expect(andrat).toBeInViewport();
+    await expect(andrat).toHaveAttribute('aria-pressed', 'true');
+    await expect(andrat.locator('time')).toContainText(tillfalle.time);
+    await expect(ordinarie).toBeVisible();
+    await expect(ordinarie).toHaveAttribute('aria-pressed', 'false');
+    await expect(dialog).toHaveCount(0);
+
+    await andrat.press('Enter');
     await expect(dialog.getByLabel('Datum', { exact: true })).toHaveValue(tillfalle.date);
     await expect(dialog.getByLabel('Starttid', { exact: true })).toHaveValue(tillfalle.time);
     await expect(dialog).toContainText(`Tillfället hör ursprungligen till ${tillfalle.originalDag}`);
     await expect(dialog.getByRole('button', { name: 'Återställ ordinarie tillfälle', exact: true })).toBeVisible();
     await dialog.getByRole('button', { name: 'Avbryt', exact: true }).click();
     await expect(dialog).toHaveCount(0);
-    await expect(öppna).toBeFocused();
+    await grundschema.click();
   }
   await expect(pass.locator('time')).toHaveText(grundtid);
   await settled(page, server);
