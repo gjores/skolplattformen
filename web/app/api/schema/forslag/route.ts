@@ -80,7 +80,8 @@ export async function POST(request: Request): Promise<Response> {
       grundFingerprint: forslag.grundFingerprint, placements: solution.placements }, register);
     if (!nyttSchemaProvKomplett(plan)) return json({ code: 'conflict', correlationId, details: { reason: 'schema_nytt_prov_unresolved', bookings,
       resourceIssues: plan.result.bokningar.filter(b => !b.sal || !b.vakter.length || b.problem.length > 0).length,
-      remainingMinutes: plan.result.bortfall.reduce((sum, b) => sum + b.kvarMin, 0), dateIssues: plan.dateIssues } }, { ...init, status: 409 });
+      remainingMinutes: plan.result.bortfall.reduce((sum, b) => sum + b.kvarMin, 0), dateIssues: plan.dateIssues,
+      bokningarMedHinder: plan.bokningarMedHinder } }, { ...init, status: 409 });
     const provplanering: SchemaNyttProvPlanering = { draftId: draft?.id ?? null, expectedRevision: draft?.revision ?? 0, provrevision: register.revision,
       sourceHash: await schemaNyttProvKallHash(source, draft, register, forslag.villkor), resultHash: await schemaProvResultHash(plan.result),
       bookings: plan.result.bokningar.length, moveCount: plan.result.ersattningar.length,

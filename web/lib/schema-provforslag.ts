@@ -17,8 +17,9 @@ export type SchemaProvApplyReply = Pick<SchemaProvApplyRequest, 'contractVersion
   revision: number;
 };
 
-const problems = new Set<SchemaProvProblem>(['deltagare_saknas', 'datum_utan_undervisning', 'provkrock', 'sal_saknas', 'last_sal_olamplig',
-  'vakt_saknas', 'last_vakt_upptagen', 'aktivitet_krock', 'last_pass_krock', 'provtid_utanfor_skoltid']);
+export const SCHEMA_PROV_PROBLEM_CODES = ['deltagare_saknas', 'datum_utan_undervisning', 'provkrock', 'sal_saknas', 'last_sal_olamplig',
+  'vakt_saknas', 'last_vakt_upptagen', 'aktivitet_krock', 'last_pass_krock', 'provtid_utanfor_skoltid'] as const satisfies readonly SchemaProvProblem[];
+const problems = new Set<SchemaProvProblem>(SCHEMA_PROV_PROBLEM_CODES);
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/u;
 const fail = (): never => { throw new SchemaDatumError(); };
 function record(raw: unknown, keys: string[]): Record<string, unknown> {

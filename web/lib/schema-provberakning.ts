@@ -10,6 +10,7 @@ import type { TjanstPlanRead } from './tjanst-contract.ts';
 
 export type SchemaProvResursproblem = 'deltagare_saknas' | 'datum_utan_undervisning' | 'provkrock' | 'sal_saknas' | 'last_sal_olamplig'
   | 'vakt_saknas' | 'last_vakt_upptagen' | 'aktivitet_krock' | 'last_pass_krock' | 'provtid_utanfor_skoltid';
+export type SchemaLastVaktHinder = 'last_vakt_skoluppdrag_saknas' | 'last_vakt_tid_sparrad' | 'last_vakt_upptagen';
 type Vakt = { ref: string; name: string };
 export type SchemaProvBerakningIndata = {
   plan: TjanstPlanRead;
@@ -23,6 +24,7 @@ export type SchemaProvBerakningIndata = {
   lastaPass?: string[];
   tidigasteErsattning?: string;
   validate: (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
+  onLastVaktHinder?: (bokningId: string, hinder: SchemaLastVaktHinder) => void;
 };
 type Bokning = Pick<NationellProvbokning, 'id' | 'namn' | 'datum' | 'startMin' | 'slutMin'> & {
   deltagare: number; deltagarnamn: string; sal: Pick<SchemaSal, 'id' | 'name'> | null; vakter: Vakt[]; problem: SchemaProvResursproblem[];
@@ -139,7 +141,7 @@ function fordelaProvsalar(urval: Salurval[]) {
 }
 
 /** Bokningens tid ligger fast. Förhandsgranskningen räknar provtiden separat och sparar inga ändringar. */
-export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis, datedOverrides, bokningar, salar, vakter, lastaPass = [], tidigasteErsattning, validate }: SchemaProvBerakningIndata): Promise<SchemaProvBerakningResultat> {
+export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis, datedOverrides, bokningar, salar, vakter, lastaPass = [], tidigasteErsattning, validate, onLastVaktHinder }: SchemaProvBerakningIndata): Promise<SchemaProvBerakningResultat> {
   if (!bokningar.length) return { bokningar: [], bortfall: [], ersattningar: [] };
   const kalender = forslag.time.calendar;
   if (!kalender) throw new SchemaDatumError('schema_datum_calendar_missing');
@@ -222,9 +224,9 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     const salLedig = (sal: SchemaSal) => oppet(underlag.villkor, 'sal', sal.name, vecka, status)
       && !upptagna.some(p => p.tillfalle.lesson.roomId !== null && p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen))
       && !andraProv.some(p => p.bokning.salId === sal.id && overlap(p.status, status));
-    const vaktLedig = (ref: string) => oppet(underlag.villkor, 'larare', ref, vecka, status)
-      && !upptagna.some(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === ref) && partKrock(p, 'teachers', tentamen))
+    const vaktUtanKrock = (ref: string) => !upptagna.some(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === ref) && partKrock(p, 'teachers', tentamen))
       && !andraProv.some(p => (p.bokning.vakter.includes(ref) || p.status.vakter.some(v => v.ref === ref)) && overlap(p.status, status, gap));
+    const vaktTillatenTid = (ref: string) => oppet(underlag.villkor, 'larare', ref, vecka, status);
     const aktiva = valjbaraVakter(vakter, status.datum);
     const salLamplig = (sal: SchemaSal): sal is Provsal => sal.platser !== null && sal.platser >= status.deltagare && salLedig(sal);
     const kanForesla = !status.problem.includes('provkrock') && !status.problem.includes('provtid_utanfor_skoltid');
@@ -242,9 +244,18 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
       salurval.set(status.datum, urval);
     }
     if (bokning.vakter.length) {
-      if (bokning.vakter.some(ref => !aktiva.has(ref) || !vaktLedig(ref))) status.problem.push('last_vakt_upptagen');
+      const hinder = new Set<SchemaLastVaktHinder>();
+      for (const ref of bokning.vakter) {
+        if (!aktiva.has(ref)) hinder.add('last_vakt_skoluppdrag_saknas');
+        else if (!vaktTillatenTid(ref)) hinder.add('last_vakt_tid_sparrad');
+        else if (!vaktUtanKrock(ref)) hinder.add('last_vakt_upptagen');
+      }
+      if (hinder.size) {
+        status.problem.push('last_vakt_upptagen');
+        for (const orsak of hinder) onLastVaktHinder?.(bokning.id, orsak);
+      }
     } else if (kanForesla) {
-      const lediga = [...aktiva.values()].filter(v => vaktLedig(v.ref)).map(vakt => ({ vakt, frigjord: frigorda.some(p =>
+      const lediga = [...aktiva.values()].filter(v => vaktTillatenTid(v.ref) && vaktUtanKrock(v.ref)).map(vakt => ({ vakt, frigjord: frigorda.some(p =>
         p.pass.teachers.some(id => underlag.teacherRefs[id] === vakt.ref) && partKrock(p, 'teachers', tentamen)) }));
       lediga.sort((a, b) => Number(b.frigjord) - Number(a.frigjord) || a.vakt.ref.localeCompare(b.vakt.ref));
       if (lediga.length) status.vakter = [lediga[0].vakt];

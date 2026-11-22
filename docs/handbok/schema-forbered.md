@@ -204,7 +204,12 @@ Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver 
 
 Som rektor väljer du **Ta fram schemaförslag** efter att provbokningarna har sparats. Motorn räknar på grundschemat och provdagarna för vald period. Den försöker i första hand använda lämpliga salar och lärare som blir lediga när krockande lektioner flyttas. Lektionerna får nya datum inom terminen och provtiden räknas för sig.
 
-När alla prov har sal och provvakt och undervisningstiden har ersatts sparas förslaget automatiskt. Välj **Visa provdagen** för att kontrollera resultatet. Om något återstår visar beräkningen vad som saknas. Du kan komplettera underlaget och försöka igen. Ett tidigare sparat utkast finns kvar till nästa lyckade beräkning.
+När alla prov har sal och provvakt och undervisningstiden har ersatts sparas förslaget automatiskt. Välj **Visa provdagen** för att kontrollera resultatet.
+
+Om undervisningspass saknar tid väljer du **Kontrollera schemaunderlaget** för att se över grundschemats villkor. Om grundschemat gick att lägga men provplaneringen stoppades visar beskedet vilka bokningar som berörs och hur mycket undervisningstid som återstår att ersätta. En sparad provvakt kan exempelvis sakna ett giltigt skoluppdrag på provdagen eller ha spärrad tid under provet.
+
+- Välj **Granska provbokningarna** när du behöver ändra en boknings resursval. Öppna **Ange sal eller provvakter** och byt den sparade provvakten eller ta bort valet så att Schema kan föreslå en ny. Kör beräkningen igen efter ändringen.
+- Välj **Förhandsgranska grundschemat** om du vill se hur de ordinarie undervisningspassen kan placeras. Förhandsgranskningen är skrivskyddad och gäller veckoschemat utan provdagarnas ändringar. Kör **Ta fram schemaförslag** igen när provbokningarna är klara.
 
 ### Visa bokade prov i schemat
 

@@ -24,7 +24,7 @@ import { Villkorsforslag, type VillkorsSokning } from './schema/villkorsforslag.
 import { Lagesstatus } from './schema/lagesstatus.tsx';
 import { Salar } from './schema/salar.tsx';
 import { Samtidighetsblock } from './schema/block.tsx';
-import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, rememberYta, storedYta, useGenomgang, type SchemaYta } from './schema/forbered.tsx';
+import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, oppnaOmrade, rememberYta, storedYta, useGenomgang, type SchemaYta } from './schema/forbered.tsx';
 import { GranskaUtkast, type GranskaMal } from './schema/granska.tsx';
 import { JamforResurser } from './schema/jamfor-resurser.tsx';
 import { schemaForbered } from '@/lib/schema-forbered.ts';
@@ -66,9 +66,10 @@ import { Samling, type SamlingStart } from './schema/samling.tsx';
 import { Aktiviteter } from './schema/aktiviteter.tsx';
 import { NationellaProv } from './schema/nationella-prov.tsx';
 import { Provforslag } from './schema/provforslag.tsx';
+import { Provhinder } from './schema/provhinder.tsx';
 import { Berakningslage, type Motorlage } from './schema/berakning.tsx';
 import { parseSchemaProvApplyReply, schemaProvResultHash, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '@/lib/schema-provforslag.ts';
-import { parseSchemaNyttProvForslag, parseSchemaNyttProvSaveReply, type SchemaNyttProvSave } from '@/lib/schema-nytt-prov.ts';
+import { parseSchemaNyttProvForslag, parseSchemaNyttProvSaveReply, type SchemaNyttProvHinder, type SchemaNyttProvSave } from '@/lib/schema-nytt-prov.ts';
 import { andradeGrundvillkor } from '@/lib/schema-andrade-villkor.ts';
 import type { NyAktivitetsTid } from './schema/aktivitet-form.tsx';
 import { Villkorstabell, villkorstabellMal, type VillkorstabellMal } from './schema/villkorstabell.tsx';
@@ -264,6 +265,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const resursvy = useRef<HTMLDivElement | null>(null);
   const running = useRef<AbortController | null>(null), week = useRef<HTMLDivElement | null>(null), focus = useRef<string | null>(null), dayField = useRef<HTMLSelectElement | null>(null), rest = useRef<HTMLDivElement | null>(null), skipClick = useRef(false);
   const avbrytbarBerakning = useRef<AbortController | null>(null);
+  const [provhinder, setProvhinder] = useState<{ nyckel: string; provrevision: number | null; request: SchemaForslagRequest; solveTimeMs: SchemaSolveTimeMs; hinder: SchemaNyttProvHinder } | null>(null);
+  const provhinderRubrik = useRef<HTMLHeadingElement>(null);
   const passRubrik = useRef<HTMLHeadingElement | null>(null);
   /** Passet att lägga fokus på: knappen i veckan, eller radens aktiva cell i passtabellen. */
   const passElement = useCallback((id: string): HTMLElement | null => {
@@ -290,7 +293,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       dispatchLocal({ type: 'hydrate', state: { ...restored, intentional: draft?.intentional ?? [] } });
       setKontroll(draft?.base && draft.control ? { svar: draft.control, villkor: villkorNyckel(draft.basisVillkor!) } : null);
       setChosen(''); setFolj(null); setFore(null); setSokning(null); setFortsatt(null); setGranskatPass(null); setError(null); setMoveError(null); setMoved('');
-      setKraverNytt(null); setMisslyckat(null);
+      setKraverNytt(null); setMisslyckat(null); setProvhinder(null);
     },
   });
   const sparstatus = fonster ? remoteSave : spara.state;
@@ -569,7 +572,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     const key = JSON.stringify(request), consentKey = JSON.stringify([key, datedOverrides, utkast.placements, gamlaPassregler]);
     const continuing = continueAnyway && fore?.key === key;
     const controller = new AbortController(); running.current = controller; setBusy(true); setBerakningssteg('forbereder'); setError(null);
-    setNyttProvSparfel(null); setMotor(null);
+    setNyttProvSparfel(null); setMotor(null); setProvhinder(null);
     let spararProv = false;
     try {
       if ((datedOverrides.length || gamlaPassregler.length) && (!continuing || generationConsent.current !== consentKey)) {
@@ -630,6 +633,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         setNyttProvSparfel(caught instanceof ApiError && caught.status >= 400 && caught.status < 500 ? message(caught, true)
           : 'Sparandet av schemat och proven kunde inte bekräftas. Serverns aktuella utkast läses in.');
         spara.read(); nationellaProv.onReload();
+      } else if (caught instanceof ApiError && caught.reason === 'schema_nytt_prov_unresolved' && caught.schemaNyttProv) {
+        setProvhinder({ nyckel: key, provrevision: nationellaProv.revision, request, solveTimeMs, hinder: caught.schemaNyttProv });
       } else setError(message(caught, true));
     } finally {
       if (avbrytbarBerakning.current === controller) avbrytbarBerakning.current = null;
@@ -691,7 +696,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   function fokusEfterBerakning(): HTMLElement | null {
     const synlig = (el: HTMLElement | null | undefined) => el?.isConnected && el.getClientRects().length > 0 && !el.matches(':disabled') ? el : null;
     if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? synlig(continueButton.current) ?? synlig(berakningKnapp.current);
-    return [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current) ?? schemarubrik.current;
+    return synlig(provhinderRubrik.current) ?? [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current) ?? schemarubrik.current;
   }
 
   async function anvandFortsatt() {
@@ -1496,6 +1501,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const recoveryLocks = (grundAndrad || byterGrund) && aktivaLas.length > 0;
   const recoveryKey = JSON.stringify({ unitId, schoolYear, period, villkor: berakningsVillkor, ...(base && aktivaLas.length && !recoveryLocks ? { locks: { grundFingerprint: base.grundFingerprint, placements: aktivaLas } } : {}) });
   const diagnosAktuell = fore?.key === recoveryKey ? fore : null;
+  const aktuelltProvhinder = provhinder?.nyckel === recoveryKey && provhinder.provrevision === nationellaProv.revision ? provhinder : null;
+  function granskaForberedOmrade(omrade: 'underlag' | 'aktiviteter') {
+    valjYta('forbered');
+    requestAnimationFrame(() => oppnaOmrade(omrade));
+  }
   const recoveryFore = fore?.key === recoveryKey ? fore : null;
   const hinderUnderlag = inaktuelltUnderlag ? aktuelltUnderlag : forslag;
   const underlagshinder = hinderUnderlag && hinderUnderlag.metrics.lessons === 0 && <UnderlagHinder forslag={hinderUnderlag} onTeaching={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })} onNeeds={() => diagnosMal({ target: 'timplan', label: 'Öppna timplanerna' })}/>;
@@ -1511,10 +1521,13 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     <output aria-live="polite" className="schema-note">{berakningsbesked || (motor?.avbrutet ? 'Beräkningen avbröts. Utkastet är oförändrat.' : '')}</output>
     {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
+    {!fonster && aktuelltProvhinder && <Provhinder key={aktuelltProvhinder.nyckel} {...aktuelltProvhinder}
+      headingRef={provhinderRubrik} disabled={busy || checking} onBookings={() => granskaForberedOmrade('aktiviteter')} onBasis={() => granskaForberedOmrade('underlag')}
+      onSessionLost={onSessionLost}/>}
     {nyttProvSparfel && <div className="valplan-alert" role="alert"><p>{nyttProvSparfel}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
     {!inaktuelltUnderlag && underlagshinder}
-    {!forslag && !busy && !error && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
+    {!forslag && !busy && !error && !aktuelltProvhinder && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
   </>;
   const regelformId = `${resultHeading}-regler`;
   // Utkastet och villkoren som en förhandsgranskning av salar gäller. Ändras något av dem är den inaktuell.
@@ -1527,7 +1540,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const senasteSteg = utkast.undo.at(-1), angraText = senasteSteg && arbetsvillkorSteg(senasteSteg) ? `Ångra: ${senasteSteg.text.charAt(0).toLocaleLowerCase('sv')}${senasteSteg.text.slice(1)}` : 'Ångra';
   const granskarForslag = !!(sokning || fortsatt || diagnosAktuell?.findings.length);
   const harPass = !!forslag?.metrics.lessons;
-  const taFramKnapp = <Button type="submit" form={regelformId} variant={granskarForslag || (!visaForbered && harPass) ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? berakningssteg === 'sparar-prov' ? 'Sparar…' : 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
+  const taFramKnapp = <Button type="submit" form={regelformId} variant={aktuelltProvhinder || granskarForslag || (!visaForbered && harPass) ? 'outline' : 'default'} disabled={busy || checking || issues.length > 0}>{busy ? berakningssteg === 'sparar-prov' ? 'Sparar…' : 'Räknar…' : 'Ta fram schemaförslag'}</Button>;
   const berakningsform = <form id={regelformId} className="schema-controls" onSubmit={e => { e.preventDefault(); void run(); }}>
       <label>Räknetid per omgång<select value={solveTimeMs} disabled={busy || checking} onChange={e => setSolveTimeMs(Number(e.target.value) as SchemaSolveTimeMs)}>
         {SCHEMA_SOLVE_TIMES.map(ms => <option key={ms} value={ms}>{ms / 1000} sekunder</option>)}
@@ -1637,7 +1650,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       </section>}
       {underlagshinder}
     </>}
-    {!fonster && visaGranska && (busy || error || nyttProvSparfel || motor?.avbrutet || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
+    {!fonster && visaGranska && (busy || error || aktuelltProvhinder || nyttProvSparfel || motor?.avbrutet || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
     {!fonster && <GranskaUtkast key={granskaScope} forslag={forslag} lessons={passMedSal} kontroll={kontroll} checking={checking || busy} stale={granskaStale}
       datum={datumSvar} datedOverrides={datedOverrides} intentional={intentionalKeys} active={visaGranska}
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}

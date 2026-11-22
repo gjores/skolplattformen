@@ -1,15 +1,6 @@
 import { parseConflictDetails, type ConflictDetails } from './pupil-register-model.ts';
 import { messageText, reduceEpochHeader } from './session-channel.ts';
-
-type SchemaNyttProvHinder = { bookings: number; resourceIssues: number; remainingMinutes: number; dateIssues: number; unplaced?: number };
-
-function parseSchemaNyttProvHinder(value: unknown): SchemaNyttProvHinder | null {
-  if (!value || typeof value !== 'object' || Array.isArray(value)) return null;
-  const { bookings, resourceIssues, remainingMinutes, dateIssues, unplaced } = value as Record<string, unknown>;
-  const count = (n: unknown, max: number): n is number => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 && n <= max;
-  return count(bookings, 200) && count(resourceIssues, 20_000) && count(remainingMinutes, 12_000_000) && count(dateIssues, 20_000)
-    && (unplaced === undefined || count(unplaced, 20_000)) ? { bookings, resourceIssues, remainingMinutes, dateIssues, ...(unplaced === undefined ? {} : { unplaced }) } : null;
-}
+import { parseSchemaNyttProvHinder, type SchemaNyttProvHinder } from './schema-nytt-prov.ts';
 
 export class ApiError extends Error {
   public code: string;

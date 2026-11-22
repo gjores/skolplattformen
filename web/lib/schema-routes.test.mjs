@@ -7,7 +7,7 @@ import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor } from './schema-contract
 import { laggTillSal, sattSalbehov, tomtSalbehov } from './schema-salregister.ts';
 import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
 import { parseSchemaFortsatt } from './schema-fortsatt.ts';
-import { parseSchemaNyttProvForslag } from './schema-nytt-prov.ts';
+import { parseSchemaNyttProvForslag, parseSchemaNyttProvHinder } from './schema-nytt-prov.ts';
 import { NATIONELLA_PROV_VERSION } from './nationella-prov.ts';
 
 const id = n => `73111500-0000-4000-8000-${String(n).padStart(12, '0')}`;
@@ -402,6 +402,52 @@ test('första beräkningen läser provplan, deltagare och kalender innan motorn 
     assert.ok(state.validations.some(x => x.problem.id === 'datum-2026-12-01'));
     assert.equal(state.provRegister.document.bokningar[0].salId, null);
   } finally { delete globalThis.__schemaSkolsalar; }
+});
+
+test('första beräkningen visar skillnaden mellan saknat skoluppdrag och spärrad tid för en vald provvakt', async () => {
+  for (const [vakt, orsak] of [[id(21), 'last_vakt_skoluppdrag_saknas'], [id(20), 'last_vakt_tid_sparrad']]) {
+    reset(); bokatProv(); kalenderForProv();
+    const [bokning] = state.provRegister.document.bokningar;
+    bokning.vakter = [vakt];
+    const villkor = medSalregister();
+    villkor.egna.push({ slag: 'larare', ref: id(20), typ: 'sparrad', days: [1], startMin: 540, endMin: 600 });
+    const input = scope(villkor);
+    const sparat = structuredClone(state.provRegister);
+    globalThis.__schemaSkolsalar = { document: { nasta: 3, salar: villkor.salregister.salar } };
+    try {
+      const res = await routes.forslag(request('forslag', { ...input, planeraProv: true }));
+      assert.equal(res.status, 409);
+      assert.equal(res.headers.get('Cache-Control'), 'no-store');
+      const { details } = await res.json();
+      assert.equal(details.reason, 'schema_nytt_prov_unresolved');
+      const hinder = parseSchemaNyttProvHinder(details);
+      const { id: bokningId, datum, namn } = bokning;
+      assert.equal(hinder.resourceIssues, 1);
+      assert.deepEqual(hinder.bokningarMedHinder, [{ id: bokningId, datum, namn, deltagarnamn: 'Provklass', problem: [orsak] }]);
+      assert.deepEqual(state.provRegister, sparat);
+      assert.ok(!state.events.some(e => e.action.endsWith('_saved')));
+
+      const previousReads = state.reads.length;
+      const plain = await routes.forslag(request('forslag', input));
+      assert.equal(plain.status, 200);
+      const { forslag, provplanering } = parseSchemaNyttProvForslag(await plain.json(), input);
+      assert.ok(forslag.metrics.placed);
+      assert.equal(provplanering, undefined);
+      assert.ok(!state.reads.slice(previousReads).some(r => r.type === 'prov'));
+    } finally { delete globalThis.__schemaSkolsalar; }
+  }
+});
+
+test('provhinder behåller äldre summering och avvisar ogiltiga bokningsdetaljer', () => {
+  const summary = { bookings: 1, resourceIssues: 1, remainingMinutes: 90, dateIssues: 0 };
+  const entry = { id: id(99), namn: 'Matematik', datum: '2026-12-01', deltagarnamn: 'Provklass', problem: ['last_vakt_tid_sparrad'] };
+  assert.deepEqual(parseSchemaNyttProvHinder(summary), summary);
+  assert.deepEqual(parseSchemaNyttProvHinder({ ...summary, bokningarMedHinder: [entry] }), { ...summary, bokningarMedHinder: [entry] });
+  for (const value of [[entry, entry], [{ ...entry, datum: '2026-11-31' }], [{ ...entry, problem: ['valfri_feltext'] }],
+    [{ ...entry, actorName: 'En provvakt' }], [{ ...entry, problem: [entry.problem[0], entry.problem[0]] }]]) {
+    assert.deepEqual(parseSchemaNyttProvHinder({ ...summary, bokningarMedHinder: value }), summary);
+  }
+  assert.equal(parseSchemaNyttProvHinder({ ...summary, dateIssues: -1 }), null);
 });
 
 test('första förslaget kan lämnas som förut när termen saknar prov och stoppar oklart provunderlag före motorn', async () => {
