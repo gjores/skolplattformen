@@ -1,0 +1,4 @@
+interface:
+  display_name: "Workshopflöde för Skolplattformen"
+  short_description: "Workshopunderlag och lösningar för Skolplattformen"
+  default_prompt: "Använd $skolplattform-workshop för att förbereda en workshop om den här utvecklingsfrågan."

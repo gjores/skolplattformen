@@ -37,6 +37,12 @@ UI-arbete kan få ett eget designunderlag genom `$gsd-ui-phase 1` och eftergrans
 
 Om verifieringen hittar en lucka korrigeras eller omplaneras den innan fasen anges som klar. När nya behov uppstår förs de in som krav eller senare arbete; pågående plan ändras inte tyst.
 
+## Utred en utvecklingsfråga i en workshop
+
+Säg **”Vi behöver workshoppa det här”** eller använd [$skolplattform-workshop](../skills/skolplattform-workshop/SKILL.md). Guiden ställer de frågor som behövs, undersöker dagens arbetsflöde och tar fram en agenda och diskussionsfrågor för Workshopportalen. Den sparar research och kopplingen till utvecklingsfrågan i ett underlag med en gemensam arbetsreferens.
+
+Efter workshopen kan du säga **”Ta fram lösningar från workshopen”** och ge skillen tillgång till resultatet eller återge det i chatten. Du får en bedömning av möjliga lösningar, vad som kan prövas först och vilka beslut som återstår. När ansvarig har valt en riktning kan resultatet föras in i den berörda GSD-fasen med acceptanskriterier och verifieringsfall.
+
 ## Avsluta hela milstolpen med en sammanhängande kontroll
 
 `$gsd-audit-milestone` används för att kontrollera att faserna tillsammans uppfyller målet och att inga krav fallit mellan delarna. För piloten omfattar det exempelvis en riktig inloggning, ett giltigt skoluppdrag, rätt elevurval, beständig ändring, avstämd import och spårbart resultat. En fungerande lokal simulator uppfyller inte kravet på en faktisk leverantörsanslutning.

@@ -13,6 +13,7 @@ Användaren godkände de 42 detaljkraven och färdplanens åtta faser 2026-09-11
 - Varje aktivt krav ska kunna följas till en fas och ett verifieringsresultat. Markera inte ett simulerat integrationsprov som en riktig kommunanslutning.
 - Dela större ombyggnader i kontrollerbara förändringar. Bevara gymnasiets utbildningsflöde, kurs-/nivåtillägg, kopiering till nästa elevkull och explicita klass–timplanskopplingar.
 - Hantera vanlig dialog, statusfrågor och avgränsade rättningar proportionerligt. Ställ inte frågor som användaren redan har besvarat. Senare användarbeslut går före dokumentförslag.
+- När användaren vill workshoppa en utvecklingsfråga eller ta fram lösningar från en genomförd workshop, använd [$skolplattform-workshop](skills/skolplattform-workshop/SKILL.md) för överlämningen mellan projektet och Workshopportalen.
 - Versionshantera avgränsade ändringar och uppdatera planeringen när omfattningen ändras. Blanda inte in andra pågående ändringar i en commit.
 
 ## Löpande push till GitHub
