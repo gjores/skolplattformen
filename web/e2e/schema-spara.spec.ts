@@ -217,6 +217,60 @@ test('serverutkast återställer flytt, viloyta, lås, arbetsvillkor, datum och 
   await page.screenshot({ path: info.outputPath('ateroppnat-utkast.png'), fullPage: false });
 });
 
+test('blockerad grundflytt visar båda datumtillfällena och öppnar rätt ändring utan att spara', async ({ page, schemaDraftServer: server }) => {
+  const lesson = 'pass-18';
+  const tillfallen = [
+    { originalDate: '2026-11-06', date: '2026-11-13', startMin: 900, time: '15:00', originalDag: '6 nov',
+      ordinarie: 'Fredag 6 nov. · 08:20–09:25', andrat: 'Fredag 13 nov. · 15:00–16:05' },
+    { originalDate: '2026-11-20', date: '2026-11-27', startMin: 925, time: '15:25', originalDag: '20 nov',
+      ordinarie: 'Fredag 20 nov. · 08:20–09:20', andrat: 'Fredag 27 nov. · 15:25–16:25' },
+  ];
+  const datedOverrides = tillfallen.map(({ originalDate, date, startMin }) => {
+    const original = schemaDatumOriginal(source, { lesson, originalDate })!;
+    return { lesson, originalDate, date, startMin, room: original.lesson.roomId, durationMin: original.length };
+  });
+  const placements = source.lessons.flatMap(l => l.day === null || l.startMin === null ? [] :
+    [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
+  const draft = await seed(server, input({ basisVillkor: source.villkor, workingVillkor: source.villkor, grundFingerprint: source.grundFingerprint,
+    placements, datedOverrides }));
+  await setup(page);
+  await page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Lägg schema', exact: true }).click();
+  const pass = page.locator(`.schema-week [data-lesson="${lesson}"]`);
+  await expect(pass).toBeVisible();
+  const grundtid = await pass.locator('time').innerText();
+  await pass.press('Enter');
+  const flytt = page.getByRole('form', { name: 'Flytta pass', exact: true });
+  await flytt.getByRole('combobox', { name: 'Dag', exact: true }).selectOption({ label: 'Torsdag' });
+  await flytt.getByRole('button', { name: 'Flytta hit', exact: true }).click();
+
+  const hinder = page.getByRole('alert').filter({ has: page.getByRole('heading', { name: 'Grundschemat kunde inte ändras', exact: true }) });
+  await expect(hinder).toBeFocused();
+  const rader = hinder.getByRole('listitem');
+  await expect(rader).toHaveCount(2);
+  const dialog = page.getByRole('dialog', { name: 'Ändra ett tillfälle', exact: true });
+  for (const [index, tillfalle] of tillfallen.entries()) {
+    const rad = rader.nth(index);
+    await expect(rad).toContainText('Idrott och hälsa · Klass 1');
+    await expect(rad.getByText('Ordinarie tillfälle', { exact: true })).toBeVisible();
+    await expect(rad.getByText(tillfalle.ordinarie, { exact: true })).toBeVisible();
+    await expect(rad.getByText('Ändrat tillfälle', { exact: true })).toBeVisible();
+    await expect(rad.getByText(tillfalle.andrat, { exact: true })).toBeVisible();
+    const öppna = rad.getByRole('button', { name: /^Visa tillfället för Idrott och hälsa/u });
+    await öppna.click();
+    await expect(dialog.getByLabel('Datum', { exact: true })).toHaveValue(tillfalle.date);
+    await expect(dialog.getByLabel('Starttid', { exact: true })).toHaveValue(tillfalle.time);
+    await expect(dialog).toContainText(`Tillfället hör ursprungligen till ${tillfalle.originalDag}`);
+    await expect(dialog.getByRole('button', { name: 'Återställ ordinarie tillfälle', exact: true })).toBeVisible();
+    await dialog.getByRole('button', { name: 'Avbryt', exact: true }).click();
+    await expect(dialog).toHaveCount(0);
+    await expect(öppna).toBeFocused();
+  }
+  await expect(pass.locator('time')).toHaveText(grundtid);
+  await settled(page, server);
+  expect(server.saves).toHaveLength(0);
+  expect(server.drafts.get(key())).toEqual(draft);
+});
+
 test('ett tappat svar följs upp med samma kommando och visar Sparat först efter en verifierad serverversion', async ({ page, schemaDraftServer: server }, info) => {
   server.loseReply = true; await setup(page); await expect(name(page)).toBeEnabled(); await name(page).fill('Återfunnet schema');
   await expect.poll(() => server.statusChecks.length).toBe(1); await settled(page, server);

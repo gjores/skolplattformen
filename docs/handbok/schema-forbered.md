@@ -278,6 +278,10 @@ Välj ett pass i kalendern för att läsa längden, eventuella kortningar, salsk
 
 Medan ett pass är valt visar veckan möjliga starttider som sammanhängande fält: fri tid, går med ett byte, bryter ett önskemål eller regelbrott. Ett fält säger bara läget. Orsakerna kan skilja sig inom fältet, så läs beskedet i panelen för den exakta starttiden.
 
+### När ett enskilt tillfälle redan har ändrats
+
+Om ett pass redan har ändrats för ett enskilt datum stoppas ändringen i grundschemat. Beskedet visar vilka pass det gäller och deras ordinarie och ändrade datum och tider. Välj **Visa tillfället** vid den rad du vill öppna. I dialogen kan du ändra det enskilda tillfället eller välja **Återställ ordinarie tillfälle** inför en ändring av grundschemat.
+
 ### Salen när du flyttar ett pass
 
 Med salregister behåller passet sin sal om salen är ledig vid den nya tiden. Är salen upptagen eller spärrad där blir passet utan sal. Ingen annan sal väljs i stället.
