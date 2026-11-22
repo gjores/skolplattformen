@@ -147,7 +147,8 @@ Underlaget är statisk läsning av `web/app/`, `web/lib/` och `supabase/migratio
 - Filer: `web/package.json:36`, `web/package.json:39`, `web/package.json:47`, `web/vite.config.ts:45`, `web/package-lock.json`.
 - Effekt: kompatibilitetsändringar vid uppgradering kan påverka serverrendering och paketering även om modelltester passerar.
 - Hantering: använd låsfilen och avgränsade uppgraderingar med typkontroll, bygge och relevant körprov. Ingen alternativ plattform eller migration är beslutad här.
-- Sårbarhetsstatus: ingen nätbaserad säkerhetskontroll eller ny paketrevision ingår. `docs/dependency-audit.json` är en rapportfil och används inte som bevis för aktuell sårbarhetsfrihet.
+- Sårbarhetsbevakning: `.github/workflows/dependency-audit.yml` körs dagligen och när beroenden ändras. Webbappen stoppar vid kritisk sårbarhet utan utvecklarberoenden (`npm audit --omit=dev --audit-level=critical`), schemamotorn vid känd RustSec-sårbarhet (`cargo audit`). Handbokens status redovisas i jobbsammanfattningen utan spärr.
+- Läge 2026-11-22 efter React 19.2.9: webbappen har 0 kritiska, 2 höga och 4 måttliga sårbarheter utan utvecklarberoenden, alla via vinext (vite, source-map-js, satori). Handboken har 16 kritiska i byggverktygen; Docusaurus 3.10.2 är senaste version och saknar rättning. `docs/dependency-audit.json` (2026-09) är inaktuell och inget bevis för sårbarhetsfrihet.
 
 ## Missing Critical Features
 

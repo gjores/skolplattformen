@@ -1,0 +1,50 @@
+name: Sårbarhetskontroll av beroenden
+# Körs dagligen och när beroenden ändras. Webbappen stoppar vid kritisk
+# sårbarhet i appens egna beroenden (utvecklarverktyg undantagna) och
+# schemamotorn vid varje känd RustSec-sårbarhet. Handboken redovisas bara:
+# den byggs till statisk HTML och dess kända brister sitter i byggverktygen.
+on:
+  schedule:
+    - cron: '17 4 * * *'
+  workflow_dispatch:
+  pull_request:
+    paths: ['web/package.json', 'web/package-lock.json', 'docs-site/package.json', 'docs-site/package-lock.json', 'schemamotor/Cargo.lock', 'schemamotor/**/Cargo.toml', '.github/workflows/dependency-audit.yml', '.github/scripts/npm-audit-summary.mjs']
+  push:
+    paths: ['web/package.json', 'web/package-lock.json', 'docs-site/package.json', 'docs-site/package-lock.json', 'schemamotor/Cargo.lock', 'schemamotor/**/Cargo.toml', '.github/workflows/dependency-audit.yml', '.github/scripts/npm-audit-summary.mjs']
+permissions:
+  contents: read
+jobs:
+  webbappen:
+    name: Webbappen
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Stoppa vid kritisk sårbarhet i appens beroenden
+        working-directory: web
+        run: npm audit --omit=dev --audit-level=critical
+      - name: Sammanställ
+        if: always()
+        run: node .github/scripts/npm-audit-summary.mjs web Webbappen >> "$GITHUB_STEP_SUMMARY"
+  handboken:
+    name: Handboken (redovisning)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Sammanställ
+        run: node .github/scripts/npm-audit-summary.mjs docs-site Handboken >> "$GITHUB_STEP_SUMMARY"
+  schemamotorn:
+    name: Schemamotorn
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Installera cargo-audit
+        run: cargo install cargo-audit --locked
+      - name: Stoppa vid känd sårbarhet
+        working-directory: schemamotor
+        run: cargo audit
