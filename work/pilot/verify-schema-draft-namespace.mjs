@@ -19,9 +19,12 @@ const hash = value => createHash('sha256').update(value).digest('hex');
 const docker = args => execFileSync('docker', args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], timeout: 120000 }).trim();
 const image = 'sha256:5b6c2c6cbc90b6085e3f9b3086110b1eccedb643374137bfdcd1d2f5c78f6cd1';
 const args = process.argv.slice(2);
-assert.ok(args.length === 8 || args.length === 9 && ['--hold-until-ui-finished', '--study-plan', '--study-plan-class'].includes(args[8]));
-const classStudyPlan = args[8] === '--study-plan-class';
-const studyPlan = args[8] === '--study-plan' || classStudyPlan;
+const flags = args.slice(8);
+assert.ok(args.length >= 8 && (flags.length < 2 && flags.every(flag => ['--hold-until-ui-finished', '--study-plan', '--study-plan-class', '--schema-publication'].includes(flag))
+  || flags.length === 2 && flags.includes('--study-plan') && flags.includes('--schema-publication')));
+const classStudyPlan = flags.includes('--study-plan-class');
+const studyPlan = flags.includes('--study-plan') || classStudyPlan;
+const schemaPublication = flags.includes('--schema-publication');
 assert.deepEqual([args[0], args[2], args[4], args[6]], ['--runtime', '--release', '--linux', '--out']);
 const [privateFile, release, linux, out] = [args[1], args[3], args[5], args[7]].map(file => path.resolve(file));
 assert.match(privateFile, /^\/private\/tmp\/schema-draft-actual-[a-z0-9-]+-evidence\/runtime-private\.json$/u);
@@ -37,10 +40,11 @@ const studyMigrations = [
   '20261120111000_individual_study_plan_impact.sql',
   '20261121100000_individual_study_plan_table.sql',
 ];
-if (classStudyPlan) studyMigrations.push(
+if (classStudyPlan || schemaPublication) studyMigrations.push(
   '20261121110000_individual_study_plan_program_terms.sql',
   '20261121120000_individual_study_plan_class.sql',
 );
+if (schemaPublication) studyMigrations.push('20261122100000_schema_publications.sql');
 
 function verifyInputs() {
   const manifest = verifySchemaUatRelease(release, { nodeModules: path.join(root, 'web/node_modules') });
@@ -48,7 +52,7 @@ function verifyInputs() {
   const coreProof = existsSync(coreProofFile) ? JSON.parse(readFileSync(coreProofFile, 'utf8')) : JSON.parse(readFileSync(parentDirectory.replace(/-evidence$/u, '.json'), 'utf8')).runtime;
   assert.equal(coreProof.noTargetReads, true); assert.equal(coreProof.noUserBrowserAuth, true);
   for (const sql of manifest.sql) assert.equal(coreProof.migrations.find(m => m.file === sql.file)?.sha256, sql.sha256);
-  const verifiedStudyMigrations = studyPlan ? studyMigrations.map(file => {
+  const verifiedStudyMigrations = studyPlan || schemaPublication ? studyMigrations.map(file => {
     const relative = 'supabase/migrations/' + file;
     const sha256 = hash(execFileSync('git', ['show', manifest.source.revision + ':' + relative], { cwd: root }));
     assert.equal(hash(readFileSync(path.join(release, 'source', relative))), sha256, 'Release source differs for ' + file);
@@ -148,7 +152,7 @@ const makeRuntimeFactory = ({ manifest, coreProof, integrity, guardSha256, verif
       'Own initialized PostgreSQL/Keycloak/GoTrue in a previously created owned runtime; a separate new synthetic customer is seeded',
       'Native Linux workerd with locked binary integrity; only own TCP/HTTP relays inside its network namespace',
       'Storage helpers are bootstrap facades; no Storage/municipal integration or target installation is claimed',
-      studyPlan ? 'Synthetic study-plan cases; human acceptance is separate' : 'Product UI acceptance is separate'] };
+      studyPlan || schemaPublication ? 'Synthetic schedule or study-plan cases; human acceptance is separate' : 'Product UI acceptance is separate'] };
 };
 
 async function finishOwnedCore() {
@@ -160,7 +164,7 @@ async function finishOwnedCore() {
   writeFileSync(privateFile, JSON.stringify(stoppedCore, null, 2), { mode: 0o600 });
 }
 
-if (studyPlan) {
+if (studyPlan || schemaPublication) {
   let cleanupNamespace;
   try {
     const createRuntime = makeRuntimeFactory(verifyInputs());
@@ -170,9 +174,16 @@ if (studyPlan) {
       cleanupNamespace = () => (cleanup ??= runtime.cleanup());
       return { ...runtime, cleanup: cleanupNamespace };
     };
-    const { verifyStudyPlanActual } = await import('./verify-study-plan-actual.mjs');
-    const result = await verifyStudyPlanActual({ out, runtimeFactory, classOnly: classStudyPlan });
-    if (result.status !== 'PASS') process.exitCode = 1;
+    if (studyPlan) {
+      const { verifyStudyPlanActual } = await import('./verify-study-plan-actual.mjs');
+      const result = await verifyStudyPlanActual({ out, runtimeFactory, classOnly: classStudyPlan });
+      if (result.status !== 'PASS') process.exitCode = 1;
+    }
+    if (schemaPublication) {
+      const { verifySchemaPublicationActual } = await import('./verify-schema-publication-actual.mjs');
+      const publicationOut = studyPlan ? out.replace(/\.json$/u, '-publication.json') : out;
+      if ((await verifySchemaPublicationActual({ out: publicationOut, runtimeFactory })).status !== 'PASS') process.exitCode = 1;
+    }
   } finally {
     try { await cleanupNamespace?.(); }
     finally { await finishOwnedCore(); }

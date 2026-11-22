@@ -135,7 +135,7 @@ const input = () => ({ ...state.fixture.request, contractVersion: SCHEMA_CONTRAC
   placements: state.fixture.placements, datedOverrides: [state.fixture.change()], dates: [] });
 const request = (body = input(), headers = {}) => new Request('http://localhost:5199/api/schema/datum', { method: 'POST', headers: { Origin: 'http://localhost:5199', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(body) });
 
-async function savedPublicationDraft() {
+async function savedPublicationDraft({ moveLesson = false } = {}) {
   reset();
   const { plan, basis, request: proposal } = state.fixture;
   plan.version = { id: id(71), status: 'published', versionNo: 1 };
@@ -154,10 +154,12 @@ async function savedPublicationDraft() {
     minutesHt: 900, minutesVt: 900, parallelSetId: id(41), classIds: g.classIds, origin: { kind: 'manual' }, revision: 1, active: true };
   const underlag = buildSchemaUnderlag(plan, proposal, basis);
   const placements = underlag.labels.lessons.map(l => ({ lesson: l.id, day: l.title === 'Franska' ? 1 : 0, startMin: 480, room: l.title === 'Matematik' ? 'sal-1' : 'sal-2' }));
+  const frenchLesson = underlag.labels.lessons.find(lesson => lesson.title === 'Franska' && (lesson.term === null || lesson.term === 'ht'));
+  const datedOverrides = moveLesson ? [state.fixture.change('2026-11-04', { lesson: frenchLesson.id })] : [];
   const { unitId, schoolYear, period, villkor } = proposal;
   const saved = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: id(109), draftId: null, expectedRevision: 0,
     name: 'Syntetiskt schema för publicering', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: underlag.grundFingerprint, placements,
-    locks: [], intentional: [], datedOverrides: [], activityTypes: [] }));
+    locks: [], intentional: [], datedOverrides, activityTypes: [] }));
   assert.equal(saved.status, 200, await saved.clone().text());
   const { id: draftId, revision, contentHash } = state.draft;
   return { action: 'publish', unitId, schoolYear, period, draftId, revision, contentHash, commandId: id(119) };
@@ -190,6 +192,15 @@ test('publicering använder bara aktuell sparad revision och exakta Gy25-källor
   assert.equal((await publicering(request(status))).status, 200);
   assert.equal((await publicering(request({ ...status, unitId: id(2) }))).status, 403);
   assert.equal(state.validations.length, validations);
+});
+
+test('publicering räknar ett flyttat pass på det nya datumet och tar bort det ursprungliga', async () => {
+  const publication = await savedPublicationDraft({ moveLesson: true });
+  const response = await publicering(request(publication));
+  assert.equal(response.status, 200, await response.text());
+  const track = state.tracks.find(track => track.languageCode === 'fr' && track.term === 'ht');
+  assert.ok(track.days.includes('2026-11-04'));
+  assert.equal(track.days.includes('2026-11-03'), false);
 });
 
 test('publicering rullas tillbaka vid auditfel och stoppas om källan ändras under daterad kontroll', async () => {
