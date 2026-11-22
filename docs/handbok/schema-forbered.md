@@ -27,6 +27,7 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 ## Arbeta i Lägg schema
 
 - Välj **Vecka**, **Pass i tabell**, **Samlingsvy** eller **Villkor i tabell**. I veckan söker du i **Visa schema för** efter en klass, undervisningsgrupp, lärare, sal eller ett ämne. Med **Grundschema**, **Vecka** eller **Datumintervall** styr du vilka datum som visas. En sal visar de pass som är bokade där i den valda perioden.
+- I **Villkor i tabell** visas ikryssade rader överst i sökresultatet. Kryssa ur en rad för att lägga tillbaka den bland de övriga i tabellens sorteringsordning. Samma tabell finns under **Lärartider och fasta tider** i **Förbered**.
 - I **Grundschema** för hela läsåret kan du välja **Jämför HT och VT**. Varje veckodag visar hösten och våren bredvid varandra. Gemensamma pass visas på båda sidor med respektive termins passlängd. Välj ett pass för att öppna passpanelen i rätt termin.
 - Öppna **Beräkning** för att ändra räknetid, fortsätta förbättra schemat eller ta fram ett nytt förslag.
 - Välj **Till kontrollerna** för att gå till regelavvikelser, undervisningstid, datumändringar och övrigt underlag längre ner på sidan. Där finns också **Tilldela salar och behåll tiderna** när pass behöver sal.

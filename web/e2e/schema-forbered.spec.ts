@@ -45,6 +45,64 @@ test('resurser, lektionsantal och villkor går att läsa och ändra utan beräkn
   expect(solves).toHaveLength(0);
 });
 
+test('villkorstabell i Förbered: valda rader samlas överst och fokus följer rätt rad', async ({ page }) => {
+  await mockUnderlag(page);
+  await page.goto(URL);
+  const larartider = omrade(page, 'larartider');
+  await larartider.locator('summary', { hasText: 'Villkor i tabell' }).click();
+  await larartider.getByRole('tab', { name: 'Lärare', exact: true }).click();
+  const tabell = larartider.getByRole('grid', { name: 'Villkor i tabell' });
+  const rader = tabell.getByRole('rowheader');
+  const namn = (nr: number) => `Provlärare ${nr}`;
+  const kryss = (nr: number) => tabell.getByRole('checkbox', { name: `Välj ${namn(nr)}`, exact: true });
+  const resurs = (nr: number) => tabell.getByRole('rowheader', { name: namn(nr), exact: true });
+  const sortera = tabell.getByRole('button', { name: 'Namn', exact: true });
+  const fallande = base.resurser.larare.map(r => r.name).reverse();
+  const ordning = (...val: number[]) => {
+    const valda = val.map(namn);
+    return [...valda, ...fallande.filter(n => !valda.includes(n))];
+  };
+  await sortera.click();
+  await sortera.click();
+  await expect(rader).toHaveText(ordning());
+
+  await kryss(5).check();
+  await expect(rader).toHaveText(ordning(5));
+  await expect(kryss(5)).toBeFocused();
+  await kryss(8).check();
+  await expect(rader).toHaveText(ordning(8, 5));
+  await kryss(5).uncheck();
+  await expect(rader).toHaveText(ordning(8));
+  await expect(kryss(5)).toBeFocused();
+  await expect(kryss(5)).toHaveAttribute('tabindex', '0');
+
+  await page.keyboard.press('ArrowRight');
+  await expect(resurs(5)).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(rader).toHaveText(ordning(8, 5));
+  await expect(resurs(5)).toBeFocused();
+  await page.keyboard.press('Space');
+  await expect(rader).toHaveText(ordning(8));
+  await expect(resurs(5)).toBeFocused();
+  await page.keyboard.down('Shift');
+  await page.keyboard.press('ArrowDown');
+  await expect(rader).toHaveText(ordning(8, 5, 4));
+  await expect(resurs(4)).toBeFocused();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.up('Shift');
+  await expect(rader).toHaveText(ordning(8, 5, 4, 3));
+  await expect(resurs(3)).toBeFocused();
+
+  const sok = larartider.getByRole('searchbox', { name: 'Sök på namn' });
+  await sok.fill(namn(4));
+  await expect(rader).toHaveText([namn(4)]);
+  await expect(kryss(4)).toBeChecked();
+  await expect(larartider.getByText(/4 valda/u)).toBeVisible();
+  await expect(sok).toBeFocused();
+  await sok.clear();
+  await expect(rader).toHaveText(ordning(8, 5, 4, 3));
+});
+
 test('misslyckad underlagsläsning hindrar inte villkoren och går att göra om', async ({ page }) => {
   await page.goto(URL);
   const underlag = omrade(page, 'underlag');

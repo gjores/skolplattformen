@@ -35,7 +35,9 @@ type Props = {
   forslag: SchemaForslag | null; kontroll: SchemaKontroll | null; disabled: boolean; mal: VillkorstabellMal | null; onOpen?: () => void;
 };
 type Kol = { id: VtKolumn | 'val'; namn: string; grund?: boolean };
+type AktivCell = { r: number; c: number; ref?: string };
 type Redigera = { ref: string; typ: SchemaRegelTyp } | { falt: VtSkolaFalt };
+const INGA_VALDA: string[] = [];
 const GRUND_TEXT = 'Kräver nytt förslag: längsta pass, kortaste pass och antal pass avgör vilka pass som finns.';
 const FLIK_ORD: Record<VtSlag, [string, string]> = { klass: ['klass', 'klasser'], grupp: ['grupp', 'grupper'], larare: ['lärare', 'lärare'], sal: ['sal', 'salar'], amne: ['ämne', 'ämnen'] };
 
@@ -50,23 +52,36 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
   const id = useId();
   const [flik, setFlik] = useState<VtFlik>('skola'), [sok, setSok] = useState(''), [filter, setFilter] = useState<VtFilter>('alla');
   const [sort, setSort] = useState<{ kol: VtKolumn; dir: 'asc' | 'desc' } | null>(null);
-  const [valda, setValda] = useState<Record<string, string[]>>({}), [aktiv, setAktiv] = useState({ r: 0, c: 1 });
+  const [valda, setValda] = useState<Record<string, string[]>>({}), [aktivCell, setAktivCell] = useState<AktivCell>({ r: 0, c: 1 });
   const [redigera, setRedigera] = useState<Redigera | null>(null), [status, setStatus] = useState('');
   const [laggPa, setLaggPa] = useState(false), [laggTyp, setLaggTyp] = useState<SchemaRegelTyp | null>(null);
   const [fran, setFran] = useState(''), [bortTyp, setBortTyp] = useState<SchemaRegelTyp | null>(null);
   const grid = useRef<HTMLTableElement | null>(null), fokus = useRef(false);
+  const skiftRader = useRef<string[] | null>(null);
   const slag: VtSlag | null = flik === 'skola' ? null : flik;
+  const mina = slag ? valda[slag] ?? INGA_VALDA : INGA_VALDA;
+  const markerade = useMemo(() => new Set(mina), [mina]);
 
   const rader = useMemo(() => slag ? vtRader(slag, villkor, forslag, kontroll) : [], [slag, villkor, forslag, kontroll]);
-  const visade = useMemo(() => { const f = vtFiltrera(rader, sok, filter); return sort ? vtSortera(f, sort.kol, sort.dir) : f; }, [rader, sok, filter, sort]);
+  const visade = useMemo(() => {
+    const filtrerade = vtFiltrera(rader, sok, filter);
+    const ordnade = sort ? vtSortera(filtrerade, sort.kol, sort.dir) : filtrerade;
+    return [...ordnade.filter(rad => markerade.has(rad.ref)), ...ordnade.filter(rad => !markerade.has(rad.ref))];
+  }, [rader, sok, filter, sort, markerade]);
   const skola = useMemo(() => vtSkolaRader(villkor, kontroll), [villkor, kontroll]);
   const typer = useMemo(() => slag ? vtTyper(slag) : [], [slag]);
   const kolumner = useMemo((): Kol[] => slag ? [{ id: 'val', namn: 'Välj' }, { id: 'namn', namn: 'Namn' }, { id: 'pass', namn: slag === 'sal' ? 'Pass i salen' : 'Pass' },
     { id: 'veckotid', namn: 'Veckotid' }, { id: 'vem', namn: VT_VEM[slag] }, ...(slag === 'amne' ? [] : [{ id: 'aktiviteter' as const, namn: 'Aktiviteter' }]), ...typer.map(t => ({ id: t, namn: VT_TYP_NAMN[t], grund: vtGrund(t) })), { id: 'brott', namn: 'Pass på villkoret' }]
     : [{ id: 'namn', namn: 'Villkor' }, { id: 'vem', namn: 'Värde' }, { id: 'pass', namn: 'Slag' }, { id: 'brott', namn: 'Avvikelser' }], [slag, typer]);
   const antalRader = slag ? visade.length : skola.length;
-  const mina = slag ? valda[slag] ?? [] : [], valdaRader = rader.filter(r => mina.includes(r.ref));
+  const aktivRad = slag ? visade.findIndex(rad => rad.ref === aktivCell.ref) : skola.findIndex(rad => rad.falt === aktivCell.ref);
+  const aktiv = { r: aktivRad >= 0 ? aktivRad : Math.min(aktivCell.r, antalRader - 1), c: aktivCell.c };
+  const valdaRader = rader.filter(r => markerade.has(r.ref));
   const ord = slag ? FLIK_ORD[slag] : ['', ''], antal = (n: number) => `${n} ${n === 1 ? ord[0] : ord[1]}`;
+
+  function aktivera(r: number, c: number) {
+    setAktivCell({ r, c, ref: slag ? visade[r]?.ref : skola[r]?.falt });
+  }
 
   // Fokus följer den aktiva cellen när den flyttas med tangentbordet eller när en redigerare stängs.
   useEffect(() => {
@@ -86,7 +101,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
     const r = vantar.falt ? skola.findIndex(x => x.falt === vantar.falt) : visade.findIndex(x => x.ref === vantar.ref);
     const c = vantar.falt ? 1 : Math.max(1, kolumner.findIndex(k => k.id === vantar.typ));
     if (r >= 0) {
-      setAktiv({ r, c }); setRulla(n => n + 1);
+      aktivera(r, c); setRulla(n => n + 1);
       setRedigera(vantar.falt ? { falt: vantar.falt } : vantar.typ && vantar.ref ? { ref: vantar.ref, typ: vantar.typ } : null);
     }
   }
@@ -96,7 +111,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
     if (rulla === rullat.current) return;
     rullat.current = rulla;
     grid.current?.querySelector(`[data-vt="${aktiv.r}:${aktiv.c}"]`)?.scrollIntoView({ block: 'center', inline: 'nearest' });
-  }, [rulla, aktiv]);
+  }, [rulla, aktiv.r, aktiv.c]);
 
   function andra(efter: SchemaRegel[], text: string, grund: boolean): boolean {
     if (JSON.stringify(efter) === JSON.stringify(villkor.egna)) { setStatus('Ingen ändring.'); return true; }
@@ -112,21 +127,33 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
   function onKeyDown(e: ReactKeyboardEvent<HTMLTableElement>) {
     // Händelser från redigeraren (i en portal) bubblar hit i React-trädet; de hör inte till rutnätet.
     if (!e.currentTarget.contains(e.target as Node) || redigera || e.altKey || e.metaKey) return;
-    const sista = kolumner.length - 1, flytta = (r: number, c: number) => { e.preventDefault(); fokus.current = true; setAktiv({ r: Math.min(antalRader - 1, Math.max(-1, r)), c: Math.min(sista, Math.max(0, c)) }); };
+    const sista = kolumner.length - 1, flytta = (r: number, c: number) => { e.preventDefault(); fokus.current = true; aktivera(Math.min(antalRader - 1, Math.max(-1, r)), Math.min(sista, Math.max(0, c))); };
     const { r, c } = aktiv;
+    if (!e.shiftKey) skiftRader.current = null;
     if (e.key === 'ArrowRight') return flytta(r, c + 1);
     if (e.key === 'ArrowLeft') return flytta(r, c - 1);
     if (e.key === 'Home') return flytta(e.ctrlKey ? 0 : r, 0);
     if (e.key === 'End') return flytta(e.ctrlKey ? antalRader - 1 : r, sista);
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
-      const to = r + (e.key === 'ArrowDown' ? 1 : -1);
-      // Skift+pil markerar raderna man går över.
-      if (e.shiftKey && slag && to >= 0 && to < visade.length) valj([visade[Math.max(0, r)].ref, visade[to].ref], true);
-      return flytta(to, c);
+      const steg = e.key === 'ArrowDown' ? 1 : -1;
+      if (!e.shiftKey || !slag) return flytta(r + steg, c);
+
+      // Behåll ordningen från när Skift trycktes så att nästa pil fortsätter på rätt rad.
+      const ordning = skiftRader.current ??= visade.map(rad => rad.ref);
+      const fran = visade[r]?.ref;
+      const index = fran === undefined ? -1 : ordning.indexOf(fran);
+      const till = visade.findIndex(rad => rad.ref === ordning[index + steg]);
+      if (till < 0) { e.preventDefault(); return; }
+      valj(fran === undefined ? [visade[till].ref] : [fran, visade[till].ref], true);
+      return flytta(till, c);
     }
     // Mellanslag på en rad väljer den (kryssrutan och knappar sköter sitt eget Mellanslag).
     if (e.key === ' ' && slag && r >= 0 && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLButtonElement)) {
-      e.preventDefault(); valj([visade[r].ref], !mina.includes(visade[r].ref)); return;
+      e.preventDefault();
+      aktivera(r, c);
+      fokus.current = true;
+      valj([visade[r].ref], !markerade.has(visade[r].ref));
+      return;
     }
     if ((e.key === 'Enter' || e.key === 'F2') && r >= 0) {
       const k = kolumner[c];
@@ -135,7 +162,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
     }
   }
 
-  const cellProps = (r: number, c: number) => ({ 'data-vt': `${r}:${c}`, onClick: () => setAktiv({ r, c }),
+  const cellProps = (r: number, c: number) => ({ 'data-vt': `${r}:${c}`, onClick: () => aktivera(r, c),
     tabIndex: aktiv.r === r && aktiv.c === c ? 0 : -1 });
   /** Fokus i en cell med en kontroll (kryssruta, sorteringsknapp, länk) står på kontrollen. */
   const kontrollFokus = (r: number, c: number) => ({ 'data-vt-fokus': true, tabIndex: aktiv.r === r && aktiv.c === c ? 0 : -1 });
@@ -143,9 +170,9 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
   const sortera = (kol: VtKolumn) => setSort(s => s?.kol === kol ? (s.dir === 'asc' ? { kol, dir: 'desc' } : null) : { kol, dir: 'asc' });
   const rubrik = (k: Kol, c: number) => {
     const sorted = sort?.kol === k.id ? sort.dir : null;
-    if (k.id === 'val') return <TableHead key={k.id} scope="col" className="vt-val" data-vt={`-1:${c}`} onClick={() => setAktiv({ r: -1, c })}>
+    if (k.id === 'val') return <TableHead key={k.id} scope="col" className="vt-val" data-vt={`-1:${c}`} onClick={() => aktivera(-1, c)}>
       <input type="checkbox" aria-label={`Välj alla ${ord[1]} som visas`} {...kontrollFokus(-1, c)} disabled={!visade.length}
-        checked={visade.length > 0 && visade.every(r => mina.includes(r.ref))} onChange={e => valj(visade.map(r => r.ref), e.target.checked)}/></TableHead>;
+        checked={visade.length > 0 && visade.every(r => markerade.has(r.ref))} onChange={e => valj(visade.map(r => r.ref), e.target.checked)}/></TableHead>;
     return <TableHead key={k.id} scope="col" aria-sort={slag ? sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : 'none' : undefined}
       className={k.id === 'namn' ? 'vt-namn' : undefined} {...cellProps(-1, c)} {...(slag ? { tabIndex: undefined } : {})}>
       {slag ? <button type="button" className="vt-sortera" {...kontrollFokus(-1, c)} onClick={() => sortera(k.id as VtKolumn)}>
@@ -170,7 +197,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
       <div className="flex flex-wrap items-center justify-between gap-2"><h2 id={`${id}-rubrik`}>Villkor i tabell</h2><OppnaFonster onOpen={onOpen} label="Villkor i tabell"/></div>
       <p className="schema-note">Samma egna villkor som i Villkor för schemat och i veckan. Välj en cell och tryck Enter, eller dubbelklicka, för att ändra. Ändringar kan ångras med Ångra senaste villkor och prövas direkt mot schemat.</p>
     </div>
-    <Tabs value={flik} onValueChange={v => { setFlik(v as VtFlik); setAktiv({ r: 0, c: 1 }); setRedigera(null); setLaggPa(false); setSort(null); }}>
+    <Tabs value={flik} onValueChange={v => { skiftRader.current = null; setFlik(v as VtFlik); setAktivCell({ r: 0, c: 1 }); setRedigera(null); setLaggPa(false); setSort(null); }}>
       <TabsList className="vt-flikar" aria-label="Resurstyp">{VT_FLIKAR.map(x => <TabsTrigger key={x.id} value={x.id}>{x.namn}</TabsTrigger>)}</TabsList>
       <TabsContent value={flik} className="vt-flik">
 
@@ -213,23 +240,29 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
       : slag && rader.length === 0 ? <p className="empty-state">{slag === 'sal' ? 'Inga salar än. Lägg till salar i Villkor för schemat.' : `Underlaget har inga ${ord[1]}.`}</p>
       : <div className="vt-ram">
         <Table ref={grid} role="grid" aria-labelledby={`${id}-rubrik`} aria-rowcount={antalRader + 1} aria-colcount={kolumner.length} onKeyDown={onKeyDown}
+          onKeyUp={e => { if (e.key === 'Shift') skiftRader.current = null; }}
+          onPointerDown={() => { skiftRader.current = null; }}
           aria-describedby={`${id}-hjalp`} className="vt-tabell" data-vt-scope={slag ?? 'skola'}>
           <TableHeader><TableRow>{kolumner.map(rubrik)}</TableRow></TableHeader>
           <TableBody>
-            {slag ? visade.map((rad, r) => <TableRow key={rad.ref} aria-selected={mina.includes(rad.ref)} data-state={mina.includes(rad.ref) ? 'selected' : undefined}>
+            {slag ? visade.map((rad, r) => <TableRow key={rad.ref} aria-selected={markerade.has(rad.ref)} data-state={markerade.has(rad.ref) ? 'selected' : undefined}>
               {kolumner.map((k, c) => {
-                if (k.id === 'val') return <TableCell key={k.id} className="vt-val" data-vt={`${r}:${c}`} onClick={() => setAktiv({ r, c })}>
-                  <input type="checkbox" aria-label={`Välj ${rad.namn}`} {...kontrollFokus(r, c)} checked={mina.includes(rad.ref)} onChange={e => valj([rad.ref], e.target.checked)}/></TableCell>;
+                if (k.id === 'val') return <TableCell key={k.id} className="vt-val" data-vt={`${r}:${c}`} onClick={() => aktivera(r, c)}>
+                  <input type="checkbox" aria-label={`Välj ${rad.namn}`} {...kontrollFokus(r, c)} checked={markerade.has(rad.ref)} onChange={e => {
+                    aktivera(r, c);
+                    fokus.current = true;
+                    valj([rad.ref], e.target.checked);
+                  }}/></TableCell>;
                 if (k.id === 'namn') return <TableHead key={k.id} scope="row" className="vt-namn" {...cellProps(r, c)}>{rad.namn}</TableHead>;
                 if (k.id === 'pass') return <TableCell key={k.id} {...cellProps(r, c)}>{rad.pass}</TableCell>;
                 if (k.id === 'veckotid') return <TableCell key={k.id} className="vt-tid" {...cellProps(r, c)}>{rad.veckotid}</TableCell>;
                 if (k.id === 'vem') return <TableCell key={k.id} className="vt-vem" {...cellProps(r, c)}>{rad.vem}</TableCell>;
                 if (k.id === 'aktiviteter') return <TableCell key={k.id} {...cellProps(r, c)} aria-readonly="true">{rad.aktiviteter || '–'}</TableCell>;
-                if (k.id === 'brott') return <TableCell key={k.id} data-vt={`${r}:${c}`} onClick={() => setAktiv({ r, c })} tabIndex={rad.brott > 0 ? undefined : aktiv.r === r && aktiv.c === c ? 0 : -1}>
+                if (k.id === 'brott') return <TableCell key={k.id} data-vt={`${r}:${c}`} onClick={() => aktivera(r, c)} tabIndex={rad.brott > 0 ? undefined : aktiv.r === r && aktiv.c === c ? 0 : -1}>
                   {brottCell(rad.brott, r, c, `${rad.brott} pass bryter mot villkoren för ${rad.namn}`)}</TableCell>;
                 const typ = k.id as SchemaRegelTyp, cell = rad.celler[typ], oppen = redigeras(rad.ref, typ);
                 return <TableCell key={k.id} className={`vt-villkor${cell ? ' har' : ''}`} {...cellProps(r, c)}
-                  onDoubleClick={() => { if (!disabled) { setAktiv({ r, c }); setRedigera({ ref: rad.ref, typ }); } }}>
+                  onDoubleClick={() => { if (!disabled) { aktivera(r, c); setRedigera({ ref: rad.ref, typ }); } }}>
                   {cell ? <span>{cell.text}{cell.index.length > 1 && <span className="schema-note"> ({cell.index.length})</span>}</span> : <span className="sr-only">Inget villkor</span>}
                   {cell && rad.utanTraff && <span className="status-badge warning vt-badge">Träffar inget</span>}
                   {oppen && <Anker onClose={stang} label={`${VT_TYP_NAMN[typ]} för ${rad.namn}`}>{editor(rad, typ)}</Anker>}
@@ -238,7 +271,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
             </TableRow>)
             : skola.map((x, r) => <TableRow key={x.falt}>
               <TableHead scope="row" className="vt-namn" {...cellProps(r, 0)}>{x.namn}</TableHead>
-              <TableCell className="vt-villkor har" {...cellProps(r, 1)} onDoubleClick={() => { if (!disabled) { setAktiv({ r, c: 1 }); setRedigera({ falt: x.falt }); } }}>
+              <TableCell className="vt-villkor har" {...cellProps(r, 1)} onDoubleClick={() => { if (!disabled) { aktivera(r, 1); setRedigera({ falt: x.falt }); } }}>
                 {x.text}
                 {redigera && 'falt' in redigera && redigera.falt === x.falt && <Anker onClose={stang} label={x.namn}>
                   <SkolaRedigerare falt={x.falt} villkor={villkor} onAvbryt={stang} onSpara={patch => {
@@ -248,7 +281,7 @@ export function Villkorstabell({ villkor, setVillkor, dispatch, forslag, kontrol
                   }}/></Anker>}
               </TableCell>
               <TableCell {...cellProps(r, 2)}>{x.grund ? <span className="vt-grund">Grund · kräver nytt förslag</span> : 'Tidsvillkor'}</TableCell>
-              <TableCell data-vt={`${r}:3`} onClick={() => setAktiv({ r, c: 3 })} tabIndex={x.avvikelser > 0 ? undefined : aktiv.r === r && aktiv.c === 3 ? 0 : -1}>
+              <TableCell data-vt={`${r}:3`} onClick={() => aktivera(r, 3)} tabIndex={x.avvikelser > 0 ? undefined : aktiv.r === r && aktiv.c === 3 ? 0 : -1}>
                 {brottCell(x.avvikelser, r, 3, `${x.avvikelser} avvikelser mot ${x.namn.toLocaleLowerCase('sv-SE')}`)}</TableCell>
             </TableRow>)}
           </TableBody>
