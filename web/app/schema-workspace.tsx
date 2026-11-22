@@ -3,7 +3,8 @@
 // Var passen ligger för hand hålls i utkastet (lib/schema-utkast.ts) med ångra och gör om i flera steg; en ändring görs först när kontrollen har svarat.
 import { useCallback, useEffect, useEffectEvent, useId, useMemo, useReducer, useRef, useState, type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon, ChevronDownIcon, ListChecksIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarDaysIcon, ChevronDownIcon, ListChecksIcon, SlidersHorizontalIcon } from 'lucide-react';
+import { Popover, PopoverContent, PopoverHeader, PopoverTitle, PopoverTrigger } from '@/components/ui/popover';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useRequestConfirm } from '@/lib/unsaved-changes.tsx';
 import { SCHEMA_DRAFT_VERSION, verifySchemaDraftResetReply, type SchemaDraftDatedOverride, type SchemaDraftResetRequest } from '@/lib/schema-draft-contract.ts';
@@ -24,10 +25,12 @@ import { Villkorsforslag, type VillkorsSokning } from './schema/villkorsforslag.
 import { Lagesstatus } from './schema/lagesstatus.tsx';
 import { Salar } from './schema/salar.tsx';
 import { Samtidighetsblock } from './schema/block.tsx';
-import { ForberedOversikt, ForutsattningarKort, Omrade, Ytval, forberedAnkare, oppnaOmrade, rememberYta, storedYta, useGenomgang, type SchemaYta } from './schema/forbered.tsx';
+import { ForberedOmradesval, ForberedOversikt, Omrade, Omradesgenomgang, Ytval, forberedAnkare, gruppForOmrade, oppnaOmrade, rememberYta, storedYta, useGenomgang,
+  type ForberedAtgard, type ForberedGrupp, type ForberedMal, type SchemaYta } from './schema/forbered.tsx';
 import { GranskaUtkast, type GranskaMal } from './schema/granska.tsx';
 import { JamforResurser } from './schema/jamfor-resurser.tsx';
-import { schemaForbered } from '@/lib/schema-forbered.ts';
+import { schemaForbered, type ForberedOmrade } from '@/lib/schema-forbered.ts';
+import { saltabellRader } from '@/lib/schema-saltabell.ts';
 import { nationellaProvBokningsfel, type NationellProvbokning } from '@/lib/nationella-prov.ts';
 import { Salsattningspanel, type SalsattningVisning } from './schema/salsattning.tsx';
 import { SALFEL, salsattningPlaceringar, tilldelaSalar } from '@/lib/schema-salsattning.ts';
@@ -204,16 +207,23 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [fore, setFore] = useState<{ key: string; findings: SchemaDiagnosFynd[]; releaseLocks?: boolean } | null>(null), [foreTid, setForeTid] = useState<string | null>(null);
   // Vald yta (05.2-SM-UXF-31). Utan eget val visas Förbered tills ett förslag finns.
   const [ytaVal, setYtaVal] = useState<SchemaYta | null>(() => storedYta(unitId, schoolYear)), [genomgang, setGenomgang] = useGenomgang(unitId, schoolYear);
+  const [forberedGrupp, setForberedGrupp] = useState<ForberedGrupp>('underlag');
+  const [forberedMal, setForberedMal] = useState<(ForberedMal & { nr: number }) | null>(null);
+  const [larartabellOppet, setLarartabellOppet] = useState(false);
+  const [forberedBerakningsvalOppet, setForberedBerakningsvalOppet] = useState(false);
+  const forberedForslagKnapp = useRef<HTMLButtonElement>(null);
+  const malnummer = useRef(0);
   const [visatPass, setVisatPass] = useState<{ mal: GranskaMal; scope: string; term: SchemaTerm; franGranskning: boolean } | null>(null);
   const [jamforOpen, setJamforOpen] = useState(false), jamforId = useId();
   const provforslagPanel = useRef<HTMLElement>(null), provGranskaRetur = useRef<HTMLElement | null>(null);
   const fokuseraProvforslag = useRef(false);
   const fokuseraProv = useRef<string | null>(null);
   const passvisningFokus = useRef<GranskaMal | null>(null), visatPassRubrik = useRef<HTMLHeadingElement | null>(null);
-  const valjYta = (next: SchemaYta) => {
+  const valjYta = useCallback((next: SchemaYta) => {
     if (next !== 'schema') { setVisatPass(null); setJamforOpen(false); passvisningFokus.current = null; }
+    if (next !== 'forbered') { setForberedMal(null); setForberedBerakningsvalOppet(false); }
     setYtaVal(next); rememberYta(unitId, schoolYear, next);
-  };
+  }, [unitId, schoolYear]);
   // Tilldela salar och behåll tiderna (05.2-SM-UXF-41): förhandsgranskningen och kontrollens svar för just den.
   const [salsattning, setSalsattning] = useState<(SalsattningVisning & { svar: SchemaKontroll | null }) | null>(null);
   const [berakningssteg, setBerakningssteg] = useState<'forbereder' | 'diagnos' | 'solve' | 'sparar-prov'>('diagnos');
@@ -314,6 +324,20 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const periodbyteStoppat = busy || checking || !spara.ready || sparstatus.phase === 'loading' || (sparstatus.phase === 'stale' && sparstatus.dirty);
   const yta: SchemaYta = fonster ? 'schema' : ytaVal ?? (base ? 'schema' : 'forbered');
   const visaForbered = yta === 'forbered', visaSchema = yta === 'schema', visaGranska = yta === 'granska';
+  const oppnaForbered = useCallback((mal: ForberedMal) => {
+    const nr = ++malnummer.current;
+    setForberedGrupp(gruppForOmrade(mal.omrade));
+    setForberedMal({ ...mal, nr });
+    if (mal.omrade === 'larartider') setLarartabellOppet(true);
+  }, []);
+  useEffect(() => {
+    if (!visaForbered || !forberedMal || forberedMal.ref) return;
+    if (forberedMal.omrade === 'regler') {
+      const form = document.querySelector<HTMLDetailsElement>('#forbered-regler details.schema-villkor');
+      if (form) form.open = true;
+    }
+    oppnaOmrade(forberedMal.omrade);
+  }, [visaForbered, forberedMal]);
   useEffect(() => {
     if (!visaGranska) return;
     if (fokuseraProvforslag.current) {
@@ -377,6 +401,10 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const forberedPunkter = useMemo(() => visaForbered ? schemaForbered({ kalla: forutsattningar, villkor, las: antalLas, provplan: nationellaProv.document,
     provbokningsfel: provbokningsfel.size, provlasning: nationellaProv.reading ? 'laddar' : nationellaProv.readFailed ? 'fel' : provunderlag?.gallerGymnasiet === false ? 'ej-tillamplig' : 'klar' }) : [],
     [visaForbered, forutsattningar, villkor, antalLas, nationellaProv.document, provbokningsfel, nationellaProv.reading, nationellaProv.readFailed, provunderlag?.gallerGymnasiet]);
+  const forberedSalar = useMemo(() => visaForbered && forutsattningar ? saltabellRader(forutsattningar, villkor) : [], [visaForbered, forutsattningar, villkor]);
+  const valtForberedObjekt = useMemo(() => forberedMal?.ref ? { ref: forberedMal.ref, nr: forberedMal.nr, resurs: forberedMal.resurs } : null, [forberedMal]);
+  const larartidsmal = useMemo((): VillkorstabellMal | null => forberedMal?.omrade === 'larartider'
+    ? { flik: 'larare', ref: forberedMal.ref, typ: forberedMal.ref ? 'sparrad' : undefined, nr: forberedMal.nr } : null, [forberedMal]);
   // Passen med aktuell salbild: var de ligger kommer från utkastet, vilka salar de får ha från den senaste läsningen.
   const passMedSal = useMemo(() => { if (!forslag) return []; if (!salbild) return forslag.lessons; const by = new Map(salbild.lessons.map(l => [l.id, l]));
     return forslag.lessons.map(l => { const u = by.get(l.id); return u ? { ...l, roomIds: u.roomIds, sal: u.sal } : l; }); }, [forslag, salbild]);
@@ -384,6 +412,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (next === period || periodbyteStoppat) return;
     if (sparstatus.phase !== 'stale' && !await spara.flush()) return;
     rememberPeriod(unitId, schoolYear, next);
+    setForberedMal(null);
     setJamforTerminer(false);
     setTomningsMarkor(null); setTomningsfel(null);
     setSchemalagdaProv(null); setNyttProvSparfel(null); setMotor(null);
@@ -392,7 +421,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
   async function lasServerversion() {
     if (sparstatus.dirty && !await confirm({ title: 'Läs serverns version?', description: 'Dina lokala ändringar ersätts med det senast sparade utkastet på servern.', confirmLabel: 'Läs serverns version', cancelLabel: 'Behåll lokala ändringar' })) return;
-    setVisatPass(null);
+    setVisatPass(null); setForberedMal(null);
     spara.read();
   }
 
@@ -701,7 +730,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   function fokusEfterBerakning(): HTMLElement | null {
     const synlig = (el: HTMLElement | null | undefined) => el?.isConnected && el.getClientRects().length > 0 && !el.matches(':disabled') ? el : null;
     if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? synlig(continueButton.current) ?? synlig(berakningKnapp.current);
-    return synlig(provhinderRubrik.current) ?? [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current) ?? schemarubrik.current;
+    return synlig(provhinderRubrik.current) ?? synlig(forberedForslagKnapp.current) ?? [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current) ?? schemarubrik.current;
   }
 
   async function anvandFortsatt() {
@@ -1423,6 +1452,10 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
   function diagnosVillkor(resource?: SchemaDiagnosResurs) {
     if (resource?.id.startsWith('kluster-')) { diagnosMal({ target: 'grupper', label: 'Öppna undervisningsgrupper' }); return; }
+    if (visaForbered) {
+      oppnaForbered(resource?.typ === 'larare' ? { omrade: 'larartider', ref: resource.id } : { omrade: 'regler' });
+      return;
+    }
     if (forslag && resource) {
       const flik = resource.typ === 'undervisning' ? 'amne' : resource.typ;
       setVillkorMal({ flik, ref: resource.id, nr: Date.now() }); setVy('villkor');
@@ -1512,7 +1545,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const aktuelltProvhinder = provhinder?.nyckel === recoveryKey && provhinder.provrevision === nationellaProv.revision ? provhinder : null;
   function granskaForberedOmrade(omrade: 'underlag' | 'aktiviteter') {
     valjYta('forbered');
-    requestAnimationFrame(() => oppnaOmrade(omrade));
+    oppnaForbered({ omrade });
   }
   const recoveryFore = fore?.key === recoveryKey ? fore : null;
   const hinderUnderlag = inaktuelltUnderlag ? aktuelltUnderlag : forslag;
@@ -1562,12 +1595,17 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {!fonster && aktuelltProvhinder && <Provhinder key={aktuelltProvhinder.nyckel} {...aktuelltProvhinder}
       headingRef={provhinderRubrik} disabled={busy || checking} onBookings={() => granskaForberedOmrade('aktiviteter')} onBasis={() => granskaForberedOmrade('underlag')}
+      onBooking={(ref, resurs) => {
+        valjYta('forbered');
+        oppnaForbered(nationellaProv.document?.bokningar.some(b => b.id === ref)
+          ? { omrade: 'aktiviteter', ref, resurs } : { omrade: 'aktiviteter' });
+      }}
       onSessionLost={onSessionLost}/>}
     {nyttProvSparfel && <div className="valplan-alert" role="alert"><p>{nyttProvSparfel}</p></div>}
     {moveError && <div ref={moveErrorRef} tabIndex={-1} className="valplan-alert" role="alert"><p>{moveError}</p></div>}
     {datumHinder}
     {!inaktuelltUnderlag && underlagshinder}
-    {!forslag && !busy && !error && !aktuelltProvhinder && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
+    {!visaForbered && !forslag && !busy && !error && !aktuelltProvhinder && <p className="empty-state">Inget förslag ännu. Välj vad schemat gäller, se över villkoren och ta fram ett schemaförslag.</p>}
   </>;
   const regelformId = `${resultHeading}-regler`;
   // Utkastet och villkoren som en förhandsgranskning av salar gäller. Ändras något av dem är den inaktuell.
@@ -1590,6 +1628,47 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       {!visaForbered && harPass && <p className="schema-note schema-wide">{grundAndrad ? 'Passens underlag har ändrats. Ta fram ett nytt schemaförslag för den nya uppdelningen.' : 'Fortsätt förbättra utgår från ditt nuvarande schema. Låsta pass och pass med datumändringar ligger kvar. Ett nytt schemaförslag räknar om placeringarna.'}</p>}
       <p className="schema-note schema-wide">Ämnenas sammanlagda tid för läsåret kommer från timplanen, via tjänstefördelningen. Ett gemensamt veckomönster används på hösten och våren när undervisningen och lärarna är desamma. Tid och kortningar räknas över årets faktiska lektionstillfällen. Undervisning som bara går en termin ligger kvar där.</p>
     </form>;
+  const forberedBokningar = visaForbered && !nationellaProv.reading && !nationellaProv.readFailed && provunderlag?.gallerGymnasiet !== false ? nationellaProv.document?.bokningar ?? [] : [];
+  const kallaForbered = forberedPunkter.find(punkt => punkt.id === 'underlag');
+  const forberedUppgifter: ForberedAtgard[] = [];
+  if (visaForbered) {
+    const knappPerOmrade: Partial<Record<ForberedOmrade, string>> = { underlag: 'Öppna underlaget', lektioner: 'Visa lektioner och block',
+      salar: 'Öppna salar', regler: 'Rätta villkoren', aktiviteter: 'Öppna provplanen' };
+    const saluppgifter = forberedSalar.filter(rad => rad.behov === null || rad.hinder);
+    const provfel = forberedBokningar.filter(bokning => provbokningsfel.has(bokning.id));
+    for (const punkt of forberedPunkter) {
+      if (!punkt.nasta || !punkt.saknas) continue;
+      if (punkt.id === 'salar' && villkor.salregister?.salar.length && saluppgifter.length) {
+        forberedUppgifter.push(...saluppgifter.map(rad => ({
+          mal: { omrade: 'salar' as const, ref: rad.ref },
+          text: [rad.title, rad.grupp].filter(Boolean).join(' · '),
+          detalj: rad.hinder ?? 'Salbehov saknas.',
+          knapp: 'Öppna salbehovet',
+        })));
+      } else if (punkt.id === 'aktiviteter' && provfel.length) {
+        forberedUppgifter.unshift(...provfel.map(bokning => ({
+          mal: { omrade: 'aktiviteter' as const, ref: bokning.id },
+          text: [bokning.namn, provNamn(bokning), schemaDateText(bokning.datum)].join(' · '),
+          detalj: provbokningsfel.get(bokning.id),
+          knapp: 'Öppna provbokningen',
+        })));
+      } else {
+        forberedUppgifter.push({ mal: { omrade: punkt.id }, text: punkt.nasta, knapp: knappPerOmrade[punkt.id] ?? punkt.atgard });
+      }
+    }
+    if (issues.length) forberedUppgifter.sort((a, b) => Number(b.mal.omrade === 'regler') - Number(a.mal.omrade === 'regler'));
+  }
+  const kanOppnaSparatForslag = harPass && !inaktuelltUnderlag && !grundAndrad;
+  const forberedUpptagen = busy || checking || !spara.ready;
+  const nyttForberedForslag = <Button type="button" ref={forberedForslagKnapp} variant={kanOppnaSparatForslag && !busy ? 'outline' : 'default'}
+    disabled={forberedUpptagen || issues.length > 0} onClick={() => { setForberedBerakningsvalOppet(false); void run(); }}>
+    {busy ? berakningssteg === 'sparar-prov' ? 'Sparar…' : 'Räknar…' : 'Ta fram schemaförslag'}
+  </Button>;
+  const omradesgenomgang = (id: ForberedOmrade) => {
+    const punkt = forberedPunkter.find(p => p.id === id);
+    return punkt && <Omradesgenomgang punkt={punkt} genomgang={genomgang} onGenomgang={setGenomgang} disabled={busy || checking}/>;
+  };
+  const doljForbered = (id: ForberedOmrade) => forberedGrupp !== gruppForOmrade(id);
   const villkorsform = !fonster && <Villkor value={villkor} disabled={busy || checking} issues={issues} resurser={forutsattningar?.resurser ?? null} forslag={forslag} onChange={andraArbetsvillkor}
         resurserBesked={issues.length ? 'Rätta felen i villkoren för att läsa klasser, grupper, ämnen och lärare från underlaget.' : underlagLas.error ?? 'Läser klasser, grupper, ämnen och lärare från underlaget…'}/>;
   const aktivitetsvy = (f: SchemaForslag) => <Aktiviteter personalLookup={personalLookup} onSessionLost={onSessionLost} activityTypes={activityTypes} onTypesChange={setActivityTypes} forslag={f} villkor={villkor} lessons={f.lessons} busy={busy || checking} onChange={andraAktiviteter} saveError={error ?? moveError}
@@ -1752,16 +1831,46 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         <Button type="button" variant="outline" disabled={utkast.undo.length === 0 || busy} onClick={() => void andra({ type: 'undo' })}>{angraText}</Button>
         <Button type="button" variant="outline" disabled={utkast.redo.length === 0 || busy} onClick={() => void andra({ type: 'redo' })}>Gör om</Button></div>
         <output aria-live="polite" className="schema-note">{moved}</output></div>}
-      <ForberedOversikt punkter={forberedPunkter} genomgang={genomgang} disabled={busy} onGenomgang={setGenomgang}/>
-      {berakningsform}
-      <ForutsattningarKort punkter={forberedPunkter} busy={busy || checking || issues.length > 0 || !spara.ready} kontrollera={() => void kontrolleraUnderlag()} taFram={taFramKnapp}
-        provning={forslag ? { typ: 'forslag', status: forslag.status === 'complete' ? 'beräkningen blev klar' : STATUS[forslag.status].text.toLocaleLowerCase('sv'), inaktuellt: grundAndrad || inaktuelltUnderlag } : diagnosAktuell ? { typ: 'kontroll', fynd: diagnosAktuell.findings.length, tid: foreTid } : { typ: 'inte' }}
-        kvalitet={forslag && !inaktuelltUnderlag && forslag.metrics.lessons > 0 ? <div className="space-y-2"><p className="flex flex-wrap gap-2"><Lagesstatus lessons={passMedSal}/></p>
-          {forslag.metrics.placed > 0 && <p>Håltid per vecka: elever {forslag.metrics.studentGapMin} min, lärare {forslag.metrics.teacherGapMin} min.</p>}</div> : null}/>
+      <ForberedOversikt kalla={kallaForbered?.varden.slice(0, 2).join(' · ') ?? 'Läser underlaget…'}
+        kontroll={aktuelltProvhinder ? 'Beräkningen stannade före sparandet.'
+          : diagnosAktuell ? `Underlaget kontrollerat${foreTid ? ` ${foreTid}` : ''} · ${diagnosAktuell.findings.length ? `${diagnosAktuell.findings.length} fynd` : 'inga påvisade hinder'}`
+            : kanOppnaSparatForslag ? 'Ett schemaförslag finns i utkastet.'
+              : inaktuelltUnderlag || harPass ? 'Underlaget har ändrats sedan förslaget togs fram.' : 'Inget schemaförslag är beräknat.'}
+        primar={issues.length ? <Button type="button" onClick={() => oppnaForbered({ omrade: 'regler' })}>Rätta villkoren</Button>
+          : aktuelltProvhinder ? <Button type="button" onClick={() => provhinderRubrik.current?.focus()}>Se vad som stoppade beräkningen</Button>
+            : kanOppnaSparatForslag && !busy ? <Button type="button" onClick={() => valjYta('schema')}><CalendarDaysIcon aria-hidden="true"/>Öppna schemat</Button>
+              : nyttForberedForslag}
+        alternativ={<>
+          <Button type="button" variant="outline" disabled={forberedUpptagen || issues.length > 0} onClick={() => void kontrolleraUnderlag()}>Kontrollera underlaget</Button>
+          <Popover open={forberedBerakningsvalOppet} onOpenChange={setForberedBerakningsvalOppet}>
+            <PopoverTrigger render={<Button type="button" variant="ghost"/>}><SlidersHorizontalIcon aria-hidden="true"/>Beräkningsval</PopoverTrigger>
+            <PopoverContent align="end" className="w-72 max-w-[calc(100vw-2rem)]">
+              <PopoverHeader><PopoverTitle>Beräkningsval</PopoverTitle></PopoverHeader>
+              <label className="grid gap-1.5 text-sm font-medium">Räknetid per omgång
+                <select className="min-h-(--control-height) rounded-md border border-input bg-background px-2" value={solveTimeMs} disabled={busy || checking}
+                  onChange={e => setSolveTimeMs(Number(e.target.value) as SchemaSolveTimeMs)}>
+                  {SCHEMA_SOLVE_TIMES.map(ms => <option key={ms} value={ms}>{ms / 1000} sekunder</option>)}
+                </select>
+              </label>
+              {(kanOppnaSparatForslag || aktuelltProvhinder) && <div className="mt-2 space-y-2">
+                <p className="text-sm text-muted-foreground">Ett nytt förslag räknar om passens placeringar.</p>
+                {!busy && nyttForberedForslag}
+              </div>}
+            </PopoverContent>
+          </Popover>
+        </>}
+        uppgifter={forberedUppgifter}
+        genvagar={{
+          salar: villkor.salregister?.salar.length ? forberedSalar.map(rad => ({ ref: rad.ref, namn: [rad.title, rad.grupp].filter(Boolean).join(' · ') })).sort((a, b) => a.namn.localeCompare(b.namn, 'sv')) : [],
+          larartider: (forutsattningar?.resurser.larare ?? []).map(larare => ({ ref: larare.ref, namn: larare.name })).sort((a, b) => a.namn.localeCompare(b.namn, 'sv', { numeric: true })),
+          aktiviteter: forberedBokningar.map(bokning => ({ ref: bokning.id, namn: [bokning.namn, provNamn(bokning), schemaDateText(bokning.datum), clock(bokning.startMin)].join(' · ') })),
+        }}
+        onOppna={oppnaForbered}/>
       {meddelanden}
     </>}
     </fieldset>
-    {visaForbered && <Omrade id="underlag" titel="Underlag">
+    {visaForbered && <ForberedOmradesval grupp={forberedGrupp} onGrupp={grupp => { setForberedGrupp(grupp); setForberedMal(null); }}/>}
+    {visaForbered && <Omrade id="underlag" titel="Underlag" hidden={doljForbered('underlag')} genomgang={omradesgenomgang('underlag')}>
         <div className="rounded-lg border border-border bg-card p-4 space-y-3" data-underlag={forutsattningar ? 'last' : underlagLas.error ? 'fel' : 'laser'}>
           {underlagLas.error && <div className="flex flex-wrap items-center gap-3"><output>{underlagLas.error}</output><Button type="button" variant="outline" onClick={underlagLas.reload}>Läs underlaget igen</Button></div>}
           {!forutsattningar && !underlagLas.error && <output className="schema-note">{issues.length ? 'Underlaget läses när felen i villkoren är rättade.' : 'Läser underlaget…'}</output>}
@@ -1774,23 +1883,24 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     </Omrade>}
     <fieldset className="contents" disabled={redigeringStoppad}>
     {visaForbered && <>
-      <Omrade id="lektioner" titel="Lektioner och block">
+      <Omrade id="lektioner" titel="Lektioner och block" hidden={doljForbered('lektioner')} genomgang={omradesgenomgang('lektioner')}>
         {forutsattningar && forutsattningar.fordelning.length > 0 ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Antal lektioner per undervisning</summary><Fordelning forslag={forutsattningar} villkor={villkor} kontroll={forslag && !inaktuelltUnderlag ? kontroll : null} disabled={busy || checking} onChange={andraArbetsvillkor}/></details>
           : <p className="empty-state">Undervisningarna visas när underlaget är läst.</p>}
         <Samtidighetsblock villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor}/>
       </Omrade>
-      <Omrade id="salar" titel="Salar">
+      <Omrade id="salar" titel="Salar" hidden={doljForbered('salar')} genomgang={omradesgenomgang('salar')}>
       {!fonster && <Salar villkor={villkor} kalla={forutsattningar} disabled={busy || checking} onChange={andraArbetsvillkor} skola={skolsalar}
+        mal={forberedMal?.omrade === 'salar' ? valtForberedObjekt : null}
         besked={issues.length ? 'Rätta felen i villkoren för att läsa undervisningarna från underlaget.' : underlagLas.error ?? 'Läser undervisningarna från underlaget…'}/>}
       </Omrade>
-      <Omrade id="larartider" titel="Lärartider och fasta tider">
-        <p className="schema-note">Spärrad och tillåten tid och längsta dag per lärare anges i tabellen under fliken Lärare. En lärare utan tidsvillkor räknas som tillgänglig hela skoldagen.</p>
-        {forutsattningar ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Villkor i tabell</summary>
-          <Villkorstabell villkor={villkor} setVillkor={setTabellVillkor} dispatch={dispatch} forslag={forutsattningar} kontroll={forslag && !inaktuelltUnderlag ? kontroll : null} disabled={busy || checking} mal={villkorMal}/></details>
+      <Omrade id="larartider" titel="Lärartider och fasta tider" hidden={doljForbered('larartider')} genomgang={omradesgenomgang('larartider')}>
+        {forutsattningar ? <details open={larartabellOppet} onToggle={e => setLarartabellOppet(e.currentTarget.open)} className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Villkor i tabell</summary>
+          <Villkorstabell villkor={villkor} setVillkor={setTabellVillkor} dispatch={dispatch} forslag={forutsattningar} kontroll={forslag && !inaktuelltUnderlag ? kontroll : null} disabled={busy || checking} mal={larartidsmal}/></details>
           : <p className="empty-state">Lärarna visas när underlaget är läst.</p>}
       </Omrade>
-      <Omrade id="aktiviteter" titel="Aktiviteter och nationella prov">
+      <Omrade id="aktiviteter" titel="Aktiviteter och nationella prov" hidden={doljForbered('aktiviteter')} genomgang={omradesgenomgang('aktiviteter')}>
         {provunderlag?.gallerGymnasiet === false ? <p className="schema-note">Provplanen gäller gymnasieskolan.</p> : <NationellaProv schoolYear={schoolYear} forslag={forutsattningar} document={nationellaProv.document}
+          mal={forberedMal?.omrade === 'aktiviteter' ? valtForberedObjekt : null}
           deltagare={provunderlag?.deltagare ?? []} salar={provunderlag?.salar ?? []} vakter={provunderlag?.vakter ?? []} bokningsfel={provbokningsfel}
           skoldagar={provunderlag?.skoldagar} reading={nationellaProv.reading} saving={nationellaProv.saving} disabled={nationellaProv.readFailed}
           error={nationellaProv.error} onSave={nationellaProv.onSave} onReload={nationellaProv.onReload}/>}
@@ -1915,14 +2025,14 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       </section>
     </>}
     {/* Villkoren ligger på samma plats i båda ytorna, så att dess öppna läge och pågående val finns kvar när ytan byts. */}
-    {!fonster && !visaGranska && <section id={visaForbered ? forberedAnkare('regler') : undefined} aria-labelledby={visaForbered ? `${forberedAnkare('regler')}-rubrik` : undefined} className={visaForbered ? 'space-y-3 scroll-mt-4' : 'contents'} data-omrade={visaForbered ? 'regler' : undefined}>
+    {!fonster && !visaGranska && <section id={visaForbered ? forberedAnkare('regler') : undefined} aria-labelledby={visaForbered ? `${forberedAnkare('regler')}-rubrik` : undefined} className={visaForbered ? 'space-y-3 scroll-mt-20' : 'contents'} data-omrade={visaForbered ? 'regler' : undefined} hidden={visaForbered && doljForbered('regler')}>
       {visaForbered && <div className="section-heading"><h2 id={`${forberedAnkare('regler')}-rubrik`} tabIndex={-1}>Regler och önskemål</h2></div>}
+      {visaForbered && omradesgenomgang('regler')}
       {villkorsform}
     </section>}
     {visaForbered && <>
-      <Omrade id="mal" titel="Mål för schemat">
-        <div className="rounded-lg border border-border bg-card p-4 space-y-2">{forberedPunkter.find(p => p.id === 'mal')!.varden.map(text => <p key={text}>{text}.</p>)}
-          <p className="schema-note">{forberedPunkter.find(p => p.id === 'mal')!.kontroll.join(' ')} Klockslaget för sena pass ändras under Regler och önskemål.</p></div>
+      <Omrade id="mal" titel="Mål för schemat" hidden={doljForbered('mal')} genomgang={omradesgenomgang('mal')}>
+        <p className="schema-note">Klockslaget för sena pass ändras under Regler och önskemål.</p>
       </Omrade>
     </>}
     </fieldset>

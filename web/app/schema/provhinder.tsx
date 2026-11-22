@@ -29,9 +29,10 @@ const PROBLEM: Record<SchemaNyttProvProblem, string> = {
 type Visning = { status: 'laddar' | 'fel' } | { status: 'klar'; forslag: SchemaForslag };
 const dagar = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 
-export function Provhinder({ hinder, request, solveTimeMs, disabled, headingRef, onBookings, onBasis, onSessionLost }: {
+export function Provhinder({ hinder, request, solveTimeMs, disabled, headingRef, onBookings, onBooking, onBasis, onSessionLost }: {
   hinder: SchemaNyttProvHinder; request: SchemaForslagRequest; solveTimeMs: SchemaSolveTimeMs; disabled: boolean;
-  headingRef: Ref<HTMLHeadingElement>; onBookings: () => void; onBasis: () => void; onSessionLost: () => void;
+  headingRef: Ref<HTMLHeadingElement>; onBookings: () => void;
+  onBooking: (ref: string, resurs?: 'sal' | 'provvakt') => void; onBasis: () => void; onSessionLost: () => void;
 }) {
   const [visning, setVisning] = useState<Visning | null>(null);
   const controller = useRef<AbortController | null>(null);
@@ -89,6 +90,11 @@ export function Provhinder({ hinder, request, solveTimeMs, disabled, headingRef,
       {hinder.bokningarMedHinder.map(bokning => <li key={bokning.id} className="space-y-1 px-3 py-2">
         <p className="font-medium">{bokning.namn} · {bokning.deltagarnamn} · <time dateTime={bokning.datum}>{schemaDateText(bokning.datum)}</time></p>
         <ul className="list-disc space-y-1 pl-5 text-sm">{bokning.problem.map(problem => <li key={problem}>{PROBLEM[problem]}</li>)}</ul>
+        <Button type="button" variant="outline" disabled={disabled} onClick={() => {
+          const sal = bokning.problem.some(problem => problem === 'sal_saknas' || problem === 'last_sal_olamplig');
+          const vakt = bokning.problem.some(problem => problem === 'vakt_saknas' || problem.startsWith('last_vakt_'));
+          onBooking(bokning.id, sal ? 'sal' : vakt ? 'provvakt' : undefined);
+        }}>Öppna provbokningen<span className="sr-only"> {bokning.namn} för {bokning.deltagarnamn}</span></Button>
       </li>)}
     </ul>}
     <Dialog open={visning !== null} onOpenChange={open => { if (!open) stang(); }}>

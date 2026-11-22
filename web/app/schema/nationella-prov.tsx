@@ -55,6 +55,7 @@ type Props = {
   vakter?: SchemaResurs[];
   skoldagar?: string[] | null;
   bokningsfel?: ReadonlyMap<string, string>;
+  mal?: { ref: string; nr: number; resurs?: 'sal' | 'provvakt' } | null;
   document: NationellaProvDocument | null;
   reading: boolean;
   saving: boolean;
@@ -66,17 +67,28 @@ type Props = {
 
 /** Läsårets provplan och granskning från Förbered. */
 export function NationellaProv({ schoolYear, baraSparade = false, forslag, deltagare = [], salar = [], vakter = [], skoldagar = null, bokningsfel,
-  document: saved, reading, saving, error, disabled, onSave, onReload }: Props) {
-  const [redigering, setRedigering] = useState<Redigering | null>(null);
+  mal, document: saved, reading, saving, error, disabled, onSave, onReload }: Props) {
+  const [oppetFormular, setOppetFormular] = useState<{ val: Redigering; mal?: NonNullable<Props['mal']> } | null>(null);
+  const [hanteratMal, setHanteratMal] = useState<Props['mal']>(null);
+  const redigering = oppetFormular?.val, redigeringsmal = oppetFormular?.mal;
   const [bort, setBort] = useState<NationellProvbokning | null>(null);
   const laggTill = useRef<HTMLButtonElement>(null);
+  const redigeringsknappar = useRef(new Map<string, HTMLButtonElement>());
   const lasarPlan = saved ?? EMPTY;
   const skrivskydd = disabled || reading || saving || (saved === null && Boolean(error));
   const underlag = { gallerGymnasiet: true, deltagare, salar, vakter, skoldagar };
-  const mal = new Map(deltagare.map(d => [malNyckel(d), d]));
+  const deltagarMal = new Map(deltagare.map(d => [malNyckel(d), d]));
   const undervisningar = new Map([...(forslag?.fordelning ?? []), ...deltagare.flatMap(d => d.undervisningar)].map(t => [t.ref, t.title]));
-  const namnFor = (bokning: NationellProvbokning) => mal.get(malNyckel(bokning.mal))?.name
+  const namnFor = (bokning: NationellProvbokning) => deltagarMal.get(malNyckel(bokning.mal))?.name
     ?? (bokning.mal.slag === 'klass' ? 'Klass saknas i underlaget' : 'Undervisningsgrupp saknas i underlaget');
+  if (mal && (hanteratMal?.nr !== mal.nr || hanteratMal.ref !== mal.ref)
+      && !baraSparade && !skrivskydd && !redigering && !bort && deltagare.length > 0) {
+    const bokning = saved?.bokningar.find(b => b.id === mal.ref);
+    if (bokning) {
+      setHanteratMal(mal);
+      setOppetFormular({ val: bokning, mal });
+    }
+  }
   const bokningar = lasarPlan.bokningar.toSorted((a, b) => a.datum.localeCompare(b.datum) || a.startMin - b.startMin
     || a.namn.localeCompare(b.namn, 'sv') || namnFor(a).localeCompare(namnFor(b), 'sv'));
   const lasfel = Boolean(disabled && error);
@@ -101,7 +113,7 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
           <ProvdatumLank/>
         </>}
       </div>
-      {!baraSparade && <Button ref={laggTill} type="button" className={CONTROL} disabled={skrivskydd || deltagare.length === 0 || bokningar.length >= 200} onClick={() => setRedigering('ny')}>
+      {!baraSparade && <Button ref={laggTill} type="button" className={CONTROL} disabled={skrivskydd || deltagare.length === 0 || bokningar.length >= 200} onClick={() => setOppetFormular({ val: 'ny' })}>
         <PlusIcon aria-hidden="true"/> Planera prov
       </Button>}
     </div>
@@ -134,7 +146,9 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
             <TableCell>{visaDatum(b.kontrolleradDatum)}</TableCell>
             <TableCell>
               <div className="flex flex-wrap gap-1">
-                <Button type="button" variant="outline" className={CONTROL} disabled={skrivskydd || deltagare.length === 0} aria-label={`Ändra ${b.namn} för ${namnFor(b)}`} onClick={() => setRedigering(b)}>Ändra</Button>
+                <Button type="button" variant="outline" className={CONTROL} disabled={skrivskydd || deltagare.length === 0} aria-label={`Ändra ${b.namn} för ${namnFor(b)}`}
+                  ref={knapp => { if (knapp) redigeringsknappar.current.set(b.id, knapp); else redigeringsknappar.current.delete(b.id); }}
+                  onClick={() => setOppetFormular({ val: b })}>Ändra</Button>
                 <Button type="button" variant="ghost" className={CONTROL} disabled={skrivskydd} aria-label={`Ta bort ${b.namn} för ${namnFor(b)}`} onClick={() => setBort(b)}>Ta bort</Button>
               </div>
             </TableCell>
@@ -154,9 +168,10 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
       </Button>
     </div>
     {redigering && <Provform schoolYear={schoolYear} redigering={redigering} underlag={underlag} bokningar={bokningar}
-      disabled={disabled} saving={saving} reading={reading} error={error} onReload={onReload} onClose={() => setRedigering(null)} onSave={async nya => {
+      resursfokus={redigeringsmal?.resurs} aterfokus={redigeringsmal ? () => redigeringsknappar.current.get(redigeringsmal.ref) ?? true : undefined}
+      disabled={disabled} saving={saving} reading={reading} error={error} onReload={onReload} onClose={() => setOppetFormular(null)} onSave={async nya => {
         const plan = redigering === 'ny' ? [...lasarPlan.bokningar, ...nya] : lasarPlan.bokningar.map(b => b.id === redigering.id ? nya[0] : b);
-        if (await uppdatera(plan)) setRedigering(null);
+        if (await uppdatera(plan)) setOppetFormular(null);
       }}/>}
     <AlertDialog open={bort !== null} onOpenChange={open => { if (!open && !saving) setBort(null); }}>
       <AlertDialogContent finalFocus={() => laggTill.current?.disabled ? true : laggTill.current}>
@@ -185,6 +200,8 @@ type FormProps = {
   redigering: Redigering;
   underlag: NationellaProvUnderlag;
   bokningar: NationellProvbokning[];
+  resursfokus?: 'sal' | 'provvakt';
+  aterfokus?: () => HTMLElement | true;
   disabled?: boolean;
   saving: boolean;
   reading: boolean;
@@ -194,7 +211,7 @@ type FormProps = {
   onSave: (bokningar: NationellProvbokning[]) => Promise<void>;
 };
 
-function Provform({ schoolYear, redigering, underlag, bokningar, disabled, saving, reading, error, onReload, onClose, onSave }: FormProps) {
+function Provform({ schoolYear, redigering, underlag, bokningar, resursfokus, aterfokus, disabled, saving, reading, error, onReload, onClose, onSave }: FormProps) {
   const bokning = redigering === 'ny' ? null : redigering;
   const { deltagare, vakter, salar } = underlag;
   const [tidsval, setTidsval] = useState<NationellProvbokning['tidsval']>(bokning?.tidsval ?? 'fast');
@@ -207,6 +224,7 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
   const [forsokt, setForsokt] = useState(false);
   const id = useId();
   const sparaFel = useRef<HTMLParagraphElement>(null);
+  const formular = useRef<HTMLFormElement>(null);
   const ids = useRef(new Map<string, string>());
   useEffect(() => {
     if (forsokt && error && !saving && !reading) sparaFel.current?.focus();
@@ -277,12 +295,14 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
   }
 
   return <Dialog open onOpenChange={open => { if (!open && !saving) onClose(); }}>
-    <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl" showCloseButton={!saving}>
+    <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-3xl" showCloseButton={!saving}
+      initialFocus={resursfokus ? () => formular.current?.querySelector<HTMLElement>(`[data-prov-resurs="${resursfokus}"]`) ?? true : undefined}
+      finalFocus={aterfokus}>
       <DialogHeader>
         <DialogTitle>{bokning ? 'Ändra provbokning' : 'Planera nationellt prov'}</DialogTitle>
         <DialogDescription>Kontrollera provdatum och tider för läsår {lasarsDatum(schoolYear)} innan du sparar.</DialogDescription>
       </DialogHeader>
-      <form className="grid min-w-0 gap-4" onSubmit={submit}>
+      <form ref={formular} className="grid min-w-0 gap-4" onSubmit={submit}>
         <fieldset className="grid min-w-0 gap-3" disabled={saving || reading}>
           <legend className="sr-only">Provuppgifter</legend>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -335,7 +355,8 @@ function Provform({ schoolYear, redigering, underlag, bokningar, disabled, savin
               </Field>;
             })}
           </fieldset>
-          <Provresursfalt sparat={bokning} salar={salar} vakter={vakter} valdaVakter={provvakter} disabled={saving || reading} onVakt={(ref, checked) => {
+          <Provresursfalt sparat={bokning} salar={salar} vakter={vakter} valdaVakter={provvakter} disabled={saving || reading}
+            fokus={resursfokus} onVakt={(ref, checked) => {
             setProvvakter(old => checked ? [...old, ref] : old.filter(val => val !== ref));
           }}/>
           {antal > 1 && <p className="text-sm text-muted-foreground">Tid och låsta resurser gäller alla {antal} bokningar. Du kan ändra varje bokning för sig.</p>}

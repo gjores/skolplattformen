@@ -18,16 +18,22 @@ Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan
 
 Förbered visas först när skolan inte har något schemaförslag för läsåret. Skolans klasser, grupper, ämnen, lärare och undervisningar läses från tjänstefördelningen, timplanerna, läsårskalendern och elevgrupperna. Inget schema räknas fram när du öppnar ytan.
 
-Om underlaget till ett sparat förslag har ändrats visar **Förbered** skolans aktuella underlag. Välj **Ta fram nytt förslag från aktuellt underlag** när du vill räkna om placeringarna.
+Överst visas vilka källor som används, vad som har prövats och vad som behöver åtgärdas. Välj en åtgärd för att öppna den berörda delen. **Kontrollera underlaget** söker hinder utan att lägga ett schema.
 
-Överst står **Nästa uppgift**. Den pekar på det första området där en uppgift saknas, och annars på det första området som ingen har gått igenom. Du väljer själv ordning; inget område är låst.
+Använd **Gå direkt till** när du vet vilken uppgift du vill ändra:
 
-Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**. Villkoren går att ändra under tiden.
+- Välj undervisning och **Öppna salbehov** för att öppna dess formulär.
+- Välj lärare och **Öppna lärartid** för att öppna lärarens spärrade tider. Du kan även redigera tillåten tid och längsta dag i villkorstabellen.
+- Välj en sparad bokning och **Öppna provbokning** för att öppna just den bokningen. Nya bokningar görs i **Prov och aktiviteter**.
+
+Välj **Öppna schemat** när ett aktuellt förslag redan finns. Under **Beräkningsval** kan du ändra räknetid eller ta fram ett nytt förslag. När underlaget till ett sparat förslag har ändrats visar Förbered aktuellt underlag och **Ta fram schemaförslag**. Ett nytt förslag räknar om placeringarna.
+
+Kan underlaget inte läsas visas orsaken och en knapp för att läsa det igen under **Underlag**. Villkoren går att ändra under tiden.
 
 ## Arbeta i Lägg schema
 
 - Välj **Vecka**, **Pass i tabell**, **Samlingsvy** eller **Villkor i tabell**. I veckan söker du i **Visa schema för** efter en klass, undervisningsgrupp, lärare, sal eller ett ämne. Med **Grundschema**, **Vecka** eller **Datumintervall** styr du vilka datum som visas. En sal visar de pass som är bokade där i den valda perioden.
-- I **Villkor i tabell** visas ikryssade rader överst i sökresultatet. Kryssa ur en rad för att lägga tillbaka den bland de övriga i tabellens sorteringsordning. Samma tabell finns under **Lärartider och fasta tider** i **Förbered**.
+- I **Villkor i tabell** visas ikryssade rader överst i sökresultatet. Kryssa ur en rad för att lägga tillbaka den bland de övriga i tabellens sorteringsordning. Samma tabell finns under **Lärartider och regler** i **Förbered**.
 - I **Grundschema** för hela läsåret kan du välja **Jämför HT och VT**. Varje veckodag visar hösten och våren bredvid varandra. Gemensamma pass visas på båda sidor med respektive termins passlängd. Välj ett pass för att öppna passpanelen i rätt termin.
 - Öppna **Beräkning** för att ändra räknetid, fortsätta förbättra schemat eller ta fram ett nytt förslag.
 - Välj **Till kontrollerna** för att gå till regelavvikelser, undervisningstid, datumändringar och övrigt underlag längre ner på sidan. Där finns också **Tilldela salar och behåll tiderna** när pass behöver sal.
@@ -42,19 +48,16 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 
 Resursjämförelsen utgår från de bokningar som finns i utkastet. Använd den ordinarie schemakontrollen för att pröva resursernas villkor och elevöverlapp.
 
-## Checklistan
+## Arbetsområdena i Förbered
 
-Checklistan har sju punkter. Varje punkt visar de aktuella värdena, vad appen har kontrollerat och en knapp som tar dig till området.
+Välj ett område för att visa dess innehåll. Du kan byta område i valfri ordning i samma utkast.
 
-| Punkt | Här anger eller ser du |
+| Område | Här anger eller ser du |
 | --- | --- |
 | Underlag | Tjänstefördelningens version, läsårskalendern, antal undervisningar och undervisningar utan lärare. |
-| Lektioner och block | Antal lektioner per undervisning, passlängder och samtidighetsblock från valmodulerna. |
-| Salar | Salregistret och varje undervisnings salbehov. |
-| Lärartider och fasta tider | Spärrad och tillåten tid per lärare, längsta dag, låsta pass och aktiviteter med fast tid. |
-| Aktiviteter och nationella prov | Provplanen för läsåret och skolans återkommande aktiviteter, till exempel mentorstid. |
-| Regler och önskemål | Skoldag, lunch, raster, spärrar och marginaler. |
-| Mål för schemat | Vad schemamotorn väger: elevernas och lärarnas håltid, sena pass och samma ämne samma dag. |
+| Pass och salar | Lektionsantal, passlängder, samtidighetsblock, salregister och varje undervisnings salbehov. |
+| Lärartider och regler | Lärarnas tider, längsta dag, låsta pass, skoldag, lunch, raster, spärrar, marginaler och mål. |
+| Prov och aktiviteter | Provplanen för läsåret och skolans återkommande aktiviteter, till exempel mentorstid. |
 
 Kryssa i **Genomgånget** när du har gått igenom ett område. Bocken är ditt eget ställningstagande. Appens kontroll bockar aldrig av något.
 
@@ -67,7 +70,7 @@ Kryssa i **Genomgånget** när du har gått igenom ett område. Bocken är ditt 
 
 Salregistret hör till skolenheten och gäller i alla schemautkast för skolan. Rektor och administratör med uppdrag för skolenheten ändrar det här. Huvudmannen har samma behörighet men ännu ingen egen vy för salregistret. En ändring sparas direkt för hela skolan och ingår inte i **Ångra**.
 
-1. Gå till området **Salar** och välj **Lägg till sal**.
+1. Välj **Pass och salar → Salar**, och sedan **Lägg till sal**.
 2. Ange salens namn, saltyp, antal platser och utrustning. Skilj utrustning med kommatecken.
 3. Välj **Lägg till salen**.
 
@@ -140,18 +143,11 @@ Blocket visar sin status:
 - Två pass ur samma undervisning kan inte ingå i samma block.
 - Samma slut för passen går inte att välja.
 
-## Förutsättningar just nu
+## Kontroll och schemaförslag
 
-Kortet svarar på fyra frågor, var för sig:
+**Kontrollera underlaget** söker hinder utan att lägga ett schema. Du ser resultatet överst och eventuella fynd under **Kontroll före beräkning**. Förutsättningarna behöver fortfarande prövas när ett förslag räknas fram.
 
-1. **Finns uppgifterna?** Vad som saknas. En saknad uppgift räknas inte som fritt utrymme.
-2. **Hur stort är utrymmet?** Kända hinder, till exempel undervisningar utan lämplig sal. Antal möjliga tider och salar räknas inte före ett förslag.
-3. **Vad har prövats?** Inte prövat, kontrollerat eller förslag beräknat.
-4. **Hur bra blev kandidaten?** Tid, sal, kapacitet och håltid efter ett förslag.
-
-**Kontrollera underlaget** söker hinder utan att lägga något schema. Kontrollen bevisar inte att hela schemat går att lägga.
-
-**Ta fram schemaförslag** räknar fram ett förslag och tar dig till Lägg schema. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt: det som saknas läggs utan sal eller lärare och redovisas som lucka.
+**Ta fram schemaförslag** tar dig till Lägg schema när beräkningen är klar. Saknas uppgifter visas de under **Att åtgärda**. Förslaget kan då innehålla pass utan sal eller lärare. I Lägg schema ser du vilka uppgifter som återstår och kan gå till **Granska**.
 
 I **Följ passet** visar lärarraden namn och roll. För valbara block väljer du **Visa ämnen i blocket** för att läsa hela ämneslistan. Fulla passnamn finns också på passknapparna.
 
@@ -159,7 +155,7 @@ Sök på raden **Visas** efter en klass, undervisningsgrupp, lärare eller sal. 
 
 ### Räknetid och fortsatt förbättring
 
-Välj **Räknetid per omgång**: 10, 30 eller 60 sekunder. Förvalet är 30 sekunder. En längre omgång ger motorn mer tid att söka, men garanterar inte att alla pass får plats.
+Välj **Räknetid per omgång** under **Beräkningsval** i Förbered eller **Beräkning** i Lägg schema. Du kan välja 10, 30 eller 60 sekunder. Förvalet är 30 sekunder. En längre omgång ger motorn mer tid att söka.
 
 Beräkningsläget visar vilket steg motorn är i och hur mycket av den valda räknetiden som har gått. Miniveckan illustrerar sökningen. Välj **Avbryt beräkningen** eller tryck Esc medan motorn räknar eller kontrollerar resultatet. Ditt sparade utkast finns kvar. När **Sparar schema och nationella prov** visas väntar appen på serverns kvitto.
 

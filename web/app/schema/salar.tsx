@@ -1,6 +1,6 @@
 'use client';
 // Salar (05.2-SM-UXF-22): salregister och salbehov enligt designvyn Salar. Formuläret och tabellen läser och skriver samma `villkor.salbehov`.
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -13,16 +13,27 @@ import { overforingTillSkolan } from '@/lib/skolsalar.ts';
 import type { Skolsalar } from './use-skolsalar.ts';
 
 export type SalarProps = { villkor: SchemaVillkor; /** Förslaget eller underlaget före första förslaget; `null` medan underlaget läses. */ kalla: SchemaForslag | null;
-  disabled: boolean; besked?: string; onChange: (next: SchemaVillkor, text: string) => void;
+  disabled: boolean; besked?: string; mal?: { ref: string; nr: number } | null; onChange: (next: SchemaVillkor, text: string) => void;
   /** Skolans salregister (05.2-SM-UXF-23). Saknas i anslutna fönster; där gäller utkastets villkor som förut. */ skola?: Skolsalar };
 const FALT = 'rounded-md border border-input bg-background p-2 min-h-(--control-height) w-full';
 const KRYSS = 'schema-val';
 const lika = (a: string, b: string) => a.toLocaleLowerCase('sv') === b.toLocaleLowerCase('sv');
 
-export function Salar({ villkor: v, kalla, disabled, besked, onChange, skola }: SalarProps) {
+export function Salar({ villkor: v, kalla, disabled, besked, mal, onChange, skola }: SalarProps) {
   const rubrik = useId(), [vy, setVy] = useState<'formular' | 'tabell'>('formular'), [vald, setVald] = useState('');
+  const [fokus, setFokus] = useState(0), [hanteratMal, setHanteratMal] = useState<SalarProps['mal']>(null);
   const register = v.salregister ?? null, iSkolan = register?.kalla === 'skola';
   const rader = useMemo(() => kalla ? saltabellRader(kalla, v) : [], [kalla, v]);
+  function oppnaSalbehov(ref: string) {
+    setVald(ref);
+    setVy('formular');
+    setFokus(n => n + 1);
+  }
+  if (mal && (hanteratMal?.nr !== mal.nr || hanteratMal.ref !== mal.ref)
+      && !disabled && register?.salar.length && rader.some(rad => rad.ref === mal.ref)) {
+    setHanteratMal(mal);
+    oppnaSalbehov(mal.ref);
+  }
   const obesvarade = rader.filter(r => r.behov === null).length, hinder = rader.filter(r => r.hinder);
   const okandaPlatser = register?.salar.filter(s => s.platser === null).length ?? 0;
   return <section className="rounded-lg border border-border bg-card p-4 space-y-4 min-w-0" aria-labelledby={rubrik} data-salar>
@@ -49,18 +60,19 @@ export function Salar({ villkor: v, kalla, disabled, besked, onChange, skola }: 
         <h3 className="font-semibold">Salbehov per undervisning</h3>
         <fieldset className="flex gap-2"><legend className="sr-only">Visa salbehov som</legend>
           <Button type="button" variant={vy === 'formular' ? 'secondary' : 'outline'} aria-pressed={vy === 'formular'} onClick={() => setVy('formular')}>Formulär</Button>
-          <Button type="button" variant={vy === 'tabell' ? 'secondary' : 'outline'} aria-pressed={vy === 'tabell'} onClick={() => setVy('tabell')}>Tabell</Button>
+          <Button type="button" variant={vy === 'tabell' ? 'secondary' : 'outline'} aria-pressed={vy === 'tabell'} onClick={() => { setFokus(0); setVy('tabell'); }}>Tabell</Button>
         </fieldset>
       </div>
       {!kalla ? <p className="empty-state">{besked ?? 'Undervisningarna visas när underlaget är läst.'}</p>
         : rader.length === 0 ? <p className="empty-state">Underlaget har inga undervisningar att ange salbehov för.</p>
-        : vy === 'formular' ? <Salbehov key={vald || rader[0].ref} v={v} register={register} rader={rader} vald={vald || rader[0].ref} onVald={setVald} disabled={disabled} onChange={onChange}/>
-        : <Saltabell villkor={v} rader={rader} disabled={disabled} onChange={onChange} onOppna={ref => { setVald(ref); setVy('formular'); }}/>}
+        : vy === 'formular' ? <Salbehov key={vald || rader[0].ref} v={v} register={register} rader={rader} vald={vald || rader[0].ref} fokus={fokus}
+          onVald={ref => { setFokus(0); setVald(ref); }} disabled={disabled} onChange={onChange}/>
+        : <Saltabell villkor={v} rader={rader} disabled={disabled} onChange={onChange} onOppna={oppnaSalbehov}/>}
       {hinder.length > 0 && <div className="rounded-md border border-border p-3 space-y-2" style={{ background: 'var(--warning-surface)' }} data-salhinder>
         <h3 className="font-semibold">Hinder</h3>
         <ul className="grid gap-2">{hinder.map(r => <li key={r.ref} className="flex flex-wrap items-center justify-between gap-2">
           <span><strong>{r.title} · {r.grupp}</strong> har ingen sal som uppfyller alla krav. {r.hinder}</span>
-          <Button type="button" variant="outline" onClick={() => { setVald(r.ref); setVy('formular'); }}>Öppna salbehovet</Button></li>)}</ul>
+          <Button type="button" variant="outline" onClick={() => oppnaSalbehov(r.ref)}>Öppna salbehovet</Button></li>)}</ul>
       </div>}
     </>}
   </section>;
@@ -151,8 +163,12 @@ const LAGEN: { lage: Lage; namn: string; text: string }[] = [
   { lage: 'ingen', namn: salbehovLageNamn.ingen, text: 'Ange undervisningsform, till exempel utomhus eller på arbetsplats.' }];
 
 /** Salbehov för en undervisning eller för hela ämnet. Inget ändras förrän Spara salbehov; Avbryt återställer formuläret. */
-function Salbehov({ v, register, rader, vald, onVald, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onChange'> & { v: SchemaVillkor; register: SchemaSalregister; rader: SaltabellRad[]; vald: string; onVald: (ref: string) => void }) {
+function Salbehov({ v, register, rader, vald, fokus, onVald, disabled, onChange }: Pick<SalarProps, 'disabled' | 'onChange'> & {
+  v: SchemaVillkor; register: SchemaSalregister; rader: SaltabellRad[]; vald: string; fokus: number; onVald: (ref: string) => void;
+}) {
   const namn = useId(), rad = rader.find(r => r.ref === vald) ?? rader[0];
+  const fokusfalt = useRef<HTMLInputElement>(null);
+  useEffect(() => { if (fokus) fokusfalt.current?.focus(); }, [fokus]);
   const amnets = v.salbehov?.find(b => b.slag === 'amne' && b.ref === rad.title) ?? null, eget = v.salbehov?.find(b => b.slag === 'undervisning' && b.ref === rad.ref) ?? null;
   const [galler, setGaller] = useState<'undervisning' | 'amne'>(eget || !amnets ? 'undervisning' : 'amne');
   const sparat: Varde | null = (galler === 'amne' ? amnets : eget ?? null) && (({ slag: _s, ref: _r, ...rest }) => rest)((galler === 'amne' ? amnets : eget)!);
@@ -180,7 +196,9 @@ function Salbehov({ v, register, rader, vald, onVald, disabled, onChange }: Pick
       <label className={KRYSS}><input type="radio" name={`${namn}-galler`} checked={galler === 'amne'} onChange={() => bytGaller('amne')}/>Ämnet {rad.title}: {medSammaAmne} {medSammaAmne === 1 ? 'undervisning' : 'undervisningar'} utan eget undantag ärver värdet</label>
     </fieldset>
     <fieldset className="grid gap-1" disabled={disabled}><legend className="text-sm font-medium">Behöver undervisningen sal?</legend>
-      {LAGEN.map(l => <div key={l.lage}><label className={`${KRYSS} font-semibold`}><input type="radio" name={`${namn}-lage`} aria-describedby={`${namn}-${l.lage}`} checked={utkast.lage === l.lage} onChange={() => setUtkast({ ...utkast, lage: l.lage })}/>{l.namn}</label>
+      {LAGEN.map(l => <div key={l.lage}><label className={`${KRYSS} font-semibold`}><input type="radio" name={`${namn}-lage`} aria-describedby={`${namn}-${l.lage}`}
+        ref={utkast.lage === l.lage ? fokusfalt : undefined}
+        checked={utkast.lage === l.lage} onChange={() => setUtkast({ ...utkast, lage: l.lage })}/>{l.namn}</label>
         <p id={`${namn}-${l.lage}`} className="schema-note pl-6">{l.text}</p></div>)}
     </fieldset>
     {utkast.lage === 'sarskild' && <fieldset className="grid gap-3" disabled={disabled}><legend className="text-sm font-medium">Krav som alla måste uppfyllas</legend>

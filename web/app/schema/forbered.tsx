@@ -1,10 +1,8 @@
 'use client';
-// Förbered-ytan (05.2-SM-UXF-31, designvyerna Forbered och Forutsattningar): ytval, nästa uppgift, checklista med sju punkter och kortet
-// Förutsättningar just nu. Människans genomgång sparas i webbläsaren (antagande A9); maskinens kontroll bockar aldrig av något.
 import { useId, useState, type ReactNode } from 'react';
-import { CalendarDaysIcon, ClipboardListIcon, ListChecksIcon } from 'lucide-react';
+import { ArrowUpRightIcon, CalendarDaysIcon, ClipboardListIcon, Clock3Icon, DoorOpenIcon, LayersIcon, ListChecksIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { genomgangsStatus, nastaUppgift, parseGenomgang, type ForberedOmrade, type ForberedPunkt, type Genomgang } from '@/lib/schema-forbered.ts';
+import { genomgangsStatus, parseGenomgang, type ForberedOmrade, type ForberedPunkt, type Genomgang } from '@/lib/schema-forbered.ts';
 
 export type SchemaYta = 'forbered' | 'schema' | 'granska';
 const ytaKey = (unitId: string, schoolYear: number) => `schema-yta:${unitId}:${schoolYear}`;
@@ -36,84 +34,132 @@ export const forberedAnkare = (id: ForberedOmrade) => `forbered-${id}`;
 /** Går till området och sätter fokus på dess rubrik, så att tangentbord och skärmläsare följer med. */
 export function oppnaOmrade(id: ForberedOmrade) {
   const el = document.getElementById(forberedAnkare(id));
-  el?.scrollIntoView({ block: 'start' }); el?.querySelector<HTMLElement>('h2')?.focus();
+  el?.scrollIntoView({ block: 'start' }); el?.querySelector<HTMLElement>('h2')?.focus({ preventScroll: true });
 }
+
+export const FORBERED_GRUPPER = [
+  { id: 'underlag', namn: 'Underlag', ikon: LayersIcon, omraden: ['underlag'] },
+  { id: 'pass', namn: 'Pass och salar', ikon: DoorOpenIcon, omraden: ['lektioner', 'salar'] },
+  { id: 'tider', namn: 'Lärartider och regler', ikon: Clock3Icon, omraden: ['larartider', 'regler', 'mal'] },
+  { id: 'prov', namn: 'Prov och aktiviteter', ikon: ClipboardListIcon, omraden: ['aktiviteter'] },
+] as const;
+
+export type ForberedGrupp = typeof FORBERED_GRUPPER[number]['id'];
+export type ForberedMal = { omrade: ForberedOmrade; ref?: string; resurs?: 'sal' | 'provvakt' };
+export type ForberedAtgard = { mal: ForberedMal; text: string; knapp: string; detalj?: string };
+type Val = { ref: string; namn: string };
+type Genvagsval = Record<'salar' | 'larartider' | 'aktiviteter', readonly Val[]>;
+const GENVAR = [
+  { omrade: 'salar', namn: 'Salbehov', etikett: 'Undervisning för salbehov', knapp: 'Öppna salbehov', tomt: 'Inga undervisningar att välja' },
+  { omrade: 'larartider', namn: 'Lärartid', etikett: 'Lärare för lärartid', knapp: 'Öppna lärartid', tomt: 'Inga lärare att välja' },
+  { omrade: 'aktiviteter', namn: 'Provbokning', etikett: 'Provbokning att öppna', knapp: 'Öppna provbokning', tomt: 'Inga provbokningar att välja' },
+] as const;
+
+export function gruppForOmrade(omrade: ForberedOmrade): ForberedGrupp {
+  return FORBERED_GRUPPER.find(g => g.omraden.some(id => id === omrade))!.id;
+}
+
+export function ForberedOmradesval({ grupp, onGrupp }: { grupp: ForberedGrupp; onGrupp: (grupp: ForberedGrupp) => void }) {
+  return <nav aria-label="Förbered arbetsområden" className="flex flex-wrap gap-2 rounded-lg border border-border bg-card p-2">
+    {FORBERED_GRUPPER.map(({ id, namn, ikon: Ikon }) =>
+      <Button key={id} type="button" variant={grupp === id ? 'secondary' : 'ghost'}
+        className={grupp === id ? 'border-primary/30 text-primary' : 'text-muted-foreground'}
+        aria-current={grupp === id ? 'page' : undefined} onClick={() => onGrupp(id)}>
+        <Ikon aria-hidden="true"/>{namn}
+      </Button>)}
+  </nav>;
+}
+
+export function ForberedOversikt({ kalla, kontroll, primar, alternativ, uppgifter, genvagar, onOppna }: {
+  kalla: string; kontroll: string; primar: ReactNode; alternativ: ReactNode;
+  uppgifter: readonly ForberedAtgard[]; genvagar: Genvagsval; onOppna: (mal: ForberedMal) => void;
+}) {
+  const [val, setVal] = useState<Partial<Record<keyof Genvagsval, string>>>({});
+  const rubrik = useId();
+  const visaUppgifter = (rader: readonly ForberedAtgard[]) => <ul className="divide-y divide-border">
+    {rader.map(({ mal, text, detalj, knapp }) => <li key={JSON.stringify([mal, text])} className="flex min-w-0 flex-wrap items-center justify-between gap-2 py-2">
+      <div className="min-w-0 flex-1 basis-56">
+        <p className="font-medium">{text}</p>
+        {detalj && <p className="text-sm text-muted-foreground">{detalj}</p>}
+      </div>
+      <Button type="button" variant="ghost" className="text-primary" onClick={() => onOppna(mal)}>{knapp}<ArrowUpRightIcon aria-hidden="true"/></Button>
+    </li>)}
+  </ul>;
+
+  return <div className="space-y-3">
+    <section aria-labelledby={rubrik} className="overflow-hidden rounded-lg border border-border bg-card">
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border bg-secondary/50 px-4 py-4 lg:px-5">
+        <div className="min-w-0 flex-1 basis-72 space-y-1">
+          <h2 id={rubrik} className="text-xl font-semibold tracking-tight">Förbered schemat</h2>
+          <p className="text-sm text-muted-foreground">{kalla}</p>
+          <output className="block text-sm font-medium">{kontroll}</output>
+        </div>
+        <div className="flex flex-wrap items-start gap-2">{primar}{alternativ}</div>
+      </div>
+      <div className="px-4 py-3 lg:px-5">
+        <div className="flex items-center gap-2">
+          <h3 className="font-semibold">Att åtgärda</h3>
+          {uppgifter.length > 0 && <span className="status-badge warning">{uppgifter.length}</span>}
+        </div>
+        {uppgifter.length ? visaUppgifter(uppgifter.slice(0, 3)) : <p className="mt-1 text-sm text-muted-foreground">Inga åtgärder hittades i de uppgifter som har lästs.</p>}
+        {uppgifter.length > 3 && <details className="pt-1 text-sm">
+          <summary className="w-fit cursor-pointer rounded-sm py-2 font-medium text-primary">Visa ytterligare {uppgifter.length - 3}</summary>
+          {visaUppgifter(uppgifter.slice(3))}
+        </details>}
+      </div>
+    </section>
+
+    <section aria-label="Gå direkt till" className="min-w-0 rounded-lg border border-border bg-card">
+      <h3 className="border-b border-border px-4 py-2.5 font-semibold lg:px-5">Gå direkt till</h3>
+      <div className="grid gap-3 p-4 md:grid-cols-3 lg:px-5">
+        {GENVAR.map(({ omrade, namn, etikett, knapp, tomt }) => {
+          const alternativ = genvagar[omrade];
+          const aktuell = alternativ.some(x => x.ref === val[omrade]) ? val[omrade]! : '';
+          const id = rubrik + '-' + omrade;
+          return <form key={omrade} className="grid min-w-0 gap-2" onSubmit={e => { e.preventDefault(); if (aktuell) onOppna({ omrade, ref: aktuell }); }}>
+            <label htmlFor={id} className="text-sm font-medium">{namn}</label>
+            <div className="flex min-w-0 flex-wrap gap-1.5">
+              <select id={id} aria-label={etikett} disabled={!alternativ.length}
+                className="min-h-(--control-height) min-w-0 flex-[1_1_9rem] rounded-md border border-input bg-background px-2 text-sm"
+                value={aktuell} onChange={e => setVal(state => ({ ...state, [omrade]: e.target.value }))}>
+                <option value="">{alternativ.length ? 'Välj …' : tomt}</option>
+                {alternativ.map(x => <option key={x.ref} value={x.ref}>{x.namn}</option>)}
+              </select>
+              <Button type="submit" variant="outline" disabled={!aktuell} className="h-auto min-h-11 whitespace-normal">{knapp}</Button>
+            </div>
+          </form>;
+        })}
+      </div>
+    </section>
+  </div>;
+}
+
 const datum = (iso: string) => new Date(iso).toLocaleDateString('sv-SE', { day: 'numeric', month: 'short' });
-const STATUS = { aterstar: { text: 'Återstår', ton: '' }, genomgangen: { text: 'Genomgånget', ton: 'success' }, andrat: { text: 'Ändrat sedan genomgången', ton: 'warning' } } as const;
 
-export function ForberedOversikt({ punkter, genomgang, disabled, onGenomgang }: { punkter: ForberedPunkt[]; genomgang: Genomgang; disabled: boolean; onGenomgang: (id: ForberedOmrade, avtryck: string | null) => void }) {
-  const rubrik = useId(), nasta = nastaUppgift(punkter, genomgang), klara = punkter.filter(p => genomgangsStatus(p, genomgang) === 'genomgangen').length;
-  return <>
-    <div>
-      <div className="section-heading"><h2>Förutsättningar för schemat</h2></div>
-      <p>Det som redan finns i timplan, kalender och tjänstefördelning är hämtat. Komplettera det som saknas i valfri ordning; du kan lämna och komma tillbaka.</p>
+export function Omradesgenomgang({ punkt, genomgang, disabled, onGenomgang }: {
+  punkt: ForberedPunkt; genomgang: Genomgang; disabled: boolean; onGenomgang: (id: ForberedOmrade, avtryck: string | null) => void;
+}) {
+  const status = genomgangsStatus(punkt, genomgang);
+  const reviewed = genomgang[punkt.id];
+  return <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-card px-3 py-2 text-sm"
+    data-punkt={punkt.id} data-status={status}>
+    <div className="min-w-0 space-y-1">
+      <p>{punkt.varden.join(' · ')}</p>
+      <p className="text-muted-foreground">{punkt.kontroll.join(' ')}</p>
     </div>
-    <section aria-label="Nästa uppgift" className="rounded-lg border border-border p-4 space-y-2" style={{ background: 'var(--info-surface)' }} data-nasta={nasta?.omrade ?? 'klart'}>
-      {nasta ? <>
-        <h3 className="font-semibold">Nästa uppgift: {nasta.text.charAt(0).toLocaleLowerCase('sv') + nasta.text.slice(1)}</h3>
-        <p>{nasta.skal} Övriga områden kan ändras under tiden.</p>
-        <Button type="button" onClick={() => oppnaOmrade(nasta.omrade)}>{nasta.atgard === 'Visa' ? `Visa ${punkter.find(p => p.id === nasta.omrade)!.titel.toLocaleLowerCase('sv')}` : nasta.atgard}</Button>
-      </> : <><h3 className="font-semibold">Alla områden är genomgångna</h3><p>Inga kända luckor finns i de uppgifter appen kan kontrollera. Det säger inget om att schemat går att lägga; det visar först ett förslag.</p></>}
-    </section>
-    <section aria-labelledby={rubrik} className="rounded-lg border border-border bg-card p-4 space-y-3" data-checklista>
-      <div className="flex flex-wrap items-baseline justify-between gap-2"><h3 id={rubrik} className="font-semibold">Checklista</h3><span data-klara>{klara} av {punkter.length} genomgångna</span></div>
-      <p className="schema-note">En bock betyder att en person har gått igenom området. Maskinens kontroll står under och bockar inte av något. Genomgången sparas i den här webbläsaren.</p>
-      <ul className="divide-y divide-border">{punkter.map(p => {
-        const status = genomgangsStatus(p, genomgang), g = genomgang[p.id];
-        return <li key={p.id} className="grid gap-2 py-3 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-start" data-punkt={p.id} data-status={status}>
-          <div className="space-y-1 min-w-0">
-            <p className="flex flex-wrap items-center gap-2"><strong>{p.titel}</strong><span className={`status-badge ${STATUS[status].ton}`}>{STATUS[status].text}{status === 'genomgangen' && g ? ` ${datum(g.at)}` : ''}</span></p>
-            <p>{p.varden.join(' · ')}</p>
-            <p className="schema-note">Kontroll: {p.kontroll.join(' ')}</p>
-            {status === 'andrat' && <p className="schema-note">Innehållet har ändrats sedan {g ? datum(g.at) : 'genomgången'}. Gå igenom området igen och bocka av det.</p>}
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="schema-val"><input type="checkbox" disabled={disabled} checked={status === 'genomgangen'} onChange={e => onGenomgang(p.id, e.target.checked ? p.avtryck : null)}/>Genomgånget<span className="sr-only">: {p.titel}</span></label>
-            <Button type="button" variant="outline" aria-label={`${p.atgard}: ${p.titel}`} onClick={() => oppnaOmrade(p.id)}>{p.atgard}</Button>
-          </div>
-        </li>; })}</ul>
-      <p className="schema-note">Ändras innehållet i ett avbockat område visar raden Ändrat sedan genomgången.</p>
-    </section>
-  </>;
+    <div className="flex flex-wrap items-center gap-2">
+      <label className="schema-val"><input type="checkbox" disabled={disabled} checked={status === 'genomgangen'}
+        onChange={e => onGenomgang(punkt.id, e.target.checked ? punkt.avtryck : null)}/>Genomgånget<span className="sr-only">: {punkt.titel}</span></label>
+      {status === 'genomgangen' && reviewed && <span className="text-muted-foreground">{datum(reviewed.at)}</span>}
+      {status === 'andrat' && <span className="status-badge warning">Ändrat sedan genomgången</span>}
+    </div>
+  </div>;
 }
 
-/** `provning`: vad som faktiskt har prövats. Varje besked säger vad det inte visar. */
-export type ForberedProvning = { typ: 'inte' } | { typ: 'kontroll'; fynd: number; tid: string | null } | { typ: 'forslag'; status: string; inaktuellt: boolean };
-export function ForutsattningarKort({ punkter, provning, kvalitet, kontrollera, taFram, busy }: { punkter: ForberedPunkt[]; provning: ForberedProvning; /** Lägesbild och mått efter ett förslag. */ kvalitet: ReactNode | null;
-  kontrollera: () => void; taFram: ReactNode; busy: boolean }) {
-  const rubrik = useId(), saknas = punkter.filter(p => p.saknas > 0 && p.nasta), salar = punkter.find(p => p.id === 'salar'), hinder = salar?.kontroll.find(k => k.includes('ingen lämplig sal')) ?? null;
-  const fraga = (nr: number, titel: string, besked: string, ton: string, text: ReactNode, grans: string) => <div className="space-y-1" data-fraga={nr}>
-    <h4 className="text-sm font-medium text-muted-foreground">{nr}. {titel}</h4>
-    <p><span className={`status-badge ${ton}`}>{besked}</span></p>
-    <div>{text}</div><p className="schema-note">{grans}</p></div>;
-  return <section aria-labelledby={rubrik} className="rounded-lg border border-border bg-card p-4 space-y-4" data-forutsattningar>
-    <h3 id={rubrik} className="font-semibold">Förutsättningar just nu</h3>
-    <div className="grid gap-4 md:grid-cols-2">
-      {fraga(1, 'Finns uppgifterna?', saknas.length ? 'Behöver kompletteras' : 'Inga kända luckor', saknas.length ? 'warning' : 'success',
-        saknas.length ? <ul className="list-disc pl-5">{saknas.map(p => <li key={p.id}>{p.nasta}.</li>)}</ul> : <p>Appen hittar inga saknade uppgifter i det den kan kontrollera.</p>,
-        'Gå igenom lärarnas tillgänglighet och stäm av provplanen mot Skolverkets provdatum.')}
-      {fraga(2, 'Hur stort är utrymmet?', hinder ? 'Hinder' : 'Inte beräknat', hinder ? 'warning' : '',
-        <p>{hinder ? `${hinder} ` : ''}Antal möjliga tider och salar räknas inte före ett förslag.</p>, 'Få eller många alternativ säger inte om schemat blir bra.')}
-      {fraga(3, 'Vad har prövats?', provning.typ === 'inte' ? 'Inte prövat' : provning.typ === 'kontroll' ? provning.fynd ? `Kontrollerat, ${provning.fynd} fynd` : 'Kontrollerat, inga påvisade hinder' : provning.inaktuellt ? 'Inaktuellt förslag' : 'Förslag beräknat',
-        provning.typ === 'kontroll' && provning.fynd ? 'warning' : provning.typ === 'forslag' && provning.inaktuellt ? 'warning' : '',
-        <p>{provning.typ === 'inte' ? 'Hela schemat är ännu inte prövat.' : provning.typ === 'kontroll' ? `Kontroll av underlaget före beräkning${provning.tid ? ` ${provning.tid}` : ''}.${provning.fynd ? ' Fynden står under Kontroll före beräkning.' : ''}`
-          : provning.inaktuellt ? 'Underlaget har ändrats sedan förslaget togs fram. Förslaget visas bara som jämförelse.' : `Senaste förslaget: ${provning.status}.`}</p>,
-        provning.typ === 'kontroll' ? 'Kontrollen bevisar inte att hela schemat går att lägga.' : provning.typ === 'forslag' ? 'En räknetid som tog slut är inget bevis på att kraven är omöjliga.' : 'En kontroll av underlaget söker hinder utan att lägga något schema.')}
-      {fraga(4, 'Hur bra blev kandidaten?', kvalitet ? 'Efter senaste förslaget' : 'Kvaliteten är inte prövad', '', kvalitet ?? <p>Mått visas efter ett schemaförslag på aktuellt underlag.</p>,
-        'Summerade mått visar inte vem som får en försämring. Önskemål och förflyttningar mäts inte ännu.')}
-    </div>
-    <div className="rounded-md border border-border p-3 space-y-2" data-ta-fram>
-      <h4 className="font-semibold">Ta fram schemaförslag</h4>
-      <p>{saknas.length ? `${saknas.map(p => p.nasta).join('. ')}. Ett förslag nu kan ha luckor i underlaget.` : 'Underlaget har inga kända luckor. Förslaget lägger tid och, där salbehov finns, sal.'}</p>
-      <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={busy} onClick={kontrollera}>Kontrollera underlaget</Button>{taFram}</div>
-    </div>
-  </section>;
-}
-
-/** Ett förberedelseområde med fokuserbar rubrik som checklistan och nästa uppgift går till. */
-export function Omrade({ id, titel, children }: { id: ForberedOmrade; titel: string; children: ReactNode }) {
-  return <section id={forberedAnkare(id)} aria-labelledby={`${forberedAnkare(id)}-rubrik`} className="space-y-3 scroll-mt-4" data-omrade={id}>
-    <div className="section-heading"><h2 id={`${forberedAnkare(id)}-rubrik`} tabIndex={-1}>{titel}</h2></div>
+export function Omrade({ id, titel, hidden, genomgang, children }: { id: ForberedOmrade; titel: string; hidden: boolean; genomgang: ReactNode; children: ReactNode }) {
+  return <section id={forberedAnkare(id)} aria-labelledby={forberedAnkare(id) + '-rubrik'} className="min-w-0 space-y-3 scroll-mt-20" hidden={hidden} data-omrade={id}>
+    <div className="section-heading"><h2 id={forberedAnkare(id) + '-rubrik'} tabIndex={-1}>{titel}</h2></div>
+    {genomgang}
     {children}
   </section>;
 }
