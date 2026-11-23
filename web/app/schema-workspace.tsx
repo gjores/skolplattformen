@@ -201,7 +201,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const dateSequence = useRef(0);
   const [activityTypes, setActivityTypes] = useState<SchemaAktivitetsTyp[]>(aktivitetsTyper);
   const [remoteSave, setRemoteSave] = useState<SchemaSparstatus>({ phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null });
-  const [period, setPeriod] = useState<SchemaPeriod>(() => storedPeriod(unitId, schoolYear)), [villkor, setVillkorLocal] = useState(() => storedVillkor(unitId) ?? defaultSchemaVillkor()), [shownTerm, setShownTerm] = useState<SchemaTerm>('ht');
+  const [period, setPeriod] = useState<SchemaPeriod>(() => storedPeriod(unitId, schoolYear)), [arbetsvillkor, setVillkorLocal] = useState(() => storedVillkor(unitId) ?? defaultSchemaVillkor()), [shownTerm, setShownTerm] = useState<SchemaTerm>('ht');
+  // Skolans salregister är en aktuell källa till beräkningen. Läsningen ändrar inte utkastets sparinnehåll.
+  const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
+  const villkor = useMemo(() => !fonster && skolsalar.status === 'ok' ? medSkolsalar(arbetsvillkor, skolsalar.register?.document ?? null) : arbetsvillkor,
+    [fonster, skolsalar.status, skolsalar.register, arbetsvillkor]);
+  const andradeVillkor = useRef<SchemaVillkor | null>(null);
   const [visning, setVisning] = useState<SchemaVeckaVal>(grundschemaVal);
   const [jamforTerminer, setJamforTerminer] = useState(false);
   const issues = checkSchemaVillkor(villkor);
@@ -284,7 +289,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }, []);
 
   const snapshot: SchemaSparinnehall = {
-    name: draftName.trim(), basisVillkor: base?.villkor ?? null, workingVillkor: villkor, grundFingerprint: base?.grundFingerprint ?? null,
+    name: draftName.trim(), basisVillkor: base?.villkor ?? null, workingVillkor: arbetsvillkor, grundFingerprint: base?.grundFingerprint ?? null,
     placements: forslag ? placeradePass(forslag.lessons) : [],
     locks: utkastLas(utkast), intentional: utkast.intentional, datedOverrides, activityTypes,
   };
@@ -294,7 +299,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       setDraftName(draft?.name ?? 'Schemautkast');
       setTomningsMarkor(draft?.resetUndoRevision ? { draftId: draft.id, revision: draft.revision } : null);
       setBase(draft?.base ?? null);
-      setVillkorLocal(draft?.workingVillkor ?? villkor);
+      andradeVillkor.current = null;
+      setVillkorLocal(draft?.workingVillkor ?? arbetsvillkor);
       setDatedOverrides(draft?.datedOverrides ?? []);
       setActivityTypes(draft?.activityTypes ?? activityTypes);
       const restored = schemaUtkast({ ...tomtUtkast(), layers: utkast.layers }, { type: 'reset', forslag: draft?.base ? { lessons: draft.base.lessons, locks: draft.locks } : { lessons: [] } });
@@ -309,10 +315,10 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const granskningsversion = (): Granskningsversion => {
     // Motorn kan räkna medan en redan påbörjad skrivning väntar på sin kvittens.
     spara.pause(true);
-    return { key: spara.snapshotKey, commandId: crypto.randomUUID(), spargrund: spara.revisionEfterSkrivning() };
+    return { key: JSON.stringify([spara.snapshotKey, villkorKey]), commandId: crypto.randomUUID(), spargrund: spara.revisionEfterSkrivning() };
   };
   const granskarOmrakning = !!(nyttForslag || fortsatt);
-  const versionAndrad = (version: Granskningsversion) => version.key !== spara.snapshotKey;
+  const versionAndrad = (version: Granskningsversion) => version.key !== JSON.stringify([spara.snapshotKey, villkorKey]);
   const tomningTillganglig = spara.ready && !busy && !checking && !granskarOmrakning && !sparstatus.dirty && sparstatus.phase === 'saved' && !grundAndrad;
   useEffect(() => {
     if (!spara.ready || !fokuseraTomning.current) return;
@@ -351,8 +357,6 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
   const inaktuelltUnderlag = sparstatus.phase === 'stale';
   // Underlaget före första förslaget (05.2-SM-UXF-11): resurser, undervisningar och pass utan placering. Blir aldrig utkastets bas.
-  // Skolans salregister (05.2-SM-UXF-23) läses en gång per skolenhet. Utkastets spegel följer registret utan att bli ett steg i Ångra.
-  const skolsalar = useSkolsalar({ unitId, enabled: !fonster, onSessionLost });
   const nationellaProv = useNationellaProv({ unitId, schoolYear, enabled: !fonster, onSessionLost });
   const provunderlag = useMemo(() => {
     const underlag = nationellaProv.underlag;
@@ -369,9 +373,6 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     }
     return errors;
   }, [nationellaProv.document, provunderlag, personalLookup]);
-  // Justeras under renderingen (Reacts mönster för tillstånd som följer annat tillstånd); omvandlingen är idempotent och stannar efter ett varv.
-  const medSkolansSalar = !fonster && skolsalar.status === 'ok' ? medSkolsalar(villkor, skolsalar.register?.document ?? null) : villkor;
-  if (medSkolansSalar !== villkor) setVillkorLocal(medSkolansSalar);
   // Med salregister läses det också när ett förslag finns, så att passens tillåtna salar, elevantal och kapacitet följer registret och salbehoven (05.2-SM-UXF-21).
   const salNyckel = villkor.salregister ? villkorNyckel([villkor.salregister, villkor.salbehov ?? [], villkor.egna.filter(r => r.typ === 'sal')]) : '';
   const underlagLas = useSchemaUnderlag({ enabled: !fonster && (inaktuelltUnderlag || !base || (!!villkor.salregister && !grundAndrad)) && spara.ready && sparstatus.phase !== 'loading' && !busy && issues.length === 0,
@@ -493,7 +494,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         if (['pick', 'select', 'tool', 'layer', 'villkor'].includes(change.type) ||
           (change.type === 'undo' || change.type === 'redo') && villkorSteg(utkast[change.type].at(-1))) dispatchLocal(change);
       }
-      else if (action.typ === 'villkor') setVillkorLocal(action.value);
+      else if (action.typ === 'villkor') setVillkor(action.value);
       else if (action.typ === 'arbetsvillkor') andraArbetsvillkor(action.value);
       else if (action.typ === 'andra') void andra(action.action);
       else if (action.typ === 'run') void run(action.continueAnyway, action.releaseLocks);
@@ -511,12 +512,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       }
     } });
   function dispatch(action: SchemaUtkastAtgard) { if (fonster) { synk.send({ typ: 'utkast', action }); return; } dispatchLocal(action); }
-  function setVillkor(value: SchemaVillkor) { if (fonster) { synk.send({ typ: 'villkor', value }); return; } setVillkorLocal(value); }
+  function setVillkor(value: SchemaVillkor) { if (fonster) { synk.send({ typ: 'villkor', value }); return; } andradeVillkor.current = value; setVillkorLocal(value); }
   function andraArbetsvillkor(value: SchemaVillkor, text = 'Villkor för schemat') {
     if (fonster) { synk.send({ typ: 'arbetsvillkor', value }); return; }
     if (villkorNyckel(value) === villkorNyckel(villkor)) return;
     dispatchLocal({ type: 'arbetsvillkor', fore: villkor, efter: value, text });
-    setVillkorLocal(value);
+    setVillkor(value);
   }
   function setTabellVillkor(value: SchemaVillkor) {
     if (villkorNyckel({ ...value, egna: [] }) === villkorNyckel({ ...villkor, egna: [] })) setVillkor(value);
@@ -1236,7 +1237,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
   /**
    * Ändrade villkor (en ny spärr, ångra och gör om av ett villkor, en ändring i formuläret) prövas direkt: kontrollen körs om med nuvarande placeringar
-   * och de villkor som prövas. Inget pass flyttas; salarna följer kontrollens val.
+   * och de villkor som prövas. Ett eget villkorsval kan justera salar. En ny läsning av underlaget ändrar inga placeringar.
    */
   async function provaVillkor() {
     if (!base || checking || busy) return;
@@ -1246,7 +1247,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     try {
       const reply = await kontrollera(base, medUtkast(base.lessons, utkast.placements), controller);
       setBase({ ...base, teachings: reply.teachings, trims: reply.trims, metrics: reply.metrics });
-      dispatch({ type: 'salar', rooms: reply.rooms }); setKontroll({ svar: reply, villkor: key });
+      if (andradeVillkor.current === provade) {
+        andradeVillkor.current = null;
+        dispatch({ type: 'salar', rooms: reply.rooms });
+      }
+      setKontroll({ svar: reply, villkor: key });
       setMoved(`Villkoren är prövade mot schemat. ${reply.total === 0 ? 'Inga regelavvikelser.' : `${reply.total} ${reply.total === 1 ? 'regelavvikelse' : 'regelavvikelser'}.`}`);
     } catch (caught) {
       if (controller.signal.aborted || caught instanceof DOMException && caught.name === 'AbortError') return;
@@ -1258,7 +1263,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   // Kontrollen gäller förslagets villkor tills den har körts om; körs om en stund efter att villkoren som prövas har ändrats (formuläret ändras tecken för tecken).
   const provat = kontrollSvar?.villkor ?? forslagetsKey;
   useEffect(() => {
-    if (fonster || !base || checking || busy || provat === provadeKey || misslyckat === provadeKey) return;
+    if (fonster || !base || checking || busy || granskarOmrakning || provat === provadeKey || misslyckat === provadeKey) return;
     const timer = setTimeout(() => void provaVillkor(), 300);
     return () => clearTimeout(timer);
   });
@@ -1310,7 +1315,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const intentionalKeys = medvetnaAvvikelser(utkast, kontroll?.violations ?? [], villkorKey, forslag?.grundFingerprint ?? '');
   const intentionalPass = [...new Set((kontroll?.violations ?? []).filter(v => intentionalKeys.has(avvikelseNyckel(v))).flatMap(v => v.lessons))];
   const keepIntent = useMemo(() => (utkast.intentional ?? []).filter(m => medvetenGaller(m, utkast.placements, villkorKey, forslag?.grundFingerprint ?? '') && (!kontroll || kontroll.violations.some(v => medvetenKrock(v) && avvikelseNyckel(v) === m.key))).map(m => m.key), [utkast.intentional, utkast.placements, villkorKey, kontroll, forslag?.grundFingerprint]);
-  useEffect(() => { if (!fonster && (utkast.intentional ?? []).length > keepIntent.length) dispatchLocal({ type: 'intent-prune', keys: keepIntent }); }, [fonster, utkast.intentional, keepIntent]);
+  useEffect(() => { if (!fonster && !granskarOmrakning && arbetsvillkor === villkor && (utkast.intentional ?? []).length > keepIntent.length) dispatchLocal({ type: 'intent-prune', keys: keepIntent }); }, [fonster, granskarOmrakning, arbetsvillkor, villkor, utkast.intentional, keepIntent]);
 
   const gruppKey = base ? JSON.stringify([base.period, base.grundFingerprint, base.resurser.grupp]) : '';
   const gruppunderlag = veckansGruppunderlag?.key === gruppKey ? veckansGruppunderlag : null;
@@ -1729,7 +1734,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       </section>}
       {underlagshinder}
     </>}
-    {!fonster && visaGranska && (error || moveError || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
+    {!fonster && visaGranska && (error || moveError || !!diagnosAktuell?.findings.length || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
     {!fonster && visaGranska && omrakningsvy}
     {!fonster && visaGranska && <SchemaPublicering key={`${unitId}/${schoolYear}/${period}`} scope={{ unitId, schoolYear, period }} canPublish={personalLookup}
       saved={spara.ready && spara.draftId && spara.contentHash && sparstatus.phase === 'saved' && !sparstatus.dirty

@@ -23,17 +23,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: d0971e92bfabb04f51403832f9d8f6d28cf6cf4e
-schema_candidate_revision: d0971e92bfabb04f51403832f9d8f6d28cf6cf4e
-schema_candidate_status: schema_quality_installed_and_authenticated_browser_verified
+schema_runtime_revision: 478204828fc22d11e3635b79ef68171c972d32b8
+schema_candidate_revision: 478204828fc22d11e3635b79ef68171c972d32b8
+schema_candidate_status: schema_recalculation_installed_and_authenticated_browser_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: schema_quality_installed_without_migrations_existing_drafts_preserved
-user_trial_status: schema_quality_installed_awaiting_user_trial
+schema_installation_status: schema_recalculation_installed_without_migrations_existing_drafts_preserved
+user_trial_status: schema_recalculation_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-23 – gemensam schemaomräkning genomförd.** Ett befintligt utkast kan räknas om och granskas trots sparfel. Bara ett uttryckligt godkännande skriver nästa revision. Påverkade pass, salar, lås, passvillkor och datumändringar redovisas i granskningen. Syntetiska domän-, route- och webbläsarprov täcker omräkning efter sparfel, avbrott och utbytet av sparad revision. Sammansatt provbygge för installation på 3012 återstår. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
+**2026-11-23 – gemensam schemaomräkning installerad på 3012.** Provbygget `47820482` bevarar Förbered, datumvyn och provflödet. En inloggad syntetisk rektor räknade om det befintliga helårsutkastet, granskade kandidaten och valde att behålla version 27. Inget sparanrop skickades och databasens schema, journal och 141 utkastrevisioner var oförändrade. Verksamhetens användarprov återstår. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
 
 **2026-11-23 – schemakvalitet installerad på 3012.** Det sammansatta provbygget `d0971e92` ger Börja här, Elevernas skoldagar och Pröva en förbättring i Granska. Bygget bevarar den lokala arbetsgången i Förbered, datumvyn och provflödet. En inloggad schemakontroll och förbättringsberäkning gav kvalitetsmått för det befintliga helårsutkastet. Utkastet var identiskt efter förhandsgranskningen. Bytet behöll databaskatalog, migrationsjournal och 141 utkastrevisioner. Verksamhetens användarprov återstår. [SM-KVALITET](phases/05.2-schemamodul/05.2-SM-KVALITET-SUMMARY.md)
 
