@@ -36,7 +36,9 @@ async function taFram(page: Page) {
 test('nytt förslag visar räknetid och steg tills motorn svarar och lämnar sedan fokus på Beräkning', async ({ page }, info) => {
   test.slow();
   const { state, slapp } = await setup(page);
+  await page.getByRole('button', { name: 'Beräkningsval', exact: true }).click();
   await page.getByRole('combobox', { name: 'Räknetid per omgång', exact: true }).selectOption('10000');
+  await page.keyboard.press('Escape');
   await taFram(page);
   await expect(lage(page).getByRole('heading', { name: 'Tar fram schemaförslag', exact: true })).toBeFocused();
   await expect.poll(() => state.solves).toBe(1);
@@ -125,7 +127,9 @@ test.describe('med rörelse', () => {
   test.use({ reducedMotion: 'no-preference' });
   test('sökmarkören hoppar mellan lediga tider och veckan fylls under räknetiden', async ({ page }, info) => {
     const { state, slapp } = await setup(page);
+    await page.getByRole('button', { name: 'Beräkningsval', exact: true }).click();
     await page.getByRole('combobox', { name: 'Räknetid per omgång', exact: true }).selectOption('10000');
+    await page.keyboard.press('Escape');
     await taFram(page); await expect.poll(() => state.solves).toBe(1);
     const markor = lage(page).locator('.schema-berakning-provar');
     await expect(markor).toBeVisible();

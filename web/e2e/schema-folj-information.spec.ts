@@ -1,5 +1,5 @@
 // Användarens TMI-fynd: riktiga följkomponenter, syntetiskt valblock och uttryckligt simulerade rutter.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import raw from './schema-fixture';
 import following from './fixtures/schema-folj.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
@@ -46,6 +46,7 @@ async function setup(page: Page, block: boolean, compare?: 'success' | 'retry') 
   });
   await page.goto(URL);
   if (compare) {
+    await forberedFlik(page, 'Lärartider och regler').click();
     const settings = page.locator('details.schema-villkor');
     if (await settings.getAttribute('open') === null) await settings.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
     await settings.getByLabel('Salens namn', { exact: true }).fill(sal);

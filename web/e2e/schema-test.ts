@@ -1,11 +1,13 @@
 /** Gemensam syntetisk server för gränssnittsprov. Verklig lagring/mandat prövas i den skyddade integrationskedjan. */
-import { test as base, expect, type BrowserContext } from '@playwright/test';
+import { test as base, expect, type BrowserContext, type Page } from '@playwright/test';
 import { parseSchemaDraftSave, schemaDraftHash, type SchemaDraft, type SchemaDraftReceipt, type SchemaDraftSave, type SchemaDraftStatusRequest } from '../lib/schema-draft-contract.ts';
 import { sammaGrund, type SchemaForslag, type SchemaKontroll } from '../lib/schema-contract.ts';
 import proposal from './schema-fixture';
 import checked from './fixtures/schema-kontroll.json' with { type: 'json' };
 export { expect };
 export type { Page, BrowserContext } from '@playwright/test';
+export const forberedFlik = (page: Page, name: 'Underlag' | 'Pass och salar' | 'Lärartider och regler' | 'Prov och aktiviteter') =>
+  page.getByRole('navigation', { name: 'Förbered arbetsområden', exact: true }).getByRole('button', { name, exact: true });
 export type SchemaDraftTestServer = { saves: SchemaDraftSave[]; reads: number; statusChecks: SchemaDraftStatusRequest[]; drafts: Map<string, SchemaDraft>;
   failSave: boolean; failRead: boolean; loseReply: boolean; delaySave: number; delayRead: number; replyDelay: number; statusUnavailable: boolean; corruptReceipt: boolean; corruptDocument: boolean };
 const headers = { 'X-Context-Epoch': '1' };

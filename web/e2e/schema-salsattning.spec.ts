@@ -1,6 +1,6 @@
 // 05.2-SM-UXF-41: Tilldela salar och behåll tiderna. Simulerade rutter och syntetiska uppgifter; inget användarprov.
 // Kontrollens svar här fyller inte i salar själv. Den riktiga kontrollen fyller i första tillåtna sal; då gäller tilldelningen salar som kontrollen underkänt (prövat i schema-salsattning.test.mjs).
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { bas, headers, lagt, mockUnderlag } from './schema-underlag-mock';
 import kontrollFixtur from './fixtures/schema-kontroll.json' with { type: 'json' };
 import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaPlacement, type SchemaVillkor } from '../lib/schema-contract.ts';
@@ -36,6 +36,7 @@ test('salar förhandsgranskas, används som ett steg och kan ångras, utan att n
   await expect(page.locator('[data-salsattning]')).toHaveCount(0);
   // Ämnet Svenska får Lämplig allmän sal i Förbered.
   await page.locator('[data-ytval]').getByRole('button', { name: 'Förbered' }).click();
+  await forberedFlik(page, 'Pass och salar').click();
   const behov = page.locator('[data-salbehov]');
   await behov.getByRole('radio', { name: /^Ämnet Svenska/u }).check();
   await behov.getByRole('radio', { name: 'Lämplig allmän sal' }).check();
@@ -82,6 +83,7 @@ test('en förhandsgranskning blir inaktuell när salbehoven ändras, och kan då
   await page.goto(URL);
   await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
   await page.locator('[data-ytval]').getByRole('button', { name: 'Förbered' }).click();
+  await forberedFlik(page, 'Pass och salar').click();
   const behov = page.locator('[data-salbehov]');
   await behov.getByRole('radio', { name: /^Ämnet Svenska/u }).check(); await behov.getByRole('radio', { name: 'Lämplig allmän sal' }).check();
   await behov.getByRole('button', { name: 'Spara salbehov' }).click();
@@ -90,6 +92,7 @@ test('en förhandsgranskning blir inaktuell när salbehoven ändras, och kan då
   await panel.getByRole('button', { name: 'Förhandsgranska salarna' }).click();
   await expect(panel.locator('[data-salsattning-visning]')).toHaveAttribute('data-salsattning-visning', 'aktuell');
   await page.locator('[data-ytval]').getByRole('button', { name: 'Förbered' }).click();
+  await forberedFlik(page, 'Pass och salar').click();
   await behov.getByRole('radio', { name: 'Särskilda salskrav' }).check(); await behov.getByLabel('A101', { exact: true }).check();
   await behov.getByRole('button', { name: 'Spara salbehov' }).click();
   await page.locator('[data-ytval]').getByRole('button', { name: 'Lägg schema' }).click();

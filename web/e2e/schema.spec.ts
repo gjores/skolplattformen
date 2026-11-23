@@ -1,6 +1,6 @@
 // Vyn Schema mot ett syntetiskt förslag som schemamotorn har räknat (work/schema/verify-koppling.mjs).
 // Rutt, behörighet och motoranrop verifieras separat; här prövas bara vad användaren ser.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { valjVeckoresurs, veckoval } from './schema-vecko-val';
 import { SCHEMA_CONTRACT_VERSION } from '../lib/schema-contract.ts';
 import forslag from './schema-fixture';
@@ -204,6 +204,7 @@ test('villkor sparade med det gamla terminsvalet läses in utan valet', async ({
   await mock(page, () => ({ json: forslag }));
   await page.addInitScript(([key, value]) => window.localStorage.setItem(key, value), [`schema-villkor:${forslag.unitId}`, JSON.stringify({ ...forslag.villkor, breakMin: 5, termDiffPct: 15 })] as const);
   await page.goto(URL);
+  await forberedFlik(page, 'Lärartider och regler').click();
   await expect(page.locator('.schema-villkor summary')).toContainText('Ändrade:');
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   await expect(page.getByLabel('Rast mellan pass')).toHaveValue('5');
@@ -213,13 +214,15 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   const bodies = await mock(page, body => ({ json: { ...forslag, period: body.period, villkor: body.villkor } }));
   await page.goto(URL);
   const submit = page.getByRole('button', { name: 'Ta fram schemaförslag' });
+  await forberedFlik(page, 'Lärartider och regler').click();
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   await expect(page.locator('.schema-villkor summary')).toContainText('Förval: skoldag 08:00–16:30 måndag–fredag');
   await expect(page.getByRole('button', { name: 'Återställ förval' })).toBeDisabled();
   // En skoldag som slutar före den börjar går inte att räkna på.
   await page.getByLabel('Måndag slutar').fill('07:00');
   await expect(page.getByRole('alert')).toContainText('Rätta villkoren för att kunna ta fram ett förslag:');
-  await expect(submit).toBeDisabled();
+  await expect(page.getByRole('region', { name: 'Förbered schemat', exact: true }).getByRole('button', { name: 'Rätta villkoren' }).first()).toBeVisible();
+  await expect(submit).toHaveCount(0);
   await page.getByRole('button', { name: 'Återställ förval' }).click();
   await expect(page.getByRole('alert')).toHaveCount(0);
   await expect(submit).toBeEnabled();
@@ -238,7 +241,7 @@ test('villkoren prövas i vyn, skickas med begäran och finns kvar för skolan',
   await submit.click();
   await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
   const villkor = { ...forslag.villkor, days: forslag.villkor.days.map((d, i) => i === 4 ? { ...d, endMin: 840 } : d), maxLessonMin: 60, lunch: null, studentMaxMinPerDay: 360 };
-  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor, solveTimeMs: 30_000 }]);
+  expect(bodies).toEqual([{ unitId: forslag.unitId, schoolYear: 2026, period: 'ht', villkor, solveTimeMs: 30_000, planeraProv: true }]);
   await expect(page.getByText('Höstterminen. ')).toBeVisible();
   await expect(page.getByRole('heading', { name: `Tid över terminen (${forslag.teachings.length})` })).toBeVisible();
 
@@ -380,9 +383,10 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
 test('salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget', async ({ page }, info) => {
   const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, rooms: (body.villkor as typeof forslag.villkor).salar.map((name, i) => ({ id: `sal-${i + 1}`, name })) } }));
   await page.goto(URL);
-  await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   // Underlagsläsningen är otillgänglig i det här provet: villkoren går att ändra ändå.
-  await expect(page.locator('.schema-egna-form, fieldset').getByText('Underlaget kunde inte läsas.', { exact: false }).first()).toBeVisible();
+  await expect(page.locator('[data-omrade="underlag"]')).toContainText('Underlaget kunde inte läsas.');
+  await forberedFlik(page, 'Lärartider och regler').click();
+  await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   await expect(page.locator('.schema-egna-form')).toHaveCount(0);
   // Enter i salens fält lägger till salen och skickar inte formuläret.
   await page.getByLabel('Salens namn').fill('Idrottshallen');

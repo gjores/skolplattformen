@@ -1,6 +1,6 @@
 // 05.2-SM-UXF-51: egna samtidighetsblock i Förbered. Simulerade rutter och syntetiska uppgifter; inget användarprov.
 // Motorns samma start prövas i schemamotor/crates/solve/tests/own_blocks.rs och underlagets kopplingar i lib/schema-blockunderlag.test.mjs.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { bas, mockUnderlag, utanBerakning } from './schema-underlag-mock';
 
 const URL = '/e2e/fixtures/schema-preview.html';
@@ -15,6 +15,7 @@ async function laggTillPass(page: Page, undervisning: string, pass: RegExp) {
 test('ett samtidighetsblock av pass ur olika undervisningar läggs till, prövas och kan ångras utan beräkning', async ({ page }, info) => {
   const berakningar = await utanBerakning(page), reads = await mockUnderlag(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const yta = page.locator('[data-samtidighetsblock]'), form = page.locator('[data-nytt-block]');
   await expect(yta).toContainText('Passen kan sluta olika.');
   await form.getByLabel('Namn').fill('Engelska och matematik');
@@ -39,6 +40,7 @@ test('ett samtidighetsblock av pass ur olika undervisningar läggs till, prövas
 test('ett block där samma elever finns i två pass visas som hinder och nästa uppgift pekar dit', async ({ page }) => {
   await utanBerakning(page); await mockUnderlag(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const form = page.locator('[data-nytt-block]');
   await form.getByLabel('Namn').fill('Språk');
   await laggTillPass(page, 'Spanska · Klass 1, Klass 2', /^Pass 1 \(HT\)/u);

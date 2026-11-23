@@ -1,5 +1,5 @@
 // Samlingsvy mot syntetiskt förslag och simulerade lässvar. Dessa prov påstår inte faktisk serverbehörighet eller kommunanslutning.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import proposal from './schema-fixture';
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
 import { samlingResurser, type SchemaSamlingData } from '../lib/schema-samling.ts';
@@ -20,6 +20,8 @@ async function setup(page: Page, pupils = false) {
   await page.goto(URL);
   // Även testets extra sal väljs i det riktiga formuläret, så att det simulerade svaret motsvarar begärans villkor.
   // Detta fungerar också i fallet där localStorage-gettern avsiktligt nekas.
+  const forbered = page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Förbered', exact: true });
+  if (await forbered.getAttribute('aria-current') === 'page') await forberedFlik(page, 'Lärartider och regler').click();
   const settings = page.locator('details.schema-villkor');
   if (await settings.getAttribute('open') === null) await settings.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
   if (await settings.getByRole('button', { name: 'Ta bort sal Provsal 1', exact: true }).count() === 0) {

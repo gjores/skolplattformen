@@ -1,5 +1,5 @@
 // 05.2-SM-UXF-22: salregister, salbehov som formulär och tabell med massändring. Simulerade rutter och syntetiska uppgifter; inget användarprov.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { bas, mockUnderlag, utanBerakning } from './schema-underlag-mock';
 import { defaultSchemaVillkor, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { laggTillSal, overforSalnamn } from '../lib/schema-salregister.ts';
@@ -29,6 +29,7 @@ async function nySal(page: Page, namn: string, typ: string, platser: string, utr
 test('salregistret ger fasta ID, och salbehovet visar varför en sal är olämplig innan det sparas', async ({ page }) => {
   const berakningar = await utanBerakning(page), reads = await mockUnderlag(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]');
   await expect(salar.getByText('Inget salregister')).toBeVisible();
   await nySal(page, 'A101', 'Allmän sal', '32'); await nySal(page, 'Labb 1', 'Laborationssal', '24', 'dragskåp'); await nySal(page, 'Labb 2', 'Laborationssal', '18', 'Dragskåp'); await nySal(page, 'Musiksal', 'Specialsal', '', 'instrument');
@@ -81,6 +82,7 @@ test('äldre salnamn gäller tills de uttryckligen förs över, och behåller d�
   const gammalt: SchemaVillkor = { ...defaultSchemaVillkor(), salar: ['Idrottshallen', 'Labbet'], egna: [{ slag: 'sal', ref: 'Labbet', typ: 'sparrad', days: [4], startMin: 480, endMin: 720 }] };
   await sparadeVillkor(page, gammalt);
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]'), overforing = salar.locator('[data-overforing]');
   await expect(overforing).toContainText('2 salar finns som namn från äldre villkor: Idrottshallen, Labbet.');
   await expect(salar.locator('[data-salregister]').getByRole('button', { name: 'Lägg till sal' })).toHaveCount(0);
@@ -92,6 +94,7 @@ test('äldre salnamn gäller tills de uttryckligen förs över, och behåller d�
   await salar.getByRole('button', { name: 'Ändra sal Labbet' }).click();
   await page.locator('[data-salform]').getByLabel('Salens namn').fill('Labb 1');
   await page.locator('[data-salform]').getByRole('button', { name: 'Spara salen' }).click();
+  await forberedFlik(page, 'Lärartider och regler').click();
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   await expect(page.getByRole('list', { name: 'Egna villkor' })).toContainText('Sal Labb 1: spärrad fredag 08:00–12:00');
   expect(overforSalnamn(gammalt).salregister!.arv).toEqual(['Idrottshallen', 'Labbet']);
@@ -101,6 +104,7 @@ test('tabellen ändrar 20 undervisningar på en gång, bevarar två undantag och
   const berakningar = await utanBerakning(page); await mockUnderlag(page);
   await sparadeVillkor(page, register());
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]');
   await salar.getByRole('button', { name: 'Tabell' }).click();
   const tabell = salar.locator('[data-saltabell]');
@@ -140,6 +144,7 @@ test('tabellen ändrar 20 undervisningar på en gång, bevarar två undantag och
 test('salvyerna vid 200 % text på 1280 px: inget ligger utanför sidan', async ({ page }) => {
   await utanBerakning(page); await mockUnderlag(page); await sparadeVillkor(page, register());
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   await page.addStyleTag({ content: 'html { font-size: 200% !important; }' });
   const salar = page.locator('[data-salar]');
   await expect(salar.locator('[data-salbehov]')).toBeVisible();

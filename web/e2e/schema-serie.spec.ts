@@ -1,5 +1,5 @@
 // 05.2-SM-UXF-52: aktivitet per klass som serie, före första förslaget. Simulerade rutter och syntetiska uppgifter; inget användarprov.
-import { test, expect } from './schema-test';
+import { test, expect, forberedFlik } from './schema-test';
 import { bas, mockUnderlag, utanBerakning } from './schema-underlag-mock';
 
 const URL = '/e2e/fixtures/schema-preview.html';
@@ -7,6 +7,7 @@ const URL = '/e2e/fixtures/schema-preview.html';
 test('mentorstid för tre klasser blir tre aktiviteter i en serie, med ansvarig per klass och krock före sparning', async ({ page }, info) => {
   const berakningar = await utanBerakning(page), reads = await mockUnderlag(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   const yta = page.locator('[data-omrade="aktiviteter"]');
   await yta.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
@@ -54,10 +55,12 @@ test('klasser bokar samma matsal på tur med förhandsvisning och gemensamt spar
   const reads = await mockUnderlag(page);
   if (info.project.name === 'desktop-1280') await page.setViewportSize({ width: 925, height: 889 });
   await page.goto(URL);
+  await forberedFlik(page, 'Lärartider och regler').click();
   const settings = page.locator('details.schema-villkor');
   if (await settings.getAttribute('open') === null) await settings.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
   await settings.getByLabel('Salens namn', { exact: true }).fill('Matsalen');
   await settings.getByRole('button', { name: 'Lägg till sal', exact: true }).click();
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   const yta = page.locator('[data-omrade="aktiviteter"]');
   await yta.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });

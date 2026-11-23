@@ -1,5 +1,5 @@
 // Samma knapp räknar schema och bokade prov. Rutter och databas är syntetiska i browserprovet.
-import { expect, schemaTestDraft, test, type Page, type SchemaDraftTestServer } from './schema-test';
+import { expect, forberedFlik, schemaTestDraft, test, type Page, type SchemaDraftTestServer } from './schema-test';
 import source from './schema-fixture';
 import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
 import { SCHEMA_DRAFT_VERSION, parseSchemaDraftSave } from '../lib/schema-draft-contract.ts';
@@ -168,8 +168,15 @@ test('olösta prov visar bokning, provvaktsorsaker och genväg till provplanen',
 
   await page.getByRole('button', { name: 'Granska provbokningarna', exact: true }).click();
   await expect(page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Förbered', exact: true })).toHaveAttribute('aria-current', 'page');
+  await expect(forberedFlik(page, 'Prov och aktiviteter')).toHaveAttribute('aria-current', 'page');
   await expect(page.getByRole('heading', { name: 'Aktiviteter och nationella prov', exact: true })).toBeVisible();
   await expect(page.locator('[data-nationella-prov]').getByText('Läsförståelse', { exact: true })).toBeVisible();
+  await bokningar.getByRole('button', { name: `Öppna provbokningen Läsförståelse för ${klass.name}`, exact: true }).click();
+  const bokning = page.getByRole('dialog', { name: 'Ändra provbokning', exact: true });
+  await expect(bokning.getByLabel('Provets namn')).toHaveValue('Läsförståelse');
+  await expect(bokning.getByRole('group', { name: 'Lås provvakter', exact: true })).toBeFocused();
+  await bokning.getByRole('button', { name: 'Avbryt', exact: true }).click();
+  await expect(bokning).toBeHidden();
   expect(state.saves).toHaveLength(0);
   expect(server.saves).toHaveLength(0);
 });

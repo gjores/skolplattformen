@@ -1,4 +1,4 @@
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { headers, mockUnderlag, utanBerakning } from './schema-underlag-mock';
 import { NATIONELLA_PROV_KALLA, parseNationellaProvSave, type NationellaProvDocument, type NationellaProvRegister, type NationellaProvUnderlag } from '../lib/nationella-prov.ts';
 
@@ -76,6 +76,7 @@ async function angeProv(page: Page) {
 test('planerar prov per klass och grupp, ändrar, tar bort och bekräftar tom provplan', async ({ page }) => {
   const state = await mockProvplan(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   const plan = provplan(page);
   await expect(plan.getByRole('link', { name: /Provdatum hos Skolverket/u })).toHaveAttribute('href', NATIONELLA_PROV_KALLA);
   const dialog = await angeProv(page);
@@ -100,6 +101,7 @@ test('planerar prov per klass och grupp, ändrar, tar bort och bekräftar tom pr
   expect(new Set(bokningar.map(b => b.id)).size).toBe(2);
 
   await page.reload();
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   await expect(plan.getByRole('row')).toHaveCount(3);
   await plan.getByRole('button', { name: 'Markera som genomgånget' }).click();
   await expect(plan.getByText('Genomgånget', { exact: true })).toBeVisible();
@@ -134,6 +136,7 @@ test('planerar prov per klass och grupp, ändrar, tar bort och bekräftar tom pr
   await plan.getByRole('button', { name: 'Bekräfta att inga prov ska planeras' }).click();
   await expect(plan.getByText('Inga prov bekräftade', { exact: true })).toBeVisible();
   await page.reload();
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   await expect(plan.getByText('Det är bekräftat att inga nationella prov ska planeras för läsåret.')).toBeVisible();
   expect(state.saves.at(-1)?.document).toEqual({ granskad: true, bokningar: [] });
 });
@@ -142,6 +145,7 @@ test('behåller provformuläret vid konflikt och återanvänder bokning och komm
   const state = await mockProvplan(page);
   state.conflict = true;
   await page.goto(URL);
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   const dialog = await angeProv(page);
   const save = dialog.getByRole('button', { name: 'Spara provbokning' });
   await save.click();
@@ -165,6 +169,7 @@ test('behåller provformuläret vid konflikt och återanvänder bokning och komm
 test('stoppar redigering och borttagning när den öppna bokningen ändrats i ett annat fönster', async ({ page }) => {
   const state = await mockProvplan(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Prov och aktiviteter').click();
   const ny = await angeProv(page);
   await ny.getByRole('button', { name: 'Spara provbokning' }).click();
   await expect(ny).toHaveCount(0);

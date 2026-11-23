@@ -1,5 +1,5 @@
 // Datumvyn mot syntetiskt kalenderunderlag och mockade appanrop; ingen inloggad Worker eller verklig anslutning.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
 import { valjVeckoresurs, veckoval } from './schema-vecko-val';
 import forslag from './schema-fixture';
 import kontroll from './fixtures/schema-kontroll.json' with { type: 'json' };
@@ -44,6 +44,7 @@ async function start(page: Page, proposal = forslag as unknown as SchemaForslag,
   await page.goto(URL);
   if (period) await page.getByRole('combobox', { name: 'Schemat gäller', exact: true }).selectOption(period);
   if (proposal.villkor.salar.length) {
+    await forberedFlik(page, 'Lärartider och regler').click();
     const villkor = page.locator('details.schema-villkor');
     if (await villkor.getAttribute('open') === null) await villkor.getByRole('heading', { name: 'Villkor för schemat', exact: true }).click();
     for (const sal of proposal.villkor.salar) {

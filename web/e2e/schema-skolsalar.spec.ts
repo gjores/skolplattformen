@@ -1,6 +1,6 @@
 // 05.2-SM-UXF-23: skolans salregister. Simulerade rutter och syntetiska uppgifter; tabellens regler och behörighet prövas i
 // work/pilot/verify-school-rooms.mjs och lib/skolsalar-routes.test.mjs. Inget användarprov.
-import { test, expect, mockSkolsalar, type Page } from './schema-test';
+import { test, expect, forberedFlik, mockSkolsalar, type Page } from './schema-test';
 import { mockUnderlag } from './schema-underlag-mock';
 import { defaultSchemaVillkor, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { laggTillSal } from '../lib/schema-salregister.ts';
@@ -19,6 +19,7 @@ function egetRegister(): SchemaVillkor {
 test('en sal läggs till i skolans register, sparas direkt och finns kvar i ett nytt utkast', async ({ page }, info) => {
   const skola = await mockSkolsalar(page); await mockUnderlag(page);
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]');
   await expect(salar.getByText('0 salar i skolans salregister')).toBeVisible();
   await expect(salar).toContainText('Registret gäller hela skolan och alla schemautkast.');
@@ -35,6 +36,7 @@ test('en sal läggs till i skolans register, sparas direkt och finns kvar i ett 
   // Ett nytt utkast utan sparade villkor visar samma sal.
   await page.evaluate(() => window.localStorage.clear());
   await page.reload();
+  await forberedFlik(page, 'Pass och salar').click();
   await expect(page.locator('[data-salar] [data-sal="sal-1"]')).toContainText('A101');
   await expect(page.locator('[data-salar]').getByText('1 sal i skolans salregister')).toBeVisible();
 });
@@ -43,6 +45,7 @@ test('utkastets eget register förs över först efter förhandsgranskning och b
   const skola = await mockSkolsalar(page, { nasta: 3, salar: [sal(1, 'A101'), sal(2, 'Aula')] }); await mockUnderlag(page);
   await sparadeVillkor(page, egetRegister());
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]'), overforing = salar.locator('[data-overforing]');
   await expect(salar.getByText('2 salar i utkastets salregister')).toBeVisible();
   // Utkastets sal-2 heter Labb 1 men skolans sal-2 är Aula: konflikt, inget sparas.
@@ -55,6 +58,7 @@ test('utan konflikt: förhandsgranskningen säger vad som finns och vad som läg
   const skola = await mockSkolsalar(page, { nasta: 2, salar: [sal(1, 'A101')] }); await mockUnderlag(page);
   await sparadeVillkor(page, egetRegister());
   await page.goto(URL);
+  await forberedFlik(page, 'Pass och salar').click();
   const salar = page.locator('[data-salar]'), overforing = salar.locator('[data-overforing]');
   await expect(overforing.getByRole('list', { name: 'Salar som förs över' })).toContainText('A101: finns redan i skolans salregister');
   await expect(overforing).toContainText('Labb 1: läggs till i skolans salregister');

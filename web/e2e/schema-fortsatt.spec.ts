@@ -86,10 +86,12 @@ async function saved(server: SchemaDraftTestServer, expected: SchemaPlacement[])
 
 test('räknetid har förval 30 sekunder och valt värde går till första beräkningen', async ({ page }) => {
   const state = await setup(page); await page.goto(URL);
+  await page.getByRole('button', { name: 'Beräkningsval', exact: true }).click();
   const budget = page.getByRole('combobox', { name: 'Räknetid per omgång', exact: true });
   await expect(budget).toHaveValue('30000');
   await expect(budget.locator('option')).toHaveText(['10 sekunder', '30 sekunder', '60 sekunder']);
   await budget.selectOption('60000');
+  await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
   await expect(berakning(page)).toHaveAttribute('aria-expanded', 'false');
   await expect(budget).toBeHidden();

@@ -1,9 +1,11 @@
 // SM-DIAGNOS: faktiskt användarbeteende mot uttryckligt simulerade rutter, syntetiska uppgifter.
-import { test, expect, type Page } from './schema-test';
+import { test, expect, forberedFlik, type Page } from './schema-test';
+import { mockUnderlag } from './schema-underlag-mock';
 import proposal from './schema-fixture';
 import folj from './fixtures/schema-folj.json' with { type: 'json' };
-import { SCHEMA_CONTRACT_VERSION, type SchemaForslag } from '../lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, defaultSchemaVillkor, type SchemaForslag } from '../lib/schema-contract.ts';
 import type { SchemaDiagnosFynd } from '../lib/schema-diagnos.ts';
+import { laggTillSal, sattSalbehov, tomtSalbehov } from '../lib/schema-salregister.ts';
 const URL='/e2e/fixtures/schema-preview.html', headers={'X-Context-Epoch':'1'};
 const teacher=proposal.resurser.larare[0];
 const findings:SchemaDiagnosFynd[]=[{code:'too_little_time',message:`${teacher.name} har 900 min undervisning och aktiviteter men bara 600 min möjlig tid när spärrar och marginaler räknas in.`,
@@ -21,19 +23,47 @@ async function setup(page:Page,diagnosis:unknown={version:SCHEMA_CONTRACT_VERSIO
 }
 
 test('överbokad lärare visas före beräkning med åtgärdslänk; motorn kör först efter uttryckligt fortsätt',async({page},info)=>{
+  await mockUnderlag(page);
   const calls=await setup(page);
+  await expect(page.locator('[data-underlag]')).toHaveAttribute('data-underlag', 'last');
   await page.getByRole('button',{name:'Ta fram schemaförslag',exact:true}).click();
   const panel=page.getByRole('region',{name:'Före beräkning',exact:true});
   await expect(panel).toBeVisible();await expect(panel.getByText(findings[0].message)).toBeVisible();
   await expect(panel.getByText('Går inte ihop',{exact:true})).toBeVisible();
   expect(calls.solves()).toBe(0);expect(calls.bodies).toHaveLength(1);
   await panel.getByRole('button',{name:'Se över tillgänglig tid och villkor',exact:true}).click();
-  await expect(page.locator('details.schema-villkor')).toHaveAttribute('open','');
+  await expect(forberedFlik(page, 'Lärartider och regler')).toHaveAttribute('aria-current', 'page');
+  const editor=page.getByRole('dialog',{name:`Spärrad tid för ${teacher.name}`,exact:true});
+  await expect(editor).toBeVisible();
   expect(calls.solves()).toBe(0);
   await page.screenshot({path:info.outputPath('diagnos-fore.png'),fullPage:true});
+  await page.keyboard.press('Escape');
+  await expect(editor).toBeHidden();
   await panel.getByRole('button',{name:'Ta fram förslag ändå',exact:true}).click();
   await expect(page.getByText('Tid · Alla pass har tid',{exact:true})).toBeVisible();
   expect(calls.solves()).toBe(1);expect(calls.bodies).toHaveLength(1);
+});
+
+test('ett salhinder öppnar salbehovet för undervisningen i fyndet utan beräkning', async ({ page }) => {
+  const undervisning = proposal.fordelning.find(rad => rad.title === 'Matematik' && rad.classes.join() === 'Klass 1')!;
+  const register = laggTillSal(defaultSchemaVillkor(), { name: 'A101', typ: 'Allmän sal', platser: 32, utrustning: [] });
+  const villkor = sattSalbehov(register, 'undervisning', undervisning.ref, { ...tomtSalbehov('sarskild'), utrustning: ['dragskåp'] });
+  await page.addInitScript(([unit, value]) => localStorage.setItem(`schema-villkor:${unit}`, value),
+    [proposal.unitId, JSON.stringify(villkor)] as const);
+  await mockUnderlag(page);
+  const fynd: SchemaDiagnosFynd = { code: 'no_room', message: 'Matematik för Klass 1 saknar en sal med dragskåp.', proof: true,
+    lessons: [folj.lesson], resources: [], action: { target: 'villkor', label: 'Se över salar och salskrav' } };
+  const calls = await setup(page, { version: SCHEMA_CONTRACT_VERSION, findings: [fynd] });
+  await expect(page.locator('[data-underlag]')).toHaveAttribute('data-underlag', 'last');
+  await page.getByRole('button', { name: 'Kontrollera underlaget', exact: true }).click();
+  const panel = page.getByRole('region', { name: 'Före beräkning', exact: true });
+  await expect(panel).toContainText(fynd.message);
+  await panel.getByRole('button', { name: fynd.action.label, exact: true }).click();
+  await expect(forberedFlik(page, 'Pass och salar')).toHaveAttribute('aria-current', 'page');
+  const salbehov = page.locator('[data-salbehov]');
+  await expect(salbehov.getByRole('combobox', { name: 'Undervisning', exact: true })).toHaveValue(undervisning.ref);
+  await expect(salbehov.getByRole('radio', { name: 'Särskilda salskrav', exact: true })).toBeFocused();
+  expect(calls.solves()).toBe(0);
 });
 
 test('hopfälld sökstatistik öppnas med tangentbord och leder till Följ passet samt lärarens villkorsrad',async({page},info)=>{
