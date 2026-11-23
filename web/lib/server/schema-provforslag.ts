@@ -2,7 +2,7 @@ import { SCHEMA_CONTRACT_VERSION, SchemaContractError, type SchemaKontrollReques
 import { SchemaDatumError, parseSchemaDatumAndringar, parseSchemaDatumRequest } from '../schema-datum.ts';
 import { SCHEMA_DRAFT_VERSION, SchemaDraftError, parseSchemaDraftSave, schemaDraftHash, type SchemaDraft } from '../schema-draft-contract.ts';
 import { SchemaFordelningError } from '../schema-fordelning.ts';
-import { NATIONELLA_PROV_VERSION, parseNationellaProvSave } from '../nationella-prov.ts';
+import { NATIONELLA_PROV_VERSION, parseNationellaProvSave, provMotorTilldelning } from '../nationella-prov.ts';
 import { schemaProvBerakning, type SchemaProvBerakningIndata } from '../schema-provberakning.ts';
 import { parseSchemaProvApplyRequest, schemaProvResultHash, type SchemaProvApplyReply, type SchemaProvApplyRequest, type SchemaProvforslagSvar } from '../schema-provforslag.ts';
 import { AuditUnavailable, protectedRoute, requireSameOrigin, type Context } from './authz.ts';
@@ -131,7 +131,7 @@ export async function schemaProvTillampaRoute(request: Request): Promise<Respons
     const tilldelade = new Map(result.bokningar.map(b => [b.id, b]));
     const bokningar = register.document.bokningar.map(b => {
       const tilldelning = tilldelade.get(b.id);
-      return tilldelning ? { ...b, salId: tilldelning.sal!.id, vakter: tilldelning.vakter.map(v => v.ref) } : b;
+      return tilldelning ? provMotorTilldelning(b, tilldelning.sal!.id, tilldelning.vakter.map(v => v.ref), draft.id) : b;
     });
     const datedOverrides = parseSchemaDatumAndringar([...draft.datedOverrides, ...result.ersattningar]);
     const kontroll = await schemaProvBerakning({ ...berakning, bokningar, datedOverrides, tidigasteErsattning: `${input.schoolYear + 1}-07-01` });

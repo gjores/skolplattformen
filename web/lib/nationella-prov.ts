@@ -26,6 +26,7 @@ export type NationellProvbokning = {
   vakter: string[];
   kontrolleradDatum: string;
   kallprov?: { id: string; revision: number };
+  motorval?: { sal?: string; vakter?: { ref: string; draftId: string }[] };
 };
 
 export type NationellaProvDocument = { granskad: boolean; bokningar: NationellProvbokning[] };
@@ -84,6 +85,82 @@ function exact(value: unknown, keys: string[], optional: string[] = []): Record<
   const r = value as Record<string, unknown>;
   if (keys.some(key => !Object.hasOwn(r, key)) || Object.keys(r).some(key => !keys.includes(key) && !optional.includes(key))) return bad();
   return r;
+}
+
+type Motorvakt = NonNullable<NonNullable<NationellProvbokning['motorval']>['vakter']>[number];
+
+function medMotorval(bokning: NationellProvbokning, sal: string | undefined, vakter: Motorvakt[]): NationellProvbokning {
+  const gamlaVakter = bokning.motorval?.vakter ?? [];
+  if (bokning.motorval?.sal === sal && gamlaVakter.length === vakter.length
+    && vakter.every((v, i) => v.ref === gamlaVakter[i].ref && v.draftId === gamlaVakter[i].draftId)) return bokning;
+  const { motorval: _motorval, ...prov } = bokning;
+  if (sal === undefined && !vakter.length) return prov;
+  return { ...prov, motorval: { ...(sal !== undefined && { sal }), ...(vakter.length && { vakter }) } };
+}
+
+/** Motorberäkningen tilldelar bara tidigare obesatta resurser. Alla valda datum och tider hör till provplanen. */
+export function provMotorTilldelning(bokning: NationellProvbokning, salId: string | null, vakter: string[], draftId: string): NationellProvbokning {
+  const nySal = bokning.salId === null && salId !== null;
+  const nyaVakter = bokning.vakter.length === 0 && vakter.length > 0;
+  if (!nySal && !nyaVakter) return bokning;
+  return medMotorval({ ...bokning, salId: nySal ? salId : bokning.salId, vakter: nyaVakter ? vakter : bokning.vakter },
+    nySal ? draftId : bokning.motorval?.sal, nyaVakter ? vakter.map(ref => ({ ref, draftId })) : bokning.motorval?.vakter ?? []);
+}
+
+function medBokningar(document: NationellaProvDocument, fn: (bokning: NationellProvbokning) => NationellProvbokning): NationellaProvDocument {
+  const bokningar = document.bokningar.map(fn);
+  return bokningar.every((b, i) => b === document.bokningar[i]) ? document : { ...document, bokningar };
+}
+
+/** Oförändrade resursval behåller sitt ursprung när själva provbokningen redigeras. */
+export function provManuellaVal(fore: NationellaProvDocument | null, efter: NationellaProvDocument): NationellaProvDocument {
+  const tidigare = new Map(fore?.bokningar.map(b => [b.id, b]));
+  return medBokningar(efter, b => {
+    const gammal = tidigare.get(b.id);
+    const sal = gammal?.salId === b.salId ? gammal?.motorval?.sal : undefined;
+    const vakter = (gammal?.motorval?.vakter ?? []).filter(v => b.vakter.includes(v.ref));
+    return medMotorval(b, sal, vakter);
+  });
+}
+
+export function provRensaMotorval(document: NationellaProvDocument, draftId: string): NationellaProvDocument {
+  return medBokningar(document, b => {
+    const salRensas = b.motorval?.sal === draftId;
+    const motorvakter = b.motorval?.vakter ?? [];
+    const vakterRensas = new Set(motorvakter.filter(v => v.draftId === draftId).map(v => v.ref));
+    if (!salRensas && !vakterRensas.size) return b;
+    return medMotorval({ ...b, salId: salRensas ? null : b.salId, vakter: b.vakter.filter(ref => !vakterRensas.has(ref)) },
+      salRensas ? undefined : b.motorval?.sal, motorvakter.filter(v => v.draftId !== draftId));
+  });
+}
+
+function sammaProvgrund(a: NationellProvbokning, b: NationellProvbokning): boolean {
+  return a.datum === b.datum && a.startMin === b.startMin && a.slutMin === b.slutMin && a.tidsval === b.tidsval
+    && a.undervisning === b.undervisning && a.mal.slag === b.mal.slag && a.mal.ref === b.mal.ref;
+}
+
+/** `draftId` hör till en bevisad gemensam revision för provmotorn. Historiken kommer i revisionsordning. */
+export function provMedMotorhistorik(revisions: { document: NationellaProvDocument; draftId: string | null }[]): NationellaProvDocument | null {
+  let fore: NationellaProvDocument | null = null;
+  for (const { document, draftId } of revisions) {
+    const tidigare = new Map(fore?.bokningar.map(b => [b.id, b]));
+    fore = medBokningar(document, b => {
+      const gammal = tidigare.get(b.id);
+      if (!gammal || !sammaProvgrund(gammal, b)) return b;
+      const tidigareSal = gammal.salId === b.salId ? gammal.motorval?.sal : undefined;
+      const tillsattSal = draftId !== null && gammal.salId === null && b.salId !== null ? draftId : undefined;
+      const sal = b.motorval?.sal ?? tidigareSal ?? tillsattSal;
+      const tidigareVakter = new Map(gammal.motorval?.vakter?.map(v => [v.ref, v]));
+      const sparadeVakter = b.motorval?.vakter ?? [];
+      const historiskaVakter = b.vakter.flatMap(ref => {
+        if (sparadeVakter.some(v => v.ref === ref)) return [];
+        const tidigareVal = tidigareVakter.get(ref);
+        return tidigareVal ? [tidigareVal] : draftId !== null && !gammal.vakter.length ? [{ ref, draftId }] : [];
+      });
+      return medMotorval(b, sal, [...sparadeVakter, ...historiskaVakter]);
+    });
+  }
+  return fore;
 }
 
 function provkod(value: unknown): string {
@@ -190,7 +267,7 @@ export function parseNationellaProvDocument(raw: unknown, schoolYear: number): N
   if (typeof r.granskad !== 'boolean' || !Array.isArray(r.bokningar) || r.bokningar.length > 200) return bad();
   const ids = new Set<string>(), keys = new Set<string>();
   const bokningar = r.bokningar.map((value): NationellProvbokning => {
-    const b = exact(value, ['id', 'namn', 'undervisning', 'mal', 'datum', 'startMin', 'slutMin', 'tidsval', 'salId', 'vakter', 'kontrolleradDatum'], ['kallprov']);
+    const b = exact(value, ['id', 'namn', 'undervisning', 'mal', 'datum', 'startMin', 'slutMin', 'tidsval', 'salId', 'vakter', 'kontrolleradDatum'], ['kallprov', 'motorval']);
     const id = uuid(b.id), namn = text(b.namn, 160);
     const undervisning = text(b.undervisning, 500);
     if (!UNDERVISNING.test(undervisning)) return bad();
@@ -210,9 +287,23 @@ export function parseNationellaProvDocument(raw: unknown, schoolYear: number): N
     ids.add(id);
     keys.add(key);
     const kallprov = Object.hasOwn(b, 'kallprov') ? exact(b.kallprov, ['id', 'revision']) : null;
-    return { id, namn, undervisning, mal, datum, startMin, slutMin, tidsval: b.tidsval, salId, vakter,
+    const bokning = { id, namn, undervisning, mal, datum, startMin, slutMin, tidsval: b.tidsval, salId, vakter,
       kontrolleradDatum: date(b.kontrolleradDatum, '2000-01-01', '2101-12-31'),
-      ...(kallprov && { kallprov: { id: provId(kallprov.id), revision: int(kallprov.revision, 1, 2147483647) } }) };
+      ...(kallprov && { kallprov: { id: provId(kallprov.id), revision: int(kallprov.revision, 1, 2147483647) } }) } satisfies NationellProvbokning;
+    if (!Object.hasOwn(b, 'motorval')) return bokning;
+    const motorval = exact(b.motorval, [], ['sal', 'vakter']);
+    const sal = Object.hasOwn(motorval, 'sal') ? uuid(motorval.sal) : undefined;
+    let motorvakter: Motorvakt[] = [];
+    if (Object.hasOwn(motorval, 'vakter')) {
+      if (!Array.isArray(motorval.vakter) || motorval.vakter.length < 1 || motorval.vakter.length > vakter.length) return bad();
+      motorvakter = motorval.vakter.map(value => {
+        const v = exact(value, ['ref', 'draftId']);
+        return { ref: uuid(v.ref), draftId: uuid(v.draftId) };
+      });
+      if (motorvakter.some(v => !vakter.includes(v.ref)) || new Set(motorvakter.map(v => v.ref)).size !== motorvakter.length) return bad();
+    }
+    if (sal === undefined && !motorvakter.length || sal !== undefined && salId === null) return bad();
+    return medMotorval(bokning, sal, motorvakter);
   });
   return { granskad: r.granskad, bokningar };
 }

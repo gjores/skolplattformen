@@ -16,9 +16,11 @@ Använd **Schemat gäller** för att öppna utkastet för hela läsåret eller f
 
 ### Töm ett schemautkast och ångra tömningen
 
-Välj skola, läsår och period. När utkastet är sparat och har placeringar finns **Töm schema…** vid sparbeskedet. Bekräftelsen visar vilket utkast som töms. Tömningen sparas som en ny version och öppnar **Förbered**. Passens tider och salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass försvinner från den nya versionen. Skolans övriga schemavillkor, inställningarna för återkommande aktiviteter och bokade nationella prov finns kvar. Provets ersättningslektioner är datumändringar i utkastet.
+Välj skola, läsår och period. När utkastet är sparat och har placeringar finns **Töm schema…** vid sparbeskedet. Bekräftelsen visar vilket utkast som töms. Tömningen sparas som en ny version och öppnar **Förbered**. Passens tider och salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass försvinner från den nya versionen. Skolans övriga schemavillkor och inställningarna för återkommande aktiviteter finns kvar.
 
-Välj **Ångra tömning** vid sparbeskedet för att hämta versionen före tömningen. Den sparas som en ny version och öppnas i **Lägg schema**. Knappen finns även efter omladdning, så länge den tömda versionen är aktuell och underlaget fortfarande gäller.
+Provbokningarnas datum, tider, deltagare och manuella val ligger kvar. Salar och provvakter som schemamotorn tilldelat för det tömda utkastet rensas så att de kan räknas om. Ersättningslektioner för proven försvinner tillsammans med utkastets datumändringar. Äldre provval vars ursprung saknar säkert stöd i historiken ligger kvar.
+
+Välj **Ångra tömning** vid sparbeskedet för att återställa schemat och de provtilldelningar som tömdes. Schemat sparas som en ny version och öppnas i **Lägg schema**. Knappen finns även efter omladdning så länge den tömda versionen är aktuell och underlaget fortfarande gäller. Om provplanen har sparats om efter en tömning av provtilldelningar stannar ångringen och visar att provplanen har ändrats.
 
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 

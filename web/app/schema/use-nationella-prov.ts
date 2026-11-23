@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ApiError, api } from '@/lib/server-client.ts';
 import {
-  NATIONELLA_PROV_VERSION, parseNationellaProvDocument, parseNationellaProvRegister, parseNationellaProvUnderlag, skapaProvId,
+  NATIONELLA_PROV_VERSION, parseNationellaProvDocument, parseNationellaProvRegister, parseNationellaProvUnderlag, provManuellaVal, skapaProvId,
   type NationellaProvDocument, type NationellaProvRegister, type NationellaProvUnderlag,
 } from '@/lib/nationella-prov.ts';
 
@@ -17,10 +17,11 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
   const [reading, setReading] = useState(true), [saving, setSaving] = useState(false), [error, setError] = useState<string | null>(null);
   const [readFailed, setReadFailed] = useState(false), [needsReload, setNeedsReload] = useState(false);
   const pending = useRef<Pending | null>(null), inFlight = useRef(false), mustReload = useRef(false);
+  const reloadAfterSave = useRef(false);
   const lost = useRef(onSessionLost);
   useEffect(() => { lost.current = onSessionLost; }, [onSessionLost]);
   const onReload = useCallback(() => {
-    if (inFlight.current) return;
+    if (inFlight.current) { reloadAfterSave.current = true; return; }
     setReading(true); setError(null); setAttempt(n => n + 1);
   }, []);
   useEffect(() => {
@@ -48,7 +49,10 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
   async function onSave(document: NationellaProvDocument): Promise<boolean> {
     if (!state || inFlight.current || mustReload.current || reading) return false;
     let normalized: NationellaProvDocument;
-    try { normalized = parseNationellaProvDocument(document, schoolYear); }
+    try {
+      const parsed = parseNationellaProvDocument(document, schoolYear);
+      normalized = parseNationellaProvDocument(provManuellaVal(state.register?.document ?? null, parsed), schoolYear);
+    }
     catch { setError('Kontrollera provuppgifterna, datumet och att tiderna följer femminuterssteg.'); return false; }
     const key = JSON.stringify(normalized), previous = pending.current;
     if (previous && previous.key !== key) {
@@ -97,6 +101,10 @@ export function useNationellaProv({ unitId, schoolYear, enabled, onSessionLost }
     } finally {
       inFlight.current = false;
       setSaving(false);
+      if (reloadAfterSave.current) {
+        reloadAfterSave.current = false;
+        onReload();
+      }
     }
   }
   return { document: state?.register?.document ?? null, revision: state?.register?.revision ?? null, underlag: state?.underlag ?? null, reading, saving, error, readFailed, needsReload, onSave, onReload };

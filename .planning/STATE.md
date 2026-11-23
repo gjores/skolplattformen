@@ -23,15 +23,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 4e6ef645a072ece48c6289dd95418fa974429838
-schema_candidate_revision: 4e6ef645a072ece48c6289dd95418fa974429838
-schema_candidate_status: schema_recalculation_installed_and_authenticated_browser_verified
+schema_runtime_revision: baecd0e1ab5990e552040cbd161b69a74aec5cf5
+schema_candidate_revision: baecd0e1ab5990e552040cbd161b69a74aec5cf5
+schema_candidate_status: schema_exam_reset_installed_and_authenticated_browser_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: schema_recalculation_installed_without_migrations_existing_drafts_preserved
-user_trial_status: schema_recalculation_installed_awaiting_user_trial
+schema_installation_status: schema_exam_reset_installed_existing_schema_and_exam_revisions_preserved
+user_trial_status: schema_exam_reset_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – tömning och ångring med provtilldelningar på 3012.** Provbygget `baecd0e1` rensar motorns provsalar, provvakter och ersättningslektioner och behåller provbokningar och manuella provval. Ångra återställer schema och berörda provtilldelningar tillsammans. Databaskontrollen bekräftade 142 bevarade schemarevisioner och 22 bevarade provrevisioner. Inloggad rektor såg **Ångra tömning** för det redan tömda helårsutkastet. Skrivproven gjordes med isolerade syntetiska uppgifter. [SM-TOM-PROV](phases/05.2-schemamodul/05.2-SM-TOM-PROV-SUMMARY.md)
 
 **2026-11-23 – omräkningsknappen syns högst upp i Granska på 3012.** Provbygget `4e6ef645` placerar **Räkna om schemat** intill arbetsyteflikarna. Befintligt utkast och granskningsflöde kontrollerades med samma lokala skola. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
 

@@ -120,6 +120,7 @@ registerHooks({ load(url, context, next) {
     export const readSchemaBasis=(...a)=>globalThis.__schemaDatumServerTest.read(...a);
     export async function schemaBegaran(req, parse){try{return parse(await req.json());}catch{throw new Deny('bad_request',400);}}`;
   if (is('nationella-prov.ts')) source = `export const readNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.prov(...a);
+    export const readNationellaProvMedMotorhistorik=async()=>{throw new Error('Oväntad historikläsning utanför tömning');};
     export const sparaNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.saveProv(...a);`;
   if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const validateSchema=(...a)=>globalThis.__schemaDatumServerTest.validate(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);

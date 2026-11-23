@@ -86,7 +86,12 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
   const annual = await seed(server, input({ ...contents, name: 'Hela läsårets schema' }));
   const host = await seed(server, input({ ...contents, period: 'ht', name: 'Höstschemat', locks: [placements.find(p => p.lesson !== datePass.lesson.id)!],
     datedOverrides: [{ lesson: datePass.lesson.id, originalDate, date: '2026-11-13', startMin: 900, room: null, durationMin: datePass.length }] }));
-  const changes: SchemaDraftResetRequest[] = [], reads: string[] = [], examWrites: string[] = [];
+  const changes: SchemaDraftResetRequest[] = [], reads: string[] = [], examReads: number[] = [], examWrites: string[] = [];
+  await page.route('**/api/lasar/nationella-prov/lasa', route => {
+    examReads.push(server.drafts.get(htKey)!.revision);
+    return route.fulfill({ headers: { 'X-Context-Epoch': '1' }, json: { ...route.request().postDataJSON(), register: null,
+      underlag: { gallerGymnasiet: true, deltagare: [], salar: [], vakter: [], skoldagar: [] } } });
+  });
   page.on('request', request => {
     if (request.url().endsWith('/api/schema/utkast/las')) reads.push(request.postDataJSON().period);
     if (request.url().endsWith('/api/lasar/nationella-prov/spara')) examWrites.push(request.url());
@@ -115,10 +120,13 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
   await yta.getByRole('button', { name: 'Lägg schema', exact: true }).click();
   const week = page.locator('.schema-week');
   await expect(week.locator('[data-lesson]').first()).toBeVisible();
+  await expect.poll(() => examReads).toEqual([host.revision]);
 
   await tom.click();
   const confirm = page.getByRole('alertdialog', { name: 'Töm schema?' });
   await expect(confirm).toContainText('Provskolan · läsår 2026/27 · Höstterminen');
+  await expect(confirm).toContainText('Motorns provsalar, provvakter och ersättningslektioner för utkastet töms också.');
+  await expect(confirm).toContainText('Provbokningarna, manuella provval och övriga schemavillkor finns kvar.');
   const cancel = confirm.getByRole('button', { name: 'Behåll schemat', exact: true });
   await expect(cancel).toBeFocused();
   await cancel.click();
@@ -130,6 +138,7 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
   await expect(undo).toBeFocused();
   await expect(yta.getByRole('button', { name: 'Förbered', exact: true })).toHaveAttribute('aria-current', 'page');
   await expect(week).toHaveCount(0);
+  await expect.poll(() => examReads).toEqual([host.revision, host.revision + 1]);
   expect(server.drafts.get(htKey)).toMatchObject({ id: host.id, revision: host.revision + 1, base: null, placements: [], locks: [], datedOverrides: [],
     intentional: [], workingVillkor: host.workingVillkor });
   expect(server.drafts.get(key())).toEqual(annual);
@@ -139,11 +148,14 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
   await expect(period).toHaveValue('ht');
   await expect(undo).toBeEnabled();
   expect(reads.slice(beforeReload)).toEqual(['ht']);
+  await expect.poll(() => examReads).toEqual([host.revision, host.revision + 1, host.revision + 1]);
+  const beforeUndo = examReads.length;
   await undo.click();
   await expect(tom).toBeFocused();
   await expect(yta.getByRole('button', { name: 'Lägg schema', exact: true })).toHaveAttribute('aria-current', 'page');
   await expect(week.locator('[data-lesson]').first()).toBeVisible();
   await expect(undo).toHaveCount(0);
+  await expect.poll(() => examReads.slice(beforeUndo)).toEqual([host.revision + 2]);
   expect(changes.map(command => command.action)).toEqual(['clear', 'undo']);
   expect(server.drafts.get(htKey)).toMatchObject({ id: host.id, revision: host.revision + 2, placements: host.placements, locks: host.locks,
     datedOverrides: host.datedOverrides, workingVillkor: host.workingVillkor });

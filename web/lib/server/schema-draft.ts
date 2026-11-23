@@ -6,7 +6,7 @@ import { readSchemaBasis } from './schema-read.ts';
 import { readSchemaDatedBasis } from './schema-datum-read.ts';
 import { valideraSchemaDatum } from './schema-datum.ts';
 import type { SchemaDatedBasis } from '../schema-datum-underlag.ts';
-import { SchemaDatumError } from '../schema-datum.ts';
+import { SchemaDatumError, schemaDatumTermTillaten } from '../schema-datum.ts';
 import { SchemaEngineError, validateSchema } from './schemamotor.ts';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../schema-underlag.ts';
 import { SchemaContractError, checkSchemaPlacements, sammaGrund, villkorNyckel, type SchemaForslagRequest, type SchemaSolution, type SchemaVillkor } from '../schema-contract.ts';
@@ -15,9 +15,11 @@ import { avvikelseNyckel, medvetenKrock, medvetenMarkering, medvetnaAvvikelser }
 import { SCHEMA_DRAFT_BYTES, SCHEMA_DRAFT_VERSION, SchemaDraftError, parseSchemaDraft, parseSchemaDraftDocument, parseSchemaDraftReceipt, parseSchemaDraftSaveReply,
   parseSchemaDraftScope, parseSchemaDraftSave, parseSchemaDraftStatusRequest, parseSchemaDraftResetRequest, schemaDraftDocument, schemaDraftHash, schemaDraftResetHash,
   type SchemaDraft, type SchemaDraftDocument, type SchemaDraftLessonSource, type SchemaDraftReadReply, type SchemaDraftSave, type SchemaDraftSaveReply, type SchemaDraftScope,
-  type SchemaDraftStatusRequest, type SchemaDraftStatusReply } from '../schema-draft-contract.ts';
+  type SchemaDraftResetRequest, type SchemaDraftStatusRequest, type SchemaDraftStatusReply } from '../schema-draft-contract.ts';
 import { logEvent, type EventInput } from './events.ts';
 import { salIfyllning } from '../schema-utan-sal.ts';
+import { NATIONELLA_PROV_VERSION, parseNationellaProvSave, provRensaMotorval } from '../nationella-prov.ts';
+import { readNationellaProv, readNationellaProvMedMotorhistorik, sparaNationellaProv } from './nationella-prov.ts';
 
 type ReadBasis = Awaited<ReturnType<typeof readSchemaBasis>> & { datedBasis: SchemaDatedBasis };
 type RawEnvelope = { contractVersion: 'schema_draft_sql_v1'; actor: { identityId: string; assignmentId: string }; result: Record<string, unknown> };
@@ -87,6 +89,62 @@ async function resetPrevious(tx: Tx, ctx: Context, scope: SchemaDraftScope, head
   if (previous && (previous.id !== head.id || previous.revision !== previousRevision || previous.name !== head.name || !previous.placements.length)) throw new AuditUnavailable();
   return { revision: previousRevision, draft: previous };
 }
+
+async function resetProvPrevious(tx: Tx, input: SchemaDraftResetRequest) {
+  const keys = { ...scopeKeys(input), draftId: input.draftId, expectedRevision: input.expectedRevision, includeDraft: false };
+  const rows = await operation(() => tx<{ result: { clearedRevision: number; previousRevision: number } | null }[]>`
+    select public.schema_prov_reset_previous(${tx.json(keys)}) as result`);
+  if (rows.length !== 1) throw new AuditUnavailable();
+  const { result } = rows[0];
+  if (result === null) return null;
+  if (!result || Object.keys(result).sort().join() !== 'clearedRevision,previousRevision'
+    || !Number.isSafeInteger(result.clearedRevision) || !Number.isSafeInteger(result.previousRevision)
+    || result.previousRevision < 1 || result.clearedRevision !== result.previousRevision + 1) throw new AuditUnavailable();
+  return result;
+}
+
+async function resetProv(tx: Tx, ctx: Context, input: SchemaDraftResetRequest, read: ReadBasis) {
+  const { unitId, schoolYear, period, commandId, draftId } = input;
+  if (schoolYear < 2000 || schoolYear > 2100) return;
+  const dates = new Set(read.basis.time?.dates?.filter(day => schemaDatumTermTillaten(period, day.term)).map(day => day.date));
+  if (input.action === 'clear' && !dates.size) return;
+
+  // Samma ordning som provtillämpningen. Utkastets kommandolås är redan taget genom schema_status.
+  await tx`select pg_advisory_xact_lock(hashtextextended(${commandId}, 2026111901))`;
+  await tx`select pg_advisory_xact_lock(hashtextextended(${`${unitId}/${schoolYear}`}, 2026111902))`;
+
+  const previous = input.action === 'undo' ? await resetProvPrevious(tx, input) : null;
+  if (input.action === 'undo' && !previous) return;
+  const register = await readNationellaProv(tx, ctx, unitId, schoolYear);
+  if (previous && register?.revision !== previous.clearedRevision) throw new Deny('conflict', 409, { reason: 'schema_reset_prov_changed' });
+  if (!register) return;
+
+  const original = await readNationellaProvMedMotorhistorik(tx, ctx, unitId, schoolYear, previous?.previousRevision ?? register.revision);
+  if (!original) throw new AuditUnavailable();
+  let bokningar = register.document.bokningar;
+  if (!previous) {
+    const selected = { ...original, bokningar: original.bokningar.filter(booking => dates.has(booking.datum)) };
+    const cleared = provRensaMotorval(selected, draftId);
+    if (selected === cleared) return;
+    const changes = new Map(cleared.bokningar.flatMap((booking, index) => booking === selected.bokningar[index] ? [] : [[booking.id, booking] as const]));
+    bokningar = bokningar.map(booking => changes.get(booking.id) ?? booking);
+  } else {
+    const beforeClear = new Map(original.bokningar.map(booking => [booking.id, booking]));
+    bokningar = bokningar.map(booking => {
+      const before = beforeClear.get(booking.id);
+      return before && (before.salId !== booking.salId || JSON.stringify(before.vakter) !== JSON.stringify(booking.vakter)) ? before : booking;
+    });
+  }
+
+  const request = parseNationellaProvSave({ contractVersion: NATIONELLA_PROV_VERSION, unitId, schoolYear, commandId,
+    expectedRevision: register.revision, document: { ...register.document, bokningar } });
+  const saved = await sparaNationellaProv(tx, ctx, request, { onlyResources: true });
+  if (saved.replayed) throw new Deny('conflict', 409, { reason: 'schema_draft_command_conflict' });
+  try {
+    await logEvent(tx, ctx, { ...event('nationella_prov_saved', input, unitId), objectType: 'nationella_prov', outcome: 'ok' });
+  } catch { throw new AuditUnavailable(); }
+}
+
 const currentInput = (input: SchemaDraftScope, villkor: SchemaForslagRequest['villkor']): SchemaForslagRequest => ({ unitId: input.unitId, schoolYear: input.schoolYear, period: input.period, villkor });
 const sourceConflict = (input: SchemaDraftSave) => input.forslagFingerprint === undefined ? 'schema_draft_source_changed' : 'schema_preview_outdated';
 /** Digest räknas på faktisk källa. Rollens capabilities, actions och historik är inga källförändringar. */
@@ -308,6 +366,7 @@ export async function schemaDraftResetRoute(request: Request): Promise<Response>
       if (error instanceof SchemaDraftError || error instanceof SchemaContractError) throw sourceChanged();
       throw error;
     }
+    await resetProv(tx, ctx, input, read);
     const body = await commitSchemaDraft(tx, ctx, save, document, read, requestHash);
     return { body, event: event(action, input, input.draftId) };
   });

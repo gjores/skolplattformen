@@ -5,10 +5,14 @@ import {
   NATIONELLA_PROV_VERSION,
   NationellaProvError,
   nationellaProvBokningsfel,
+  parseNationellaProvDocument,
   parseNationellaProvKatalog,
   parseNationellaProvRegister,
   parseNationellaProvSave,
   parseNationellaProvScope,
+  provManuellaVal,
+  provMedMotorhistorik,
+  type NationellaProvDocument,
 } from '../nationella-prov.ts';
 import { katalogbokningGiltig } from '../nationella-prov-katalog.ts';
 import { readNationellaProvUnderlag } from './nationella-prov-underlag.ts';
@@ -60,6 +64,30 @@ export async function readNationellaProv(tx: Tx, ctx: Context, unitId: string, s
   return register(result.register, schoolYear);
 }
 
+async function motorhistorik(tx: Tx, ctx: Context, unitId: string, schoolYear: number, revision: number) {
+  const input = { contractVersion: NATIONELLA_PROV_VERSION, unitId, schoolYear, revision };
+  const result = await query(() => tx<{ result: unknown }[]>`select public.schema_prov_motor_history(${tx.json(input)}) as result`, ctx);
+  if (Object.keys(result).join() !== 'revisions' || !Array.isArray(result.revisions)) throw new AuditUnavailable();
+  try {
+    return result.revisions.map((row, i) => {
+      if (!object(row) || Object.keys(row).sort().join() !== 'document,draftId,revision' || row.revision !== i + 1
+        || i + 1 > revision || row.draftId !== null && (typeof row.draftId !== 'string' || !/^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/u.test(row.draftId))) {
+        throw new AuditUnavailable();
+      }
+      return { document: parseNationellaProvDocument(row.document, schoolYear), draftId: row.draftId };
+    });
+  } catch (error) {
+    if (error instanceof NationellaProvError) throw new AuditUnavailable();
+    throw error;
+  }
+}
+
+/** Återfinn äldre motorval när det finns en styrkt gemensam transaktion. */
+export async function readNationellaProvMedMotorhistorik(tx: Tx, ctx: Context, unitId: string, schoolYear: number, revision: number) {
+  const history = await motorhistorik(tx, ctx, unitId, schoolYear, revision);
+  return history.length === revision ? provMedMotorhistorik(history) : null;
+}
+
 async function readProvkatalog(tx: Tx, schoolYear: number, revision: number | null = null) {
   const rows = await tx<{ revision: number; kontrolleradDatum: string; prov: unknown }[]>`
     select revision, checked_date::text as "kontrolleradDatum", document as prov
@@ -98,21 +126,34 @@ export function nationellaProvSparaRoute(request: Request): Promise<Response> {
   return protectedRoute(request, action, { mutating: true, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
     const input = await requestInput(request, parseNationellaProvSave);
     const { unitId, schoolYear } = input;
-    return { body: await sparaNationellaProv(tx, ctx, input), event: event(action, unitId, schoolYear) };
+    const current = await readNationellaProv(tx, ctx, unitId, schoolYear);
+    // Samma tidigare dokument ger samma kommandokropp vid ett omförsök.
+    const previous = input.expectedRevision === 0 ? null : current?.revision === input.expectedRevision
+      ? current.document
+      : (await motorhistorik(tx, ctx, unitId, schoolYear, input.expectedRevision))[input.expectedRevision - 1]?.document ?? null;
+    const document = parseNationellaProvDocument(provManuellaVal(previous, input.document), schoolYear);
+    return { body: await sparaNationellaProv(tx, ctx, { ...input, document }), event: event(action, unitId, schoolYear) };
   });
 }
 
-/** Samma skol-/katalogkontroll och kvittens för kalendern och samordnade schemasparningar. */
-export async function sparaNationellaProv(tx: Tx, ctx: Context, input: ReturnType<typeof parseNationellaProvSave>) {
+const bokningarUtanResurser = ({ granskad, bokningar }: NationellaProvDocument) => JSON.stringify({ granskad,
+  bokningar: bokningar.map(({ salId: _sal, vakter: _vakter, motorval: _motorval, ...bokning }) => bokning) });
+
+/** Samma skol- och kommandokontroll för kalendern och samordnade schemasparningar. */
+export async function sparaNationellaProv(tx: Tx, ctx: Context, input: ReturnType<typeof parseNationellaProvSave>, { onlyResources = false } = {}) {
   const { unitId, schoolYear, contractVersion } = input;
   const previous = await readNationellaProv(tx, ctx, unitId, schoolYear);
+  if (onlyResources && (!previous || previous.revision !== input.expectedRevision
+    || bokningarUtanResurser(previous.document) !== bokningarUtanResurser(input.document))) {
+    throw new Deny('conflict', 409, { reason: 'schema_reset_prov_changed' });
+  }
   const result = await query(() => tx<{ result: unknown }[]>`select public.nationella_prov_save(${tx.json(input)}) as result`, ctx);
   const saved = register(result.register, schoolYear);
   if (Object.keys(result).sort().join() !== 'register,replayed' || !saved || typeof result.replayed !== 'boolean'
     || saved.revision !== input.expectedRevision + 1 || JSON.stringify(saved.document) !== JSON.stringify(input.document)) {
     throw new AuditUnavailable();
   }
-  if (!result.replayed) {
+  if (!result.replayed && !onlyResources) {
     const previousBookings = new Map(previous?.document.bokningar.map(b => [b.id, b]));
     const bookings = input.document.granskad ? input.document.bokningar : input.document.bokningar.filter(b =>
       JSON.stringify(previousBookings.get(b.id)) !== JSON.stringify(b));

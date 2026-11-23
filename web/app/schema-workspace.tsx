@@ -416,7 +416,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     try {
       if (action === 'clear') {
         const scope = [schoolName, `läsår ${planningYearLabel(schoolYear)}`, PERIOD[period]].filter(Boolean).join(' · ');
-        const ok = await confirm({ title: 'Töm schema?', description: `${scope}. Tider, salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass tas bort från utkastet. Övriga schemavillkor och bokade nationella prov finns kvar. Inställningarna för återkommande aktiviteter används vid nästa beräkning. Du kan ångra tömningen tills nästa version sparas.`,
+        const ok = await confirm({ title: 'Töm schema?', description: `${scope}. Passets placeringar, lås, datumändringar och villkor för enskilda pass töms. Motorns provsalar, provvakter och ersättningslektioner för utkastet töms också. Provbokningarna, manuella provval och övriga schemavillkor finns kvar. Du kan ångra tömningen så länge det tömda utkastet och provtilldelningarna fortfarande är aktuella.`,
           confirmLabel: 'Töm schema', cancelLabel: 'Behåll schemat' });
         if (!ok || controller.signal.aborted) return;
       }
@@ -431,14 +431,21 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       fokuseraTomning.current = true;
       valjYta(action === 'clear' ? 'forbered' : 'schema');
       spara.read();
+      nationellaProv.onReload();
     } catch (caught) {
       if (controller.signal.aborted) return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
       if (caught instanceof ApiError && caught.status === 403) { setTomningsfel('Ditt aktuella uppdrag tillåter inte den här schemaändringen.'); return; }
+      if (caught instanceof ApiError && caught.reason === 'schema_reset_prov_changed') {
+        setTomningsfel('Provplanen har ändrats sedan schemat tömdes. De senare provvalen och det tömda schemat ligger kvar.');
+        nationellaProv.onReload();
+        return;
+      }
       setTomningsfel(caught instanceof ApiError && caught.status === 409
         ? 'Utkastet eller underlaget har ändrats. Serverns aktuella utkast läses in.'
         : 'Ändringen kunde inte bekräftas. Serverns aktuella utkast läses in.');
       spara.read();
+      nationellaProv.onReload();
     } finally {
       if (running.current === controller) { running.current = null; setChecking(false); }
     }

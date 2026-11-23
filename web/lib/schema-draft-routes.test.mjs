@@ -7,6 +7,7 @@ import { defaultSchemaVillkor } from './schema-contract.ts';
 import { buildSchemaUnderlag, defaultSchemaTime, schemaForslag } from './schema-underlag.ts';
 import { parseSchemaDraftSave, schemaDraftHash, schemaDraftResetHash, verifySchemaDraftReadReply, verifySchemaDraftResetReply, verifySchemaDraftSaveReply, parseSchemaDraftStatusReply } from './schema-draft-contract.ts';
 import { schemaDatumOriginal } from './schema-datum.ts';
+import { schemaTime } from './schema-kalender.ts';
 
 const id = n => `83111600-0000-4000-8000-${String(n).padStart(12, '0')}`;
 const ISSUER = 'http://host.docker.internal:8180/realms/skolplattform-test';
@@ -31,7 +32,8 @@ const fake = globalThis.__schemaDraftRoutesTest = {
   async login(_corr, fn) { return fn(fake.tx); },
   async sessionContext(ctx, fn, ErrorClass) {
     if (state.liveDeny) throw new ErrorClass('assignment_ended', 403);
-    const before = { events: structuredClone(state.events), draft: structuredClone(state.draft), commands: structuredClone(state.commands) };
+    const before = { events: structuredClone(state.events), draft: structuredClone(state.draft), commands: structuredClone(state.commands),
+      provRevisions: structuredClone(state.provRevisions) };
     state.inTransaction = true;
     try { return await fn(fake.tx, { ...ctx, accessFunction: state.liveRole ?? state.role, epoch: state.liveEpoch ?? 1, scopeKind: 'school' }); }
     catch (error) { Object.assign(state, before); throw error; }
@@ -44,6 +46,10 @@ const fake = globalThis.__schemaDraftRoutesTest = {
       state.events.push({ action: values[8], outcome: values[11], details: values[12] }); return [];
     }
     if (sql.includes('select i.auth_user_id')) return [{ auth_user_id: id(4), function: state.role, organizer_id: id(8), unit_id: id(1) }];
+    if (sql.includes('pg_advisory_xact_lock')) {
+      state.sqlCalls.push(sql);
+      return [];
+    }
     const q = values[0];
     if (sql.includes('public.schema_')) {
       state.sqlCalls.push(sql);
@@ -61,12 +67,19 @@ const fake = globalThis.__schemaDraftRoutesTest = {
       if (state.wrongReceipt && result.receipt) result.receipt.commandId = id(99);
       return [{ result: wire(result) }];
     }
+    if (sql.includes('public.schema_prov_reset_previous')) {
+      assert.equal(q.includeDraft, false);
+      assert.equal(q.expectedRevision, state.draft.revision);
+      const clear = [...state.commands.values()].find(command => command.draft.revision === state.draft.revision);
+      const companion = state.provRevisions.find(revision => revision.commandId === clear.receipt.commandId);
+      return [{ result: companion ? { clearedRevision: companion.revision, previousRevision: companion.revision - 1 } : null }];
+    }
     if (sql.includes('public.schema_reset_previous')) {
       const result = { previousRevision: null, draft: null }, head = state.draft;
       if (head?.id === q.draftId && head.revision === q.expectedRevision && head.document.base === null) {
         const revisions = [...state.commands.values()], current = revisions.find(r => r.draft.revision === head.revision);
         const previous = revisions.find(r => r.draft.revision === head.revision - 1)?.draft;
-        if (current && previous?.document.placements.length && current.receipt.requestHash === await schemaDraftResetHash({ ...scope,
+        if (current && previous?.document.placements.length && current.receipt.requestHash === await schemaDraftResetHash({ ...scope, period: q.period,
           commandId: current.receipt.commandId, draftId: head.id, expectedRevision: previous.revision, action: 'clear' })) {
           result.previousRevision = previous.revision;
           result.draft = q.includeDraft ? previous : null;
@@ -96,8 +109,31 @@ const fake = globalThis.__schemaDraftRoutesTest = {
     duties: [{ unitId: id(1), startsOn: '2026-07-01', endsOn: null }] }] : [])] }, event: event('personal_read') }; },
   async elective() { return { body: { pupils: [{ id: id(30), name: 'Syntetisk provelev', classIds: [id(10)] }], placements: [] }, event: event('elective_blocks_read') }; },
   async study() { return { body: { pupils: [], memberships: [] }, event: event('study_groups_read') }; },
-  async lasar() { return { body: { calendar: null, versions: [] }, event: event('lasar_read') }; },
+  async lasar() { return { body: state.lasar ?? { calendar: null, versions: [] }, event: event('lasar_read') }; },
   async readSkolsalar() { return state.schoolRooms ? { document: state.schoolRooms } : null; },
+  async readNationellaProv(_tx, _ctx, unitId, schoolYear) {
+    assert.ok(state.inTransaction);
+    assert.equal(unitId, scope.unitId);
+    assert.equal(schoolYear, scope.schoolYear);
+    const latest = state.provRevisions.at(-1);
+    return latest ? structuredClone(latest) : null;
+  },
+  async readNationellaProvMedMotorhistorik(_tx, _ctx, unitId, schoolYear, revision) {
+    assert.ok(state.inTransaction);
+    assert.equal(unitId, scope.unitId);
+    assert.equal(schoolYear, scope.schoolYear);
+    const history = state.provRevisions.find(value => value.revision === revision);
+    return structuredClone(history?.withHistory ?? history?.document ?? null);
+  },
+  async sparaNationellaProv(_tx, _ctx, input, options) {
+    assert.ok(state.inTransaction);
+    assert.deepEqual(options, { onlyResources: true });
+    assert.equal(input.unitId, scope.unitId);
+    assert.equal(input.schoolYear, scope.schoolYear);
+    assert.equal(input.expectedRevision, state.provRevisions.at(-1)?.revision);
+    const register = pushProvRevision(input.document, input.commandId);
+    return { register, replayed: false };
+  },
   async validate(problem, placements) {
     assert.equal(state.inTransaction, false, 'motorn får inte hålla en DB-transaktion');
     assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'), 'planläsningens audit måste vara skriven');
@@ -123,21 +159,27 @@ registerHooks({ load(url, context, next) {
   if (is('study-groups.ts')) source = 'export const readStudyGroups=(...a)=>globalThis.__schemaDraftRoutesTest.study(...a);';
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaDraftRoutesTest.lasar(...a);';
   if (is('skolsalar.ts')) source = 'export const readSkolsalar=(...a)=>globalThis.__schemaDraftRoutesTest.readSkolsalar(...a);export const skolsalarDokument=r=>r?.document??null;';
+  if (is('nationella-prov.ts')) source = `export const readNationellaProv=(...a)=>globalThis.__schemaDraftRoutesTest.readNationellaProv(...a);
+    export const readNationellaProvMedMotorhistorik=(...a)=>globalThis.__schemaDraftRoutesTest.readNationellaProvMedMotorhistorik(...a);
+    export const sparaNationellaProv=(...a)=>globalThis.__schemaDraftRoutesTest.sparaNationellaProv(...a);`;
   if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error { constructor(reason){super(reason);this.reason=reason;} } export const validateSchema=(...a)=>globalThis.__schemaDraftRoutesTest.validate(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
 const { Deny } = await import('./server/db.ts');
 const { SchemaEngineError } = await import('./server/schemamotor.ts');
 const routes = Object.fromEntries(await Promise.all(['las', 'spara', 'status', 'aterstall'].map(async name => [name, (await import(`../app/api/schema/utkast/${name}/route.ts`)).POST])));
-const reset = () => { state = { role: 'rektor', planRevision: 1, reads: [], events: [], validations: [], sqlCalls: [], commandCalls: 0, draft: null, commands: new Map() }; };
+const reset = () => { state = { role: 'rektor', planRevision: 1, reads: [], events: [], validations: [], sqlCalls: [], commandCalls: 0,
+  draft: null, commands: new Map(), provRevisions: [] }; };
 const scope = { contractVersion: 1, unitId: id(1), schoolYear: 2026, period: 'ht' };
 const emptySave = extra => ({ ...scope, commandId: id(2), draftId: null, expectedRevision: 0, name: 'Schemautkast', basisVillkor: null, workingVillkor: defaultSchemaVillkor(),
   grundFingerprint: null, placements: [], locks: [], ...extra });
 const statusInput = commandId => ({ ...scope, commandId: commandId ?? id(2), draftId: null });
-const resetInput = (action = 'clear', number = 61, revision = state.draft?.revision ?? 1) => ({ ...scope, commandId: id(number), draftId: state.draft?.id ?? id(50), expectedRevision: revision, action });
+const resetInput = (action = 'clear', number = 61, revision = state.draft?.revision ?? 1, period = scope.period) =>
+  ({ ...scope, period, commandId: id(number), draftId: state.draft?.id ?? id(50), expectedRevision: revision, action });
 function calculated(extra = {}) {
-  const villkor = extra.basisVillkor ?? defaultSchemaVillkor(), basis = { members: { pupils: [{ id: id(30), classIds: [id(10)] }], memberships: [] }, time: defaultSchemaTime(), personer: [{ ref: id(20), name: 'Provlärare' }] };
-  const u = buildSchemaUnderlag(plan, { ...scope, villkor }, basis);
+  const time = state.lasar ? schemaTime(state.lasar, [id(10)]) : defaultSchemaTime();
+  const villkor = extra.basisVillkor ?? defaultSchemaVillkor(), basis = { members: { pupils: [{ id: id(30), classIds: [id(10)] }], memberships: [] }, time, personer: [{ ref: id(20), name: 'Provlärare' }] };
+  const u = buildSchemaUnderlag(plan, { ...scope, period: extra.period ?? scope.period, villkor }, basis);
   return { ...emptySave(), basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: u.grundFingerprint,
     placements: u.problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: null })), ...extra };
 }
@@ -160,6 +202,27 @@ async function roomPreview(extra = {}, withLock = false) {
 const request = (name, value, headers = {}) => new Request(`http://localhost:3012/api/schema/utkast/${name}`, { method: 'POST', headers: {
   Origin: 'http://localhost:3012', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(value) });
 const call = async (name, value, headers) => { const response = await routes[name](request(name, value, headers)); return { response, body: await response.json() }; };
+
+function pushProvRevision(document, commandId = id(90)) {
+  const register = { revision: state.provRevisions.length + 1, savedAt: '2026-11-16T10:00:00.000Z', document: structuredClone(document), commandId };
+  state.provRevisions.push(register);
+  return register;
+}
+function provBokning(number, datum, extra = {}) {
+  return { id: id(number), namn: `Syntetiskt prov ${number}`, undervisning: 'undervisning:source-1', mal: { slag: 'klass', ref: id(10) },
+    datum, startMin: 540, slutMin: 600, tidsval: 'fast', salId: 'sal-1', vakter: [id(20), id(21)], kontrolleradDatum: '2026-03-18',
+    kallprov: { id: 'syntetiskt-prov', revision: 1 }, ...extra };
+}
+async function savedWithCalendar(period = scope.period) {
+  const versionId = id(88), status = 'faststalld';
+  state.lasar = { target: { kind: 'school', unitId: scope.unitId }, schoolYear: scope.schoolYear, groups: [],
+    calendar: { versionId, version: 1, status, terms: { ht: { start: '2026-08-17', end: '2026-12-18' }, vt: { start: '2027-01-11', end: '2027-06-11' } },
+      exceptions: {}, groupDays: {}, shortWeeks: {}, history: [] },
+    versions: [{ versionId, current: true }] };
+  const result = await call('spara', calculated({ period }));
+  assert.equal(result.response.status, 200);
+  return result.body.draft;
+}
 
 test('utkastsrutterna prövar verkligt uppdrag, MFA, epoch och ursprung före data och motor', async () => {
   const cases = [{ change: { noSession: true }, code: 'no_session', status: 401 }, { change: { revoked: true }, code: 'session_revoked', status: 401 },
@@ -205,6 +268,92 @@ test('tömning bevarar aktivitetsvillkor och lägger till en revision som kan å
   assert.deepEqual(restored.draft.locks, before.locks);
   assert.equal((await call('las', scope)).body.draft.resetUndoRevision, undefined);
   assert.equal(state.commandCalls, 3);
+});
+
+test('tömning och ångring ändrar provets motorval enbart i utkastets verkliga kalenderperiod', async () => {
+  for (const period of ['ht', 'vt', 'lasar']) {
+    reset();
+    const original = await savedWithCalendar(period);
+    const motorval = { sal: original.id, vakter: [{ ref: id(20), draftId: original.id }] };
+    const autumn = provBokning(70, '2026-11-16', { motorval });
+    const spring = provBokning(71, '2027-02-15', { motorval });
+    const outsideTerms = provBokning(72, '2026-12-28', { motorval });
+    const legacy = provBokning(73, '2026-11-17');
+    const independent = provBokning(74, '2027-02-16', { motorval: { sal: id(80) } });
+    const document = { granskad: true, bokningar: [autumn, spring, outsideTerms, legacy, independent] };
+    pushProvRevision(document);
+    const clear = resetInput('clear', 61, original.revision, period);
+    const cleared = await call('aterstall', clear);
+    assert.equal(cleared.response.status, 200, JSON.stringify(cleared.body));
+    assert.equal(cleared.body.draft.base, null);
+    const { motorval: _motorval, ...bokning } = autumn;
+    const emptyAutumn = { ...bokning, salId: null, vakter: [id(21)] };
+    const { motorval: _springMotorval, ...springBooking } = spring;
+    const emptySpring = { ...springBooking, salId: null, vakter: [id(21)] };
+    assert.deepEqual(state.provRevisions.at(-1).document, { ...document, bokningar: [
+      period === 'vt' ? autumn : emptyAutumn, period === 'ht' ? spring : emptySpring, outsideTerms, legacy, independent,
+    ] });
+    assert.equal(state.provRevisions.at(-1).commandId, clear.commandId);
+    const replay = await call('aterstall', clear);
+    assert.equal(replay.body.receipt.replayed, true);
+    assert.equal(state.provRevisions.length, 2);
+
+    const reopened = await verifySchemaDraftReadReply((await call('las', { ...scope, period })).body, { ...scope, period });
+    assert.equal(reopened.draft.resetUndoRevision, original.revision);
+    const undo = resetInput('undo', 62, reopened.draft.revision, period);
+    const reply = await call('aterstall', undo);
+    assert.equal(reply.response.status, 200, JSON.stringify(reply.body));
+    assert.deepEqual(state.provRevisions.at(-1).document, document);
+    assert.equal(state.provRevisions.at(-1).commandId, undo.commandId);
+    assert.equal(reply.body.draft.contentHash, original.contentHash);
+    assert.equal((await call('aterstall', undo)).body.receipt.replayed, true);
+    assert.equal(state.provRevisions.length, 3);
+  }
+});
+
+test('tömning utan ett känt motorval ger ingen provrevision och Ångra ändrar bara schemat', async () => {
+  reset();
+  await savedWithCalendar();
+  const manual = pushProvRevision({ granskad: false, bokningar: [provBokning(70, '2026-11-16')] });
+  assert.equal((await call('aterstall', resetInput())).response.status, 200);
+  assert.deepEqual(state.provRevisions, [manual]);
+  pushProvRevision({ ...manual.document, granskad: true }, id(91));
+  assert.equal((await call('aterstall', resetInput('undo', 62))).response.status, 200);
+  assert.equal(state.provRevisions.length, 2);
+  assert.equal(state.provRevisions.at(-1).document.granskad, true);
+});
+
+test('kompletterad historik kan återställa val, men en senare provplansrevision får aldrig skrivas över', async () => {
+  reset();
+  const original = await savedWithCalendar();
+  const booking = provBokning(70, '2026-11-16');
+  const spring = provBokning(71, '2027-02-15');
+  const initial = pushProvRevision({ granskad: true, bokningar: [booking, spring] });
+  const inferred = { ...booking, motorval: { sal: original.id } };
+  initial.withHistory = { ...initial.document, bokningar: [inferred, { ...spring, motorval: { sal: original.id } }] };
+  const clear = resetInput();
+  state.auditFails = true;
+  state.auditAction = 'schema_draft_cleared';
+  assert.equal((await call('aterstall', clear)).response.status, 500);
+  assert.equal(state.draft.revision, original.revision);
+  assert.equal(state.provRevisions.length, 1);
+  state.auditFails = false;
+
+  assert.equal((await call('aterstall', clear)).response.status, 200);
+  assert.equal(state.provRevisions.at(-1).document.bokningar[0].salId, null);
+  assert.deepEqual(state.provRevisions.at(-1).document.bokningar[0].vakter, booking.vakter);
+  assert.deepEqual(state.provRevisions.at(-1).document.bokningar[1], spring);
+  assert.equal((await call('aterstall', resetInput('undo', 62))).response.status, 200);
+  assert.deepEqual(state.provRevisions.at(-1).document, { ...initial.document, bokningar: [inferred, spring] });
+
+  assert.equal((await call('aterstall', resetInput('clear', 63))).response.status, 200);
+  const manual = pushProvRevision({ granskad: true, bokningar: [{ ...booking, salId: 'sal-2' }, spring] }, id(91));
+  const undo = await call('aterstall', resetInput('undo', 64));
+  assert.equal(undo.response.status, 409);
+  assert.equal(undo.body.details.reason, 'schema_reset_prov_changed');
+  assert.deepEqual(state.provRevisions.at(-1), manual);
+  assert.equal(state.draft.revision, original.revision + 3);
+  assert.equal(state.draft.document.base, null);
 });
 
 test('ångra spärras efter ny revision eller ändrat underlag och kräver audit', async () => {
