@@ -3,13 +3,13 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.2"
 current_phase_name: Schemaläggning med Rust-schemamotor
-current_plan: "SM-PROV-I-FORSTA-FORSLAGET och SM-UXF-54-BERAKNING är verifierade tillsammans och installerade på 3012."
+current_plan: "SM-FORBERED-OMARBETNING är verifierad och installerad på 3012."
 status: in_progress
-stopped_at: "Beräkningsläge och nationella prov installerade. Helårsutkast version 14, tidigare provschema version 11 och provplan version 5 är verifierade efter bytet."
-last_updated: "2026-11-20"
-last_activity: 2026-11-20
-last_activity_desc: "Installerat samordnat beräknings- och provflöde på 3012 och verifierat sparade scheman och provplan skrivskyddat."
-state_head: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
+stopped_at: "Nya Förbered är redo för användarprov av salbehov, lärartid och provbokning."
+last_updated: "2026-11-23"
+last_activity: 2026-11-23
+last_activity_desc: "Installerat Förbered på 3012 och verifierat tre direkta redigeringsvägar med syntetisk rektorssession."
+state_head: fe2b9dda0975f51e16647fd339f9d3d8521d7041
 progress:
   total_phases: 8
   completed_phases: 3
@@ -21,15 +21,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
-schema_candidate_revision: 5dc8dbf90b84062a07b91c3ae7c6c592e238cbda
-schema_candidate_status: exam_and_calculation_dialog_verified_together
+schema_runtime_revision: c6453f2157414b28376ec69a8bf1999902d914ae
+schema_candidate_revision: c6453f2157414b28376ec69a8bf1999902d914ae
+schema_candidate_status: prepare_direct_editors_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: exam_and_calculation_dialog_installed_no_migrations_saved_data_preserved
-user_trial_status: exam_and_calculation_dialog_installed_awaiting_user_trial
+schema_installation_status: prepare_installed_no_migrations_saved_data_preserved
+user_trial_status: prepare_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – Förbered på 3012.** Fyra arbetsområden, en gemensam överblick och genvägar till salbehov, lärartid och provbokning. De tre genvägarna prövades inloggat på syntetiska Nystartsgymnasiet. Utkast och provplan var identiska efter provet. [Plan och verifiering](phases/05.2-schemamodul/05.2-SM-FORBERED-OMARBETNING-PLAN.md)
 
 **2026-11-20 – nationella prov och beräkningsläget på 3012.** [SM-PROV-I-FORSTA-FORSLAGET](phases/05.2-schemamodul/05.2-SM-PROV-I-FORSTA-FORSLAGET-PLAN.md) inkluderar provresurser och daterad ersättningstid från **Ta fram schemaförslag**. [SM-UXF-54-BERAKNING](phases/05.2-schemamodul/05.2-SM-UXF-54-BERAKNING-PLAN.md) visar räknetid och det samordnade sparsteget. Bygget `5dc8dbf9` passerade 124 webbläsarprov och installerades utan migration. Helårsutkastets aktuella version 14, det tidigare provschemat version 11 och provplanens version 5 bevarades.
 
