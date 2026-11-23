@@ -166,7 +166,7 @@ Kortet svarar på fyra frågor, var för sig:
 
 **Kontrollera underlaget** söker hinder utan att lägga något schema. Kontrollen bevisar inte att hela schemat går att lägga.
 
-**Ta fram schemaförslag** räknar fram ett förslag och tar dig till Lägg schema. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt: det som saknas läggs utan sal eller lärare och redovisas som lucka.
+**Ta fram schemaförslag** räknar med skolans aktuella underlag och villkor. När du lägger skolans första schema öppnas förslaget i **Lägg schema**. När det redan finns ett schema öppnas en förhandsgranskning. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt, och pass utan sal eller lärare redovisas.
 
 I **Följ passet** visar lärarraden namn och roll. För valbara block väljer du **Visa ämnen i blocket** för att läsa hela ämneslistan. Fulla passnamn finns också på passknapparna.
 
@@ -182,7 +182,7 @@ Medan motorn räknar visas ett beräkningsläge över arbetsytan. Där ser du st
 
 När du har ett schema kan du välja **Beräkning → Fortsätt förbättra** i Lägg schema. Motorn använder dina nuvarande placeringar som utgångspunkt. Låsta pass och grundplaceringarna för pass med datumändringar ligger kvar. Andra pass kan flyttas för att ge plats eller förbättra schemat. Pass utan sal får ingen ny sal i den fortsatta beräkningen när skolan har ett salregister.
 
-1. Välj räknetid och **Fortsätt förbättra**. Det nuvarande utkastet sparas innan beräkningen börjar.
+1. Välj räknetid och **Fortsätt förbättra**. Du kan räkna och granska även när det nuvarande utkastet har ett sparfel.
 2. Granska varje ändrat pass, från och till, samt antalet lagda pass, regelavvikelser, timplaneavvikelser och håltid.
 3. Välj **Använd förslaget** eller **Behåll nuvarande schema**. Före ditt val ändras inga placeringar. Ett förslag med färre lagda pass eller fler regel- eller timplaneavvikelser kan inte användas.
 
@@ -191,6 +191,12 @@ Förslaget kontrolleras på nytt när du använder det. Ändringen sparas i samm
 Om du väljer **Avbryt beräkningen** under sökningen slutar arbetsytan vänta på svaret. Motorn kan fortsätta räkna tills omgångens tidsgräns är nådd, och under tiden kan en ny beräkning få beskedet att motorn redan räknar. Ditt utkast finns kvar. Beräkningen är ingen bakgrundskörning som sparar ett nytt resultat när sidan har stängts.
 
 Har du ändrat vilka pass som ska finnas, till exempel deras uppdelning eller samtidighetsblock, behöver du först ta fram ett nytt schemaförslag. Fortsättningen använder samma pass och räknar inte om underlaget.
+
+### Räkna om ett befintligt schema
+
+1. Välj **Ta fram schemaförslag** i **Förbered** eller **Beräkning** i **Lägg schema**. I **Granska** finns även **Räkna om schemat**. Använd omräkningen vid ändrade salar, lärartider, regler, lektionsantal, samtidighetsblock, deltagare eller skoldagar. Du kan granska även om det gamla utkastet har ett sparfel.
+2. Kontrollera pass med och utan tid, regel- och timplaneavvikelser samt ändrade placeringar. När kvalitetsmått finns för samma klass eller undervisningsgrupp och termin kan du jämföra elevernas skoldagar. Öppna de berörda låsen, passvillkoren och datumändringarna. Om en sal saknas kan datum och tid i vissa fall följa med. Ett undantag som saknar ett motsvarande pass eller underkänns i kontrollen visas som bortfall i förslaget.
+3. Välj **Behåll nuvarande schema** för att stänga förslaget, eller **Använd förslaget** för att spara det som nästa version. Det sparade schemat ligger kvar tills ditt val har bekräftats. Om underlaget har ändrats sedan beräkningen tar du fram ett färskt förslag. Publicering görs separat i **Granska**.
 
 ## Tid, sal och kapacitet
 

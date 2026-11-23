@@ -9,13 +9,13 @@ import { AktivitetForm, type NyAktivitetsTid } from './aktivitet-form.tsx';
 import './aktiviteter.css';
 
 export type AktiviteterProps = { forslag: SchemaForslag; villkor: SchemaVillkor; lessons: SchemaForslagLesson[]; busy: boolean; saveError?: string | null;
-  recoveryAction?: ReactNode; activityTypes?: SchemaAktivitetsTyp[]; onTypesChange?: (types: SchemaAktivitetsTyp[]) => void;
+  recoveryAction?: ReactNode; recoveryPreview?: ReactNode; activityTypes?: SchemaAktivitetsTyp[]; onTypesChange?: (types: SchemaAktivitetsTyp[]) => void;
   personalLookup?: boolean; onSessionLost?: () => void;
   onChange: (next: SchemaAktivitet[], text: string) => Promise<boolean>; start?: NyAktivitetsTid | null; onStartHandled?: () => void };
 function lokalaTyper(unitId: string): SchemaAktivitetsTyp[] {
   try { return readAktivitetsTyper(window.localStorage, unitId); } catch { return aktivitetsTyper(); }
 }
-export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, recoveryAction, activityTypes, onTypesChange, personalLookup, onSessionLost, onChange, start, onStartHandled }: AktiviteterProps) {
+export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, recoveryAction, recoveryPreview, activityTypes, onTypesChange, personalLookup, onSessionLost, onChange, start, onStartHandled }: AktiviteterProps) {
   const [typeState, setTypeState] = useState(() => ({ unitId: f.unitId, types: lokalaTyper(f.unitId) }));
   if (typeState.unitId !== f.unitId) setTypeState({ unitId: f.unitId, types: lokalaTyper(f.unitId) });
   const types = activityTypes ?? typeState.types, setTypes = (next: SchemaAktivitetsTyp[]) => { if (onTypesChange) onTypesChange(next); else setTypeState({ unitId: f.unitId, types: next }); };
@@ -45,7 +45,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
               {a.serie && activities.filter(x => x.serie === a.serie).length > 1 && <Button variant="outline" disabled={busy} aria-label={`Ta bort hela serien som ${a.name} hör till`}
                 onClick={() => void onChange(activities.filter(x => x.serie !== a.serie), `Serien med ${activities.filter(x => x.serie === a.serie).length} aktiviteter är borttagen`)}>Ta bort serien</Button>}</div></TableCell></TableRow>;
         })}</TableBody></Table>}
-    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} villkor={villkor} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} personalLookup={personalLookup} onSessionLost={onSessionLost}
+    {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} villkor={villkor} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} recoveryPreview={recoveryPreview} personalLookup={personalLookup} onSessionLost={onSessionLost}
       onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
     {manage && <AktivitetsTyper serverSaved={!!activityTypes} typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;

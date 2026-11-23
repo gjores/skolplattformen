@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError } from '@/lib/server-client.ts';
 import { useUnsavedChanges } from '@/lib/unsaved-changes.tsx';
 import { SchemaSparko, schemaSparinnehall, schemaSparnyckel, type SchemaSparinnehall, type SchemaSparstatus } from '@/lib/schema-spara.ts';
-import type { SchemaDraft, SchemaDraftScope } from '@/lib/schema-draft-contract.ts';
+import type { SchemaDraft, SchemaDraftSave, SchemaDraftScope } from '@/lib/schema-draft-contract.ts';
 
 export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost }: {
   scope: SchemaDraftScope; enabled: boolean; snapshot: SchemaSparinnehall; onLoad: (draft: SchemaDraft | null) => void; onSessionLost: () => void;
@@ -62,8 +62,19 @@ export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost
     return queue.current.flush();
   }, []);
   const acceptNewBasis = useCallback(() => queue.current?.acceptNewBasis(), []);
+  const pause = useCallback((value: boolean) => queue.current?.pause(value), []);
+  const revisionEfterSkrivning = () => queue.current?.revisionEfterSkrivning() ?? Promise.resolve(null);
+  const apply = useCallback(async (input: SchemaDraftSave, signal: AbortSignal) => {
+    const value = queue.current;
+    if (!value) throw new Error('schema_revision_changed');
+    const draft = await value.apply(input, signal);
+    if (queue.current !== value) throw new Error('schema_revision_changed');
+    const expected = schemaSparnyckel(schemaSparinnehall(draft));
+    waiting.current = expected === schemaSparnyckel(latest.current.snapshot) ? null : expected;
+    return draft;
+  }, []);
   const read = useCallback(() => setReload(value => value + 1), []);
   const visible: SchemaSparstatus = { ...state, dirty, phase: state.phase === 'saved' && dirty ? 'idle' : state.phase };
   return { state: visible, ready: !enabled || ready, draftId: enabled && ready ? draftId : null,
-    contentHash: enabled && ready ? contentHash : null, flush, read, acceptNewBasis };
+    contentHash: enabled && ready ? contentHash : null, snapshotKey, flush, read, acceptNewBasis, pause, apply, revisionEfterSkrivning };
 }

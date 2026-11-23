@@ -42,6 +42,7 @@ export class SchemaSparko {
   private target: SchemaSparinnehall | null = null;
   private command: SchemaDraftSave | null = null;
   private task: Promise<boolean> | null = null;
+  private paused = false;
   private loaded = false;
   private invalidTarget = false;
   state: SchemaSparstatus = { phase: 'loading', dirty: false, revision: 0, savedAt: null, message: null };
@@ -79,18 +80,50 @@ export class SchemaSparko {
   }
   /** Anropas först när servern har räknat fram en ny grund från aktuella källor. */
   acceptNewBasis(): void { if (this.state.phase === 'stale') this.publish('idle'); }
+  pause(paused: boolean): void { this.paused = paused; }
+  async revisionEfterSkrivning() {
+    await this.task;
+    return this.active ? { draftId: this.draftId, revision: this.revision } : null;
+  }
+  async apply(save: SchemaDraftSave, signal: AbortSignal): Promise<SchemaDraft> {
+    await this.task;
+    signal.throwIfAborted();
+    const input = parseSchemaDraftSave(save);
+    if (!this.active || input.draftId !== this.draftId || input.expectedRevision !== this.revision) throw new Error('schema_revision_changed');
+    const reply = await this.transport.save(input).then(raw => verifySchemaDraftSaveReply(raw, input)).catch(error => {
+      if (['schema_draft_conflict', 'schema_draft_command_conflict'].includes(reason(error) ?? '')) {
+        this.publish('conflict', 'En nyare version har sparats. Läs serverns version innan du räknar om igen.');
+      }
+      throw error;
+    });
+    let draft = reply.draft;
+    if (reply.receipt.replayed) {
+      const current = (await verifySchemaDraftReadReply(await this.transport.read(this.scope), this.scope)).draft;
+      if (!current || current.id !== draft.id || current.revision !== draft.revision || current.contentHash !== draft.contentHash) {
+        this.publish('conflict', 'En nyare version har sparats. Läs serverns version innan du räknar om igen.');
+        throw new Error('schema_revision_changed');
+      }
+      draft = current;
+    }
+    signal.throwIfAborted();
+    this.target = schemaSparinnehall(draft);
+    this.accept(draft, this.target);
+    if (draft.stale) this.publish('stale', 'Förslaget sparades. Underlaget har ändrats sedan dess. Ta fram ett nytt förslag från aktuellt underlag.');
+    return draft;
+  }
   async flush(): Promise<boolean> {
-    if (!this.active || !this.loaded || this.state.phase === 'conflict' || this.state.phase === 'stale') return false;
+    if (!this.active || !this.loaded || this.paused || this.state.phase === 'conflict' || this.state.phase === 'stale') return false;
     if (this.task) return this.task;
     this.task = this.drain();
     try { return await this.task; } finally { this.task = null; }
   }
   private async drain(): Promise<boolean> {
-    while (this.active && this.target && (this.command || schemaSparnyckel(this.target) !== this.acknowledged)) {
+    while (this.active && !this.paused && this.target && (this.command || schemaSparnyckel(this.target) !== this.acknowledged)) {
       if (this.command) {
         const checked = await this.reconcile(this.command);
         if (checked === 'stop') return false;
         if (checked === 'done') continue;
+        if (this.paused) return false;
       } else {
         try { this.command = parseSchemaDraftSave({ ...this.scope, ...this.target, commandId: this.id(), draftId: this.draftId, expectedRevision: this.revision }); }
         catch {
@@ -103,7 +136,7 @@ export class SchemaSparko {
       try {
         const reply = await verifySchemaDraftSaveReply(await this.transport.save(input), input);
         if (!this.active) return false;
-        this.accept(input, reply.draft);
+        this.accept(reply.draft, input);
       } catch (error) {
         if (!this.active) return false;
         const why = reason(error), http = status(error);
@@ -122,10 +155,10 @@ export class SchemaSparko {
         if (checked !== 'done') return false;
       }
     }
-    if (this.active) this.publish('saved');
-    return this.active;
+    if (this.active && !this.paused) this.publish('saved');
+    return this.active && !this.paused;
   }
-  private accept(input: SchemaDraftSave, draft: SchemaDraft): void {
+  private accept(draft: SchemaDraft, input: SchemaSparinnehall): void {
     this.draftId = draft.id; this.revision = draft.revision; this.savedAt = draft.savedAt;
     this.contentHash = draft.contentHash;
     const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes } = input;
@@ -145,7 +178,7 @@ export class SchemaSparko {
       if (!current.draft || current.draft.id !== reply.receipt.draftId || current.draft.revision !== reply.receipt.revision || current.draft.contentHash !== reply.receipt.contentHash) {
         this.publish('conflict', 'En nyare version har sparats medan svaret saknades. Dina ändringar finns kvar här.'); return 'stop';
       }
-      this.accept(input, current.draft);
+      this.accept(current.draft, input);
       if (current.draft.stale) { this.publish('stale', 'Utkastet är sparat, men underlaget har ändrats. Ta fram ett nytt förslag innan du fortsätter.'); return 'stop'; }
       return 'done';
     } catch {

@@ -90,3 +90,41 @@ test('tom lektionsfördelning normaliseras och orsakar inte extra revisioner',as
   const {queue,server}=fixture();await queue.load();const value=snapshot({workingVillkor:{...defaultSchemaVillkor(),fordelning:[]}});queue.update(value);assert.equal(await queue.flush(),true);assert.equal(server.calls.length,1);
   queue.update(snapshot());assert.equal(await queue.flush(),true);assert.equal(server.calls.length,1);assert.equal(queue.state.dirty,false);
 });
+test('granskning pausar nya sparningar även om en tidigare skrivning redan pågår', async () => {
+  const { queue, transport, server } = fixture(), gate = deferred(), begun = deferred(), save = transport.save;
+  transport.save = async input => { begun.resolve(); await gate.promise; return save(input); };
+  await queue.load();
+  queue.update(snapshot());
+  const flushing = queue.flush();
+  await begun.promise;
+  queue.pause(true);
+  const granskning = queue.revisionEfterSkrivning();
+  queue.update(snapshot({ name: 'Äldre osparad ändring' }));
+  gate.resolve();
+  await flushing;
+  assert.equal(await queue.flush(), false);
+  assert.equal(server.calls.length, 1);
+  assert.deepEqual(await granskning, { draftId: server.draft.id, revision: 1 });
+  assert.equal(server.draft.revision, 1);
+  assert.equal(queue.state.dirty, true);
+});
+test('uttryckligt val kan sparas trots ett tidigare valideringsfel i kön', async () => {
+  const { queue, transport, server } = fixture(), save = transport.save;
+  await queue.load();
+  queue.update(snapshot());
+  await queue.flush();
+  transport.save = async input => {
+    if (input.name === 'Äldre ändring') throw { status: 400 };
+    return save(input);
+  };
+  queue.update(snapshot({ name: 'Äldre ändring' }));
+  assert.equal(await queue.flush(), false);
+  queue.pause(true);
+  const candidate = { ...scope, ...snapshot({ name: 'Granskat förslag' }), commandId: id(80), draftId: server.draft.id, expectedRevision: 1 };
+  const draft = await queue.apply(candidate, new AbortController().signal);
+  assert.equal(draft.name, candidate.name);
+  assert.equal(queue.state.revision, 2);
+  assert.equal(queue.state.dirty, false);
+  assert.equal(await queue.flush(), false);
+  assert.deepEqual(server.calls.map(input => input.expectedRevision), [0, 1]);
+});

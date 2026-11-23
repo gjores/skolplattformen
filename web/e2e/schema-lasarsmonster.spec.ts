@@ -2,7 +2,7 @@
 // Motorn och den skyddade API-kedjan prövas separat med samma modell.
 import { test, expect, schemaTestDraft, type Page, type SchemaDraftTestServer } from './schema-test';
 import { parseSchemaDraftSave, type SchemaDraftSave } from '../lib/schema-draft-contract.ts';
-import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaForslagRequest, type SchemaSolution, type SchemaVillkor } from '../lib/schema-contract.ts';
+import { SCHEMA_CONTRACT_VERSION, type SchemaForslag, type SchemaForslagRequest, type SchemaKontrollRequest, type SchemaSolution, type SchemaVillkor } from '../lib/schema-contract.ts';
 import { buildSchemaUnderlag, schemaForslag } from '../lib/schema-underlag.ts';
 import { datumFixture } from '../lib/schema-datum-fixture.mjs';
 import type { TjanstPlanRead } from '../lib/tjanst-contract.ts';
@@ -10,6 +10,8 @@ import { schemaDatumOriginal } from '../lib/schema-datum.ts';
 
 const unitId = '52a10000-0000-4000-8000-000000000001', scope = `${unitId}:2026:lasar`;
 const headers = { 'X-Context-Epoch': '1' }, URL = '/e2e/fixtures/schema-spara-preview.html';
+const granskningspanel = (page: Page) => page.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+const laggSchema = (page: Page) => page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Lägg schema', exact: true });
 function proposal(year: boolean, passRule = false): SchemaForslag {
   const x = datumFixture({ year }), plan = { ...x.plan, unitId } as unknown as TjanstPlanRead;
   const villkor = structuredClone(x.request.villkor) as SchemaVillkor;
@@ -34,6 +36,12 @@ async function setup(page: Page, server: SchemaDraftTestServer, bindings = false
     const body = route.request().postDataJSON(); requests.push(body);
     return state.fail ? route.fulfill({ headers, status: 503, json: { code: 'schema_engine_unavailable' } })
       : route.fulfill({ headers, json: { ...annual, villkor: body.villkor } });
+  });
+  await page.route('**/api/schema/kontroll', route => {
+    const body = route.request().postDataJSON() as SchemaKontrollRequest, f = body.grundFingerprint === annual.grundFingerprint ? annual : old;
+    return route.fulfill({ headers, json: { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: body.grundFingerprint, fingerprint: f.fingerprint,
+      violations: [], total: 0, teachings: f.teachings, trims: f.trims, metrics: f.metrics,
+      rooms: Object.fromEntries(body.placements.flatMap(p => p.room === null ? [] : [[p.lesson, p.room]])) } });
   });
   await page.route('**/api/schema/utkast/spara', async route => {
     const value = parseSchemaDraftSave(route.request().postDataJSON()), previous = server.drafts.get(scope); server.saves.push(value);
@@ -71,20 +79,25 @@ test('ett gammalt utkast återöppnas och sparas utan tyst byte av årsmodell', 
 test('avbrutet eller misslyckat årsbyte bevarar gamla passregler, lås, datum och placeringar', async ({ page, schemaDraftServer: server }) => {
   const { draft, requests, state } = await setup(page, server, true);
   const action = page.getByRole('button', { name: 'Lås upp 1 pass och ta fram läsårsmönster', exact: true });
-  await action.click(); const dialog = page.getByRole('alertdialog');
-  await expect(dialog).toContainText('1 villkor för enskilda pass tas bort');
-  await dialog.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
-  expect(requests).toHaveLength(0); expect(server.drafts.get(scope)).toEqual(draft);
-  state.fail = true; await action.click(); await dialog.getByRole('button', { name: 'Ta fram utan passregler', exact: true }).click();
-  await expect(page.getByRole('alert').first()).toBeVisible(); expect(requests).toHaveLength(1);
+  await action.click();
+  const panel = granskningspanel(page);
+  await expect(panel).toContainText(/Villkoret för .* följer inte med/u);
+  await panel.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
+  expect(requests).toHaveLength(1); expect(server.drafts.get(scope)).toEqual(draft); expect(server.saves).toHaveLength(0);
+  await laggSchema(page).click();
+  state.fail = true; await action.click();
+  await expect(page.getByRole('alert').first()).toBeVisible(); expect(requests).toHaveLength(2);
   expect(server.drafts.get(scope)).toEqual(draft);
   await expect(page.locator(`[data-lesson="${draft.locks[0].lesson}"]`).first()).toContainText('Låst');
 });
 
 test('uttryckligt årsbyte sparar det nya gemensamma mönstret och återöppnar samma årsbudget', async ({ page, schemaDraftServer: server }, info) => {
-  const { annual, requests } = await setup(page, server, true);
+  const { annual, draft, requests } = await setup(page, server, true);
   await page.getByRole('button', { name: 'Lås upp 1 pass och ta fram läsårsmönster', exact: true }).click();
-  await page.getByRole('alertdialog').getByRole('button', { name: 'Ta fram utan passregler', exact: true }).click();
+  const panel = granskningspanel(page);
+  await expect(panel).toBeVisible();
+  expect(server.drafts.get(scope)).toEqual(draft);
+  await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
   await expect.poll(() => server.drafts.get(scope)?.basisVillkor?.timeBasis).toBe('lasar');
   const saved = server.drafts.get(scope)!;
   expect(requests).toHaveLength(1); expect((requests[0].villkor as { timeBasis: string }).timeBasis).toBe('lasar');
@@ -93,6 +106,7 @@ test('uttryckligt årsbyte sparar det nya gemensamma mönstret och återöppnar 
   expect(saved.locks).toEqual([]); expect(saved.datedOverrides).toEqual([]);
   expect(saved.base?.lessons.every(l => l.term === null)).toBe(true);
   expect(saved.base?.teachings.map(t => [t.needMin, t.plannedMin])).toEqual(annual.teachings.map(t => [t.needMin, t.plannedMin]));
+  await laggSchema(page).click();
   await expect(page.getByRole('region', { name: 'Gemensamt läsårsmönster', exact: true })).toHaveCount(0);
   const ids = await page.locator('.schema-week [data-lesson]').evaluateAll(nodes => nodes.map(node => node.getAttribute('data-lesson')).sort());
   await page.getByRole('button', { name: 'Vårterminen', exact: true }).click();
@@ -108,15 +122,17 @@ test('ändrat årsunderlag återanvänder inga gamla passregler utan en uttryckl
   const { old, draft, requests } = await setup(page, server, true, true);
   expect(old.villkor.timeBasis).toBe('lasar');
   const action = page.getByRole('button', { name: 'Ta fram nytt förslag från aktuellt underlag', exact: true });
-  await action.click(); const dialog = page.getByRole('alertdialog');
-  await expect(dialog).toContainText('1 villkor för enskilda pass tas bort');
-  await dialog.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
-  expect(requests).toHaveLength(0); expect(server.drafts.get(scope)).toEqual(draft);
-  await action.click(); await dialog.getByRole('button', { name: 'Ta fram utan passregler', exact: true }).click();
+  await action.click();
+  const panel = granskningspanel(page);
+  await expect(panel).toContainText(/Villkoret för .* följer inte med/u);
+  await panel.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
+  expect(requests).toHaveLength(1); expect(server.drafts.get(scope)).toEqual(draft);
+  await action.click();
+  await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
   await expect.poll(() => server.drafts.get(scope)?.revision).toBe(2);
-  expect(requests).toHaveLength(1);
-  expect((requests[0].villkor as { egna: { slag: string }[] }).egna.some(r => r.slag === 'pass')).toBe(false);
+  expect(requests).toHaveLength(2);
+  expect((requests[1].villkor as { egna: { slag: string }[] }).egna.some(r => r.slag === 'pass')).toBe(false);
   const saved = server.drafts.get(scope)!;
-  expect(saved.locks).toEqual([]); expect(saved.datedOverrides).toEqual([]);
+  expect(saved.locks).toEqual(draft.locks); expect(saved.datedOverrides).toEqual(draft.datedOverrides);
   expect(saved.workingVillkor.egna.some(r => r.slag === 'pass')).toBe(false);
 });

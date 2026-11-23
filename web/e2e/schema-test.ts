@@ -41,6 +41,7 @@ export async function mockSchemaDrafts(context: BrowserContext): Promise<SchemaD
       if (!response.ok()) return;
       const path = new URL(response.url()).pathname;
       if (path === '/api/schema/forslag') source = await response.json() as SchemaForslag;
+      if (path === '/api/schema/fortsatt') { const body = await response.json(); source = body.forslag; control = body.after; }
       if (path === '/api/schema/aktiviteter') { const body = await response.json(); source = body.forslag; control = body.kontroll; }
       if (path === '/api/schema/kontroll') control = await response.json() as SchemaKontroll;
     } catch { /* Ett avbrutet browserprov kan stänga sidan mitt i svarsläsningen. */ }

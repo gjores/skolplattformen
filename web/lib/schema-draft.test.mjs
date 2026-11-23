@@ -57,6 +57,19 @@ test('schemautkastets hash är kanonisk och binder även ännu ej beräknade arb
   const after = { ...before, workingVillkor: { ...before.workingVillkor, breakMin: 15 } };
   assert.notEqual(await schemaDraftHash(before), await schemaDraftHash(after));
 });
+test('godkännandets fingeravtryck och kalender ändrar kommandohashen utan att ändra äldre sparanrop', async () => {
+  const calculated = command({ basisVillkor: defaultSchemaVillkor(), grundFingerprint: 'a'.repeat(28) });
+  const legacy = parseSchemaDraftSave(calculated);
+  assert.ok(!Object.hasOwn(legacy, 'forslagFingerprint'));
+  const approved = parseSchemaDraftSave({ ...calculated, forslagFingerprint: 'b'.repeat(28), forslagKalenderHash: sha('c') });
+  assert.equal(approved.forslagFingerprint, 'b'.repeat(28));
+  assert.equal(approved.forslagKalenderHash, sha('c'));
+  assert.notEqual(await schemaDraftHash(legacy), await schemaDraftHash(approved));
+  assert.notEqual(await schemaDraftHash(approved), await schemaDraftHash({ ...approved, forslagKalenderHash: sha('d') }));
+  assert.throws(() => parseSchemaDraftSave({ ...calculated, forslagFingerprint: null }));
+  assert.throws(() => parseSchemaDraftSave({ ...calculated, forslagKalenderHash: sha('c') }));
+  assert.throws(() => parseSchemaDraftSave(command({ forslagFingerprint: approved.forslagFingerprint })));
+});
 test('schemautkast sparar aktivitetstyper utan deltagarlistor eller godtyckliga extra fält', () => {
   const type = { id: 'typ-1', name: 'Möte', group: 'Möten', participants: 'personal', visibleFor: 'personal', margin: null };
   assert.deepEqual(parseSchemaDraftSave(command({ activityTypes: [type] })).activityTypes, [type]);

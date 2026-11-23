@@ -4,7 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { defaultSchemaVillkor } from './schema-contract.ts';
-import { buildSchemaUnderlag, defaultSchemaTime } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, schemaForslag } from './schema-underlag.ts';
 import { parseSchemaDraftSave, schemaDraftHash, schemaDraftResetHash, verifySchemaDraftReadReply, verifySchemaDraftResetReply, verifySchemaDraftSaveReply, parseSchemaDraftStatusReply } from './schema-draft-contract.ts';
 import { schemaDatumOriginal } from './schema-datum.ts';
 
@@ -97,12 +97,14 @@ const fake = globalThis.__schemaDraftRoutesTest = {
   async elective() { return { body: { pupils: [{ id: id(30), name: 'Syntetisk provelev', classIds: [id(10)] }], placements: [] }, event: event('elective_blocks_read') }; },
   async study() { return { body: { pupils: [], memberships: [] }, event: event('study_groups_read') }; },
   async lasar() { return { body: { calendar: null, versions: [] }, event: event('lasar_read') }; },
+  async readSkolsalar() { return state.schoolRooms ? { document: state.schoolRooms } : null; },
   async validate(problem, placements) {
     assert.equal(state.inTransaction, false, 'motorn får inte hålla en DB-transaktion');
     assert.ok(state.events.some(e => e.action === 'tjanst_plan_read' && e.outcome === 'ok'), 'planläsningens audit måste vara skriven');
     state.validations.push(structuredClone({ problem, placements }));
     if (state.revokeDuringValidation) state.liveDeny = true;
     if (state.changeSourceDuringValidation) state.planRevision++;
+    if (state.changeRoomsDuringValidation) state.schoolRooms = { ...state.schoolRooms, nasta: state.schoolRooms.nasta + 1 };
     if (state.engineFailure) throw new SchemaEngineError(state.engineFailure);
     return { violations: state.violation ? [{ code: 'teacher_clash', message: 'Syntetisk regelavvikelse.', lessons: [placements[0].lesson], resources: [] }] : [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   },
@@ -120,7 +122,7 @@ registerHooks({ load(url, context, next) {
   if (is('elective-block.ts')) source = 'export const readElectiveBlocks=(...a)=>globalThis.__schemaDraftRoutesTest.elective(...a);';
   if (is('study-groups.ts')) source = 'export const readStudyGroups=(...a)=>globalThis.__schemaDraftRoutesTest.study(...a);';
   if (is('lasar.ts')) source = 'export const lasarRead=(...a)=>globalThis.__schemaDraftRoutesTest.lasar(...a);';
-  if (is('skolsalar.ts')) source = 'export const readSkolsalar=async()=>globalThis.__schemaSkolsalar??null;export const skolsalarDokument=r=>r?.document??null;';
+  if (is('skolsalar.ts')) source = 'export const readSkolsalar=(...a)=>globalThis.__schemaDraftRoutesTest.readSkolsalar(...a);export const skolsalarDokument=r=>r?.document??null;';
   if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error { constructor(reason){super(reason);this.reason=reason;} } export const validateSchema=(...a)=>globalThis.__schemaDraftRoutesTest.validate(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
@@ -138,6 +140,22 @@ function calculated(extra = {}) {
   const u = buildSchemaUnderlag(plan, { ...scope, villkor }, basis);
   return { ...emptySave(), basisVillkor: villkor, workingVillkor: villkor, grundFingerprint: u.grundFingerprint,
     placements: u.problem.lessons.map((l, i) => ({ lesson: l.id, day: l.locked?.day ?? 1, startMin: l.locked?.start_min ?? 600 + i * 120, room: null })), ...extra };
+}
+const schoolRooms = number => ({ nasta: number + 1, salar: [{ id: `sal-${number}`, name: `Sal ${number}`, typ: 'Allmän sal', platser: 30, utrustning: [] }] });
+async function roomPreview(extra = {}, withLock = false) {
+  const villkor = { ...defaultSchemaVillkor(), salar: state.schoolRooms.salar.map(s => s.name), salregister: { ...state.schoolRooms, kalla: 'skola', arv: [] },
+    salbehov: [{ slag: 'amne', ref: 'Matematik', lage: 'allman', typ: null, utrustning: [], salar: [], onskad: [], form: null }] };
+  const basis = { members: { pupils: [{ id: id(30), classIds: [id(10)] }], memberships: [] }, time: defaultSchemaTime(),
+    personer: [{ ref: id(20), name: 'Provlärare' }], skolsalar: state.schoolRooms };
+  const underlag = buildSchemaUnderlag(plan, { ...scope, villkor }, basis);
+  const placements = underlag.problem.lessons.map((lesson, i) => ({ lesson: lesson.id, day: i % 5, startMin: 600, room: lesson.rooms.allowed[0] }));
+  const locks = withLock ? placements.slice(0, 1) : [];
+  const request = { ...scope, villkor, ...(locks.length && { locks: { grundFingerprint: underlag.grundFingerprint, placements: locks } }) };
+  const effective = locks.length ? buildSchemaUnderlag(plan, request, basis) : underlag;
+  const proposal = schemaForslag(plan, request, effective, { status: 'complete', placements, unplaced: [], diagnoses: [], elapsedMs: 0,
+    metrics: { studentGapMin: 0, teacherGapMin: 0 } });
+  return { ...emptySave(), basisVillkor: proposal.villkor, workingVillkor: proposal.villkor, grundFingerprint: proposal.grundFingerprint,
+    forslagFingerprint: proposal.fingerprint, forslagKalenderHash: await schemaDraftHash(proposal.time), placements, locks, ...extra };
 }
 const request = (name, value, headers = {}) => new Request(`http://localhost:3012/api/schema/utkast/${name}`, { method: 'POST', headers: {
   Origin: 'http://localhost:3012', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(value) });
@@ -244,6 +262,11 @@ test('hela serverbyggda dokumentet kan hashbindas med verkliga bråkveckor i kal
   assert.equal(document.base.time.weeks, 17.8); assert.ok(document.base.teachings[0].weeklyMin > 0);
   assert.ok(document.base.time.calendar.days.length > 100); assert.match(await schemaDraftHash(document), /^sha256:[0-9a-f]{64}$/u);
   assert.equal(await schemaDraftHash(document), await schemaDraftHash(JSON.parse(JSON.stringify(document))));
+  const approved = parseSchemaDraftSave({ ...input, forslagFingerprint: document.base.fingerprint, forslagKalenderHash: await schemaDraftHash(document.base.time) });
+  await prepareSchemaDraft(read, approved);
+  const updatedTime = { ...time, version: 2 };
+  assert.equal(buildSchemaUnderlag(plan, { ...scope, villkor: input.basisVillkor }, { ...basis, time: updatedTime }).fingerprint, approved.forslagFingerprint);
+  await assert.rejects(() => prepareSchemaDraft({ ...read, basis: { ...basis, time: updatedTime } }, approved), e => e.reason === 'schema_preview_outdated');
   const original = schemaDatumOriginal(document.base, { lesson: input.placements[0].lesson, originalDate: '2026-08-18' }); assert.ok(original);
   const datedOverrides = [{ lesson: original.lesson.id, originalDate: original.originalDate, date: '2026-08-19', startMin: 600, room: null, durationMin: original.length }];
   const changed = await prepareSchemaDraft(read, parseSchemaDraftSave({ ...input, datedOverrides }));
@@ -286,6 +309,50 @@ test('källbyte, indraget mandat och auditfel mellan läsning och sparande ger i
   }
   reset(); const input = calculated(); state.auditFails = true; state.auditAction = 'tjanst_plan_read';
   const failed = await call('spara', input); assert.equal(failed.response.status, 500); assert.equal(failed.body.code, 'audit_unavailable'); assert.equal(state.validations.length, 0);
+});
+test('ett nytt val ersätter det sparade schemat först efter kontroll även när den gamla salen saknas', async () => {
+  reset();
+  state.schoolRooms = schoolRooms(1);
+  const original = await roomPreview();
+  const first = await call('spara', original);
+  assert.equal(first.response.status, 200, JSON.stringify(first.body));
+  state.schoolRooms = schoolRooms(2);
+  const revision = { draftId: first.body.draft.id, expectedRevision: first.body.draft.revision };
+  const { forslagFingerprint: _fingerprint, forslagKalenderHash: _calendar, ...legacy } = original;
+  const badOld = await call('spara', { ...legacy, ...revision, commandId: id(66) });
+  assert.equal(badOld.response.status, 400);
+  const oldPreview = await call('spara', { ...original, ...revision, commandId: id(67) });
+  assert.equal(oldPreview.response.status, 409);
+  assert.equal(oldPreview.body.details.reason, 'schema_preview_outdated');
+  assert.equal((await call('las', scope)).body.draft.contentHash, first.body.draft.contentHash);
+  const next = await roomPreview({ ...revision, commandId: id(68) }, true);
+  assert.equal(next.grundFingerprint, original.grundFingerprint);
+  const saved = await call('spara', next);
+  assert.equal(saved.response.status, 200, JSON.stringify(saved.body));
+  const verified = await verifySchemaDraftSaveReply(saved.body, parseSchemaDraftSave(next));
+  assert.deepEqual(verified.draft.placements, next.placements);
+  assert.deepEqual(verified.draft.locks, next.locks);
+  assert.equal(verified.draft.control.fingerprint, next.forslagFingerprint);
+  assert.equal(verified.draft.revision, first.body.draft.revision + 1);
+  assert.equal((await call('spara', next)).body.receipt.replayed, true);
+  const oldRevision = await call('spara', { ...next, commandId: id(69) });
+  assert.equal(oldRevision.body.details.reason, 'schema_draft_conflict');
+  assert.equal((await call('las', scope)).body.draft.revision, verified.draft.revision);
+});
+test('ändrat salregister under kontrollen lämnar den förra revisionen även när motorns fingeravtryck är samma', async () => {
+  reset();
+  state.schoolRooms = schoolRooms(1);
+  const first = await call('spara', emptySave());
+  assert.equal(first.response.status, 200);
+  const next = await roomPreview({ draftId: first.body.draft.id, expectedRevision: first.body.draft.revision, commandId: id(68) });
+  state.changeRoomsDuringValidation = true;
+  const result = await call('spara', next);
+  assert.equal(result.response.status, 409);
+  assert.equal(result.body.details.reason, 'schema_preview_outdated');
+  assert.equal(state.commandCalls, 1);
+  assert.equal(state.validations.length, 1);
+  assert.equal((await roomPreview()).forslagFingerprint, next.forslagFingerprint);
+  assert.equal((await call('las', scope)).body.draft.contentHash, first.body.draft.contentHash);
 });
 test('okänt pass, sal eller gammal grund ger ett kontrollerat fel före skrivning', async () => {
   for (const changed of [x => ({ ...x, grundFingerprint: 'a'.repeat(28) }), x => ({ ...x, placements: [{ ...x.placements[0], lesson: 'pass-99999' }] }),

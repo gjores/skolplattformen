@@ -156,6 +156,9 @@ test('ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn o
   await expect(dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true })).toBeVisible();
   await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
   await dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true }).click();
+  const panel = dialog.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+  await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
+  await expect(panel).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeEnabled();
   await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
   await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked();
@@ -179,13 +182,20 @@ test('aktivitetens återhämtning släpper lås först efter ett lyckat nytt fö
   await page.route('**/api/schema/forslag', route => {
     const body = route.request().postDataJSON(); expect(body.locks).toBeUndefined();
     if (failures++ === 0) return route.fulfill({ headers, status: 503, json: { code: 'schema_engine_unavailable', details: { reason: 'schema_engine_unreachable' } } });
-    return route.fulfill({ headers, json: forslag(body.villkor) });
+    const f = forslag(body.villkor);
+    f.lessons = f.lessons.map(l => l.id === 'pass-7' ? { ...l, startMin: l.startMin! + 10 } : l);
+    return route.fulfill({ headers, json: f });
   });
   await recover.click(); await expect(dialog.getByRole('alert')).toContainText('Schemamotorn svarar inte');
   await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
   await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked(); await expect(recover).toBeEnabled();
   await page.screenshot({ path: info.outputPath('aktivitet-las-motorfel-bevarat.png'), fullPage: false });
-  await recover.click(); await expect(dialog.getByText('Nytt schemaförslag är klart.', { exact: false })).toBeVisible();
+  await recover.click();
+  const panel = dialog.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+  await expect(panel).toBeVisible();
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1);
+  await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
+  await expect(panel).toHaveCount(0);
   await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(0); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click(); await expect(dialog).toHaveCount(0); await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
 });

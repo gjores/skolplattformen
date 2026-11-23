@@ -100,7 +100,7 @@ test('ny fördiagnos visas och får fokus även när en gammal placeringssöknin
   await expect(page.getByRole('button', { name: 'Ta fram förslag ändå', exact: true })).toBeVisible();
 });
 
-for (const viaActivity of [false, true]) test(`datumundantag kräver bekräftelse även efter tidigare diagnos (${viaActivity ? 'aktivitetsdialog' : 'fortsätt beräkningen'})`, async ({ page }) => {
+for (const viaActivity of [false, true]) test(`datumundantag granskas även efter tidigare diagnos (${viaActivity ? 'aktivitetsdialog' : 'fortsätt beräkningen'})`, async ({ page, schemaDraftServer }) => {
   const { solves } = await setup(page);
   const finding = { code: 'capacity', message: 'Tidigare kontrollpunkt som behöver granskas.', proof: false, lessons: [], resources: [], action: { target: 'villkor', label: 'Se över villkoren' } };
   await page.route('**/api/schema/diagnos', r => r.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [finding] } }));
@@ -112,15 +112,20 @@ for (const viaActivity of [false, true]) test(`datumundantag kräver bekräftels
   await val.getByRole('button', { name: 'Datumintervall', exact: true }).click();await val.getByLabel('Från', { exact: true }).fill('2026-11-06');await val.getByLabel('Till', { exact: true }).fill('2026-11-06');
   await page.locator('[data-date="2026-11-06"] [data-occurrence]').first().click();
   const dateDialog = page.getByRole('dialog', { name: 'Ändra ett tillfälle' });await dateDialog.getByLabel('Starttid', { exact: true }).fill('15:00');await dateDialog.getByRole('button', { name: 'Spara ändringen för detta tillfälle', exact: true }).click();await expect(dateDialog).toHaveCount(0);
+  await expect.poll(() => schemaDraftServer.drafts.get(`${proposal.unitId}:2026:lasar`)?.datedOverrides.length).toBe(1);
   if (viaActivity) {
     await page.locator('details.schema-villkor > summary').click();await page.locator('details.schema-villkor').getByRole('combobox', { name: 'Längsta pass', exact: true }).selectOption('100');
     await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();const activity = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
     await activity.getByLabel('Namn', { exact: true }).fill('Bevarad mentorstid');await activity.getByLabel('Klass 1', { exact: true }).check();await activity.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
     await expect(activity.getByText(finding.message, { exact: true })).toHaveCount(0);
+    await page.route('**/api/schema/diagnos', r => r.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
     await activity.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true }).click();
   } else await page.getByRole('button', { name: 'Ta fram förslag ändå', exact: true }).click();
-  const confirmation = page.getByRole('alertdialog', { name: 'Räkna om hela grundschemat?' });await expect(confirmation).toBeVisible();await confirmation.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
-  expect(solves).toHaveLength(1);
+  const preview = page.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+  await expect(preview).toContainText('Datumändringar (1)');
+  await preview.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
+  expect(solves).toHaveLength(2);
   if (viaActivity) { const activity = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });await expect(activity.getByLabel('Namn', { exact: true })).toHaveValue('Bevarad mentorstid');await activity.getByRole('button', { name: 'Avbryt', exact: true }).click(); }
+  else await page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Lägg schema', exact: true }).click();
   await expect(page.getByRole('heading', { name: '1 ändrat tillfälle', exact: true })).toBeVisible();
 });

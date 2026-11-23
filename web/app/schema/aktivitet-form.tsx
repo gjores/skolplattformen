@@ -15,8 +15,8 @@ const time = (m: number) => `${Math.floor(m / 60).toString().padStart(2, '0')}:$
 const minutes = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 type Props = { forslag: SchemaForslag; villkor: Pick<SchemaVillkor, 'days' | 'breakMin'>; typer: SchemaAktivitetsTyp[]; activities: SchemaAktivitet[]; tid?: NyAktivitetsTid | null; aktivitet?: SchemaAktivitet | null;
   personalLookup?: boolean; onSessionLost?: () => void;
-  busy: boolean; saveError?: string | null; recoveryAction?: ReactNode; onSave: (a: SchemaAktivitet | SchemaAktivitet[]) => Promise<boolean>; onClose: () => void; onTypes: () => void };
-export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, aktivitet, busy, saveError, recoveryAction, personalLookup = false, onSessionLost, onSave, onClose, onTypes }: Props) {
+  busy: boolean; saveError?: string | null; recoveryAction?: ReactNode; recoveryPreview?: ReactNode; onSave: (a: SchemaAktivitet | SchemaAktivitet[]) => Promise<boolean>; onClose: () => void; onTypes: () => void };
+export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, aktivitet, busy, saveError, recoveryAction, recoveryPreview, personalLookup = false, onSessionLost, onSave, onClose, onTypes }: Props) {
   const personalKey = `${f.unitId}:${f.schoolYear}`, sessionLost = useRef(onSessionLost);
   useEffect(() => { sessionLost.current = onSessionLost; }, [onSessionLost]);
   const [personalTry, setPersonalTry] = useState(0), [personal, setPersonal] = useState<{ key: string; people: { ref: string; name: string }[]; loading: boolean; error: string | null }>({ key: personalKey, people: [], loading: personalLookup, error: null });
@@ -163,8 +163,9 @@ export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, akt
       {draft.margin && <p className="text-muted-foreground">{draft.margin.label}: {draft.margin.beforeMin} min före och {draft.margin.afterMin} min efter, från aktivitetstypen.</p>}
       <p className="text-muted-foreground">Synligheten är ett förval för ett framtida publicerat schema. Aktiviteten publiceras inte när du lägger till den.</p>
       {attempted && attempted !== proposalKey && !busy && <output>Nytt schemaförslag är klart. Dina val finns kvar. Välj {submitLabel} för att fortsätta.</output>}
-      {shownError && <div className="akt-fel"><p role="alert" className="text-destructive">{shownError}</p>{recoveryAction}<p className="text-muted-foreground">{aktivitet ? 'Ändringen har inte sparats.' : 'Aktiviteten har inte lagts till.'} Dina val finns kvar i formuläret.</p></div>}
-      <div className="akt-segment"><Button disabled={busy || (serie && rader.length < 2)} onClick={() => void save()}>{busy ? 'Prövar aktiviteten…' : submitLabel}</Button><Button disabled={busy} variant="outline" onClick={onClose}>Avbryt</Button></div>
+      {shownError && !recoveryPreview && <div className="akt-fel"><p role="alert" className="text-destructive">{shownError}</p>{recoveryAction}<p className="text-muted-foreground">{aktivitet ? 'Ändringen har inte sparats.' : 'Aktiviteten har inte lagts till.'} Dina val finns kvar i formuläret.</p></div>}
+      {recoveryPreview}
+      <div className="akt-segment"><Button disabled={busy || !!recoveryPreview || (serie && rader.length < 2)} onClick={() => void save()}>{busy ? 'Prövar aktiviteten…' : submitLabel}</Button><Button disabled={busy} variant="outline" onClick={onClose}>Avbryt</Button></div>
     </div>
   </DialogContent></Dialog>;
 }

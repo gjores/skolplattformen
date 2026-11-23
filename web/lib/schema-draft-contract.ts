@@ -8,7 +8,7 @@ import { parseSchemaDatumAndringar, type SchemaDatumAndring } from './schema-dat
 export const SCHEMA_DRAFT_VERSION = 1 as const;
 export const SCHEMA_DRAFT_BYTES = 8 * 1024 * 1024;
 export const SCHEMA_DRAFT_REASONS = ['schema_draft_invalid', 'schema_draft_too_large', 'schema_draft_version', 'schema_draft_conflict',
-  'schema_draft_command_conflict', 'schema_draft_source_changed', 'schema_draft_not_found'] as const;
+  'schema_draft_command_conflict', 'schema_draft_source_changed', 'schema_preview_outdated', 'schema_draft_not_found'] as const;
 export type SchemaDraftReason = typeof SCHEMA_DRAFT_REASONS[number];
 export class SchemaDraftError extends TypeError {
   public reason: SchemaDraftReason;
@@ -19,6 +19,10 @@ export type SchemaDraftScope = { contractVersion: typeof SCHEMA_DRAFT_VERSION; u
 export type SchemaDraftDatedOverride = SchemaDatumAndring;
 export type SchemaDraftSave = SchemaDraftScope & { commandId: string; draftId: string | null; expectedRevision: number; name: string;
   basisVillkor: SchemaVillkor | null; workingVillkor: SchemaVillkor; grundFingerprint: string | null; placements: SchemaPlacement[]; locks: SchemaPlacement[];
+  /** Förslagets fulla underlagsfingeravtryck vid ett uttryckligt val av ett beräknat schema. */
+  forslagFingerprint?: string;
+  /** Kalenderprojektionen som visades tillsammans med förslaget. */
+  forslagKalenderHash?: string;
   intentional: SchemaMedveten[]; datedOverrides: SchemaDraftDatedOverride[]; activityTypes: SchemaAktivitetsTyp[] };
 export type SchemaDraftStatusRequest = SchemaDraftScope & { commandId: string; draftId: string | null };
 export type SchemaDraftResetRequest = SchemaDraftScope & { commandId: string; draftId: string; expectedRevision: number; action: 'clear' | 'undo' };
@@ -43,6 +47,7 @@ const keys = (r: Record<string, unknown>, allowed: string[], required = allowed)
 };
 const uuid = (value: unknown): string => typeof value === 'string' && UUID.test(value) ? value : invalid();
 const hash = (value: unknown): string => typeof value === 'string' && HASH.test(value) ? value : invalid();
+const fingerprint = (value: unknown): string => typeof value === 'string' && FP.test(value) ? value : invalid();
 const integer = (value: unknown, min: number, max: number): number => typeof value === 'number' && Number.isSafeInteger(value) && value >= min && value <= max ? value : invalid();
 const text = (value: unknown, max: number): string => typeof value === 'string' && value.length > 0 && value.length <= max && value.trim() === value ? value : invalid();
 const array = (value: unknown, max: number): unknown[] => Array.isArray(value) && value.length <= max ? value : invalid();
@@ -116,15 +121,21 @@ function activityTypes(value: unknown): SchemaAktivitetsTyp[] {
 }
 export function parseSchemaDraftSave(value: unknown): SchemaDraftSave {
   const r = record(value), required = ['commandId', 'draftId', 'expectedRevision', 'name', 'basisVillkor', 'workingVillkor', 'grundFingerprint', 'placements', 'locks'];
-  const optional = ['intentional', 'datedOverrides', 'activityTypes'];
+  const optional = ['intentional', 'datedOverrides', 'activityTypes', 'forslagFingerprint', 'forslagKalenderHash'];
   keys(r, ['contractVersion', 'unitId', 'schoolYear', 'period', ...required, ...optional], ['contractVersion', 'unitId', 'schoolYear', 'period', ...required]);
   const scope = parseSchemaDraftScope(Object.fromEntries(['contractVersion', 'unitId', 'schoolYear', 'period'].map(k => [k, r[k]])));
   const basisVillkor = r.basisVillkor === null ? null : villkor(r.basisVillkor), at = placements(r.placements), locks = placements(r.locks);
-  if ((r.grundFingerprint === null) !== (basisVillkor === null) || r.grundFingerprint !== null && (typeof r.grundFingerprint !== 'string' || !FP.test(r.grundFingerprint))) invalid();
-  if (!basisVillkor && (at.length || locks.length || array(r.datedOverrides ?? [], SCHEMA_LIMITS.lessons).length || array(r.intentional ?? [], SCHEMA_LIMITS.shownViolations).length)) invalid();
+  const grundFingerprint = r.grundFingerprint === null ? null : fingerprint(r.grundFingerprint);
+  if ((grundFingerprint === null) !== (basisVillkor === null)) invalid();
+  const forslagFingerprint = Object.hasOwn(r, 'forslagFingerprint') ? fingerprint(r.forslagFingerprint) : undefined;
+  const forslagKalenderHash = Object.hasOwn(r, 'forslagKalenderHash') ? hash(r.forslagKalenderHash) : undefined;
+  if (forslagKalenderHash !== undefined && forslagFingerprint === undefined) invalid();
+  if (!basisVillkor && (forslagFingerprint !== undefined || at.length || locks.length || array(r.datedOverrides ?? [], SCHEMA_LIMITS.lessons).length || array(r.intentional ?? [], SCHEMA_LIMITS.shownViolations).length)) invalid();
   const draftId = r.draftId === null ? null : uuid(r.draftId), expectedRevision = integer(r.expectedRevision, 0, 2147483646);
   if ((draftId === null) !== (expectedRevision === 0)) invalid();
-  return { ...scope, commandId: uuid(r.commandId), draftId, expectedRevision, name: text(r.name, 120), basisVillkor, workingVillkor: villkor(r.workingVillkor), grundFingerprint: r.grundFingerprint as string | null,
+  return { ...scope, commandId: uuid(r.commandId), draftId, expectedRevision, name: text(r.name, 120), basisVillkor, workingVillkor: villkor(r.workingVillkor), grundFingerprint,
+    ...(forslagFingerprint !== undefined && { forslagFingerprint }),
+    ...(forslagKalenderHash !== undefined && { forslagKalenderHash }),
     placements: at, locks, intentional: intentional(r.intentional ?? []), datedOverrides: dated(r.datedOverrides ?? []), activityTypes: activityTypes(r.activityTypes ?? []) };
 }
 export function parseSchemaDraftStatusRequest(value: unknown): SchemaDraftStatusRequest {

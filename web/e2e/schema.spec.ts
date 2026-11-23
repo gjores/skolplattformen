@@ -16,6 +16,11 @@ const shots = process.env.SCHEMA_SHOTS;
 async function räknaOm(page: Page) {
   await page.getByRole('button', { name: 'Beräkning', exact: true }).click();
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+  const granskning = page.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+  await expect(granskning).toBeVisible();
+  await granskning.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
+  await expect(granskning).toBeHidden();
+  await page.getByRole('button', { name: 'Lägg schema', exact: true }).click();
 }
 async function taFramEfterSidstart(page: Page) {
   await expect(page.getByRole('textbox', { name: 'Namn på utkastet', exact: true })).toBeEnabled();
@@ -50,7 +55,14 @@ async function mockKontroll(page: Page, status?: number) {
     bodies.push(body);
     if (status) return route.fulfill({ headers, status, json: { code: 'schema_underlag_changed', correlationId: 'prov', details: { reason: 'schema_underlag_changed' } } });
     const direkt = Object.values(kontroll.direkt).find(x => sammaEgna(body.villkor.egna, [x.regel]));
-    if (direkt) return route.fulfill({ headers, json: direkt.kontroll });
+    if (direkt) {
+      const { days, startMin, endMin } = direkt.regel;
+      const violations = direkt.kontroll.violations.filter(v => v.lessons.some(id => {
+        const at = body.placements.find(p => p.lesson === id), lesson = forslag.lessons.find(l => l.id === id);
+        return at && lesson && days.includes(at.day) && at.startMin < endMin && at.startMin + lesson.durationMin > startMin;
+      }));
+      return route.fulfill({ headers, json: { ...direkt.kontroll, violations, total: violations.length } });
+    }
     const at = body.placements.find(p => p.lesson === kontroll.move.lesson);
     return route.fulfill({ headers, json: !at ? kontroll.lifted : at.day === kontroll.move.day && at.startMin === kontroll.move.startMin ? kontroll.clash : clean });
   });
@@ -379,6 +391,7 @@ test('pass dras till viloytan och tillbaka ut i veckan; på telefon används fly
 
 test('salar och egna villkor läggs till, skickas med begäran och redovisas i förslaget', async ({ page }, info) => {
   const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor, rooms: (body.villkor as typeof forslag.villkor).salar.map((name, i) => ({ id: `sal-${i + 1}`, name })) } }));
+  await mockKontroll(page);
   await page.goto(URL);
   await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   // Underlagsläsningen är otillgänglig i det här provet: villkoren går att ändra ändå.
@@ -436,6 +449,7 @@ test('salar och egna villkor läggs till, skickas med begäran och redovisas i f
   await expect(page.getByText('Eget villkor: Klass Klass 1: pass om högst 60 min.')).toBeVisible();
   await expect(page.getByText('Salar: Idrottshallen. Bara pass med ett salsvillkor får en sal.')).toBeVisible();
   // En sal som tas bort tar sina villkor med sig; övriga villkor står kvar.
+  await page.getByRole('heading', { name: 'Villkor för schemat' }).click();
   await page.getByRole('button', { name: 'Ta bort sal Idrottshallen' }).click();
   await expect(rules.getByRole('listitem')).toHaveCount(2);
   await rules.getByRole('button', { name: /^Ta bort villkoret Klass Klass 1/u }).click();
@@ -694,6 +708,7 @@ test.describe('marginaler för pass', () => {
   async function start(page: Page, width = 1280) {
     await page.setViewportSize({ width, height: 1000 });
     const bodies = await mock(page, body => ({ json: { ...forslag, villkor: body.villkor } }));
+    await mockKontroll(page);
     await page.goto(URL);
     await page.getByRole('button', { name: 'Ta fram schemaförslag' }).click();
     await expect(page.getByText('Tid · Alla pass har tid')).toBeVisible();
@@ -754,7 +769,8 @@ test.describe('marginaler för pass', () => {
     await m.getByRole('button', { name: 'Spara ändringen' }).click();
     await expect(band(page, 'Måndag')).toHaveText('Efter Programämne: Övergång 10 min');
     await expect(m.getByRole('row', { name: /Pass Programämne/u }).getByRole('cell').nth(2)).toHaveText('Elever, lärare');
-    await page.getByRole('button', { name: 'Klass', exact: true }).click();
+    await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
+    await valjVeckoresurs(page, 'Klass 1', 'Klass', true);
 
     // Ta bort med tangentbordet; fokus på Ångra, och ångra lägger tillbaka marginalen och banden.
     await m.getByRole('button', { name: 'Ta bort marginalen Ämne Idrott och hälsa' }).focus();
@@ -775,7 +791,7 @@ test.describe('marginaler för pass', () => {
     expect((bodies[1].villkor as typeof forslag.villkor).egna).toEqual([
       { slag: 'amne', ref: 'Idrott och hälsa', typ: 'marginal', beforeMin: 10, afterMin: 15, occupies: ['elever'], label: 'Omklädning före, dusch efter', visibleFor: ['elever'], when: 'alltid' },
       { slag: 'pass', ref: 'pass-36', typ: 'marginal', beforeMin: 0, afterMin: 10, occupies: ['elever', 'larare'], label: 'Övergång', visibleFor: ['elever'], when: 'alltid' }]);
-    if (shots) { await page.setViewportSize({ width: 1600, height: 1000 }); await m.screenshot({ path: `${shots}/schema-marginaler-1600.png` }); }
+    if (shots) { await page.getByRole('heading', { name: 'Villkor för schemat' }).click(); await page.setViewportSize({ width: 1600, height: 1000 }); await m.screenshot({ path: `${shots}/schema-marginaler-1600.png` }); }
   });
 
   test('marginal till nästa lektion sparad med det gamla villkoret läses som marginal efter passet som upptar alla', async ({ page }) => {
@@ -853,7 +869,6 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   const pass = page.locator('[data-lesson="pass-27"]');
   // Kontrollen prövar spärren direkt (05.2-SM-VILLKOR-DIREKT): märkningen och texten kommer ur motorns svar.
   await expect(pass).toContainText('Regelavvikelse');
-  await expect(pass).toContainText('Ligger på spärrad tid');
   await expect.poll(() => bodies.kontroller.length).toBe(1);
   expect(bodies.kontroller[0]).toMatchObject({ contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: forslag.grundFingerprint });
   expect(bodies.kontroller[0].villkor.egna).toEqual([nySparr]);
@@ -877,13 +892,13 @@ test('meny: dra över torsdag 14:00–16:30 med Spärra, spärra för Klass 1, p
   await expect(page.locator('ul[aria-label="Egna villkor"]')).toHaveCount(0);
   await page.getByRole('button', { name: 'Gör om' }).click();
   await expect(falt).toHaveCount(1);
-  await expect(pass).toContainText('Ligger på spärrad tid');
+  await expect(pass).toContainText('Regelavvikelse');
   await expect.poll(() => bodies.kontroller.length).toBe(3);
-  // Spärren skickas med nästa förslag. Ett nytt förslag har ingen kontroll än: passet märks inte förrän det flyttas eller villkoren ändras.
+  // Spärren skickas med nästa förslag. Fixturen har samma starttid kvar, så kontrollen hittar fortfarande avvikelsen.
   await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([nySparr]);
-  await expect(pass).not.toContainText('Ligger på spärrad tid');
+  await expect(pass).toContainText('Regelavvikelse');
 });
 
 test('meny: samma spärr med bara tangentbordet, och Esc avbryter och lämnar fokus på markeringen', async ({ page }, info) => {
@@ -959,13 +974,13 @@ test('meny: högerklick på ett pass, lägg aldrig här, och nästa förslag lä
   if (shots) await page.screenshot({ path: `${shots}/schema-meny-pass-1280.png` });
   await menu.getByRole('menuitem', { name: 'Lägg aldrig här' }).click();
   await expect(menu).toBeHidden();
-  await expect(pass).toContainText('Ligger på spärrad tid');
+  await expect(pass).toContainText('Regelavvikelse');
   await expect(page.locator('ul[aria-label="Egna villkor"] > li')).toHaveText([/^Ämne Programämne: spärrad torsdag 10:00–11:10/u]);
   await räknaOm(page);
   await expect.poll(() => bodies.length).toBe(2);
   expect((bodies[1].villkor as { egna: unknown[] }).egna).toEqual([aldrig]);
   await expect(pass).toContainText('15:20–16:25');
-  await expect(pass).not.toContainText('Ligger på spärrad tid');
+  await expect(pass).not.toContainText('Regelavvikelse');
 });
 
 test('meny: Skift+F10 på ett pass, Esc lämnar fokus, kortkommandon och piltangenter går genom kontrollen', async ({ page }, info) => {

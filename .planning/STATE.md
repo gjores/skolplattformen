@@ -33,6 +33,8 @@ user_trial_status: schema_quality_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
+**2026-11-23 – gemensam schemaomräkning genomförd.** Ett befintligt utkast kan räknas om och granskas trots sparfel. Bara ett uttryckligt godkännande skriver nästa revision. Påverkade pass, salar, lås, passvillkor och datumändringar redovisas i granskningen. Syntetiska domän-, route- och webbläsarprov täcker omräkning efter sparfel, avbrott och utbytet av sparad revision. Sammansatt provbygge för installation på 3012 återstår. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
+
 **2026-11-23 – schemakvalitet installerad på 3012.** Det sammansatta provbygget `d0971e92` ger Börja här, Elevernas skoldagar och Pröva en förbättring i Granska. Bygget bevarar den lokala arbetsgången i Förbered, datumvyn och provflödet. En inloggad schemakontroll och förbättringsberäkning gav kvalitetsmått för det befintliga helårsutkastet. Utkastet var identiskt efter förhandsgranskningen. Bytet behöll databaskatalog, migrationsjournal och 141 utkastrevisioner. Verksamhetens användarprov återstår. [SM-KVALITET](phases/05.2-schemamodul/05.2-SM-KVALITET-SUMMARY.md)
 
 **2026-11-22 – schemapublicering och bekräftad studiestart installerade på 3012.** Rektor publicerar en exakt sparad schemarevision. Elevkortet visar **Schemalagd nu** och första datum för entydigt matchade pass. Skolans bekräftade start ger **Påbörjad** automatiskt. Isolerade prov kontrollerade publicering, skolgränser och samma studieplan efter datumkomplettering och omladdning. Provbygget bevarade befintlig data, och verksamhetens användarprov återstår. [SP-11](phases/05.3-klassorganisation/05.3-SP-11-SUMMARY.md)

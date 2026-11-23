@@ -10,6 +10,7 @@ import { SchemaDatumError } from '../schema-datum.ts';
 import { SchemaEngineError, validateSchema } from './schemamotor.ts';
 import { buildSchemaUnderlag, schemaForslag, schemaKontroll } from '../schema-underlag.ts';
 import { SchemaContractError, checkSchemaPlacements, sammaGrund, villkorNyckel, type SchemaForslagRequest, type SchemaSolution, type SchemaVillkor } from '../schema-contract.ts';
+import { SchemaFordelningError } from '../schema-fordelning.ts';
 import { avvikelseNyckel, medvetenKrock, medvetenMarkering, medvetnaAvvikelser } from '../schema-utkast.ts';
 import { SCHEMA_DRAFT_BYTES, SCHEMA_DRAFT_VERSION, SchemaDraftError, parseSchemaDraft, parseSchemaDraftDocument, parseSchemaDraftReceipt, parseSchemaDraftSaveReply,
   parseSchemaDraftScope, parseSchemaDraftSave, parseSchemaDraftStatusRequest, parseSchemaDraftResetRequest, schemaDraftDocument, schemaDraftHash, schemaDraftResetHash,
@@ -87,6 +88,7 @@ async function resetPrevious(tx: Tx, ctx: Context, scope: SchemaDraftScope, head
   return { revision: previousRevision, draft: previous };
 }
 const currentInput = (input: SchemaDraftScope, villkor: SchemaForslagRequest['villkor']): SchemaForslagRequest => ({ unitId: input.unitId, schoolYear: input.schoolYear, period: input.period, villkor });
+const sourceConflict = (input: SchemaDraftSave) => input.forslagFingerprint === undefined ? 'schema_draft_source_changed' : 'schema_preview_outdated';
 /** Digest räknas på faktisk källa. Rollens capabilities, actions och historik är inga källförändringar. */
 export const schemaDraftSourceHash = (read: ReadBasis, conditions: (SchemaVillkor | null)[] = []): Promise<string> => {
   const p = read.plan;
@@ -128,6 +130,35 @@ export async function readSchemaDraftReceipt(tx: Tx, ctx: Context, scope: Schema
     return receipt;
   } catch { throw new AuditUnavailable(); }
 }
+
+function draftUnderlag(read: ReadBasis, input: SchemaDraftSave, basisVillkor: SchemaVillkor) {
+  try {
+    const originalRequest = currentInput(input, basisVillkor), original = buildSchemaUnderlag(read.plan, originalRequest, read.basis);
+    if (original.grundFingerprint !== input.grundFingerprint) throw new SchemaDraftError(sourceConflict(input));
+    let request = originalRequest, underlag = original, requiresRecalculation = !sammaGrund(basisVillkor, input.workingVillkor);
+    if (!requiresRecalculation) {
+      const candidate = buildSchemaUnderlag(read.plan, currentInput(input, input.workingVillkor), read.basis);
+      if (candidate.grundFingerprint === original.grundFingerprint) { underlag = candidate; request = currentInput(input, input.workingVillkor); }
+      else requiresRecalculation = true;
+    }
+    if (input.locks.length) {
+      request = { ...request, locks: { grundFingerprint: original.grundFingerprint, placements: input.locks } };
+      underlag = buildSchemaUnderlag(read.plan, request, read.basis);
+    }
+    // Kontrollera också den speglade salinformationen. Hela salregistret ingår inte i motorns problem.
+    if (input.forslagFingerprint !== undefined && (requiresRecalculation || underlag.fingerprint !== input.forslagFingerprint
+      || villkorNyckel(underlag.villkor) !== villkorNyckel(basisVillkor) || villkorNyckel(underlag.villkor) !== villkorNyckel(input.workingVillkor))) {
+      throw new SchemaDraftError('schema_preview_outdated');
+    }
+    return { request, underlag, requiresRecalculation };
+  } catch (error) {
+    if (input.forslagFingerprint !== undefined && (error instanceof SchemaFordelningError || error instanceof SchemaContractError)) {
+      throw new SchemaDraftError('schema_preview_outdated');
+    }
+    throw error;
+  }
+}
+
 /** Förbereder bara servergenererade värden; detta är inte en DB-skrivning. */
 export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave): Promise<SchemaDraftDocument> {
   const digest = await schemaDraftSourceHash(read, [input.basisVillkor, input.workingVillkor]), source = { planId: read.plan.version?.id ?? null, planRevision: read.plan.revision,
@@ -136,29 +167,31 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
   const teachers = new Set([...read.plan.teachers.map(t => t.personId), ...(read.basis.personer ?? []).map(t => t.ref)]);
   for (const v of [input.basisVillkor, input.workingVillkor]) if (v) {
     if (v.egna.some(r => r.slag === 'larare' && !teachers.has(r.ref)) || (v.aktiviteter ?? []).some(a =>
-      a.teacherRefs.some(ref => !teachers.has(ref)) || a.classRefs.some(ref => !classes.has(ref)) || a.groupRefs.some(ref => !groups.has(ref)) || a.rooms.some(room => !v.salar.includes(room)))) throw new SchemaDraftError();
+      a.teacherRefs.some(ref => !teachers.has(ref)) || a.classRefs.some(ref => !classes.has(ref)) || a.groupRefs.some(ref => !groups.has(ref)) || a.rooms.some(room => !v.salar.includes(room)))) {
+      throw new SchemaDraftError(input.forslagFingerprint === undefined ? 'schema_draft_invalid' : 'schema_preview_outdated');
+    }
   }
   if (!input.basisVillkor) return { documentVersion: 1, base: null, basisVillkor: null, workingVillkor: input.workingVillkor, placements: [], locks: [],
     intentional: [], datedOverrides: [], activityTypes: input.activityTypes, control: null, requiresRecalculation: true, source };
-  const originalRequest = currentInput(input, input.basisVillkor), original = buildSchemaUnderlag(read.plan, originalRequest, read.basis);
-  if (original.grundFingerprint !== input.grundFingerprint) throw new SchemaDraftError('schema_draft_source_changed');
-  let request = originalRequest, underlag = original, requiresRecalculation = !sammaGrund(input.basisVillkor, input.workingVillkor);
-  if (!requiresRecalculation) {
-    const candidate = buildSchemaUnderlag(read.plan, currentInput(input, input.workingVillkor), read.basis);
-    if (candidate.grundFingerprint === original.grundFingerprint) { underlag = candidate; request = currentInput(input, input.workingVillkor); }
-    else requiresRecalculation = true;
+  const { request, underlag, requiresRecalculation } = draftUnderlag(read, input, input.basisVillkor);
+  const lessons = new Map(underlag.problem.lessons.map(lesson => [lesson.id, lesson]));
+  if (input.placements.some(p => p.room !== null && !lessons.get(p.lesson)?.rooms?.allowed.includes(p.room))) throw new SchemaDraftError();
+  const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor));
+  if (input.forslagFingerprint !== undefined) {
+    const positions = new Map(placements.map(p => [p.lesson, p]));
+    if (placements.some((p, i) => p.room !== input.placements[i].room) || input.locks.some(lock => positions.get(lock.lesson)?.room !== lock.room)) {
+      throw new SchemaDraftError();
+    }
   }
-  if (input.locks.length) {
-    request = { ...request, locks: { grundFingerprint: original.grundFingerprint, placements: input.locks } };
-    underlag = buildSchemaUnderlag(read.plan, request, read.basis);
-  }
-  if (input.placements.some(p => p.room !== null && !underlag.problem.lessons.find(l => l.id === p.lesson)?.rooms?.allowed.includes(p.room!))) throw new SchemaDraftError();
-  const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor)), check = underlag.problem.lessons.length
+  const check = underlag.problem.lessons.length
     ? await validateSchema(underlag.problem, placements) : { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   const ids = new Set(placements.map(p => p.lesson)), unplaced = underlag.problem.lessons.filter(l => !ids.has(l.id)).map(l => l.id);
   const solution: SchemaSolution = { status: underlag.problem.lessons.length === 0 ? 'input_missing' : unplaced.length ? 'time_limit' : 'complete', placements, unplaced, diagnoses: [], metrics: check.metrics, elapsedMs: 0 };
   // Kvalitetsmåtten är granskningsdata. Lämna det hashade utkastskontraktet kompatibelt med äldre klienter.
   const base = schemaForslag(read.plan, request, underlag, solution, false), control = schemaKontroll(underlag, placements, check, false);
+  if (input.forslagKalenderHash !== undefined && await schemaDraftHash(base.time) !== input.forslagKalenderHash) {
+    throw new SchemaDraftError('schema_preview_outdated');
+  }
   // Valbara men oanvända personalnamn följer inte med in i ett delat skolutkast.
   const usedTeachers = new Set([...read.plan.teachers.map(t => t.personId), ...[underlag.villkor, input.workingVillkor].flatMap(v => [
     ...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs) ])]);
@@ -191,8 +224,11 @@ function checkProjection(draft: SchemaDraftDocument, read: ReadBasis, ctx: Conte
 }
 
 /** Den anropande transaktionen kan samordna utkastets revisionskontroll med ytterligare skolsparning. */
-export async function commitSchemaDraft(tx: Tx, ctx: Context, input: SchemaDraftSave, document: SchemaDraftDocument, current: ReadBasis, requestHash: string) {
-  if (await schemaDraftSourceHash(current, [document.basisVillkor, document.workingVillkor]) !== document.source.digest) throw new Deny('conflict', 409, { reason: 'schema_draft_source_changed' });
+export async function commitSchemaDraft(tx: Tx, ctx: Context, input: SchemaDraftSave, document: SchemaDraftDocument, current: ReadBasis, requestHash: string, prepared?: ReadBasis) {
+  if (await schemaDraftSourceHash(current, [document.basisVillkor, document.workingVillkor]) !== document.source.digest
+    || input.forslagFingerprint !== undefined && (!prepared || villkorNyckel(current.basis.skolsalar ?? null) !== villkorNyckel(prepared.basis.skolsalar ?? null))) {
+    throw new Deny('conflict', 409, { reason: sourceConflict(input) });
+  }
   checkProjection(document, current, ctx);
   const rows = await operation(() => tx<{ result: unknown }[]>`select public.schema_command(${tx.json({ ...scopeKeys(input), commandId: input.commandId, draftId: input.draftId,
     expectedRevision: input.expectedRevision, name: input.name, requestHash, document, sourceHash: document.source.digest })}) as result`);
@@ -313,16 +349,19 @@ export async function schemaDraftSaveRoute(request: Request): Promise<Response> 
   let document: SchemaDraftDocument;
   try { document = await prepareSchemaDraft(capture.read, capture.input); }
   catch (error) {
-    if (error instanceof SchemaDraftError) return json({ code: error.reason === 'schema_draft_source_changed' ? 'conflict' : 'bad_request', details: { reason: error.reason }, correlationId: headers.correlationId }, { ...headers, status: error.reason === 'schema_draft_source_changed' ? 409 : 400 });
+    if (error instanceof SchemaDraftError) {
+      const conflict = error.reason === 'schema_draft_source_changed' || error.reason === 'schema_preview_outdated';
+      return json({ code: conflict ? 'conflict' : 'bad_request', details: { reason: error.reason }, correlationId: headers.correlationId }, { ...headers, status: conflict ? 409 : 400 });
+    }
     if (error instanceof SchemaDatumError) return json({ code: 'schema_datum_invalid', details: { reason: error.reason }, correlationId: headers.correlationId }, { ...headers, status: error.reason === 'schema_datum_participants_unavailable' ? 409 : 400 });
     if (error instanceof SchemaContractError) return json({ code: 'bad_request', details: { reason: 'schema_draft_invalid' }, correlationId: headers.correlationId }, { ...headers, status: 400 });
     if (error instanceof SchemaEngineError) return json({ code: 'schema_engine_unavailable', details: { reason: error.reason }, correlationId: headers.correlationId }, { ...headers, status: 503 });
     throw error;
   }
-  const input = capture.input, requestHash = capture.requestHash;
+  const input = capture.input, requestHash = capture.requestHash, prepared = capture.read;
   return protectedRoute(request, 'schema_draft_saved', { mutating: true, mfa: true, audit: 'required', functions: [...FUNCTIONS] }, async (ctx, tx) => {
     const current = await readDraftBasis(request, tx, ctx, currentInput(input, input.basisVillkor ?? input.workingVillkor));
-    const body = await commitSchemaDraft(tx, ctx, input, document, current, requestHash);
+    const body = await commitSchemaDraft(tx, ctx, input, document, current, requestHash, prepared);
     return { body, event: event('schema_draft_saved', input, body.draft.id) };
   });
 }
