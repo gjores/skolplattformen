@@ -116,7 +116,7 @@ for (const viaActivity of [false, true]) test(`datumundantag granskas även efte
   if (viaActivity) {
     await page.locator('details.schema-villkor > summary').click();await page.locator('details.schema-villkor').getByRole('combobox', { name: 'Längsta pass', exact: true }).selectOption('100');
     await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();const activity = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
-    await activity.getByLabel('Namn', { exact: true }).fill('Bevarad mentorstid');await activity.getByLabel('Klass 1', { exact: true }).check();await activity.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
+    await activity.getByRole('textbox', { name: 'Namn', exact: true }).fill('Bevarad mentorstid');await activity.getByRole('checkbox', { name: 'Klass 1', exact: true }).check();await activity.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
     await expect(activity.getByText(finding.message, { exact: true })).toHaveCount(0);
     await page.route('**/api/schema/diagnos', r => r.fulfill({ headers, json: { version: SCHEMA_CONTRACT_VERSION, findings: [] } }));
     await activity.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true }).click();
@@ -125,7 +125,7 @@ for (const viaActivity of [false, true]) test(`datumundantag granskas även efte
   await expect(preview).toContainText('Datumändringar (1)');
   await preview.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
   expect(solves).toHaveLength(2);
-  if (viaActivity) { const activity = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });await expect(activity.getByLabel('Namn', { exact: true })).toHaveValue('Bevarad mentorstid');await activity.getByRole('button', { name: 'Avbryt', exact: true }).click(); }
+  if (viaActivity) { const activity = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });await expect(activity.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Bevarad mentorstid');await activity.getByRole('button', { name: 'Avbryt', exact: true }).click(); }
   else await page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Lägg schema', exact: true }).click();
   await expect(page.getByRole('heading', { name: '1 ändrat tillfälle', exact: true })).toBeVisible();
 });

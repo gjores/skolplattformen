@@ -8,15 +8,16 @@ import { api, ApiError } from '@/lib/server-client.ts';
 import { parsePersonalReadReply } from '@/lib/tjanst-contract.ts';
 import { serieAktiviteter, serieKontroll, type SerieRad } from '@/lib/schema-serie.ts';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DatumAktivitetForm, type DatumAktivitetUnderlag } from './datum-aktivitet-form.tsx';
 
 export type NyAktivitetsTid = { day: number; startMin: number; nr: number; resurs?: { slag: 'klass' | 'grupp' | 'larare' | 'sal'; ref: string } };
 const DAGAR = ['Måndag', 'Tisdag', 'Onsdag', 'Torsdag', 'Fredag'];
 const time = (m: number) => `${Math.floor(m / 60).toString().padStart(2, '0')}:${(m % 60).toString().padStart(2, '0')}`;
 const minutes = (s: string) => { const [h, m] = s.split(':').map(Number); return h * 60 + m; };
 type Props = { forslag: SchemaForslag; villkor: Pick<SchemaVillkor, 'days' | 'breakMin'>; typer: SchemaAktivitetsTyp[]; activities: SchemaAktivitet[]; tid?: NyAktivitetsTid | null; aktivitet?: SchemaAktivitet | null;
-  personalLookup?: boolean; onSessionLost?: () => void;
+  datum?: DatumAktivitetUnderlag; personalLookup?: boolean; onSessionLost?: () => void;
   busy: boolean; saveError?: string | null; recoveryAction?: ReactNode; recoveryPreview?: ReactNode; onSave: (a: SchemaAktivitet | SchemaAktivitet[]) => Promise<boolean>; onClose: () => void; onTypes: () => void };
-export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, aktivitet, busy, saveError, recoveryAction, recoveryPreview, personalLookup = false, onSessionLost, onSave, onClose, onTypes }: Props) {
+export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, aktivitet, datum, busy, saveError, recoveryAction, recoveryPreview, personalLookup = false, onSessionLost, onSave, onClose, onTypes }: Props) {
   const personalKey = `${f.unitId}:${f.schoolYear}`, sessionLost = useRef(onSessionLost);
   useEffect(() => { sessionLost.current = onSessionLost; }, [onSessionLost]);
   const [personalTry, setPersonalTry] = useState(0), [personal, setPersonal] = useState<{ key: string; people: { ref: string; name: string }[]; loading: boolean; error: string | null }>({ key: personalKey, people: [], loading: personalLookup, error: null });
@@ -53,6 +54,8 @@ export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, akt
     groupRefs: tid?.resurs?.slag === 'grupp' ? [tid.resurs.ref] : [], teacherRefs: tid?.resurs?.slag === 'larare' ? [tid.resurs.ref] : [], rooms: tid?.resurs?.slag === 'sal' ? [tid.resurs.ref] : [],
     durationMin: 20, veckor: { typ: 'alla' }, visibleFor: first.visibleFor, margin: first.margin, tid: { typ: 'fast', day: tid?.day ?? 0, startMin: tid?.startMin ?? 480 },
   });
+  const [datumlage, setDatumlage] = useState(false);
+  const daterad = datumlage && !!datum && !aktivitet;
   // En per klass (05.2-SM-UXF-52): en egen aktivitet för varje vald klass, med ansvarig per klass.
   const [perKlass, setPerKlass] = useState(false), [ansvarig, setAnsvarig] = useState<Record<string, string>>({});
   const [iFoljd, setIFoljd] = useState(false), [mellanrum, setMellanrum] = useState(String(villkor.breakMin));
@@ -109,8 +112,24 @@ export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, akt
     if (await onSave(a)) onClose();
   };
   return <Dialog open onOpenChange={open => { if (!open && !busy) onClose(); }}><DialogContent className="akt-dialog" aria-describedby="akt-beskrivning">
-    <DialogHeader><DialogTitle>{aktivitet ? 'Ändra aktivitet' : 'Ny aktivitet'}</DialogTitle><DialogDescription id="akt-beskrivning">Aktiviteten upptar deltagarna i grundschemat. Undervisning ställs inte in och ingen timplanetid räknas.</DialogDescription></DialogHeader>
-    <div className="akt-form"><div className="akt-typval"><label className="akt-field">Typ av aktivitet<select value={draft.typId} onChange={e => chooseType(e.target.value)}>
+    <DialogHeader><DialogTitle>{aktivitet ? 'Ändra aktivitet' : 'Ny aktivitet'}</DialogTitle><DialogDescription id="akt-beskrivning">{daterad
+      ? 'Lägg in en gemensam aktivitet på ett datum. Du får granska hur den påverkar schemat innan du använder förslaget.'
+      : 'Aktiviteten upptar deltagarna i grundschemat. Undervisning ställs inte in och ingen timplanetid räknas.'}</DialogDescription></DialogHeader>
+    <fieldset className="akt-nar" disabled={busy || !!recoveryPreview}><legend>När</legend><div className="akt-segment">
+      <Button variant={!daterad && draft.tid.typ === 'fast' ? 'secondary' : 'outline'} aria-pressed={!daterad && draft.tid.typ === 'fast'}
+        onClick={() => { setDatumlage(false); patch({ tid: { typ: 'fast', day: 0, startMin: draft.tid.startMin } }); }}>Återkommande</Button>
+      {!aktivitet && <Button variant={daterad ? 'secondary' : 'outline'} aria-pressed={daterad} disabled={!datum} aria-describedby={!datum ? 'akt-datum-grans' : undefined}
+        onClick={() => setDatumlage(true)}>Datum</Button>}
+      <Button variant={!daterad && draft.tid.typ === 'motor' ? 'secondary' : 'outline'} aria-pressed={!daterad && draft.tid.typ === 'motor'}
+        onClick={() => { setDatumlage(false); patch({ tid: { typ: 'motor', days: [1, 2, 3], startMin: 840, endMin: 990 } }); }}>Låt motorn placera</Button>
+    </div>
+      {!aktivitet && !datum && <p id="akt-datum-grans" className="text-muted-foreground">Datum blir tillgängligt när du har ett sparat schema med läsårskalender.</p>}
+    </fieldset>
+    {!aktivitet && datum && <div hidden={!daterad}>
+      <DatumAktivitetForm klasser={f.resurser.klass} forval={tid?.resurs?.slag === 'klass' ? [tid.resurs.ref] : []}
+        datum={datum} busy={busy} saveError={saveError} onClose={onClose}/>
+    </div>}
+    {!daterad && <div className="akt-form"><div className="akt-typval"><label className="akt-field">Typ av aktivitet<select value={draft.typId} onChange={e => chooseType(e.target.value)}>
       {groups.map(g => <optgroup key={g} label={g}>{typer.filter(t => t.group === g).map(t => <option key={t.id} value={t.id}>{t.name}</option>)}</optgroup>)}
       {!typer.some(t => t.id === draft.typId) && <option value={draft.typId}>{draft.typ} (tidigare typ)</option>}<option value="__ny__">Ny typ…</option></select></label>
       <Button variant="outline" onClick={onTypes}>Hantera typer</Button></div>
@@ -124,11 +143,6 @@ export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, akt
         {!serie && values('groupRefs', 'Grupper', f.resurser.grupp)}{!serie && values('teacherRefs', 'Ansvariga', teachers, personalFeedback)}
         <fieldset className="akt-val"><legend>Salar</legend><label className="akt-field">Sal<select value={draft.rooms[0] ?? ''} onChange={e => patch({ rooms: e.target.value ? [e.target.value] : [] })}><option value="">Ingen sal</option>{f.rooms.map(r => <option key={r.id} value={r.name}>{r.name}</option>)}</select></label>
           <p className="text-muted-foreground">En sal per aktivitet. Lägg till salens namn i Villkor för schemat först.</p></fieldset></div>
-      <fieldset className="akt-nar"><legend>När</legend><div className="akt-segment">
-        <Button variant={draft.tid.typ === 'fast' ? 'secondary' : 'outline'} aria-pressed={draft.tid.typ === 'fast'} onClick={() => patch({ tid: { typ: 'fast', day: 0, startMin: draft.tid.startMin } })}>Återkommande</Button>
-        <Button variant="outline" disabled aria-describedby="akt-datum-grans">Datum</Button>
-        <Button variant={draft.tid.typ === 'motor' ? 'secondary' : 'outline'} aria-pressed={draft.tid.typ === 'motor'} onClick={() => patch({ tid: { typ: 'motor', days: [1, 2, 3], startMin: 840, endMin: 990 } })}>Låt motorn placera</Button></div>
-        <p id="akt-datum-grans" className="text-muted-foreground">Här skapar du återkommande aktiviteter. Engångsaktiviteter och inställd undervisning kan inte läggas till här.</p></fieldset>
       {serie && draft.tid.typ === 'fast' && <fieldset className="akt-nar"><legend>Starttid för klasserna</legend><div className="akt-segment">
         <label className="akt-check"><input type="radio" name="akt-serietid" checked={!iFoljd} onChange={() => { setIFoljd(false); patch({}); }}/>Samma starttid</label>
         <label className="akt-check"><input type="radio" name="akt-serietid" checked={iFoljd} onChange={() => { setIFoljd(true); patch({}); }}/>Klasserna efter varandra</label>
@@ -166,6 +180,6 @@ export function AktivitetForm({ forslag: f, villkor, typer, activities, tid, akt
       {shownError && !recoveryPreview && <div className="akt-fel"><p role="alert" className="text-destructive">{shownError}</p>{recoveryAction}<p className="text-muted-foreground">{aktivitet ? 'Ändringen har inte sparats.' : 'Aktiviteten har inte lagts till.'} Dina val finns kvar i formuläret.</p></div>}
       {recoveryPreview}
       <div className="akt-segment"><Button disabled={busy || !!recoveryPreview || (serie && rader.length < 2)} onClick={() => void save()}>{busy ? 'Prövar aktiviteten…' : submitLabel}</Button><Button disabled={busy} variant="outline" onClick={onClose}>Avbryt</Button></div>
-    </div>
+    </div>}
   </DialogContent></Dialog>;
 }

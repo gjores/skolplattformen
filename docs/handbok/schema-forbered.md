@@ -243,6 +243,16 @@ När du sparar läggs sal och provvakter in i provplanen och de krockande lektio
 
 Förslag på provvakter visas för rektor, som kan läsa skolans aktuella uppdrag. Skoladministratören kan granska sal, bortfall och ersättningstid och lämna provvakterna till rektor.
 
+## Lägg en friluftsdag på ett datum
+
+Öppna **Schema → Förbered → Prov och aktiviteter → Ny aktivitet** när schemat har placerade pass och ett aktuellt läsår. Välj **Datum**, fyll i namn, datum och klockslag och välj klasserna. **Välj alla klasser** skapar en gemensam aktivitet.
+
+Välj **Ämne och nivå från timplanen** och ange minuterna som ska räknas som undervisning. Bara klasser med motsvarande undervisning i den valda terminen får minuter på den raden. Välj **Ingen undervisningstid** för en aktivitet som enbart upptar deltagarna.
+
+Välj **Räkna om schemat** och läs vilka pass som ställs in, flyttas eller ersätts av aktivitetens ämnestid. Granska kvarstående minuter per undervisning. Med **Använd förslaget** sparar du aktiviteten tillsammans med datumändringarna. **Behåll nuvarande schema** går tillbaka till det befintliga utkastet. Kontrollera dagen i datumvyn och **Tid över läsåret** i schemats kontroller.
+
+Det går att lägga en gemensam daterad aktivitet per utkast. Under **Daterade aktiviteter** kan du öppna dagen eller ta bort aktiviteten. När du tar bort aktiviteten visas de ordinarie tillfällena igen. Planerade undervisningsminuter i schemat visar hur tiden är fördelad. Genomförd undervisning följs upp separat.
+
 ## Aktivitet för flera klasser
 
 Mentorstid eller tid i matsalen kan läggas in för många klasser på en gång.

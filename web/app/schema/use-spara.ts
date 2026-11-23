@@ -34,7 +34,7 @@ export function useSchemaSpara({ scope, enabled, snapshot, onLoad, onSessionLost
     queue.current = value;
     void value.load().then(draft => {
       if (!current) return;
-      const initial = latest.current.snapshot;
+      const { datedActivities: _datedActivities, ...initial } = latest.current.snapshot;
       waiting.current = schemaSparnyckel(draft ? schemaSparinnehall(draft) : { ...initial, name: 'Schemautkast', basisVillkor: null, grundFingerprint: null, placements: [], locks: [], intentional: [], datedOverrides: [] });
       latest.current.onLoad(draft);
       // onLoad gör en React-commit. Först dess matchande snapshot får skickas till kön.

@@ -18,12 +18,12 @@ test('mentorstid för tre klasser blir tre aktiviteter i en serie, med ansvarig 
   await expect(dialog.locator('[data-serie-rad]')).toHaveCount(bas.resurser.klass.length);
   await dialog.getByRole('button', { name: 'Rensa klassval', exact: true }).click();
   await expect(dialog.locator('[data-serie-rad]')).toHaveCount(0);
-  await dialog.getByLabel('Namn', { exact: true }).fill('Mentorstid');
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Mentorstid');
   await dialog.getByRole('combobox', { name: 'Veckodag', exact: true }).selectOption('0'); await dialog.getByLabel('Start', { exact: true }).fill('08:00');
   for (const k of ['Klass 1', 'Klass 2', 'Klass 3']) await dialog.getByLabel(k, { exact: true }).check();
   await expect(val.getByRole('radio', { name: 'En aktivitet per klass (3 st)', exact: true })).toBeChecked();
   await val.getByRole('radio', { name: 'En gemensam aktivitet', exact: true }).check();
-  await expect(dialog.getByLabel('Klass 3', { exact: true })).toBeChecked();
+  await expect(dialog.getByRole('checkbox', { name: 'Klass 3', exact: true })).toBeChecked();
   await expect(dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeEnabled();
   await val.getByRole('radio', { name: 'En aktivitet per klass (3 st)', exact: true }).check();
   const [t1, t2] = bas.resurser.larare;
@@ -62,7 +62,7 @@ test('klasser bokar samma matsal på tur med förhandsvisning och gemensamt spar
   await yta.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
   await dialog.getByRole('combobox', { name: 'Typ av aktivitet', exact: true }).selectOption({ label: 'Salsbokning' });
-  await dialog.getByLabel('Namn', { exact: true }).fill('Tid i matsal');
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Tid i matsal');
   await dialog.getByRole('radio', { name: 'En aktivitet per klass', exact: true }).check();
   for (const name of ['Klass 1', 'Klass 2', 'Klass 3']) await dialog.getByLabel(name, { exact: true }).check();
   await dialog.getByRole('combobox', { name: 'Sal', exact: true }).selectOption('Matsalen');

@@ -180,9 +180,9 @@ test('en aktivitet läggs till före första förslaget utan beräkning', async 
   await expect(yta.getByRole('heading', { name: 'Återkommande aktiviteter' })).toBeVisible();
   await yta.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
-  await dialog.getByLabel('Namn', { exact: true }).fill('Mentorstid prov');
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Mentorstid prov');
   await dialog.getByRole('combobox', { name: 'Veckodag', exact: true }).selectOption('0'); await dialog.getByLabel('Start', { exact: true }).fill('08:00');
-  await dialog.getByLabel('Klass 1', { exact: true }).check();
+  await dialog.getByRole('checkbox', { name: 'Klass 1', exact: true }).check();
   await dialog.getByLabel(base.resurser.larare[0].name, { exact: true }).check();
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
   await expect(dialog).toHaveCount(0);

@@ -6,16 +6,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import type { SchemaForslag, SchemaForslagLesson, SchemaVillkor } from '@/lib/schema-contract.ts';
 import { aktivitetPass, aktivitetsTidText, aktivitetsTyper, aktivitetTypAndra, readAktivitetsTyper, writeAktivitetsTyper, type SchemaAktivitet, type SchemaAktivitetsTyp } from '@/lib/schema-aktiviteter.ts';
 import { AktivitetForm, type NyAktivitetsTid } from './aktivitet-form.tsx';
+import type { DatumAktivitetUnderlag } from './datum-aktivitet-form.tsx';
 import './aktiviteter.css';
+
+export type { DatumAktivitetVal } from './datum-aktivitet-form.tsx';
 
 export type AktiviteterProps = { forslag: SchemaForslag; villkor: SchemaVillkor; lessons: SchemaForslagLesson[]; busy: boolean; saveError?: string | null;
   recoveryAction?: ReactNode; recoveryPreview?: ReactNode; activityTypes?: SchemaAktivitetsTyp[]; onTypesChange?: (types: SchemaAktivitetsTyp[]) => void;
-  personalLookup?: boolean; onSessionLost?: () => void;
+  datum?: DatumAktivitetUnderlag; personalLookup?: boolean; onSessionLost?: () => void;
   onChange: (next: SchemaAktivitet[], text: string) => Promise<boolean>; start?: NyAktivitetsTid | null; onStartHandled?: () => void };
 function lokalaTyper(unitId: string): SchemaAktivitetsTyp[] {
   try { return readAktivitetsTyper(window.localStorage, unitId); } catch { return aktivitetsTyper(); }
 }
-export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, recoveryAction, recoveryPreview, activityTypes, onTypesChange, personalLookup, onSessionLost, onChange, start, onStartHandled }: AktiviteterProps) {
+export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, recoveryAction, recoveryPreview, activityTypes, onTypesChange, datum, personalLookup, onSessionLost, onChange, start, onStartHandled }: AktiviteterProps) {
   const [typeState, setTypeState] = useState(() => ({ unitId: f.unitId, types: lokalaTyper(f.unitId) }));
   if (typeState.unitId !== f.unitId) setTypeState({ unitId: f.unitId, types: lokalaTyper(f.unitId) });
   const types = activityTypes ?? typeState.types, setTypes = (next: SchemaAktivitetsTyp[]) => { if (onTypesChange) onTypesChange(next); else setTypeState({ unitId: f.unitId, types: next }); };
@@ -30,7 +33,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
   const name = (ref: string) => [...f.resurser.klass, ...f.resurser.grupp, ...f.resurser.larare].find(r => r.ref === ref)?.name ?? 'Resursen finns inte i underlaget';
   return <section className="aktiviteter" aria-labelledby="aktiviteter-rubrik">
     <div className="akt-rubrik"><div><p className="eyebrow">Schema · Egna aktiviteter</p><h3 id="aktiviteter-rubrik" className="section-heading">Aktiviteter utanför tjänstefördelningen</h3>
-      <p className="text-muted-foreground">Möten, mentorstid och tillsyn upptar deltagarna. Undervisningens tid och placeringar bevaras när du lägger till en aktivitet. Aktiviteterna sparas tillsammans med schemautkastet.</p></div>
+      <p className="text-muted-foreground">Återkommande aktiviteter som möten, mentorstid och tillsyn upptar deltagarna i grundschemat.{datum && ' Daterade aktiviteter kan påverka lektionstillfällen den dagen.'}</p></div>
       <div className="akt-segment"><Button disabled={busy} variant="outline" onClick={() => setForm({})}>Ny aktivitet</Button><Button variant="outline" disabled={busy} onClick={() => setManage(true)}>Hantera typer</Button></div></div>
     <h4>Aktiviteter läsåret {f.schoolYear}/{String(f.schoolYear + 1).slice(2)} ({activities.length})</h4>
     {!activities.length ? <div className="empty-state"><p>Inga egna aktiviteter ännu. Lägg till en aktivitet eller högerklicka på en tid i veckan.</p></div>
@@ -46,7 +49,7 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
                 onClick={() => void onChange(activities.filter(x => x.serie !== a.serie), `Serien med ${activities.filter(x => x.serie === a.serie).length} aktiviteter är borttagen`)}>Ta bort serien</Button>}</div></TableCell></TableRow>;
         })}</TableBody></Table>}
     {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} villkor={villkor} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} recoveryPreview={recoveryPreview} personalLookup={personalLookup} onSessionLost={onSessionLost}
-      onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
+      datum={datum} onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
     {manage && <AktivitetsTyper serverSaved={!!activityTypes} typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;
 }

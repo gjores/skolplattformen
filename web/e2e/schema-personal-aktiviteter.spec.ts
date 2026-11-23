@@ -40,11 +40,11 @@ test('återöppnat utkast får valbar extra personal utan att ändra grund, rado
   await reopen(page, server); expect(calls).toHaveLength(0);
   const dialog = await open(page), staff = dialog.getByRole('group', { name: 'Ansvariga', exact: true });
   await expect(staff.getByRole('status')).toContainText('Hämtar');
-  await dialog.getByLabel('Namn', { exact: true }).fill('Mentorstid med extra personal'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Mentorstid med extra personal'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
   release(); await expect(dialog.getByLabel(extraName, { exact: true })).toBeVisible();
   expect(calls).toEqual([{ unitId: source.unitId }]);
   expect((await staff.locator('label').allTextContents()).map(s => s.trim())).toEqual([...source.resurser.larare.map(p => p.name), extraName, 'Juli Extra', 'Juni Extra']);
-  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid med extra personal'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
+  await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Mentorstid med extra personal'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
   await dialog.getByLabel(extraName, { exact: true }).check(); await page.waitForTimeout(1_100);
   expect(server.saves).toHaveLength(0); expect(server.drafts.get(key)?.revision).toBe(1); expect(server.drafts.get(key)?.base?.resurser.larare).toEqual(source.resurser.larare);
   const cached = await page.evaluate(() => JSON.stringify(Object.entries(localStorage))); expect(cached).not.toContain(extraName); expect(cached).not.toContain(extraRef);
@@ -61,22 +61,22 @@ test('fel och fel skolkontext i personaluppslaget bevarar namn och planens val; 
   await page.route('**/api/tjanst/personal/lasa', r => { calls++; return calls === 1 ? r.fulfill({ headers, status: 503, json: { code: 'unavailable' } })
     : r.fulfill({ headers, json: calls === 2 ? { ...personnel(), unitId: uid(999) } : personnel() }); });
   await reopen(page, server); const dialog = await open(page), staff = dialog.getByRole('group', { name: 'Ansvariga', exact: true });
-  await dialog.getByLabel('Namn', { exact: true }).fill('Bevarat formulär'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Bevarat formulär'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
   for (const attempt of [1, 2]) {
     await expect(staff.getByRole('alert')).toContainText('Personalen i schemat och dina val finns kvar');
-    await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Bevarat formulär'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
+    await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Bevarat formulär'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
     expect(calls).toBe(attempt); await expect(dialog.getByLabel(extraName, { exact: true })).toHaveCount(0);
     if (attempt === 2) await page.screenshot({ path: info.outputPath('personaluppslag-fel-bevarat.png'), fullPage: false });
     await staff.getByRole('button', { name: 'Försök igen', exact: true }).click();
   }
   await expect(dialog.getByLabel(extraName, { exact: true })).toBeVisible(); await expect(staff.getByRole('alert')).toHaveCount(0);
-  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Bevarat formulär'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
+  await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Bevarat formulär'); await expect(dialog.getByLabel(source.resurser.larare[0].name, { exact: true })).toBeChecked();
   expect(server.saves).toHaveLength(0);
 });
 test('utan rektors tips gör aktivitetsdialogen inget personaluppslag', async ({ page, schemaDraftServer: server }) => {
   let calls = 0; await page.route('**/api/tjanst/personal/lasa', r => { calls++; return r.fulfill({ headers, json: personnel() }); });
   await reopen(page, server, false); const dialog = await open(page), staff = dialog.getByRole('group', { name: 'Ansvariga', exact: true });
-  await dialog.getByLabel('Namn', { exact: true }).fill('Utan personaluppslag'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Utan personaluppslag'); await dialog.getByLabel(source.resurser.larare[0].name, { exact: true }).check();
   await page.waitForTimeout(1_100); expect(calls).toBe(0); expect(server.saves).toHaveLength(0);
   expect((await staff.locator('label').allTextContents()).map(s => s.trim())).toEqual(source.resurser.larare.map(p => p.name));
 });

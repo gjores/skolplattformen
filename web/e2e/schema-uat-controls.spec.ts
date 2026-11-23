@@ -131,10 +131,10 @@ test('aktivitetsformuläret visar vad som saknas och behåller valen, utan notis
   await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
   await expect(dialog.getByText(/Nationella prov hör/)).toHaveCount(0);
-  await dialog.getByLabel('Namn', { exact: true }).fill('APT prov');
+  await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('APT prov');
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
   await expect(dialog.getByRole('alert')).toHaveText('Välj minst en klass, grupp, ansvarig eller sal som aktiviteten ska uppta.');
-  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('APT prov');
+  await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('APT prov');
   await dialog.getByLabel(base.resurser.larare[0].name, { exact: true }).check();
   await dialog.getByRole('button', { name: 'Låt motorn placera', exact: true }).click();
   await dialog.getByLabel('Längd i minuter', { exact: true }).fill('60');

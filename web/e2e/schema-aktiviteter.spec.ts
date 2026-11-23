@@ -56,9 +56,9 @@ async function laggTill(page: Page, context = true) {
     await page.getByRole('menuitem', { name: 'Ny aktivitet här', exact: true }).click();
   } else await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const dialog = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
-  await expect(dialog).toBeVisible(); await dialog.getByLabel('Namn', { exact: true }).fill('Mentorstid prov');
+  await expect(dialog).toBeVisible(); await dialog.getByRole('textbox', { name: 'Namn', exact: true }).fill('Mentorstid prov');
   await dialog.getByRole('combobox', { name: 'Veckodag', exact: true }).selectOption('0'); await dialog.getByLabel('Start', { exact: true }).fill('08:00');
-  await dialog.getByLabel('Klass 1', { exact: true }).check();
+  await dialog.getByRole('checkbox', { name: 'Klass 1', exact: true }).check();
   await dialog.getByLabel(base.resurser.larare[0].name, { exact: true }).check();
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
   return dialog;
@@ -112,7 +112,7 @@ test('typer kan grupperas, döpas om och återöppnas från serverutkastet', asy
   await expect(page.getByRole('region', { name: 'Sparat schemautkast' })).toContainText('Sparat på servern');
   await page.reload(); await page.getByRole('button', { name: 'Ny aktivitet', exact: true }).click();
   const form = page.getByRole('dialog', { name: 'Ny aktivitet', exact: true });
-  await expect(form.getByRole('option', { name: 'Gemensam planering' })).toHaveCount(1); await expect(form.getByRole('button', { name: 'Datum', exact: true })).toBeDisabled();
+  await expect(form.getByRole('option', { name: 'Gemensam planering' })).toHaveCount(1);
   await page.evaluate(() => document.documentElement.style.fontSize = '200%');
   await expect(form.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
@@ -154,14 +154,14 @@ test('ändrad uppdelning kan räknas om från aktivitetsdialogen utan att namn o
   const dialog = await laggTill(page, false);
   await expect(dialog.getByRole('alert')).toContainText('längsta lektion');
   await expect(dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true })).toBeVisible();
-  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Mentorstid prov');
   await dialog.getByRole('button', { name: 'Ta fram nytt förslag och behåll formuläret', exact: true }).click();
   const panel = dialog.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
   await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
   await expect(panel).toHaveCount(0);
   await expect(dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true })).toBeEnabled();
-  await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
-  await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked();
+  await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Mentorstid prov');
+  await expect(dialog.getByRole('checkbox', { name: 'Klass 1', exact: true })).toBeChecked();
   await expect(dialog.getByLabel(base.resurser.larare[0].name, { exact: true })).toBeChecked();
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click();
   await expect(dialog).toHaveCount(0);
@@ -187,8 +187,8 @@ test('aktivitetens återhämtning släpper lås först efter ett lyckat nytt fö
     return route.fulfill({ headers, json: f });
   });
   await recover.click(); await expect(dialog.getByRole('alert')).toContainText('Schemamotorn svarar inte');
-  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
-  await expect(dialog.getByLabel('Klass 1', { exact: true })).toBeChecked(); await expect(recover).toBeEnabled();
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1); await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Mentorstid prov');
+  await expect(dialog.getByRole('checkbox', { name: 'Klass 1', exact: true })).toBeChecked(); await expect(recover).toBeEnabled();
   await page.screenshot({ path: info.outputPath('aktivitet-las-motorfel-bevarat.png'), fullPage: false });
   await recover.click();
   const panel = dialog.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
@@ -196,6 +196,6 @@ test('aktivitetens återhämtning släpper lås först efter ett lyckat nytt fö
   await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(1);
   await panel.getByRole('button', { name: 'Använd förslaget', exact: true }).click();
   await expect(panel).toHaveCount(0);
-  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(0); await expect(dialog.getByLabel('Namn', { exact: true })).toHaveValue('Mentorstid prov');
+  await expect(page.locator('.schema-lesson .schema-las')).toHaveCount(0); await expect(dialog.getByRole('textbox', { name: 'Namn', exact: true })).toHaveValue('Mentorstid prov');
   await dialog.getByRole('button', { name: 'Lägg till aktivitet', exact: true }).click(); await expect(dialog).toHaveCount(0); await expect(page.locator('.schema-lesson.aktivitet')).toContainText('Mentorstid prov');
 });

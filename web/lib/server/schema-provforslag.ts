@@ -88,6 +88,7 @@ function applyBase(draft: SchemaDraft, input: SchemaProvApplyRequest): SchemaKon
 async function readApplyBasis(request: Request, tx: Tx, ctx: Context, input: SchemaProvApplyRequest) {
   const draft = await readSchemaDraftSnapshot(tx, ctx, draftScope(input));
   if (!draft || draft.revision !== input.expectedRevision) throw conflict('schema_draft_conflict');
+  if (draft.datedActivities?.length) throw conflict('schema_daterad_aktivitet_changed');
   const base = applyBase(draft, input);
   const source = await readDraftBasis(request, tx, ctx, base);
   if (draft.sourceHash !== await schemaDraftSourceHash(source, [draft.basisVillkor, draft.workingVillkor])) throw conflict('schema_draft_source_changed');

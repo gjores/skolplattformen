@@ -47,9 +47,9 @@ import { Terminsjamforelse } from './schema/terminsjamforelse.tsx';
 import { VeckaVal } from './schema/vecka-val.tsx';
 import { UnderlagHinder } from './schema/underlag-hinder.tsx';
 import { Fordelning } from './schema/fordelning.tsx';
-import { schemaDatumNyckel, schemaDatumTillfallen, schemaDatumErsatt, parseSchemaDatumSvar, type SchemaDatumNyckel, type SchemaDatumTillfalle, type SchemaDatumAndring, type SchemaDatumSvar } from '@/lib/schema-datum.ts';
+import { schemaDatumNyckel, schemaDatumErsatt, parseSchemaDatumSvar, type SchemaDatumNyckel, type SchemaDatumTillfalle, type SchemaDatumAndring, type SchemaDatumSvar } from '@/lib/schema-datum.ts';
 import { DatumFlytt } from './schema/datum-flytt.tsx';
-import { grundschemaVal, schemaDateText, schemaVeckaVal, schemaVisningsDagar, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
+import { grundschemaVal, schemaDateText, schemaDayHeading, schemaVeckaVal, schemaVisningsDagar, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import { Viloyta } from './schema/viloyta.tsx';
 import { Villkor, storedVillkor } from './schema/villkor.tsx';
 import { Tid, tidAvvikelser } from './schema/tid.tsx';
@@ -66,7 +66,9 @@ import { fonsterVyNamn, type SchemaFonsterTarget } from '@/lib/schema-synk.ts';
 import { useSchemaMeny } from './schema/meny.tsx';
 import { Folj } from './schema/folj.tsx';
 import { Samling, type SamlingStart } from './schema/samling.tsx';
-import { Aktiviteter } from './schema/aktiviteter.tsx';
+import { Aktiviteter, type DatumAktivitetVal } from './schema/aktiviteter.tsx';
+import { DateradAktivitetsgranskning } from './schema/daterad-aktivitet-granskning.tsx';
+import { parseSchemaAktivitetsForslag, schemaAktivitetTimplan, schemaDateradAktivitetsvecka, type SchemaAktivitetsForslag, type SchemaDateradAktivitet } from '@/lib/schema-daterad-aktivitet.ts';
 import { NationellaProv } from './schema/nationella-prov.tsx';
 import { Provforslag } from './schema/provforslag.tsx';
 import { Berakningslage, type Motorlage } from './schema/berakning.tsx';
@@ -190,6 +192,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [berakningOpen, setBerakningOpen] = useState(false), berakningKnapp = useRef<HTMLButtonElement | null>(null);
   const confirm = useRequestConfirm();
   const [draftName, setDraftName] = useState('Schemautkast'), [datedOverrides, setDatedOverrides] = useState<SchemaDraftDatedOverride[]>([]);
+  const [datedActivities, setDatedActivities] = useState<SchemaDateradAktivitet[]>([]);
+  const [aktivitetForslag, setAktivitetForslag] = useState<{ result: SchemaAktivitetsForslag; version: Granskningsversion; error: string | null; stale: boolean } | null>(null);
   const [tomningsMarkor, setTomningsMarkor] = useState<{ draftId: string; revision: number } | null>(null), [tomningsfel, setTomningsfel] = useState<string | null>(null);
   const tomningsknapp = useRef<HTMLButtonElement>(null), fokuseraTomning = useRef(false);
   const [provSparat, setProvSparat] = useState<{ period: SchemaPeriod; revision: number; provrevision: number; provdag: string } | null>(null);
@@ -292,6 +296,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     name: draftName.trim(), basisVillkor: base?.villkor ?? null, workingVillkor: arbetsvillkor, grundFingerprint: base?.grundFingerprint ?? null,
     placements: forslag ? placeradePass(forslag.lessons) : [],
     locks: utkastLas(utkast), intentional: utkast.intentional, datedOverrides, activityTypes,
+    ...(datedActivities.length > 0 && { datedActivities }),
   };
   const spara = useSchemaSpara({ scope: { contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period }, enabled: !fonster, snapshot, onSessionLost,
     onLoad: draft => {
@@ -302,6 +307,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       andradeVillkor.current = null;
       setVillkorLocal(draft?.workingVillkor ?? arbetsvillkor);
       setDatedOverrides(draft?.datedOverrides ?? []);
+      setDatedActivities(draft?.datedActivities ?? []);
+      setAktivitetForslag(null);
       setActivityTypes(draft?.activityTypes ?? activityTypes);
       const restored = schemaUtkast({ ...tomtUtkast(), layers: utkast.layers }, { type: 'reset', forslag: draft?.base ? { lessons: draft.base.lessons, locks: draft.locks } : { lessons: [] } });
       dispatchLocal({ type: 'hydrate', state: { ...restored, intentional: draft?.intentional ?? [] } });
@@ -317,7 +324,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     spara.pause(true);
     return { key: JSON.stringify([spara.snapshotKey, villkorKey]), commandId: crypto.randomUUID(), spargrund: spara.revisionEfterSkrivning() };
   };
-  const granskarOmrakning = !!(nyttForslag || fortsatt);
+  const granskarOmrakning = !!(nyttForslag || fortsatt || aktivitetForslag);
   const versionAndrad = (version: Granskningsversion) => version.key !== JSON.stringify([spara.snapshotKey, villkorKey]);
   const tomningTillganglig = spara.ready && !busy && !checking && !granskarOmrakning && !sparstatus.dirty && sparstatus.phase === 'saved' && !grundAndrad;
   useEffect(() => {
@@ -399,7 +406,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     setJamforTerminer(false);
     setTomningsMarkor(null); setTomningsfel(null);
     setProvSparat(null); setProvFranDatumvy(null);
-    setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setKontroll(null); setFolj(null); setFortsatt(null); setNyttForslag(null); setGranskatPass(null); setPeriod(next);
+    setBase(null); dispatchLocal({ type: 'reset', forslag: { lessons: [] } }); setDatedOverrides([]); setDatedActivities([]); setAktivitetForslag(null); setKontroll(null); setFolj(null); setFortsatt(null); setNyttForslag(null); setGranskatPass(null); setPeriod(next);
   }
   async function lasServerversion() {
     if (sparstatus.dirty && !await confirm({ title: 'Läs serverns version?', description: 'Dina lokala ändringar ersätts med det senast sparade utkastet på servern.', confirmLabel: 'Läs serverns version', cancelLabel: 'Behåll lokala ändringar' })) return;
@@ -473,12 +480,12 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
 
   // Huvudfönstret äger reducer, nätanrop och ångring. Elevlistor och lokala resursval ingår inte i det delade tillståndet.
   type Delat = { base: typeof base; utkast: typeof utkast; villkor: typeof villkor; kontrollSvar: typeof kontrollSvar; period: SchemaPeriod;
-    busy: boolean; checking: boolean; sparstatus: SchemaSparstatus; draftName: string; datedOverrides: typeof datedOverrides; activityTypes: typeof activityTypes; error: typeof error; moveError: typeof moveError; moved: string; kraverNytt: typeof kraverNytt; misslyckat: typeof misslyckat; fore: typeof fore; datumKontroll: typeof datumKontroll; datumKlar: string; sokning: typeof sokning; villkorsSokning: typeof villkorsSokning };
+    busy: boolean; checking: boolean; sparstatus: SchemaSparstatus; draftName: string; datedOverrides: typeof datedOverrides; datedActivities: typeof datedActivities; activityTypes: typeof activityTypes; error: typeof error; moveError: typeof moveError; moved: string; kraverNytt: typeof kraverNytt; misslyckat: typeof misslyckat; fore: typeof fore; datumKontroll: typeof datumKontroll; datumKlar: string; sokning: typeof sokning; villkorsSokning: typeof villkorsSokning };
   type SynkAtgard = { typ: 'utkast'; action: SchemaUtkastAtgard } | { typ: 'andra'; action: FlyttAtgard } | { typ: 'villkor'; value: SchemaVillkor }
     | { typ: 'arbetsvillkor'; value: SchemaVillkor } | { typ: 'run'; continueAnyway: boolean; releaseLocks?: boolean } | { typ: 'pick'; id: string } | { typ: 'search'; value: SchemaPlaceringVal }
     | { typ: 'date'; key: SchemaDatumNyckel; change: SchemaDatumAndring | null; expectedInputKey: string; grundFingerprint: string; period: SchemaPeriod } | { typ: 'apply-condition'; index: number; key: string } | { typ: 'apply-placement'; index: number; key: string } | { typ: 'close-placement' } | { typ: 'intent'; key: string; on: boolean };
   const synk = useSchemaSynk<Delat, SynkAtgard>({ unitId, schoolYear, scopeKey, fonster,
-    state: { base, utkast, villkor, kontrollSvar, period, busy, checking, sparstatus, draftName, datedOverrides, activityTypes, error, moveError, moved, kraverNytt, misslyckat, fore, datumKontroll, datumKlar, sokning, villkorsSokning },
+    state: { base, utkast, villkor, kontrollSvar, period, busy, checking, sparstatus, draftName, datedOverrides, datedActivities, activityTypes, error, moveError, moved, kraverNytt, misslyckat, fore, datumKontroll, datumKlar, sokning, villkorsSokning },
     blocked: busy || checking,
     onState: state => {
       if (state.base && (state.base.unitId !== unitId || state.base.schoolYear !== schoolYear)) return;
@@ -486,7 +493,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       setPeriod(state.period); setBusy(state.busy); setChecking(state.checking); setError(state.error); setMoveError(state.moveError); setMoved(state.moved);
       setKraverNytt(state.kraverNytt); setMisslyckat(state.misslyckat); setFore(state.fore);
       setDatumKontroll(state.datumKontroll); if (state.base?.grundFingerprint !== base?.grundFingerprint || state.period !== period || state.sparstatus.phase === 'stale' || state.datumKlar !== datumKlar) setDatumPicked(null); setDatumKlar(state.datumKlar);
-      setSokning(state.sokning); setVillkorsSokning(state.villkorsSokning); setRemoteSave(state.sparstatus); setDraftName(state.draftName); setDatedOverrides(state.datedOverrides); setActivityTypes(state.activityTypes);
+      setSokning(state.sokning); setVillkorsSokning(state.villkorsSokning); setRemoteSave(state.sparstatus); setDraftName(state.draftName); setDatedOverrides(state.datedOverrides); setDatedActivities(state.datedActivities ?? []); setActivityTypes(state.activityTypes);
       if (fonster?.view === 'folj' && state.utkast.picked) setFolj(f => f?.locked ? f : { lesson: state.utkast.picked!, locked: false });
       if (fonster && state.base && state.utkast.picked && state.utkast.picked !== picked) {
         const lesson = medUtkast(state.base.lessons, state.utkast.placements).find(l => l.id === state.utkast.picked);
@@ -769,8 +776,88 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (!spargrund) throw new Error('schema_revision_changed');
     return { contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: version.commandId, draftId: spargrund.draftId, expectedRevision: spargrund.revision,
       name: snapshot.name, activityTypes, placements: placeradePass(candidate.lessons), locks, intentional, datedOverrides: dates,
+      ...(datedActivities.length > 0 && { datedActivities }),
       basisVillkor: candidate.villkor, workingVillkor: candidate.villkor, grundFingerprint: candidate.grundFingerprint,
       forslagFingerprint: checked.fingerprint, forslagKalenderHash: await schemaDraftHash(candidate.time) };
+  }
+
+  const aktivitetForslagsfel = (caught: unknown) => {
+    if (caught instanceof ApiError) {
+      if (caught.reason === 'schema_daterad_aktivitet_date') return 'Välj en ordinarie skoldag och en tid inom skoldagen för den här perioden.';
+      if (caught.reason === 'schema_daterad_aktivitet_subject') return 'Timplansämnet behöver ha undervisning i den här terminen för minst en vald klass.';
+      if (caught.reason === 'schema_daterad_aktivitet_deltagare') return 'En vald klass saknar aktiva elever på datumet. Kontrollera klassvalet.';
+      if (caught.reason === 'schema_daterad_aktivitet_prov') return 'En provbokning krockar med förslaget. Räkna om förslaget igen.';
+      if (caught.reason === 'schema_daterad_aktivitet_changed') return 'Underlaget har ändrats. Räkna om förslaget från det aktuella schemat.';
+      if (caught.status === 503) return 'Schemamotorn kunde inte nås. Försök igen.';
+    }
+    return sparvalsfel(caught);
+  };
+
+  async function forhandsgranskaDateradAktivitet(value: DatumAktivitetVal) {
+    const schedule = datumInput();
+    if (!schedule || !forslag || busy || checking || running.current || grundAndrad || datedActivities.length > 0) {
+      throw new Error('Ett aktuellt schema med tider behövs för att räkna om med en aktivitet.');
+    }
+    const version = granskningsversion(), controller = new AbortController();
+    running.current = controller; setChecking(true); setMoveError(null);
+    let harForslag = false;
+    try {
+      const input = { ...value, id: crypto.randomUUID() };
+      const result = parseSchemaAktivitetsForslag(await api.post<unknown>('/api/schema/daterad-aktivitet', { ...schedule, activity: input }, controller.signal), input);
+      if (controller.signal.aborted) return false;
+      harForslag = true;
+      setAktivitetForslag({ result, version, error: null, stale: false });
+      valjYta('granska');
+      return true;
+    } catch (caught) {
+      if (controller.signal.aborted) return false;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return false; }
+      throw new Error(aktivitetForslagsfel(caught));
+    } finally {
+      if (running.current === controller) { running.current = null; setChecking(false); }
+      if (!harForslag) spara.pause(false);
+    }
+  }
+
+  async function anvandDateradAktivitet(taBort = false) {
+    const val = aktivitetForslag;
+    if (!forslag || busy || checking || running.current || !taBort && (!val || val.stale || val.result.blockers.length > 0 || versionAndrad(val.version))) return;
+    const version = val?.version ?? granskningsversion();
+    const controller = new AbortController();
+    running.current = controller; setChecking(true); setMoveError(null);
+    try {
+      const checked = kontroll ?? await kontrollera(forslag, forslag.lessons, controller);
+      const save = await sparval(version, forslag, checked, snapshot.locks, datedOverrides, snapshot.intentional);
+      const draft = await spara.apply({ ...save, datedActivities: taBort ? [] : [val!.result.activity] }, controller.signal);
+      setBase(draft.base); setDatedOverrides(draft.datedOverrides); setDatedActivities(draft.datedActivities ?? []);
+      setVillkor(draft.workingVillkor);
+      setKontroll(draft.control ? { svar: draft.control, villkor: villkorNyckel(draft.workingVillkor) } : null);
+      setAktivitetForslag(null); spara.pause(false);
+      if (!taBort) visaDateradAktivitet(val!.result.activity);
+      setMoved(taBort ? 'Aktiviteten är borttagen. De ordinarie lektionstillfällena visas igen.' : 'Aktiviteten och schemats nya datumtillfällen är sparade.');
+    } catch (caught) {
+      if (controller.signal.aborted) return;
+      if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
+      const error = aktivitetForslagsfel(caught);
+      if (val) setAktivitetForslag({ ...val, stale: inaktuelltForslag(caught), error });
+      else setMoveError(error);
+    } finally {
+      if (taBort) spara.pause(false);
+      if (running.current === controller) { running.current = null; setChecking(false); }
+    }
+  }
+
+  function visaDateradAktivitet(activity: SchemaDateradAktivitet) {
+    const term = forslag?.time.calendar?.days.find(day => day.date === activity.date)?.term;
+    if (term) setShownTerm(term);
+    setJamforTerminer(false); setVy('vecka'); setVisning({ mode: 'intervall', from: activity.date, to: activity.date, monday: '' });
+    valjYta('schema');
+  }
+
+  async function taBortDateradAktivitet() {
+    if (!await confirm({ title: 'Ta bort den daterade aktiviteten?', description: 'Ordinarie lektioner visas igen. Datumändringar som du gjort för andra tillfällen ligger kvar.',
+      confirmLabel: 'Ta bort aktiviteten', cancelLabel: 'Behåll aktiviteten' })) return;
+    await anvandDateradAktivitet(true);
   }
 
   function sparvalsfel(caught: unknown) {
@@ -795,7 +882,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       const { forslag: candidate, kontroll: checked, andringar } = val;
       const draft = await spara.apply(await sparval(val.version, candidate, checked, andringar.locks, andringar.datedOverrides, val.intentional), controller.signal);
       setBase(draft.base && { ...draft.base, status: candidate.status, diagnoses: candidate.diagnoses, statistics: candidate.statistics, elapsedMs: candidate.elapsedMs });
-      setVillkor(draft.workingVillkor); setDatedOverrides(draft.datedOverrides);
+      setVillkor(draft.workingVillkor); setDatedOverrides(draft.datedOverrides); setDatedActivities(draft.datedActivities ?? []);
       if (draft.base) {
         const replaced = schemaUtkast(utkast, { type: 'reset', forslag: { ...draft.base, locks: draft.locks } });
         dispatchLocal({ type: 'hydrate', state: { ...replaced, intentional: draft.intentional } });
@@ -1131,10 +1218,15 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
   function hamtaTillfalle(k: SchemaDatumNyckel): SchemaDatumTillfalle | undefined {
     if (!forslag) return;
-    const key = schemaDatumNyckel(k), date = datedOverrides.find(a => schemaDatumNyckel(a) === key)?.date ?? k.originalDate;
-    return schemaDatumTillfallen(forslag, { mode: 'intervall', from: date, to: date, monday: '' }, datedOverrides).find(o => o.key === key);
+    const key = schemaDatumNyckel(k), date = [...datedOverrides, ...datedActivities.flatMap(a => a.moves)].find(a => schemaDatumNyckel(a) === key)?.date ?? k.originalDate;
+    return schemaDateradAktivitetsvecka(forslag, { mode: 'intervall', from: date, to: date, monday: '' }, datedOverrides, datedActivities).find(o => o.key === key);
   }
   function valjDatum(key: SchemaDatumNyckel | SchemaDatumTillfalle) {
+    const occurrenceKey = 'key' in key ? key.key : schemaDatumNyckel(key);
+    if (datedActivities.some(activity => activity.moves.some(move => schemaDatumNyckel(move) === occurrenceKey))) {
+      setMoveError('Tillfället hör till en daterad aktivitet. Öppna aktiviteten under Förbered för att ändra schemat igen.');
+      return;
+    }
     if (!forslag || redigeringStoppad || busy || checking) return;
     const k = 'originalDate' in key && 'lesson' in key && typeof key.lesson === 'object' ? { lesson: key.lesson.id, originalDate: key.originalDate } : key as SchemaDatumNyckel;
     if (utkast.locked[k.lesson]) { setMoveError('Passet är låst. Lås upp det i grundschemat innan du ändrar ett tillfälle.'); return; }
@@ -1381,6 +1473,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }).map(b => ({ id: b.id, datum: b.datum, namn: b.namn, startMin: b.startMin, slutMin: b.slutMin,
     detail: [provNamn(b), b.salId ? provSalar.get(b.salId) ?? 'Kontrollera sal' : 'Sal återstår',
       personalLookup ? b.vakter.length ? b.vakter.map(ref => provVakter.get(ref) ?? 'Vald provvakt').join(', ') : 'Provvakt återstår' : ''].filter(Boolean).join(' · ') }));
+  const veckansAktiviteter: SchemaVeckoprov[] = datumVal.mode === 'grundschema' ? [] : datedActivities
+    .filter(activity => !selected || selected.slag === 'klass' && activity.classRefs.includes(selected.villkor?.ref ?? selected.id)
+      || selected.slag === 'amne' && activity.credits.some(ref => forslag?.teachings.some(row => row.ref === ref && row.title === selected.name)))
+    .map(activity => ({ id: activity.id, datum: activity.date, namn: activity.name, startMin: activity.startMin, slutMin: activity.endMin, kind: 'aktivitet',
+      detail: activity.credit ? `${activity.credit.minutes} min undervisning` : undefined }));
   const datumIVyn = new Set(schemaVisningsDagar(forslag?.time.calendar, datumVal).map(dag => dag.date));
   const provIDatumvy = veckansProv.find(prov => datumIVyn.has(prov.datum));
   const bokatProvIDatumvy = provBokningar.find(prov => prov.id === provIDatumvy?.id);
@@ -1431,7 +1528,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const unplaced = forslag?.lessons.filter(l => l.day === null) ?? [];
   const resursPass = forslag?.lessons.filter(l => l.day !== null && l.startMin !== null && valdResurs(l)) ?? [];
   const shown = datumVal.mode === 'grundschema' ? resursPass.filter(iTerm) : resursPass;
-  const { deviating, off } = tidAvvikelser(forslag);
+  const timplanUtfall = forslag ? schemaAktivitetTimplan(forslag, datedActivities) : null;
+  const { deviating, off } = tidAvvikelser(timplanUtfall);
   // Villkoren som lager för den klass eller lärare som visas. Lagren följer villkoren i formuläret, så att en ändring syns direkt.
   const allaITerminen = forslag?.lessons.filter(iTerm) ?? [];
   const lager = forslag && selected ? schemaLager(villkor, forslag, { ...selected, ref: selected.id }, { lessons: shown, alla: allaITerminen, layers: utkast.layers }) : null;
@@ -1645,7 +1743,26 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     onApply={() => void anvandNyttSchema()} onKeep={behallNuvarande}
     onRetry={sparstatus.phase === 'conflict' ? () => void lasServerversion() : () => void run(false, false, nyttForslag.startyta === yta)}
     retryLabel={sparstatus.phase === 'conflict' ? 'Läs serverns version…' : 'Räkna om igen'}/>;
-  const aktivitetsvy = (f: SchemaForslag) => <Aktiviteter personalLookup={personalLookup} onSessionLost={onSessionLost} activityTypes={activityTypes} onTypesChange={setActivityTypes} forslag={f} villkor={villkor} lessons={f.lessons} busy={busy || checking} onChange={andraAktiviteter} saveError={error ?? moveError}
+  const aktivitetensTimplan = new Map<string, { ref: string; namn: string; klassRefs: string[] }>();
+  for (const row of forslag?.teachings ?? []) {
+    if (!row.ref.startsWith('undervisning:') && !row.ref.startsWith('samlasning:')) continue;
+    // Samma namn kan tillhöra olika nivåer. Klassens källreferens bär den stabila timplansradens nyckel.
+    const source = /^undervisning:class_timplan:([^:]+):\d{4}:(.+)$/u.exec(row.ref);
+    const rowKey = source?.[2] ?? row.ref;
+    const current = aktivitetensTimplan.get(rowKey);
+    const classRefs = source ? [source[1]] : (forslag?.resurser.klass ?? []).filter(klass => row.classes.includes(klass.name)).map(klass => klass.ref);
+    if (!classRefs.length) continue;
+    if (current) current.klassRefs = [...new Set([...current.klassRefs, ...classRefs])];
+    else aktivitetensTimplan.set(rowKey, { ref: row.ref, namn: row.title, klassRefs: classRefs });
+  }
+  const kalenderForAktivitet = forslag?.time.calendar;
+  const activityNames = [...aktivitetensTimplan.values()];
+  const activityOptions = activityNames.map(row => activityNames.some(other => other !== row && other.namn === row.namn)
+    ? { ...row, namn: `${row.namn} (${(forslag?.resurser.klass ?? []).filter(klass => row.klassRefs.includes(klass.ref)).map(klass => klass.name).join(', ')})` } : row)
+    .sort((a, b) => a.namn.localeCompare(b.namn, 'sv'));
+  const aktivitetsvy = (f: SchemaForslag) => <Aktiviteter datum={!fonster && forslag && kalenderForAktivitet && snapshot.placements.length > 0 && !datedActivities.length
+    ? { minDatum: kalenderForAktivitet.start, maxDatum: kalenderForAktivitet.end, undervisningar: activityOptions, onSave: forhandsgranskaDateradAktivitet }
+    : undefined} personalLookup={personalLookup} onSessionLost={onSessionLost} activityTypes={activityTypes} onTypesChange={setActivityTypes} forslag={f} villkor={villkor} lessons={f.lessons} busy={busy || checking} onChange={andraAktiviteter} saveError={error ?? moveError}
         recoveryPreview={nyttForslag?.startyta === yta && omrakningsvy}
         recoveryAction={(grundAndrad || error || !!recoveryFore?.findings.length) && <div className="grid gap-3">
           {!!recoveryFore?.findings.length && <div><p className="font-medium">Kontroll före nytt förslag</p><ul className="list-disc pl-5">{recoveryFore.findings.map((f, i) => <li key={i}>{f.message}</li>)}</ul></div>}
@@ -1747,6 +1864,9 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     </>}
     {!fonster && visaGranska && (error || moveError || !!diagnosAktuell?.findings.length || (!inaktuelltUnderlag && underlagshinder)) && meddelanden}
     {!fonster && visaGranska && omrakningsvy}
+    {!fonster && visaGranska && aktivitetForslag && <DateradAktivitetsgranskning forslag={aktivitetForslag.result}
+      error={aktivitetForslag.error} stale={aktivitetForslag.stale || versionAndrad(aktivitetForslag.version)} busy={checking}
+      onApply={() => void anvandDateradAktivitet()} onCancel={() => { setAktivitetForslag(null); spara.pause(false); valjYta('forbered'); }} />}
     {!fonster && visaGranska && <SchemaPublicering key={`${unitId}/${schoolYear}/${period}`} scope={{ unitId, schoolYear, period }} canPublish={personalLookup}
       saved={spara.ready && spara.draftId && spara.contentHash && sparstatus.phase === 'saved' && !sparstatus.dirty
         && forslag && forslag.metrics.placed > 0 && forslag.metrics.unplaced === 0
@@ -1858,6 +1978,14 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
           deltagare={provunderlag?.deltagare ?? []} salar={provunderlag?.salar ?? []} vakter={provunderlag?.vakter ?? []} bokningsfel={provbokningsfel}
           skoldagar={provunderlag?.skoldagar} reading={nationellaProv.reading} saving={nationellaProv.saving} disabled={nationellaProv.readFailed}
           error={nationellaProv.error} onSave={nationellaProv.onSave} onReload={nationellaProv.onReload}/>}
+        {datedActivities.length > 0 && <section className="space-y-2 rounded-lg border border-border bg-card p-4" aria-label="Daterade aktiviteter">
+          <h3 className="section-heading">Daterade aktiviteter</h3>
+          {datedActivities.map(activity => <div key={activity.id} className="flex flex-wrap items-center justify-between gap-2">
+            <p>{activity.name} · {schemaDayHeading(activity.date)} · {activity.classRefs.length} klasser</p>
+            <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" onClick={() => visaDateradAktivitet(activity)}>Visa aktiviteten</Button>
+              <Button type="button" variant="outline" disabled={checking || busy} onClick={() => void taBortDateradAktivitet()}>Ta bort aktiviteten</Button></div>
+          </div>)}
+        </section>}
         <h3 className="font-semibold">Återkommande aktiviteter</h3>
         {forutsattningar ? aktivitetsvy(forutsattningar) : <p className="empty-state">Aktiviteter kan läggas till när underlaget är läst.</p>}
       </Omrade>
@@ -1906,7 +2034,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
             pickedOccurrence={reviewOccurrence?.key} locked={l => fastAktivitet(l, provade) || !!utkast.locked[l.id]}
             length={shownMin} detail={detail} extra={passRader} onGrab={grab} onPick={meny.onPick}
             overlays={[...(lager?.overlays ?? []), ...bytLagen.overlays]} bands={lager?.bands} dimmed={lager?.dimmed} falt={falt} namn={NAMN} {...meny.veckaProps}
-            datum={{ forslag, overrides: datedOverrides, matches: valdResurs }} prov={veckansProv} onOccurrence={valjDatum} kalender={forslag.time.calendar} visning={datumVal} trims={forslag.trims} classId={selected?.slag === 'klass' || selected?.slag === 'grupp' ? selected.id : null}/>)}{meny.panel}</div>
+            datum={{ forslag, overrides: datedOverrides, activities: datedActivities, matches: valdResurs }} prov={[...veckansProv, ...veckansAktiviteter]} onOccurrence={valjDatum} kalender={forslag.time.calendar} visning={datumVal} trims={forslag.trims} classId={selected?.slag === 'klass' || selected?.slag === 'grupp' ? selected.id : null}/>)}{meny.panel}</div>
           </div>
           <output aria-live="polite" className="schema-note schema-drag-status">{drop ? bytLagen.loading ? 'Läser möjliga starttider…' : bytLagen.error ?? bytLagen.status(drop.to ?? target) : ''}</output>
           <Teckenforklaring lessons={shown} picked={picked} flagged={markerade} overlays={[...(lager?.overlays ?? []), ...bytLagen.overlays]} bands={lager?.bands} dimmed={lager?.dimmed} namn={NAMN}/>
@@ -1971,7 +2099,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         {fonster?.view === 'avvikelser' && !kontroll && <p className="empty-state">Kontrollen körs när förslaget ändras. Inga kontrollresultat finns ännu.</p>}
         {!fonster && <><Forklaring diagnoses={forslag.diagnoses}/>
         <SvarastAttLagga statistics={forslag.statistics} onFollow={foljPass} onCondition={diagnosVillkor}/></>}
-        {(!fonster || fonster.view === 'tid' || fonster.view === 'veckor') && <Tid forslag={forslag} deviating={deviating} off={off} mode={fonster?.view === 'veckor' ? 'veckor' : fonster?.view === 'tid' ? 'tid' : 'all'} onOpen={() => synk.open({ view: 'tid' })} onOpenWeeks={() => synk.open({ view: 'veckor' })}/>}
+        {(!fonster || fonster.view === 'tid' || fonster.view === 'veckor') && <Tid forslag={timplanUtfall ?? forslag} deviating={deviating} off={off} mode={fonster?.view === 'veckor' ? 'veckor' : fonster?.view === 'tid' ? 'tid' : 'all'} onOpen={() => synk.open({ view: 'tid' })} onOpenWeeks={() => synk.open({ view: 'veckor' })}/>}
         {!fonster && <>{inaktuelltUnderlag ? <details className="rounded-lg border border-border bg-card p-3"><summary className="cursor-pointer font-medium">Underlag för det sparade förslaget</summary><Underlag forslag={forslag}/></details>
           : <Underlag forslag={forslag}/>}
           {aktivitetsvy(forslag)}</>}

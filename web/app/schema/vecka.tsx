@@ -4,7 +4,8 @@
 import { useState } from 'react';
 import type { CSSProperties, PointerEvent as ReactPointerEvent, ReactNode, Ref } from 'react';
 import type { SchemaDatedCalendar, SchemaForslag, SchemaForslagLesson, SchemaTerm, SchemaTrim } from '@/lib/schema-contract.ts';
-import { schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumTillfalle } from '@/lib/schema-datum.ts';
+import { type SchemaDatumAndring, type SchemaDatumTillfalle } from '@/lib/schema-datum.ts';
+import { schemaDateradAktivitetsvecka, type SchemaDateradAktivitet } from '@/lib/schema-daterad-aktivitet.ts';
 import { schemaDagStatus, schemaTillfallen, schemaVisningsDagar, type SchemaVeckaVal } from '@/lib/schema-vecka.ts';
 import './vecka-val.css';
 import './byt.css';
@@ -44,7 +45,7 @@ export function lanes(lessons: ReadonlyArray<Pick<SchemaForslagLesson, 'id' | 's
   return result;
 }
 
-export type SchemaVeckoprov = { id: string; datum: string; namn: string; startMin: number; slutMin: number; detail?: string };
+export type SchemaVeckoprov = { id: string; datum: string; namn: string; startMin: number; slutMin: number; detail?: string; kind?: 'aktivitet' };
 
 export type VeckaProps = {
   days: SchemaForslag['days'];
@@ -59,7 +60,7 @@ export type VeckaProps = {
   detail: (l: SchemaForslagLesson) => string;
   onGrab: (e: ReactPointerEvent<HTMLElement>, l: SchemaForslagLesson) => void;
   onPick: (l: SchemaForslagLesson, utoka?: boolean) => void;
-  datum?: { forslag: SchemaForslag; overrides: SchemaDatumAndring[]; matches?: (l: SchemaForslagLesson) => boolean };
+  datum?: { forslag: SchemaForslag; overrides: SchemaDatumAndring[]; activities?: SchemaDateradAktivitet[]; matches?: (l: SchemaForslagLesson) => boolean };
   /** Sparade nationella prov med bokningsdatum. Visas bara bland faktiska tillfällen. */
   prov?: SchemaVeckoprov[];
   onOccurrence?: (o: SchemaDatumTillfalle) => void;
@@ -116,7 +117,7 @@ export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flag
   const datedDays = daterad ? schemaVisningsDagar(kalender, visning!) : [];
   const visadeProv = prov.filter(p => datedDays.some(dag => dag.date === p.datum));
   const { start, end, hours } = veckansSpann([...days, ...visadeProv.map(p => ({ startMin: p.startMin, endMin: p.slutMin }))]);
-  const occasions = daterad ? datum ? schemaDatumTillfallen(datum.forslag, visning!, datum.overrides).filter(o => datum.matches ? datum.matches(o.lesson) : all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
+  const occasions = daterad ? datum ? schemaDateradAktivitetsvecka(datum.forslag, visning!, datum.overrides, datum.activities ?? []).filter(o => datum.matches ? datum.matches(o.lesson) : all.some(l => l.id === o.lesson.id)) : schemaTillfallen({ lessons: all, trims, time: { calendar: kalender } }, visning!).map(o => ({ ...o, originalDate: o.date, changed: false })) : [];
   const columns = daterad ? datedDays.map(d => ({ day: d.weekday, heading: d.heading, date: d.date, ...schemaDagStatus(d, classId) }))
     : days.map((_, day) => ({ day, heading: dayName(day), date: null, schoolDay: true, reason: null }));
   // Dra över tom tid med Spärra eller Tillåt bara (05.2-SM-MENY): från punkten där musen trycktes ned till där den släpps, på 5-minutersrutnätet.
@@ -181,11 +182,11 @@ export function Vecka({ days, lessons: all, picked, pickedOccurrence, drop, flag
             const place = lane.get(post.id)!;
             if ('prov' in post) {
               const p = post.prov;
-              const tid = `${clock(p.startMin)}–${clock(p.slutMin)}`;
-              return <li key={post.id} data-prov={p.id} tabIndex={-1} className="schema-lesson schema-prov"
+              const tid = `${clock(p.startMin)}–${clock(p.slutMin)}`, label = p.kind === 'aktivitet' ? 'Aktivitet' : 'Nationellt prov';
+              return <li key={post.id} data-prov={p.kind ? undefined : p.id} data-daterad-aktivitet={p.kind ? p.id : undefined} tabIndex={-1} className="schema-lesson schema-prov"
                 style={{ ...at(p.startMin, p.slutMin, start), '--lane': place.lane, '--lanes': place.lanes } as CSSProperties}
-                title={['Nationellt prov', p.namn, tid, p.detail].filter(Boolean).join(' · ')}>
-                <time>{tid}</time><span>Nationellt prov</span><strong>{p.namn}</strong>{p.detail && <span>{p.detail}</span>}
+                title={[label, p.namn, tid, p.detail].filter(Boolean).join(' · ')}>
+                <time>{tid}</time><span>{label}</span><strong>{p.namn}</strong>{p.detail && <span>{p.detail}</span>}
               </li>;
             }
             const l = post.lesson;

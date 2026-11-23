@@ -87,7 +87,7 @@ export function schemaDatumTillganglighet(rules: TimeRule[], day: number): Schem
 
 /** Bevarar den årsbyggda passidentiteten. Ett begränsat datumurval ritar färre dagar men kontrollerar fortfarande alla ändringar. */
 export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: SchemaForslag, basis: SchemaDatedBasis,
-  overrides: SchemaDatumAndring[], extraDates: string[] = [], behallDeltagare = false, urval: 'allaAndringar' | 'valdaDatum' = 'allaAndringar'): SchemaDatumUnderlag {
+  overrides: SchemaDatumAndring[], extraDates: string[] = [], behallDeltagare = false, urval: 'allaAndringar' | 'valdaDatum' = 'allaAndringar', excluded?: ReadonlySet<string>): SchemaDatumUnderlag {
   if (basis.unitId !== f.unitId || basis.schoolYear !== f.schoolYear || !basis.complete) fail('schema_datum_participants_unavailable');
   if (!f.time.calendar) fail('schema_datum_calendar_missing');
   const datedOverrides = kontrolleraSchemaDatum(f, overrides);
@@ -126,7 +126,7 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
     }
     const actual = schemaDatumTillfallen(f, { mode: 'intervall', monday: '', from: date, to: date }, datedOverrides).filter(o => {
       const parts = byLesson.get(o.lesson.id)?.parts ?? fail();
-      return Boolean(o.lesson.egenAktivitet) || parts.groups.every(id => groupOpen(id, date));
+      return !excluded?.has(o.key) && (Boolean(o.lesson.egenAktivitet) || parts.groups.every(id => groupOpen(id, date)));
     });
     const occurrences = new Map(actual.map((o, i) => [`tillfalle-${i + 1}`, o])), placements: SchemaPlacement[] = [];
     const lessons = [...occurrences].map(([id, occurrence]) => {

@@ -23,16 +23,18 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: baecd0e1ab5990e552040cbd161b69a74aec5cf5
-schema_candidate_revision: baecd0e1ab5990e552040cbd161b69a74aec5cf5
-schema_candidate_status: schema_exam_reset_installed_and_authenticated_browser_verified
+schema_runtime_revision: d7ffa038b7df0c29626b16d9344e3b008ab52035
+schema_candidate_revision: d7ffa038b7df0c29626b16d9344e3b008ab52035
+schema_candidate_status: schema_dated_activity_installed_and_authenticated_browser_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: schema_exam_reset_installed_existing_schema_and_exam_revisions_preserved
+schema_installation_status: schema_dated_activity_installed_with_existing_revisions_preserved
 schema_exam_catalog_validator_status: repaired_on_3012_with_20261123221000
-user_trial_status: schema_exam_reset_installed_awaiting_user_trial
+user_trial_status: schema_dated_activity_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – friluftsdag med timplansämne på 3012.** Provbygget `d7ffa038` ger datumval, en gemensam aktivitet för valda klasser och ämnestid från timplanen. Granskningen visar ersättning och kvarstående minuter före sparning. Inloggade prov på förhandsporten och 3012 räknade Idrott och hälsa för tre undervisningar och föreslog fem flyttar. Databasuppgraderingen bevarade schemat och provplanen. [SM-DATERAD-AKTIVITET](phases/05.2-schemamodul/05.2-SM-DATERAD-AKTIVITET-SUMMARY.md)
 
 **2026-11-23 – salbyte för katalogkopplade prov rättat på 3012.** Databasens katalogkontroll stannade på en hänvisning till det tidigare funktionsnamnet efter ändringen för motorval. Migration `20261123221000` rättade läsårsuppslaget. Isolerat skrivprov verifierade manuellt salbyte med bevarad katalogkoppling och motorvald provvakt. Provplanen lästes och validerades på 3012 utan ändring av dess revision. [SM-TOM-PROV](phases/05.2-schemamodul/05.2-SM-TOM-PROV-SUMMARY.md)
 

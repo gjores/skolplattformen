@@ -1,5 +1,6 @@
 import { PROGRAMPLAN_LANGUAGE_LADDERS } from '../programplan-languages.ts';
-import { SCHEMA_TERMS, SchemaContractError, type SchemaForslagRequest } from '../schema-contract.ts';
+import { SCHEMA_TERMS, SchemaContractError, type SchemaForslagRequest, type SchemaTerm } from '../schema-contract.ts';
+import { schemaDateradeAktivitetsbortfall, schemaDateradeAktivitetsflyttar } from '../schema-daterad-aktivitet.ts';
 import { schemaDatumUnderlag } from '../schema-datum-underlag.ts';
 import { schemaDatumTermTillaten } from '../schema-datum.ts';
 import { SCHEMA_DRAFT_VERSION, SchemaDraftError, schemaDraftHash, type SchemaDraft, type SchemaDraftDocument } from '../schema-draft-contract.ts';
@@ -117,7 +118,7 @@ async function publicationTracks(input: Publish, draft: SchemaDraft, read: ReadB
     contractVersion: SCHEMA_DRAFT_VERSION, unitId: input.unitId, schoolYear: input.schoolYear, period: input.period,
     commandId: input.commandId, draftId: draft.id, expectedRevision: draft.revision, name: draft.name,
     basisVillkor: draft.basisVillkor, workingVillkor: draft.workingVillkor, grundFingerprint: ready.base.grundFingerprint,
-    placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides: draft.datedOverrides, activityTypes: draft.activityTypes,
+    placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides: draft.datedOverrides, activityTypes: draft.activityTypes, datedActivities: draft.datedActivities,
   });
   const { base, calendar } = placedDraft(rebuilt);
   if (await schemaDraftHash(rebuilt) !== draft.contentHash) throw draftChanged();
@@ -129,14 +130,28 @@ async function publicationTracks(input: Publish, draft: SchemaDraft, read: ReadB
   const dates = calendar.days.filter(day => day.schoolDay && schemaDatumTermTillaten(base.period, day.term));
   const terms = base.period === 'lasar' ? SCHEMA_TERMS : [base.period];
   if (terms.some(term => !dates.some(day => day.term === term))) throw notReady();
-  const dated = schemaDatumUnderlag(read.plan, underlag, base, read.datedBasis, rebuilt.datedOverrides, dates.map(day => day.date));
+  const activities = rebuilt.datedActivities ?? [];
+  const dated = schemaDatumUnderlag(read.plan, underlag, base, read.datedBasis,
+    schemaDateradeAktivitetsflyttar(rebuilt.datedOverrides, activities), dates.map(day => day.date), false, 'allaAndringar', schemaDateradeAktivitetsbortfall(activities));
   if (dated.violations.length || !dated.days.some(day => day.occurrences.size)) throw notReady();
 
   const targets = publicationTargets(read.plan, groups);
   const refs = new Map(rebuilt.source.lessonSources.map(source => [source.lesson, source.ref]));
   const tracks = new Map<string, SchemaPublicationTrack>();
   const validatedDays = new Set<string>();
+  const addTeachingDate = (ref: string, term: SchemaTerm, date: string) => {
+    for (const target of targets.get(ref) ?? []) {
+      const key = JSON.stringify([target.kind, target.targetId, target.subjectCode, target.subjectVersion, target.itemCode, target.languageCode, term]);
+      const track: SchemaPublicationTrack = tracks.get(key) ?? { ...target, term, days: [] };
+      if (track.days.at(-1) !== date) track.days.push(date);
+      tracks.set(key, track);
+    }
+  };
   for (const day of dated.days) {
+    const term = calendar.days.find(item => item.date === day.date)?.term;
+    if (term) for (const activity of activities.filter(item => item.date === day.date)) {
+      for (const ref of activity.credits) addTeachingDate(ref, term, day.date);
+    }
     if (!day.problem.lessons.length) continue;
     // Kalenderdagens ID styr presentationen. Samma regler, deltagarkluster och placeringar ger samma kontrollresultat.
     const { id: _id, ...problem } = day.problem;
@@ -148,13 +163,7 @@ async function publicationTracks(input: Publish, draft: SchemaDraft, read: ReadB
     for (const occurrence of day.occurrences.values()) {
       const ref = refs.get(occurrence.lesson.id);
       if (!ref || !occurrence.term) throw new AuditUnavailable();
-      for (const target of targets.get(ref) ?? []) {
-        const term = occurrence.term;
-        const key = JSON.stringify([target.kind, target.targetId, target.subjectCode, target.subjectVersion, target.itemCode, target.languageCode, term]);
-        const track = tracks.get(key) ?? { ...target, term, days: [] };
-        if (track.days.at(-1) !== occurrence.date) track.days.push(occurrence.date);
-        tracks.set(key, track);
-      }
+      addTeachingDate(ref, occurrence.term, occurrence.date);
     }
   }
   return [...tracks.values()];
