@@ -103,6 +103,25 @@ async function framkallaSparfel(page: Page) {
   await expect(page.getByText('Utkastet behöver kontrolleras', { exact: true })).toBeVisible();
 }
 
+test('Räkna om schemat syns före rullning vid arbetsyteflikarna i Granska', async ({ page, schemaDraftServer }) => {
+  const { writes } = await setup(page, schemaDraftServer);
+  const navigation = page.getByRole('navigation', { name: 'Arbetsytor', exact: true });
+  const granskningsflik = navigation.getByRole('button', { name: 'Granska', exact: true });
+  await granskningsflik.click();
+
+  const header = page.locator('.schema-sidhuvud').filter({ has: navigation });
+  const omrakna = header.getByRole('button', { name: 'Räkna om schemat', exact: true });
+  await expect(page.getByRole('button', { name: 'Räkna om schemat', exact: true })).toHaveCount(1);
+  await expect(omrakna).toBeInViewport({ ratio: 1 });
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
+  const a = (await omrakna.boundingBox())!, b = (await granskningsflik.boundingBox())!;
+  expect(Math.max(a.y, b.y)).toBeLessThan(Math.min(a.y + a.height, b.y + b.height));
+
+  await omrakna.click();
+  await expect(heading(page)).toBeVisible();
+  expect(writes).toHaveLength(0);
+});
+
 test('räknar trots det gamla sparfelet utan skrivning under körning, granskning eller avvisning', async ({ page, schemaDraftServer }) => {
   const { draft, writes, requests, holdNext } = await setup(page, schemaDraftServer);
   const namn = page.getByRole('textbox', { name: 'Namn på utkastet', exact: true });

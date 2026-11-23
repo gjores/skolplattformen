@@ -716,7 +716,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? fortsattKnapp();
     if (nyttForslag) return synlig(document.querySelector<HTMLElement>('[data-schema-omrakning] h2'));
     // Efter ett nytt förslag är Ta fram schemaförslag dold och Beräkning tar fokus; efter avbrott eller fel står startknappen kvar.
-    return [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current);
+    return synlig(omrakningsknapp.current) ?? [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current);
   }
 
   async function anvandFortsatt() {
@@ -1703,7 +1703,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
           {sparbesked}
         </div>
       </div>
-      <Ytval yta={yta} onYta={valjYta}/>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+        <Ytval yta={yta} onYta={valjYta}/>
+        {visaGranska && forslag && <Button ref={omrakningsknapp} type="button" variant={nyttForslag ? 'outline' : 'default'} className="mx-3 mb-1"
+          disabled={busy || checking || issues.length > 0 || !spara.ready} onClick={() => void run()}>Räkna om schemat</Button>}
+      </div>
     </header>}
     {!fonster && !forslag && <FonsterMeny synk={synk} disabled/>}
     {forslag && datumPicked && <DatumFlytt salScope={placeringsBas()} datedOverrides={datedOverrides} onSessionLost={onSessionLost} key={datumPicked.key} occurrence={datumPicked} forslag={forslag} busy={busy || checking} error={moveError} onSave={change => void andraDatum({ lesson: datumPicked.lesson.id, originalDate: datumPicked.originalDate }, change, undefined, datumPicked.expectedInputKey)} onClose={() => setDatumPicked(null)} onBase={() => oppnaGrundpass(datumPicked.lesson.id)}/>}
@@ -1751,7 +1755,6 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={redigeringStoppad || busy || checking || granskaStale} onClick={() => void kontrolleraGranskning()}>
           {kontroll ? 'Kontrollera igen' : 'Kontrollera schemat'}
         </Button>
-          {!nyttForslag && <Button ref={omrakningsknapp} type="button" variant="outline" disabled={busy || checking || issues.length > 0 || !spara.ready} onClick={() => void run()}>Räkna om schemat</Button>}
           <Button type="button" variant="outline" onClick={() => visaProvforslag(null)}>Till provförslaget</Button></div>
         {salsattningsvy}
         {fortsattVy}

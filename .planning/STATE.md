@@ -23,8 +23,8 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 478204828fc22d11e3635b79ef68171c972d32b8
-schema_candidate_revision: 478204828fc22d11e3635b79ef68171c972d32b8
+schema_runtime_revision: 4e6ef645a072ece48c6289dd95418fa974429838
+schema_candidate_revision: 4e6ef645a072ece48c6289dd95418fa974429838
 schema_candidate_status: schema_recalculation_installed_and_authenticated_browser_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
@@ -32,6 +32,8 @@ schema_installation_status: schema_recalculation_installed_without_migrations_ex
 user_trial_status: schema_recalculation_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – omräkningsknappen syns högst upp i Granska på 3012.** Provbygget `4e6ef645` placerar **Räkna om schemat** intill arbetsyteflikarna. Befintligt utkast och granskningsflöde kontrollerades med samma lokala skola. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
 
 **2026-11-23 – gemensam schemaomräkning installerad på 3012.** Provbygget `47820482` bevarar Förbered, datumvyn och provflödet. En inloggad syntetisk rektor räknade om det befintliga helårsutkastet, granskade kandidaten och valde att behålla version 27. Inget sparanrop skickades och databasens schema, journal och 141 utkastrevisioner var oförändrade. Verksamhetens användarprov återstår. [SM-OMRAKNING](phases/05.2-schemamodul/05.2-SM-OMRAKNING-SUMMARY.md)
 

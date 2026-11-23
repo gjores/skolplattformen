@@ -194,7 +194,7 @@ Har du ändrat vilka pass som ska finnas, till exempel deras uppdelning eller sa
 
 ### Räkna om ett befintligt schema
 
-1. Välj **Ta fram schemaförslag** i **Förbered** eller **Beräkning** i **Lägg schema**. I **Granska** finns även **Räkna om schemat**. Använd omräkningen vid ändrade salar, lärartider, regler, lektionsantal, samtidighetsblock, deltagare eller skoldagar. Du kan granska även om det gamla utkastet har ett sparfel.
+1. Välj **Granska** och klicka på **Räkna om schemat** bredvid arbetsytans flikar högst upp. Du kan också välja **Ta fram schemaförslag** i **Förbered** eller **Beräkning** i **Lägg schema**. Använd omräkningen vid ändrade salar, lärartider, regler, lektionsantal, samtidighetsblock, deltagare eller skoldagar. Du kan granska även om det gamla utkastet har ett sparfel.
    Skolans aktuella salregister används vid nästa beräkning. Redan sparade salplaceringar ligger kvar när du öppnar schemat.
 2. Kontrollera pass med och utan tid, regel- och timplaneavvikelser samt ändrade placeringar. När kvalitetsmått finns för samma klass eller undervisningsgrupp och termin kan du jämföra elevernas skoldagar. Öppna de berörda låsen, passvillkoren och datumändringarna. Om en sal saknas kan datum och tid i vissa fall följa med. Ett undantag som saknar ett motsvarande pass eller underkänns i kontrollen visas som bortfall i förslaget.
 3. Välj **Behåll nuvarande schema** för att stänga förslaget, eller **Använd förslaget** för att spara det som nästa version. Det sparade schemat ligger kvar tills ditt val har bekräftats. Om underlaget har ändrats sedan beräkningen tar du fram ett färskt förslag. Publicering görs separat i **Granska**.
