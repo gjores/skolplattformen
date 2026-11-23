@@ -157,7 +157,8 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
     ? await validateSchema(underlag.problem, placements) : { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   const ids = new Set(placements.map(p => p.lesson)), unplaced = underlag.problem.lessons.filter(l => !ids.has(l.id)).map(l => l.id);
   const solution: SchemaSolution = { status: underlag.problem.lessons.length === 0 ? 'input_missing' : unplaced.length ? 'time_limit' : 'complete', placements, unplaced, diagnoses: [], metrics: check.metrics, elapsedMs: 0 };
-  const base = schemaForslag(read.plan, request, underlag, solution), control = schemaKontroll(underlag, placements, check);
+  // Kvalitetsmåtten är granskningsdata. Lämna det hashade utkastskontraktet kompatibelt med äldre klienter.
+  const base = schemaForslag(read.plan, request, underlag, solution, false), control = schemaKontroll(underlag, placements, check, false);
   // Valbara men oanvända personalnamn följer inte med in i ett delat skolutkast.
   const usedTeachers = new Set([...read.plan.teachers.map(t => t.personId), ...[underlag.villkor, input.workingVillkor].flatMap(v => [
     ...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs) ])]);

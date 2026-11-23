@@ -15,7 +15,7 @@ export function Salsattningspanel({ utanSal, visning, inaktuell, busy, stopp, ro
   roomName: (id: string | null) => string; onForhandsgranska: () => void; onAnvand: () => void; onAvbryt: () => void }) {
   const rubrik = useId(), r = visning?.resultat, o = r?.ororda;
   if (utanSal === 0 && !visning) return null;
-  return <section aria-labelledby={rubrik} className="rounded-lg border border-border bg-card p-4 space-y-3" data-salsattning>
+  return <section aria-labelledby={rubrik} tabIndex={-1} className="rounded-lg border border-border bg-card p-4 space-y-3" data-salsattning>
     <h2 id={rubrik} className="section-heading">Tilldela salar och behåll tiderna</h2>
     <p>{utanSal > 0 ? `${pass(utanSal)} har tid och ska ha sal, men saknar sal eller har en sal som kontrollen har underkänt.` : 'Alla pass som ska ha sal har en tillåten sal.'} Dag, starttid och längd ändras inte. Låsta pass och pass med datumändring rörs inte.</p>
     {stopp && <p className="schema-note">{stopp}</p>}

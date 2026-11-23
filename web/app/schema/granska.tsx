@@ -4,17 +4,19 @@ import { useId, useLayoutEffect, useMemo, useRef, useState, type ReactNode } fro
 import { ArrowRight, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import type { SchemaForslag, SchemaForslagLesson, SchemaKontroll, SchemaTimplanDeviation, SchemaViolation } from '@/lib/schema-contract.ts';
+import type { SchemaForslag, SchemaForslagLesson, SchemaKontroll, SchemaKvalitetsrad, SchemaKvalitetsval, SchemaTerm, SchemaTimplanDeviation, SchemaViolation } from '@/lib/schema-contract.ts';
 import { schemaDatumNyckel, type SchemaDatumAndring, type SchemaDatumSvar } from '@/lib/schema-datum.ts';
 import { avvikelseNyckel, medvetenKrock } from '@/lib/schema-utkast.ts';
 import { clock, dayName, PERIOD } from './delat.ts';
 import { Lagesstatus } from './lagesstatus.tsx';
+import { Schemakvalitet } from './kvalitet.tsx';
 import { tidAvvikelser } from './tid.tsx';
 
-export type GranskaMal = { lesson: string; originalDate?: string };
+export type GranskaMal = { lesson: string; originalDate?: string; term?: SchemaTerm };
 
 const kategorier = [
   { id: 'placering', label: 'Pass utan tid' },
+  { id: 'larare', label: 'Obemannade pass' },
   { id: 'sal', label: 'Salbehov och sal' },
   { id: 'regler', label: 'Regelavvikelser' },
   { id: 'timplan', label: 'Timplan' },
@@ -22,6 +24,14 @@ const kategorier = [
   { id: 'datum', label: 'Datumändringar' },
 ] as const;
 type Kategori = (typeof kategorier)[number]['id'];
+const atgardsordning = [
+  { id: 'regler', text: 'Gå igenom regelavvikelserna och öppna berörda pass för att rätta krockar eller villkor.', knapp: 'Visa regelavvikelser' },
+  { id: 'placering', text: 'Öppna ett pass utan tid och använd Föreslå placering för att pröva en plats.', knapp: 'Visa pass utan tid' },
+  { id: 'timplan', text: 'Kontrollera passlängder och antal pass där undervisningstiden avviker från timplanen.', knapp: 'Visa avvikelser från timplanen' },
+  { id: 'larare', text: 'Gå igenom obemannade pass och tilldela lärare i tjänstefördelningen.', knapp: 'Visa obemannade pass' },
+  { id: 'sal', text: 'Se över salbehoven för undervisning som saknar en lämplig sal eller ett angivet salbehov.', knapp: 'Visa salbehov' },
+  { id: 'kapacitet', text: 'Se över salsättningen för pass där gruppen behöver fler platser.', knapp: 'Visa salkapacitet' },
+] as const;
 type Fynd = {
   key: string;
   kategori: Kategori;
@@ -65,6 +75,7 @@ function granskaFynd({ forslag, lessons, kontroll, datum, datedOverrides, intent
     const mal = [{ lesson: pass.id }];
     const lagd = pass.day !== null && pass.startMin !== null;
     if (!lagd) fynd.push({ key: `placering:${pass.id}`, kategori: 'placering', titel: pass.title, besked: 'Passet saknar tid.', mal });
+    if (pass.vacant && !pass.egenAktivitet) fynd.push({ key: `larare:${pass.id}`, kategori: 'larare', titel: pass.title, besked: 'Passet har ett obemannat läraruppdrag.', mal });
 
     let salbesked = pass.sal?.hinder;
     if (!salbesked && pass.roomIds.length === 0 && !pass.egenAktivitet && pass.sal?.lage !== 'ingen') salbesked = 'Undervisningen saknar ett angivet salbehov.';
@@ -141,21 +152,31 @@ type GranskaProps = GranskaUnderlag & {
   active: boolean;
   disabled?: boolean;
   actions?: ReactNode;
+  elevkvalitet?: SchemaKvalitetsrad[];
+  senGrans: number | null;
+  onProva: (val: SchemaKvalitetsval, knapp: HTMLButtonElement) => void;
+  onTjanst: () => void;
+  kanProva: boolean;
+  kanSalsatta: boolean;
   onIntent?: (violation: SchemaViolation, on: boolean) => void;
   onOpen: (mal: GranskaMal) => void;
   onToSchedule: () => void;
 };
 
-export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, datum, datedOverrides, intentional, active, disabled = false, actions, onIntent, onOpen, onToSchedule }: GranskaProps) {
+export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, datum, datedOverrides, intentional, active, disabled = false, actions,
+  elevkvalitet, senGrans, onProva, onTjanst, kanProva, kanSalsatta, onIntent, onOpen, onToSchedule }: GranskaProps) {
   const id = useId();
   const [kategori, setKategori] = useState<Kategori | 'alla'>('alla');
   const [tidigareKategori, setTidigareKategori] = useState<Kategori | null>(null);
+  const [kvalitetsval, setKvalitetsval] = useState<SchemaKvalitetsval | null>(null);
   const sektion = useRef<HTMLElement>(null);
+  const kvalitetRetur = useRef(false);
   const atergang = useRef<{ fynd: string; kategori: Kategori; mal: string; top: number; away: boolean } | null>(null);
   const fynd = useMemo(() => active ? granskaFynd({ forslag, lessons, kontroll, datum, datedOverrides, intentional }) : [], [active, forslag, lessons, kontroll, datum, datedOverrides, intentional]);
   const grupper = kategorier.map(g => ({ ...g, fynd: fynd.filter(f => f.kategori === g.id).sort((a, b) => Number(!!a.upplysning) - Number(!!b.upplysning)) }));
   const synliga = grupper.filter(g => (kategori === 'alla' || kategori === g.id) && g.fynd.length);
   const synligtAntal = synliga.reduce((sum, g) => sum + g.fynd.length, 0);
+  const viktigast = atgardsordning.find(a => grupper.some(g => g.id === a.id && g.fynd.some(f => !f.upplysning)));
   const aterkoppling = tidigareKategori ? 'Fyndet finns inte längre i listan.' : '';
   const aterkopplingIGrupp = synliga.some(g => g.id === tidigareKategori);
   const passPerId = useMemo(() => new Map(lessons.map(l => [l.id, l])), [lessons]);
@@ -167,6 +188,13 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
   useLayoutEffect(() => {
     const till = atergang.current;
     const element = sektion.current;
+    if (active && kvalitetRetur.current) {
+      kvalitetRetur.current = false;
+      const fokus = element?.querySelector<HTMLElement>('[data-kvalitet-pass]:enabled')
+        ?? element?.querySelector<HTMLElement>('[data-kvalitet-retur] select');
+      fokus?.focus({ preventScroll: true });
+      fokus?.scrollIntoView({ block: 'nearest' });
+    }
     if (!till || !element) return;
     if (!active) { till.away = true; return; }
     if (!till.away) return;
@@ -176,12 +204,24 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
     const listan = element.querySelector<HTMLElement>('[data-granskalista]');
     const ankare = (knapp && !knapp.matches(':disabled') ? knapp : rad) ?? grupp ?? listan ?? element.querySelector<HTMLElement>('h2');
     ankare?.focus({ preventScroll: true });
-    if (knapp && ankare === knapp) {
-      window.scrollBy({ top: knapp.getBoundingClientRect().top - till.top, behavior: 'instant' });
-    }
-    ankare?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
     if (!rad) setTidigareKategori(till.kategori);
     atergang.current = null;
+    if (!knapp || ankare !== knapp) {
+      ankare?.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+      return;
+    }
+    const aterstallRullning = () => window.scrollBy({ top: knapp.getBoundingClientRect().top - till.top, behavior: 'instant' });
+    knapp.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    aterstallRullning();
+    // Statusbesked ovanför fynden kan ändra arbetsytans höjd efter att fokus har satts.
+    const storlek = new ResizeObserver(aterstallRullning), lyssnare = new AbortController();
+    const avsluta = () => { storlek.disconnect(); lyssnare.abort(); };
+    storlek.observe(element.parentElement ?? element);
+    knapp.addEventListener('blur', avsluta, { signal: lyssnare.signal });
+    for (const event of ['wheel', 'pointerdown', 'keydown']) {
+      window.addEventListener(event, avsluta, { capture: true, passive: true, signal: lyssnare.signal });
+    }
+    return avsluta;
   }, [active]);
 
   const kontrollBesked = stale ? 'Underlaget eller villkoren har ändrats. Kontrollresultaten kan vara inaktuella.'
@@ -223,6 +263,27 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
           {kontrollBesked && <span className="block">{kontrollBesked}</span>}
           {datedOverrides.length > 0 && !datum && <span className="block">Kontrollresultat för datumändringarna saknas. Tillfällena visas i listan.</span>}
         </output>}
+        {!stale && viktigast && <section className="rounded-lg border border-border bg-card px-5 py-4 space-y-2" aria-labelledby={`${id}-atgard`}>
+          <h3 className="section-heading" id={`${id}-atgard`}>Börja här</h3>
+          <p>{viktigast.id === 'sal' && kanSalsatta ? 'Förhandsgranska salar för tidsatta pass som saknar en tillåten sal.' : viktigast.text}</p>
+          <div className="flex flex-wrap gap-2">
+            <Button type="button" variant="outline" onClick={() => {
+              setKategori(viktigast.id); setTidigareKategori(null);
+              const rubrik = sektion.current?.querySelector<HTMLElement>('[data-granskalista]');
+              rubrik?.focus({ preventScroll: true }); rubrik?.scrollIntoView({ block: 'center' });
+            }}>{viktigast.knapp}</Button>
+            {viktigast.id === 'larare' && <Button type="button" variant="outline" onClick={onTjanst}>Öppna tjänstefördelningen</Button>}
+            {viktigast.id === 'sal' && kanSalsatta && <Button type="button" variant="outline" onClick={() => {
+              const panel = sektion.current?.querySelector<HTMLElement>('[data-salsattning]');
+              panel?.focus({ preventScroll: true }); panel?.scrollIntoView({ block: 'start' });
+            }}>Till salsättningen</Button>}
+          </div>
+        </section>}
+        {lessons.length > 0 && <div data-kvalitet-retur>
+          <Schemakvalitet forslag={forslag} rader={elevkvalitet} val={kvalitetsval} senGrans={senGrans} onVal={setKvalitetsval}
+            disabled={checking || disabled} kanProva={kanProva} stale={stale} checking={checking}
+            onOpen={(lesson, term) => { kvalitetRetur.current = true; onOpen({ lesson, term }); }} onProva={onProva}/>
+        </div>}
         {actions}
         <div className="rounded-lg border border-border bg-card">
           <div className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4">

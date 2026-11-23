@@ -6,7 +6,7 @@ current_phase_name: Klassorganisation
 current_plan: "SP-11 genomförd. Schemapublicering och bekräftad studiestart är installerade för användarprov på 3012."
 status: in_progress
 stopped_at: "Schemapublicering och elevkort verifierade i skyddade isolerade prov och installerade på 3012."
-last_updated: "2026-11-22"
+last_updated: "2026-11-23"
 last_activity: 2026-11-22
 last_activity_desc: "Publicerade pass ger schemamarkering och första passdatum. Bekräftad faktisk start visas som Påbörjad."
 study_plan_trial_revision: 7aa66ed3e1bfcac723156317b42967e3b3c65b2f
@@ -32,6 +32,8 @@ schema_installation_status: clear_and_undo_installed_one_migration_existing_draf
 user_trial_status: clear_and_undo_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – schemakvalitet i Granska.** Börja här pekar ut nästa åtgärd. Elevernas skoldagar visar håltid, sluttid och dagslängd per klass eller undervisningsgrupp. Pröva en förbättring visar resultatet före och efter för vald resurs. Åtta riktade webbläsarprov och hela Node-sviten passerade, med tre överhoppade Node-fall. Installation på 3012 och verksamhetens användarprov återstår. [SM-KVALITET](phases/05.2-schemamodul/05.2-SM-KVALITET-SUMMARY.md)
 
 **2026-11-22 – schemapublicering och bekräftad studiestart installerade på 3012.** Rektor publicerar en exakt sparad schemarevision. Elevkortet visar **Schemalagd nu** och första datum för entydigt matchade pass. Skolans bekräftade start ger **Påbörjad** automatiskt. Isolerade prov kontrollerade publicering, skolgränser och samma studieplan efter datumkomplettering och omladdning. Provbygget bevarade befintlig data, och verksamhetens användarprov återstår. [SP-11](phases/05.3-klassorganisation/05.3-SP-11-SUMMARY.md)
 

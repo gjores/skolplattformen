@@ -61,7 +61,7 @@ export async function schemaSalSok(read: SchemaSalRead, input: SchemaSalRequest,
       } else {
         const candidate = schemaSalPlaceringar(input, room.id);
         const problem = { ...underlag.problem, reference: baseline.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room === null ? [] : [p.room] })) };
-        const result = await bounded(() => validate(problem, candidate)), kontroll = schemaKontroll(underlag, candidate, result);
+        const result = await bounded(() => validate(problem, candidate)), kontroll = schemaKontroll(underlag, candidate, result, false);
         reasons = kontroll.violations; total = kontroll.total;
       }
       checkedRooms++;

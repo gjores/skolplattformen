@@ -14,7 +14,7 @@ import { Sparstatus } from './schema/sparstatus.tsx';
 import { SchemaPublicering } from './schema/publicering.tsx';
 import { planningYearLabel } from '@/lib/planning-year-model.ts';
 import { SCHEMA_CONTRACT_VERSION, checkSchemaVillkor, defaultSchemaVillkor, parseSchemaForslag, parseSchemaKontroll, sammaGrund, villkorNyckel, type SchemaForslag, type SchemaForslagLesson, type SchemaForslagRequest,
-  SchemaContractError, type SchemaKontroll, type SchemaKontrollRequest, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm, type SchemaVillkor, type SchemaViolation } from '@/lib/schema-contract.ts';
+  SchemaContractError, type SchemaKontroll, type SchemaKontrollRequest, type SchemaKvalitetsval, type SchemaPeriod, type SchemaRegel, type SchemaStatus, type SchemaTerm, type SchemaVillkor, type SchemaViolation } from '@/lib/schema-contract.ts';
 import { SCHEMA_SOLVE_TIMES, SCHEMA_SOLVE_DEFAULT_MS, parseSchemaFortsatt, type SchemaFortsattRequest, type SchemaSolveTimeMs } from '@/lib/schema-fortsatt.ts';
 import { FortsattGranskning, fortsattStopp, type FortsattSokning } from './schema/fortsatt.tsx';
 import { arbetsvillkorSteg, aktivitetsSteg, datumSteg, avvikelseRad, avvikelseNyckel, medUtkast, medvetenKrock, medvetenGaller, medvetenMarkering, medvetenSteg, medvetnaAvvikelser, schemaUtkast, tomtUtkast, utkastEfter, utkastSteg, utkastLas, bytSalar, villkorSteg, type SchemaOverlay, type SchemaUtkastAtgard } from '@/lib/schema-utkast.ts';
@@ -204,6 +204,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const [solveTimeMs, setSolveTimeMs] = useState<SchemaSolveTimeMs>(SCHEMA_SOLVE_DEFAULT_MS);
   const [fortsatt, setFortsatt] = useState<FortsattSokning | null>(null), currentContinueKey = useRef('');
   const continueButton = useRef<HTMLButtonElement | null>(null);
+  const fortsattStart = useRef<HTMLButtonElement | null>(null);
   // Lagren i veckan (05.2-SM-VILLKOR-SYNS) ligger i utkastet och minns i webbläsaren.
   const [utkast, dispatchLocal] = useReducer(schemaUtkast, undefined, () => ({ ...tomtUtkast(), layers: storedLager() }));
   // Ett eget villkor som togs bort från ett fält i veckan, så att det kan ångras.
@@ -588,10 +589,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   }
 
   /** Fortsätter från utkastet, utan att ersätta det eller tömma dess historik. */
-  async function fortsattBerakning() {
+  async function fortsattBerakning(kvalitetsval?: SchemaKvalitetsval, knapp?: HTMLButtonElement) {
     if (fonster || !forslag || !base || redigeringStoppad || grundAndrad || issues.length || busy || checking || running.current) return;
     const original = placeringsBas();
     if (!original) return;
+    fortsattStart.current = knapp ?? null;
     // Datumändrade pass får inte flyttas i grundschemat. Skydden gäller bara denna sökning, inte utkastets användarlås.
     const locks = new Map((original.locks?.placements ?? []).map(p => [p.lesson, p]));
     for (const a of datedOverrides) {
@@ -602,27 +604,27 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     const key = currentContinueKey.current, controller = new AbortController();
     running.current = controller; setBusy(true); setError(null); setBerakningssteg('solve'); setMotor({ typ: 'fortsatt', sedan: performance.now() });
     searchRunning.current?.abort(); setSokning(null); setVillkorsSokning(null); setSalsattning(null);
-    setFortsatt({ key, request, result: null, loading: true, error: null });
+    setFortsatt({ key, request, result: null, loading: true, error: null, kvalitetsval });
     try {
       if (!await spara.flush()) throw new Error('save_failed');
       if (controller.signal.aborted) return;
       const result = parseSchemaFortsatt(await api.post<unknown>('/api/schema/fortsatt', request, controller.signal), request);
       if (controller.signal.aborted) return;
-      setFortsatt({ key, request, result, loading: false, error: null });
+      setFortsatt({ key, request, result, loading: false, error: null, kvalitetsval });
     } catch (caught) {
       if (controller.signal.aborted) return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
       const text = caught instanceof Error && caught.message === 'save_failed' ? 'Spara det nuvarande utkastet innan du fortsätter. Dina ändringar finns kvar.'
         : caught instanceof ApiError && caught.status === 409 ? 'Underlaget har ändrats. Ta fram ett nytt schemaförslag innan du fortsätter. Ditt schema finns kvar.'
         : `${message(caught)} Ditt nuvarande schema finns kvar.`;
-      setFortsatt({ key, request, result: null, loading: false, error: text });
+      setFortsatt({ key, request, result: null, loading: false, error: text, kvalitetsval });
     } finally { if (running.current === controller) { running.current = null; setBusy(false); } }
   }
 
   function behallNuvarande() {
     if (checking) return;
     if (fortsatt?.loading) { running.current?.abort(); running.current = null; setBusy(false); }
-    setFortsatt(null); requestAnimationFrame(() => { (continueButton.current?.getClientRects().length ? continueButton.current : berakningKnapp.current)?.focus(); });
+    setFortsatt(null); requestAnimationFrame(() => fortsattKnapp()?.focus());
   }
 
   /** Avbryt i beräkningsläget: webbläsaren slutar vänta och utkastet lämnas orört. Motorn kan räkna klart omgången på servern. */
@@ -631,10 +633,14 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (motor.typ === 'fortsatt') { behallNuvarande(); return; }
     running.current?.abort(); setMotor({ ...motor, avbrutet: true });
   }
+  function fortsattKnapp(): HTMLElement | null {
+    return [fortsattStart.current, continueButton.current, berakningKnapp.current]
+      .find(el => el?.isConnected && el.getClientRects().length > 0 && !el.matches(':disabled')) ?? null;
+  }
   /** Fokus när beräkningsläget stängs: Beräkning efter ett nytt förslag, granskningen efter Fortsätt förbättra, annars knappen som startade. */
   function fokusEfterBerakning(): HTMLElement | null {
     const synlig = (el: HTMLElement | null | undefined) => el?.isConnected && el.getClientRects().length > 0 && !el.matches(':disabled') ? el : null;
-    if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? synlig(continueButton.current) ?? synlig(berakningKnapp.current);
+    if (motor?.typ === 'fortsatt') return synlig(document.querySelector<HTMLElement>('[data-schema-continue-panel] h2')) ?? fortsattKnapp();
     // Efter ett nytt förslag är Ta fram schemaförslag dold och Beräkning tar fokus; efter avbrott eller fel står startknappen kvar.
     return [...document.querySelectorAll<HTMLElement>(`button[type="submit"][form="${CSS.escape(regelformId)}"]`)].map(synlig).find(el => el) ?? synlig(berakningKnapp.current);
   }
@@ -660,7 +666,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       dispatch(action);
       setBase({ ...base, status: candidate.status, metrics: checked.metrics, teachings: checked.teachings, trims: checked.trims, diagnoses: candidate.diagnoses, statistics: candidate.statistics, elapsedMs: candidate.elapsedMs });
       setKontroll({ svar: checked, villkor: provadeKey }); setFortsatt(null); setMoveError(null);
-      setMoved('Den fortsatta beräkningen är genomförd. Ändringarna kan ångras i ett steg.'); requestAnimationFrame(() => { (continueButton.current?.getClientRects().length ? continueButton.current : berakningKnapp.current)?.focus(); });
+      setMoved('Den fortsatta beräkningen är genomförd. Ändringarna kan ångras i ett steg.'); requestAnimationFrame(() => fortsattKnapp()?.focus());
     } catch (caught) {
       if (controller.signal.aborted) return;
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return; }
@@ -1332,7 +1338,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (!forslag || !l) return;
     const occurrence = mal.originalDate ? hamtaTillfalle({ lesson: l.id, originalDate: mal.originalDate }) : undefined;
     if (mal.originalDate && !occurrence) { setMoveError('Tillfället finns inte längre i utkastet. Kontrollera schemat igen.'); return; }
-    const term = occurrence?.term ?? l.term ?? viewTerm;
+    const term = occurrence?.term ?? l.term ?? mal.term ?? viewTerm;
     valjPassresurs(occurrence?.lesson ?? l);
     setShownTerm(term);
     setJamforTerminer(false);
@@ -1506,6 +1512,11 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   const reviewOccurrence = granskaMal?.originalDate && reviewLesson ? hamtaTillfalle({ lesson: reviewLesson.id, originalDate: granskaMal.originalDate }) : undefined;
   const visaJamfor = !!(forslag && reviewLesson && (!granskaMal?.originalDate || reviewOccurrence));
   const granskaStale = grundAndrad || inaktuelltUnderlag || (forslag !== null && period !== forslag.period) || issues.length > 0;
+  const elevkvalitet = kontroll?.elevkvalitet ?? (visaGranska && forslag?.elevkvalitet && base && provadeKey === forslagetsKey
+    && forslag.lessons.every((l, i) => l.day === base.lessons[i].day && l.startMin === base.lessons[i].startMin)
+    ? forslag.elevkvalitet : undefined);
+  const fortsattVy = forslag && fortsatt && <FortsattGranskning search={fortsatt} forslag={forslag} stale={fortsatt.key !== continueInputKey || granskaStale} checking={checking} disabled={redigeringStoppad}
+    onApply={() => void anvandFortsatt()} onClose={behallNuvarande}/>;
   const granskaTerm = reviewOccurrence?.term ?? reviewLesson?.term ?? granskatPass?.term ?? viewTerm;
   const tomning = !fonster && (kanAngraTomning || spara.draftId && snapshot.placements.length > 0) ? {
     undo: kanAngraTomning, disabled: !tomningTillganglig, onClick: () => void andraTomning(kanAngraTomning ? 'undo' : 'clear'),
@@ -1567,6 +1578,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
       disabled={busy || checking || granskaStale} onSessionLost={onSessionLost} />}
     {!fonster && <GranskaUtkast key={granskaScope} forslag={forslag} lessons={passMedSal} kontroll={kontroll} checking={checking || busy} stale={granskaStale}
       datum={datumSvar} datedOverrides={datedOverrides} intentional={intentionalKeys} active={visaGranska}
+      elevkvalitet={elevkvalitet} senGrans={provade.lateAfterMin} kanProva={!redigeringStoppad && !granskaStale} kanSalsatta={utanSal > 0}
+      onProva={(val, knapp) => void fortsattBerakning(val, knapp)} onTjanst={() => diagnosMal({ target: 'tjanst', label: 'Öppna tjänstefördelningen' })}
       onIntent={redigeringStoppad || villkorKey !== provadeKey ? undefined : markeraMedveten}
       onOpen={visaGranskaPass} onToSchedule={() => valjYta('schema')}
       actions={visaGranska && forslag && <div className="space-y-3">
@@ -1575,6 +1588,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
         </Button>
           <Button type="button" variant="outline" onClick={() => visaProvforslag(null)}>Till provförslaget</Button></div>
         {salsattningsvy}
+        {fortsattVy}
+        {moved && <output className="schema-note" aria-live="polite">{moved}</output>}
       </div>}/>}
     {!fonster && <section ref={provforslagPanel} tabIndex={-1} className="scroll-mt-24" aria-label="Provgranskning" hidden={!visaGranska}>
       {sparatProvforslag && <div className="mb-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-border bg-card p-3">
@@ -1673,8 +1688,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     </>}
     {visaSchema && meddelanden}
 
-    {!fonster && visaSchema && forslag && fortsatt && <FortsattGranskning search={fortsatt} forslag={forslag} stale={fortsatt.key !== continueInputKey} checking={checking}
-      onApply={() => void anvandFortsatt()} onClose={behallNuvarande}/>}
+    {!fonster && visaSchema && fortsattVy}
 
     {!visaGranska && forslag && sokning && <Placeringsforslag search={sokning} forslag={forslag} stale={placementInputKey !== sokning.inputKey} checking={checking || busy}
       onDepth={depth => void sokPlacering({ mode: sokning.request.mode, lesson: sokning.request.lesson, target: sokning.request.target, depth })} onApply={(index, key) => void genomforPlacering(index, key)} onClose={stangPlacering}>

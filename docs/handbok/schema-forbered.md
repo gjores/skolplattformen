@@ -49,6 +49,14 @@ Kan underlaget inte läsas visas ett besked och knappen **Läs underlaget igen**
 
 Resursjämförelsen utgår från de bokningar som finns i utkastet. Använd den ordinarie schemakontrollen för att pröva resursernas villkor och elevöverlapp.
 
+## Bedöm schemakvaliteten efter en körning
+
+Öppna **Granska** efter att motorn har räknat. När något behöver följas upp visar **Börja här** en första åtgärd. Du kan öppna fynden, gå till tjänstefördelningen för obemannade pass eller förhandsgranska salsättningen för pass som redan har tid.
+
+Under **Elevernas skoldagar** väljer du termin och klass eller undervisningsgrupp. De största hålen visas först i resursvalet. Måtten visar det längsta hålet efter avdrag för raster och lunch, den senaste sluttiden och spannet från kortaste till längsta skoldag. En klass kan ha flera olika scheman genom sina undervisningsgrupper. Måtten utgår från dessa scheman och gäller den återkommande grundveckan. Enskilda datum och aktiviteter som bara gäller vissa veckor hanteras i respektive schemavy. Om måtten saknas i ett äldre utkast kan du köra **Kontrollera schemat** i Granska.
+
+Välj **Visa passet efter hålet** för att öppna rätt grundpass eller **Pröva en förbättring** för att låta motorn arbeta vidare med hela utkastet. Jämför den valda klassens eller gruppens mått, hela schemats avvikelser och vilka pass som flyttas. Välj **Använd förslaget** om du vill spara ändringarna, eller **Behåll nuvarande schema** för att avsluta jämförelsen. Du kan ångra en använd förbättring i ett steg.
+
 ## Checklistan
 
 Checklistan har sju punkter. Varje punkt visar de aktuella värdena, vad appen har kontrollerat och en knapp som tar dig till området.

@@ -2,11 +2,12 @@
 import { useEffect, useId, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import type { SchemaForslag, SchemaForslagLesson } from '@/lib/schema-contract.ts';
+import type { SchemaForslag, SchemaForslagLesson, SchemaKvalitetsval } from '@/lib/schema-contract.ts';
 import type { SchemaFortsatt, SchemaFortsattRequest } from '@/lib/schema-fortsatt.ts';
 import { clock, dayName, names } from './delat';
+import { Kvalitetsjamforelse } from './kvalitet.tsx';
 
-export type FortsattSokning = { key: string; request: SchemaFortsattRequest; result: SchemaFortsatt | null; loading: boolean; error: string | null };
+export type FortsattSokning = { key: string; request: SchemaFortsattRequest; result: SchemaFortsatt | null; loading: boolean; error: string | null; kvalitetsval?: SchemaKvalitetsval };
 
 /** Ett förslag får inte tappa lagda pass eller lägga till hårda regel- eller tidsavvikelser. Önskemål redovisas före valet. */
 export function fortsattStopp(result: SchemaFortsatt): string | null {
@@ -17,8 +18,8 @@ export function fortsattStopp(result: SchemaFortsatt): string | null {
   return null;
 }
 
-export function FortsattGranskning({ search, forslag, stale, checking, onApply, onClose }: {
-  search: FortsattSokning; forslag: SchemaForslag; stale: boolean; checking: boolean; onApply: () => void; onClose: () => void;
+export function FortsattGranskning({ search, forslag, stale, checking, disabled, onApply, onClose }: {
+  search: FortsattSokning; forslag: SchemaForslag; stale: boolean; checking: boolean; disabled: boolean; onApply: () => void; onClose: () => void;
 }) {
   const heading = useId(), headingRef = useRef<HTMLHeadingElement | null>(null);
   useEffect(() => { headingRef.current?.focus(); headingRef.current?.scrollIntoView({ block: 'center' }); }, [search.key, search.loading]);
@@ -42,11 +43,12 @@ export function FortsattGranskning({ search, forslag, stale, checking, onApply, 
       <div className="flex flex-wrap gap-3"><span>Pass med tid: {result.before.metrics.placed} → {result.after.metrics.placed}</span><span>Regelavvikelser: {result.before.total} → {result.after.total}</span><span>Timplaneavvikelser: {result.before.teachings.filter(t => t.deviation !== null).length} → {result.after.teachings.filter(t => t.deviation !== null).length}</span></div>
       <p>Håltid per vecka: {result.before.metrics.studentGapMin} → {result.after.metrics.studentGapMin} elevminuter; {result.before.metrics.teacherGapMin} → {result.after.metrics.teacherGapMin} lärarminuter.</p>
       <p className="schema-note">Elevminuter väger samman håltiden och antalet berörda elever. Lärarminuter summerar lärarnas håltid.</p>
+      {search.kvalitetsval && !stale && <Kvalitetsjamforelse forslag={forslag} val={search.kvalitetsval} fore={result.before.elevkvalitet} efter={result.after.elevkvalitet}/>}
       {result.forslag.status === 'time_limit' && <p className="schema-note">Omgångens räknetid är slut. Det kan fortfarande finnas bättre placeringar. Du kan använda förslaget och fortsätta därifrån.</p>}
       {stop && <p className="valplan-alert" role="alert">{stop}</p>}
       {changes.length > 0 && <div className="min-w-0 overflow-x-auto rounded-md border border-border"><Table><TableHeader><TableRow><TableHead>Pass och berörda scheman</TableHead><TableHead>Från</TableHead><TableHead>Till</TableHead></TableRow></TableHeader>
         <TableBody>{changes.map(({ from, to }) => <TableRow key={from.id}><TableCell><strong>{from.title}</strong><p className="schema-note">{[names(from.classIds, forslag.classes), names(from.teacherIds, forslag.teachers)].filter(Boolean).join(' · ')}</p></TableCell><TableCell>{place(from)}</TableCell><TableCell>{place(to)}</TableCell></TableRow>)}</TableBody></Table></div>}
-      <Button type="button" disabled={search.loading || checking || stale || !!stop || changes.length === 0} onClick={onApply}>Använd förslaget</Button>
+      <Button type="button" disabled={search.loading || checking || disabled || stale || !!stop || changes.length === 0} onClick={onApply}>Använd förslaget</Button>
       <p className="schema-note">Ändringen sparas i samma utkast och kan ångras i ett steg.</p>
     </>}
   </section>;

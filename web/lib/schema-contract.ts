@@ -259,11 +259,19 @@ export type SchemaForslagLesson = { locked?: boolean; egenAktivitet?: SchemaAkti
 export type SchemaKontrollRequest = SchemaForslagRequest & { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; placements: SchemaPlacement[] };
 export type SchemaRawViolation = { code: string; message: string; lessons: string[]; resources: string[] };
 export type SchemaViolation = { code: string; message: string; lessons: string[] };
+export type SchemaKvalitetsval = { slag: 'klass' | 'grupp'; ref: string; term: SchemaTerm };
+export type SchemaKvalitetsrad = SchemaKvalitetsval & {
+  hal: { dag: number; min: number; fran: number; till: number; pass: string } | null;
+  sluttid: { dag: number; min: number; pass: string };
+  kortasteDag: number;
+  langstaDag: number;
+};
 /** Regelbrott i hela schemat efter en flytt. `total` kan vara större än antalet som visas. */
 export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] & { cost?: number } };
 /** `fingerprint` gäller underlaget med villkoren kontrollen prövade, `grundFingerprint` grunden (samma som förslagets). */
 export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; grundFingerprint: string; fingerprint: string; violations: SchemaViolation[]; total: number;
   teachings: SchemaForslagTeaching[]; trims: SchemaTrim[]; metrics: SchemaForslag['metrics'];
+  elevkvalitet?: SchemaKvalitetsrad[];
   /** Salen för varje lagt pass som ska ha en sal. */
   rooms: Record<string, string> };
 /**
@@ -326,6 +334,7 @@ export type SchemaForslag = {
   classes: { id: string; name: string }[]; teachers: { id: string; name: string }[];
   lessons: SchemaForslagLesson[]; omitted: SchemaOmission[]; diagnoses: { message: string; proof: boolean }[];
   statistics?: SchemaSearchStatistics;
+  elevkvalitet?: SchemaKvalitetsrad[];
   metrics: { lessons: number; placed: number; unplaced: number; studentGapMin: number; teacherGapMin: number }; elapsedMs: number;
 };
 
@@ -532,6 +541,29 @@ export function parseSchemaCheck(value: unknown, problem: SchemaProblem): Schema
     ...(m.cost === undefined ? {} : { cost: int(m.cost, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) }) } };
 }
 /** Klientens tolkning av kontrollruttens svar: grunden ska vara förslagets. */
+function parseElevkvalitet(value: unknown, lessons?: Set<string>, resources?: SchemaForslag['resurser']): SchemaKvalitetsrad[] {
+  const seen = new Set<string>();
+  const known = resources && { klass: new Set(resources.klass.map(r => r.ref)), grupp: new Set(resources.grupp.map(r => r.ref)) };
+  const pass = (value: unknown) => {
+    const id = text(value, 100);
+    if (lessons && !lessons.has(id)) bad();
+    return id;
+  };
+  return list(value, 2 * SCHEMA_LIMITS.lessons).map(raw => {
+    const row = record(raw), ref = text(row.ref, SCHEMA_VILLKOR_LIMITS.ref), term = row.term as SchemaTerm, slag = row.slag;
+    if ((slag !== 'klass' && slag !== 'grupp') || !SCHEMA_TERMS.includes(term) || (known && !known[slag].has(ref))) bad();
+    const key = JSON.stringify([term, slag, ref]);
+    if (seen.has(key)) bad();
+    seen.add(key);
+    const last = record(row.sluttid), gap = row.hal === null ? null : record(row.hal);
+    const kortasteDag = int(row.kortasteDag, 1, 1440);
+    const fran = gap ? int(gap.fran, 0, 1439) : 0, till = gap ? int(gap.till, fran + 1, 1440) : 0;
+    return { slag, ref, term, kortasteDag, langstaDag: int(row.langstaDag, kortasteDag, 1440),
+      sluttid: { dag: int(last.dag, 0, 6), min: int(last.min, 1, 1440), pass: pass(last.pass) },
+      hal: gap ? { dag: int(gap.dag, 0, 6), min: int(gap.min, 1, till - fran), fran, till, pass: pass(gap.pass) } : null };
+  });
+}
+
 export function parseSchemaKontroll(value: unknown, grundFingerprint: string): SchemaKontroll {
   const k = record(value);
   if (k.contractVersion !== SCHEMA_CONTRACT_VERSION || k.grundFingerprint !== grundFingerprint || typeof k.fingerprint !== 'string' || !FINGERPRINT.test(k.fingerprint)) bad();
@@ -543,7 +575,8 @@ export function parseSchemaKontroll(value: unknown, grundFingerprint: string): S
   for (const room of Object.values(rooms)) if (!ROOM.test(text(room, 10))) bad();
   for (const t of teachings) teaching(record(t) as SchemaForslagTeaching);
   for (const key of ['lessons', 'placed', 'unplaced', 'studentGapMin', 'teacherGapMin'] as const) int(m[key], 0, Number.MAX_SAFE_INTEGER);
-  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint, fingerprint: k.fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, trims: trims(k.trims, null), metrics: m, rooms };
+  return { contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint, fingerprint: k.fingerprint, violations, total: int(k.total, violations.length, SCHEMA_LIMITS.violations), teachings, trims: trims(k.trims, null), metrics: m, rooms,
+    ...(k.elevkvalitet === undefined ? {} : { elevkvalitet: parseElevkvalitet(k.elevkvalitet) }) };
 }
 
 /**
@@ -687,6 +720,7 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
     if (l.day !== null) { int(l.day, 0, f.days.length - 1); int(l.startMin, 0, 1440); }
   }
   const linkedLessons = new Set(f.lessons.map(l => l.id));
+  if (f.elevkvalitet !== undefined) parseElevkvalitet(f.elevkvalitet, linkedLessons, f.resurser);
   if (f.block !== undefined) for (const raw of list(f.block, 50)) {
     const b = record(raw); text(b.id, 20); text(b.namn, 60); text(b.text, 4000);
     if (!['aktivt', 'hinder', 'inaktuellt'].includes(text(b.status, 20)) || !(expected.villkor.block ?? []).some(x => x.id === b.id)) bad();

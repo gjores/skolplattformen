@@ -30,7 +30,7 @@ export async function POST(request: Request): Promise<Response> {
     const before = schemaKontroll(underlag, placements, await validateSchema(underlag.problem, placements));
     const solution = await solveSchema(problem, read.input.solveTimeMs, freshSchemaSolveSeed());
     const after = schemaKontroll(underlag, solution.placements, await validateSchema(underlag.problem, solution.placements));
-    const forslag = schemaForslag(read.plan, read.input, underlag, solution);
+    const forslag = schemaForslag(read.plan, read.input, underlag, solution, false);
     // Samma kontrollmått i båda svarsdelarna; referensen påverkar motorns flyttkostnad men inte undervisningens tid.
     return json({ forslag: { ...forslag, metrics: after.metrics, teachings: after.teachings, trims: after.trims }, before, after }, init);
   } catch (error) {
