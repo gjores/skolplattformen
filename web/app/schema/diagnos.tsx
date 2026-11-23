@@ -2,10 +2,10 @@
 /** Fördiagnos och sökstatistik enligt Regelavvikelser-listans mönster (SM-DIAGNOS). */
 import { Button } from '@/components/ui/button';
 import { useEffect, useRef } from 'react';
-import { FLASKHALS, type SchemaDiagnosAction, type SchemaDiagnosFynd, type SchemaDiagnosResurs, type SchemaSearchStatistics } from '@/lib/schema-diagnos.ts';
+import { FLASKHALS, type SchemaDiagnosFynd, type SchemaDiagnosResurs, type SchemaSearchStatistics } from '@/lib/schema-diagnos.ts';
 
 export function ForeBerakning({ findings, busy, onContinue, onTarget }: {
-  findings: SchemaDiagnosFynd[]; busy: boolean; onContinue: () => void; onTarget: (action: SchemaDiagnosAction) => void;
+  findings: SchemaDiagnosFynd[]; busy: boolean; onContinue: () => void; onTarget: (finding: SchemaDiagnosFynd) => void;
 }) {
   const heading = useRef<HTMLHeadingElement | null>(null);
   useEffect(() => { if (findings.length) { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'center' }); } }, [findings]);
@@ -17,7 +17,7 @@ export function ForeBerakning({ findings, busy, onContinue, onTarget }: {
       {findings.map((f, i) => <li key={`${f.code}-${i}`} className="py-3 space-y-2">
         <span className="status-badge">{f.proof ? 'Går inte ihop' : 'Att kontrollera'}</span>
         <p>{f.message}</p>
-        <Button type="button" variant="outline" disabled={busy} onClick={() => onTarget(f.action)}>{f.action.label}</Button>
+        <Button type="button" variant="outline" disabled={busy} onClick={() => onTarget(f)}>{f.action.label}</Button>
       </li>)}
     </ul>
     <Button type="button" disabled={busy} onClick={onContinue}>Ta fram förslag ändå</Button>

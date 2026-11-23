@@ -1453,7 +1453,8 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   function diagnosVillkor(resource?: SchemaDiagnosResurs) {
     if (resource?.id.startsWith('kluster-')) { diagnosMal({ target: 'grupper', label: 'Öppna undervisningsgrupper' }); return; }
     if (visaForbered) {
-      oppnaForbered(resource?.typ === 'larare' ? { omrade: 'larartider', ref: resource.id } : { omrade: 'regler' });
+      const larare = resource?.typ === 'larare' && forutsattningar?.resurser.larare.some(rad => rad.ref === resource.id);
+      oppnaForbered(larare ? { omrade: 'larartider', ref: resource.id } : { omrade: 'regler' });
       return;
     }
     if (forslag && resource) {
@@ -1468,6 +1469,22 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
     if (action.target === 'villkor') { diagnosVillkor(action.resource); return; }
     const view = { tjanst: 'tjanst', grupper: 'undervisningsgrupper', timplan: 'timplaner' }[action.target];
     window.open(`/?${new URLSearchParams({ vy: view, planeringsskola: unitId, planeringslasar: String(schoolYear) })}`, '_blank', 'noopener');
+  }
+  function oppnaDiagnosfynd(fynd: SchemaDiagnosFynd) {
+    if (visaForbered && fynd.action.target === 'villkor') {
+      if (['block_hinder', 'block_inaktuellt', 'indivisible_time', 'activity_time', 'too_short'].includes(fynd.code)) {
+        oppnaForbered({ omrade: 'lektioner' });
+        return;
+      }
+      if (['sal_saknas', 'no_room', 'too_little_room_time'].includes(fynd.code)) {
+        const pass = new Set(fynd.lessons);
+        const undervisningar = new Set(forutsattningar?.lessons.filter(l => pass.has(l.id)).map(l => l.sal?.undervisning ?? l.undervisning).filter(Boolean));
+        const ref = undervisningar.size === 1 && villkor.salregister?.salar.length ? [...undervisningar][0] : undefined;
+        oppnaForbered({ omrade: 'salar', ref });
+        return;
+      }
+    }
+    diagnosMal(fynd.action);
   }
   const tabellAtgarder = (l: SchemaForslagLesson) => ({ ...meny.passAtgarder(l), visaIVeckan: l.day !== null ? () => visaIVeckan(l) : undefined });
   const tabellRubrik = (l: SchemaForslagLesson) => l.day === null ? `${l.title} · utan tid` : `${l.title} · ${meny.text(l).slice(l.title.length + 1)}`;
@@ -1591,7 +1608,7 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   </div>;
   const meddelanden = <>
     <output aria-live="polite" className="schema-note">{berakningsbesked || (motor?.avbrutet ? 'Beräkningen avbröts. Utkastet är oförändrat.' : '')}</output>
-    {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={diagnosMal}/>}
+    {!sokning && diagnosAktuell && diagnosAktuell.findings.length > 0 && <ForeBerakning findings={diagnosAktuell.findings} busy={busy || checking} onContinue={() => void run(true, diagnosAktuell.releaseLocks)} onTarget={oppnaDiagnosfynd}/>}
     {error && <div className="valplan-alert" role="alert"><p>{error}</p></div>}
     {!fonster && aktuelltProvhinder && <Provhinder key={aktuelltProvhinder.nyckel} {...aktuelltProvhinder}
       headingRef={provhinderRubrik} disabled={busy || checking} onBookings={() => granskaForberedOmrade('aktiviteter')} onBasis={() => granskaForberedOmrade('underlag')}

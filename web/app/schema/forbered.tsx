@@ -88,7 +88,7 @@ export function ForberedOversikt({ kalla, kontroll, primar, alternativ, uppgifte
 
   return <div className="space-y-3">
     <section aria-labelledby={rubrik} className="overflow-hidden rounded-lg border border-border bg-card">
-      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-border bg-secondary/50 px-4 py-4 lg:px-5">
+      <div className="flex flex-wrap items-start justify-between gap-4 bg-secondary/50 px-4 py-4 lg:px-5">
         <div className="min-w-0 flex-1 basis-72 space-y-1">
           <h2 id={rubrik} className="text-xl font-semibold tracking-tight">Förbered schemat</h2>
           <p className="text-sm text-muted-foreground">{kalla}</p>
@@ -96,17 +96,17 @@ export function ForberedOversikt({ kalla, kontroll, primar, alternativ, uppgifte
         </div>
         <div className="flex flex-wrap items-start gap-2">{primar}{alternativ}</div>
       </div>
-      <div className="px-4 py-3 lg:px-5">
+      {uppgifter.length > 0 && <div className="border-t border-border px-4 py-3 lg:px-5">
         <div className="flex items-center gap-2">
           <h3 className="font-semibold">Att åtgärda</h3>
-          {uppgifter.length > 0 && <span className="status-badge warning">{uppgifter.length}</span>}
+          <span className="status-badge warning">{uppgifter.length}</span>
         </div>
-        {uppgifter.length ? visaUppgifter(uppgifter.slice(0, 3)) : <p className="mt-1 text-sm text-muted-foreground">Inga åtgärder hittades i de uppgifter som har lästs.</p>}
+        {visaUppgifter(uppgifter.slice(0, 3))}
         {uppgifter.length > 3 && <details className="pt-1 text-sm">
           <summary className="w-fit cursor-pointer rounded-sm py-2 font-medium text-primary">Visa ytterligare {uppgifter.length - 3}</summary>
           {visaUppgifter(uppgifter.slice(3))}
         </details>}
-      </div>
+      </div>}
     </section>
 
     <section aria-label="Gå direkt till" className="min-w-0 rounded-lg border border-border bg-card">
@@ -118,14 +118,14 @@ export function ForberedOversikt({ kalla, kontroll, primar, alternativ, uppgifte
           const id = rubrik + '-' + omrade;
           return <form key={omrade} className="grid min-w-0 gap-2" onSubmit={e => { e.preventDefault(); if (aktuell) onOppna({ omrade, ref: aktuell }); }}>
             <label htmlFor={id} className="text-sm font-medium">{namn}</label>
-            <div className="flex min-w-0 flex-wrap gap-1.5">
+            <div className="grid min-w-0 gap-1.5 2xl:grid-cols-[minmax(0,1fr)_auto]">
               <select id={id} aria-label={etikett} disabled={!alternativ.length}
-                className="min-h-(--control-height) min-w-0 flex-[1_1_9rem] rounded-md border border-input bg-background px-2 text-sm"
+                className="min-h-(--control-height) w-full min-w-0 rounded-md border border-input bg-background px-2 text-sm"
                 value={aktuell} onChange={e => setVal(state => ({ ...state, [omrade]: e.target.value }))}>
                 <option value="">{alternativ.length ? 'Välj …' : tomt}</option>
                 {alternativ.map(x => <option key={x.ref} value={x.ref}>{x.namn}</option>)}
               </select>
-              <Button type="submit" variant="outline" disabled={!aktuell} className="h-auto min-h-11 whitespace-normal">{knapp}</Button>
+              <Button type="submit" variant="outline" disabled={!aktuell} className="h-auto min-h-11 justify-self-start whitespace-normal">{knapp}</Button>
             </div>
           </form>;
         })}

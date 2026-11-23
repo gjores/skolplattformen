@@ -74,6 +74,7 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
   const [bort, setBort] = useState<NationellProvbokning | null>(null);
   const laggTill = useRef<HTMLButtonElement>(null);
   const redigeringsknappar = useRef(new Map<string, HTMLButtonElement>());
+  const bokningsrad = useRef<HTMLTableRowElement>(null), redigeringshinder = useId();
   const lasarPlan = saved ?? EMPTY;
   const skrivskydd = disabled || reading || saving || (saved === null && Boolean(error));
   const underlag = { gallerGymnasiet: true, deltagare, salar, vakter, skoldagar };
@@ -82,13 +83,20 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
   const namnFor = (bokning: NationellProvbokning) => deltagarMal.get(malNyckel(bokning.mal))?.name
     ?? (bokning.mal.slag === 'klass' ? 'Klass saknas i underlaget' : 'Undervisningsgrupp saknas i underlaget');
   if (mal && (hanteratMal?.nr !== mal.nr || hanteratMal.ref !== mal.ref)
-      && !baraSparade && !skrivskydd && !redigering && !bort && deltagare.length > 0) {
+      && !baraSparade && !skrivskydd && !redigering && !bort) {
     const bokning = saved?.bokningar.find(b => b.id === mal.ref);
     if (bokning) {
       setHanteratMal(mal);
-      setOppetFormular({ val: bokning, mal });
+      if (deltagare.length) setOppetFormular({ val: bokning, mal });
     }
   }
+  const blockeratMal = !skrivskydd && !redigering && !bort && deltagare.length === 0
+    && mal && hanteratMal?.nr === mal.nr && hanteratMal.ref === mal.ref ? hanteratMal : null;
+  useEffect(() => {
+    if (!blockeratMal) return;
+    bokningsrad.current?.scrollIntoView({ block: 'nearest' });
+    bokningsrad.current?.focus({ preventScroll: true });
+  }, [blockeratMal]);
   const bokningar = lasarPlan.bokningar.toSorted((a, b) => a.datum.localeCompare(b.datum) || a.startMin - b.startMin
     || a.namn.localeCompare(b.namn, 'sv') || namnFor(a).localeCompare(namnFor(b), 'sv'));
   const lasfel = Boolean(disabled && error);
@@ -130,13 +138,17 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
           <TableHead>Prov och deltagare</TableHead><TableHead>Tid</TableHead><TableHead>Sal och provvakter</TableHead>
           <TableHead>Underlag kontrollerat</TableHead><TableHead><span className="sr-only">Åtgärder</span></TableHead>
         </TableRow></TableHeader>
-        <TableBody>{bokningar.map(b => (
-          <TableRow key={b.id}>
+        <TableBody>{bokningar.map(b => {
+          const blockerad = b.id === blockeratMal?.ref;
+          return <TableRow key={b.id} ref={blockerad ? bokningsrad : undefined} tabIndex={blockerad ? -1 : undefined}
+            aria-describedby={blockerad ? redigeringshinder : undefined}
+            className={blockerad ? 'focus:bg-accent/50 focus-visible:outline-3 focus-visible:-outline-offset-3 focus-visible:outline-ring' : undefined}>
             <TableCell className="whitespace-normal">
               <p className="font-medium">{b.namn}</p>
               <p className="text-muted-foreground">{namnFor(b)} · {undervisningar.get(b.undervisning) ?? 'Undervisning saknas i underlaget'}</p>
               {b.kallprov && <p className="text-xs text-muted-foreground">Skolverkets provkatalog</p>}
               {bokningsfel?.has(b.id) && <p className="status-badge warning mt-1 whitespace-normal">{bokningsfel.get(b.id)}</p>}
+              {blockerad && <p id={redigeringshinder} className="mt-1 text-sm text-muted-foreground">Det behövs en klass eller undervisningsgrupp med undervisning i schemaunderlaget för att ändra bokningen.</p>}
             </TableCell>
             <TableCell>
               <p>{visaDatum(b.datum)}</p><p className="text-muted-foreground">{klocka(b.startMin)}–{klocka(b.slutMin)} · {b.slutMin - b.startMin} min</p>
@@ -152,8 +164,8 @@ export function NationellaProv({ schoolYear, baraSparade = false, forslag, delta
                 <Button type="button" variant="ghost" className={CONTROL} disabled={skrivskydd} aria-label={`Ta bort ${b.namn} för ${namnFor(b)}`} onClick={() => setBort(b)}>Ta bort</Button>
               </div>
             </TableCell>
-          </TableRow>
-        ))}</TableBody>
+          </TableRow>;
+        })}</TableBody>
       </Table>
     ) : !reading && !lasfel && <p className="rounded-md border border-border bg-muted/30 p-3 text-sm text-muted-foreground">
       {lasarPlan.granskad ? 'Det är bekräftat att inga nationella prov ska planeras för läsåret.' : 'Inga prov är planerade för läsåret.'}</p>}
