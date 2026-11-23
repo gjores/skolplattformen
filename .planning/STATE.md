@@ -23,17 +23,17 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 13700ccb1cf54462a80a8c7a1866a46defb57a80
-schema_candidate_revision: 13700ccb1cf54462a80a8c7a1866a46defb57a80
-schema_candidate_status: clear_and_undo_installed_and_button_verified
+schema_runtime_revision: d0971e92bfabb04f51403832f9d8f6d28cf6cf4e
+schema_candidate_revision: d0971e92bfabb04f51403832f9d8f6d28cf6cf4e
+schema_candidate_status: schema_quality_installed_and_authenticated_browser_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: clear_and_undo_installed_one_migration_existing_drafts_preserved
-user_trial_status: clear_and_undo_installed_awaiting_user_trial
+schema_installation_status: schema_quality_installed_without_migrations_existing_drafts_preserved
+user_trial_status: schema_quality_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-23 – schemakvalitet i Granska.** Börja här pekar ut nästa åtgärd. Elevernas skoldagar visar håltid, sluttid och dagslängd per klass eller undervisningsgrupp. Pröva en förbättring visar resultatet före och efter för vald resurs. Åtta riktade webbläsarprov och hela Node-sviten passerade, med tre överhoppade Node-fall. Installation på 3012 och verksamhetens användarprov återstår. [SM-KVALITET](phases/05.2-schemamodul/05.2-SM-KVALITET-SUMMARY.md)
+**2026-11-23 – schemakvalitet installerad på 3012.** Det sammansatta provbygget `d0971e92` ger Börja här, Elevernas skoldagar och Pröva en förbättring i Granska. Bygget bevarar den lokala arbetsgången i Förbered, datumvyn och provflödet. En inloggad schemakontroll och förbättringsberäkning gav kvalitetsmått för det befintliga helårsutkastet. Utkastet var identiskt efter förhandsgranskningen. Bytet behöll databaskatalog, migrationsjournal och 141 utkastrevisioner. Verksamhetens användarprov återstår. [SM-KVALITET](phases/05.2-schemamodul/05.2-SM-KVALITET-SUMMARY.md)
 
 **2026-11-22 – schemapublicering och bekräftad studiestart installerade på 3012.** Rektor publicerar en exakt sparad schemarevision. Elevkortet visar **Schemalagd nu** och första datum för entydigt matchade pass. Skolans bekräftade start ger **Påbörjad** automatiskt. Isolerade prov kontrollerade publicering, skolgränser och samma studieplan efter datumkomplettering och omladdning. Provbygget bevarade befintlig data, och verksamhetens användarprov återstår. [SP-11](phases/05.3-klassorganisation/05.3-SP-11-SUMMARY.md)
 
