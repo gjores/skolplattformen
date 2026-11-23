@@ -94,11 +94,18 @@ try {
     const list = await tx`select revision, document from public.nationella_prov_kataloger where school_year = ${year} order by revision`;
     assert.deepEqual([...list], [{ revision: 1, document: [source] }, { revision: 2, document: [revised] }]);
     assert.deepEqual(await readPlan(tx, target), saved);
-    const rescheduled = await savePlan(tx, target, { ...booking, vakter: [randomUUID()] }, 1);
-    assert.deepEqual(rescheduled.document.bokningar[0].kallprov, booking.kallprov);
+    const draftId = randomUUID(), vakt = randomUUID();
+    const assigned = { ...booking, salId: 'sal-1', vakter: [vakt], motorval: { sal: draftId, vakter: [{ ref: vakt, draftId }] } };
+    assert.deepEqual((await savePlan(tx, target, assigned, 1)).document.bokningar, [assigned]);
+    const edited = { ...assigned, salId: 'sal-2', motorval: { vakter: assigned.motorval.vakter } };
+    const receipt = await savePlan(tx, target, edited, 2);
+    assert.equal(receipt.revision, 3);
+    assert.deepEqual(receipt.document.bokningar, [edited]);
+    assert.deepEqual(await readPlan(tx, target), receipt);
   });
   console.log(JSON.stringify({ status: 'PASS', sourceRevisions: 2, concurrentImportDeduplicated: true,
-    priorMappingPreserved: true, distinctSchoolYear: true, workerReadOnly: true, independentlyMappedSchools: 2, schoolScopeEnforced: true }));
+    priorMappingPreserved: true, distinctSchoolYear: true, workerReadOnly: true, independentlyMappedSchools: 2, schoolScopeEnforced: true,
+    manualRoomChangeWithMotorGuard: true }));
 } finally {
   await env.end();
 }

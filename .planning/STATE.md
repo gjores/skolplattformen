@@ -29,9 +29,12 @@ schema_candidate_status: schema_exam_reset_installed_and_authenticated_browser_v
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
 schema_installation_status: schema_exam_reset_installed_existing_schema_and_exam_revisions_preserved
+schema_exam_catalog_validator_status: repaired_on_3012_with_20261123221000
 user_trial_status: schema_exam_reset_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-23 – salbyte för katalogkopplade prov rättat på 3012.** Databasens katalogkontroll stannade på en hänvisning till det tidigare funktionsnamnet efter ändringen för motorval. Migration `20261123221000` rättade läsårsuppslaget. Isolerat skrivprov verifierade manuellt salbyte med bevarad katalogkoppling och motorvald provvakt. Provplanen lästes och validerades på 3012 utan ändring av dess revision. [SM-TOM-PROV](phases/05.2-schemamodul/05.2-SM-TOM-PROV-SUMMARY.md)
 
 **2026-11-23 – tömning och ångring med provtilldelningar på 3012.** Provbygget `baecd0e1` rensar motorns provsalar, provvakter och ersättningslektioner och behåller provbokningar och manuella provval. Ångra återställer schema och berörda provtilldelningar tillsammans. Databaskontrollen bekräftade 142 bevarade schemarevisioner och 22 bevarade provrevisioner. Inloggad rektor såg **Ångra tömning** för det redan tömda helårsutkastet. Skrivproven gjordes med isolerade syntetiska uppgifter. [SM-TOM-PROV](phases/05.2-schemamodul/05.2-SM-TOM-PROV-SUMMARY.md)
 
