@@ -128,6 +128,7 @@ async function publicationTracks(input: Publish, draft: SchemaDraft, read: ReadB
     ...request, villkor: rebuilt.basisVillkor ?? request.villkor,
     ...(rebuilt.locks.length ? { locks: { grundFingerprint: base.grundFingerprint, placements: rebuilt.locks } } : {}),
   }, read.basis);
+  if (underlag.omitted.some(o => o.reason === 'stale')) throw notReady();
   const dates = calendar.days.filter(day => day.schoolDay && schemaDatumTermTillaten(base.period, day.term));
   const terms = base.period === 'lasar' ? SCHEMA_TERMS : [base.period];
   if (terms.some(term => !dates.some(day => day.term === term))) throw notReady();

@@ -1,6 +1,7 @@
 import { parseElectiveSource, electiveOptionLanguage, type ElectiveSource } from './elective-block-contract.ts';
 import { gymArray, gymBoolean, gymInteger, gymObject, gymShape, gymUuid } from './gym-timplan.ts';
 import { isValidDate } from './pupil-register-model.ts';
+import { isSwedishSubjectLevel, parseSwedishGroupPlanning, type SwedishGroupPlanning } from './study-group-model.ts';
 import { parseYearPlanCommand, verifyYearPlanCommandHash, parseYearPlanReceipt,
   type TjanstYearAction, type TjanstYearBasePayload, type TjanstYearPayload, type TjanstYearCommand } from './tjanst-year-contract.ts';
 
@@ -49,7 +50,7 @@ export type TjanstClassLink = { linkRevision: number; timplanId: string; seriesI
 /** aplMinutes (05.1-27): APL under läsåret för en gymnasieklass enligt timplanens tidsmodell; null = okänt eller ej tillämpligt (aldrig 0 som gissning). */
 export type TjanstClassNeed = TjanstNeed & { sourceKind: 'class_timplan' };
 /** study_group: gemensam undervisningsgrupp (VP-03B). Kurs är valfri, klasser kan saknas och sourceRefs är alltid tom. */
-export type TjanstTeachingGroup = TjanstNeed & { groupId: string; name: string; language: string | null; groupRevision: number; classIds: string[]; sourceRefs: ElectiveSource[]; stale: boolean } & (
+export type TjanstTeachingGroup = TjanstNeed & { groupId: string; name: string; language: string | null; groupRevision: number; classIds: string[]; sourceRefs: ElectiveSource[]; stale: boolean; svenska?: SwedishGroupPlanning } & (
   { sourceKind: 'teaching_group'; blockId: string; optionId: string; subjectCode: string; levelCode: string }
   | { sourceKind: 'study_group'; blockId: null; optionId: null; subjectCode: string | null; levelCode: string | null });
 export type TjanstClass = { classId: string; name: string; link: TjanstClassLink | null; aplMinutes: number | null; needs: TjanstClassNeed[] };
@@ -339,13 +340,15 @@ function groupReferences(ids:unknown,refs:unknown,year:number,unitId?:string,kin
   return {classIds,sourceRefs};
 }
 export function parseTjanstTeachingGroup(value:unknown,expected:{unitId:string;schoolYear:number}):TjanstTeachingGroup{
-  return guarded(()=>{const g=shape(value,['groupId','blockId','optionId','name','subjectCode','levelCode','language','label','groupRevision','classIds','sourceRefs','sourceKind','sourceKey','rowKey','needHt','needVt','needBasis','stale']);
+  return guarded(()=>{const raw=gymObject(value),g=shape(raw,['groupId','blockId','optionId','name','subjectCode','levelCode','language','label','groupRevision','classIds','sourceRefs','sourceKind','sourceKey','rowKey','needHt','needVt','needBasis','stale',...(Object.hasOwn(raw,'svenska')?['svenska']:[])]);
     const source=parseTjanstSourceKey(g.sourceKind,g.sourceKey),groupId=uuid(g.groupId);
     if(source.sourceKind==='class_timplan'||source.groupId!==groupId||source.schoolYear!==expected.schoolYear||source.rowKey!==g.rowKey)bad('tjanst_unknown_source');
     const common={groupId,name:name(g.name),label:text(g.label,300,false),groupRevision:gymInteger(g.groupRevision,2147483647,1),
       ...groupReferences(g.classIds,g.sourceRefs,source.schoolYear,expected.unitId,source.sourceKind),sourceKey:g.sourceKey as string,rowKey:source.rowKey,needHt:nullableMinutes(g.needHt),needVt:nullableMinutes(g.needVt),needBasis:choice(g.needBasis,TJANST_NEED_BASES),stale:bool(g.stale)};
+    const svenska = Object.hasOwn(g, 'svenska') ? parseSwedishGroupPlanning(g.svenska) : undefined;
+    if (svenska && (source.sourceKind !== 'study_group' || !common.classIds.length || !isSwedishSubjectLevel(g.subjectCode, g.levelCode) || g.language !== null)) bad('tjanst_unknown_source');
     if(source.sourceKind==='study_group'){if(g.blockId!==null||g.optionId!==null)bad('tjanst_unknown_source');
-      return {...common,sourceKind:'study_group',blockId:null,optionId:null,subjectCode:g.subjectCode===null?null:text(g.subjectCode,96,false),levelCode:g.levelCode===null?null:text(g.levelCode,96,false),language:g.language===null?null:text(g.language,16,false)};}
+      return {...common,sourceKind:'study_group',blockId:null,optionId:null,subjectCode:g.subjectCode===null?null:text(g.subjectCode,96,false),levelCode:g.levelCode===null?null:text(g.levelCode,96,false),language:g.language===null?null:text(g.language,16,false),...(svenska && { svenska })};}
     const levelCode=text(g.levelCode,80,false);
     return {...common,sourceKind:'teaching_group',blockId:uuid(g.blockId),optionId:uuid(g.optionId),subjectCode:text(g.subjectCode,80,false),levelCode,language:electiveOptionLanguage(levelCode,g.language)};
   });

@@ -98,7 +98,7 @@ export function Saltabell({ villkor: v, rader, disabled, onChange, onOppna }: { 
           <TableCell className="whitespace-normal min-w-40"><Button type="button" variant="link" className="h-auto p-0 text-left whitespace-normal" onClick={() => onOppna(r.ref)}>{r.title}</Button></TableCell>
           <TableCell className="whitespace-normal">{r.grupp}</TableCell><TableCell>{r.elever ?? 'Okänt'}</TableCell>
           <TableCell className="whitespace-normal min-w-48">{salbehovText(r.behov, register)}</TableCell>
-          <TableCell className="whitespace-normal">{r.kalla === 'amne' ? 'Ärvt från ämnet' : r.kalla === 'eget' ? 'Eget undantag' : '–'}</TableCell>
+          <TableCell className="whitespace-normal">{r.kalla === 'amne' ? 'Ärvt från ämnet' : r.kalla === 'eget' ? 'Eget undantag' : r.kalla === 'standard' ? 'Förvalt för Svenska/SvA' : '–'}</TableCell>
           <TableCell className="whitespace-normal">{lampligaText(r)}</TableCell>
         </TableRow>)}</TableBody></Table></div>}
   </div>;

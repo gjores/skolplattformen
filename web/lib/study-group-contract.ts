@@ -1,17 +1,21 @@
 import { ProgramplanContractError } from './programplan-catalog.ts';
-import { STUDY_GROUP_MEMBER_SOURCES, parseStudyGroup, parseStudyGroupMembership, type StudyGroup, type StudyGroupMembership, type StudyGroupMemberSource } from './study-group-model.ts';
+import { STUDY_GROUP_MEMBER_SOURCES, parseStudyGroup, parseStudyGroupMembership, parseSwedishGroupPlanning, type StudyGroup, type StudyGroupMembership, type StudyGroupMemberSource } from './study-group-model.ts';
 
 /** Wire contract for /api/undervisningsgrupper. Memberships and pupils only include what the actor may see. */
 export const STUDY_GROUP_CONTRACT_VERSION = 'study_group_v1' as const;
-export const STUDY_GROUP_ACTIONS = ['save_group', 'retire_group', 'add_members', 'move_member', 'end_member', 'cancel_member'] as const;
+export const STUDY_GROUP_ACTIONS = ['save_group', 'retire_group', 'add_members', 'move_member', 'end_member', 'cancel_member', 'organize_swedish'] as const;
 export type StudyGroupAction = typeof STUDY_GROUP_ACTIONS[number];
 export type StudyGroupScope = { unitId: string; schoolYear: number };
 export type StudyGroupPupil = { id: string; name: string; classIds: string[] };
-export type StudyGroupRead = StudyGroupScope & { contractVersion: typeof STUDY_GROUP_CONTRACT_VERSION; groups: StudyGroup[]; memberships: StudyGroupMembership[]; pupils: StudyGroupPupil[]; classes: { id: string; name: string }[] };
-export type StudyGroupSave = Omit<StudyGroup, 'unitId' | 'schoolYear' | 'revision' | 'active'> & { expectedRevision: number };
+export type SwedishStudyGroupSource = { classId: string; sourceKey: string };
+export type SwedishStudyGroupSourceRead = SwedishStudyGroupSource & { level: 1 | 2 | 3; needHt: number; needVt: number; groupIds: string[] };
+export type SwedishStudyGroupPlan = { groupId: string; expectedRevision: number; name: string; forecast: number | null; subjectCode: 'SVEN' | 'SVEA'; classIds: string[] };
+export type StudyGroupRead = StudyGroupScope & { contractVersion: typeof STUDY_GROUP_CONTRACT_VERSION; groups: StudyGroup[]; memberships: StudyGroupMembership[]; pupils: StudyGroupPupil[]; classes: { id: string; name: string }[]; svenskaSources?: SwedishStudyGroupSourceRead[] };
+export type StudyGroupSave = Omit<StudyGroup, 'unitId' | 'schoolYear' | 'revision' | 'active' | 'svenska'> & { expectedRevision: number };
 export type StudyGroupMemberInput = { pupilId: string; startsOn: string; endsOn: string; source: StudyGroupMemberSource; sourceRef: string | null };
 export type StudyGroupPayload =
   | { action: 'save_group'; payload: StudyGroupSave }
+  | { action: 'organize_swedish'; payload: { sources: SwedishStudyGroupSource[]; groups: SwedishStudyGroupPlan[] } }
   | { action: 'retire_group'; payload: { groupId: string; expectedRevision: number } }
   | { action: 'add_members'; payload: { groupId: string; members: StudyGroupMemberInput[] } }
   | { action: 'move_member'; payload: { membershipId: string; toGroupId: string; on: string } }
@@ -49,7 +53,7 @@ export function parseStudyGroupScope(value: unknown): StudyGroupScope {
   return { unitId: uuid(r.unitId), schoolYear: integer(r.schoolYear, 2000, 2100) };
 }
 export function parseStudyGroupRead(value: unknown, scope: StudyGroupScope): StudyGroupRead {
-  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'groups', 'memberships', 'pupils', 'classes']);
+  const r = shape(value, ['contractVersion', 'unitId', 'schoolYear', 'groups', 'memberships', 'pupils', 'classes'], ['svenskaSources']);
   if (r.contractVersion !== STUDY_GROUP_CONTRACT_VERSION || uuid(r.unitId) !== scope.unitId || r.schoolYear !== scope.schoolYear) bad();
   const groups = list(r.groups, 5000).map(parseStudyGroup), memberships = list(r.memberships, 100000).map(parseStudyGroupMembership);
   const ids = new Set(groups.map(g => g.id));
@@ -64,8 +68,28 @@ export function parseStudyGroupRead(value: unknown, scope: StudyGroupScope): Stu
     if (typeof x.name !== 'string' || !x.name.trim() || x.name.length > 240) bad();
     return { id: uuid(x.id), name: x.name };
   });
+  const svenskaSources = Object.hasOwn(r, 'svenskaSources') ? list(r.svenskaSources, 5000).map(v => {
+    const source = shape(v, ['classId', 'sourceKey', 'level', 'needHt', 'needVt', 'groupIds']);
+    const base = parseSwedishSource({ classId: source.classId, sourceKey: source.sourceKey });
+    const groupIds = list(source.groupIds, 500).map(uuid);
+    if (new Set(groupIds).size !== groupIds.length || groupIds.some(id => !ids.has(id))) bad();
+    return { ...base, groupIds, level: integer(source.level, 1, 3) as 1 | 2 | 3, needHt: integer(source.needHt, 0, 100000), needVt: integer(source.needVt, 0, 100000) };
+  }) : undefined;
   // Only the scope fields: a reply passes its command as scope, and the client parses the result again.
-  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, unitId: scope.unitId, schoolYear: scope.schoolYear, groups, memberships, pupils, classes };
+  return { contractVersion: STUDY_GROUP_CONTRACT_VERSION, unitId: scope.unitId, schoolYear: scope.schoolYear, groups, memberships, pupils, classes, ...(svenskaSources && { svenskaSources }) };
+}
+function parseSwedishSource(value: unknown): SwedishStudyGroupSource {
+  const r = shape(value, ['classId', 'sourceKey']), classId = uuid(r.classId);
+  if (typeof r.sourceKey !== 'string' || r.sourceKey.length > 240 || !r.sourceKey.startsWith(`class_timplan:${classId}:`)) bad();
+  return { classId, sourceKey: r.sourceKey };
+}
+function parseSwedishPlan(value: unknown): SwedishStudyGroupPlan {
+  const r = shape(value, ['groupId', 'expectedRevision', 'name', 'forecast', 'subjectCode', 'classIds']);
+  if (typeof r.name !== 'string' || !r.name.trim() || r.name.length > 200 || r.subjectCode !== 'SVEN' && r.subjectCode !== 'SVEA') bad();
+  const classIds = list(r.classIds, 500).map(uuid);
+  if (!classIds.length || new Set(classIds).size !== classIds.length) bad();
+  return { groupId: uuid(r.groupId), expectedRevision: integer(r.expectedRevision, 0, 2147483645), name: r.name.trim(),
+    forecast: parseSwedishGroupPlanning({ forecast: r.forecast }).forecast, subjectCode: r.subjectCode, classIds };
 }
 function parseSave(value: unknown): StudyGroupSave {
   const r = shape(value, ['id', 'expectedRevision', 'name', 'startsOn', 'endsOn', 'course', 'minutesHt', 'minutesVt', 'parallelSetId', 'classIds', 'origin']);
@@ -84,6 +108,13 @@ function parseMember(value: unknown): StudyGroupMemberInput {
 }
 function parsePayload(action: StudyGroupAction, value: unknown): StudyGroupPayload {
   if (action === 'save_group') return { action, payload: parseSave(value) };
+  if (action === 'organize_swedish') {
+    const r = shape(value, ['sources', 'groups']), sources = list(r.sources, 500).map(parseSwedishSource), groups = list(r.groups, 500).map(parseSwedishPlan);
+    const classes = new Set(sources.map(source => source.classId)), covered = new Set(groups.flatMap(group => group.classIds));
+    if (!sources.length || !groups.length || classes.size !== sources.length || new Set(groups.map(group => group.groupId)).size !== groups.length
+      || classes.size !== covered.size || [...covered].some(id => !classes.has(id))) bad();
+    return { action, payload: { sources, groups } };
+  }
   if (action === 'retire_group') { const r = shape(value, ['groupId', 'expectedRevision']); return { action, payload: { groupId: uuid(r.groupId), expectedRevision: integer(r.expectedRevision, 1, 2147483645) } }; }
   if (action === 'add_members') { const r = shape(value, ['groupId', 'members']), members = list(r.members, 1000).map(parseMember); if (!members.length) bad(); return { action, payload: { groupId: uuid(r.groupId), members } }; }
   if (action === 'move_member') { const r = shape(value, ['membershipId', 'toGroupId', 'on']); return { action, payload: { membershipId: uuid(r.membershipId), toGroupId: uuid(r.toGroupId), on: date(r.on) } }; }
@@ -105,5 +136,11 @@ export function parseStudyGroupReply(value: unknown, command: StudyGroupCommand)
   if (x.membershipIds !== undefined) receipt.membershipIds = list(x.membershipIds, 1000).map(uuid);
   const expectedGroup = command.action === 'save_group' ? command.payload.id : command.action === 'retire_group' || command.action === 'add_members' ? command.payload.groupId : null;
   if (expectedGroup && receipt.groupId !== expectedGroup || 'membershipId' in command.payload && receipt.membershipId !== command.payload.membershipId) bad();
-  return { receipt, read: parseStudyGroupRead(r.read, command) };
+  const read = parseStudyGroupRead(r.read, command);
+  if (command.action === 'organize_swedish' && command.payload.groups.some(plan => {
+    const group = read.groups.find(g => g.id === plan.groupId);
+    return !group?.active || !group.svenska || group.svenska.forecast !== plan.forecast || group.course?.subjectCode !== plan.subjectCode
+      || group.classIds.length !== plan.classIds.length || plan.classIds.some(id => !group.classIds.includes(id));
+  })) bad();
+  return { receipt, read };
 }

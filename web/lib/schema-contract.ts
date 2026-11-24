@@ -247,7 +247,7 @@ export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null
  * `aldre`: salarna kommer från ett äldre salvillkor. `obesvarat`: undervisningen har inget salbehov. `elever`: elever i passets grupper, `null` när det inte går att räkna.
  * `hinder`: ingen sal uppfyller kraven, i klartext. `kapacitet`: per tillåten sal om platserna räcker, är för få eller inte går att kontrollera.
  */
-export type SchemaPassSal = { /** Undervisningens referens, samma som i `fordelning`. */ undervisning: string; lage: SchemaSalbehov['lage'] | 'aldre' | 'obesvarat'; kalla: 'eget' | 'amne' | null; elever: number | null; hinder?: string; kapacitet?: Record<string, SchemaSalKapacitet> };
+export type SchemaPassSal = { /** Undervisningens referens, samma som i `fordelning`. */ undervisning: string; lage: SchemaSalbehov['lage'] | 'aldre' | 'obesvarat'; kalla: 'eget' | 'amne' | 'standard' | null; elever: number | null; hinder?: string; kapacitet?: Record<string, SchemaSalKapacitet> };
 export type SchemaForslagLesson = { locked?: boolean; egenAktivitet?: SchemaAktivitetsMeta; id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
   ansvarig?: string;
   /** Den längsta marginalen efter och före passet för någon av passets parter (05.2-SM-MARGINAL). Passet och marginalen ska rymmas i skoldagen. */
@@ -296,7 +296,7 @@ export type SchemaKontroll = { contractVersion: typeof SCHEMA_CONTRACT_VERSION; 
 export type SchemaTrim = { lesson: string; term: SchemaTerm; fixedMin: number; extraCount: number; extraMin: number;
   /** Full kortning (inklusive fixedMin) vid varje faktiskt kortat tillfälle, från samma beräkning som timplanssumman. */
   occasions?: { date: string; minutes: number }[] };
-export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' | 'no_days' };
+export type SchemaOmission = { title: string; classes: string[]; reason: 'no_time' | 'too_short' | 'no_days' | 'stale' };
 /**
  * Timplanen är ram (T1): `deviation` säger om och varför utlagd tid inte är timplanens. Tillåten tid per termin är `needMin` till och med `maxMin`:
  * timplanens minuter och avrundning uppåt under 5 minuter per vecka (05.2-SM-TIMPLAN-EXAKT, E2). `unplaced`: pass utan tid. `weekly`: passlängderna
@@ -342,7 +342,8 @@ export type SchemaForslag = {
   fingerprint: string; grundFingerprint: string; startGridMin: number;
   time: { source: SchemaTime['source']; version: number | null; status: string | null; current: boolean; schoolDays: number; weeks: number;
     terms: { term: SchemaTerm; schoolDays: number }[]; weekLabels: string[]; calendar?: SchemaDatedCalendar | null };
-  members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[] };
+  members: { pupils: number; groupsWithoutMembers: string[]; classesWithoutPupils: string[]; withoutChoice: { title: string; count: number }[];
+    svenskaPrognoser?: { title: string; forecast: number; known: number }[] };
   teachings: SchemaForslagTeaching[]; trims: SchemaTrim[];
   basis: { versionNo: number; status: string } | null;
   status: SchemaStatus; days: { startMin: number; endMin: number }[];
@@ -745,6 +746,10 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
   for (const label of list(time.weekLabels, 60)) text(label, 20);
   f.time.calendar = datedCalendar(time.calendar);
   for (const key of ['groupsWithoutMembers', 'classesWithoutPupils', 'withoutChoice'] as const) list(members[key], SCHEMA_LIMITS.lessons);
+  if (members.svenskaPrognoser !== undefined) for (const value of list(members.svenskaPrognoser, SCHEMA_LIMITS.lessons)) {
+    const row = record(value);
+    text(row.title, 240); int(row.forecast, 1, 999); int(row.known, 0, 1_000_000);
+  }
   for (const t of f.teachings) { teaching(t); if (!fordelningRefs.has(t.ref)) bad(); }
   if (f.teachings.some(t => t.perWeek.length !== (time.weekLabels as string[]).length)) bad();
   f.trims = trims(f.trims, new Set(f.lessons.map(l => record(l).id as string)));

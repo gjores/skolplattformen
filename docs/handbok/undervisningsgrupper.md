@@ -32,6 +32,12 @@ Ange först datumet i **Ändringar gäller från**.
 
 Historiken finns kvar. Listan visar elever som går i gruppen på eller efter det valda datumet.
 
+### Placera elever i en planerad Svenska- eller SvA-grupp
+
+Öppna gruppen som skolan planerat i **Organisera Svenska/SvA**. Ange **Ändringar gäller från**, välj **Lägg till elever**, markera eleverna och välj **Lägg till valda elever**. Placera varje elev i gruppen för ämnet och nivån eleven läser. Samma grupp används i tjänstefördelningen och schemat.
+
+Jämför prognosen med registrerade deltagare. När du vill använda enbart registrerade deltagare i planeringen väljer du **Ändra organisation** och **Kända deltagare** för gruppen. Bekräfta den tidigare lärartilldelningen om tjänsteraden markeras inaktuell. Räkna om och granska schemat om deltagarna eller salbehovet har ändrats.
+
 ## Ändra eller avveckla en grupp
 
 **Ändra** gäller namn, period, tid och klasser. Namnbyte behåller gruppens identitet. Kursen går inte att byta; skapa då en ny grupp. Tiden för en grupp från ett valbart block ändras i blocket.

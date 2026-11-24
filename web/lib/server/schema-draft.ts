@@ -158,6 +158,7 @@ export const schemaDraftSourceHash = (read: ReadBasis, conditions: (SchemaVillko
   return schemaDraftHash({ plan: { contractVersion: p.contractVersion, unitId: p.unitId, schoolYear: p.schoolYear, schoolName: p.schoolName,
     revision: p.revision, version: p.version, teachers: p.teachers, classes: p.classes, rows: p.rows, groups: p.groups ?? [], specials: p.specials,
     joints: p.joints, sharing: p.sharing }, members: read.basis.members, time: read.basis.time, sourceRefs: read.sourceRefs, datedBasis: read.datedBasis ?? null,
+    ...(read.basis.svenskaOrganiseradeRef?.length && { svenskaOrganiseradeRef: read.basis.svenskaOrganiseradeRef }),
     usedPersonal: (read.basis.personer ?? []).filter(t => used.has(t.ref) && !p.teachers.some(p => p.personId === t.ref)) });
 };
 export async function readDraftBasis(request: Request, tx: Tx, ctx: Context, input: SchemaForslagRequest): Promise<ReadBasis> {

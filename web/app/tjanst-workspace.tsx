@@ -28,6 +28,7 @@ import TjanstLensBar from './tjanst-lens-bar';
 import TjanstGroupMatrix, { teachingGroupEntries } from './tjanst-group-matrix';
 import TjanstAllocation, { type TjanstAllocationDraft } from './tjanst-allocation';
 import TjanstSharingDialog, { SHARING_LABEL } from './tjanst-sharing-dialog';
+import SwedishGroupOrganization from './swedish-group-organization';
 import { needTeachers, sharedNeedState } from '@/lib/tjanst-model.ts';
 import { createYearRowEditor, selectYearTeacher, yearRowSavePayload } from '@/lib/tjanst-year-model.ts';
 import { EMPTY_LENS_PREFS, lensStorageKey, readLensPrefs, TJANST_LENSES, teachersWithoutTeaching, visibleTeachers, writeLensPrefs, type TjanstLensPrefs } from '@/lib/tjanst-lens.ts';
@@ -127,6 +128,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   const [initial] = useState(readLocation);
   const [autoLens, setAutoLens] = useState(initial.saved.autoLens);
   const [allocationStart, setAllocationStart] = useState<string | null>(null);
+  const [swedishOrganization, setSwedishOrganization] = useState<{ classId: string; trigger: HTMLButtonElement } | null>(null);
   const [matrixGroupBody, setMatrixGroupBody] = useState<HTMLTableSectionElement | null>(null);
   const [matrixAdvanced, setMatrixAdvanced] = useState(false), [quickBusy, setQuickBusy] = useState(false);
   const [matrixUndo, setMatrixUndo] = useState<MatrixUndo | null>(null);
@@ -406,6 +408,13 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
   // Rektor och administratör får lärarnas återkoppling i läsningen; huvudmannens läsning har den aldrig (lib/server/tjanst.ts).
   const feedback = !versionId && !readOnly ? feedbackProp ?? data?.feedback : undefined;
   const editable = !readOnly && !!data && data.capabilities.canEdit && !versionId && !phone && !!scope && !busy && !quickBusy && !checking && !pendingCheck && !recovering;
+  const canOrganizeSwedish = Boolean(data?.groups?.some(group => group.svenska) || data?.classes.some(cls => cls.needs.some(need =>
+    need.rowKey.startsWith('alternative:foundation:') && need.rowKey.includes('SVEN:') && need.rowKey.includes('SVEA:'))));
+  function closeSwedishOrganization() {
+    const trigger = swedishOrganization?.trigger;
+    setSwedishOrganization(null);
+    requestAnimationFrame(() => trigger?.focus());
+  }
   const can = (action: TjanstPlanAction) => editable && !!data?.actions.includes(action);
   // 05.1-33 / D-31: när en andra lärare får tid på ett behov frågar arbetsytan direkt hur lärarna delar kursen.
   // Frågan väntar tills omläsningen visar den nya lärarens rad; en lärare som redan hade tid på behovet ger ingen fråga.
@@ -668,6 +677,7 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
 
     </div>}
     {data && (editable || quickBusy) && <div className="mandate-actions tjanst-actions" inert={!editable || loading}>
+      {canOrganizeSwedish && <Button variant="outline" onClick={event => setSwedishOrganization({ classId: shownView === 'klass' ? effectiveClass : filter.classId, trigger: event.currentTarget })}>Organisera Svenska/SvA</Button>}
       <TjanstActionMenu label="Lägg till">
       {onOpenGroups && <Button variant="outline" onClick={()=>onOpenGroups?.()}><Plus size={16} aria-hidden="true"/>Undervisningsgrupper</Button>}
       {data.actions.includes('add_teacher') && <Button variant="outline" onClick={e => open({ kind: 'addTeacher' }, actionOrigin(e.currentTarget))}><Plus size={16} aria-hidden="true"/>Lägg till lärare i fördelningen</Button>}
@@ -684,6 +694,12 @@ function Workspace({ context, unitId, schoolYear, identityKey = null, feedback: 
       </TjanstActionMenu>
     </div>}
     </div>
+    {unitId && swedishOrganization && <SwedishGroupOrganization unitId={unitId} schoolYear={schoolYear} initialClassId={swedishOrganization.classId}
+      onClose={closeSwedishOrganization} onSessionLost={onSessionLost} onSaved={() => {
+        closeSwedishOrganization();
+        if (filter.course || filter.subject || filter.personId || filter.onlyIssues) patchSaved({ filter: { ...EMPTY_FILTER, classId: filter.classId } });
+        setNotice('Grupporganisationen är sparad. Grupperna kan bemannas i tjänstefördelningen.'); refresh();
+      }}/>}
     <div className="tjanst-messages">
       {allocationDraftCount > 0 && <output className="admin-notice">
         Osparade tider i Fördela: {allocationDraftCount} behov. Tiderna finns kvar när du byter vy i samma planering.

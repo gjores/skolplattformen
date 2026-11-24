@@ -131,6 +131,27 @@ test('en grupp utan deltagare just den dagen behåller samma undervisning och to
   assert.ok(rebuilt.labels.activities.some(a => a.ref.startsWith('valbart-block:')), 'fixturen ska visa varför dagsvis ombyggnad skulle byta undervisningsidentitet');
 });
 
+test('SvA-prognosen upptar krockresurser på provdagen men bara verkliga gruppmedlemmar räknas som deltagare', () => {
+  const x = datumFixture();
+  const group = x.plan.groups[0];
+  Object.assign(group, { sourceKind: 'study_group', subjectCode: 'SVEA', levelCode: 'SVEA1000X', svenska: { forecast: 12 } });
+  const u = buildSchemaUnderlag(x.plan, x.request, { ...x.basis, members: { pupils: [], memberships: [] } });
+  const placements = u.labels.lessons.map(l => ({ lesson: l.id, day: 0, startMin: 480, room: l.roomIds[0] ?? null }));
+  const proposal = schemaForslag(x.plan, x.request, u, { status: 'complete', placements, unplaced: [], diagnoses: [], elapsedMs: 0,
+    metrics: { studentGapMin: 0, teacherGapMin: 0 } });
+  x.datedBasis.memberships[0].startsOn = '2026-11-03';
+  const [before, after] = schemaDatumUnderlag(x.plan, u, proposal, x.datedBasis, [], ['2026-11-02', '2026-11-03'], true).days;
+  const groupId = before.groupIdsByRef.get(group.groupId);
+  const beforeGroup = before.problem.groups.find(g => g.id === groupId);
+  for (const klass of x.plan.classes) {
+    const classGroup = before.problem.groups.find(g => g.id === before.groupIdsByRef.get(klass.classId));
+    assert.ok(beforeGroup.clusters.some(id => classGroup.clusters.includes(id)));
+  }
+  assert.deepEqual([...before.pupilsByGroup.get(groupId)], []);
+  assert.deepEqual([...after.pupilsByGroup.get(groupId)], [x.id(80)]);
+  assert.ok(!JSON.stringify(after.problem).includes(x.id(80)));
+});
+
 test('gruppmedlemskap gäller exakt start- och slutdagen och en gammal klassrelation återupplivas inte av ny placering', () => {
   const x = datumFixture(); x.datedBasis.memberships[0].startsOn = '2026-11-03'; x.datedBasis.memberships[0].endsOn = '2026-11-03';
   const days = schemaDatumUnderlag(x.plan, x.underlag, x.f, x.datedBasis, [], ['2026-11-02', '2026-11-03', '2026-11-04']).days;

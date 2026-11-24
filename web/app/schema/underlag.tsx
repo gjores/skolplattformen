@@ -3,19 +3,35 @@
 import type { SchemaForslag } from '@/lib/schema-contract.ts';
 import { SAME_DAY, clock, daysText, hoursText, ruleText } from './delat.ts';
 
+export function SvenskaPrognoser({ forslag }: { forslag: SchemaForslag }) {
+  const grupper = forslag.members.svenskaPrognoser ?? [];
+  if (grupper.length === 0) return null;
+  return <section className="rounded-lg border border-border bg-card px-5 py-4 space-y-2" aria-label="Elevprognos för Svenska och SvA">
+    <h3 className="section-heading">Elevprognos för Svenska och SvA</h3>
+    <p className="schema-note">Stäm av antalet i undervisningsgrupperna när eleverna är placerade.</p>
+    <ul className="m-0 space-y-1 p-0 list-none">
+      {grupper.map(({ title, forecast, known }, index) => <li key={index}>
+        <strong>{title}</strong> · {forecast} i prognosen · {known} registrerade
+        {known > forecast && <span className="status-badge warning ml-2">Fler elever än i prognosen</span>}
+      </li>)}
+    </ul>
+  </section>;
+}
+
 export function Underlag({ forslag }: { forslag: SchemaForslag }) {
   return <>
     <div className="schema-list"><h2>Elever och grupper</h2>
       {forslag.members.pupils === 0
-        ? <p>Inga elever med klass eller grupp kunde läsas för läsåret. Ett valbart block läggs då som ett gemensamt pass och en grupp upptar hela sina klasser.</p>
+        ? <p>Inga elever med klass eller grupp kunde läsas för läsåret. Förslaget utgår från klass- och grupporganisationen.</p>
         : <ul>
           <li>{forslag.members.pupils} elevers klasser och gruppmedlemskap under {forslag.period === 'lasar' ? 'läsåret' : 'terminen'} avgör vilka pass som inte får gå samtidigt.</li>
           {forslag.members.withoutChoice.map((x, i) => <li key={i}>{x.title}: {x.count} {x.count === 1 ? 'elev' : 'elever'} i blockets klasser har ingen grupp och räknas som lediga när blocket går.</li>)}
           {forslag.members.groupsWithoutMembers.length > 0 && <li>Grupper utan elever ({forslag.members.groupsWithoutMembers.length}): {forslag.members.groupsWithoutMembers.join(', ')}. En sådan grupp upptar hela sina klasser, eller ingen elev om den hör till ett block där andra grupper har elever.</li>}
-          {forslag.members.classesWithoutPupils.length > 0 && <li>Klasser utan elever i registret: {forslag.members.classesWithoutPupils.join(', ')}. De räknas som odelade klasser.</li>}
+          {forslag.members.classesWithoutPupils.length > 0 && <li>Klasser utan elever i registret: {forslag.members.classesWithoutPupils.join(', ')}.</li>}
         </ul>}</div>
+    <SvenskaPrognoser forslag={forslag}/>
     {forslag.omitted.length > 0 && <div className="schema-list"><h2>Inte med i förslaget ({forslag.omitted.length})</h2>
-      <ul>{forslag.omitted.map((o, i) => <li key={i}>{o.title} · {o.classes.join(', ')}: {o.reason === 'too_short' ? `mindre än ${forslag.villkor.minLessonMin} min i veckan` : o.reason === 'no_days' ? 'inga skoldagar' : 'ingen tid angiven'}</li>)}</ul></div>}
+      <ul>{forslag.omitted.map((o, i) => <li key={i}>{o.title} · {o.classes.join(', ')} · {o.reason === 'stale' ? 'gruppens timplanskoppling behöver uppdateras' : o.reason === 'too_short' ? `mindre än ${forslag.villkor.minLessonMin} min i veckan` : o.reason === 'no_days' ? 'inga skoldagar' : 'ingen tid angiven'}</li>)}</ul></div>}
     <div className="schema-list"><h2>Villkor och antaganden i förslaget</h2>
       <ul>
         <li>Skoldag {daysText(forslag.villkor.days)}. {forslag.villkor.breakMin} min rast mellan pass, starttider var {forslag.villkor.startGridMin}:e minut.</li>

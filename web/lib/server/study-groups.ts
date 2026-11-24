@@ -6,7 +6,8 @@ import { Deny, type SessionContext, type Tx } from './db.ts';
 export type StudyGroupAuthority = Pick<SessionContext, 'identityId' | 'assignmentId' | 'accessFunction'>;
 const conflicts = new Set(['study_group_command_conflict', 'study_group_revision_conflict', 'study_group_member_overlap']);
 const inputs = new Set(['study_group_invalid', 'study_group_period', 'study_group_class', 'study_group_valplan_course', 'study_group_identity_fixed', 'study_group_parallel_set',
-  'study_group_inactive', 'study_group_member_period', 'study_group_pupil_not_placed', 'study_group_in_use', 'study_group_member_closed', 'study_group_move']);
+  'study_group_inactive', 'study_group_member_period', 'study_group_pupil_not_placed', 'study_group_in_use', 'study_group_member_closed', 'study_group_move',
+  'study_group_swedish_sources', 'study_group_swedish_course', 'study_group_swedish_time', 'study_group_swedish_complete', 'study_group_swedish_class_period', 'study_group_swedish_edit', 'study_group_swedish_period']);
 const MAX_BYTES = 512000;
 
 async function operation<T>(run: () => Promise<T>): Promise<T> {

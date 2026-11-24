@@ -4,6 +4,7 @@ import type { SchemaForslag, SchemaInterval, SchemaPlacement, SchemaProblem, Sch
 import type { SchemaUnderlag } from './schema-underlag.ts';
 import { SchemaDatumError, kontrolleraSchemaDatum, schemaDatumDate, schemaDatumOriginal, schemaDatumTermTillaten, schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumAvvikelse, type SchemaDatumTillfalle } from './schema-datum.ts';
 import { schemaWeekday } from './schema-vecka.ts';
+import { schemaSvenskaPrognosKluster } from './schema-svenska-prognos.ts';
 
 type Period = { startsOn: string; endsOn: string | null };
 export type SchemaDatedBasis = { unitId: string; schoolYear: number; complete: boolean;
@@ -123,6 +124,11 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
     for (const key of [...signatures.keys()].sort()) {
       const s = signatures.get(key)!, id = `kluster-${clusters.length + 1}`; clusters.push({ id, size: s.size });
       for (const group of s.groups) groupsById.get(group)!.clusters.push(id);
+    }
+    for (const { classId, groupIds } of schemaSvenskaPrognosKluster(planGroups.filter(g => groupOpen(g.groupId, date)), classIds)) {
+      const id = `kluster-${clusters.length + 1}`;
+      clusters.push({ id, size: 1 });
+      for (const ref of [classId, ...groupIds]) groupsById.get(ids.get(ref)!)!.clusters.push(id);
     }
     const actual = schemaDatumTillfallen(f, { mode: 'intervall', monday: '', from: date, to: date }, datedOverrides).filter(o => {
       const parts = byLesson.get(o.lesson.id)?.parts ?? fail();

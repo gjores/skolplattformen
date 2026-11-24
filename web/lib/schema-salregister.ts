@@ -104,6 +104,10 @@ export function gallandeSalbehov(behov: SchemaSalbehov[] | undefined, undervisni
   return amne ? { behov: amne, kalla: 'amne' } : null;
 }
 
+export function allmantSalbehov(ref: string): SchemaSalbehov {
+  return { slag: 'undervisning', ref, ...tomtSalbehov('allman') };
+}
+
 type Krav = Omit<SchemaSalbehov, 'slag' | 'ref'>;
 const kravText = (b: Krav, register: SchemaSalregister, elever: number | null): string[] => [
   ...(b.lage === 'allman' ? ['allmän sal'] : []), ...(b.typ ? [`saltyp ${b.typ.toLocaleLowerCase('sv')}`] : []), ...b.utrustning.map(u => u.toLocaleLowerCase('sv')),

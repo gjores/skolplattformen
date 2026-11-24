@@ -3,12 +3,12 @@
  * En massändring gäller befintliga undervisningar och skrivs som egna undantag; ämnets grundvärde ändras inte. Ändringen förhandsgranskas
  * med antal och undantag innan den används, och blir ett steg i Ångra.
  */
-import { gallandeSalbehov, lampligaSalar, type SchemaSalbehov, type SchemaSalbehovLage, type SchemaSalregister } from './schema-salregister.ts';
+import { allmantSalbehov, gallandeSalbehov, lampligaSalar, type SchemaSalbehov, type SchemaSalbehovLage, type SchemaSalregister } from './schema-salregister.ts';
 
 type Varde = Omit<SchemaSalbehov, 'slag' | 'ref'>;
 type Villkor = { salregister?: SchemaSalregister; salbehov?: SchemaSalbehov[] };
-export type SaltabellKalla = { fordelning: { ref: string; title: string; classes: string[] }[]; lessons: { sal?: { undervisning: string; elever: number | null } }[] };
-export type SaltabellRad = { ref: string; title: string; grupp: string; elever: number | null; behov: Varde | null; kalla: 'eget' | 'amne' | null;
+export type SaltabellKalla = { fordelning: { ref: string; title: string; classes: string[] }[]; lessons: { sal?: { undervisning: string; elever: number | null; kalla?: 'eget' | 'amne' | 'standard' | null } }[] };
+export type SaltabellRad = { ref: string; title: string; grupp: string; elever: number | null; behov: Varde | null; kalla: 'eget' | 'amne' | 'standard' | null;
   /** Antal lämpliga salar; `null` när salbehovet är obesvarat eller sal inte behövs. */ lampliga: number | null; kapacitetOkand: boolean; hinder: string | null };
 export type SaltabellFilter = { sok: string; lage: 'alla' | 'obesvarat' | SchemaSalbehovLage | 'hinder' };
 export type SalAndring = { typ: 'satt'; behov: Varde } | { typ: 'lagg_till' | 'ersatt' | 'ta_bort'; salar: string[] } | { typ: 'rensa' };
@@ -20,9 +20,14 @@ const nyckel = (b: Varde | null) => b === null ? '' : JSON.stringify({ ...varde(
 
 export function saltabellRader(kalla: SaltabellKalla, v: Villkor): SaltabellRad[] {
   const elever = new Map<string, number | null>();
-  for (const l of kalla.lessons) if (l.sal && !elever.has(l.sal.undervisning)) elever.set(l.sal.undervisning, l.sal.elever);
+  const standard = new Set<string>();
+  for (const l of kalla.lessons) if (l.sal) {
+    if (!elever.has(l.sal.undervisning)) elever.set(l.sal.undervisning, l.sal.elever);
+    if (l.sal.kalla === 'standard') standard.add(l.sal.undervisning);
+  }
   return kalla.fordelning.map(row => {
-    const g = gallandeSalbehov(v.salbehov, row.ref, row.title), antal = elever.get(row.ref) ?? null;
+    const g = gallandeSalbehov(v.salbehov, row.ref, row.title) ?? (standard.has(row.ref) ? { behov: allmantSalbehov(row.ref), kalla: 'standard' as const } : null);
+    const antal = elever.get(row.ref) ?? null;
     const urval = g && v.salregister && g.behov.lage !== 'ingen' ? lampligaSalar(v.salregister, g.behov, antal) : null;
     return { ref: row.ref, title: row.title, grupp: row.classes.join(', '), elever: antal, behov: g ? varde(g.behov) : null, kalla: g?.kalla ?? null,
       lampliga: urval ? urval.tillatna.length : null, kapacitetOkand: urval ? Object.values(urval.kapacitet).some(k => k === 'okand') : false, hinder: urval?.hinder ?? null };

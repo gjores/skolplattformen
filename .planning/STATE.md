@@ -23,16 +23,18 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: c8042c2681538b0e1871b6dad406729988e222b9
-schema_candidate_revision: c8042c2681538b0e1871b6dad406729988e222b9
-schema_candidate_status: schema_student_day_balance_verified_with_synthetic_schedule
+schema_runtime_revision: 47a12c1aab6ee0bf2cb7708cef9c1edf8bb8704d
+schema_candidate_revision: 47a12c1aab6ee0bf2cb7708cef9c1edf8bb8704d
+schema_candidate_status: swedish_groups_app_and_migration_verified_with_synthetic_planning
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: c8042c2681538b0e1871b6dad406729988e222b9
-schema_installation_status: schema_student_day_balance_app_and_motor_installed
+schema_installation_status: swedish_groups_app_and_migration_installed_existing_motor
 schema_exam_catalog_validator_status: repaired_on_3012_with_20261123221000
-user_trial_status: schema_student_day_balance_installed_awaiting_user_trial
+user_trial_status: swedish_groups_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-24 – Svenska/SvA-grupper med prognos eller kända deltagare på 3012.** App `47a12c1a` och migration `20261124120000` kopplar gruppbehov till klassens timplan. Prognosgrupper kan bemannas före elevplaceringen. Daterade medlemskap kan läggas till i samma grupp. [SM-SVA-GRUPPER](phases/05.2-schemamodul/05.2-SM-SVA-GRUPPER-SUMMARY.md) redovisar prov och lokal installation.
 
 **2026-11-24 – jämnare undervisningsdagar på 3012/3013.** App och motor `c8042c26` prioriterar minsta dagsantal efter placering och timplan, och visar enpassdagar och lektionsfördelning i Granska. Syntetisk beräkning gav 4, 4, 3, 4 och 4 pass med noll regelavvikelser. Bytet passerade 32 skyddade vägar utan databasmigration. [SM-JAMNA-LEKTIONSDAGAR](phases/05.2-schemamodul/05.2-SM-JAMNA-LEKTIONSDAGAR-SUMMARY.md)
 

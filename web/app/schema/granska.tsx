@@ -11,6 +11,7 @@ import { clock, dayName, PERIOD } from './delat.ts';
 import { Lagesstatus } from './lagesstatus.tsx';
 import { Schemakvalitet } from './kvalitet.tsx';
 import { tidAvvikelser } from './tid.tsx';
+import { SvenskaPrognoser } from './underlag.tsx';
 
 export type GranskaMal = { lesson: string; originalDate?: string; term?: SchemaTerm };
 
@@ -117,7 +118,8 @@ function granskaFynd({ forslag, lessons, kontroll, datum, datedOverrides, intent
   for (const [index, o] of forslag.omitted.entries()) {
     if (o.reason === 'no_time') continue;
     fynd.push({ key: `utelamnad:${index}`, kategori: 'timplan', titel: [o.title, o.classes.join(', ')].filter(Boolean).join(' · '),
-      besked: o.reason === 'no_days' ? 'Undervisningen kunde inte läggas eftersom det saknas skoldagar i perioden.' : 'Undervisningens tid räcker inte för ett pass.', mal: [] });
+      besked: o.reason === 'stale' ? 'Stäm av gruppen mot klassens aktuella timplan under Organisera Svenska/SvA i Tjänstefördelning.'
+        : o.reason === 'no_days' ? 'Undervisningen kunde inte läggas eftersom det saknas skoldagar i perioden.' : 'Undervisningens tid räcker inte för ett pass.', mal: [] });
   }
 
   const passPerId = new Map(lessons.map(p => [p.id, p]));
@@ -260,6 +262,7 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
         <ClipboardCheck aria-hidden="true"/><h2>Inget schemaförslag att granska</h2><p>Ta fram ett schemaförslag för att se vad som återstår.</p>
         <Button type="button" className="mt-4" onClick={onToSchedule}>Gå till Lägg schema</Button>
       </div> : <>
+        <SvenskaPrognoser forslag={forslag}/>
         {harOppnaKontroller && <output className="block rounded-lg border border-border bg-card px-5 py-3 text-sm text-muted-foreground">
           {kontrollBesked && <span className="block">{kontrollBesked}</span>}
           {datedOverrides.length > 0 && !datum && <span className="block">Kontrollresultat för datumändringarna saknas. Tillfällena visas i listan.</span>}

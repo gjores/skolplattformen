@@ -173,7 +173,7 @@ function Salbehov({ v, register, rader, vald, onVald, disabled, onChange }: Pick
     <div className="grid gap-3 sm:grid-cols-2">
       <label className="grid gap-1 text-sm">Undervisning<select className={FALT} value={rad.ref} onChange={e => onVald(e.target.value)}>
         {rader.map(r => <option key={r.ref} value={r.ref}>{r.title} · {r.grupp}{r.behov === null ? ' (obesvarat)' : ''}</option>)}</select></label>
-      <p className="self-end schema-note">{rad.elever === null ? 'Elevantalet är okänt: kapaciteten kan inte kontrolleras.' : `${rad.elever} elever i gruppen.`} Gällande salbehov: {salbehovText(rad.behov, register)}{rad.kalla === 'amne' ? ' (ärvt från ämnet)' : rad.kalla === 'eget' ? ' (eget undantag)' : ''}.</p>
+      <p className="self-end schema-note">{rad.elever === null ? 'Elevantalet är okänt: kapaciteten kan inte kontrolleras.' : rad.kalla === 'standard' ? `Salbehovet räknas för ${rad.elever} elever.` : `${rad.elever} elever i gruppen.`} Gällande salbehov: {salbehovText(rad.behov, register)}{rad.kalla === 'amne' ? ' (ärvt från ämnet)' : rad.kalla === 'eget' ? ' (eget undantag)' : rad.kalla === 'standard' ? ' (förvalt för Svenska/SvA)' : ''}.</p>
     </div>
     <fieldset className="grid gap-1"><legend className="text-sm font-medium">Salbehovet gäller</legend>
       <label className={KRYSS}><input type="radio" name={`${namn}-galler`} checked={galler === 'undervisning'} onChange={() => bytGaller('undervisning')}/>Bara {rad.title} · {rad.grupp}{amnets ? ' (eget undantag från ämnet)' : ''}</label>

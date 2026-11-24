@@ -169,6 +169,82 @@ test('ett valbart block med långa alternativnamn är ett ämne som förslaget o
 });
 
 const HT = { start: '2026-08-17', end: '2026-12-18' };
+const svenskaGrupp = (id, name, subjectCode, classIds, forecast, level = 1) => ({ ...group(id, name, null, classIds),
+  sourceKind: 'study_group', sourceKey: `study_group:${uid(id)}:2026`, optionId: null, subjectCode, levelCode: `${subjectCode}${level}000X`, svenska: { forecast } });
+const svenskaSalar = { nasta: 4, arv: [], salar: [[8, 'Liten'], [12, 'Mellan'], [26, 'Stor']].map(([platser, name], index) => ({
+  id: `sal-${index + 1}`, name, typ: 'Allmän sal', platser, utrustning: [] })) };
+const svenskaVillkor = { ...request.villkor, salregister: svenskaSalar, salar: svenskaSalar.salar.map(s => s.name) };
+
+test('svenska och SvA med prognos kan läggas parallellt med varsin lärare, med sal och krockskydd mot berörda klasser', () => {
+  const groups = [svenskaGrupp(40, 'Svenska 1A', 'SVEN', [uid(10)], 18), svenskaGrupp(41, 'SvA 1A och 1B', 'SVEA', [uid(10), uid(11)], 12),
+    svenskaGrupp(42, 'Svenska 1B', 'SVEN', [uid(11)], 21), svenskaGrupp(43, 'Svenska nivå 2', 'SVEN', [uid(10)], 25, 2)];
+  const data = plan({ groups, rows: [row(35, groups[0].sourceKey, uid(21)), row(36, groups[1].sourceKey, uid(22)), row(37, groups[2].sourceKey, uid(23))] });
+  const req = { ...request, villkor: svenskaVillkor };
+  const u = buildSchemaUnderlag(data, req), { problem, labels, members } = u;
+  const lesson = title => problem.lessons.find(l => labels.lessons.find(x => x.id === l.id)?.title === title);
+  const clusters = l => new Set(l.groups.flatMap(id => problem.groups.find(g => g.id === id).clusters));
+  const shares = (a, b) => [...clusters(a)].some(id => clusters(b).has(id));
+  const svenska = lesson('Svenska 1A'), sva = lesson('SvA 1A och 1B');
+  assert.deepEqual([svenska.teachers, sva.teachers], [['larare-2'], ['larare-3']]);
+  assert.ok(!shares(sva, svenska) && !shares(sva, lesson('Svenska 1B')));
+  assert.ok(shares(sva, lesson('Matematik')) && shares(sva, lesson('Idrott')));
+  assert.ok(shares(sva, lesson('Svenska nivå 2')));
+  assert.deepEqual(sva.rooms, { count: 1, allowed: ['sal-2', 'sal-3'], features: ['typ:allmän sal'], min_capacity: 12 });
+  assert.deepEqual(labels.lessons.find(l => l.id === sva.id).classIds, ['grupp-1', 'grupp-2']);
+  assert.equal(members.pupils, 0);
+  assert.deepEqual(members.groupsWithoutMembers, []);
+  assert.deepEqual(members.svenskaPrognoser[1], { title: 'SvA 1A och 1B', forecast: 12, known: 0 });
+  assert.ok(!JSON.stringify(problem).includes(uid(41)));
+  assert.ok(u.elevresurser.every(r => r.kluster.length === 0));
+  const result = solved(problem);
+  result.placements = result.placements.map(p => ({ ...p, rooms: problem.lessons.find(l => l.id === p.lesson).rooms?.allowed.slice(0, 1) ?? [] }));
+  const forslag = schemaForslag(data, req, u, parseSchemaSolution(result, problem));
+  assert.deepEqual(parseSchemaForslag(JSON.parse(JSON.stringify(forslag)), req), forslag);
+});
+
+test('SvA dimensioneras för det högre av prognosen och faktiska deltagare i samma grupp', () => {
+  const g = svenskaGrupp(41, 'SvA 1A och 1B', 'SVEA', [uid(10), uid(11)], 12);
+  const data = plan({ groups: [g] });
+  const pupils = Array.from({ length: 13 }, (_, i) => ({ id: uid(90 + i), classIds: [uid(i % 2 ? 10 : 11)] }));
+  const memberships = pupils.map(p => ({ pupilId: p.id, groupId: g.groupId, startsOn: HT.start, endsOn: null }));
+  const count = (n, forecast = 12, extra = {}) => buildSchemaUnderlag({ ...data, groups: [{ ...g, svenska: { forecast } }] },
+    { ...request, villkor: { ...svenskaVillkor, ...extra } }, { time: timeWith({ span: HT }), members: { pupils: pupils.slice(0, n), memberships: memberships.slice(0, n) } });
+  const of = u => u.labels.lessons.find(l => l.title === g.name);
+  const under = count(9), over = count(13), actual = count(9, null);
+  assert.deepEqual([of(under).sal.elever, of(over).sal.elever, of(actual).sal.elever], [12, 13, 9]);
+  assert.deepEqual(of(over).roomIds, ['sal-3']);
+  assert.deepEqual(over.members.svenskaPrognoser, [{ title: g.name, forecast: 12, known: 13 }]);
+  assert.equal(actual.members.svenskaPrognoser, undefined);
+  assert.ok(over.elevresurser.find(r => r.ref === g.groupId).kluster.length > 0);
+  const noRoom = count(9, 12, { salbehov: [{ slag: 'undervisning', ref: `undervisning:${g.sourceKey}`, lage: 'ingen', typ: null, utrustning: [], salar: [], onskad: [], form: 'distans' }] });
+  assert.equal(of(noRoom).sal.lage, 'ingen');
+  assert.deepEqual(of(noRoom).roomIds, []);
+});
+
+test('inaktuell koppling till timplanen syns för granskning innan ny SvA-undervisning läggs', () => {
+  const g = { ...svenskaGrupp(41, 'SvA 1A och 1B', 'SVEA', [uid(10), uid(11)], 12), stale: true };
+  const data = plan({ groups: [g] });
+  const u = buildSchemaUnderlag(data, { ...request, villkor: svenskaVillkor });
+  assert.deepEqual(u.omitted.find(o => o.title === g.name), { title: g.name, classes: ['1A', '1B'], reason: 'stale' });
+  assert.ok(!u.labels.lessons.some(l => l.title === g.name));
+  assert.ok(u.labels.lessons.some(l => l.title === 'Matematik'));
+  assert.equal(u.members.svenskaPrognoser, undefined);
+});
+
+test('ett sparat lektionsantal på den ersatta klassen hindrar inte ett nytt gruppschema', () => {
+  const g = svenskaGrupp(41, 'SvA 1A', 'SVEA', [uid(10)], 12);
+  const data = plan({ groups: [g] });
+  const previous = `undervisning:${classKey(10, 'alternative:foundation:SVEN:1:SVEN1000X+SVEA:1:SVEA1000X')}`;
+  const next = `undervisning:${g.sourceKey}`;
+  const req = { ...request, villkor: { ...svenskaVillkor, fordelning: [{ ref: previous, antal: 1 }, { ref: next, antal: 2 }] } };
+  const basis = { time: defaultSchemaTime(), members: null, svenskaOrganiseradeRef: [previous] };
+  const u = buildSchemaUnderlag(data, req, basis);
+  assert.deepEqual(u.villkor.fordelning, req.villkor.fordelning, 'förslagets läsning behåller det sparade utkastets val');
+  assert.equal(u.fordelning.find(r => r.ref === next).antal, 2);
+  assert.ok(!u.fordelning.some(r => r.ref === previous));
+  assert.throws(() => buildSchemaUnderlag(data, req, { ...basis, svenskaOrganiseradeRef: [] }), /En vald lektionsfördelning/u);
+});
+
 /** Sex syntetiska elever: tre i varje klass. Två har valt Spanska, två Tyska, två har inget val; ingen har valt Franska. */
 function chosen() {
   const both = [uid(10), uid(11)];

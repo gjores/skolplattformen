@@ -5,9 +5,11 @@ import { PROGRAMPLAN_LANGUAGES } from './programplan-languages.ts';
  * with inclusive dates. Administrative classes are never changed here. No export is claimed. */
 export type StudyGroupCourse = { subjectCode: string; subjectVersion: number; itemCode: string; points: number; languageCode: string | null };
 export type StudyGroupOrigin = { kind: 'valplan'; valplanId: string; courseId: string } | { kind: 'classes' } | { kind: 'manual' };
+export type SwedishGroupPlanning = { forecast: number | null };
 export type StudyGroup = {
   id: string; unitId: string; schoolYear: number; name: string; startsOn: string; endsOn: string; course: StudyGroupCourse | null;
   minutesHt: number; minutesVt: number; parallelSetId: string; classIds: string[]; origin: StudyGroupOrigin; revision: number; active: boolean;
+  svenska?: SwedishGroupPlanning;
 };
 export const STUDY_GROUP_MEMBER_SOURCES = ['class', 'choice', 'manual'] as const;
 export type StudyGroupMemberSource = typeof STUDY_GROUP_MEMBER_SOURCES[number];
@@ -18,11 +20,11 @@ export type StudyGroupNeed = { groupId: string; minutesHt: number; minutesVt: nu
 
 const LANGUAGE_CODES = new Set(PROGRAMPLAN_LANGUAGES.map(l => l.code));
 function bad(): never { throw new ProgramplanContractError('invalid_study_group'); }
-function shape(value: unknown, keys: string[]): Record<string, unknown> {
+function shape(value: unknown, keys: string[], optional: string[] = []): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value) || ![Object.prototype, null].includes(Object.getPrototypeOf(value))
     || Object.getOwnPropertySymbols(value).length || Object.values(Object.getOwnPropertyDescriptors(value)).some(d => d.get !== undefined || d.set !== undefined)) bad();
   const row = value as Record<string, unknown>;
-  if (keys.some(k => !Object.hasOwn(row, k)) || Object.getOwnPropertyNames(row).some(k => !keys.includes(k))) bad();
+  if (keys.some(k => !Object.hasOwn(row, k)) || Object.getOwnPropertyNames(row).some(k => !keys.includes(k) && !optional.includes(k))) bad();
   return row;
 }
 function integer(value: unknown, min: number, max: number): number {
@@ -52,7 +54,7 @@ function dayBefore(iso: string): string { return new Date(Date.parse(`${iso}T00:
 const overlaps = (a: { startsOn: string; endsOn: string }, b: { startsOn: string; endsOn: string }) => a.startsOn <= b.endsOn && b.startsOn <= a.endsOn;
 
 export function parseStudyGroup(value: unknown): StudyGroup {
-  const r = shape(value, ['id', 'unitId', 'schoolYear', 'name', 'startsOn', 'endsOn', 'course', 'minutesHt', 'minutesVt', 'parallelSetId', 'classIds', 'origin', 'revision', 'active']);
+  const r = shape(value, ['id', 'unitId', 'schoolYear', 'name', 'startsOn', 'endsOn', 'course', 'minutesHt', 'minutesVt', 'parallelSetId', 'classIds', 'origin', 'revision', 'active'], ['svenska']);
   let course: StudyGroupCourse | null = null;
   if (r.course !== null) {
     const c = shape(r.course, ['subjectCode', 'subjectVersion', 'itemCode', 'points', 'languageCode']);
@@ -69,9 +71,20 @@ export function parseStudyGroup(value: unknown): StudyGroup {
   if (typeof r.name !== 'string' || !r.name.trim() || r.name.length > 200 || typeof r.active !== 'boolean') bad();
   const startsOn = date(r.startsOn), endsOn = date(r.endsOn);
   if (endsOn < startsOn) bad();
+  const svenska = Object.hasOwn(r, 'svenska') ? parseSwedishGroupPlanning(r.svenska) : undefined;
+  if (svenska && (!course || !isSwedishSubjectLevel(course.subjectCode, course.itemCode) || !classIds.length || origin.kind === 'valplan')) bad();
   return { id: uuid(r.id), unitId: uuid(r.unitId), schoolYear: integer(r.schoolYear, 2000, 2100), name: r.name, startsOn, endsOn, course,
     minutesHt: integer(r.minutesHt, 0, 100000), minutesVt: integer(r.minutesVt, 0, 100000), parallelSetId: uuid(r.parallelSetId), classIds, origin,
-    revision: integer(r.revision, 1, 2147483646), active: r.active };
+    revision: integer(r.revision, 1, 2147483646), active: r.active, ...(svenska && { svenska }) };
+}
+
+export function isSwedishSubjectLevel(subjectCode: unknown, itemCode: unknown): boolean {
+  return (subjectCode === 'SVEN' || subjectCode === 'SVEA') && typeof itemCode === 'string' && /^(SVEN|SVEA)[123]000X$/u.test(itemCode) && itemCode.startsWith(subjectCode);
+}
+
+export function parseSwedishGroupPlanning(value: unknown): SwedishGroupPlanning {
+  const r = shape(value, ['forecast']);
+  return { forecast: r.forecast === null ? null : integer(r.forecast, 1, 999) };
 }
 
 export function parseStudyGroupMembership(value: unknown): StudyGroupMembership {

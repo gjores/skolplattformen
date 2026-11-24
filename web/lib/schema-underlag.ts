@@ -15,9 +15,10 @@ import { passMarginal, yttreMarginal } from './schema-marginal.ts';
 import { schemaDatedCalendar } from './schema-vecka-data.ts';
 import { schemaSearchStatistics } from './schema-diagnos.ts';
 import { SchemaFordelningError, undervisningensAntal } from './schema-fordelning.ts';
-import { gallandeSalbehov, lampligaSalar } from './schema-salregister.ts';
+import { ALLMAN_SALTYP, allmantSalbehov, gallandeSalbehov, lampligaSalar } from './schema-salregister.ts';
 import { medSkolsalar } from './skolsalar.ts';
 import { schemaBlock } from './schema-block.ts';
+import { schemaSvenskaPrognosKluster } from './schema-svenska-prognos.ts';
 import { arsbehov, arstak, arsandelar, sammaArsresurser, arsmonsterGerTid, trimmaLasar } from './schema-lasarsmonster.ts';
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
@@ -43,6 +44,8 @@ export type SchemaLabels = {
   lessons: { egenAktivitet?: import('./schema-aktiviteter.ts').SchemaAktivitetsMeta; id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; marginBeforeMin: number; roomIds: string[]; sal?: import('./schema-contract.ts').SchemaPassSal; vacant: boolean; term: SchemaTerm | null }[];
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime; /** Behörigt läst personal för aktiviteter, endast skolans namn och ID. */ personer?: { ref: string; name: string }[];
+  /** Klassrader som har ersatts av beslutade Svenska/SvA-grupper. Gamla lektionsantal hör inte till de nya gruppraderna. */
+  svenskaOrganiseradeRef?: string[];
   /** Aktuella uppdragsperioder för personal som motorn får tilldela en återkommande aktivitet. */
   ansvarsUppdrag?: { ref: string; startsOn: string; endsOn: string | null }[];
   /** Skolans salregister ur tabellen (05.2-SM-UXF-23); `null` när skolan inte har något. Saknas fältet har registret inte lästs, och utkastets villkor används som de är. */
@@ -335,16 +338,31 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
    * kända elever (klass utan elever, grupp utan medlemmar eller antagen gruppstorlek); kapaciteten är då inte kontrollerad.
    */
   const antagna = new Set<string>();
+  const prognosKluster = new Set<string>();
+  const gruppStorlekar = new Map<string, number>();
+  const prognoser = new Map(planGroups.flatMap(g => !g.stale && g.svenska?.forecast != null ? [[g.groupId, g.svenska.forecast] as const] : []));
+  const svenskaGrupper = new Set(planGroups.filter(g => g.svenska).map(g => g.groupId));
+  const inaktuellaSvenskaGrupper = new Set(planGroups.filter(g => g.svenska && g.stale).map(g => g.groupId));
+  const harAllmanSal = register?.salar.some(s => s.typ.toLocaleLowerCase('sv') === ALLMAN_SALTYP.toLocaleLowerCase('sv'));
   const elevantal = (t: Teaching): number | null => {
     const ids = new Set<string>();
+    let reserv = 0;
     for (const p of t.parts) {
-      if (p.groupId !== null && groupClusters.has(p.groupId)) { for (const id of groupClusters.get(p.groupId)!) ids.add(id); continue; }
+      if (p.groupId !== null && (gruppStorlekar.has(p.groupId) || prognoser.has(p.groupId))) {
+        for (const id of groupClusters.get(p.groupId) ?? []) if (!prognosKluster.has(id)) ids.add(id);
+        reserv += Math.max(0, (prognoser.get(p.groupId) ?? 0) - (gruppStorlekar.get(p.groupId) ?? 0));
+        continue;
+      }
       const whole = p.classIds.filter(id => classNo.has(id));
       if (!whole.length || p.alone) return null;
       // En klass utan elever i underlaget har en antagen storlek för krockprövningen. Den är ingen uppgift om elevantal.
-      for (const c of whole) { const own = classClusters.get(c)!; if (!own.length || own.some(id => antagna.has(id))) return null; for (const id of own) ids.add(id); }
+      for (const c of whole) {
+        const own = classClusters.get(c)!.filter(id => !prognosKluster.has(id));
+        if (!own.length || own.some(id => antagna.has(id))) return null;
+        for (const id of own) ids.add(id);
+      }
     }
-    return ids.size ? problem.clusters.reduce((sum, c) => ids.has(c.id) ? sum + c.size : sum, 0) : null;
+    return ids.size || reserv ? problem.clusters.reduce((sum, c) => ids.has(c.id) ? sum + c.size : sum, reserv) : null;
   };
   /**
    * Salar för en undervisning. Med salregister gäller salbehovet (undervisningens eget före ämnets): snittet av kraven. Utan salbehov, eller utan register,
@@ -354,7 +372,8 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   const salval = (rules: SchemaRegel[], t: Teaching, elever: number | null): { wanted: string[]; info: import('./schema-contract.ts').SchemaPassSal | null; krav: { features: string[]; minCapacity: number | null } | null } => {
     const aldre = (['amne', 'grupp', 'larare', 'klass'] as const).map(slag => rules.flatMap(r => r.slag === slag && r.typ === 'sal' ? r.rooms : [])).find(rooms => rooms.length) ?? [];
     if (!register) return { wanted: aldre, info: null, krav: null };
-    const g = gallandeSalbehov(v.salbehov, t.ref, t.title);
+    const standard = harAllmanSal && !aldre.length && t.parts.some(p => p.groupId !== null && svenskaGrupper.has(p.groupId));
+    const g = gallandeSalbehov(v.salbehov, t.ref, t.title) ?? (standard ? { behov: allmantSalbehov(t.ref), kalla: 'standard' as const } : null);
     if (!g) return { wanted: aldre, info: { undervisning: t.ref, lage: aldre.length ? 'aldre' : 'obesvarat', kalla: null, elever }, krav: null };
     const urval = lampligaSalar(register, g.behov, elever), b = g.behov;
     const features = [...(b.lage === 'allman' ? [egenskap('typ', 'Allmän sal')] : b.typ ? [egenskap('typ', b.typ)] : []), ...b.utrustning.map(u => egenskap('utr', u))];
@@ -369,12 +388,24 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     for (const g of s.groupIds) {
       groupClusters.set(g, [...groupClusters.get(g) ?? [], id]);
       groupClasses.set(g, new Set([...groupClasses.get(g) ?? [], ...s.classIds]));
+      gruppStorlekar.set(g, (gruppStorlekar.get(g) ?? 0) + s.size);
     }
   }
   const classesWithoutPupils: string[] = [];
   for (const c of plan.classes) {
     // Klass utan elever i registret: ett antaget kluster, så att klassens pass ändå inte läggs samtidigt.
     if (!classClusters.get(c.classId)!.length) { const id = cluster(d.classSize, c.name); antagna.add(id); classClusters.get(c.classId)!.push(id); classesWithoutPupils.push(c.name); }
+  }
+  for (const { classId, groupIds } of schemaSvenskaPrognosKluster(planGroups, new Set(classNo.keys()))) {
+    const id = cluster(1, `Elevprognos för ${className.get(classId)}`);
+    prognosKluster.add(id);
+    classClusters.get(classId)!.push(id);
+    for (const groupId of groupIds) {
+      groupClusters.set(groupId, [...groupClusters.get(groupId) ?? [], id]);
+      groupClasses.set(groupId, new Set([...groupClasses.get(groupId) ?? [], classId]));
+    }
+  }
+  for (const c of plan.classes) {
     problem.groups.push({ id: classNo.get(c.classId)!, clusters: classClusters.get(c.classId)! });
   }
   const withoutChoice: { title: string; count: number }[] = [];
@@ -394,11 +425,16 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   const perTerm = terms.map(term => teachings(plan, term, id => groupClusters.has(id), annual));
   const fordelning: SchemaForslag['fordelning'] = [], knownTeachingRefs = new Set(perTerm[0].map(t => t.ref));
   if (knownTeachingRefs.size !== perTerm[0].length) throw new SchemaFordelningError(['Undervisningsunderlaget har dubbla källreferenser. Läs om tjänstefördelningen innan du väljer lektionsfördelning.']);
-  for (const value of v.fordelning ?? []) if (!knownTeachingRefs.has(value.ref)) throw new SchemaFordelningError(['En vald lektionsfördelning gäller en undervisning som inte längre finns i detta underlag. Läs om underlaget och välj fördelningen igen.']);
+  const organiserade = new Set(basis?.svenskaOrganiseradeRef ?? []);
+  for (const value of v.fordelning ?? []) if (!knownTeachingRefs.has(value.ref) && !organiserade.has(value.ref)) throw new SchemaFordelningError(['En vald lektionsfördelning gäller en undervisning som inte längre finns i detta underlag. Läs om underlaget och välj fördelningen igen.']);
   perTerm[0].forEach((t, index) => {
     // Klasserna som berörs: passet visas i deras scheman och deras skoldagar avgör terminens tid.
     const classes = unique(t.parts.flatMap(p => p.groupId !== null && groupClusters.has(p.groupId) ? [...groupClasses.get(p.groupId)!] : p.alone ? [] : p.classIds).filter(id => classNo.has(id)));
     const names = classes.map(id => className.get(id)!);
+    if (t.parts.some(p => p.groupId !== null && inaktuellaSvenskaGrupper.has(p.groupId))) {
+      omitted.push({ title: t.title, classes: names, reason: 'stale' });
+      return;
+    }
     // Egna villkor för undervisningen: klassens, gruppens och ämnets gäller alla dess pass, lärarens de pass läraren har.
     const egna = (persons: string[]) => v.egna.flatMap((r, i) => {
       const own = r.slag === 'klass' ? classes.includes(r.ref) : r.slag === 'grupp' ? t.parts.some(p => p.groupId === r.ref) : r.slag === 'amne' ? r.ref === t.title : r.slag === 'larare' && persons.includes(r.ref);
@@ -640,7 +676,11 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   // Egna samtidighetsblock (05.2-SM-UXF-51): bara block utan hinder blir motorns kopplingar. Kopplingarna ingår i grundens fingeravtryck.
   const blockResultat = schemaBlock(v.block, problem, labels);
   if (blockResultat.links.length) problem.links = [...(problem.links ?? []), ...blockResultat.links];
-  const groupsWithoutMembers = planGroups.filter(g => !groupClusters.has(g.groupId)).map(g => g.name);
+  const groupsWithoutMembers = planGroups.filter(g => !gruppStorlekar.has(g.groupId) && !prognoser.has(g.groupId)).map(g => g.name);
+  const svenskaPrognoser = planGroups.flatMap(g => {
+    const forecast = prognoser.get(g.groupId);
+    return forecast === undefined ? [] : [{ title: g.name, forecast, known: gruppStorlekar.get(g.groupId) ?? 0 }];
+  });
   const resurser = { klass: plan.classes.map(c => ({ ref: c.classId, name: c.name })), grupp: planGroups.map(g => ({ ref: g.groupId, name: g.name })),
     amne: unique(perTerm[0].map(t => t.title)).map(title => ({ ref: title, name: title })), larare: selectableTeachers.map(t => ({ ref: t.personId, name: t.displayName })),
     // Enskilda pass, för marginal på ett pass: ämnet, klasserna och passets nummer inom undervisningen. Numreringen följer underlaget.
@@ -664,12 +704,13 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     }
   }
   const elevresurser: SchemaElevresurs[] = [
-    ...plan.classes.map(c => ({ slag: 'klass' as const, ref: c.classId, kluster: classClusters.get(c.classId)!.filter(id => !antagna.has(id)) })),
-    ...planGroups.map(g => ({ slag: 'grupp' as const, ref: g.groupId, kluster: groupClusters.get(g.groupId) ?? [] })),
+    ...plan.classes.map(c => ({ slag: 'klass' as const, ref: c.classId, kluster: classClusters.get(c.classId)!.filter(id => !antagna.has(id) && !prognosKluster.has(id)) })),
+    ...planGroups.map(g => ({ slag: 'grupp' as const, ref: g.groupId, kluster: (groupClusters.get(g.groupId) ?? []).filter(id => !prognosKluster.has(id)) })),
   ];
   return { groupRefs: Object.fromEntries(nodes), elevresurser, teacherRefs: Object.fromEntries([...teacherNo].map(([ref, id]) => [id, ref])),
     ...(annualContext ? { annual: annualContext } : {}),
-    period: request.period, terms: annual ? visibleTerms : terms, villkor: v, problem, labels, omitted, time, members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice }, fingerprint: schemaFingerprint(problem, labels),
+    period: request.period, terms: annual ? visibleTerms : terms, villkor: v, problem, labels, omitted, time,
+    members: { pupils, groupsWithoutMembers, classesWithoutPupils, withoutChoice, ...(svenskaPrognoser.length && { svenskaPrognoser }) }, fingerprint: schemaFingerprint(problem, labels),
     grundFingerprint, resurser, egnaUtanTraff: v.egna.flatMap((_, i) => hit.has(i) ? [] : [i]), fordelning, block: blockResultat.status };
 }
 

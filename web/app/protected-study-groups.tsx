@@ -15,6 +15,7 @@ import { parseStudyGroupCommand, parseStudyGroupRead, parseStudyGroupReply, type
 import CatalogLevelSearch from './catalog-level-search';
 import LegacyBlockRetirement from './legacy-block-retirement';
 import MfaStepUpNotice from './mfa-step-up';
+import SwedishGroupOrganization from './swedish-group-organization';
 import './valplaner.css';
 
 const catalog = artifact as ProgramplanCatalog;
@@ -29,6 +30,8 @@ const REASON: Record<string, string> = {
   study_group_class: 'Välj minst en klass.',
   study_group_valplan_course: 'Tiden måste vara samma som kursens tid i blocket. Ändra tiden där.',
   study_group_revision_conflict: 'Någon annan har ändrat gruppen. Hämta aktuellt läge.',
+  study_group_swedish_class_period: 'Eleven behöver tillhöra en av gruppens klasser under hela perioden. Kontrollera datum och klasstillhörighet.',
+  study_group_swedish_edit: 'Öppna Ändra organisation för att ändra den här gruppen.',
 };
 function message(error: unknown): string {
   if (error instanceof ApiError) {
@@ -55,7 +58,9 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const [data, setData] = useState<StudyGroupRead | null>(null), [loadError, setLoadError] = useState(false), [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null), [notice, setNotice] = useState<string | null>(null), [mfa, setMfa] = useState(false), [pending, setPending] = useState<StudyGroupCommand | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null), [on, setOn] = useState(today), [adding, setAdding] = useState<string | null>(null), [courseFilter, setCourseFilter] = useState('');
-  useUnsavedChanges(`study-groups-${unitId}-${schoolYear}`, busy || pending !== null || draft !== null);
+  const [pickedPupils, setPickedPupils] = useState<string[]>([]);
+  const [swedishOrganization, setSwedishOrganization] = useState<{ groupId?: string; trigger: HTMLButtonElement } | null>(null);
+  useUnsavedChanges(`study-groups-${unitId}-${schoolYear}`, busy || pending !== null || draft !== null || pickedPupils.length > 0);
   const scope = useMemo(() => ({ unitId, schoolYear }), [unitId, schoolYear]);
   const failedRead = useEffectEvent((caught: unknown) => { if (caught instanceof ApiError && caught.status === 401) onSessionLost(); else setLoadError(true); });
   useEffect(() => {
@@ -68,7 +73,12 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   /** The same command id is resent after a lost answer, so the database replays instead of acting twice. */
   async function send(value: StudyGroupCommand, done: string): Promise<boolean> {
     setBusy(true); setError(null); setNotice(null); setMfa(false); setPending(value);
-    try { const reply = parseStudyGroupReply(await api.post('/api/undervisningsgrupper/kommando', value), value); setData(reply.read); setPending(null); setNotice(done); return true; }
+    try {
+      const reply = parseStudyGroupReply(await api.post('/api/undervisningsgrupper/kommando', value), value);
+      setData(reply.read); setPending(null); setNotice(done);
+      if (value.action === 'add_members' && pickedPupils.length) { setPickedPupils([]); setAdding(null); }
+      return true;
+    }
     catch (caught) {
       if (caught instanceof ApiError && caught.status === 401) { onSessionLost(); return false; }
       if (caught instanceof ApiError && caught.code === 'mfa_required') { setPending(null); setMfa(true); setError('Verifiera inloggningen för att fortsätta.'); return false; }
@@ -86,6 +96,11 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   const pupilName = (id: string) => data?.pupils.find(p => p.id === id)?.name ?? 'Elev';
   const classNames = (ids: string[]) => ids.map(id => data?.classes.find(c => c.id === id)?.name).filter(Boolean).join(', ');
   const current = (m: StudyGroupMembership) => m.endsOn >= on;
+  function closeSwedishOrganization() {
+    const trigger = swedishOrganization?.trigger;
+    setSwedishOrganization(null);
+    requestAnimationFrame(() => trigger?.focus());
+  }
 
   function newGroup() {
     setError(null); setNotice(null); setDraft({ id: crypto.randomUUID(), revision: 0, name: '', startsOn: `${schoolYear}-07-01`, endsOn: `${schoolYear + 1}-06-30`, ht: '', vt: '', classIds: [], level: null, parallelSetId: crypto.randomUUID(), base: null, fetchPupils: true });
@@ -121,6 +136,11 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
   function endMember(m: StudyGroupMembership) {
     return m.startsOn > on ? send(command('cancel_member', { membershipId: m.id }), `${pupilName(m.pupilId)} är borttagen ur gruppen.`) : send(command('end_member', { membershipId: m.id, endsOn: on }), `Medlemskapet för ${pupilName(m.pupilId)} avslutas ${on}.`);
   }
+  async function addPupils(group: StudyGroup, pupilIds: string[]) {
+    const startsOn = clamp(on, group);
+    return send(command('add_members', { groupId: group.id, members: pupilIds.map(pupilId => ({ pupilId, startsOn, endsOn: group.endsOn, source: 'manual', sourceRef: null })) }),
+      pupilIds.length === 1 ? `${pupilName(pupilIds[0])} är tillagd.` : `${pupilIds.length} elever är tillagda.`);
+  }
 
   return <section className="valplan-workspace" aria-labelledby={heading}>
     <div className="page-heading"><div><p className="eyebrow">LÄSÅR {planningYearLabel(schoolYear)}</p><h1 id={heading}>Undervisningsgrupper<span className="heading-dot">.</span></h1>
@@ -132,7 +152,9 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
         <div className="valplan-open">
           <div className="protected-date-field"><label htmlFor={`${heading}-on`}>Ändringar gäller från</label><DatePicker id={`${heading}-on`} value={on} disabled={busy} onValueChange={setOn}/></div>
           {courseOptions.length > 0 && <label>Kurs<select value={courseFilter} onChange={e => setCourseFilter(e.target.value)}><option value="">Alla</option>{courseOptions.map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>}
-          {!draft && <div className="valplan-actions"><Button disabled={busy} onClick={newGroup}>Ny grupp</Button></div>}
+          {!draft && <div className="valplan-actions"><Button disabled={busy} onClick={newGroup}>Ny grupp</Button>
+            {!!data.svenskaSources?.length && <Button variant="outline" disabled={busy || !!pending} onClick={event => setSwedishOrganization({ trigger: event.currentTarget })}>Organisera Svenska/SvA</Button>}
+          </div>}
         </div>
         {mfa ? <MfaStepUpNotice message={error ?? 'Verifiering med engångskod krävs.'}/> : error && <div className="valplan-alert" role="alert"><p>{error}</p>
           {pending ? <Button disabled={busy} onClick={() => void send(pending, 'Sparandet är bekräftat.')}>Kontrollera sparstatus</Button> : <Button variant="outline" disabled={busy} onClick={() => void refresh()}>Hämta aktuellt läge</Button>}</div>}
@@ -158,24 +180,41 @@ function Workspace({ unitId, schoolYear, onSessionLost }: Props & { unitId: stri
       {!shownSets.length && <p className="empty-state">{groups.length ? 'Inga grupper matchar filtret.' : 'Inga grupper ännu. Skapa en grupp här eller från elevvalet i ett valbart block.'}</p>}
       {shownSets.map(set => <section className="valplan-card" key={set[0].parallelSetId} aria-label={set[0].course?.itemCode ?? set[0].name}>
         <div className="section-heading"><h2>{set.length > 1 ? `${set[0].course?.itemCode ?? set[0].name} · ${set.length} parallella grupper` : set[0].name}</h2><span className="status-badge">{ORIGIN[set[0].origin.kind]}</span></div>
-        <div className="valplan-group-board">{set.map(g => { const members = memberships(g).filter(current), others = set.filter(x => x.id !== g.id); return <article key={g.id} className="valplan-group">
-          <header><h3>{g.name}</h3><small>{g.startsOn} – {g.endsOn} · HT {formatTimplanMinutes(g.minutesHt) || '0'} · VT {formatTimplanMinutes(g.minutesVt) || '0'} h{g.classIds.length ? ` · ${classNames(g.classIds)}` : ''}</small><small>{members.length} elever</small></header>
+        <div className="valplan-group-board">{set.map(g => { const members = memberships(g).filter(current), others = set.filter(x => x.id !== g.id);
+          const placed = new Set(members.map(member => member.pupilId)).size, forecast = g.svenska?.forecast;
+          const relatedGroups = g.svenska ? data.svenskaSources?.filter(source => source.groupIds.includes(g.id)).flatMap(source => source.groupIds) ?? [g.id] : set.map(group => group.id);
+          const alreadyPlaced = adding === g.id ? new Set(data.memberships.filter(m => relatedGroups.includes(m.groupId) && current(m)).map(m => m.pupilId)) : null;
+          const eligible = alreadyPlaced ? data.pupils.filter(p => !alreadyPlaced.has(p.id) && (!g.svenska || p.classIds.some(id => g.classIds.includes(id)))) : [];
+          return <article key={g.id} className="valplan-group">
+          <header><h3>{g.name}</h3><small>{g.startsOn} – {g.endsOn} · HT {formatTimplanMinutes(g.minutesHt) || '0'} · VT {formatTimplanMinutes(g.minutesVt) || '0'} h{g.classIds.length ? ` · ${classNames(g.classIds)}` : ''}</small>
+            {g.svenska ? <small>{forecast != null && `Prognos ${forecast} · `}{placed} placerade{forecast != null && placed > forecast ? ' · Över prognosen' : ''}</small> : <small>{members.length} elever</small>}
+          </header>
           {members.length ? <ul>{members.map(m => <li key={m.id}><span><strong>{pupilName(m.pupilId)}</strong><small>{SOURCE[m.source]}{m.endsOn < g.endsOn ? ` · till ${m.endsOn}` : ''}</small></span><div className="valplan-actions">
             {others.length > 0 && <label><span className="sr-only">Flytta {pupilName(m.pupilId)}</span><select value="" disabled={busy} onChange={e => { if (e.target.value) void send(command('move_member', { membershipId: m.id, toGroupId: e.target.value, on: clamp(on, others.find(o => o.id === e.target.value)!) }), `${pupilName(m.pupilId)} är flyttad.`); }}><option value="">Flytta till…</option>{others.map(o => <option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
             <Button size="sm" variant="outline" disabled={busy} aria-label={`Avsluta ${pupilName(m.pupilId)}`} onClick={() => void endMember(m)}>Avsluta</Button></div></li>)}</ul> : <p className="valplan-muted">Inga elever ännu.</p>}
-          {adding === g.id ? <label>Lägg till elev<select value="" disabled={busy} onChange={e => { const pupilId = e.target.value; if (pupilId) void send(command('add_members', { groupId: g.id, members: [{ pupilId, startsOn: clamp(on, g), endsOn: g.endsOn, source: 'manual', sourceRef: null }] }), `${pupilName(pupilId)} är tillagd.`); }}><option value="">Välj elev</option>
-            {data.pupils.filter(p => !set.some(x => memberships(x).some(current) && memberships(x).some(m => m.pupilId === p.id && current(m)))).map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label> : null}
+          {adding === g.id && (g.svenska ? <fieldset className="grid min-w-0 gap-2" disabled={busy || !!pending}>
+            <legend className="font-semibold">Elever att lägga till</legend>
+            {eligible.length ? <><div className="max-h-56 overflow-y-auto">{eligible.map(pupil => <label key={pupil.id} className="valplan-check">
+              <input type="checkbox" checked={pickedPupils.includes(pupil.id)} onChange={event => setPickedPupils(previous => event.target.checked ? [...previous, pupil.id] : previous.filter(id => id !== pupil.id))}/><span>{pupil.name}</span>
+            </label>)}</div><div className="valplan-actions"><Button disabled={!pickedPupils.length} onClick={() => void addPupils(g, pickedPupils)}>Lägg till valda elever</Button></div></> : <p className="valplan-muted">Inga oplacerade elever i gruppens klasser.</p>}
+          </fieldset> : <label>Lägg till elev<select value="" disabled={busy} onChange={e => { const pupilId = e.target.value; if (pupilId) void addPupils(g, [pupilId]); }}><option value="">Välj elev</option>
+            {eligible.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}</select></label>)}
           <div className="valplan-actions">
-            <Button size="sm" variant="outline" disabled={busy} onClick={() => setAdding(adding === g.id ? null : g.id)}>{adding === g.id ? 'Klar' : 'Lägg till elev'}</Button>
-            {!draft && <Button size="sm" variant="outline" disabled={busy} onClick={() => change(g)}>Ändra</Button>}
+            <Button size="sm" variant="outline" disabled={busy || !!pending} onClick={() => { setPickedPupils([]); setAdding(adding === g.id ? null : g.id); }}>{adding === g.id ? 'Klar' : g.svenska ? 'Lägg till elever' : 'Lägg till elev'}</Button>
+            {!draft && (g.svenska ? <Button size="sm" variant="outline" disabled={busy || !!pending} onClick={event => setSwedishOrganization({ groupId: g.id, trigger: event.currentTarget })}>Ändra organisation</Button>
+              : <Button size="sm" variant="outline" disabled={busy} onClick={() => change(g)}>Ändra</Button>)}
             <Button size="sm" variant="outline" disabled={busy} onClick={() => void send(command('retire_group', { groupId: g.id, expectedRevision: g.revision }), 'Gruppen är avvecklad.')}>Avveckla</Button></div>
         </article>; })}</div>
-        <div className="valplan-actions">
+        {!set.some(group => group.svenska) && <div className="valplan-actions">
           {!draft && <Button variant="outline" disabled={busy} onClick={() => parallel(set)}>Ny parallell grupp</Button>}
-          <Button variant="outline" disabled={busy || !set.some(g => g.classIds.length)} onClick={() => void distribute(set)}>Fördela jämnt</Button></div>
+          <Button variant="outline" disabled={busy || !set.some(g => g.classIds.length)} onClick={() => void distribute(set)}>Fördela jämnt</Button></div>}
         {!set.some(g => g.classIds.length) && <p className="valplan-muted">Fördela jämnt hämtar eleverna från klasserna, och gruppen har inga klasser.</p>}
       </section>)}
       <LegacyBlockRetirement unitId={unitId} schoolYear={schoolYear} onSessionLost={onSessionLost}/>
     </>}
+    {swedishOrganization && <SwedishGroupOrganization unitId={unitId} schoolYear={schoolYear} initialGroupId={swedishOrganization.groupId}
+      onClose={closeSwedishOrganization} onSessionLost={onSessionLost} onSaved={read => {
+        setData(read); setNotice('Grupporganisationen är sparad.'); closeSwedishOrganization();
+      }}/>}
   </section>;
 }

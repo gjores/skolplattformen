@@ -36,16 +36,21 @@ export function schemaForbered({ kalla, villkor: v, las, provplan, provbokningsf
   const pass = kalla?.lessons.filter(l => !l.egenAktivitet) ?? [];
   // Underlag: det som hämtas från tjänstefördelning, timplan, kalender och elevgrupper.
   const obemannade = new Set(pass.filter(l => l.vacant).map(l => l.sal?.undervisning ?? `${l.title}|${l.classIds.join()}`)).size;
+  const inaktuellaSvenskgrupper = kalla?.omitted.filter(o => o.reason === 'stale').map(o => o.title) ?? [];
   const underlag = !kalla ? punkt('underlag', 'Visa', null, { ...olast, saknas: 1, nasta: 'Läs underlaget' }) : punkt('underlag', 'Visa',
     [kalla.basis, kalla.time.source, kalla.time.version, kalla.time.schoolDays, kalla.fordelning.map(r => [r.ref, r.title, r.classes]), kalla.members, obemannade, kalla.omitted], {
       varden: [kalla.basis ? `Tjänstefördelning version ${kalla.basis.versionNo}` : 'Ingen tjänstefördelning för läsåret',
         kalla.time.source === 'kalender' ? `Läsårskalender version ${kalla.time.version}, ${kalla.time.schoolDays} skoldagar` : 'Läsårskalender saknas: lika veckor antas',
         n(kalla.fordelning.length, 'undervisning', 'undervisningar'), ...(obemannade ? [`${n(obemannade, 'undervisning', 'undervisningar')} utan lärare`] : [])],
       kontroll: [kalla.members.classesWithoutPupils.length || kalla.members.groupsWithoutMembers.length
-        ? `Elever saknas för ${[kalla.members.classesWithoutPupils.length ? n(kalla.members.classesWithoutPupils.length, 'klass', 'klasser') : '', kalla.members.groupsWithoutMembers.length ? n(kalla.members.groupsWithoutMembers.length, 'grupp', 'grupper') : ''].filter(Boolean).join(' och ')}: krockar och kapacitet kan inte kontrolleras för dem.`
-        : 'Elever finns för alla klasser och grupper.', ...(kalla.omitted.length ? [`${n(kalla.omitted.length, 'behov', 'behov')} i timplanen ger inget pass.`] : [])],
-      saknas: (kalla.basis ? 0 : 1) + obemannade,
-      nasta: !kalla.basis ? 'Skolan saknar tjänstefördelning för läsåret' : obemannade ? `${n(obemannade, 'undervisning saknar', 'undervisningar saknar')} lärare i tjänstefördelningen` : null });
+        ? `Elever saknas för ${[kalla.members.classesWithoutPupils.length ? n(kalla.members.classesWithoutPupils.length, 'klass', 'klasser') : '', kalla.members.groupsWithoutMembers.length ? n(kalla.members.groupsWithoutMembers.length, 'grupp', 'grupper') : ''].filter(Boolean).join(' och ')}. Kontrollera elevkrockar och kapacitet när deltagarna är kända.`
+        : kalla.members.svenskaPrognoser?.length ? 'Elevunderlaget innehåller prognoser.' : 'Elever finns för alla klasser och grupper.',
+        ...(kalla.members.svenskaPrognoser ?? []).map(row => `${row.title} · Prognos ${row.forecast} · ${row.known} registrerade${row.known > row.forecast ? ' · kontrollera salens kapacitet' : ''}`),
+        ...inaktuellaSvenskgrupper.map(title => `${title} · Se över gruppen i Tjänstefördelning efter ändringen av timplansunderlaget.`),
+        ...(kalla.omitted.length ? [`${n(kalla.omitted.length, 'behov', 'behov')} i timplanen ger inget pass.`] : [])],
+      saknas: (kalla.basis ? 0 : 1) + obemannade + inaktuellaSvenskgrupper.length,
+      nasta: !kalla.basis ? 'Skolan saknar tjänstefördelning för läsåret' : inaktuellaSvenskgrupper.length ? 'Granska grupperna för Svenska/SvA i Tjänstefördelning'
+        : obemannade ? `${n(obemannade, 'undervisning saknar', 'undervisningar saknar')} lärare i tjänstefördelningen` : null });
   // Lektioner och block: hur timplanens tid delas i pass.
   const valda = v.fordelning?.length ?? 0, begransade = kalla?.fordelning.filter(r => r.begransning).length ?? 0;
   const egnaBlock = v.block ?? [], blockStatus = kalla?.block ?? [], blockProblem = blockStatus.filter(b => b.status !== 'aktivt');

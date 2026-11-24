@@ -121,6 +121,17 @@ Grupperna visas som egna behov med berörda klasser. Samma grupp räknas en gån
 
 Ett klick, lärarbyte, avancerade val och Ångra används på gruppbehov på samma sätt som nedan. Nya eller ändrade grupper ändrar inte vad lärarna redan ser i Min tjänst. Rektor behöver publicera tjänstefördelningen separat. Om en tidigare bemannad klassrad ersätts av grupper finns den gamla tilldelningen kvar som inaktuell för uttrycklig granskning och borttagning. En ändrad grupp gör sin rad inaktuell tills den sparats på nytt.
 
+### Svenska och svenska som andraspråk
+
+Välj **Organisera Svenska/SvA** för ett läsår med en Gy25-timplan. Välj nivå och vilka klasser du organiserar tillsammans. Skapa grupper för Svenska och Svenska som andraspråk eller använd befintliga grupper för rätt ämne och nivå.
+
+- Inför årskurs 1 kan du välja **Prognos** och ange förväntat elevantal per grupp. Du kan bemanna gruppen även före antagningen.
+- I årskurs 2 och 3 kan du använda grupper med kända deltagare. Välj rätt nivå för det aktuella läsåret.
+
+Spara organisationen. Bemanna gruppraderna som annan undervisning. Varje berörd klass får sin tid från timplanen via grupperna. En grupp som delas av flera klasser visas som ett behov. Följ upp tidigare lärartilldelningar på den gemensamma klassraden när de blir inaktuella.
+
+Fyll på de planerade grupperna via [Undervisningsgrupper](./undervisningsgrupper.md#placera-elever-i-en-planerad-svenska--eller-sva-grupp) när elevunderlaget är klart.
+
 ## Tilldela direkt i matrisen
 
 Öppna **Verktyg → Så fungerar tilldelning** för en kort hjälp om matrisens tilldelning och tangentbordsval.

@@ -37,8 +37,9 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
   const current = lasar.body.versions.find(v => v.current);
   if (current && lasar.body.calendar?.versionId !== current.versionId) lasar = await lasarRead(tx, { target, schoolYear: input.schoolYear, versionId: current.versionId }, ctx);
   for (const extra of [elective.event, study.event, lasar.event]) await logEvent(tx, { ...ctx, request }, { ...extra, outcome: 'ok' });
+  const svenskaOrganiseradeRef = (study.body.svenskaSources ?? []).flatMap(s => s.groupIds.length ? [`undervisning:${s.sourceKey}`] : []);
   const basis: SchemaBasis = { members: mergeSchemaMembers([{ pupils: elective.body.pupils, memberships: elective.body.placements }, { pupils: study.body.pupils, memberships: study.body.memberships }]),
-    time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)) };
+    time: schemaTime(lasar.body, result.body.classes.map(c => c.classId)), ...(svenskaOrganiseradeRef.length && { svenskaOrganiseradeRef }) };
   // Skolans salregister (05.2-SM-UXF-23): samma aktör och skolenhet; läsningen granskas i databasen.
   basis.skolsalar = skolsalarDokument(await readSkolsalar(tx, ctx, input.unitId));
   // Personallistan har eget mandat: rektor får skolans personal. Administratörens planmandat utvidgas inte.
