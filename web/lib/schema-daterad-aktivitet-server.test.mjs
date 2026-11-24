@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { registerHooks } from 'node:module';
 import { checkSchemaPlacements } from './schema-contract.ts';
-import { datumFixture } from './schema-datum-fixture.mjs';
+import { datumFixture, datumId } from './schema-datum-fixture.mjs';
 import { schemaDatumNyckel, schemaDatumOriginal } from './schema-datum.ts';
 import { buildSchemaUnderlag, schemaForslag } from './schema-underlag.ts';
 
@@ -111,4 +111,35 @@ test('servern nekar en klientpåhittad undervisningskredit och bevarar ett manue
   assert.ok(extended.blockers.some(message => message.includes('ett tidigare ändrat tillfälle')));
   assert.ok([...extended.activity.cancelled, ...extended.activity.moves].every(p => schemaDatumNyckel(p) !== schemaDatumNyckel(x.manual)));
   await assert.rejects(valideraDateradAktivitetsplan(x.read, x.underlag, x.base, [x.manual], [extended.activity], [], x.validate), changed);
+});
+
+test('daterad aktivitet väljer sal efter elevantal och ersätter otillgänglig ansvarig utan att ändra manuellt salval', async () => {
+  const x = activityFixture(), id = datumId;
+  x.underlag.problem.rooms = x.underlag.problem.rooms.map(room => ({ ...room, capacity: room.id === 'sal-1' ? 1 : 24 }));
+  const expired = id(20), supervising = id(21), first = id(22), next = id(25);
+  const duty = (ref, endsOn = '2027-06-30') => ({ ref, startsOn: '2026-07-01', endsOn });
+  const read = { ...x.read, schoolDuties: [duty(expired, '2026-12-06'), duty(supervising), duty(first), duty(next)] };
+  const exam = { id: id(95), namn: 'Prov för annan klass', mal: { slag: 'klass', ref: id(99) }, undervisning: 'undervisning:prov',
+    datum: eventDate, startMin: 540, slutMin: 585, tidsval: 'fast', salId: null, vakter: [supervising], kontrolleradDatum: '2026-11-23' };
+  const propose = (source, input) => planeraDateradAktivitet(source, x.underlag, x.base, [], input, [], [exam], x.validate);
+
+  // En äldre definition saknar låsfält men får nya motorval när den planeras om.
+  const automatic = await propose(read, x.input);
+  assert.deepEqual(automatic.blockers, []);
+  assert.deepEqual(automatic.activity.resources, { roomId: 'sal-2', teacherRef: first });
+
+  const impossible = await propose(read, { ...x.input, resourceLocks: { roomId: 'sal-1', teacherRef: supervising } });
+  assert.deepEqual(impossible.activity.resources, { roomId: null, teacherRef: null });
+  assert.ok(impossible.blockers.some(message => message.includes('Ingen lämplig sal')));
+  assert.ok(impossible.blockers.some(message => message.includes('Ingen ansvarig lärare')));
+
+  const definition = { ...x.input, resourceLocks: { roomId: 'sal-2', teacherRef: null } };
+  const changedDuties = { ...read, schoolDuties: read.schoolDuties.filter(item => item.ref !== first) };
+  const replanned = await propose(changedDuties, definition);
+  assert.deepEqual(replanned.blockers, []);
+  assert.deepEqual(replanned.activity.resourceLocks, definition.resourceLocks);
+  assert.deepEqual(replanned.activity.resources, { roomId: 'sal-2', teacherRef: next });
+  await valideraDateradAktivitetsplan(changedDuties, x.underlag, x.base, [], [replanned.activity], [], x.validate);
+  await assert.rejects(valideraDateradAktivitetsplan(changedDuties, x.underlag, x.base, [], [automatic.activity], [], x.validate),
+    error => error.status === 409 && error.details?.reason === 'schema_daterad_aktivitet_resources');
 });

@@ -38,7 +38,8 @@ export function schemaFortsattProblem(problem: SchemaProblem, placements: Schema
   const checked = checkSchemaPlacements(placements, problem, false), placed = new Set(checked.map(p => p.lesson));
   const at = new Map(checked.map(p => [p.lesson, p]));
   for (const l of problem.lessons) if (l.locked?.rooms?.length && at.get(l.id)?.room !== l.locked.rooms[0]) bad();
-  const motor = salregister ? motorProblem(problem, checked, problem.lessons.filter(l => !placed.has(l.id)).map(l => l.id)) : problem;
+  const salfria = problem.lessons.filter(l => !placed.has(l.id) && !problem.aktivitetsResurser?.[l.id]?.sal).map(l => l.id);
+  const motor = salregister ? motorProblem(problem, checked.filter(p => !problem.aktivitetsResurser?.[p.lesson]?.sal), salfria) : problem;
   return { ...motor, reference: checked.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] })) };
 }
 
@@ -52,7 +53,7 @@ export function parseSchemaFortsatt(value: unknown, expected: SchemaFortsattRequ
   const teachings = new Set(forslag.fordelning.map(f => f.ref));
   if (known.size !== forslag.lessons.length || expected.placements.some(p => !known.has(p.lesson))) bad();
   const before = parseSchemaKontroll(r.before, expected.grundFingerprint), after = parseSchemaKontroll(r.after, expected.grundFingerprint);
-  const placements = forslag.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
+  const placements = forslag.lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId, ansvarig: l.ansvarig }]);
   for (const [control, positions] of [[before, expected.placements], [after, placements]] as const) {
     if (control.fingerprint !== forslag.fingerprint || control.metrics.lessons !== known.size || control.metrics.placed !== positions.length
       || control.metrics.unplaced !== known.size - positions.length) bad();
@@ -64,7 +65,7 @@ export function parseSchemaFortsatt(value: unknown, expected: SchemaFortsattRequ
   for (const p of placements) if ((after.rooms[p.lesson] ?? null) !== p.room) bad();
   for (const locked of expected.locks?.placements ?? []) {
     const p = placements.find(p => p.lesson === locked.lesson);
-    if (!p || p.day !== locked.day || p.startMin !== locked.startMin || p.room !== locked.room) bad();
+    if (!p || p.day !== locked.day || p.startMin !== locked.startMin || p.room !== locked.room || p.ansvarig !== locked.ansvarig) bad();
   }
   for (const key of ['lessons', 'placed', 'unplaced', 'studentGapMin', 'teacherGapMin'] as const) if (forslag.metrics[key] !== after.metrics[key]) bad();
   return { forslag, before, after };

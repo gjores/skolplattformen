@@ -7,7 +7,10 @@ import type { SchemaForslag, SchemaForslagLesson, SchemaPlacement, SchemaRegel, 
 import { villkorNyckel } from './schema-contract.ts';
 
 /** Var ett pass ligger. `day` och `startMin` är null när passet ligger på viloytan. */
-export type SchemaUtkastPlats = { day: number | null; startMin: number | null; room: string | null };
+export type SchemaUtkastPlats = { day: number | null; startMin: number | null; room: string | null; ansvarig?: string };
+type Forslagsplats = Pick<SchemaForslagLesson, 'id' | 'day' | 'startMin' | 'roomId' | 'ansvarig'>;
+const forslagsplats = ({ day, startMin, roomId, ansvarig }: Forslagsplats): SchemaUtkastPlats => ({ day, startMin, room: roomId, ...(ansvarig && { ansvarig }) });
+const sparadPlats = ({ day, startMin, room, ansvarig }: SchemaPlacement): SchemaUtkastPlats => ({ day, startMin, room, ...(ansvarig && { ansvarig }) });
 export type SchemaUtkastPlatser = Record<string, SchemaUtkastPlats>;
 /** Verktygen i veckan (Main). Markera, Spärra, Tillåt bara och Viloyta används (05.2-SM-MENY); Lås och Byt kopplas in av SM-BYT. */
 export type SchemaVerktyg = 'markera' | 'sparra' | 'tillat' | 'las' | 'viloyta' | 'byt';
@@ -61,7 +64,7 @@ export type SchemaUtkastAtgard =
   | { type: 'pick'; lesson: string | null }
   | { type: 'undo'; rooms?: SchemaUtkastSalar }
   | { type: 'redo'; rooms?: SchemaUtkastSalar }
-  | { type: 'reset'; forslag: { lessons: Pick<SchemaForslagLesson, 'id' | 'day' | 'startMin' | 'roomId'>[]; locks?: SchemaPlacement[] } }
+  | { type: 'reset'; forslag: { lessons: Forslagsplats[]; locks?: SchemaPlacement[] } }
   | { type: 'villkor'; fore: SchemaRegel[]; efter: SchemaRegel[]; text: string }
   | { type: 'arbetsvillkor'; fore: SchemaVillkor; efter: SchemaVillkor; text: string; placements?: SchemaPlacement[] }
   | { type: 'datum'; fore: SchemaDatumAndring[]; efter: SchemaDatumAndring[]; text: string }
@@ -141,7 +144,7 @@ export function utkastEfter(state: SchemaUtkast, action: SchemaUtkastAtgard): Sc
     const other = state.placements[action.other];
     if (action.lesson === action.other || before.day === null || before.startMin === null || other.day === null || other.startMin === null) return null;
     // Tiden byts; varje pass behåller sin sal när den är ledig. Serverkontrollen väljer sal när den inte längre är tillåten.
-    return { ...state.placements, [action.lesson]: { ...other, room: before.room }, [action.other]: { ...before, room: other.room } };
+    return { ...state.placements, [action.lesson]: { ...before, day: other.day, startMin: other.startMin }, [action.other]: { ...other, day: before.day, startMin: before.startMin } };
   }
   if (action.type === 'move' && action.fler?.length) {
     if (before.day === null || before.startMin === null) return null;
@@ -161,7 +164,7 @@ export function utkastEfter(state: SchemaUtkast, action: SchemaUtkastAtgard): Sc
     return { ...state.placements, ...Object.fromEntries(ids.map(id => [id, vila])) };
   }
   const next: SchemaUtkastPlats = action.type === 'park' ? vila
-    : { day: action.day, startMin: action.startMin, room: action.room === undefined ? before.room : action.room };
+    : { ...before, day: action.day, startMin: action.startMin, room: action.room === undefined ? before.room : action.room };
   return { ...state.placements, [action.lesson]: next };
 }
 
@@ -186,20 +189,20 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
       const known = new Set(Object.keys(state.placements)), ids = action.placements.map(p => p.lesson);
       if (ids.some(id => !known.has(id)) || new Set(ids).size !== ids.length || action.placements.some(p => !Number.isSafeInteger(p.day) || p.day < 0 || p.day > 6 || !Number.isSafeInteger(p.startMin) || p.startMin < 0 || p.startMin >= 1440)) return state;
       const placements: SchemaUtkastPlatser = Object.fromEntries([...known].map(id => [id, { day: null, startMin: null, room: null }]));
-      for (const p of action.placements) placements[p.lesson] = { day: p.day, startMin: p.startMin, room: p.room };
+      for (const p of action.placements) placements[p.lesson] = sparadPlats(p);
       const checkedPlacements = withRooms(placements, action.rooms);
-      if (Object.entries(state.locked).some(([id, p]) => { const at = checkedPlacements[id]; return !at || at.day !== p.day || at.startMin !== p.startMin || at.room !== p.room; })) return state;
+      if (Object.entries(state.locked).some(([id, p]) => { const at = checkedPlacements[id]; return !at || at.day !== p.day || at.startMin !== p.startMin || at.room !== p.room || at.ansvarig !== p.ansvarig; })) return state;
       return { ...state, placements: checkedPlacements, picked: null, selected: [], intentional: (state.intentional ?? []).filter(m => medvetenGaller(m, checkedPlacements, m.villkor)),
         undo: push(state.undo, { lesson: action.lesson, placements: state.placements, locked: state.locked, intentional: state.intentional ?? [] }), redo: [] };
     }
     case 'aktiviteter': {
-      const placements = Object.fromEntries(action.efter.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
+      const placements = Object.fromEntries(action.efter.forslag.lessons.map(l => [l.id, forslagsplats(l)]));
       return { ...state, placements, picked: null, selected: [], intentional: [], locked: Object.fromEntries(Object.entries(state.locked ?? {}).filter(([id]) => id in placements)), undo: push(state.undo, { aktiviteter: { fore: action.fore, efter: action.efter }, text: action.text, intentional: state.intentional ?? [] }), redo: [] };
     }
     case 'reset': {
-      const placements = Object.fromEntries(action.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
+      const placements = Object.fromEntries(action.forslag.lessons.map(l => [l.id, forslagsplats(l)]));
       // Ett nytt förslag tömmer historiken. Verktyg och lager är användarens val och står kvar.
-      return { ...state, placements, picked: null, selected: [], intentional: [], locked: Object.fromEntries((action.forslag.locks ?? []).map(p => [p.lesson, { day: p.day, startMin: p.startMin, room: p.room }])), undo: [], redo: [] };
+      return { ...state, placements, picked: null, selected: [], intentional: [], locked: Object.fromEntries((action.forslag.locks ?? []).map(p => [p.lesson, sparadPlats(p)])), undo: [], redo: [] };
     }
     case 'select':
       return { ...state, selected: [...new Set(action.lessons)].filter(id => id in state.placements) };
@@ -227,7 +230,7 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
         redo: action.type === 'undo' ? push(to, { medvetna: state.intentional ?? [], text: step.text }) : from.slice(0, -1) };
       if (aktivitetsSteg(step)) {
         const snapshot = action.type === 'undo' ? step.aktiviteter.fore : step.aktiviteter.efter;
-        const placements = Object.fromEntries(snapshot.forslag.lessons.map(l => [l.id, { day: l.day, startMin: l.startMin, room: l.roomId }]));
+        const placements = Object.fromEntries(snapshot.forslag.lessons.map(l => [l.id, forslagsplats(l)]));
         return { ...state, placements: withRooms(placements, action.rooms), picked: null, intentional: action.type === 'undo' ? step.intentional ?? [] : [], undo: action.type === 'undo' ? from.slice(0, -1) : push(to, step), redo: action.type === 'undo' ? push(to, step) : from.slice(0, -1) };
       }
       // Ett villkorssteg bär villkoren före och efter och flyttar inget pass; arbetsytan sätter tillbaka villkoren.
@@ -267,14 +270,22 @@ export function schemaUtkast(state: SchemaUtkast, action: SchemaUtkastAtgard): S
 
 /** Lagda pass i kontrollens format. */
 export function utkastPlaceringar(placements: SchemaUtkastPlatser): SchemaPlacement[] {
-  return Object.entries(placements).flatMap(([lesson, p]) => p.day === null || p.startMin === null ? [] : [{ lesson, day: p.day, startMin: p.startMin, room: p.room }]);
+  return Object.entries(placements).flatMap(([lesson, p]) => p.day === null || p.startMin === null ? [] : [{ lesson, day: p.day, startMin: p.startMin, room: p.room, ...(p.ansvarig && { ansvarig: p.ansvarig }) }]);
 }
 
 /** Förslagets pass med utkastets placeringar. Pass som inte finns i utkastet behåller förslagets plats. */
 export function utkastLas(state: SchemaUtkast): SchemaPlacement[] { return utkastPlaceringar(state.locked); }
 
-export function medUtkast<T extends Pick<SchemaForslagLesson, 'id' | 'day' | 'startMin' | 'roomId'>>(lessons: T[], placements: SchemaUtkastPlatser, locked?: SchemaUtkastPlatser): T[] {
-  return lessons.map(l => { const p = placements[l.id]; const next = p ? { ...l, day: p.day, startMin: p.startMin, roomId: p.room } : l; return locked ? { ...next, locked: !!locked[l.id] } : next; });
+export function medUtkast<T extends Forslagsplats>(lessons: T[], placements: SchemaUtkastPlatser, locked?: SchemaUtkastPlatser): T[] {
+  return lessons.map(l => {
+    const p = placements[l.id];
+    const next = p ? { ...l, day: p.day, startMin: p.startMin, roomId: p.room } : l;
+    if (p && p.ansvarig !== l.ansvarig) {
+      if (p.ansvarig) next.ansvarig = p.ansvarig;
+      else delete next.ansvarig;
+    }
+    return locked ? { ...next, locked: !!locked[l.id] } : next;
+  });
 }
 
 // Spärrar och flytt med tangentbord i veckan (05.2-SM-MENY). Spärrar är vanliga egna villkor (`sparrad`, `tillaten`); ingen egen regelmekanism.

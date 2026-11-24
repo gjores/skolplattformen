@@ -29,6 +29,8 @@ export async function POST(request: Request): Promise<Response> {
     const before = await validateSchema(referenced, placements);
     if (before.violations.length) throw new SchemaPlaceringError('schema_placement_invalid_baseline');
     const result = await suggestSchema(underlag.problem, placements, input);
+    // Nya ansvariga väljs vid gemensam beräkning. En ren placeringssökning flyttar redan tilldelade resurser.
+    result.suggestions = result.suggestions.filter(s => !s.placements.some(p => p.ansvarig === undefined && underlag.problem.aktivitetsResurser?.[p.lesson]?.ansvariga));
     // Pröva varje HEL kandidat med den oberoende kontrollanten. Inga kandidater lämnas ut om någon kontroll är ofullständig eller underkänd.
     for (const suggestion of result.suggestions) {
       const check = await validateSchema(referenced, suggestion.placements);

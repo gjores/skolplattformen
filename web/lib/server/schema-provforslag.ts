@@ -145,7 +145,8 @@ export async function schemaProvTillampaRoute(request: Request): Promise<Respons
 
     const next = parseSchemaDraftSave({ ...draftScope(input), commandId: input.commandId, draftId: draft.id, expectedRevision: draft.revision,
       name: draft.name, basisVillkor: draft.basisVillkor, workingVillkor: draft.workingVillkor, grundFingerprint: base.grundFingerprint,
-      placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides, activityTypes: draft.activityTypes });
+      placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides, activityTypes: draft.activityTypes,
+      ...(draft.datedActivityDefinitions && { datedActivityDefinitions: draft.datedActivityDefinitions }) });
     prepared = { input: next, draft: await prepareSchemaDraft(source, next), prov: parseNationellaProvSave({ contractVersion: NATIONELLA_PROV_VERSION,
       unitId: input.unitId, schoolYear: input.schoolYear, commandId: input.commandId, expectedRevision: input.provrevision,
       document: { ...register.document, bokningar } }) };

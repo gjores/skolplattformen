@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { SchemaForslag, SchemaForslagLesson, SchemaKontroll, SchemaKvalitetsrad } from '@/lib/schema-contract.ts';
@@ -13,8 +13,8 @@ function placering(pass: SchemaForslagLesson | null, sal: string | null) {
   return `${dayName(pass.day)} ${clock(pass.startMin)}–${clock(pass.startMin + pass.durationMin)} · ${sal ?? (pass.roomId ? 'Sal saknas i underlaget' : 'Ingen sal')}`;
 }
 
-export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andringar, passregler, avvikelsemarkeringar, stale, saving, error, datumproblem, datumavvikelser, onApply, onKeep, onRetry, retryLabel }: {
-  fore: SchemaForslag;
+export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andringar, passregler, avvikelsemarkeringar, stale, saving, error, datumproblem, datumavvikelser, aktivitet, aktivitetProblem, onApply, onKeep, onRetry, retryLabel }: {
+  fore: SchemaForslag | null;
   efter: SchemaForslag;
   foreKontroll: SchemaKontroll | null;
   kontroll: SchemaKontroll;
@@ -26,6 +26,8 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
   error?: string;
   datumproblem: boolean;
   datumavvikelser: number;
+  aktivitet?: ReactNode;
+  aktivitetProblem?: boolean;
   onApply: () => void;
   onKeep: () => void;
   onRetry: () => void;
@@ -33,7 +35,7 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
 }) {
   const id = useId(), heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => { heading.current?.focus(); heading.current?.scrollIntoView({ block: 'center' }); }, [efter]);
-  const gamlaLagda = fore.lessons.filter(l => l.day !== null).length;
+  const gamlaLagda = fore?.lessons.filter(l => l.day !== null).length ?? 0;
   const blirUtanSal = efter.lessons.filter(l => l.day !== null && l.roomIds.length > 0 && !l.roomId).length;
   const timplan = kontroll.teachings.filter(t => t.deviation !== null).length;
   const tid = andringar.pass.filter(p => p.tidAndrad).length, sal = andringar.pass.filter(p => p.salAndrad).length;
@@ -42,7 +44,7 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
     <p>Ditt sparade schema ligger kvar tills du väljer <strong>Använd förslaget</strong>.</p>
     <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <div><dt className="text-muted-foreground">Pass med tid</dt><dd>{gamlaLagda} → {kontroll.metrics.placed}</dd></div>
-      <div><dt className="text-muted-foreground">Pass utan tid</dt><dd>{fore.lessons.length - gamlaLagda} → {kontroll.metrics.unplaced}</dd></div>
+      <div><dt className="text-muted-foreground">Pass utan tid</dt><dd>{(fore?.lessons.length ?? 0) - gamlaLagda} → {kontroll.metrics.unplaced}</dd></div>
       <div><dt className="text-muted-foreground">Regelavvikelser{foreKontroll ? '' : ' i förslaget'}</dt><dd>{foreKontroll && `${foreKontroll.total} → `}{kontroll.total}</dd></div>
       <div><dt className="text-muted-foreground">Timplaneavvikelser{foreKontroll ? '' : ' i förslaget'}</dt><dd>{foreKontroll && `${foreKontroll.teachings.filter(t => t.deviation !== null).length} → `}{timplan}</dd></div>
     </dl>
@@ -61,7 +63,7 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
       <div className="mt-2 overflow-x-auto"><Table><TableHeader><TableRow><TableHead>Pass</TableHead><TableHead>Nuvarande</TableHead><TableHead>Förslag</TableHead></TableRow></TableHeader>
         <TableBody>{andringar.pass.map(({ fore: a, efter: b, foreSal, efterSal }) => {
           const p = (b ?? a)!;
-          return <TableRow key={`${a?.id ?? ''}/${b?.id ?? ''}`}><TableCell><strong>{p.title}</strong><p className="schema-note">{names(p.classIds, b ? efter.classes : fore.classes)}</p></TableCell>
+          return <TableRow key={`${a?.id ?? ''}/${b?.id ?? ''}`}><TableCell><strong>{p.title}</strong><p className="schema-note">{names(p.classIds, b ? efter.classes : fore?.classes ?? [])}</p></TableCell>
             <TableCell>{placering(a, foreSal)}</TableCell><TableCell>{placering(b, efterSal)}</TableCell></TableRow>;
         })}</TableBody>
       </Table></div>
@@ -79,12 +81,13 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
     </details>}
     {avvikelsemarkeringar > 0 && <p className="schema-note">Tidigare godkännanden behöver bedömas på nytt för {avvikelsemarkeringar} regelavvikelser.</p>}
     {datumproblem && <p role="alert" className="valplan-alert">De överförda datumändringarna kunde inte kontrolleras. Försök räkna om igen.</p>}
+    {aktivitet}
     {stale && !error && <p role="alert" className="valplan-alert">Utkastet har ändrats sedan beräkningen. Ta fram ett nytt förslag.</p>}
     {error && <p role="alert" className="valplan-alert">{error}</p>}
     <div className="flex flex-wrap gap-2">
-      <Button type="button" disabled={saving || stale || !!datumproblem} onClick={onApply}>{saving ? 'Sparar förslaget…' : 'Använd förslaget'}</Button>
+      <Button type="button" disabled={saving || stale || datumproblem || aktivitetProblem} onClick={onApply}>{saving ? 'Sparar förslaget…' : 'Använd förslaget'}</Button>
       <Button type="button" variant="outline" disabled={saving} onClick={onKeep}>Behåll nuvarande schema</Button>
-      {(stale || datumproblem) && <Button type="button" variant="outline" disabled={saving} onClick={onRetry}>{retryLabel}</Button>}
+      {(stale || datumproblem || aktivitetProblem) && <Button type="button" variant="outline" disabled={saving} onClick={onRetry}>{retryLabel}</Button>}
     </div>
   </section>;
 }

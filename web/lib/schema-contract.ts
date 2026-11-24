@@ -27,10 +27,13 @@ export const SCHEMA_STATUSES = ['complete', 'time_limit', 'infeasible', 'input_m
 export type SchemaStatus = typeof SCHEMA_STATUSES[number];
 
 export type SchemaInterval = { day: number; start_min: number; end_min: number };
+export type SchemaAktivitetsResurser = { sal?: true; fast?: true; valdAnsvarig?: string; ansvariga?: { id: string; ref: string; fonstren: SchemaInterval[]; marginal: { before_min: number; after_min: number } }[] };
 export type SchemaProblem = {
   version: SchemaMotorVersion; id: string;
   time: { step_min: number; start_grid_min: number; days: { start_min: number; end_min: number }[] };
   periods?: { id: string }[];
+  /** Appens valbara resurser för aktiviteter. Personreferenserna tas bort före anrop till Rusttjänsten. */
+  aktivitetsResurser?: Record<string, SchemaAktivitetsResurser>;
   /** Interna samplaceringskopplingar och referensschema, aldrig externa personidentiteter. */
   links?: { kind: 'simultaneous' | 'no_overlap'; lessons: string[] }[];
   reference?: { lesson: string; day: number; start_min: number; rooms?: string[] }[];
@@ -54,7 +57,7 @@ export type SchemaProblem = {
   weights: { late_after_min: number | null };
 };
 /** `room`: salens löpnummer när passet ska ha en sal (05.2-SM-VILLKOR-PER-RESURS, R6). */
-export type SchemaPlacement = { lesson: string; day: number; startMin: number; room: string | null };
+export type SchemaPlacement = { lesson: string; day: number; startMin: number; room: string | null; ansvarig?: string };
 export type SchemaDiagnosis = { code: string; message: string; proof: boolean; lessons?: string[]; resources?: string[] };
 export type SchemaDiagnosResurs = { typ: 'larare' | 'klass' | 'grupp' | 'sal' | 'undervisning'; id: string; label: string };
 export type SchemaSearchStatistics = { lessons: { lesson: string; title: string; attempts: number; moves: number; backtracks: number; ejections: number }[];
@@ -242,6 +245,7 @@ export type SchemaTime = { source: 'kalender' | 'forval'; version: number | null
  */
 export type SchemaPassSal = { /** Undervisningens referens, samma som i `fordelning`. */ undervisning: string; lage: SchemaSalbehov['lage'] | 'aldre' | 'obesvarat'; kalla: 'eget' | 'amne' | null; elever: number | null; hinder?: string; kapacitet?: Record<string, SchemaSalKapacitet> };
 export type SchemaForslagLesson = { locked?: boolean; egenAktivitet?: SchemaAktivitetsMeta; id: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; vacant: boolean;
+  ansvarig?: string;
   /** Den längsta marginalen efter och före passet för någon av passets parter (05.2-SM-MARGINAL). Passet och marginalen ska rymmas i skoldagen. */
   marginMin: number; marginBeforeMin: number;
   /** Salar passet får ligga i (tom: passet har ingen sal) och salen det ligger i. */
@@ -429,9 +433,10 @@ export function parseSchemaLas(value: unknown): SchemaLas {
   const seen = new Set<string>();
   const placements = list(r.placements, SCHEMA_LIMITS.lessons).map(raw => {
     const p = record(raw), lesson = text(p.lesson, 100);
-    if (Object.keys(p).length !== 4 || !/^pass-\d{1,10}$/u.test(lesson) || seen.has(lesson) || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
+    const ansvarig = placeradAnsvarig(p);
+    if (Object.keys(p).length !== (ansvarig === undefined ? 4 : 5) || !/^pass-\d{1,10}$/u.test(lesson) || seen.has(lesson) || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
     seen.add(lesson);
-    return { lesson, day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null };
+    return { lesson, day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null, ...(ansvarig !== undefined && { ansvarig }) };
   });
   return { grundFingerprint: r.grundFingerprint, placements };
 }
@@ -492,6 +497,12 @@ function teaching(t: SchemaForslagTeaching): void {
   if (t.perWeek.length !== t.trimPerWeek.length) bad();
 }
 const ROOM = /^sal-\d{1,3}$/u;
+const ANSVARIG = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
+export function placeradAnsvarig(p: Record<string, unknown>): string | undefined {
+  if (!Object.hasOwn(p, 'ansvarig')) return undefined;
+  const ref = text(p.ansvarig, 36);
+  return ANSVARIG.test(ref) ? ref : bad();
+}
 /** Placeringarnas form. Att passen finns och ligger en gång prövas mot underlaget med `checkSchemaPlacements`. Gammal kontraktsversion ger `SchemaVersionError`. */
 export function parseSchemaKontrollRequest(value: unknown): SchemaKontrollRequest {
   const r = record(value);
@@ -500,8 +511,9 @@ export function parseSchemaKontrollRequest(value: unknown): SchemaKontrollReques
   if (typeof r.grundFingerprint !== 'string' || !FINGERPRINT.test(r.grundFingerprint)) bad();
   const placements = list(r.placements, SCHEMA_LIMITS.lessons).map(raw => {
     const p = record(raw);
-    if (Object.keys(p).length !== 4 || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
-    return { lesson: text(p.lesson, 100), day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null };
+    const ansvarig = placeradAnsvarig(p);
+    if (Object.keys(p).length !== (ansvarig === undefined ? 4 : 5) || p.room !== null && !ROOM.test(text(p.room, 10))) bad();
+    return { lesson: text(p.lesson, 100), day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: p.room as string | null, ...(ansvarig !== undefined && { ansvarig }) };
   });
   return { contractVersion: SCHEMA_CONTRACT_VERSION, ...base, grundFingerprint: r.grundFingerprint, placements };
 }
@@ -516,10 +528,11 @@ export function checkSchemaPlacements(placements: SchemaPlacement[], problem: Sc
   const lesson = new Map(problem.lessons.map(l => [l.id, l])), seen = new Set<string>();
   for (const p of placements) {
     const l = lesson.get(p.lesson);
-    if (l === undefined || l.locked && (p.day !== l.locked.day || p.startMin !== l.locked.start_min) || seen.has(p.lesson) || !problem.time.days[p.day] || p.startMin > 1440 - l.duration_min) bad();
+    if (l === undefined || l.locked && (p.day !== l.locked.day || p.startMin !== l.locked.start_min) || seen.has(p.lesson) || !problem.time.days[p.day] || p.startMin > 1440 - l.duration_min
+      || p.ansvarig !== undefined && !problem.aktivitetsResurser?.[p.lesson]?.ansvariga?.some(a => a.ref === p.ansvarig)) bad();
     seen.add(p.lesson);
   }
-  if (problem.lessons.some(l => l.locked && !seen.has(l.id))) bad();
+  if (problem.lessons.some(l => l.locked && !seen.has(l.id) && !problem.aktivitetsResurser?.[l.id]?.fast)) bad();
   const meets = (a: SchemaPlacement, b: SchemaPlacement) => a.day === b.day && a.startMin < b.startMin + lesson.get(b.lesson)!.duration_min && b.startMin < a.startMin + lesson.get(a.lesson)!.duration_min;
   const result = placements.map(p => ({ ...p, room: p.room !== null && lesson.get(p.lesson)!.rooms?.allowed.includes(p.room) ? p.room : null }));
   for (const p of result) {
@@ -707,6 +720,8 @@ export function parseSchemaForslag(value: unknown, expected: SchemaForslagReques
     if (f.lessons.filter(l => l.egenAktivitet?.id === own.id && l.id === aktivitetsPassId(own.id)).length !== 1) bad();
   }
   for (const l of f.lessons) {
+    if (l.ansvarig !== undefined && (placeradAnsvarig(record(l)) === undefined || !l.egenAktivitet || l.day === null
+      || !f.villkor.aktiviteter?.some(a => a.id === l.egenAktivitet?.id && a.ansvarigval === 'motor') || !f.resurser.larare.some(a => a.ref === l.ansvarig))) bad();
     if (l.egenAktivitet) {
       const own = f.villkor.aktiviteter?.find(a => a.id === l.egenAktivitet!.id);
       if (!own || l.title !== own.name || l.durationMin !== own.durationMin || l.egenAktivitet.typId !== own.typId || l.egenAktivitet.typ !== own.typ

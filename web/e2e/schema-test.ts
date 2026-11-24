@@ -23,6 +23,7 @@ export async function schemaTestDraft(input: SchemaDraftSave, source: SchemaFors
   const document = { documentVersion: 1 as const, base, basisVillkor: input.basisVillkor, workingVillkor: input.workingVillkor, placements: input.placements, locks: input.locks,
     intentional: input.intentional, datedOverrides: input.datedOverrides, activityTypes: input.activityTypes,
     ...(input.datedActivities?.length ? { datedActivities: input.datedActivities } : {}),
+    ...(input.datedActivityDefinitions?.length ? { datedActivityDefinitions: input.datedActivityDefinitions } : {}),
     control: base ? { ...(control ?? checked.clash), ...(control ? {} : { violations: [], total: 0 }), contractVersion: base.contractVersion, grundFingerprint: base.grundFingerprint,
       fingerprint: base.fingerprint, metrics: base.metrics, teachings: base.teachings, trims: base.trims, rooms: Object.fromEntries(input.placements.filter(p => p.room).map(p => [p.lesson, p.room!])) } : null,
     requiresRecalculation: !base || !sammaGrund(input.basisVillkor!, input.workingVillkor), source: { planId: null, planRevision: 0, calendarVersionId: null, calendarVersion: null,

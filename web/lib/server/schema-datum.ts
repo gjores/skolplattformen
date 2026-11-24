@@ -14,7 +14,7 @@ import { readSchemaDatedBasis } from './schema-datum-read.ts';
 import { SchemaEngineError, validateSchema } from './schemamotor.ts';
 import { salIfyllning } from '../schema-utan-sal.ts';
 
-export type SchemaDatumRead = { plan: TjanstPlanRead; basis: SchemaBasis; datedBasis: SchemaDatedBasis };
+export type SchemaDatumRead = { plan: TjanstPlanRead; basis: SchemaBasis; datedBasis: SchemaDatedBasis; schoolDuties?: { ref: string; startsOn: string; endsOn: string | null }[] };
 type Validator = (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
 /** Återanvänds av salssökningen; faktisk kortning och längd härleds på servern före varje salskandidat. */
 export function schemaDatumGrund(read: Pick<SchemaDatumRead, 'plan' | 'basis'>, input: SchemaKontrollRequest) {

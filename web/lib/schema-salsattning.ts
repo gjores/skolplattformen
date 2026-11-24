@@ -6,14 +6,14 @@
  */
 import type { SchemaForslagLesson, SchemaPlacement, SchemaRegel } from './schema-contract.ts';
 
-type Pass = Pick<SchemaForslagLesson, 'id' | 'title' | 'day' | 'startMin' | 'durationMin' | 'roomIds' | 'roomId' | 'marginMin' | 'marginBeforeMin' | 'term'>;
+type Pass = Pick<SchemaForslagLesson, 'id' | 'title' | 'day' | 'startMin' | 'durationMin' | 'roomIds' | 'roomId' | 'marginMin' | 'marginBeforeMin' | 'term' | 'ansvarig'>;
 export type SalTilldelning = { lesson: string; title: string; day: number; startMin: number; fran: string | null; till: string };
 export type SalHinder = { lesson: string; title: string; day: number; startMin: number; text: string };
 export type Salsattning = { tilldelade: SalTilldelning[]; hinder: SalHinder[];
   /** Pass som inte rördes, och varför. */ ororda: { medSal: number; lasta: number; datum: number; utanTid: number; utanSalbehov: number } };
 export type SalsattningVal = { rooms: { id: string; name: string }[]; egna: SchemaRegel[]; lasta: Set<string>; datum: Set<string>; /** Pass vars nuvarande sal kontrollen har underkänt. */ krockar?: Set<string> };
 /** Kontrollens koder för en sal som krockar, är stängd, saknas eller inte uppfyller kravet. */
-export const SALFEL = ['room_clash', 'room_unavailable', 'room_unfit', 'room_count', 'room_unwanted', 'unknown_room'] as const;
+export const SALFEL = ['room_clash', 'room_unavailable', 'room_unfit', 'room_count', 'room_unwanted', 'unknown_room', 'activity_room_missing'] as const;
 
 const DAGAR = ['måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag', 'lördag', 'söndag'];
 const kl = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
@@ -66,5 +66,5 @@ export function tilldelaSalar(lessons: Pass[], { rooms, egna, lasta, datum, kroc
 /** Alla lagda pass med de föreslagna salarna. Dag och starttid kommer oförändrade från passen. */
 export function salsattningPlaceringar(lessons: Pass[], tilldelade: Pick<SalTilldelning, 'lesson' | 'till'>[]): SchemaPlacement[] {
   const ny = new Map(tilldelade.map(t => [t.lesson, t.till]));
-  return lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: ny.get(l.id) ?? l.roomId }]);
+  return lessons.flatMap(l => l.day === null || l.startMin === null ? [] : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: ny.get(l.id) ?? l.roomId, ...(l.ansvarig && { ansvarig: l.ansvarig }) }]);
 }

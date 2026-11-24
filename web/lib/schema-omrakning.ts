@@ -16,6 +16,7 @@ export type SchemaOmrakningspass = {
   efterSal: string | null;
   tidAndrad: boolean;
   salAndrad: boolean;
+  ansvarigAndrad?: true;
 };
 export type SchemaOmrakningslas = { fore: SchemaPlacement; efter: SchemaForslagLesson | null; titel: string; orsak: string };
 export type SchemaOmrakning = {
@@ -114,7 +115,8 @@ export function schemaOmrakning(fore: SchemaForslag | null, efter: SchemaForslag
     const foreSal = salnamn(fore, a), efterSal = salnamn(efter, b);
     const tidAndrad = gammalt?.day !== nytt?.day || gammalt?.startMin !== nytt?.startMin || gammalt?.durationMin !== nytt?.durationMin;
     const salAndrad = a === null ? b !== null : b === null || overfordSal(fore, efter, a) !== b;
-    if (tidAndrad || salAndrad) pass.push({ fore: gammalt, efter: nytt, foreSal, efterSal, tidAndrad, salAndrad });
+    const ansvarigAndrad = gammalt?.ansvarig !== nytt?.ansvarig;
+    if (tidAndrad || salAndrad || ansvarigAndrad) pass.push({ fore: gammalt, efter: nytt, foreSal, efterSal, tidAndrad, salAndrad, ...(ansvarigAndrad && { ansvarigAndrad: true }) });
   };
   for (const l of gamlaPass.values()) jamforPass(l, koppling.get(l.id) ?? null);
   for (const l of efter.lessons) if (!kvarvarande.has(l.id)) jamforPass(null, l);
@@ -160,7 +162,8 @@ export function schemaOmrakning(fore: SchemaForslag | null, efter: SchemaForslag
     const orsak = !nytt ? 'Det gick inte att hitta ett entydigt motsvarande veckopass.'
       : p.room !== null && (sal === null || !nytt.roomIds.includes(sal)) ? 'Den låsta salen är inte tillgänglig för passet i det nya underlaget.'
         : nytt.day !== p.day || nytt.startMin !== p.startMin ? 'Passet ligger inte på den låsta dagen och tiden.'
-          : nytt.roomId !== sal ? 'Passets sal skiljer sig från den låsta placeringen.' : null;
+          : nytt.roomId !== sal ? 'Passets sal skiljer sig från den låsta placeringen.'
+            : p.ansvarig !== nytt.ansvarig ? 'Aktivitetens ansvariga skiljer sig från den låsta placeringen.' : null;
     if (orsak) las.push({ ...rad, orsak });
     else if (nytt) locks.push({ ...p, lesson: nytt.id, room: sal });
   }

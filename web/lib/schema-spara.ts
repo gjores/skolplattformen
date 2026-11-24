@@ -3,7 +3,7 @@ import { parseSchemaDraftSave, parseSchemaDraftStatusReply, schemaDraftHash, ver
   type SchemaDraft, type SchemaDraftSave, type SchemaDraftScope, type SchemaDraftStatusRequest } from './schema-draft-contract.ts';
 import { tjanstCanonicalSerialize } from './tjanst-contract.ts';
 
-export type SchemaSparinnehall = Pick<SchemaDraftSave, 'name' | 'basisVillkor' | 'workingVillkor' | 'grundFingerprint' | 'placements' | 'locks' | 'intentional' | 'datedOverrides' | 'activityTypes' | 'datedActivities'>;
+export type SchemaSparinnehall = Pick<SchemaDraftSave, 'name' | 'basisVillkor' | 'workingVillkor' | 'grundFingerprint' | 'placements' | 'locks' | 'intentional' | 'datedOverrides' | 'activityTypes' | 'datedActivities' | 'datedActivityDefinitions'>;
 export type SchemaSparstatus = { phase: 'loading' | 'idle' | 'saving' | 'saved' | 'error' | 'unknown' | 'conflict' | 'stale';
   dirty: boolean; revision: number; savedAt: string | null; message: string | null };
 export type SchemaSpartransport = { read: (scope: SchemaDraftScope) => Promise<unknown>; save: (input: SchemaDraftSave) => Promise<unknown>;
@@ -11,14 +11,16 @@ export type SchemaSpartransport = { read: (scope: SchemaDraftScope) => Promise<u
 
 export function schemaSparinnehall(draft: SchemaDraft): SchemaSparinnehall {
   return { name: draft.name, basisVillkor: draft.basisVillkor, workingVillkor: draft.workingVillkor, grundFingerprint: draft.base?.grundFingerprint ?? null,
-    placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides: draft.datedOverrides, activityTypes: draft.activityTypes, ...(draft.datedActivities?.length && { datedActivities: draft.datedActivities }) };
+    placements: draft.placements, locks: draft.locks, intentional: draft.intentional, datedOverrides: draft.datedOverrides, activityTypes: draft.activityTypes, ...(draft.datedActivities?.length && { datedActivities: draft.datedActivities }),
+    ...(draft.datedActivityDefinitions?.length && { datedActivityDefinitions: draft.datedActivityDefinitions }) };
 }
 function normalisera(value: SchemaSparinnehall): SchemaSparinnehall {
   try {
     const input = parseSchemaDraftSave({ contractVersion: 1, unitId: '53111600-0000-4000-8000-000000000001', schoolYear: 2027, period: 'lasar',
       commandId: '53111600-0000-4000-8000-000000000002', draftId: null, expectedRevision: 0, ...value });
-    const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, datedActivities } = input;
-    return { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, ...(datedActivities?.length && { datedActivities }) };
+    const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, datedActivities, datedActivityDefinitions } = input;
+    return { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, ...(datedActivities?.length && { datedActivities }),
+      ...(datedActivityDefinitions?.length && { datedActivityDefinitions }) };
   } catch { return value; } // Ett tillfälligt fältfel får visas och rättas i formuläret; det får aldrig skrivas.
 }
 export const schemaSparnyckel = (value: SchemaSparinnehall): string => {
@@ -161,8 +163,9 @@ export class SchemaSparko {
   private accept(draft: SchemaDraft, input: SchemaSparinnehall): void {
     this.draftId = draft.id; this.revision = draft.revision; this.savedAt = draft.savedAt;
     this.contentHash = draft.contentHash;
-    const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, datedActivities } = input;
-    this.acknowledged = schemaSparnyckel({ name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, ...(datedActivities?.length && { datedActivities }) });
+    const { name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, datedActivities, datedActivityDefinitions } = input;
+    this.acknowledged = schemaSparnyckel({ name, basisVillkor, workingVillkor, grundFingerprint, placements, locks, intentional, datedOverrides, activityTypes, ...(datedActivities?.length && { datedActivities }),
+      ...(datedActivityDefinitions?.length && { datedActivityDefinitions }) });
     this.command = null;
     this.publish(this.target && schemaSparnyckel(this.target) === this.acknowledged ? 'saved' : 'idle');
   }

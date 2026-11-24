@@ -16,11 +16,11 @@ Använd **Schemat gäller** för att öppna utkastet för hela läsåret eller f
 
 ### Töm ett schemautkast och ångra tömningen
 
-Välj skola, läsår och period. När utkastet är sparat och har placeringar finns **Töm schema…** vid sparbeskedet. Bekräftelsen visar vilket utkast som töms. Tömningen sparas som en ny version och öppnar **Förbered**. Passens tider och salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass försvinner från den nya versionen. Skolans övriga schemavillkor och inställningarna för återkommande aktiviteter finns kvar.
+Välj skola, läsår och period. När utkastet är sparat och har placeringar finns **Töm schema…** vid sparbeskedet. Bekräftelsen visar vilket utkast som töms. Tömningen sparas som en ny version och öppnar **Förbered**. Passens tider och salar, lås, datumändringar, medvetna krockmarkeringar och villkor för enskilda pass försvinner från den nya versionen. Skolans övriga schemavillkor finns kvar. Återkommande aktiviteter och daterade aktivitetsbokningar finns kvar i **Prov och aktiviteter** med manuella val, deltagare och eventuell timplanskoppling. Motorns tilldelningar och flyttade eller inställda lektioner från aktiviteten töms.
 
 Provbokningarnas datum, tider, deltagare och manuella val ligger kvar. Salar och provvakter som schemamotorn tilldelat för det tömda utkastet rensas så att de kan räknas om. Ersättningslektioner för proven försvinner tillsammans med utkastets datumändringar. Äldre provval vars ursprung saknar säkert stöd i historiken ligger kvar.
 
-Välj **Ångra tömning** vid sparbeskedet för att återställa schemat och de provtilldelningar som tömdes. Schemat sparas som en ny version och öppnas i **Lägg schema**. Knappen finns även efter omladdning så länge den tömda versionen är aktuell och underlaget fortfarande gäller. Om provplanen har sparats om efter en tömning av provtilldelningar stannar ångringen och visar att provplanen har ändrats.
+Välj **Ångra tömning** vid sparbeskedet för att återställa schemat och de aktivitets- och provtilldelningar som tömdes. Schemat sparas som en ny version och öppnas i **Lägg schema**. Knappen finns även efter omladdning så länge den tömda versionen är aktuell och underlaget fortfarande gäller. Om provplanen har sparats om efter en tömning av provtilldelningar stannar ångringen och visar att provplanen har ändrats.
 
 Du behöver ett aktuellt uppdrag som rektor eller skoladministratör för skolan, och stark inloggning. Arbetsytan är gjord för dator med stor skärm.
 
@@ -249,9 +249,9 @@ Förslag på provvakter visas för rektor, som kan läsa skolans aktuella uppdra
 
 Välj **Ämne och nivå från timplanen** och ange minuterna som ska räknas som undervisning. Bara klasser med motsvarande undervisning i den valda terminen får minuter på den raden. Välj **Ingen undervisningstid** för en aktivitet som enbart upptar deltagarna.
 
-Välj **Räkna om schemat** och läs vilka pass som ställs in, flyttas eller ersätts av aktivitetens ämnestid. Granska kvarstående minuter per undervisning. Med **Använd förslaget** sparar du aktiviteten tillsammans med datumändringarna. **Behåll nuvarande schema** går tillbaka till det befintliga utkastet. Kontrollera dagen i datumvyn och **Tid över läsåret** i schemats kontroller.
+Lämna sal och ansvarig öppna för motorn, eller lås dina val i bokningen. För en utomhusaktivitet kan du välja **Ingen sal behövs**. Välj **Räkna om schemat** och läs vilka resurser som valts och vilka pass som ställs in, flyttas eller ersätts av aktivitetens ämnestid. Granska kvarstående minuter per undervisning. Med **Använd förslaget** sparar du aktiviteten tillsammans med datumändringarna. **Behåll nuvarande schema** går tillbaka till det befintliga utkastet. Kontrollera dagen i datumvyn och **Tid över läsåret** i schemats kontroller.
 
-Det går att lägga en gemensam daterad aktivitet per utkast. Under **Daterade aktiviteter** kan du öppna dagen eller ta bort aktiviteten. När du tar bort aktiviteten visas de ordinarie tillfällena igen. Planerade undervisningsminuter i schemat visar hur tiden är fördelad. Genomförd undervisning följs upp separat.
+Det går att lägga en gemensam daterad aktivitet per utkast. Under **Daterade aktiviteter** kan du öppna dagen eller ta bort aktiviteten. När du tar bort aktiviteten visas de ordinarie tillfällena igen. Efter **Töm schema** visas bokningen som **Klar att lägga**. Öppna **Ändra bokningen** för att justera valen eller ta fram ett nytt schemaförslag för att låta motorn välja olåsta resurser igen. Granska förslaget innan du använder det. Planerade undervisningsminuter i schemat visar hur tiden är fördelad. Genomförd undervisning följs upp separat.
 
 ## Aktivitet för flera klasser
 
@@ -260,14 +260,14 @@ Mentorstid eller tid i matsalen kan läggas in för många klasser på en gång.
 1. Välj **Ny aktivitet** under **Aktiviteter och nationella prov**.
 2. Välj typ och namn. Välj sedan **En aktivitet per klass** under **Omfattning**. Kryssa i klasserna eller välj **Välj alla klasser**.
 3. Fyll i tid och längd. Välj **Samma starttid** för samtidig mentorstid. Om klasserna ska använda samma matsal, välj salen och **Klasserna efter varandra**. Ange första starttid och eventuellt mellanrum. Klockslagen räknas fram i den ordning klasserna visas.
-4. Läs tiderna i **Förhandsvisning per klass**. Välj ansvarig för varje klass eller låt raden stå som **Saknar ansvarig**. Rätta eventuella krockar som visas.
+4. Läs tiderna i **Förhandsvisning per klass**. Välj ansvarig för varje klass, välj **Motorn väljer ansvarig** eller låt raden stå som **Saknar ansvarig**. Rätta eventuella krockar som visas.
 5. Välj **Lägg till … aktiviteter**.
 
 - Varje klass får en egen aktivitet med samma längd och veckor, och klassens namn efter aktivitetens namn.
 - Aktiviteterna hålls ihop som en serie. **Ta bort serien** tar bort alla på en gång; varje aktivitet kan ändras för sig.
 - En bokad sal används av en klass i taget. För en gemensam aktivitet med flera klasser väljer du **En gemensam aktivitet**.
 - Skolan kan ha högst 100 egna aktiviteter. Formuläret visar hur många det blir efter tillägget.
-- Ansvarig väljs manuellt.
+- Välj **Låt motorn placera** för en återkommande aktivitet utan fast klockslag. För sal och ansvarig anger du ett manuellt val eller låter motorn välja vid beräkningen.
 
 ## Tilldela salar och behåll tiderna
 

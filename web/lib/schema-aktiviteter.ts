@@ -5,6 +5,7 @@ export type SchemaAktivitetsVeckor = { typ: 'alla' | 'udda' | 'jamna' } | { typ:
 export type SchemaAktivitetsTyp = { id: string; name: string; group: string; participants: 'personal' | 'elever' | 'sal'; visibleFor: 'personal' | 'alla'; margin: SchemaMarginal | null };
 export type SchemaAktivitet = {
   id: string; typId: string; typ: string; name: string; classRefs: string[]; groupRefs: string[]; teacherRefs: string[]; rooms: string[];
+  salval?: 'motor'; ansvarigval?: 'motor';
   durationMin: number; veckor: SchemaAktivitetsVeckor; visibleFor: 'personal' | 'alla'; margin: SchemaMarginal | null;
   tid: { typ: 'fast'; day: number; startMin: number } | { typ: 'motor'; days: number[]; startMin: number; endMin: number };
   /** Serien som aktiviteten skapades i, en per klass (05.2-SM-UXF-52). Saknas för en ensam aktivitet. */
@@ -44,7 +45,9 @@ export function aktiviteternasFel(activities: SchemaAktivitet[]): string[] {
     ids.add(a.id);
     if (!text(a.typId, 64) || !text(a.typ, 80) || !text(a.name, 120)) errors.push('Aktiviteten ska ha typ och namn.');
     if (!list(a.classRefs, 500, 100) || !list(a.groupRefs, 500, 100) || !list(a.teacherRefs, 500, 100) || !list(a.rooms, 1, 60)) errors.push(`${a.name}: välj giltiga deltagare och högst en sal.`);
-    else if (!a.classRefs.length && !a.groupRefs.length && !a.teacherRefs.length && !a.rooms.length) errors.push(`${a.name}: välj minst en deltagare eller sal.`);
+    else if (!a.classRefs.length && !a.groupRefs.length && !a.teacherRefs.length && !a.rooms.length && !a.salval && !a.ansvarigval) errors.push(`${a.name}: välj minst en deltagare eller sal.`);
+    if (Object.hasOwn(a, 'salval') && (a.salval !== 'motor' || a.rooms?.length)) errors.push(`${a.name}: välj en fast sal eller låt motorn föreslå en sal.`);
+    if (Object.hasOwn(a, 'ansvarigval') && (a.ansvarigval !== 'motor' || a.teacherRefs?.length)) errors.push(`${a.name}: välj personal eller låt motorn föreslå en ansvarig.`);
     if (!min(a.durationMin, 5, 600)) errors.push(`${a.name}: längden ska vara 5–600 minuter i steg om fem.`);
     const tid = a.tid;
     if (!tid || !min(tid.startMin, 0, 1435) || (tid.typ !== 'fast' && tid.typ !== 'motor')) errors.push(`${a.name}: välj giltig tid.`);
@@ -68,8 +71,9 @@ export function parseAktiviteter(value: unknown): SchemaAktivitet[] {
   const list = value as SchemaAktivitet[];
   if (aktiviteternasFel(list).length) throw new TypeError('Aktiviteterna kunde inte kontrolleras.');
   const keys = ['id', 'typId', 'typ', 'name', 'classRefs', 'groupRefs', 'teacherRefs', 'rooms', 'durationMin', 'veckor', 'visibleFor', 'margin', 'tid'];
+  const optional = ['serie', 'salval', 'ansvarigval'];
   for (const a of list) {
-    if (Object.keys(a).length !== keys.length + (Object.hasOwn(a, 'serie') ? 1 : 0) || keys.some(k => !Object.hasOwn(a, k))) throw new TypeError('Okända aktivitetsfält.');
+    if (keys.some(k => !Object.hasOwn(a, k)) || Object.keys(a).some(k => !keys.includes(k) && !optional.includes(k))) throw new TypeError('Okända aktivitetsfält.');
     const tid = Object.keys(a.tid).sort().join(), veckor = Object.keys(a.veckor).sort().join();
     if (tid !== (a.tid.typ === 'fast' ? 'day,startMin,typ' : 'days,endMin,startMin,typ') || veckor !== (a.veckor.typ === 'valda' ? 'typ,veckor' : 'typ')) throw new TypeError('Okända tidsfält.');
   }
@@ -98,11 +102,16 @@ export function aktivitetTypAndra(types: SchemaAktivitetsTyp[], next: SchemaAkti
 export function aktivitetPlaceringar(f: SchemaForslag, next: SchemaAktivitet[]): SchemaPlacement[] {
   const kept = new Set(next.map(a => a.id));
   return f.lessons.flatMap(l => l.day === null || l.startMin === null || l.egenAktivitet && !kept.has(l.egenAktivitet.id) ? []
-    : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId }]);
+    : [{ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId, ...(l.ansvarig && { ansvarig: l.ansvarig }) }]);
 }
 export type SchemaAktivitetsSnapshot = { forslag: SchemaForslag; villkor: SchemaVillkor };
-export function aktivitetsSnapshot(f: SchemaForslag, placements: Record<string, { day: number | null; startMin: number | null; room: string | null }>, villkor: SchemaVillkor): SchemaAktivitetsSnapshot {
-  return { forslag: { ...f, lessons: f.lessons.map(l => { const p = placements[l.id]; return p ? { ...l, day: p.day, startMin: p.startMin, roomId: p.room } : l; }) }, villkor };
+export function aktivitetsSnapshot(f: SchemaForslag, placements: Record<string, { day: number | null; startMin: number | null; room: string | null; ansvarig?: string }>, villkor: SchemaVillkor): SchemaAktivitetsSnapshot {
+  return { forslag: { ...f, lessons: f.lessons.map(l => {
+    const p = placements[l.id];
+    if (!p) return l;
+    const { ansvarig: _ansvarig, ...lesson } = l;
+    return { ...lesson, day: p.day, startMin: p.startMin, roomId: p.room, ...(p.ansvarig && { ansvarig: p.ansvarig }) };
+  }) }, villkor };
 }
 export const fastAktivitet = (l: SchemaForslagLesson, villkor: SchemaVillkor): boolean => !!l.egenAktivitet && villkor.aktiviteter?.find(a => a.id === l.egenAktivitet!.id)?.tid.typ === 'fast';
 /** Liten ren hjälpare för listan och för samma metadata i varje schemavy. */

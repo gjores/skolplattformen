@@ -23,6 +23,7 @@ export function schemaAktivitetsAndring(plan: TjanstPlanRead, input: SchemaAktiv
   const nextLessons = new Map(efter.problem.lessons.map(l => [l.id, l]));
   const oldActivities = new Map((input.previousVillkor.aktiviteter ?? []).map(a => [a.id, a]));
   const nextActivities = new Map((input.villkor.aktiviteter ?? []).map(a => [a.id, a]));
+  const sammaResursval = (id: string) => JSON.stringify(fore.problem.aktivitetsResurser?.[id]) === JSON.stringify(efter.problem.aktivitetsResurser?.[id]);
   const own = new Map(fore.labels.lessons.flatMap(l => l.egenAktivitet ? [[l.id, l.egenAktivitet.id]] : []));
   // Ett olösbart förslag kan ha lämnat en fast aktivitet olagd. Just den aktiviteten måste kunna tas bort eller rättas.
   // Släpp bara dess GAMLA lås när aktivitetsdefinitionen uttryckligen ersätts och dess motorpass ändras/försvinner.
@@ -30,18 +31,24 @@ export function schemaAktivitetsAndring(plan: TjanstPlanRead, input: SchemaAktiv
   const foreKontroll = { ...fore.problem, lessons: fore.problem.lessons.map(l => {
     const id = own.get(l.id), next = id === undefined ? undefined : nextActivities.get(id);
     const changed = id !== undefined && (next === undefined || villkorNyckel(oldActivities.get(id)) !== villkorNyckel(next))
-      && JSON.stringify(l) !== JSON.stringify(nextLessons.get(l.id));
+      && (JSON.stringify(l) !== JSON.stringify(nextLessons.get(l.id)) || !sammaResursval(l.id));
     if (!changed || !l.locked) return l;
     const { locked: _, ...withoutOldLock } = l;
     return withoutOldLock;
   }) };
   const previous = checkSchemaPlacements(input.placements, foreKontroll, salIfyllning(fore.villkor));
   const ids = new Set(efter.problem.lessons.map(l => l.id)), preserved = previous.filter(p => ids.has(p.lesson));
-  const old = new Map(fore.problem.lessons.map(l => [l.id, l])), added = efter.problem.lessons.filter(l => !old.has(l.id) || JSON.stringify(l) !== JSON.stringify(old.get(l.id))).map(l => l.id);
+  const old = new Map(fore.problem.lessons.map(l => [l.id, l])), added = efter.problem.lessons.filter(l => !old.has(l.id) || JSON.stringify(l) !== JSON.stringify(old.get(l.id))
+    || !sammaResursval(l.id)).map(l => l.id);
   // En ändrad aktivitets fasta tid får en ny placering; undervisningar påverkas aldrig.
   const keep = preserved.filter(p => !added.includes(p.lesson)), at = new Map(keep.map(p => [p.lesson, p]));
   // Ett bevarat pass utan sal (salregister, 05.2-SM-UXF-43) får ingen sal av lösaren: det låses utan salkrav.
-  const solver = motorProblem({ ...efter.problem, lessons: efter.problem.lessons.map(l => {
+  const resurser = efter.problem.aktivitetsResurser;
+  const aktivitetsResurser = resurser && Object.fromEntries(Object.entries(resurser).map(([id, val]) => {
+    const ansvarig = at.get(id)?.ansvarig;
+    return [id, ansvarig ? { ...val, valdAnsvarig: ansvarig } : val];
+  }));
+  const solver = motorProblem({ ...efter.problem, ...(aktivitetsResurser && { aktivitetsResurser }), lessons: efter.problem.lessons.map(l => {
     const p = at.get(l.id);
     return p ? { ...l, locked: { day: p.day, start_min: p.startMin, ...(p.room ? { rooms: [p.room] } : {}) } } : l;
   }) }, keep);
@@ -52,7 +59,7 @@ export function schemaAktivitetsPlaceringar(change: SchemaAktivitetsAndring, sol
   const added = new Set(change.added), next = [...change.preserved];
   for (const l of change.efter.problem.lessons) {
     if (!added.has(l.id)) continue;
-    const p = l.locked ? { lesson: l.id, day: l.locked.day, startMin: l.locked.start_min, room: l.rooms?.allowed[0] ?? null }
+    const p = l.locked && !change.efter.problem.aktivitetsResurser?.[l.id] ? { lesson: l.id, day: l.locked.day, startMin: l.locked.start_min, room: l.rooms?.allowed[0] ?? null }
       : solution?.placements.find(p => p.lesson === l.id);
     if (p) next.push(p);
   }

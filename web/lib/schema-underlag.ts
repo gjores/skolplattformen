@@ -42,6 +42,8 @@ export type SchemaLabels = {
   lessons: { egenAktivitet?: import('./schema-aktiviteter.ts').SchemaAktivitetsMeta; id: string; activity: string; title: string; classIds: string[]; teacherIds: string[]; durationMin: number; marginMin: number; marginBeforeMin: number; roomIds: string[]; sal?: import('./schema-contract.ts').SchemaPassSal; vacant: boolean; term: SchemaTerm | null }[];
 };
 export type SchemaBasis = { members: SchemaMembers | null; time: SchemaTime; /** Behörigt läst personal för aktiviteter, endast skolans namn och ID. */ personer?: { ref: string; name: string }[];
+  /** Aktuella uppdragsperioder för personal som motorn får tilldela en återkommande aktivitet. */
+  ansvarsUppdrag?: { ref: string; startsOn: string; endsOn: string | null }[];
   /** Skolans salregister ur tabellen (05.2-SM-UXF-23); `null` när skolan inte har något. Saknas fältet har registret inte lästs, och utkastets villkor används som de är. */
   skolsalar?: import('./skolsalar.ts').SchemaSkolsalar | null };
 export type SchemaUnderlag = { /** Intern koppling från stabil gruppidentitet till körningens löpnummer. Skickas inte till motorn. */ groupRefs: Record<string, string>;
@@ -244,8 +246,14 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   const classNo = new Map(plan.classes.map((c, i) => [c.classId, `grupp-${i + 1}`])), className = new Map(plan.classes.map(c => [c.classId, c.name]));
   const availableTeachers = [...plan.teachers, ...(basis?.personer ?? []).filter(p => !plan.teachers.some(t => t.personId === p.ref)).map(p => ({ personId: p.ref, displayName: p.name }))];
   // Valbar personal ska inte ändra ett vanligt schemas grund eller dess löpnummer mellan rektor och administratör.
+  const valjerAnsvarig = (v.aktiviteter ?? []).some(a => a.ansvarigval === 'motor');
   const usedPersonal = new Set([...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs)]);
-  const teachers = availableTeachers.filter(t => plan.teachers.some(p => p.personId === t.personId) || usedPersonal.has(t.personId));
+  const termspann = visibleTerms.flatMap(t => time.terms[t].span ?? []);
+  const ansvarsUppdrag = basis?.ansvarsUppdrag;
+  const kanAnsvara = (ref: string) => ansvarsUppdrag === undefined || (termspann.length
+    ? termspann.every(span => ansvarsUppdrag.some(u => u.ref === ref && u.startsOn <= span.start && (u.endsOn === null || u.endsOn >= span.end)))
+    : ansvarsUppdrag.some(u => u.ref === ref));
+  const teachers = availableTeachers.filter(t => valjerAnsvarig && kanAnsvara(t.personId) || plan.teachers.some(p => p.personId === t.personId) || usedPersonal.has(t.personId));
   const selectableTeachers = [...teachers, ...availableTeachers.filter(t => !teachers.some(p => p.personId === t.personId))];
   const teacherNo = new Map(teachers.map((t, i) => [t.personId, `larare-${i + 1}`]));
   const planGroups = plan.groups ?? [], groupIndex = new Map(planGroups.map((g, i) => [g.groupId, i]));
@@ -528,7 +536,12 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     const ownClasses = unique([...a.classRefs, ...a.groupRefs.flatMap(id => [...groupClasses.get(id) ?? planGroups[groupIndex.get(id)!].classIds])]);
     const groups = unique([...a.classRefs.map(id => classNo.get(id)!), ...a.groupRefs.map(id => node(id, planGroups[groupIndex.get(id)!].name,
       () => groupClusters.get(id) ?? unique(planGroups[groupIndex.get(id)!].classIds.flatMap(c => classClusters.get(c) ?? []))))]);
-    const teacherIds = a.teacherRefs.map(id => teacherNo.get(id)!), roomIds = labels.rooms.filter(r => a.rooms.includes(r.name)).map(r => r.id);
+    const teacherIds = a.teacherRefs.map(id => teacherNo.get(id)!);
+    const elevkluster = a.salval === 'motor' ? new Set(problem.groups.filter(g => groups.includes(g.id)).flatMap(g => g.clusters)) : null;
+    const deltagarantal = elevkluster ? problem.clusters.reduce((n, k) => n + (elevkluster.has(k.id) ? k.size : 0), 0) : 0;
+    const roomIds = labels.rooms.filter(r => a.salval === 'motor'
+      ? !register || deltagarantal === 0 || (salById.get(r.id)?.platser ?? 0) >= deltagarantal
+      : a.rooms.includes(r.name)).map(r => r.id);
     const rules = v.egna.flatMap((r, k) => {
       const own = r.slag === 'klass' ? ownClasses.includes(r.ref) : r.slag === 'grupp' ? a.groupRefs.includes(r.ref) : r.slag === 'larare' ? a.teacherRefs.includes(r.ref)
         : r.slag === 'sal' && a.rooms.includes(r.ref);
@@ -537,13 +550,29 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     });
     const id = aktivitetsPassId(a.id), activity = `behov-${id.slice(5)}`, partRules = [...rules, ...(a.margin ? [{ ...a.margin, slag: 'pass' as const, ref: id }] : [])];
     const m = passMarginal(partRules), side = (x: { fore: number; efter: number }) => ({ before_min: x.fore, after_min: x.efter });
-    const outer = yttreMarginal(m, [...(groups.length ? ['elever' as const] : []), ...(teacherIds.length ? ['larare' as const] : []), ...(roomIds.length ? ['sal' as const] : [])]);
-    const margin = outer.fore + outer.efter ? { students: side(groups.length ? m.elever : { fore: 0, efter: 0 }), teachers: side(teacherIds.length ? m.larare : { fore: 0, efter: 0 }), rooms: side(roomIds.length ? m.sal : { fore: 0, efter: 0 }) } : null;
+    const outer = yttreMarginal(m, [...(groups.length ? ['elever' as const] : []), ...(teacherIds.length || a.ansvarigval === 'motor' ? ['larare' as const] : []), ...(roomIds.length ? ['sal' as const] : [])]);
+    const margin = outer.fore + outer.efter ? { students: side(groups.length ? m.elever : { fore: 0, efter: 0 }), teachers: side(teacherIds.length || a.ansvarigval === 'motor' ? m.larare : { fore: 0, efter: 0 }), rooms: side(roomIds.length ? m.sal : { fore: 0, efter: 0 }) } : null;
     const tid = a.tid, windows = problem.time.days.flatMap((d, day) => {
       if (tid.typ === 'fast' && day !== tid.day || tid.typ === 'motor' && !tid.days.includes(day)) return [];
       return openSpans(rules.filter((r): r is Tid => r.typ === 'sparrad' || r.typ === 'tillaten'), day, [Math.max(d.start_min, tid.startMin), Math.min(d.end_min, tid.typ === 'fast' ? tid.startMin + a.durationMin : tid.endMin)])
         .filter(([from, to]) => to - from >= a.durationMin).map(([from, to]) => ({ day, start_min: from, end_min: to }));
     });
+    if (a.salval === 'motor' || a.ansvarigval === 'motor') {
+      const valtLas = request.locks?.placements.find(p => p.lesson === id);
+      const ansvariga = a.ansvarigval === 'motor' ? teachers.filter(t => kanAnsvara(t.personId)).map(t => {
+        const egna = v.egna.flatMap((r, i) => {
+          if (r.slag !== 'larare' || r.ref !== t.personId) return [];
+          hit.add(i);
+          return [r];
+        });
+        const tidsregler = egna.filter((r): r is Tid => r.typ === 'sparrad' || r.typ === 'tillaten');
+        const fonstren = tidsregler.length ? problem.time.days.flatMap((d, day) => openSpans(tidsregler, day, [d.start_min, d.end_min])
+          .map(([start_min, end_min]) => ({ day, start_min, end_min }))) : problem.time.days.map((d, day) => ({ ...d, day }));
+        return { id: teacherNo.get(t.personId)!, ref: t.personId, fonstren, marginal: side(passMarginal([...partRules, ...egna]).larare) };
+      }).sort((a, b) => a.ref.localeCompare(b.ref)) : undefined;
+      (problem.aktivitetsResurser ??= {})[id] = { ...(a.salval === 'motor' && { sal: true }), ...(tid.typ === 'fast' && !valtLas && { fast: true }),
+        ...(ansvariga !== undefined && { ansvariga }), ...(valtLas?.ansvarig !== undefined && { valdAnsvarig: valtLas.ansvarig }) };
+    }
     problem.activities.push({ id: activity });
     problem.lessons.push({ id, activity, duration_min: a.durationMin, teachers: teacherIds, groups,
       allowed: windows.length ? windows : [{ day: 0, start_min: 0, end_min: 5 }], ...(roomIds.length ? { rooms: { count: 1, allowed: roomIds } } : {}),
@@ -592,6 +621,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
       const l = problem.lessons.find(l => l.id === p.lesson), frame = problem.time.days[p.day];
       if (!l || seen.has(p.lesson) || !frame || p.startMin < frame.start_min || p.startMin + l.duration_min > frame.end_min || (p.startMin - frame.start_min) % problem.time.step_min !== 0
         || p.room !== null && !l.rooms?.allowed.includes(p.room)
+        || p.ansvarig !== undefined && !problem.aktivitetsResurser?.[p.lesson]?.ansvariga?.some(a => a.ref === p.ansvarig)
         || l.locked && (l.locked.day !== p.day || l.locked.start_min !== p.startMin)) throw new SchemaContractError();
       seen.add(p.lesson);
       l.locked = { day: p.day, start_min: p.startMin, ...(p.room ? { rooms: [p.room] } : {}) };
@@ -771,7 +801,11 @@ export function schemaKontroll(underlag: SchemaUnderlag, placements: SchemaPlace
 export function schemaForslag(plan: TjanstPlanRead, request: SchemaForslagRequest, underlag: SchemaUnderlag, solution: SchemaSolution, inkluderaElevkvalitet = true): SchemaForslag {
   const at = new Map(solution.placements.map(p => [p.lesson, p]));
   const undervisning = new Map(underlag.labels.activities.map(a => [a.id, a.ref]));
-  const lessons = underlag.labels.lessons.map(({ activity, ...l }) => ({ ...l, ...(undervisning.has(activity) ? { undervisning: undervisning.get(activity)! } : {}), day: at.get(l.id)?.day ?? null, startMin: at.get(l.id)?.startMin ?? null, roomId: at.get(l.id)?.room ?? null }));
+  const lessons = underlag.labels.lessons.map(({ activity, ...l }) => {
+    const p = at.get(l.id), ansvarig = underlag.problem.aktivitetsResurser?.[l.id]?.ansvariga?.find(a => a.ref === p?.ansvarig);
+    return { ...l, ...(undervisning.has(activity) ? { undervisning: undervisning.get(activity)! } : {}), day: p?.day ?? null, startMin: p?.startMin ?? null, roomId: p?.room ?? null,
+      ...(ansvarig && { ansvarig: ansvarig.ref, teacherIds: [...l.teacherIds, ansvarig.id], marginMin: Math.max(l.marginMin, ansvarig.marginal.after_min), marginBeforeMin: Math.max(l.marginBeforeMin, ansvarig.marginal.before_min) }) };
+  });
   const termDays = underlag.terms.map(term => ({ term, schoolDays: underlag.time.terms[term].perWeekday.reduce((sum, n) => sum + n, 0) }));
   const days = termDays.reduce((sum, t) => sum + t.schoolDays, 0);
   const { teachings, trims } = plannedTeachings(underlag, at);

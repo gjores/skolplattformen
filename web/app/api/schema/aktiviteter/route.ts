@@ -23,7 +23,8 @@ export async function POST(request: Request): Promise<Response> {
   try {
     const change = schemaAktivitetsAndring(read.plan, read.input, read.basis);
     if (!change) return json({ code: 'schema_underlag_changed', correlationId }, { ...init, status: 409 });
-    const added = new Set(change.added), needsMotor = change.efter.problem.lessons.some(l => added.has(l.id) && !l.locked);
+    const added = new Set(change.added), needsMotor = change.efter.problem.lessons.some(l => added.has(l.id)
+      && (!l.locked || change.efter.problem.aktivitetsResurser?.[l.id] !== undefined));
     const solution = needsMotor ? await solveSchema(change.solver) : null;
     const placements = schemaAktivitetsPlaceringar(change, solution), check = await validateSchema(change.efter.problem, placements);
     return json(schemaAktivitetsSvar(read.plan, read.input, change, placements, check, solution), init);

@@ -126,7 +126,7 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
   const confirm = page.getByRole('alertdialog', { name: 'Töm schema?' });
   await expect(confirm).toContainText('Provskolan · läsår 2026/27 · Höstterminen');
   await expect(confirm).toContainText('Motorns provsalar, provvakter och ersättningslektioner för utkastet töms också.');
-  await expect(confirm).toContainText('Provbokningarna, manuella provval och övriga schemavillkor finns kvar.');
+  await expect(confirm).toContainText('Aktiviteterna och provbokningarna finns kvar med sina manuella val.');
   const cancel = confirm.getByRole('button', { name: 'Behåll schemat', exact: true });
   await expect(cancel).toBeFocused();
   await cancel.click();

@@ -1,5 +1,5 @@
 /** Placeringsförslag (05.2-SM-PLACERING). Alla ändringar jämförs med just den begärda utgångspunkten. Inget sparas. */
-import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest,
+import { SCHEMA_CONTRACT_VERSION, SCHEMA_LIMITS, SchemaContractError, checkSchemaPlacements, parseSchemaKontrollRequest, placeradAnsvarig,
   type SchemaKontrollRequest, type SchemaPlacement, type SchemaProblem } from './schema-contract.ts';
 
 export type SchemaPlaceringVal = { mode: 'lesson' | 'target' | 'rest'; lesson: string | null; target: Omit<SchemaPlacement, 'lesson'> | null; depth: 1 | 2 | 3 };
@@ -21,7 +21,7 @@ function list(value: unknown, max: number = SCHEMA_LIMITS.lessons): unknown[] { 
 function id(value: unknown): string { if (typeof value !== 'string' || !/^pass-\d{1,10}$/u.test(value)) bad(); return value; }
 function room(value: unknown): string | null { if (value !== null && (typeof value !== 'string' || !/^sal-\d{1,3}$/u.test(value))) bad(); return value as string | null; }
 function keys(r: Record<string, unknown>, expected: string[]) { if (Object.keys(r).length !== expected.length || expected.some(k => !Object.hasOwn(r, k))) bad(); }
-const same = (a: SchemaPlacement | null | undefined, b: SchemaPlacement | null | undefined) => !a || !b ? a == null && b == null : a.lesson === b.lesson && a.day === b.day && a.startMin === b.startMin && a.room === b.room;
+const same = (a: SchemaPlacement | null | undefined, b: SchemaPlacement | null | undefined) => !a || !b ? a == null && b == null : a.lesson === b.lesson && a.day === b.day && a.startMin === b.startMin && a.room === b.room && a.ansvarig === b.ansvarig;
 const sorted = (at: SchemaPlacement[]) => [...at].sort((a, b) => a.lesson.localeCompare(b.lesson));
 export function sammaSchemaPlaceringar(a: SchemaPlacement[], b: SchemaPlacement[]): boolean {
   if (a.length !== b.length) return false;
@@ -29,8 +29,9 @@ export function sammaSchemaPlaceringar(a: SchemaPlacement[], b: SchemaPlacement[
 }
 
 function appAt(value: unknown): SchemaPlacement {
-  const p = record(value); keys(p, ['lesson', 'day', 'startMin', 'room']);
-  return { lesson: id(p.lesson), day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: room(p.room) };
+  const p = record(value), ansvarig = placeradAnsvarig(p);
+  keys(p, ['lesson', 'day', 'startMin', 'room', ...(ansvarig ? ['ansvarig'] : [])]);
+  return { lesson: id(p.lesson), day: int(p.day, 0, 6), startMin: int(p.startMin, 0, 1440), room: room(p.room), ...(ansvarig && { ansvarig }) };
 }
 function targetAt(value: unknown): SchemaPlaceringVal['target'] {
   if (value === null) return null;
@@ -131,9 +132,12 @@ function rootsFor(lesson: string | null, links: SchemaProblem['links']): Set<str
 /** Motorresultatet prövas mot serverns eget underlag. Oberoende regelkontroll körs därefter på hela varje kandidat. */
 export function parseSchemaMotorPlacering(value: unknown, problem: SchemaProblem, expected: SchemaPlaceringVal & { placements: SchemaPlacement[] }) {
   const r = record(value); if (r.version !== problem.version || r.problem_id !== problem.id) bad();
-  const lessons = new Map(problem.lessons.map(l => [l.id, l]));
+  const lessons = new Map(problem.lessons.map(l => [l.id, l])), ansvariga = new Map(expected.placements.map(p => [p.lesson, p.ansvarig]));
   // Samplacerade pass bildar en uttrycklig rot; orelaterade parkerade pass får aldrig läggas som en gömd sidoeffekt.
-  return readResult(r, expected, raw => motorAt(raw, problem, lessons), new Set(lessons.keys()), rootsFor(expected.lesson, problem.links), true);
+  return readResult(r, expected, raw => {
+    const p = motorAt(raw, problem, lessons), ansvarig = ansvariga.get(p.lesson);
+    return ansvarig ? { ...p, ansvarig } : p;
+  }, new Set(lessons.keys()), rootsFor(expected.lesson, problem.links), true);
 }
 /** Klienten jämför före/efter, målpunkt, lås och version även om svaret kom från en gammal flik eller körning. */
 export function parseSchemaPlacering(value: unknown, expected: SchemaPlaceringRequest, lessonIds?: readonly string[], links?: SchemaProblem['links']): SchemaPlacering {

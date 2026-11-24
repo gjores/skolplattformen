@@ -40,16 +40,27 @@ export function Aktiviteter({ forslag: f, villkor, lessons, busy, saveError, rec
       : <Table><TableHeader><TableRow><TableHead>Aktivitet</TableHead><TableHead>Typ</TableHead><TableHead>Deltagare</TableHead><TableHead>När</TableHead><TableHead>Påverkan</TableHead><TableHead>Åtgärder</TableHead></TableRow></TableHeader><TableBody>
         {activities.map(a => { const pass = aktivitetPass(lessons, a.id), at = pass?.day !== null && pass?.startMin !== null && pass?.day !== undefined && pass?.startMin !== undefined
           ? `${['måndag', 'tisdag', 'onsdag', 'torsdag', 'fredag'][pass.day]} ${Math.floor(pass.startMin / 60).toString().padStart(2, '0')}:${(pass.startMin % 60).toString().padStart(2, '0')}` : null;
-          return <TableRow key={a.id} data-aktivitet={a.id}><TableCell><strong>{a.name}</strong><br/><span className={`status-badge${at ? ' success' : ''}`}>{at ? 'Lagd' : 'Utan tid'}</span></TableCell><TableCell>{a.typ}</TableCell>
-            <TableCell>{[...a.classRefs, ...a.groupRefs, ...a.teacherRefs].map(name).concat(a.rooms).join(', ')}</TableCell>
-            <TableCell>{aktivitetsTidText(a)}{a.tid.typ === 'motor' && <p>{at ? `Nu ${at}` : 'Har ingen placering'}</p>}{a.veckor.typ !== 'alla' && <p className="text-muted-foreground">Upptar alla veckor i grundschemat.</p>}</TableCell>
-            <TableCell>Upptar deltagarna{a.rooms.length ? ' och salen' : ''}. Ingen timplanetid.</TableCell><TableCell><div className="akt-segment"><Button variant="outline" disabled={busy} onClick={() => setForm({ aktivitet: a })} aria-label={`Ändra aktiviteten ${a.name}`}>Ändra</Button>
+          const status = at ? 'Lagd' : f.metrics.placed === 0 ? 'Klar att lägga' : 'Utan tid';
+          const tilldeladSal = at && pass?.roomId ? f.rooms.find(r => r.id === pass.roomId)?.name : undefined;
+          const tilldeladAnsvarig = at && pass?.ansvarig ? name(pass.ansvarig) : undefined;
+          const deltagare = [...a.classRefs, ...a.groupRefs].map(name).join(', ');
+          return <TableRow key={a.id} data-aktivitet={a.id}><TableCell><strong>{a.name}</strong><br/><span className={`status-badge${at ? ' success' : ''}`}>{status}</span></TableCell><TableCell>{a.typ}</TableCell>
+            <TableCell>
+              {deltagare && <p>{deltagare}</p>}
+              {a.teacherRefs.length > 0 && <p>{a.teacherRefs.map(name).join(', ')} · {a.teacherRefs.length > 1 ? 'Låsta' : 'Låst'}</p>}
+              {a.ansvarigval === 'motor' && <p>{tilldeladAnsvarig ? `${tilldeladAnsvarig} · Vald av motorn` : 'Motorn väljer ansvarig'}</p>}
+              {a.rooms.length > 0 && <p>{a.rooms.join(', ')} · Låst</p>}
+              {a.salval === 'motor' && <p>{tilldeladSal ? `${tilldeladSal} · Vald av motorn` : 'Motorn väljer sal'}</p>}
+            </TableCell>
+            <TableCell>{aktivitetsTidText(a)}{a.tid.typ === 'motor' && at && <p>Nu {at}</p>}{a.veckor.typ !== 'alla' && <p className="text-muted-foreground">Upptar alla veckor i grundschemat.</p>}</TableCell>
+            <TableCell>Upptar deltagarna{a.rooms.length || tilldeladSal ? ' och salen' : ''}. Ingen timplanetid.</TableCell><TableCell><div className="akt-segment"><Button variant="outline" disabled={busy} onClick={() => setForm({ aktivitet: a })} aria-label={`Ändra aktiviteten ${a.name}`}>Ändra</Button>
               <Button variant="outline" disabled={busy} onClick={() => void onChange(activities.filter(x => x.id !== a.id), `Aktiviteten ${a.name} är borttagen`)} aria-label={`Ta bort aktiviteten ${a.name}`}>Ta bort</Button>
               {a.serie && activities.filter(x => x.serie === a.serie).length > 1 && <Button variant="outline" disabled={busy} aria-label={`Ta bort hela serien som ${a.name} hör till`}
                 onClick={() => void onChange(activities.filter(x => x.serie !== a.serie), `Serien med ${activities.filter(x => x.serie === a.serie).length} aktiviteter är borttagen`)}>Ta bort serien</Button>}</div></TableCell></TableRow>;
         })}</TableBody></Table>}
     {form && <AktivitetForm key={form.aktivitet?.id ?? form.tid?.nr ?? 'ny'} forslag={f} villkor={villkor} typer={types} activities={activities} aktivitet={form.aktivitet} tid={form.tid} busy={busy} saveError={saveError} recoveryAction={recoveryAction} recoveryPreview={recoveryPreview} personalLookup={personalLookup} onSessionLost={onSessionLost}
-      datum={datum} onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
+      datum={datum && (!datum.initial || form.tid?.daterad) ? datum : undefined} datumHinder={datum?.initial ? 'Ändra den väntande bokningen för att välja ett nytt datum.' : undefined}
+      onSave={save} onClose={() => setForm(null)} onTypes={() => setManage(true)}/>}
     {manage && <AktivitetsTyper serverSaved={!!activityTypes} typer={types} onChange={setTypes} onClose={() => setManage(false)}/>}
   </section>;
 }

@@ -22,7 +22,8 @@ import { salIfyllning } from '../schema-utan-sal.ts';
 import { NATIONELLA_PROV_VERSION, parseNationellaProvSave, provRensaMotorval } from '../nationella-prov.ts';
 import { readNationellaProv, readNationellaProvMedMotorhistorik, sparaNationellaProv } from './nationella-prov.ts';
 
-type ReadBasis = Awaited<ReturnType<typeof readSchemaBasis>> & { datedBasis: SchemaDatedBasis };
+type ReadBasis = Awaited<ReturnType<typeof readSchemaBasis>> & { datedBasis: SchemaDatedBasis;
+  datedActivityDuties?: Awaited<ReturnType<typeof readSchemaBasis>>['schoolDuties'] };
 type RawEnvelope = { contractVersion: 'schema_draft_sql_v1'; actor: { identityId: string; assignmentId: string }; result: Record<string, unknown> };
 const FUNCTIONS = ['rektor', 'administrator'] as const;
 const scopeKeys = (scope: SchemaDraftScope) => ({ contractVersion: SCHEMA_DRAFT_VERSION, unitId: scope.unitId, schoolYear: scope.schoolYear, period: scope.period });
@@ -164,7 +165,9 @@ export async function readDraftBasis(request: Request, tx: Tx, ctx: Context, inp
   const dated = await readSchemaDatedBasis(tx, ctx, { unitId: input.unitId, schoolYear: input.schoolYear });
   // De övriga källäsningarna loggas inne i läsaren; planhändelsen lämnas åt anroparen.
   try { for (const entry of [read.event, dated.event]) await logEvent(tx, ctx, { ...entry, outcome: 'ok' }); } catch { throw new AuditUnavailable(); }
-  return { ...read, datedBasis: dated.body };
+  const datedActivityDuties = ctx.accessFunction === 'administrator' ? read.plan.teachers.filter(t => !t.draft)
+    .map(t => ({ ref: t.personId, name: t.displayName, startsOn: `${input.schoolYear}-07-01`, endsOn: `${input.schoolYear + 1}-06-30` })) : undefined;
+  return { ...read, datedBasis: dated.body, ...(datedActivityDuties && { datedActivityDuties }) };
 }
 
 async function rawDraft(value: unknown, scope: SchemaDraftScope, stale: boolean) {
@@ -224,6 +227,8 @@ function draftUnderlag(read: ReadBasis, input: SchemaDraftSave, basisVillkor: Sc
 export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave): Promise<SchemaDraftDocument> {
   const digest = await schemaDraftSourceHash(read, [input.basisVillkor, input.workingVillkor]), source = { planId: read.plan.version?.id ?? null, planRevision: read.plan.revision,
     calendarVersionId: read.sourceRefs.calendarVersionId, calendarVersion: read.basis.time.version, lessonSources: [] as SchemaDraftLessonSource[], digest };
+  const datedActivityDefinitions = input.datedActivityDefinitions?.length ? input.datedActivityDefinitions : undefined;
+  if (datedActivityDefinitions && input.datedActivities?.length) throw new SchemaDraftError();
   const classes = new Set(read.plan.classes.map(c => c.classId)), groups = new Set((read.plan.groups ?? []).map(g => g.groupId));
   const teachers = new Set([...read.plan.teachers.map(t => t.personId), ...(read.basis.personer ?? []).map(t => t.ref)]);
   for (const v of [input.basisVillkor, input.workingVillkor]) if (v) {
@@ -235,7 +240,8 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
   if (!input.basisVillkor) {
     if (input.datedActivities?.length) throw new SchemaDraftError();
     return { documentVersion: 1, base: null, basisVillkor: null, workingVillkor: input.workingVillkor, placements: [], locks: [],
-      intentional: [], datedOverrides: [], activityTypes: input.activityTypes, control: null, requiresRecalculation: true, source };
+      intentional: [], datedOverrides: [], ...(datedActivityDefinitions && { datedActivityDefinitions }),
+      activityTypes: input.activityTypes, control: null, requiresRecalculation: true, source };
   }
   const { request, underlag, requiresRecalculation } = draftUnderlag(read, input, input.basisVillkor);
   const lessons = new Map(underlag.problem.lessons.map(lesson => [lesson.id, lesson]));
@@ -243,7 +249,8 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
   const placements = checkSchemaPlacements(input.placements, underlag.problem, salIfyllning(underlag.villkor));
   if (input.forslagFingerprint !== undefined) {
     const positions = new Map(placements.map(p => [p.lesson, p]));
-    if (placements.some((p, i) => p.room !== input.placements[i].room) || input.locks.some(lock => positions.get(lock.lesson)?.room !== lock.room)) {
+    if (placements.some((p, i) => p.room !== input.placements[i].room || p.ansvarig !== input.placements[i].ansvarig)
+      || input.locks.some(lock => positions.get(lock.lesson)?.room !== lock.room || lock.ansvarig !== undefined && positions.get(lock.lesson)?.ansvarig !== lock.ansvarig)) {
       throw new SchemaDraftError();
     }
   }
@@ -257,7 +264,7 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
     throw new SchemaDraftError('schema_preview_outdated');
   }
   // Valbara men oanvända personalnamn följer inte med in i ett delat skolutkast.
-  const usedTeachers = new Set([...read.plan.teachers.map(t => t.personId), ...[underlag.villkor, input.workingVillkor].flatMap(v => [
+  const usedTeachers = new Set([...read.plan.teachers.map(t => t.personId), ...placements.flatMap(p => p.ansvarig ?? []), ...[underlag.villkor, input.workingVillkor].flatMap(v => [
     ...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs) ])]);
   base.resurser = { ...base.resurser, larare: base.resurser.larare.filter(t => usedTeachers.has(t.ref)) };
   const ordinals = new Map<string, number>();
@@ -272,11 +279,13 @@ export async function prepareSchemaDraft(read: ReadBasis, input: SchemaDraftSave
   const intentionalKeys = medvetnaAvvikelser({ placements: at, intentional: input.intentional }, control.violations, key, underlag.grundFingerprint);
   const intentional = control.violations.filter(v => medvetenKrock(v) && intentionalKeys.has(avvikelseNyckel(v))).map(v => medvetenMarkering(v, at, key, underlag.grundFingerprint));
   const document: SchemaDraftDocument = { documentVersion: 1, base, basisVillkor: underlag.villkor, workingVillkor: input.workingVillkor, placements,
-    locks: input.locks, intentional, datedOverrides: input.datedOverrides, activityTypes: input.activityTypes, control, requiresRecalculation, source };
+    locks: input.locks, intentional, datedOverrides: input.datedOverrides, ...(datedActivityDefinitions && { datedActivityDefinitions }),
+    activityTypes: input.activityTypes, control, requiresRecalculation, source };
   document.source.digest = await schemaDraftSourceHash(read, [document.basisVillkor, document.workingVillkor]);
   if (input.datedOverrides.length) document.datedOverrides = (await valideraSchemaDatum(read, underlag, base, input.datedOverrides)).datedOverrides;
   if (input.datedActivities?.length) {
-    await valideraDateradAktivitetsplan(read, underlag, base, document.datedOverrides, input.datedActivities, input.locks);
+    await valideraDateradAktivitetsplan({ ...read, schoolDuties: read.datedActivityDuties ?? read.schoolDuties },
+      underlag, base, document.datedOverrides, input.datedActivities, input.locks);
     document.datedActivities = input.datedActivities;
   }
   return parseSchemaDraftDocument(document, input);
@@ -287,7 +296,9 @@ function checkProjection(draft: SchemaDraftDocument, read: ReadBasis, ctx: Conte
   if (ctx.accessFunction !== 'administrator') return;
   const visible = new Set(read.plan.teachers.map(t => t.personId));
   const refs = [...draft.base?.resurser.larare.map(t => t.ref) ?? [], ...[draft.basisVillkor, draft.workingVillkor].flatMap(v => v ? [
-    ...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs) ] : [])];
+    ...v.egna.flatMap(r => r.slag === 'larare' ? [r.ref] : []), ...(v.aktiviteter ?? []).flatMap(a => a.teacherRefs) ] : []),
+  ...[...draft.datedActivityDefinitions ?? [], ...draft.datedActivities ?? []].flatMap(a => a.resourceLocks?.teacherRef ?? []),
+  ...(draft.datedActivities ?? []).flatMap(a => a.resources?.teacherRef ?? [])];
   if (refs.some(ref => !visible.has(ref))) throw new Deny('forbidden', 403);
 }
 
@@ -300,6 +311,13 @@ export async function commitSchemaDraft(tx: Tx, ctx: Context, input: SchemaDraft
   }
   checkProjection(document, current, ctx);
   if (document.datedActivities?.length && input.schoolYear >= 2000 && input.schoolYear <= 2100) {
+    const duties = current.datedActivityDuties ?? current.schoolDuties;
+    for (const { date, resources } of document.datedActivities) {
+      if (resources?.teacherRef && !duties.some(duty => duty.ref === resources.teacherRef && duty.startsOn <= date && (!duty.endsOn || date <= duty.endsOn))
+        || resources?.roomId && !current.basis.skolsalar?.salar.some(room => room.id === resources.roomId)) {
+        throw new Deny('conflict', 409, { reason: 'schema_daterad_aktivitet_resources' });
+      }
+    }
     // Samma låsordning som tillämpning av ett provförslag.
     await tx`select pg_advisory_xact_lock(hashtextextended(${input.commandId}, 6116))`;
     await lasProvAr(tx, input);
@@ -365,18 +383,22 @@ export async function schemaDraftResetRoute(request: Request): Promise<Response>
     if (head.sourceHash !== await schemaDraftSourceHash(read, [head.basisVillkor, head.workingVillkor])) throw sourceChanged();
     // Ett nytt förslag får nya pass-ID:n. Villkor för enskilda gamla pass ligger kvar i versionen som kan återställas.
     const workingVillkor = previous?.workingVillkor ?? { ...head.workingVillkor, egna: head.workingVillkor.egna.filter(r => r.slag !== 'pass') };
+    const datedActivityDefinitions = previous ? previous.datedActivityDefinitions
+      : head.datedActivityDefinitions ?? head.datedActivities?.map(({ cancelled: _cancelled, moves: _moves, credits: _credits, resources: _resources, ...definition }) => definition);
     const save = parseSchemaDraftSave({ ...scopeKeys(input), commandId: input.commandId, draftId: head.id, expectedRevision: head.revision, name: head.name,
       basisVillkor: previous?.basisVillkor ?? null, workingVillkor, grundFingerprint: previous?.base?.grundFingerprint ?? null,
       placements: previous?.placements ?? [], locks: previous?.locks ?? [], intentional: previous?.intentional ?? [],
-      datedOverrides: previous?.datedOverrides ?? [], ...(previous?.datedActivities && { datedActivities: previous.datedActivities }), activityTypes: head.activityTypes });
+      datedOverrides: previous?.datedOverrides ?? [], ...(previous?.datedActivities && { datedActivities: previous.datedActivities }),
+      ...(datedActivityDefinitions && { datedActivityDefinitions }), activityTypes: head.activityTypes });
     let document: SchemaDraftDocument;
     try {
       if (previous?.basisVillkor && previous.base) {
         const underlag = buildSchemaUnderlag(read.plan, currentInput(input, previous.basisVillkor), read.basis);
         const rooms = new Map(underlag.problem.lessons.map(l => [l.id, l.rooms?.allowed]));
-        const placements = [...previous.placements, ...(previous.datedActivities?.flatMap(a => a.moves) ?? [])];
+        const placements = [...previous.placements, ...previous.datedOverrides, ...(previous.datedActivities?.flatMap(a => a.moves) ?? [])];
         if (underlag.grundFingerprint !== previous.base.grundFingerprint || placements.some(p => p.room !== null
-          && !rooms.get(p.lesson)?.includes(p.room))) throw sourceChanged();
+          && !rooms.get(p.lesson)?.includes(p.room)) || previous.placements.some(p => p.ansvarig !== undefined
+            && !underlag.problem.aktivitetsResurser?.[p.lesson]?.ansvariga?.some(candidate => candidate.ref === p.ansvarig))) throw sourceChanged();
         document = schemaDraftDocument(previous);
       } else {
         document = await prepareSchemaDraft(read, save);
@@ -416,10 +438,12 @@ export async function schemaDraftSaveRoute(request: Request): Promise<Response> 
       try { capture.replay = parseSchemaDraftSaveReply({ ...scopeKeys(input), draft, receipt }, input); } catch { throw new AuditUnavailable(); }
     } else {
       if (status.state !== 'not_found') throw new AuditUnavailable();
-      if (input.draftId !== null && input.datedActivities === undefined) {
+      if (input.draftId !== null && (input.datedActivities === undefined || input.datedActivityDefinitions === undefined)) {
         const current = await readSchemaDraftSnapshot(tx, ctx, input);
-        if (current?.id === input.draftId && current.revision === input.expectedRevision && current.datedActivities) {
-          capture.input = { ...input, datedActivities: current.datedActivities };
+        if (current?.id === input.draftId && current.revision === input.expectedRevision) {
+          capture.input = { ...input,
+            ...(input.datedActivities === undefined && current.datedActivities && { datedActivities: current.datedActivities }),
+            ...(input.datedActivityDefinitions === undefined && current.datedActivityDefinitions && { datedActivityDefinitions: current.datedActivityDefinitions }) };
         }
       }
       capture.read = await readDraftBasis(request, tx, ctx, currentInput(input, input.basisVillkor ?? input.workingVillkor));

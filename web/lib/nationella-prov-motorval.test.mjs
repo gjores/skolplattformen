@@ -51,6 +51,21 @@ test('tömning rensar bara det valda utkastets resurser och bevarar manuella bok
   assert.deepEqual(original, plan(b, aldreBokning));
 });
 
+test('efter tömning kan motorn göra nya provval utan att ersätta manuella eller omärkta val', () => {
+  const manuell = { ...prov, salId: 'sal-1' };
+  const first = provMotorTilldelning(manuell, 'sal-2', [motorvakt], lasar);
+  const other = { ...prov, id: id(24) };
+  const second = provMotorTilldelning(other, 'sal-3', [motorvakt], lasar);
+  const older = { ...prov, id: id(25), salId: 'sal-4', vakter: [manuellVakt] };
+  const cleared = provRensaMotorval(plan(first, second, older), lasar);
+  assert.deepEqual(cleared, plan(manuell, other, older));
+  const newManual = provMotorTilldelning(cleared.bokningar[0], 'sal-6', [annanMotorvakt], lasar);
+  const newAutomatic = provMotorTilldelning(cleared.bokningar[1], 'sal-7', [annanMotorvakt], lasar);
+  assert.deepEqual(newManual, { ...manuell, vakter: [annanMotorvakt], motorval: { vakter: [post(annanMotorvakt, lasar)] } });
+  assert.deepEqual(newAutomatic, { ...other, salId: 'sal-7', vakter: [annanMotorvakt], motorval: { sal: lasar, vakter: [post(annanMotorvakt, lasar)] } });
+  assert.equal(provMotorTilldelning(cleared.bokningar[2], 'sal-8', [annanMotorvakt], lasar), older);
+});
+
 test('skyddad historik identifierar bara nya värden från bevisad motorkörning och lämnar senare manuella ändringar', () => {
   const manuellSal = { ...prov, salId: 'sal-9', vakter: [manuellVakt] };
   const tillsattSal = { ...prov, salId: 'sal-1' };

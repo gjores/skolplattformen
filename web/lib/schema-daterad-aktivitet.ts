@@ -2,6 +2,7 @@ import type { SchemaForslag } from './schema-contract.ts';
 import { schemaWeekNumber, type SchemaVeckaVal } from './schema-vecka.ts';
 import { parseSchemaDatumAndringar, schemaDatumDate, schemaDatumNyckel, schemaDatumOriginal, schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumNyckel } from './schema-datum.ts';
 
+export type SchemaAktivitetsresurser = { roomId: string | null; teacherRef: string | null };
 export type SchemaDateradAktivitetInput = {
   id: string;
   name: string;
@@ -10,8 +11,9 @@ export type SchemaDateradAktivitetInput = {
   endMin: number;
   classRefs: string[];
   credit: { ref: string; minutes: number } | null;
+  resourceLocks?: SchemaAktivitetsresurser;
 };
-export type SchemaDateradAktivitet = SchemaDateradAktivitetInput & { cancelled: SchemaDatumNyckel[]; moves: SchemaDatumAndring[]; credits: string[] };
+export type SchemaDateradAktivitet = SchemaDateradAktivitetInput & { cancelled: SchemaDatumNyckel[]; moves: SchemaDatumAndring[]; credits: string[]; resources?: SchemaAktivitetsresurser };
 export type SchemaAktivitetsEffekt = SchemaDatumNyckel & {
   title: string;
   classes: string[];
@@ -69,9 +71,18 @@ function lessonKey(value: unknown): SchemaDatumNyckel {
   return { lesson: row.lesson, originalDate: date(row.originalDate) };
 }
 
+function resurser(value: unknown, locks = false): SchemaAktivitetsresurser {
+  const r = object(value);
+  keys(r, 'roomId,teacherRef');
+  const roomId = r.roomId;
+  if (roomId !== null && (typeof roomId !== 'string' || !(locks && roomId === 'ingen') && !/^sal-[1-9]\d{0,2}$/u.test(roomId))) return invalid();
+  return { roomId, teacherRef: r.teacherRef === null ? null : id(r.teacherRef) };
+}
+
 export function parseSchemaDateradAktivitetInput(value: unknown): SchemaDateradAktivitetInput {
   const r = object(value);
-  keys(r, 'classRefs,credit,date,endMin,id,name,startMin');
+  const withLocks = Object.hasOwn(r, 'resourceLocks');
+  keys(r, withLocks ? 'classRefs,credit,date,endMin,id,name,resourceLocks,startMin' : 'classRefs,credit,date,endMin,id,name,startMin');
   const startMin = minutes(r.startMin, 0, 1435), endMin = minutes(r.endMin, startMin + 5, 1440);
   const classRefs = range(r.classRefs, 2000).map(id);
   if (!classRefs.length || classRefs.length !== new Set(classRefs).size) return invalid();
@@ -81,12 +92,13 @@ export function parseSchemaDateradAktivitetInput(value: unknown): SchemaDateradA
     keys(x, 'minutes,ref');
     credit = { ref: text(x.ref, 2000), minutes: minutes(x.minutes, 5, endMin - startMin) };
   }
-  return { id: id(r.id), name: text(r.name, 120), date: date(r.date), startMin, endMin, classRefs: classRefs.sort(), credit };
+  return { id: id(r.id), name: text(r.name, 120), date: date(r.date), startMin, endMin, classRefs: classRefs.sort(), credit, ...(withLocks && { resourceLocks: resurser(r.resourceLocks, true) }) };
 }
 
 export function parseSchemaDateradeAktiviteter(value: unknown): SchemaDateradAktivitet[] {
   return range(value, 1).map(raw => {
-    const { cancelled: cancellation, moves: rawMoves, credits: rawCredits, ...rawInput } = object(raw);
+    const r = object(raw);
+    const { cancelled: cancellation, moves: rawMoves, credits: rawCredits, resources, ...rawInput } = r;
     const input = parseSchemaDateradAktivitetInput(rawInput);
     const cancelled = range(cancellation, 20000).map(lessonKey).sort((a, b) => schemaDatumNyckel(a).localeCompare(schemaDatumNyckel(b)));
     let moves;
@@ -95,8 +107,13 @@ export function parseSchemaDateradeAktiviteter(value: unknown): SchemaDateradAkt
     if (affected.some(pass => pass.originalDate !== input.date) || new Set(affected.map(schemaDatumNyckel)).size !== affected.length) return invalid();
     const credits = range(rawCredits, 20000).map(ref => text(ref, 2000)).sort();
     if (new Set(credits).size !== credits.length || (credits.length > 0) !== (input.credit !== null)) return invalid();
-    return { ...input, cancelled, moves, credits };
+    return { ...input, cancelled, moves, credits, ...(Object.hasOwn(r, 'resources') && { resources: resurser(resources) }) };
   });
+}
+
+export function schemaDateradAktivitetsdefinition({ cancelled: _cancelled, moves: _moves, credits: _credits, resources: _resources,
+  ...definition }: SchemaDateradAktivitet): SchemaDateradAktivitetInput {
+  return definition;
 }
 
 export function schemaAktivitetsdatum(activities: readonly SchemaDateradAktivitet[]) {
@@ -162,7 +179,7 @@ export function parseSchemaAktivitetsForslag(value: unknown, input: SchemaDatera
   const r = object(value);
   keys(r, 'activity,blockers,effects,totals,uncreditedClasses');
   const [activity] = parseSchemaDateradeAktiviteter([r.activity]);
-  const { cancelled: _cancelled, moves: _moves, credits: _credits, ...request } = activity;
+  const { cancelled: _cancelled, moves: _moves, credits: _credits, resources: _resources, ...request } = activity;
   if (JSON.stringify(request) !== JSON.stringify(parseSchemaDateradAktivitetInput(input))) return invalid();
   const list = (value: unknown, max: number) => range(value, max).map(item => text(item, 500));
   const effects = range(r.effects, 20000).map(item => {

@@ -33,7 +33,9 @@ export async function schemaDateradAktivitetRoute(request: Request): Promise<Res
     const basis = await readSchemaBasis(request, tx, ctx, schedule), dated = await readSchemaDatedBasis(tx, ctx, schedule);
     try { await logEvent(tx, { ...ctx, request }, { ...dated.event, outcome: 'ok' }); } catch { throw new AuditUnavailable(); }
     state.input = input;
-    state.read = { plan: basis.plan, basis: basis.basis, datedBasis: dated.body };
+    state.read = { plan: basis.plan, basis: basis.basis, datedBasis: dated.body,
+      schoolDuties: ctx.accessFunction === 'rektor' ? basis.schoolDuties : basis.plan.teachers.filter(t => !t.draft)
+        .map(t => ({ ref: t.personId, startsOn: `${schedule.schoolYear}-07-01`, endsOn: `${schedule.schoolYear + 1}-06-30` })) };
     state.bookings = schedule.schoolYear >= 2000 && schedule.schoolYear <= 2100
       ? (await readNationellaProv(tx, ctx, schedule.unitId, schedule.schoolYear))?.document.bokningar ?? [] : [];
     return { body: null, event: basis.event };

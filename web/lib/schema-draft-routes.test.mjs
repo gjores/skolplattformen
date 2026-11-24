@@ -60,7 +60,8 @@ const fake = globalThis.__schemaDraftRoutesTest = {
       return [{ result: wire({ draft }) }];
     }
     if (sql.includes('public.schema_dated_basis')) return [{ result: { contractVersion: 'schema_dated_basis_sql_v1', actor: { identityId: id(4), assignmentId: id(6) },
-      result: { unitId: id(1), schoolYear: 2026, complete: true, placements: [], classMemberships: [], groups: [], memberships: [] } } }];
+      result: { unitId: id(1), schoolYear: 2026, complete: true, placements: state.datedParticipants ? [{ id: id(31), pupilId: id(30), startsOn: '2026-07-01', endsOn: null }] : [],
+        classMemberships: state.datedParticipants ? [{ placementId: id(31), pupilId: id(30), classId: id(10), startsOn: '2026-07-01', endsOn: null }] : [], groups: [], memberships: [] } } }];
     if (sql.includes('public.schema_status')) {
       const completed = state.commands.get(q.commandId);
       const result = completed ? { state: 'completed', receipt: { ...completed.receipt, replayed: true }, draft: completed.draft } : { state: 'not_found', receipt: null, draft: null };
@@ -268,6 +269,48 @@ test('tömning bevarar aktivitetsvillkor och lägger till en revision som kan å
   assert.deepEqual(restored.draft.locks, before.locks);
   assert.equal((await call('las', scope)).body.draft.resetUndoRevision, undefined);
   assert.equal(state.commandCalls, 3);
+});
+
+test('tömning behåller daterad aktivitets avsikt och ångring återställer valda resurser och undervisningseffekter', async () => {
+  reset();
+  state.datedParticipants = true;
+  const source = await savedWithCalendar();
+  const date = '2026-11-17', lesson = source.placements[0].lesson;
+  const original = schemaDatumOriginal(source.base, { lesson, originalDate: date });
+  assert.ok(original);
+  const ref = 'undervisning:source-1';
+  const definition = { id: id(62), name: 'Syntetisk friluftsdag', date,
+    startMin: original.lesson.startMin, endMin: original.lesson.startMin + original.length, classRefs: [id(10)],
+    credit: { ref, minutes: original.length }, resourceLocks: { roomId: 'ingen', teacherRef: null } };
+  const activity = { ...definition, resources: { roomId: null, teacherRef: id(20) }, credits: [ref],
+    cancelled: [{ lesson, originalDate: date }], moves: [] };
+  state.role = 'administrator';
+  const saved = await call('spara', calculated({ commandId: id(64), draftId: source.id, expectedRevision: source.revision, datedActivities: [activity] }));
+  assert.equal(saved.response.status, 200, JSON.stringify(saved.body));
+
+  const clear = resetInput();
+  const emptied = await verifySchemaDraftResetReply((await call('aterstall', clear)).body, clear);
+  assert.equal(emptied.draft.base, null);
+  assert.deepEqual(emptied.draft.datedActivityDefinitions, [definition]);
+  assert.equal(Object.hasOwn(emptied.draft, 'datedActivities'), false);
+  assert.deepEqual((await verifySchemaDraftReadReply((await call('las', scope)).body, scope)).draft.datedActivityDefinitions, [definition]);
+
+  const undo = resetInput('undo', 63);
+  const restored = await verifySchemaDraftResetReply((await call('aterstall', undo)).body, undo);
+  assert.equal(restored.draft.contentHash, saved.body.draft.contentHash);
+  assert.deepEqual(restored.draft.datedActivities, [activity]);
+  assert.equal(Object.hasOwn(restored.draft, 'datedActivityDefinitions'), false);
+
+  const refClear = resetInput('clear', 65);
+  await verifySchemaDraftResetReply((await call('aterstall', refClear)).body, refClear);
+  const oldClientSave = parseSchemaDraftSave(calculated({ commandId: id(66), draftId: source.id, expectedRevision: state.draft.revision }));
+  const inherited = await verifySchemaDraftSaveReply((await call('spara', oldClientSave)).body, oldClientSave);
+  assert.deepEqual(inherited.draft.datedActivityDefinitions, [definition]);
+  const approve = parseSchemaDraftSave({ ...oldClientSave, commandId: id(67), expectedRevision: inherited.draft.revision,
+    datedActivityDefinitions: [], datedActivities: [activity] });
+  const approved = await verifySchemaDraftSaveReply((await call('spara', approve)).body, approve);
+  assert.equal(Object.hasOwn(approved.draft, 'datedActivityDefinitions'), false);
+  assert.deepEqual(approved.draft.datedActivities, [activity]);
 });
 
 test('tömning och ångring ändrar provets motorval enbart i utkastets verkliga kalenderperiod', async () => {

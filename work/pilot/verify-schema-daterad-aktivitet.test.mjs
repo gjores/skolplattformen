@@ -55,6 +55,12 @@ test('daterad aktivitet följer den nya revisionen och äldre utkast behåller i
     workingVillkor: f.villkor, placements, locks: [], intentional: [], datedOverrides: [], activityTypes: [], requiresRecalculation: false, source,
     control: schemaKontroll(underlag, placements, { violations: [], metrics: { studentGapMin: 0, teacherGapMin: 0 } }) }, scope);
   const approvedDocument = parseSchemaDraftDocument({ ...originalDocument, datedActivities: [activity] }, scope);
+  const { credits: _credits, cancelled: _cancelled, moves: _moves, ...definition } = activity;
+  const retained = { ...definition, resourceLocks: { roomId: 'ingen', teacherRef: null } };
+  const withResources = { ...approvedDocument, datedActivities: [{ ...retained, credits: activity.credits, cancelled: activity.cancelled,
+    moves: activity.moves, resources: { roomId: null, teacherRef: users.schools.A } }] };
+  const clearedDocument = parseSchemaDraftDocument({ ...originalDocument, base: null, basisVillkor: null, placements: [], control: null,
+    source: { ...source, lessonSources: [] }, requiresRecalculation: true, datedActivityDefinitions: [retained] }, scope);
   const read = async tx => {
     const { document, ...metadata } = await schemaRead(tx, scope);
     return (await verifySchemaDraftReadReply({ ...scope, draft: { ...document, ...metadata, stale: false } }, scope)).draft;
@@ -65,7 +71,7 @@ test('daterad aktivitet följer den nya revisionen och äldre utkast behåller i
       document, sourceHash, requestHash: await schemaDraftHash({ commandId, document }) };
   };
 
-  let first, second;
+  let first, second, third, fourth;
   await db.begin(async tx => {
     await users.actor(tx, 'principalA');
     await tx`set local role skolplattform_worker`;
@@ -88,6 +94,18 @@ test('daterad aktivitet följer den nya revisionen och äldre utkast behåller i
       const forged = await input({ ...approvedDocument, datedActivities: [{ ...activity, ...change }] }, second);
       await assert.rejects(tx.savepoint(t => schemaCommand(t, forged)), { code: '22023', hint: 'schema_draft_invalid' });
     }
+    third = (await schemaCommand(tx, await input(withResources, second))).draft;
+    assert.deepEqual((await read(tx)).datedActivities, withResources.datedActivities);
+    for (const invalid of [
+      { ...withResources, datedActivityDefinitions: [retained] },
+      { ...withResources, datedActivities: [{ ...withResources.datedActivities[0], resources: { roomId: 'ingen', teacherRef: null } }] },
+      { ...clearedDocument, datedActivityDefinitions: [{ ...retained, moves: [] }] },
+      { ...clearedDocument, datedActivityDefinitions: [{ ...retained, resourceLocks: { roomId: 'sal-001', teacherRef: null } }] },
+    ]) {
+      await assert.rejects(tx.savepoint(async t => schemaCommand(t, await input(invalid, third))), { code: '22023', hint: 'schema_draft_invalid' });
+    }
+    fourth = (await schemaCommand(tx, await input(clearedDocument, third))).draft;
+    assert.deepEqual((await read(tx)).datedActivityDefinitions, [retained]);
   });
 
   await db.begin(async tx => {
@@ -100,5 +118,7 @@ test('daterad aktivitet följer den nya revisionen och äldre utkast behåller i
   assert.deepEqual([...historyRows], [
     { revision: first.revision, document: originalDocument, content_hash: first.contentHash },
     { revision: second.revision, document: approvedDocument, content_hash: second.contentHash },
+    { revision: third.revision, document: withResources, content_hash: third.contentHash },
+    { revision: fourth.revision, document: clearedDocument, content_hash: fourth.contentHash },
   ]);
 });

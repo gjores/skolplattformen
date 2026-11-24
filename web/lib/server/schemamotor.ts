@@ -9,6 +9,7 @@ import { SCHEMA_SOLVE_DEFAULT_MS, schemaSolveTime, type SchemaSolveTimeMs } from
 import { parseSchemaPositions, type SchemaPositions } from '../schema-lagen.ts';
 import { motorProblem } from '../schema-utan-sal.ts';
 import { parseSchemaMotorPlacering, type SchemaPlaceringFailure, type SchemaPlaceringVal } from '../schema-placering.ts';
+import { aktivitetKontrollProblem, aktivitetMotorsProblem, aktivitetReservproblem, valjAktivitetsresurser } from '../schema-aktivitetsresurser.ts';
 
 const MARGIN_MS = 5_000, REPLY_BYTES = 16 * 1024 * 1024;
 export type SchemaEngineFailure = 'schema_engine_unconfigured' | 'schema_engine_unreachable' | 'schema_engine_busy' | 'schema_engine_bad_reply' | SchemaPlaceringFailure;
@@ -55,29 +56,55 @@ export function freshSchemaSolveSeed(): number {
 export function solveSchema(problem: SchemaProblem, timeMs: SchemaSolveTimeMs = SCHEMA_SOLVE_DEFAULT_MS, seed?: number): Promise<SchemaSolution> {
   const limit = schemaSolveTime(timeMs);
   if (seed !== undefined && (!Number.isSafeInteger(seed) || seed < 0)) throw new SchemaContractError();
-  return call(`/v1/solve?time_ms=${limit}${seed === undefined ? '' : `&seed=${seed}`}`, problem, limit, value => {
+  const motor = aktivitetMotorsProblem(problem);
+  const result = call(`/v1/solve?time_ms=${limit}${seed === undefined ? '' : `&seed=${seed}`}`, motor, limit, value => {
     // Fröet finns redan i motorns stats. Ett gammalt/felaktigt svar får inte påstå att den nya sökomgången användes.
     if (seed !== undefined && (value as { stats?: { seed?: unknown } } | null)?.stats?.seed !== seed) throw new SchemaContractError();
-    return parseSchemaSolution(value, problem);
+    return parseSchemaSolution(value, motor);
+  });
+  if (!problem.aktivitetsResurser) return result;
+  return result.then(async solution => {
+    const valt = valjAktivitetsresurser(problem, solution), checked = await validateSchema(problem, valt.placements);
+    const reserv = aktivitetReservproblem(problem, valt);
+    if (reserv) {
+      try {
+        const prövat = await call('/v1/solve?time_ms=2000', reserv.motor, 2_000, value => parseSchemaSolution(value, reserv.motor));
+        const tillagda = prövat.placements.flatMap(p => {
+          const ansvarig = reserv.ansvariga.get(p.lesson);
+          return ansvarig ? [{ ...p, ansvarig }] : [];
+        });
+        if (tillagda.length) {
+          const placements = [...valt.placements, ...tillagda], ids = new Set(tillagda.map(p => p.lesson)), unplaced = valt.unplaced.filter(id => !ids.has(id));
+          const kontroll = await validateSchema(problem, placements), fore = new Set(checked.violations.map(v => JSON.stringify(v)));
+          if (kontroll.violations.every(v => fore.has(JSON.stringify(v)))) return { ...valt, placements, unplaced,
+            status: unplaced.length ? valt.status : 'complete', metrics: kontroll.metrics, elapsedMs: valt.elapsedMs + prövat.elapsedMs,
+            diagnoses: valt.diagnoses.filter(d => !d.lessons?.some(id => ids.has(id))) };
+        }
+      } catch (fel) {
+        if (!(fel instanceof SchemaEngineError)) throw fel;
+      }
+    }
+    return { ...valt, metrics: checked.metrics };
   });
 }
 
 /** Motorns kontrollant prövar placeringarna mot underlaget (05.2-SM-FLYTT, F1). Inget räknas om. Pass utan sal upptar ingen sal (05.2-SM-UXF-43). */
 const engineAt = (placements: SchemaPlacement[]) => placements.map(p => ({ lesson: p.lesson, day: p.day, start_min: p.startMin, rooms: p.room ? [p.room] : [] }));
-export function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
-  const motor = motorProblem(problem, placements);
-  return call('/v1/validate', { problem: motor, placements: engineAt(placements) }, 0, value => parseSchemaCheck(value, motor));
+export async function validateSchema(problem: SchemaProblem, placements: SchemaPlacement[]): Promise<SchemaCheck> {
+  const valda = aktivitetKontrollProblem(problem, placements), motor = motorProblem(valda.motor, placements);
+  const check = await call('/v1/validate', { problem: motor, placements: engineAt(placements) }, 0, value => parseSchemaCheck(value, motor));
+  return valda.violations.length ? { ...check, violations: [...valda.violations, ...check.violations] } : check;
 }
 
 /** Läget för varje starttid för ett pass (05.2-SM-LAGEN). `pupil` är ett elevkluster ur underlaget, aldrig ett elev-ID. */
 export function positionsSchema(problem: SchemaProblem, placements: SchemaPlacement[], lesson: string, pupil: string | null): Promise<SchemaPositions> {
-  const motor = motorProblem(problem, placements);
+  const motor = motorProblem(aktivitetKontrollProblem(problem, placements).motor, placements);
   return call('/v1/positions', { problem: motor, placements: engineAt(placements), lesson, ...(pupil === null ? {} : { pupil }) }, 0, value => parseSchemaPositions(value, motor, lesson));
 }
 
 /** Förkontroller utan motorsökning. Underlaget hålls inom samma behöriga serverväg som förslaget. */
 export function diagnoseSchema(problem: SchemaProblem) {
-  return call('/v1/diagnose', problem, 0, value => {
+  return call('/v1/diagnose', aktivitetMotorsProblem(problem), 0, value => {
     if (!value || typeof value !== 'object' || Array.isArray(value)) throw new SchemaContractError();
     const d = value as Record<string, unknown>;
     if (d.version !== problem.version || d.problem_id !== problem.id) throw new SchemaContractError();
@@ -87,7 +114,7 @@ export function diagnoseSchema(problem: SchemaProblem) {
 
 /** Begränsad placeringssökning, högst två sekunder. Resultatet är ett förslag, aldrig en skrivning. */
 export function suggestSchema(problem: SchemaProblem, placements: SchemaPlacement[], val: SchemaPlaceringVal) {
-  const { target, mode, lesson, depth } = val, motor = motorProblem(problem, placements);
+  const { target, mode, lesson, depth } = val, motor = motorProblem(aktivitetKontrollProblem(problem, placements).motor, placements);
   return call('/v1/suggest', { problem: motor, placements: engineAt(placements), mode, lesson, depth,
     target: target ? { day: target.day, start_min: target.startMin, rooms: target.room ? [target.room] : [] } : null }, 2_000,
   value => parseSchemaMotorPlacering(value, motor, { ...val, placements }));

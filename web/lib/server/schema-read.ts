@@ -51,6 +51,8 @@ export async function readSchemaBasis(request: Request, tx: Parameters<typeof pl
       .map(({ startsOn, endsOn }) => ({ ref: p.id, name: `${p.givenName} ${p.familyName}`.trim(), startsOn, endsOn })));
     basis.personer = [...new Map(schoolDuties.map(({ ref, name }) => [ref, { ref, name }])).values()]
       .sort((a, b) => a.name.localeCompare(b.name, 'sv') || a.ref.localeCompare(b.ref));
+    basis.ansvarsUppdrag = schoolDuties.map(({ ref, startsOn, endsOn }) => ({ ref, startsOn, endsOn }))
+      .sort((a, b) => a.ref.localeCompare(b.ref) || a.startsOn.localeCompare(b.startsOn) || (a.endsOn ?? '').localeCompare(b.endsOn ?? ''));
   }
   // Elevernas namn, bara de som läsningarna gav med användarens egen behörighet (Följ passet, 05.2-SM-FOLJ). Stannar på servern utom i elevväljaren.
   const pupilNames = new Map([...elective.body.pupils ?? [], ...study.body.pupils].map(p => [p.id, p.name] as const));

@@ -113,6 +113,7 @@ function publicationTargets(plan: TjanstPlanRead, groups: StudyGroup[]): Map<str
 }
 
 async function publicationTracks(input: Publish, draft: SchemaDraft, read: ReadBasis, groups: StudyGroup[]): Promise<SchemaPublicationTrack[]> {
+  if (draft.datedActivityDefinitions?.length) throw notReady();
   const ready = placedDraft(draft);
   const rebuilt = await prepareSchemaDraft(read, {
     contractVersion: SCHEMA_DRAFT_VERSION, unitId: input.unitId, schoolYear: input.schoolYear, period: input.period,

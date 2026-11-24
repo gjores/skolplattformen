@@ -1,10 +1,10 @@
 import { SchemaDatumError, schemaDatumNyckel, type SchemaDatumAndring, type SchemaDatumTillfalle } from '../schema-datum.ts';
-import { schemaDatumUnderlag, type SchemaDatumDagUnderlag } from '../schema-datum-underlag.ts';
+import { schemaDatumTillganglighet, schemaDatumUnderlag, type SchemaDatumDagUnderlag } from '../schema-datum-underlag.ts';
 import {
   parseSchemaDateradeAktiviteter, parseSchemaDateradAktivitetInput,
-  type SchemaAktivitetsForslag, type SchemaAktivitetsTid, type SchemaDateradAktivitet, type SchemaDateradAktivitetInput,
+  type SchemaAktivitetsForslag, type SchemaAktivitetsresurser, type SchemaAktivitetsTid, type SchemaDateradAktivitet, type SchemaDateradAktivitetInput,
 } from '../schema-daterad-aktivitet.ts';
-import { checkSchemaPlacements, type SchemaForslag, type SchemaPlacement } from '../schema-contract.ts';
+import { checkSchemaPlacements, type SchemaForslag, type SchemaPlacement, type SchemaRegel } from '../schema-contract.ts';
 import type { SchemaUnderlag } from '../schema-underlag.ts';
 import type { TjanstPlanRead } from '../tjanst-contract.ts';
 import type { NationellProvbokning } from '../nationella-prov.ts';
@@ -13,7 +13,7 @@ import { Deny } from './db.ts';
 import { validateSchema } from './schemamotor.ts';
 import type { SchemaDatumRead } from './schema-datum.ts';
 
-type Read = Pick<SchemaDatumRead, 'plan' | 'datedBasis'>;
+type Read = Pick<SchemaDatumRead, 'plan' | 'datedBasis' | 'schoolDuties'>;
 type Validator = typeof validateSchema;
 type ActivityPass = { occurrence: SchemaDatumTillfalle; ref: string; pupils: ReadonlySet<string>; partial: boolean };
 const fail = (reason = 'schema_daterad_aktivitet_changed'): never => { throw new Deny('conflict', 409, { reason }); };
@@ -107,6 +107,63 @@ function compareProspectiveDay(read: Read, underlag: SchemaUnderlag, base: Schem
   }, placements: day.placements.filter(p => !omitted.has(p.lesson)) };
 }
 
+function dateradeResurser(read: Read, underlag: SchemaUnderlag, info: ReturnType<typeof activityBasis>,
+  input: SchemaDateradAktivitetInput, bookings: readonly NationellProvbokning[]) {
+  const { day, colliding, pupils } = info, weekday = schemaWeekday(input.date);
+  const overlapsActivity = (start: number, end: number) => overlaps(start, end, input.startMin, input.endMin);
+  const exempt = new Set(colliding.map(pass => pass.occurrence.key));
+  const occupied = [...day.occurrences].filter(([, occurrence]) => !exempt.has(occurrence.key));
+  const inUse = (part: 'rooms' | 'teachers', key: string) => occupied.some(([id, occurrence]) => {
+    const model = day.problem.lessons.find(pass => pass.id === id);
+    if (!model) return false;
+    const matches = part === 'rooms' ? occurrence.lesson.roomId === key : model.teachers.includes(key);
+    const margin = model.margin?.[part];
+    const buffer = part === 'teachers' ? day.problem.rules.break_min : 0, start = occurrence.lesson.startMin!;
+    return matches && overlapsActivity(start - Math.max(buffer, margin?.before_min ?? 0),
+      start + occurrence.length + Math.max(buffer, margin?.after_min ?? 0));
+  });
+  const restricted = (slag: 'larare' | 'sal', ref: string) => {
+    const rules = underlag.villkor.egna.filter((rule): rule is Extract<SchemaRegel, { typ: 'sparrad' | 'tillaten' }> =>
+      rule.slag === slag && rule.ref === ref && (rule.typ === 'sparrad' || rule.typ === 'tillaten'));
+    return !schemaDatumTillganglighet(rules, weekday).some(window => window.start_min <= input.startMin && window.end_min >= input.endMin);
+  };
+  const exams = bookings.filter(exam => exam.datum === input.date && overlapsActivity(exam.startMin, exam.slutMin));
+  const rooms = (day.problem.rooms ?? []).filter(room => (room.capacity ?? 0) >= pupils.size &&
+    !room.unavailable?.some(window => window.day === weekday && overlapsActivity(window.start_min, window.end_min)) &&
+    !restricted('sal', underlag.labels.rooms.find(r => r.id === room.id)?.name ?? '') &&
+    !inUse('rooms', room.id) && !exams.some(exam => exam.salId === room.id))
+    .sort((a, b) => (a.capacity ?? 0) - (b.capacity ?? 0) || a.id.localeCompare(b.id)).map(room => room.id);
+  const schoolDuties = read.schoolDuties ?? read.plan.teachers.filter(t => !t.draft)
+    .map(t => ({ ref: t.personId, startsOn: `${read.plan.schoolYear}-07-01`, endsOn: `${read.plan.schoolYear + 1}-06-30` }));
+  const active = [...new Set(schoolDuties.filter(duty => duty.startsOn <= input.date && (!duty.endsOn || duty.endsOn >= input.date)).map(duty => duty.ref))];
+  const internalTeachers = new Map(Object.entries(underlag.teacherRefs).map(([id, ref]) => [ref, id]));
+  const teachers = active.filter(ref => {
+    const id = internalTeachers.get(ref);
+    if (restricted('larare', ref) || exams.some(exam => exam.vakter.includes(ref)) || id && inUse('teachers', id)) return false;
+    const dayCap = day.problem.teachers.find(t => t.id === id)?.max_min_per_day ?? underlag.villkor.teacherMaxMinPerDay ?? Infinity;
+    const existing = id ? occupied.filter(([lessonId]) => day.problem.lessons.find(l => l.id === lessonId)?.teachers.includes(id)) : [];
+    if (existing.reduce((sum, [, lesson]) => sum + lesson.length, input.endMin - input.startMin) > dayCap) return false;
+    const lunch = day.problem.rules.lunch;
+    if (!lunch?.teachers) return true;
+    const teacherBusy = [...existing.map(([, lesson]) => [lesson.lesson.startMin!, lesson.lesson.startMin! + lesson.length] as const),
+      [input.startMin, input.endMin] as const];
+    for (let start = lunch.window_start_min; start + lunch.length_min <= lunch.window_end_min; start += 5) {
+      if (!teacherBusy.some(([from, to]) => overlaps(start, start + lunch.length_min, from, to))) return true;
+    }
+    return false;
+  }).sort();
+  return { rooms, teachers };
+}
+
+function aktivitetensResursval(read: Read, underlag: SchemaUnderlag, info: ReturnType<typeof activityBasis>,
+  input: SchemaDateradAktivitetInput, bookings: readonly NationellProvbokning[]): SchemaAktivitetsresurser | undefined {
+  if (!input.resourceLocks && read.schoolDuties === undefined) return undefined;
+  const { rooms, teachers } = dateradeResurser(read, underlag, info, input, bookings);
+  const selectedRoom = input.resourceLocks?.roomId, selectedTeacher = input.resourceLocks?.teacherRef;
+  return { roomId: selectedRoom === 'ingen' ? null : selectedRoom ? rooms.find(id => id === selectedRoom) ?? null : rooms[0] ?? null,
+    teacherRef: selectedTeacher ? teachers.find(ref => ref === selectedTeacher) ?? null : teachers[0] ?? null };
+}
+
 function activityExamConflicts(read: Read, input: SchemaDateradAktivitetInput,
   bookings: readonly NationellProvbokning[]) {
   return bookings.filter(booking => booking.datum === input.date && overlaps(booking.startMin, booking.slutMin, input.startMin, input.endMin) && examAffectsClasses(read.plan, input, booking));
@@ -118,6 +175,9 @@ export async function planeraDateradAktivitet(read: Read, underlag: SchemaUnderl
   const info = activityBasis(read, underlag, base, overrides, input, locks);
   const { colliding, credited, uncreditedClasses, blockers } = info;
   if (activityExamConflicts(read, input, bookings).length) blockers.push('Ett bokat nationellt prov krockar med aktiviteten. Välj en annan tid.');
+  const resources = aktivitetensResursval(read, underlag, info, input, bookings);
+  if (resources && !resources.roomId && input.resourceLocks?.roomId !== 'ingen') blockers.push('Ingen lämplig sal är ledig för hela gruppen. Kontrollera salvalet.');
+  if (resources && !resources.teacherRef) blockers.push('Ingen ansvarig lärare är tillgänglig hela tiden. Kontrollera ansvarig eller ändra tiden.');
   const cover = new Map([...credited].map(ref => [ref, input.credit!.minutes]));
   const moves: SchemaDatumAndring[] = [], cancelled: SchemaDateradAktivitet['cancelled'] = [];
   const totals = new Map<string, SchemaAktivitetsTid>();
@@ -196,17 +256,24 @@ export async function planeraDateradAktivitet(read: Read, underlag: SchemaUnderl
     total.net = total.credited + total.moved - total.lost;
     total.remaining = Math.max(0, -total.net);
   }
-  const [activity] = parseSchemaDateradeAktiviteter([{ ...input, cancelled, moves, credits: [...credited] }]);
+  const [activity] = parseSchemaDateradeAktiviteter([{ ...input, cancelled, moves, credits: [...credited], ...(resources && { resources }) }]);
   return { activity, effects, totals: [...totals.values()].sort((a, b) => a.title.localeCompare(b.title, 'sv') || a.ref.localeCompare(b.ref)), uncreditedClasses, blockers };
 }
 
 export async function valideraDateradAktivitetsplan(read: Read, underlag: SchemaUnderlag, base: SchemaForslag,
   overrides: SchemaDatumAndring[], activities: SchemaDateradAktivitet[], locks: SchemaPlacement[] = [], validate: Validator = validateSchema) {
   for (const activity of activities) {
-    const { cancelled, moves, credits, ...raw } = activity;
+    const { cancelled, moves, credits, resources, ...raw } = activity;
     const input = parseSchemaDateradAktivitetInput(raw);
     const info = activityBasis(read, underlag, base, overrides, input, locks);
     if (info.blockers.length || credits.length !== info.credited.size || credits.some(ref => !info.credited.has(ref))) return fail();
+    if (input.resourceLocks && !resources) return fail('schema_daterad_aktivitet_resources');
+    if (resources) {
+      const { rooms, teachers } = dateradeResurser(read, underlag, info, input, []);
+      const { roomId, teacherRef } = resources, manualRoom = input.resourceLocks?.roomId, manualTeacher = input.resourceLocks?.teacherRef;
+      if (manualRoom === 'ingen' ? roomId !== null : !roomId || !rooms.includes(roomId) || manualRoom && roomId !== manualRoom) return fail('schema_daterad_aktivitet_resources');
+      if (!teacherRef || !teachers.includes(teacherRef) || manualTeacher && manualTeacher !== teacherRef) return fail('schema_daterad_aktivitet_resources');
+    }
     const byKey = new Map(info.colliding.map(pass => [pass.occurrence.key, pass]));
     const expected = [...cancelled, ...moves].map(schemaDatumNyckel);
     if (expected.length !== byKey.size || expected.some(key => !byKey.has(key))) return fail();
@@ -235,7 +302,9 @@ function examAffectsClasses(plan: TjanstPlanRead, activity: SchemaDateradAktivit
 
 export function kontrolleraAktivitetensProv(activities: SchemaDateradAktivitet[], bookings: readonly NationellProvbokning[], plan: TjanstPlanRead) {
   for (const activity of activities) for (const exam of bookings) {
-    if (examAffectsClasses(plan, activity, exam) && exam.datum === activity.date && overlaps(exam.startMin, exam.slutMin, activity.startMin, activity.endMin) ||
+    const roomOrTeacher = activity.resources?.roomId != null && activity.resources.roomId === exam.salId
+      || activity.resources?.teacherRef != null && exam.vakter.includes(activity.resources.teacherRef);
+    if ((examAffectsClasses(plan, activity, exam) || roomOrTeacher) && exam.datum === activity.date && overlaps(exam.startMin, exam.slutMin, activity.startMin, activity.endMin) ||
       activity.moves.some(move => move.date === exam.datum && overlaps(exam.startMin, exam.slutMin, move.startMin, move.startMin + move.durationMin))) {
       return fail('schema_daterad_aktivitet_prov');
     }

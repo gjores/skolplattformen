@@ -4,7 +4,7 @@ import { SCHEMA_LIMITS, SchemaContractError, parseSchemaForslag, parseSchemaKont
 import type { SchemaMedveten } from './schema-utkast.ts';
 import type { SchemaAktivitetsTyp } from './schema-aktiviteter.ts';
 import { parseSchemaDatumAndringar, type SchemaDatumAndring } from './schema-datum.ts';
-import { parseSchemaDateradeAktiviteter, type SchemaDateradAktivitet } from './schema-daterad-aktivitet.ts';
+import { parseSchemaDateradAktivitetInput, parseSchemaDateradeAktiviteter, type SchemaDateradAktivitet, type SchemaDateradAktivitetInput } from './schema-daterad-aktivitet.ts';
 
 export const SCHEMA_DRAFT_VERSION = 1 as const;
 export const SCHEMA_DRAFT_BYTES = 8 * 1024 * 1024;
@@ -25,6 +25,7 @@ export type SchemaDraftSave = SchemaDraftScope & { commandId: string; draftId: s
   /** Kalenderprojektionen som visades tillsammans med förslaget. */
   forslagKalenderHash?: string;
   datedActivities?: SchemaDateradAktivitet[];
+  datedActivityDefinitions?: SchemaDateradAktivitetInput[];
   intentional: SchemaMedveten[]; datedOverrides: SchemaDraftDatedOverride[]; activityTypes: SchemaAktivitetsTyp[] };
 export type SchemaDraftStatusRequest = SchemaDraftScope & { commandId: string; draftId: string | null };
 export type SchemaDraftResetRequest = SchemaDraftScope & { commandId: string; draftId: string; expectedRevision: number; action: 'clear' | 'undo' };
@@ -34,6 +35,7 @@ export type SchemaDraftSource = { planId: string | null; planRevision: number; c
 export type SchemaDraftDocument = { documentVersion: 1; base: SchemaForslag | null; basisVillkor: SchemaVillkor | null; workingVillkor: SchemaVillkor;
   placements: SchemaPlacement[]; locks: SchemaPlacement[]; intentional: SchemaMedveten[]; datedOverrides: SchemaDraftDatedOverride[];
   datedActivities?: SchemaDateradAktivitet[];
+  datedActivityDefinitions?: SchemaDateradAktivitetInput[];
   activityTypes: SchemaAktivitetsTyp[]; control: SchemaKontroll | null; requiresRecalculation: boolean; source: SchemaDraftSource };
 export type SchemaDraft = SchemaDraftDocument & { id: string; name: string; revision: number; savedAt: string; contentHash: string; sourceHash: string; stale: boolean; resetUndoRevision?: number };
 export type SchemaDraftReceipt = { commandId: string; draftId: string; revision: number; requestHash: string; contentHash: string; savedAt: string; replayed: boolean };
@@ -70,10 +72,12 @@ export function parseSchemaDraftScope(value: unknown, extra: string[] = []): Sch
 function placements(value: unknown): SchemaPlacement[] {
   const found = new Set<string>();
   return array(value, SCHEMA_LIMITS.lessons).map(raw => {
-    const p = record(raw); keys(p, ['lesson', 'day', 'startMin', 'room']);
+    const p = record(raw), required = ['lesson', 'day', 'startMin', 'room'];
+    keys(p, [...required, 'ansvarig'], required);
     const lesson = text(p.lesson, 100); if (!/^pass-\d{1,8}$/u.test(lesson) || found.has(lesson)) invalid(); found.add(lesson);
     if (p.room !== null && (typeof p.room !== 'string' || !/^sal-\d{1,3}$/u.test(p.room))) invalid();
-    return { lesson, day: integer(p.day, 0, 6), startMin: integer(p.startMin, 0, 1439), room: p.room as string | null };
+    return { lesson, day: integer(p.day, 0, 6), startMin: integer(p.startMin, 0, 1439), room: p.room as string | null,
+      ...(Object.hasOwn(p, 'ansvarig') && { ansvarig: uuid(p.ansvarig) }) };
   });
 }
 function intentional(value: unknown): SchemaMedveten[] {
@@ -97,6 +101,14 @@ function dated(value: unknown): SchemaDraftDatedOverride[] {
 function dateradeAktiviteter(r: Record<string, unknown>): SchemaDateradAktivitet[] | undefined {
   if (!Object.hasOwn(r, 'datedActivities')) return;
   try { return parseSchemaDateradeAktiviteter(r.datedActivities); } catch { return invalid(); }
+}
+function datedActivityDefinitionsFrom(r: Record<string, unknown>, schoolYear: number): SchemaDateradAktivitetInput[] | undefined {
+  if (!Object.hasOwn(r, 'datedActivityDefinitions')) return;
+  try {
+    const definitions = array(r.datedActivityDefinitions, 1).map(parseSchemaDateradAktivitetInput);
+    if (definitions.some(a => a.date < `${schoolYear}-07-01` || a.date > `${schoolYear + 1}-06-30`)) return invalid();
+    return definitions;
+  } catch { return invalid(); }
 }
 function lessonSources(value: unknown): SchemaDraftLessonSource[] {
   const found = new Set<string>(), sources = new Set<string>();
@@ -130,7 +142,7 @@ function activityTypes(value: unknown): SchemaAktivitetsTyp[] {
 }
 export function parseSchemaDraftSave(value: unknown): SchemaDraftSave {
   const r = record(value), required = ['commandId', 'draftId', 'expectedRevision', 'name', 'basisVillkor', 'workingVillkor', 'grundFingerprint', 'placements', 'locks'];
-  const optional = ['intentional', 'datedOverrides', 'datedActivities', 'activityTypes', 'forslagFingerprint', 'forslagKalenderHash'];
+  const optional = ['intentional', 'datedOverrides', 'datedActivities', 'datedActivityDefinitions', 'activityTypes', 'forslagFingerprint', 'forslagKalenderHash'];
   keys(r, ['contractVersion', 'unitId', 'schoolYear', 'period', ...required, ...optional], ['contractVersion', 'unitId', 'schoolYear', 'period', ...required]);
   const scope = parseSchemaDraftScope(Object.fromEntries(['contractVersion', 'unitId', 'schoolYear', 'period'].map(k => [k, r[k]])));
   const basisVillkor = r.basisVillkor === null ? null : villkor(r.basisVillkor), at = placements(r.placements), locks = placements(r.locks);
@@ -139,6 +151,8 @@ export function parseSchemaDraftSave(value: unknown): SchemaDraftSave {
   const forslagFingerprint = Object.hasOwn(r, 'forslagFingerprint') ? fingerprint(r.forslagFingerprint) : undefined;
   const forslagKalenderHash = Object.hasOwn(r, 'forslagKalenderHash') ? hash(r.forslagKalenderHash) : undefined;
   const datedActivities = dateradeAktiviteter(r);
+  const datedActivityDefinitions = datedActivityDefinitionsFrom(r, scope.schoolYear);
+  if (datedActivities?.length && datedActivityDefinitions?.length) invalid();
   if (forslagKalenderHash !== undefined && forslagFingerprint === undefined) invalid();
   if (!basisVillkor && (forslagFingerprint !== undefined || at.length || locks.length || datedActivities?.length
     || array(r.datedOverrides ?? [], SCHEMA_LIMITS.lessons).length || array(r.intentional ?? [], SCHEMA_LIMITS.shownViolations).length)) invalid();
@@ -148,6 +162,7 @@ export function parseSchemaDraftSave(value: unknown): SchemaDraftSave {
     ...(forslagFingerprint !== undefined && { forslagFingerprint }),
     ...(forslagKalenderHash !== undefined && { forslagKalenderHash }),
     ...(datedActivities !== undefined && { datedActivities }),
+    ...(datedActivityDefinitions !== undefined && { datedActivityDefinitions }),
     placements: at, locks, intentional: intentional(r.intentional ?? []), datedOverrides: dated(r.datedOverrides ?? []), activityTypes: activityTypes(r.activityTypes ?? []) };
 }
 export function parseSchemaDraftStatusRequest(value: unknown): SchemaDraftStatusRequest {
@@ -200,7 +215,7 @@ export const schemaDraftResetHash = (input: SchemaDraftResetRequest): Promise<st
 
 export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraftScope, 'unitId' | 'schoolYear' | 'period'>): SchemaDraftDocument {
   try {
-    const r = record(value); keys(r, [...DOCUMENT_KEYS, 'datedActivities'], DOCUMENT_KEYS);
+    const r = record(value); keys(r, [...DOCUMENT_KEYS, 'datedActivities', 'datedActivityDefinitions'], DOCUMENT_KEYS);
     if (r.documentVersion !== 1) throw new SchemaDraftError('schema_draft_version');
     const basisVillkor = r.basisVillkor === null ? null : villkor(r.basisVillkor), workingVillkor = villkor(r.workingVillkor), source = record(r.source);
     keys(source, ['planId', 'planRevision', 'calendarVersionId', 'calendarVersion', 'lessonSources', 'digest']);
@@ -209,7 +224,9 @@ export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraft
       lessonSources: lessonSources(source.lessonSources), digest: hash(source.digest) };
     const at = placements(r.placements), locks = placements(r.locks), dates = dated(r.datedOverrides), accepted = intentional(r.intentional);
     const datedActivities = dateradeAktiviteter(r);
+    const datedActivityDefinitions = datedActivityDefinitionsFrom(r, scope.schoolYear);
     if (datedActivities && !datedActivities.length) invalid();
+    if (datedActivityDefinitions && (!datedActivityDefinitions.length || datedActivities)) invalid();
     let base: SchemaForslag | null = null;
     if (r.base !== null) {
       if (!basisVillkor) invalid();
@@ -222,12 +239,15 @@ export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraft
     if (base) {
       const byId = new Map(at.map(p => [p.lesson, p])), linked = new Set(parsedSource.lessonSources.map(p => p.lesson));
       if (base.lessons.filter(l => l.day !== null).length !== at.length || base.lessons.length !== linked.size
-        || base.lessons.some(l => !linked.has(l.id) || l.day !== null && (byId.get(l.id)?.day !== l.day || byId.get(l.id)?.startMin !== l.startMin || byId.get(l.id)?.room !== l.roomId))
-        || locks.some(p => { const value = byId.get(p.lesson); return !value || value.day !== p.day || value.startMin !== p.startMin || value.room !== p.room; })
+        || base.lessons.some(l => { const p = byId.get(l.id); return !linked.has(l.id) || l.day !== null &&
+          (p?.day !== l.day || p?.startMin !== l.startMin || p?.room !== l.roomId || p?.ansvarig !== l.ansvarig); })
+        || locks.some(p => { const value = byId.get(p.lesson); return !value || value.day !== p.day || value.startMin !== p.startMin
+          || value.room !== p.room || p.ansvarig !== undefined && value.ansvarig !== p.ansvarig; })
         || datedActivities?.some(a => [...a.cancelled, ...a.moves].some(key => !byId.has(key.lesson)))) invalid();
     }
     return { documentVersion: 1, base, basisVillkor, workingVillkor, placements: at, locks, intentional: accepted,
       ...(datedActivities && { datedActivities }),
+      ...(datedActivityDefinitions && { datedActivityDefinitions }),
       datedOverrides: dates, activityTypes: activityTypes(r.activityTypes), control: r.control === null ? null : parseSchemaKontroll(r.control, base!.grundFingerprint),
       requiresRecalculation: bool(r.requiresRecalculation), source: parsedSource };
   } catch (error) {
@@ -239,10 +259,11 @@ export function parseSchemaDraftDocument(value: unknown, scope: Pick<SchemaDraft
 export function parseSchemaDraft(value: unknown, scope: SchemaDraftScope): SchemaDraft {
   const r = record(value);
   const required = ['id', 'name', 'revision', 'savedAt', 'contentHash', 'sourceHash', 'stale', ...DOCUMENT_KEYS];
-  keys(r, [...required, 'resetUndoRevision', 'datedActivities'], required);
+  keys(r, [...required, 'resetUndoRevision', 'datedActivities', 'datedActivityDefinitions'], required);
   const document = parseSchemaDraftDocument({
     ...Object.fromEntries(DOCUMENT_KEYS.map(k => [k, r[k]])),
     ...(Object.hasOwn(r, 'datedActivities') && { datedActivities: r.datedActivities }),
+    ...(Object.hasOwn(r, 'datedActivityDefinitions') && { datedActivityDefinitions: r.datedActivityDefinitions }),
   }, scope);
   const revision = integer(r.revision, 1, 2147483647), stale = bool(r.stale);
   const resetUndoRevision = Object.hasOwn(r, 'resetUndoRevision') ? integer(r.resetUndoRevision, 1, revision - 1) : undefined;
@@ -278,6 +299,7 @@ export function parseSchemaDraftStatusReply(value: unknown, expected: SchemaDraf
 export function schemaDraftDocument(draft: SchemaDraftDocument): SchemaDraftDocument {
   return { documentVersion: 1, base: draft.base, basisVillkor: draft.basisVillkor, workingVillkor: draft.workingVillkor, placements: draft.placements,
     ...(draft.datedActivities?.length && { datedActivities: draft.datedActivities }),
+    ...(draft.datedActivityDefinitions?.length && { datedActivityDefinitions: draft.datedActivityDefinitions }),
     locks: draft.locks, intentional: draft.intentional, datedOverrides: draft.datedOverrides, activityTypes: draft.activityTypes, control: draft.control,
     requiresRecalculation: draft.requiresRecalculation, source: draft.source };
 }

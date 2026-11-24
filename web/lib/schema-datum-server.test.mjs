@@ -284,15 +284,18 @@ test('provförslaget lämnar inget underlag utan mandat, och tom provplan läser
   assert.equal(state.validations.length, 0);
 });
 
-async function applyFixture() {
+async function applyFixture(retainActivity = false) {
   reset();
   const { plan } = state.fixture;
   state.prov = { id: id(101), datum: '2027-01-25', startMin: 480, slutMin: 540, namn: 'Syntetiskt läsprov', undervisning: `undervisning:${plan.classes[1].needs[0].sourceKey}`,
     mal: { slag: 'klass', ref: plan.classes[1].classId }, tidsval: 'period', salId: null, vakter: [], kontrolleradDatum: '2026-11-19' };
   const preview = { ...input(), datedOverrides: [] };
   const { unitId, schoolYear, period, grundFingerprint, villkor, placements } = preview;
+  const definition = { id: id(105), name: 'Syntetisk friluftsdag', date: '2027-01-27', startMin: 540, endMin: 600,
+    classRefs: [plan.classes[1].classId], credit: null, resourceLocks: { roomId: 'ingen', teacherRef: null } };
   const saved = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: id(109), draftId: null, expectedRevision: 0,
-    name: 'Syntetiskt utkast', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint, placements, locks: [] }));
+    name: 'Syntetiskt utkast', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint, placements, locks: [],
+    ...(retainActivity && { datedActivityDefinitions: [definition] }) }));
   assert.equal(saved.status, 200);
   const calculated = await provforslag(request(preview));
   assert.equal(calculated.status, 200);
@@ -300,17 +303,19 @@ async function applyFixture() {
   assert.ok(bokningar[0].sal && bokningar[0].vakter.length);
   assert.ok(ersattningar.length && bortfall.every(b => b.kvarMin === 0));
   return { input: { contractVersion: SCHEMA_CONTRACT_VERSION, unitId, schoolYear, period, grundFingerprint, commandId: id(108), expectedRevision: 1,
-    provrevision: 1, resultHash: await schemaDraftHash({ bokningar, bortfall, ersattningar }) }, bokningar, ersattningar };
+    provrevision: 1, resultHash: await schemaDraftHash({ bokningar, bortfall, ersattningar }) }, bokningar, ersattningar, definition };
 }
 
 test('prov och ersättningstid sparas med ett rektorskommando och svarar med samma kvittens vid omförsök', async t => {
   t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
-  const { input: command, bokningar, ersattningar } = await applyFixture();
+  const { input: command, bokningar, ersattningar, definition } = await applyFixture(true);
   const response = await tillampa(request(command));
   const body = await response.json();
   assert.equal(response.status, 200, JSON.stringify(body));
   assert.equal(body.revision, 2); assert.equal(body.provrevision, 2);
   assert.deepEqual(state.draft.document.datedOverrides, ersattningar);
+  assert.deepEqual(state.draft.document.datedActivityDefinitions, [definition]);
+  assert.equal(Object.hasOwn(state.draft.document, 'datedActivities'), false);
   assert.equal(state.prov.salId, bokningar[0].sal.id); assert.deepEqual(state.prov.vakter, bokningar[0].vakter.map(v => v.ref));
   const repeat = await tillampa(request(command));
   assert.equal(repeat.status, 200); assert.deepEqual(await repeat.json(), body);

@@ -136,9 +136,12 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
       const rules = u.villkor.egna.filter((r): r is TimeRule => (r.typ === 'sparrad' || r.typ === 'tillaten') && (r.slag === 'amne' && r.ref === occurrence.lesson.title
         || r.slag === 'klass' && mine.includes(r.ref) || r.slag === 'grupp' && source.parts.groups.includes(r.ref) || r.slag === 'larare' && persons.includes(r.ref)));
       const { locked: _locked, periods: _periods, allowed: _allowed, ...remaining } = original;
+      const ansvarig = u.problem.aktivitetsResurser?.[occurrence.lesson.id]?.ansvariga?.find(a => a.ref === occurrence.lesson.ansvarig);
+      const tom = { before_min: 0, after_min: 0 };
       // Samma datum delar period, även när en höstundervisning flyttas till våren. Timplansavvikelsen redovisas separat.
       placements.push({ lesson: id, day, startMin: occurrence.lesson.startMin!, room: occurrence.lesson.roomId });
       return { ...remaining, id, duration_min: occurrence.length, groups: unique([...source.parts.classes, ...source.parts.groups]).map(ref => ids.get(ref) ?? fail()),
+        ...(ansvarig && { teachers: [...remaining.teachers, ansvarig.id], margin: { students: remaining.margin?.students ?? tom, rooms: remaining.margin?.rooms ?? tom, teachers: ansvarig.marginal } }),
         ...(rules.length ? { allowed: schemaDatumTillganglighet(rules, day) } : {}) };
     });
     const links: NonNullable<SchemaProblem['links']> = [];
@@ -152,7 +155,7 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
       } else for (let i = 0; i < linked.length; i++) for (let j = i + 1; j < linked.length; j++)
         if (linked[i][1].lesson.id !== linked[j][1].lesson.id) links.push({ kind: link.kind, lessons: [linked[i][0], linked[j][0]] });
     }
-    const { periods: _periods, reference: _reference, links: _links, ...problem } = u.problem;
+    const { periods: _periods, reference: _reference, links: _links, aktivitetsResurser: _resurser, ...problem } = u.problem;
     return { date, occurrences, placements, groupIdsByRef: ids, pupilsByGroup,
       problem: { ...problem, id: `datum-${date}`, groups, clusters, activities: u.problem.activities.map(a => ({ id: a.id })), lessons, ...(links.length ? { links } : {}) } };
   });
