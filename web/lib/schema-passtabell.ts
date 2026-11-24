@@ -4,7 +4,7 @@
 import type { SchemaForslag, SchemaRegel, SchemaTerm, SchemaViolation } from './schema-contract.ts';
 import { avvikelseRad, resursRefs } from './schema-utkast.ts';
 import { schemaDateText, schemaWeekday, type SchemaVeckaVal } from './schema-vecka.ts';
-import { schemaDatumTillfallen, type SchemaDatumAndring } from './schema-datum.ts';
+import { schemaDatumTillfallen, type SchemaDatumAndring, type SchemaDatumTillfalle } from './schema-datum.ts';
 import { aktivitetsVeckorText } from './schema-aktiviteter.ts';
 
 export type PassStatus = 'lagd' | 'viloyta' | 'avvikelse' | 'last';
@@ -16,7 +16,7 @@ const klocka = (m: number) => `${String(Math.floor(m / 60)).padStart(2, '0')}:${
 export type PassRad = {
   id: string; undervisning: string;
   /** Daterad rad har originalets tillfällesnyckel; ändringar behåller både pass-ID och originaldatum. */
-  lessonId?: string; datum?: string; originalDate?: string; datumAndrat?: boolean;
+  lessonId?: string; datum?: string; originalDate?: string; datumAndrat?: boolean; ersattEfterProv?: boolean;
   aktivitetTyp?: string;
   aktivitetVeckor?: string;
   /** Undervisningen raden hör till: ämnet och klasserna, som i Tid över läsåret. */
@@ -49,12 +49,12 @@ export const undervisningsNyckel = (titel: string, klasser: string[]) => `${tite
  * Passtabellens rader. `term` är terminen veckan visar: ett pass som går hela läsåret visas med sin längd den terminen, som i veckan.
  * `violations` är kontrollens svar för villkoren som prövas (null när ingen kontroll har körts); `egna` är de egna villkor som prövas.
  */
-export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: SchemaViolation[] | null, egna: SchemaRegel[], visning?: SchemaVeckaVal, datedOverrides: SchemaDatumAndring[] = []): PassRad[] {
+export function passRader(f: PassTabellUnderlag, term: SchemaTerm, violations: SchemaViolation[] | null, egna: SchemaRegel[], visning?: SchemaVeckaVal, datedOverrides: SchemaDatumAndring[] = [], datumTillfallen?: SchemaDatumTillfalle[], ersattaEfterProv?: ReadonlySet<string>): PassRad[] {
   if (visning && visning.mode !== 'grundschema' && f.time?.calendar) {
     const base = new Map(passRader(f, term, violations, egna).map(r => [r.id, r]));
-    return schemaDatumTillfallen({ lessons: f.lessons, trims: f.trims, time: f.time, rooms: f.rooms, period: f.period }, visning, datedOverrides).flatMap(o => {
+    return (datumTillfallen ?? schemaDatumTillfallen({ lessons: f.lessons, trims: f.trims, time: f.time, rooms: f.rooms, period: f.period }, visning, datedOverrides)).flatMap(o => {
       const r = base.get(o.lesson.id);
-      return r ? [{ ...r, id: o.key, lessonId: o.lesson.id, datum: o.date, originalDate: o.originalDate, datumAndrat: o.changed, dag: schemaWeekday(o.date), start: o.lesson.startMin, slut: o.lesson.startMin! + o.length, salId: o.lesson.roomId, sal: f.rooms.find(s => s.id === o.lesson.roomId)?.name ?? '', langd: o.length, termin: o.term, kortareVeckor: 0,
+      return r ? [{ ...r, id: o.key, lessonId: o.lesson.id, datum: o.date, originalDate: o.originalDate, datumAndrat: o.changed, ...(ersattaEfterProv?.has(o.key) && { ersattEfterProv: true }), dag: schemaWeekday(o.date), start: o.lesson.startMin, slut: o.lesson.startMin! + o.length, salId: o.lesson.roomId, sal: f.rooms.find(s => s.id === o.lesson.roomId)?.name ?? '', langd: o.length, termin: o.term, kortareVeckor: 0,
         sok: [r.undervisning, ...r.klasser.map(x => x.namn), ...r.grupper.map(x => x.namn), ...r.larare.map(x => x.namn),
           f.rooms.find(s => s.id === o.lesson.roomId)?.name ?? '', VECKODAGAR[schemaWeekday(o.date)], klocka(o.lesson.startMin!),
           PASS_STATUS[r.status], r.orsak ?? '', r.aktivitetTyp ?? '', o.date, schemaDateText(o.date)].join(' ').toLocaleLowerCase('sv-SE') }] : [];

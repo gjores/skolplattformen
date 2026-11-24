@@ -1,4 +1,5 @@
 import { parseConflictDetails, type ConflictDetails } from './pupil-register-model.ts';
+import { parseSchemaNyttProvHinder, type SchemaNyttProvHinder } from './schema-nytt-prov.ts';
 import { messageText, reduceEpochHeader } from './session-channel.ts';
 
 export class ApiError extends Error {
@@ -11,6 +12,7 @@ export class ApiError extends Error {
   public reason: string | null;
   /** Validerade verksamhetsfel för undervisningens uppdelning. */
   public issues: string[];
+  public schemaNyttProv: SchemaNyttProvHinder | null;
   constructor(
     code: string,
     status: number,
@@ -19,6 +21,7 @@ export class ApiError extends Error {
     hasExplicitCode = false,
     reason: string | null = null,
     issues: string[] = [],
+    schemaNyttProv: SchemaNyttProvHinder | null = null,
   ) {
     super(messageText(code));
     this.name = 'ApiError';
@@ -29,6 +32,7 @@ export class ApiError extends Error {
     this.hasExplicitCode = hasExplicitCode;
     this.reason = reason;
     this.issues = issues;
+    this.schemaNyttProv = schemaNyttProv;
   }
 }
 
@@ -140,7 +144,8 @@ async function request<T>(
         ? (error.details as { issues?: unknown }).issues : null;
       const issues = Array.isArray(rawIssues) && rawIssues.length > 0 && rawIssues.length <= 20
         && rawIssues.every(x => typeof x === 'string' && x.length > 0 && x.length <= 4000 && !Array.from(x).some(c => c.charCodeAt(0) < 32 && !['\t', '\n', '\r'].includes(c))) ? rawIssues as string[] : [];
-      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason, issues);
+      const provhinder = reason === 'schema_nytt_prov_unresolved' && response.status === 409 ? parseSchemaNyttProvHinder(error.details) : null;
+      throw new ApiError(code, response.status, correlationId, details, hasExplicitCode, reason, issues, provhinder);
     }
     if (unexpectedEpoch) {
       throw new DOMException('Begäran tillhör en tidigare kontext.', 'AbortError');

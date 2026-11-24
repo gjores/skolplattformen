@@ -229,7 +229,11 @@ Du kan ändra eller ta bort en bokning från listan. Efter en ändring behöver 
 
 När det finns ett schemautkast kan du öppna **Lägg schema → Bokade nationella prov**. Listan visar sparade bokningar från provplanen i **Läsår & skoldagar**. Välj **Visa provdagen** vid en bokning för att öppna datumet och den bokade klassen eller undervisningsgruppen.
 
-Provrutan visar tid och deltagare på bokningsdatumet i **Vecka** eller **Datumintervall**. Salen visas när den är vald. Välj **Öppna provförslag** i listan eller vid provveckan för att se vilka undervisningspass som behöver flyttas och vilka resurser som kan användas för provet.
+Provrutan visar tid och deltagare på bokningsdatumet i **Vecka** eller **Datumintervall**. Salen visas när den är vald. Ett ordinarie undervisningstillfälle ställs in när provet krockar med dess elever, sal eller lärare. Tillfällen som väntar på ersättning visas vid provdagen. En redan omlagd lektion visas på sin nya tid.
+
+När rektor väljer **Räkna om schemat** eller **Ta fram schemaförslag** ingår periodens bokade nationella prov. Motorn prövar i första hand lediga och lämpliga salar och provvakter från undervisningen som ställs in. Manuella provval gäller. I **Granska** ser du ersatt undervisningstid per undervisning. Välj **Använd förslaget** för att spara placeringarna, ersättningstillfällena och provresurserna tillsammans.
+
+Välj **Öppna provförslag** i listan eller vid provveckan om du vill pröva proven med det befintliga veckoschemat.
 
 ### Granska provförslaget
 

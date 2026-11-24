@@ -2,6 +2,7 @@ import type { NationellProvbokning } from './nationella-prov.ts';
 import type { SchemaCheck, SchemaDatedDay, SchemaForslag, SchemaPlacement, SchemaProblem, SchemaRegel } from './schema-contract.ts';
 import { SchemaDatumError, schemaDatumNyckel, schemaDatumTermTillaten, type SchemaDatumAndring, type SchemaDatumTillfalle } from './schema-datum.ts';
 import { schemaDatumTillganglighet, schemaDatumUnderlag, type SchemaDatedBasis, type SchemaDatumDagUnderlag } from './schema-datum-underlag.ts';
+import { provHarGemensammaElever as shares, provKrockarMedPass, provTidOverlappar } from './schema-prov-krock.ts';
 import type { SchemaSal } from './schema-salregister.ts';
 import type { SchemaUnderlag } from './schema-underlag.ts';
 import { salLedig } from './schema-utan-sal.ts';
@@ -10,6 +11,7 @@ import type { TjanstPlanRead } from './tjanst-contract.ts';
 
 export type SchemaProvResursproblem = 'deltagare_saknas' | 'datum_utan_undervisning' | 'provkrock' | 'sal_saknas' | 'last_sal_olamplig'
   | 'vakt_saknas' | 'last_vakt_upptagen' | 'aktivitet_krock' | 'last_pass_krock' | 'provtid_utanfor_skoltid';
+export type SchemaLastVaktHinder = 'last_vakt_skoluppdrag_saknas' | 'last_vakt_tid_sparrad' | 'last_vakt_upptagen';
 type Vakt = { ref: string; name: string };
 export type SchemaProvBerakningIndata = {
   plan: TjanstPlanRead;
@@ -23,6 +25,7 @@ export type SchemaProvBerakningIndata = {
   lastaPass?: string[];
   tidigasteErsattning?: string;
   validate: (problem: SchemaProblem, placements: SchemaPlacement[]) => Promise<SchemaCheck>;
+  onLastVaktHinder?: (bokningId: string, hinder: SchemaLastVaktHinder) => void;
 };
 type Bokning = Pick<NationellProvbokning, 'id' | 'namn' | 'datum' | 'startMin' | 'slutMin'> & {
   deltagare: number; deltagarnamn: string; sal: Pick<SchemaSal, 'id' | 'name'> | null; vakter: Vakt[]; problem: SchemaProvResursproblem[];
@@ -38,15 +41,14 @@ type DatumPass = { pass: MotorPass; tillfalle: SchemaDatumTillfalle; elever: Rea
 type Prov = { bokning: NationellProvbokning; status: Bokning; elever: ReadonlySet<string>; dag?: SchemaDatumDagUnderlag };
 type Bortfall = DatumPass & { ref: string; flyttbar: boolean };
 type Provsal = SchemaSal & { platser: number };
-type Salalternativ = { sal: Provsal; prioritet: number };
-type Salurval = { status: Bokning; alternativ: Salalternativ[] };
+type Resursurval<T> = { status: Bokning; alternativ: { resurs: T; prioritet: number }[] };
 type Ersattningssokning = { pass: Bortfall; dagar: SchemaDatedDay[]; salar: (string | null)[]; datumIndex: number; provadeStarter: Set<number>; klar: boolean };
 type Ersattningskandidat = { flytt: SchemaDatumAndring; problem: SchemaProblem; placeringar: SchemaPlacement[] };
 type Part = keyof NonNullable<MotorPass['margin']>;
 type Tid = Pick<Bokning, 'startMin' | 'slutMin'>;
 
 const EMPTY = new Set<string>();
-const MAX_SALSTEG_PER_DAG = 5000;
+const MAX_RESURSSTEG_PER_DAG = 5000;
 const MIN_MOTORBUDGET = 48;
 const MAX_MOTORBUDGET = 192;
 const MOTORANROP_PER_BORTFALL = 8;
@@ -56,11 +58,6 @@ const SOKTID_MS = 10_000;
 
 function overlap(a: Tid, b: Tid, gap = 0) {
   return a.startMin < b.slutMin + gap && b.startMin < a.slutMin + gap;
-}
-
-function shares(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
-  for (const item of a) if (b.has(item)) return true;
-  return false;
 }
 
 function elever(dag: SchemaDatumDagUnderlag, grupper: string[]) {
@@ -96,50 +93,47 @@ function valjbaraVakter(vakter: SchemaProvBerakningIndata['vakter'], datum: stri
   return aktiva;
 }
 
-function fordelaProvsalar(urval: Salurval[]) {
+function fordelaProvresurser<T>(urval: Resursurval<T>[], resursId: (resurs: T) => string, rast = 0) {
   const antal = urval.length, vikt = antal + 1;
-  // En bokning med sal väger tyngre än återanvändningen, och en egen frigjord sal väger mest bland återanvända salar.
-  const salpoang = (prioritet: number) => vikt ** 2 + (prioritet === 2 ? vikt : 0) + (prioritet > 0 ? 1 : 0);
+  // Ge så många prov som möjligt en resurs. Prioritera därefter det egna provets frigjorda resurser.
+  const poangFor = (prioritet: number) => vikt ** 2 + (prioritet === 2 ? vikt : 0) + (prioritet > 0 ? 1 : 0);
   const ordnade = [...urval].sort((a, b) => a.alternativ.length - b.alternativ.length || b.status.deltagare - a.status.deltagare);
   const maxKvar = Array<number>(antal + 1).fill(0);
   for (let i = antal - 1; i >= 0; i--) {
     const [basta] = ordnade[i].alternativ;
-    maxKvar[i] = maxKvar[i + 1] + (basta ? salpoang(basta.prioritet) : 0);
+    maxKvar[i] = maxKvar[i + 1] + (basta ? poangFor(basta.prioritet) : 0);
   }
   const upptagna = new Map<string, Bokning[]>();
-  const valda = Array<Provsal | null>(antal).fill(null);
+  const valda = Array<T | null>(antal).fill(null);
   let basta = [...valda], bastaPoang = 0, steg = 0;
   function sok(index: number, poang: number) {
     if (poang > bastaPoang) {
       basta = [...valda];
       bastaPoang = poang;
     }
-    if (poang + maxKvar[index] <= bastaPoang || steg >= MAX_SALSTEG_PER_DAG) return;
+    if (poang + maxKvar[index] <= bastaPoang || steg >= MAX_RESURSSTEG_PER_DAG) return;
     steg++;
     const { status, alternativ } = ordnade[index];
-    for (const { sal, prioritet } of alternativ) {
-      const bokningar = upptagna.get(sal.id) ?? [];
-      if (bokningar.some(b => overlap(b, status))) continue;
+    for (const { resurs, prioritet } of alternativ) {
+      const id = resursId(resurs), bokningar = upptagna.get(id) ?? [];
+      if (bokningar.some(b => overlap(b, status, rast))) continue;
       bokningar.push(status);
-      upptagna.set(sal.id, bokningar);
-      valda[index] = sal;
-      sok(index + 1, poang + salpoang(prioritet));
+      upptagna.set(id, bokningar);
+      valda[index] = resurs;
+      sok(index + 1, poang + poangFor(prioritet));
       valda[index] = null;
       bokningar.pop();
-      if (steg >= MAX_SALSTEG_PER_DAG) return;
+      if (steg >= MAX_RESURSSTEG_PER_DAG) return;
     }
     sok(index + 1, poang);
   }
   sok(0, 0);
-  ordnade.forEach(({ status }, index) => {
-    const sal = basta[index];
-    if (sal) status.sal = { id: sal.id, name: sal.name };
-    else status.problem.push('sal_saknas');
-  });
+  return ordnade.map(({ status }, index) => ({ status, resurs: basta[index] }));
 }
 
 /** Bokningens tid ligger fast. Förhandsgranskningen räknar provtiden separat och sparar inga ändringar. */
-export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis, datedOverrides, bokningar, salar, vakter, lastaPass = [], tidigasteErsattning, validate }: SchemaProvBerakningIndata): Promise<SchemaProvBerakningResultat> {
+export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis, datedOverrides, bokningar, salar, vakter, lastaPass = [], tidigasteErsattning,
+  validate, onLastVaktHinder }: SchemaProvBerakningIndata): Promise<SchemaProvBerakningResultat> {
   if (!bokningar.length) return { bokningar: [], bortfall: [], ersattningar: [] };
   const kalender = forslag.time.calendar;
   if (!kalender) throw new SchemaDatumError('schema_datum_calendar_missing');
@@ -187,18 +181,20 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
   const overrideNycklar = new Set(prep.datedOverrides.map(schemaDatumNyckel));
   const fastPass = new Set([...lastaPass, ...(underlag.problem.links ?? []).filter(l => l.kind === 'simultaneous').flatMap(l => l.lessons)]);
   const bortfall = new Map<string, Bortfall>();
-  const salurval = new Map<string, Salurval[]>();
+  const salurval = new Map<string, Resursurval<Provsal>[]>();
+  const vakturval = new Map<string, Resursurval<Vakt>[]>();
   for (const tentamen of prov) {
     if (!tentamen.dag || !tentamen.elever.size) continue;
     const { bokning, status } = tentamen;
-    if (prov.some(annat => annat !== tentamen && annat.status.datum === status.datum && overlap(annat.status, status) && shares(annat.elever, tentamen.elever))) {
+    if (prov.some(annat => annat !== tentamen && annat.status.datum === status.datum && provTidOverlappar(annat.status, status) && shares(annat.elever, tentamen.elever))) {
       status.problem.push('provkrock');
     }
     for (const pass of passPerDag.get(status.datum) ?? []) {
       const { tillfalle } = pass;
-      if (!(shares(pass.elever, tentamen.elever) && partKrock(pass, 'students', tentamen)
-        || bokning.salId !== null && tillfalle.lesson.roomId !== null && tillfalle.lesson.roomId === salnummer.get(bokning.salId) && partKrock(pass, 'rooms', tentamen)
-        || pass.pass.teachers.some(id => bokning.vakter.includes(underlag.teacherRefs[id])) && partKrock(pass, 'teachers', tentamen))) continue;
+      const material = passTid(tillfalle.lesson.startMin!, pass.pass);
+      if (!provKrockarMedPass({ ...material, elever: pass.elever, salId: tillfalle.lesson.roomId,
+        lararRefs: pass.pass.teachers.map(id => underlag.teacherRefs[id]) },
+      { ...status, elever: tentamen.elever, salId: salnummer.get(bokning.salId ?? '') ?? null, vakter: bokning.vakter })) continue;
       if (tillfalle.lesson.egenAktivitet) {
         if (!status.problem.includes('aktivitet_krock')) status.problem.push('aktivitet_krock');
         continue;
@@ -222,9 +218,9 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     const salLedig = (sal: SchemaSal) => oppet(underlag.villkor, 'sal', sal.name, vecka, status)
       && !upptagna.some(p => p.tillfalle.lesson.roomId !== null && p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen))
       && !andraProv.some(p => p.bokning.salId === sal.id && overlap(p.status, status));
-    const vaktLedig = (ref: string) => oppet(underlag.villkor, 'larare', ref, vecka, status)
-      && !upptagna.some(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === ref) && partKrock(p, 'teachers', tentamen))
-      && !andraProv.some(p => (p.bokning.vakter.includes(ref) || p.status.vakter.some(v => v.ref === ref)) && overlap(p.status, status, gap));
+    const vaktTillatenTid = (ref: string) => oppet(underlag.villkor, 'larare', ref, vecka, status);
+    const vaktUtanKrock = (ref: string) => !upptagna.some(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === ref) && partKrock(p, 'teachers', tentamen))
+      && !andraProv.some(p => p.bokning.vakter.includes(ref) && overlap(p.status, status, gap));
     const aktiva = valjbaraVakter(vakter, status.datum);
     const salLamplig = (sal: SchemaSal): sal is Provsal => sal.platser !== null && sal.platser >= status.deltagare && salLedig(sal);
     const kanForesla = !status.problem.includes('provkrock') && !status.problem.includes('provtid_utanfor_skoltid');
@@ -234,24 +230,43 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     } else if (kanForesla) {
       const alternativ = salar.filter(salLamplig).map(sal => {
         const frigjordaPass = frigorda.filter(p => p.tillfalle.lesson.roomId === salnummer.get(sal.id) && partKrock(p, 'rooms', tentamen));
-        const egenFrigjordSal = frigjordaPass.some(p => shares(tentamen.elever, p.elever) && partKrock(p, 'students', tentamen));
-        return { sal, prioritet: egenFrigjordSal ? 2 : frigjordaPass.length ? 1 : 0 };
-      }).sort((a, b) => b.prioritet - a.prioritet || a.sal.platser - b.sal.platser || a.sal.id.localeCompare(b.sal.id));
+        const egenFrigjordSal = frigjordaPass.some(p => shares(tentamen.elever, p.elever) && provTidOverlappar(passTid(p.tillfalle.lesson.startMin!, p.pass), status));
+        return { resurs: sal, prioritet: egenFrigjordSal ? 2 : frigjordaPass.length ? 1 : 0 };
+      }).sort((a, b) => b.prioritet - a.prioritet || a.resurs.platser - b.resurs.platser || a.resurs.id.localeCompare(b.resurs.id));
       const urval = salurval.get(status.datum) ?? [];
       urval.push({ status, alternativ });
       salurval.set(status.datum, urval);
     }
     if (bokning.vakter.length) {
-      if (bokning.vakter.some(ref => !aktiva.has(ref) || !vaktLedig(ref))) status.problem.push('last_vakt_upptagen');
+      const hinder = new Set<SchemaLastVaktHinder>();
+      for (const ref of bokning.vakter) {
+        if (!aktiva.has(ref)) hinder.add('last_vakt_skoluppdrag_saknas');
+        else if (!vaktTillatenTid(ref)) hinder.add('last_vakt_tid_sparrad');
+        else if (!vaktUtanKrock(ref)) hinder.add('last_vakt_upptagen');
+      }
+      if (hinder.size) {
+        status.problem.push('last_vakt_upptagen');
+        for (const orsak of hinder) onLastVaktHinder?.(bokning.id, orsak);
+      }
     } else if (kanForesla) {
-      const lediga = [...aktiva.values()].filter(v => vaktLedig(v.ref)).map(vakt => ({ vakt, frigjord: frigorda.some(p =>
-        p.pass.teachers.some(id => underlag.teacherRefs[id] === vakt.ref) && partKrock(p, 'teachers', tentamen)) }));
-      lediga.sort((a, b) => Number(b.frigjord) - Number(a.frigjord) || a.vakt.ref.localeCompare(b.vakt.ref));
-      if (lediga.length) status.vakter = [lediga[0].vakt];
-      else status.problem.push('vakt_saknas');
+      const alternativ = [...aktiva.values()].filter(v => vaktTillatenTid(v.ref) && vaktUtanKrock(v.ref)).map(vakt => {
+        const frigjordaPass = frigorda.filter(p => p.pass.teachers.some(id => underlag.teacherRefs[id] === vakt.ref) && partKrock(p, 'teachers', tentamen));
+        const egenFrigjordVakt = frigjordaPass.some(p => shares(tentamen.elever, p.elever) && provTidOverlappar(passTid(p.tillfalle.lesson.startMin!, p.pass), status));
+        return { resurs: vakt, prioritet: egenFrigjordVakt ? 2 : frigjordaPass.length ? 1 : 0 };
+      }).sort((a, b) => b.prioritet - a.prioritet || a.resurs.ref.localeCompare(b.resurs.ref));
+      const urval = vakturval.get(status.datum) ?? [];
+      urval.push({ status, alternativ });
+      vakturval.set(status.datum, urval);
     }
   }
-  for (const urval of salurval.values()) fordelaProvsalar(urval);
+  for (const urval of salurval.values()) for (const { status, resurs } of fordelaProvresurser(urval, sal => sal.id)) {
+    if (resurs) status.sal = { id: resurs.id, name: resurs.name };
+    else status.problem.push('sal_saknas');
+  }
+  for (const urval of vakturval.values()) for (const { status, resurs } of fordelaProvresurser(urval, vakt => vakt.ref, underlag.problem.rules.break_min)) {
+    if (resurs) status.vakter = [resurs];
+    else status.problem.push('vakt_saknas');
+  }
 
   const ersattningar: SchemaDatumAndring[] = [], ersatt = new Set<string>();
   const sokningar: Ersattningssokning[] = [];
@@ -265,11 +280,15 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
     const salar = [...new Set([ursprung.roomId, ...ursprung.roomIds])].filter(id => id !== null || ursprung.roomIds.length === 0);
     sokningar.push({ pass, dagar, salar, datumIndex: 0, provadeStarter: new Set(), klar: false });
   }
+  // Ge långa eller begränsade tillfällen första chansen till de få sammanhängande luckor där de kan få plats.
+  sokningar.sort((a, b) => a.dagar.length - b.dagar.length || a.salar.length - b.salar.length
+    || b.pass.tillfalle.length - a.pass.tillfalle.length);
   const sluttid = performance.now() + SOKTID_MS;
   function nastaKandidat(sokning: Ersattningssokning): Ersattningskandidat | null {
     const { pass, tillfalle, elever: tidigareElever } = sokning.pass;
     const ursprung = tillfalle.lesson;
     const historik = [...prep.datedOverrides, ...ersattningar];
+    const andraInstallda = new Set([...bortfall].filter(([key, p]) => key !== tillfalle.key && p.flyttbar && !ersatt.has(key)).map(([key]) => key));
     for (let i = sokning.datumIndex; i < sokning.dagar.length && performance.now() <= sluttid; i++) {
       if (i !== sokning.datumIndex) {
         sokning.datumIndex = i;
@@ -283,7 +302,7 @@ export async function schemaProvBerakning({ plan, underlag, forslag, datedBasis,
       const preliminar = { lesson: ursprung.id, originalDate: tillfalle.originalDate, date: dag.date, startMin: ramar.start_min, room: sokning.salar[0] ?? null, durationMin: tillfalle.length };
       let datumbild: SchemaDatumDagUnderlag | undefined;
       try {
-        const kandidat = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, [...historik, preliminar], [dag.date], true, 'valdaDatum');
+        const kandidat = schemaDatumUnderlag(plan, underlag, forslag, datedBasis, [...historik, preliminar], [dag.date], true, 'valdaDatum', andraInstallda);
         if (kandidat.violations.length) continue;
         [datumbild] = kandidat.days;
       } catch (error) {

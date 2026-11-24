@@ -68,6 +68,45 @@ test('två samtidiga prov använder salarna från respektive klass flyttade unde
   assert.deepEqual(await schemaProvBerakning({ ...data, bokningar: [...data.bokningar].reverse(), salar: [...data.salar].reverse() }), result);
 });
 
+test('samtidiga prov fördelar om en frigjord lärare om det krävs för att båda ska få provvakt', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.placements.push({ id: id(91), pupilId: id(81), startsOn: '2026-07-01', endsOn: null });
+  fixture.datedBasis.classMemberships.push({ placementId: id(91), pupilId: id(81), classId: id(11), startsOn: '2026-07-01', endsOn: null });
+  fixture.underlag.villkor.egna.push({ slag: 'larare', ref: id(18), typ: 'tillaten', days: [0], startMin: 480, endMin: 540 });
+  const bokningar = [prov(101), prov(102, { mal: { slag: 'klass', ref: id(11) }, startMin: 510, slutMin: 570 })];
+  const vakter = [vakt(20), vakt(18)];
+  const result = await schemaProvBerakning(input(fixture, { bokningar, vakter }));
+  assert.deepEqual(result.bokningar.map(b => [b.id, b.vakter[0]?.ref, b.problem]), [[id(101), id(18), []], [id(102), id(20), []]]);
+  assert.ok(result.bortfall.every(row => row.ersattMin === row.bortfallMin));
+});
+
+test('en lektion som bara möter provets starttid ställs inte in av schemats rastvillkor', async () => {
+  const fixture = datumFixture({ year: true });
+  const lesson = fixture.of('Matematik'), original = schemaDatumOriginal(fixture.f, { lesson: lesson.id, originalDate: dag });
+  fixture.underlag.problem.rules.break_min = 10;
+  const startMin = lesson.startMin + original.length;
+  const result = await schemaProvBerakning(input(fixture, { bokningar: [prov(101, { startMin, slutMin: startMin + 60 })] }));
+  assert.deepEqual(result.bortfall, []);
+  assert.deepEqual(result.ersattningar, []);
+  assert.equal(result.bokningar[0].vakter[0].ref, id(18));
+});
+
+test('låst provsal och provvakt tränger undan kurslektioner för andra elever var för sig', async () => {
+  const fixture = datumFixture({ year: true });
+  fixture.datedBasis.placements.push({ id: id(91), pupilId: id(81), startsOn: '2026-07-01', endsOn: null });
+  fixture.datedBasis.classMemberships.push({ placementId: id(91), pupilId: id(81), classId: id(11), startsOn: '2026-07-01', endsOn: null });
+  const original = schemaDatumOriginal(fixture.f, { lesson: fixture.of('Historia').id, originalDate: dag });
+  for (const resource of [{ salId: 'sal-6' }, { vakter: [id(21)] }]) {
+    const result = await schemaProvBerakning(input(fixture, { bokningar: [prov(101, { ...resource, startMin: 495, slutMin: 540 })] }));
+    assert.deepEqual(result.bokningar[0].problem, []);
+    if (resource.salId) assert.equal(result.bokningar[0].sal.id, resource.salId);
+    if (resource.vakter) assert.equal(result.bokningar[0].vakter[0].ref, resource.vakter[0]);
+    const history = result.bortfall.find(row => row.title.startsWith('Historia'));
+    assert.deepEqual([history?.bortfallMin, history?.ersattMin, history?.kvarMin], [original.length, original.length, 0]);
+    assert.ok(result.ersattningar.some(p => p.lesson === original.lesson.id && p.durationMin === original.length));
+  }
+});
+
 test('överlappande prov delar upp salarna även när ett tidigare prov behöver välja bort sin frigjorda sal', async () => {
   const fixture = datumFixture({ year: true });
   fixture.datedBasis.placements.push(...[81, 82].map((pupil, i) => ({ id: id(91 + i), pupilId: id(pupil), startsOn: '2026-07-01', endsOn: null })));

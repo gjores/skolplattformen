@@ -14,7 +14,7 @@ import { PASS_FILTER, PASS_KOLUMNER, PASS_STATUS, dagText, filterVal, filtreraPa
   type PassFilter, type PassGrupp, type PassKolumn, type PassRad, type PassSortering } from '@/lib/schema-passtabell.ts';
 import { hoursText } from './delat.ts';
 import type { SchemaVeckaVal } from '@/lib/schema-vecka.ts';
-import type { SchemaDatumAndring } from '@/lib/schema-datum.ts';
+import type { SchemaDatumAndring, SchemaDatumTillfalle } from '@/lib/schema-datum.ts';
 import { PassMenypunkter, oppnaMenyVid, passMenyHandelser, type PassAtgarder } from './meny.tsx';
 
 /** Tabellens val. Hålls i arbetsytan, så att filter och sortering står kvar när man byter till veckan och tillbaka. */
@@ -39,6 +39,8 @@ type Props = {
   term: SchemaTerm;
   visning?: SchemaVeckaVal;
   datedOverrides?: SchemaDatumAndring[];
+  datumTillfallen?: SchemaDatumTillfalle[];
+  ersattaEfterProv?: ReadonlySet<string>;
   onDatum?: (key: { lesson: string; originalDate: string }) => void;
   picked: string | null; checking: boolean; intentional?: string[];
   val: PassTabellVal; onVal: (next: PassTabellVal) => void;
@@ -55,9 +57,9 @@ type Props = {
   tabellRef: RefObject<HTMLDivElement | null>;
 };
 
-export function Passtabell({ forslag, violations, egna, term, visning, datedOverrides = [], onDatum, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef, intentional = [] }: Props) {
+export function Passtabell({ forslag, violations, egna, term, visning, datedOverrides = [], datumTillfallen, ersattaEfterProv, onDatum, picked, checking, val, onVal, atgarder, rubrik, onParkera, onLas, onAvbryt, tabellRef, intentional = [] }: Props) {
   const id = useId();
-  const rader = useMemo(() => passRader(forslag, term, violations, egna, visning, datedOverrides), [forslag, term, violations, egna, visning, datedOverrides]);
+  const rader = useMemo(() => passRader(forslag, term, violations, egna, visning, datedOverrides, datumTillfallen, ersattaEfterProv), [forslag, term, violations, egna, visning, datedOverrides, datumTillfallen, ersattaEfterProv]);
   const val_ = useMemo(() => filterVal(rader), [rader]);
   const synliga = useMemo(() => sorteraPass(filtreraPass(rader, val.filter, val.sok), val.sortering), [rader, val.filter, val.sok, val.sortering]);
   const grupper = useMemo(() => val.gruppera ? grupperaPass(synliga, forslag.teachings) : null, [val.gruppera, synliga, forslag.teachings]);
@@ -284,7 +286,7 @@ const Rad = memo(function Rad({ rad: r, aktivCol, vald, markerad, onVald, intent
     className={`${markerad ? 'passtabell-markerad' : ''}${r.status === 'avvikelse' ? ' passtabell-avvikelse' : ''}`}>
     <TableCell className="passtabell-valruta"><input type="checkbox" data-col={0} tabIndex={tab(0)} checked={vald} aria-label={`Välj ${radNamn(r)}`}
       onClick={e => onVald(r.id, e.shiftKey)} onChange={() => undefined}/></TableCell>
-    <TableCell data-col={1} tabIndex={tab(1)}>{r.datum && onDatum ? <Button type="button" variant="link" className="h-auto min-h-11 whitespace-normal p-0 text-left" onClick={() => onDatum({ lesson: r.lessonId!, originalDate: r.originalDate! })}>{r.undervisning}</Button> : <strong>{r.undervisning}</strong>}{r.datumAndrat && <span className="status-badge">Ändrat tillfälle</span>}{r.aktivitetTyp && <span className="schema-note"> · {r.aktivitetTyp}{r.datum ? " · Grundschemaaktivitet" : ""}</span>}{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
+    <TableCell data-col={1} tabIndex={tab(1)}>{r.datum && onDatum ? <Button type="button" variant="link" className="h-auto min-h-11 whitespace-normal p-0 text-left" onClick={() => onDatum({ lesson: r.lessonId!, originalDate: r.originalDate! })}>{r.undervisning}</Button> : <strong>{r.undervisning}</strong>}{r.datumAndrat && <span className="status-badge">{r.ersattEfterProv ? 'Ersättningslektion efter prov' : 'Ändrat tillfälle'}</span>}{r.aktivitetTyp && <span className="schema-note"> · {r.aktivitetTyp}{r.datum ? " · Grundschemaaktivitet" : ""}</span>}{markerad && <span className="passtabell-markering"> · Markerat</span>}</TableCell>
     <TableCell data-col={2} tabIndex={tab(2)}>{lista(r.klasser) || '–'}</TableCell>
     <TableCell data-col={3} tabIndex={tab(3)}>{lista(r.grupper) || '–'}</TableCell>
     <TableCell data-col={4} tabIndex={tab(4)}>{r.vakant ? 'Ingen lärare' : lista(r.larare) || '–'}</TableCell>

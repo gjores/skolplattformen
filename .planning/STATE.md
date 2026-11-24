@@ -23,16 +23,18 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 5f6a61988999895bbc9b2092ac9bf0c0a8ba5b35
-schema_candidate_revision: 5f6a61988999895bbc9b2092ac9bf0c0a8ba5b35
-schema_candidate_status: schema_activity_restart_installed_and_authenticated_preview_verified
+schema_runtime_revision: 40cc8040ac5b560bffc7a7c7148a9956cb1e2838
+schema_candidate_revision: 40cc8040ac5b560bffc7a7c7148a9956cb1e2838
+schema_candidate_status: schema_exam_cancellations_and_joint_recalculation_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: schema_activity_restart_installed_with_existing_revisions_preserved
+schema_installation_status: schema_exam_cancellations_installed_with_existing_revisions_preserved
 schema_exam_catalog_validator_status: repaired_on_3012_with_20261123221000
-user_trial_status: schema_activity_restart_installed_awaiting_user_trial
+user_trial_status: schema_exam_cancellations_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-24 – nationella prov bryter undervisningen på 3012.** Provbygget `40cc8040` visar inställda lektioner vid krock med deltagare, sal eller provvakt. Den vanliga omräkningen räknar fram ersättning för berörd undervisning och prioriterar frigjorda resurser. Ett inloggat prov på 3012 fann 27 krockande lektioner i det sparade utkastet och gav ett nytt förslag för tolv prov med 24 ersättningstillfällen. Schema- och provplanrevisionerna bevarades vid provet. [SM-PROV-BRYTER-UNDERVISNING](phases/05.2-schemamodul/05.2-SM-PROV-BRYTER-UNDERVISNING-SUMMARY.md)
 
 **2026-11-24 – aktivitetsbokningar efter tömning på 3012.** Provbygget `5f6a6198` rensar motorns aktivitetsplaceringar och bevarar aktivitetsbokningar och manuella val. Vid omräkning får olåsta resurser nya förslag. Det första förslaget efter tömning väntar på uttryckligt val. Verifierade skrivprov kördes med isolerade syntetiska uppgifter. Installationskontrollen bevarade innehållet i 24 tabeller inklusive 146 schemarevisioner och 27 provrevisionsposter. Ett inloggat förslag på 3012 gav en ansvarig lärare för en aktivitet med Ingen sal behövs. Helårsutkast och provplan var identiska efter provet. [SM-AKTIVITET-OMSTART](phases/05.2-schemamodul/05.2-SM-AKTIVITET-OMSTART-SUMMARY.md)
 

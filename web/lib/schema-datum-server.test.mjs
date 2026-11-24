@@ -6,6 +6,8 @@ import { SCHEMA_CONTRACT_VERSION } from './schema-contract.ts';
 import { datumFixture } from './schema-datum-fixture.mjs';
 import { parseSchemaDatumSvar } from './schema-datum.ts';
 import { parseSchemaProvforslagSvar } from './schema-provforslag.ts';
+import { parseSchemaNyttProvForslag, parseSchemaNyttProvSaveReply } from './schema-nytt-prov.ts';
+import { schemaDateradAktivitetsdefinition } from './schema-daterad-aktivitet.ts';
 import { SCHEMA_DRAFT_VERSION, schemaDraftHash } from './schema-draft-contract.ts';
 import { buildSchemaUnderlag } from './schema-underlag.ts';
 const id = n => `73111600-0000-4000-8000-${String(n).padStart(12, '0')}`, issuer = 'http://host.docker.internal:8180/realms/skolplattform-test';
@@ -24,7 +26,7 @@ const fake = globalThis.__schemaDatumServerTest = {
   async live(ctx, fn, ErrorClass) {
     if (state.liveDeny) throw new ErrorClass('assignment_ended', 403);
     const before = { draft: structuredClone(state.draft), receipts: structuredClone(state.receipts), prov: structuredClone(state.prov), provRevision: state.provRevision,
-      publication: structuredClone(state.publication) };
+      publication: structuredClone(state.publication), extraProvs: structuredClone(state.extraProvs) };
     state.inTransaction = true;
     try { return await fn(fake.tx, { ...ctx, accessFunction: state.role, epoch: state.epoch ?? 1, scopeKind: 'school' }); }
     catch (error) { Object.assign(state, before); throw error; }
@@ -33,7 +35,7 @@ const fake = globalThis.__schemaDatumServerTest = {
   tx: async (strings, ...values) => {
     const sql = strings.join('?');
     if (sql.includes('insert into public.security_events')) {
-      if (state.auditFails && values[8] === 'schema_dated_basis_read' && values[11] === 'ok') throw Error('synthetic-audit-failure');
+      if ((state.auditFails && values[8] === 'schema_dated_basis_read' || values[8] === state.auditFailsAction) && values[11] === 'ok') throw Error('synthetic-audit-failure');
       if (state.publicationAuditFails && values[8] === 'schema_publication_published' && values[11] === 'ok') throw Error('synthetic-publication-audit-failure');
       state.events.push({ action: values[8], outcome: values[11] }); return [];
     }
@@ -89,14 +91,21 @@ const fake = globalThis.__schemaDatumServerTest = {
   prov(_tx, _ctx, unitId, schoolYear) {
     state.reads.push('prov');
     if (unitId !== id(1) || schoolYear !== 2026) throw new Deny('forbidden', 403);
-    return state.prov ? { revision: state.provRevision, document: { granskad: false, bokningar: [state.prov] } } : null;
+    return state.prov ? { revision: state.provRevision, savedAt: '2026-11-20T12:00:00.000Z', document: { granskad: false, bokningar: [state.prov, ...state.extraProvs] } } : null;
   },
   async saveProv(_tx, _ctx, input) {
     assert.equal(state.inTransaction, true);
     assert.equal(input.expectedRevision, state.provRevision);
-    state.prov = input.document.bokningar[0];
+    [state.prov, ...state.extraProvs] = input.document.bokningar;
     state.provRevision++;
     return { register: { revision: state.provRevision, document: input.document }, replayed: false };
+  },
+  async solve(problem) {
+    assert.equal(state.inTransaction, false);
+    const known = new Set(problem.lessons.map(lesson => lesson.id));
+    const placements = state.fixture.placements.filter(p => known.has(p.lesson));
+    const unplaced = problem.lessons.filter(lesson => !placements.some(p => p.lesson === lesson.id)).map(lesson => lesson.id);
+    return { status: unplaced.length ? 'time_limit' : 'complete', placements, unplaced, diagnoses: [], metrics: { studentGapMin: 0, teacherGapMin: 0 }, elapsedMs: 1 };
   },
   async validate(problem, placements) {
     assert.equal(state.inTransaction, false, 'motorn får inte köras medan DB-transaktionen hålls');
@@ -104,7 +113,9 @@ const fake = globalThis.__schemaDatumServerTest = {
     state.validations.push({ problem, placements });
     if (state.changeDuringDatedValidation && problem.id.startsWith('datum-')) state.sourceChanged = true;
     if (state.engineFailure) throw new SchemaEngineError('schema_engine_unreachable');
-    return { violations: state.violation ? [{ code: 'room_clash', message: `${placements[0].lesson} krockar i provsalen.`, lessons: [placements[0].lesson], resources: ['sal-1'] }] : [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
+    state.competitor?.();
+    const violation = state.violation || state.weeklyViolation && !problem.id.startsWith('datum-');
+    return { violations: violation ? [{ code: 'room_clash', message: `${placements[0].lesson} krockar i provsalen.`, lessons: [placements[0].lesson], resources: ['sal-1'] }] : [], metrics: { studentGapMin: 0, teacherGapMin: 0 } };
   },
 };
 const draftWire = result => ({ contractVersion: 'schema_draft_sql_v1', actor: { identityId: id(4), assignmentId: id(6) }, result });
@@ -122,7 +133,7 @@ registerHooks({ load(url, context, next) {
   if (is('nationella-prov.ts')) source = `export const readNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.prov(...a);
     export const readNationellaProvMedMotorhistorik=async()=>{throw new Error('Oväntad historikläsning utanför tömning');};
     export const sparaNationellaProv=(...a)=>globalThis.__schemaDatumServerTest.saveProv(...a);`;
-  if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const validateSchema=(...a)=>globalThis.__schemaDatumServerTest.validate(...a);';
+  if (is('schemamotor.ts')) source = 'export class SchemaEngineError extends Error{constructor(reason){super(reason);this.reason=reason;}};export const validateSchema=(...a)=>globalThis.__schemaDatumServerTest.validate(...a); export const solveSchema=(...a)=>globalThis.__schemaDatumServerTest.solve(...a);';
   return source ? { format: 'module', source, shortCircuit: true } : next(url, context);
 } });
 const { Deny } = await import('./server/db.ts'), { SchemaEngineError } = await import('./server/schemamotor.ts');
@@ -131,7 +142,9 @@ const { POST: provforslag } = await import('../app/api/schema/provforslag/route.
 const { POST: tillampa } = await import('../app/api/schema/provforslag/tillampa/route.ts');
 const { POST: sparaUtkast } = await import('../app/api/schema/utkast/spara/route.ts');
 const { POST: publicering } = await import('../app/api/schema/publicering/route.ts');
-const reset = () => { state = { fixture: datumFixture(), role: 'rektor', reads: [], events: [], validations: [], draft: null, receipts: new Map(), provRevision: 1 }; };
+const { POST: nyttForslag } = await import('../app/api/schema/forslag/route.ts');
+const { POST: sparaNyttForslag } = await import('../app/api/schema/forslag/spara/route.ts');
+const reset = () => { state = { fixture: datumFixture(), role: 'rektor', reads: [], events: [], validations: [], draft: null, receipts: new Map(), provRevision: 1, extraProvs: [] }; };
 const input = () => ({ ...state.fixture.request, contractVersion: SCHEMA_CONTRACT_VERSION, grundFingerprint: state.fixture.f.grundFingerprint,
   placements: state.fixture.placements, datedOverrides: [state.fixture.change()], dates: [] });
 const request = (body = input(), headers = {}) => new Request('http://localhost:5199/api/schema/datum', { method: 'POST', headers: { Origin: 'http://localhost:5199', 'Content-Type': 'application/json', 'X-Context-Epoch': '1', ...headers }, body: JSON.stringify(body) });
@@ -338,4 +351,176 @@ test('tillämpning kräver rätt mandat och revision och rullar tillbaka provet 
   assert.equal(state.draft.revision, 1); assert.equal(state.provRevision, 1);
   assert.deepEqual(state.draft.document.datedOverrides, []);
   assert.equal(state.prov.salId, null); assert.deepEqual(state.prov.vakter, []);
+});
+
+function provbokning(override = {}) {
+  const klass = state.fixture.plan.classes[1];
+  return { id: id(101), datum: '2027-01-25', startMin: 480, slutMin: 540, namn: 'Syntetiskt läsprov', undervisning: `undervisning:${klass.needs[0].sourceKey}`,
+    mal: { slag: 'klass', ref: klass.classId }, tidsval: 'period', salId: null, vakter: [], kontrolleradDatum: '2026-11-19', ...override };
+}
+async function nyttProvkommando(commandId = id(107), period = 'lasar') {
+  const requestInput = { ...state.fixture.request, period };
+  const response = await nyttForslag(request({ ...requestInput, planeraProv: true }));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  const document = state.draft?.document;
+  const placedActivity = document?.datedActivities?.[0];
+  const definition = document?.datedActivityDefinitions?.[0] ?? (placedActivity && schemaDateradAktivitetsdefinition(placedActivity));
+  const { forslag, provplanering } = parseSchemaNyttProvForslag(body, requestInput, definition);
+  assert.ok(provplanering);
+  const { unitId, schoolYear, grundFingerprint, villkor, lessons } = forslag;
+  const { draftId, expectedRevision, provrevision, resultHash, sourceHash } = provplanering;
+  return { save: { contractVersion: SCHEMA_DRAFT_VERSION, commandId, unitId, schoolYear, period, draftId, expectedRevision,
+    name: 'Syntetiskt utkast', basisVillkor: villkor, workingVillkor: villkor, grundFingerprint,
+    placements: lessons.map(l => ({ lesson: l.id, day: l.day, startMin: l.startMin, room: l.roomId })), locks: [], datedOverrides: [], intentional: [], activityTypes: [] },
+  prov: { provrevision, resultHash, sourceHash } };
+}
+
+test('nytt schema med prov förhandsvisas skrivskyddat och sparar båda dokumenten för ett första utkast', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset(); state.prov = provbokning();
+  const command = await nyttProvkommando();
+  assert.equal(state.draft, null);
+  assert.equal(state.provRevision, 1);
+  assert.equal(state.prov.salId, null);
+  const response = await sparaNyttForslag(request(command));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  assert.equal(parseSchemaNyttProvSaveReply(body, command).revision, 1);
+  assert.ok(state.draft.document.datedOverrides.length);
+  assert.deepEqual(state.draft.document.placements, command.save.placements);
+  assert.equal(state.provRevision, 2);
+  assert.equal(state.prov.salId, 'sal-2');
+  assert.deepEqual(state.prov.vakter, [id(21)]);
+  const validations = state.validations.length;
+  const retry = await sparaNyttForslag(request(command));
+  assert.equal(retry.status, 200);
+  assert.deepEqual(await retry.json(), body);
+  assert.equal(state.validations.length, validations);
+  assert.equal(state.provRevision, 2);
+  assert.equal((await sparaNyttForslag(request({ ...command, save: { ...command.save, name: 'Annat utkast' } }))).status, 409);
+  assert.equal(state.draft.revision, 1);
+});
+
+test('samma resursval lämnar provrevisionen och bokningar utanför terminen orörda', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset();
+  state.prov = provbokning({ salId: 'sal-2', vakter: [id(21)] });
+  state.extraProvs = [provbokning({ id: id(102), datum: '2026-12-01' })];
+  const before = structuredClone({ prov: state.prov, extraProvs: state.extraProvs });
+  const command = await nyttProvkommando(id(107), 'vt');
+  const response = await sparaNyttForslag(request(command));
+  assert.equal(response.status, 200, JSON.stringify(await response.json()));
+  assert.equal(state.provRevision, 1);
+  assert.deepEqual({ prov: state.prov, extraProvs: state.extraProvs }, before);
+  assert.equal(state.draft.document.base.period, 'vt');
+  assert.ok(state.draft.document.datedOverrides.length);
+});
+
+test('nya provschemat kräver rektor, aktuell källa och helt planerad veckogrund', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset(); state.prov = provbokning();
+  const command = await nyttProvkommando();
+  state.role = 'administrator';
+  assert.equal((await sparaNyttForslag(request(command))).status, 403);
+  state.role = 'rektor'; state.noMfa = true;
+  assert.equal((await sparaNyttForslag(request(command))).status, 403);
+  state.noMfa = false;
+  assert.equal((await sparaNyttForslag(request(command, { Origin: 'https://annan.example.test' }))).status, 403);
+  assert.equal((await sparaNyttForslag(request({ ...command, prov: { ...command.prov, resultHash: `sha256:${'a'.repeat(64)}` } }))).status, 409);
+  const placements = command.save.placements.filter(p => p.day !== 1);
+  const partial = await sparaNyttForslag(request({ ...command, save: { ...command.save, placements } }));
+  assert.equal(partial.status, 409);
+  assert.equal((await partial.json()).details.reason, 'schema_provforslag_unresolved');
+  state.weeklyViolation = true;
+  const invalid = await sparaNyttForslag(request(command));
+  assert.equal(invalid.status, 409);
+  assert.equal((await invalid.json()).details.reason, 'schema_nytt_prov_weekly');
+  state.weeklyViolation = false;
+  state.competitor = () => { state.sourceChanged = true; state.competitor = undefined; };
+  const raced = await sparaNyttForslag(request(command));
+  assert.equal(raced.status, 409);
+  assert.ok(state.sourceChanged);
+  assert.equal((await raced.json()).details.reason, 'schema_provforslag_changed');
+  assert.equal(state.draft, null);
+  assert.equal(state.provRevision, 1);
+});
+
+test('sparfel och obligatoriskt auditfel återställer både provplanen och det nya utkastet', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset(); state.prov = provbokning();
+  const command = await nyttProvkommando();
+  state.rejectDraftCommit = true;
+  assert.equal((await sparaNyttForslag(request(command))).status, 409);
+  assert.equal(state.draft, null);
+  assert.equal(state.provRevision, 1);
+  assert.equal(state.prov.salId, null);
+  state.rejectDraftCommit = false;
+  state.auditFailsAction = 'schema_nytt_prov_saved';
+  assert.equal((await sparaNyttForslag(request(command))).status, 500);
+  assert.equal(state.draft, null);
+  assert.equal(state.receipts.size, 0);
+  assert.equal(state.provRevision, 1);
+  assert.equal(state.prov.salId, null);
+});
+
+test('provomräkning samplanerar en väntande aktivitet och nekar en inskickad ändring av den', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset(); state.prov = provbokning();
+  const { unitId, schoolYear, villkor } = state.fixture.request;
+  const definition = { id: id(106), name: 'Syntetisk friluftsdag', date: '2027-01-27', startMin: 540, endMin: 600,
+    classRefs: [state.fixture.plan.classes[1].classId], credit: null, resourceLocks: { roomId: 'ingen', teacherRef: null } };
+  const initial = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period: 'lasar', commandId: id(109),
+    draftId: null, expectedRevision: 0, name: 'Syntetiskt utkast', basisVillkor: null, workingVillkor: villkor,
+    grundFingerprint: null, placements: [], locks: [], datedActivityDefinitions: [definition] }));
+  assert.equal(initial.status, 200, JSON.stringify(await initial.json()));
+  const command = await nyttProvkommando();
+  const invalid = await sparaNyttForslag(request({ ...command, save: { ...command.save, datedActivityDefinitions: [] } }));
+  assert.equal(invalid.status, 409);
+  assert.equal((await invalid.json()).details.reason, 'schema_daterad_aktivitet_changed');
+  assert.equal(state.draft.revision, 1);
+  assert.equal(state.provRevision, 1);
+  const response = await sparaNyttForslag(request(command));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  assert.equal(parseSchemaNyttProvSaveReply(body, command).revision, 2);
+  assert.deepEqual(schemaDateradAktivitetsdefinition(state.draft.document.datedActivities[0]), definition);
+  assert.equal(Object.hasOwn(state.draft.document, 'datedActivityDefinitions'), false);
+  assert.ok(state.draft.document.datedOverrides.length);
+  assert.equal(state.provRevision, 2);
+
+  // Samma redan placerade aktivitet måste finnas kvar om en ny bokning krockar med den.
+  state.prov = { ...state.prov, datum: definition.date, startMin: definition.startMin, slutMin: definition.endMin };
+  state.provRevision++;
+  const kolliderar = await nyttProvkommando(id(108));
+  const before = structuredClone(state.draft);
+  const blockerad = await sparaNyttForslag(request(kolliderar));
+  assert.equal(blockerad.status, 409, JSON.stringify(await blockerad.json()));
+  assert.deepEqual(state.draft, before);
+  assert.equal(state.provRevision, 3);
+});
+
+test('gemensam omräkning behåller en manuell datumflytt och väljer resurser på nytt för det aktuella utkastet', async t => {
+  t.mock.timers.enable({ apis: ['Date'], now: new Date('2026-11-20T12:00:00.000Z') });
+  reset();
+  const motorval = { sal: id(110), vakter: [{ ref: id(20), draftId: id(110) }] };
+  state.prov = provbokning({ salId: 'sal-1', vakter: [id(20)], motorval });
+  const { unitId, schoolYear, period, grundFingerprint, villkor, placements } = input();
+  const manuell = state.fixture.change('2026-11-04');
+  const initial = await sparaUtkast(request({ contractVersion: SCHEMA_DRAFT_VERSION, unitId, schoolYear, period, commandId: id(109),
+    draftId: null, expectedRevision: 0, name: 'Syntetiskt utkast', basisVillkor: villkor, workingVillkor: villkor,
+    grundFingerprint, placements, locks: [], datedOverrides: [manuell] }));
+  assert.equal(initial.status, 200, JSON.stringify(await initial.json()));
+  const command = await nyttProvkommando();
+  assert.equal(state.prov.salId, 'sal-1');
+  assert.deepEqual(state.draft.document.datedOverrides, [manuell]);
+  const response = await sparaNyttForslag(request(command));
+  const body = await response.json();
+  assert.equal(response.status, 200, JSON.stringify(body));
+  assert.equal(parseSchemaNyttProvSaveReply(body, command).revision, 2);
+  assert.ok(state.draft.document.datedOverrides.some(flytt => JSON.stringify(flytt) === JSON.stringify(manuell)));
+  assert.ok(state.draft.document.datedOverrides.some(flytt => flytt.originalDate === state.prov.datum));
+  assert.equal(state.prov.salId, 'sal-2');
+  assert.deepEqual(state.prov.vakter, [id(21)]);
+  assert.deepEqual(state.prov.motorval, { sal: id(110), vakter: [{ ref: id(21), draftId: id(110) }] });
 });

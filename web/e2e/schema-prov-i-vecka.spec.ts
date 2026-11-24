@@ -14,24 +14,32 @@ const ids = {
   nastaVecka: '52a10000-0000-4000-8000-000000000013',
 };
 
-test('Lägg schema visar den sparade provdagen för rätt klass utan att ändra grundschemat', async ({ page, schemaDraftServer }) => {
+test('Provdagen ställer in krockande lektioner för klass och provvakt utan att ändra grundschemat', async ({ page, schemaDraftServer }) => {
   const forslag = source as unknown as SchemaForslag;
   const [klass1, klass2] = forslag.resurser.klass;
+  const provvakt = forslag.resurser.larare.find(l => l.name === 'Provlärare 7')!;
   const undervisning = (klass: typeof klass1) => ({ ref: `undervisning:engelska-${klass.ref}`, title: 'Engelska – nivå 1' });
   const bokning = (id: string, klass: typeof klass1, datum: string, salId: string | null): NationellProvbokning => ({
     id, namn: 'Engelska nivå 1, delprov C', mal: { slag: 'klass', ref: klass.ref }, undervisning: undervisning(klass).ref,
     datum, tidsval: 'fast', startMin: 540, slutMin: 630, kontrolleradDatum: '2026-10-19', salId, vakter: [],
   });
   const register: NationellaProvRegister = { revision: 4, savedAt: '2026-10-19T08:00:00.000Z', document: { granskad: true, bokningar: [
-    bokning(ids.klass1, klass1, date, 'sal-4'), bokning(ids.klass2, klass2, date, null), bokning(ids.nastaVecka, klass2, nextWeek, null),
+    bokning(ids.klass1, klass1, date, 'sal-4'), { ...bokning(ids.klass2, klass2, date, null), vakter: [provvakt.ref] }, bokning(ids.nastaVecka, klass2, nextWeek, null),
   ] } };
   const underlag: NationellaProvUnderlag = { gallerGymnasiet: true, deltagare: [klass1, klass2].map(klass => ({ ...klass, slag: 'klass', undervisningar: [undervisning(klass)] })),
-    salar: [{ id: 'sal-4', name: 'Ateljén' }], vakter: [], skoldagar: [date, nextWeek] };
+    salar: [{ id: 'sal-4', name: 'Ateljén' }], vakter: [provvakt], skoldagar: [date, nextWeek] };
   const lasningar: unknown[] = [], provSparanden: unknown[] = [];
   await page.route('**/api/lasar/nationella-prov/lasa', route => {
     const scope = route.request().postDataJSON();
     lasningar.push(scope);
     return route.fulfill({ headers, json: { ...scope, register, underlag } });
+  });
+  await page.route('**/api/schema/provdagar', route => {
+    const { contractVersion, unitId, schoolYear, period, grundFingerprint, provrevision, dates } = route.request().postDataJSON();
+    const installda = dates.includes(date)
+      ? ['pass-70', 'pass-75', 'pass-151', 'pass-291'].map(lesson => ({ lesson, originalDate: date, date })) : [];
+    return route.fulfill({ headers, json: { contractVersion, unitId, schoolYear, period, grundFingerprint, provrevision, dates,
+      installda, ersatta: [], deltagare: [] } });
   });
   await page.route('**/api/lasar/nationella-prov/spara', route => {
     provSparanden.push(route.request().postDataJSON());
@@ -69,10 +77,22 @@ test('Lägg schema visar den sparade provdagen för rätt klass utan att ändra 
   await expect(provdag.locator(`[data-prov="${ids.klass2}"]`)).toContainText('09:00–10:30');
   await expect(provdag.locator(`[data-prov="${ids.klass2}"]`)).toContainText('Sal återstår');
   await expect(provdag.locator('[data-prov]')).toHaveCount(1);
+  await expect(provdag.locator('[data-lesson="pass-70"], [data-lesson="pass-75"]')).toHaveCount(0);
+  await expect(provdag.locator('[data-lesson="pass-66"]')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Nationella prov i datumvyn' })).toContainText('2 lektioner är inställda');
+  await valjVeckoresurs(page, 'Provlärare 7', 'Lärare');
+  await expect(provdag.locator(`[data-prov="${ids.klass2}"]`)).toBeVisible();
+  await expect(provdag.locator('[data-lesson="pass-151"], [data-lesson="pass-291"]')).toHaveCount(0);
+  await expect(provdag.locator('[data-lesson="pass-469"]')).toBeVisible();
+
 
   await valjVeckoresurs(page, 'Klass 1', 'Klass');
   await expect(provdag.locator(`[data-prov="${ids.klass1}"]`)).toContainText('Klass 1 · Ateljén');
   await expect(provdag.locator(`[data-prov="${ids.klass2}"]`)).toHaveCount(0);
+  await page.getByRole('button', { name: 'Pass i tabell', exact: true }).click();
+  await expect(page.locator('tr[data-lesson="pass-70"], tr[data-lesson="pass-151"]')).toHaveCount(0);
+  await expect(page.locator('tr[data-lesson="pass-66"]')).toBeVisible();
+  await page.getByRole('group', { name: 'Visa schemat som' }).getByRole('button', { name: 'Vecka', exact: true }).click();
   await datumval.getByRole('button', { name: 'Grundschema', exact: true }).click();
   await expect(vecka.locator('[data-prov]')).toHaveCount(0);
   expect(await grundpass()).toEqual(innan);

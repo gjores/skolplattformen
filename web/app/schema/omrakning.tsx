@@ -3,6 +3,7 @@ import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import type { SchemaForslag, SchemaForslagLesson, SchemaKontroll, SchemaKvalitetsrad } from '@/lib/schema-contract.ts';
+import type { SchemaNyttProvPlanering } from '@/lib/schema-nytt-prov.ts';
 import type { SchemaOmrakning } from '@/lib/schema-omrakning.ts';
 import { PERIOD, clock, dayName, names } from './delat';
 import { Kvalitetsjamforelse } from './kvalitet.tsx';
@@ -13,7 +14,7 @@ function placering(pass: SchemaForslagLesson | null, sal: string | null) {
   return `${dayName(pass.day)} ${clock(pass.startMin)}–${clock(pass.startMin + pass.durationMin)} · ${sal ?? (pass.roomId ? 'Sal saknas i underlaget' : 'Ingen sal')}`;
 }
 
-export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andringar, passregler, avvikelsemarkeringar, stale, saving, error, datumproblem, datumavvikelser, aktivitet, aktivitetProblem, onApply, onKeep, onRetry, retryLabel }: {
+export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andringar, passregler, avvikelsemarkeringar, provbesked, provundervisning, stale, saving, error, datumproblem, datumavvikelser, aktivitet, aktivitetProblem, onApply, onKeep, onRetry, retryLabel }: {
   fore: SchemaForslag | null;
   efter: SchemaForslag;
   foreKontroll: SchemaKontroll | null;
@@ -21,6 +22,8 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
   andringar: SchemaOmrakning;
   passregler: string[];
   avvikelsemarkeringar: number;
+  provbesked?: string;
+  provundervisning?: SchemaNyttProvPlanering['undervisning'];
   stale: boolean;
   saving: boolean;
   error?: string;
@@ -42,6 +45,16 @@ export function Omrakningsgranskning({ fore, efter, foreKontroll, kontroll, andr
   return <section data-schema-omrakning className="schema-list min-w-0 space-y-3 border border-border bg-card p-4" aria-labelledby={id} aria-busy={saving}>
     <h2 id={id} ref={heading} tabIndex={-1} className="section-heading">Granska nytt schemaförslag</h2>
     <p>Ditt sparade schema ligger kvar tills du väljer <strong>Använd förslaget</strong>.</p>
+    {provbesked && <p>{provbesked}</p>}
+    {!!provundervisning?.length && <details className="rounded-lg border border-border p-3">
+      <summary className="cursor-pointer font-medium">Undervisning som ersätts efter nationella prov</summary>
+      <Table>
+        <TableHeader><TableRow><TableHead>Undervisning</TableHead><TableHead>Inställt</TableHead><TableHead>Ersatt</TableHead></TableRow></TableHeader>
+        <TableBody>{provundervisning.map(rad => <TableRow key={rad.ref}>
+          <TableCell>{rad.title}</TableCell><TableCell>{rad.bortfallMin} min</TableCell><TableCell>{rad.ersattMin} min</TableCell>
+        </TableRow>)}</TableBody>
+      </Table>
+    </details>}
     <dl className="grid grid-cols-2 gap-3 lg:grid-cols-4">
       <div><dt className="text-muted-foreground">Pass med tid</dt><dd>{gamlaLagda} → {kontroll.metrics.placed}</dd></div>
       <div><dt className="text-muted-foreground">Pass utan tid</dt><dd>{(fore?.lessons.length ?? 0) - gamlaLagda} → {kontroll.metrics.unplaced}</dd></div>
