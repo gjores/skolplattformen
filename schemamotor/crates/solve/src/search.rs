@@ -36,7 +36,7 @@ pub struct Ctl<'a> {
 
 pub struct Outcome {
     pub snap: Vec<(Option<Pos>, Vec<u16>)>,
-    pub obj: i64,
+    pub obj: Objective,
     pub iterations: u64,
     pub events: Vec<[u64; 4]>,
     pub bottlenecks: BTreeMap<(&'static str, Option<usize>), u64>,
@@ -50,7 +50,7 @@ struct Search<'a, 'b> {
     it: u64,
     plan: Plan,
     best: Vec<(Option<Pos>, Vec<u16>)>,
-    best_obj: i64,
+    best_obj: Objective,
     // attempts, moves, backtracks, ejections per samplacerad enhet.
     events: Vec<[u64; 4]>,
     bottlenecks: BTreeMap<(&'static str, Option<usize>), u64>,
@@ -196,7 +196,7 @@ impl<'a, 'b> Search<'a, 'b> {
     /// Bästa lediga plats för `u` bland alla, eller bland `sample` slumpade.
     fn best_free(&mut self, u: usize, sample: Option<usize>) -> Option<(usize, u32, Vec<u16>)> {
         let inst = self.inst;
-        let mut best: Option<(i64, usize, u32, Vec<u16>)> = None;
+        let mut best: Option<((Objective, u64), usize, u32, Vec<u16>)> = None;
         let mut plan = std::mem::take(&mut self.plan);
         let mut consider = |me: &mut Self, d: usize, s: u32, plan: &mut Plan| {
             let ok = me.st.plan(u, d, s, false, plan);
@@ -206,7 +206,7 @@ impl<'a, 'b> Search<'a, 'b> {
             }
             let mark = me.st.mark();
             me.st.place(u, d, s, &plan.rooms);
-            let obj = me.st.obj() * 8 + (me.rng.next() & 7) as i64;
+            let obj = (me.st.obj(), me.rng.next() & 7);
             me.st.rollback(mark);
             if best.as_ref().is_none_or(|b| obj < b.0) {
                 best = Some((obj, d, s, plan.rooms.clone()));
@@ -294,7 +294,7 @@ impl<'a, 'b> Search<'a, 'b> {
                 bk
             };
             let u = todo[k];
-            let mut best: Option<(f64, usize, u32)> = None;
+            let mut best = None;
             for d in 0..inst.days {
                 let mut m = inst.units[u].dom[d];
                 while m != 0 {
@@ -310,8 +310,9 @@ impl<'a, 'b> Search<'a, 'b> {
                         let before = self.st.soft;
                         self.st.place(u, d, s, &plan.rooms);
                         let delta = (self.st.soft - before) as f64;
+                        let after = self.st.obj();
                         self.st.rollback(mark);
-                        -1e12 + delta + self.rng.unit()
+                        (0, after.time, after.shortfall, delta + self.rng.unit())
                     } else {
                         let mut pen = 0.0;
                         for &v in &plan.eject {
@@ -319,9 +320,9 @@ impl<'a, 'b> Search<'a, 'b> {
                             let c = cbs[(v as usize * inst.days + vd as usize) * 128 + vs as usize];
                             pen += inst.units[v as usize].dur_min as f64 * (1.0 + c as f64);
                         }
-                        pen * (1.0 + 0.1 * self.rng.unit())
+                        (1, 0, 0, pen * (1.0 + 0.1 * self.rng.unit()))
                     };
-                    if best.is_none_or(|b| score < b.0) {
+                    if best.as_ref().is_none_or(|(value, _, _)| score < *value) {
                         best = Some((score, d, s));
                         std::mem::swap(&mut chosen, &mut plan);
                     }
@@ -422,9 +423,10 @@ impl<'a, 'b> Search<'a, 'b> {
             let mark = self.st.mark();
             let before = self.st.obj();
             if self.try_move(u, d, s) {
-                let delta = self.st.obj() - before;
+                let after = self.st.obj();
+                let delta = after.cost - before.cost;
                 // Bara önskemål: brott mot aktiviteternas tid ska inte höja temperaturen.
-                if delta > 0 && delta < TIME {
+                if after.priority() == before.priority() && delta > 0 && delta < TIME {
                     sum += delta as f64;
                     cnt += 1;
                 }
@@ -459,8 +461,11 @@ impl<'a, 'b> Search<'a, 'b> {
             let mark = self.st.mark();
             let before = self.st.obj();
             let moved = self.try_move(u, d, s);
-            let delta = self.st.obj() - before;
-            if !moved || (delta > 0 && (delta >= BIG || self.rng.unit() >= (-(delta as f64) / temp).exp())) {
+            let after = self.st.obj();
+            let (primary_before, primary_after) = (before.priority(), after.priority());
+            let delta = after.cost - before.cost;
+            if !moved || primary_after > primary_before || primary_after == primary_before
+                && delta > 0 && (delta >= BIG || self.rng.unit() >= (-(delta as f64) / temp).exp()) {
                 self.events[u][2] += 1;
                 self.st.rollback(mark);
             } else {
@@ -486,7 +491,7 @@ impl<'a, 'b> Search<'a, 'b> {
     /// starttid en veckodag som ändrar tiden åt rätt håll. Bara förbättringar behålls.
     fn repair_time(&mut self) {
         let inst = self.inst;
-        if inst.times.is_empty() || self.best_obj == i64::MAX {
+        if inst.times.is_empty() || self.best_obj == Objective::WORST {
             return;
         }
         let best = std::mem::take(&mut self.best);
@@ -540,7 +545,8 @@ impl<'a, 'b> Search<'a, 'b> {
 }
 
 pub fn run(inst: &Inst, ctl: &Ctl, seed: u64) -> Outcome {
-    let mut search = Search { st: State::new(inst), inst, ctl, rng: Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1), it: 0, plan: Plan::default(), best: Vec::new(), best_obj: i64::MAX, events: vec![[0; 4]; inst.units.len()], bottlenecks: BTreeMap::new() };
+    let best_obj = Objective::WORST;
+    let mut search = Search { st: State::new(inst), inst, ctl, rng: Rng(seed.wrapping_mul(0x9E3779B97F4A7C15) | 1), it: 0, plan: Plan::default(), best: Vec::new(), best_obj, events: vec![[0; 4]; inst.units.len()], bottlenecks: BTreeMap::new() };
     search.seed_start();
     search.best = search.st.snapshot();
     search.best_obj = search.st.obj();

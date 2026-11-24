@@ -94,10 +94,9 @@ export function schemaForbered({ kalla, villkor: v, las, provplan, provbokningsf
       `Rast ${v.breakMin} minuter`, `${n(tid, 'spärr eller tillåten tid', 'spärrar och tillåtna tider')}`, n(marginaler, 'marginal', 'marginaler')],
     kontroll: [fel.length ? fel[0] : 'Inga fel i villkoren.', ...(utanTraff ? [`${n(utanTraff, 'eget villkor träffar', 'egna villkor träffar')} inget i underlaget.`] : [])],
     saknas: fel.length ? 1 : 0, nasta: fel.length ? 'Rätta felen i villkoren' : null });
-  // Mål för schemat: motorns nuvarande ordning. Egen prioritering är inte byggd.
-  const mal = punkt('mal', 'Visa', ['standard', v.lateAfterMin], {
-    varden: ['Standardordning: elevernas och lärarnas håltid, sena pass och samma ämne samma dag', v.lateAfterMin === null ? 'Inget klockslag för sena pass' : `Pass efter ${kl(v.lateAfterMin)} räknas som sena`],
-    kontroll: ['Egen prioritering går inte att välja ännu. Obligatoriska krav påverkas inte av målen.'] });
+  const mal = punkt('mal', 'Visa', ['jamnare-undervisningsdagar', v.lateAfterMin], {
+    varden: ['Motorn försöker lägga minst två undervisningspass per ordinarie skoldag där veckans antal räcker', v.lateAfterMin === null ? 'Inget klockslag för sena pass' : `Pass efter ${kl(v.lateAfterMin)} räknas som sena`],
+    kontroll: ['Jämn lektionsfördelning vägs tillsammans med håltid, sena pass och samma ämne samma dag. Obligatoriska krav gäller före önskemålen.'] });
   return [underlag, lektioner, salar, larartider, aktiviteter, regler, mal];
 }
 

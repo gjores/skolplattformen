@@ -22,6 +22,7 @@ import { arsbehov, arstak, arsandelar, sammaArsresurser, arsmonsterGerTid, trimm
 
 /** Fasta ramar som inte är villkor: motorns tidssteg, flest pass per vecka, antagen klasstorlek, räknetid och veckor utan läsårskalender. */
 export const SCHEMA_DEFAULTS = { days: 5, stepMin: 5, maxLessonsPerWeek: 20, classSize: 25, solveTimeMs: 30_000, weeks: { ht: 18, vt: 20 } } as const;
+const LEKTIONSBALANS_VIKT = 5;
 
 /** En del av ett pass: en klass, eller en grupp vars elever avgör vilka som är upptagna. */
 type Part = { classIds: string[]; groupId: string | null; alone: boolean };
@@ -79,7 +80,11 @@ export function mergeSchemaMembers(sources: { pupils: { id: string; classIds: st
  * Det upptäcker ändringar och skyddar ingenting; servern bygger alltid underlaget själv ur sin egen läsning.
  */
 export function schemaFingerprint(problem: SchemaProblem, labels: SchemaLabels): string {
-  return hash(JSON.stringify([problem, labels]));
+  // En ny värdering av placeringarna påverkar inte vare sig giltigheten eller kvittensen för sparade placeringar.
+  const { student_day_balance: _veckodagar, ...underlag } = problem;
+  const { student_day_balance: _balansvikt, ...weights } = problem.weights;
+  const lessons = problem.lessons.map(({ instructional: _undervisning, ...lesson }) => lesson);
+  return hash(JSON.stringify([{ ...underlag, weights, lessons }, labels]));
 }
 /**
  * Grundens fingeravtryck (05.2-SM-VILLKOR-DIREKT): det som avgör vilka pass som finns och vilka som deltar. Passens ID, aktivitet, längd, lärare, grupper
@@ -293,13 +298,21 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   // Elevkluster: elever med exakt samma klasser och grupper under perioden (L5). Två pass krockar bara om de delar ett kluster.
   const from = time.terms[terms[0]].span?.start, to = time.terms[terms.at(-1)!].span?.end;
   const registered = new Set(members?.pupils.map(p => p.id)), groupsOf = new Map<string, Set<string>>();
+  const medlemITermin = new Map<string, Set<SchemaTerm>>();
   for (const m of members?.memberships ?? []) {
     if (!groupIndex.has(m.groupId) || !registered.has(m.pupilId)) continue;
     if (from !== undefined && to !== undefined && (m.startsOn > to || m.endsOn !== null && m.endsOn < from)) continue;
     groupsOf.set(m.pupilId, (groupsOf.get(m.pupilId) ?? new Set()).add(m.groupId));
+    const key = `${m.pupilId}/${m.groupId}`, medlem = medlemITermin.get(key) ?? new Set<SchemaTerm>();
+    for (const term of visibleTerms) {
+      const span = time.terms[term].span;
+      if (!span || m.startsOn <= span.end && (m.endsOn === null || m.endsOn >= span.start)) medlem.add(term);
+    }
+    medlemITermin.set(key, medlem);
   }
   const pad = (n: number) => String(n).padStart(6, '0');
-  const signatures = new Map<string, { classIds: string[]; groupIds: string[]; size: number }>();
+  type Signature = { classIds: string[]; groupIds: string[]; size: number; annanTermin: Map<SchemaTerm, Set<string>> };
+  const signatures = new Map<string, Signature>(), kandaKluster = new Map<string, Signature>();
   let pupils = 0;
   for (const p of members?.pupils ?? []) {
     const classIds = unique(p.classIds.filter(id => classNo.has(id))).sort((a, b) => plan.classes.findIndex(c => c.classId === a) - plan.classes.findIndex(c => c.classId === b));
@@ -307,7 +320,12 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     if (!classIds.length && !groupIds.length) continue;
     pupils += 1;
     const key = `${classIds.map(id => pad(Number(classNo.get(id)!.slice(6)))).join('.')}|${groupIds.map(id => pad(groupIndex.get(id)!)).join('.')}`;
-    const entry = signatures.get(key) ?? { classIds, groupIds, size: 0 };
+    const entry = signatures.get(key) ?? { classIds, groupIds, size: 0, annanTermin: new Map<SchemaTerm, Set<string>>() };
+    for (const groupId of groupIds) for (const term of visibleTerms) {
+      if (medlemITermin.get(`${p.id}/${groupId}`)?.has(term)) continue;
+      const grupper = entry.annanTermin.get(term) ?? new Set<string>();
+      grupper.add(groupId); entry.annanTermin.set(term, grupper);
+    }
     entry.size += 1; signatures.set(key, entry);
   }
   const classClusters = new Map<string, string[]>(plan.classes.map(c => [c.classId, []])), groupClusters = new Map<string, string[]>(), groupClasses = new Map<string, Set<string>>();
@@ -346,6 +364,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
   for (const key of [...signatures.keys()].sort()) {
     const s = signatures.get(key)!;
     const id = cluster(s.size, [s.classIds.map(c => className.get(c)!).join(' + '), s.groupIds.map(g => planGroups[groupIndex.get(g)!].name).join(', ')].filter(Boolean).join(': '));
+    kandaKluster.set(id, s);
     for (const c of s.classIds) classClusters.get(c)!.push(id);
     for (const g of s.groupIds) {
       groupClusters.set(g, [...groupClusters.get(g) ?? [], id]);
@@ -574,7 +593,7 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
         ...(ansvariga !== undefined && { ansvariga }), ...(valtLas?.ansvarig !== undefined && { valdAnsvarig: valtLas.ansvarig }) };
     }
     problem.activities.push({ id: activity });
-    problem.lessons.push({ id, activity, duration_min: a.durationMin, teachers: teacherIds, groups,
+    problem.lessons.push({ id, activity, duration_min: a.durationMin, instructional: false, teachers: teacherIds, groups,
       allowed: windows.length ? windows : [{ day: 0, start_min: 0, end_min: 5 }], ...(roomIds.length ? { rooms: { count: 1, allowed: roomIds } } : {}),
       ...(tid.typ === 'fast' ? { locked: { day: tid.day, start_min: tid.startMin } } : {}), ...(margin ? { margin } : {}) });
     labels.lessons.push({ id, activity, title: a.name, classIds: ownClasses.flatMap(c => classNo.has(c) ? [classNo.get(c)!] : []), teacherIds,
@@ -600,6 +619,23 @@ export function buildSchemaUnderlag(plan: TjanstPlanRead, request: Pick<SchemaFo
     labels.activities = labels.activities.filter(a => activities.has(a.id)).map(a => ({ ...a, yearFingerprint: yearFingerprints.get(a.id)!, terms: a.terms.filter(t => t.term === selected) }));
     for (const row of fordelning) row.terms = row.terms.filter(t => t.term === selected);
     for (let i = fordelning.length - 1; i >= 0; i--) if (!fordelning[i].terms.length) fordelning.splice(i, 1);
+  }
+  const grupper = new Map(problem.groups.map(group => [group.id, group.clusters]));
+  const lektionsdagar = visibleTerms.flatMap(term => {
+    const termstid = time.terms[term], period = problem.periods?.length ? term : '';
+    const undervisningsgrupper = new Set(problem.lessons.filter(l => l.instructional !== false && (!l.periods?.length || l.periods.includes(term))).flatMap(l => l.groups));
+    const undervisas = new Set([...undervisningsgrupper].flatMap(id => grupper.get(id) ?? []));
+    return [...kandaKluster].flatMap(([cluster, signatur]) => {
+      if (!undervisas.has(cluster) || [...signatur.annanTermin.get(term) ?? []].some(ref => undervisningsgrupper.has(nodes.get(ref) ?? ''))) return [];
+      const kalendrar = signatur.classIds.length
+        ? signatur.classIds.map(ref => termstid.classes[ref] ?? termstid.perWeekday) : [termstid.perWeekday];
+      const days = problem.time.days.flatMap((_, day) => kalendrar.some(dagar => dagar[day] > 0) ? [day] : []);
+      return days.length ? [{ cluster, period, days }] : [];
+    });
+  });
+  if (lektionsdagar.length) {
+    problem.student_day_balance = lektionsdagar;
+    problem.weights.student_day_balance = LEKTIONSBALANS_VIKT;
   }
   // Egna samtidighetsblock (05.2-SM-UXF-51): bara block utan hinder blir motorns kopplingar. Kopplingarna ingår i grundens fingeravtryck.
   const blockResultat = schemaBlock(v.block, problem, labels);

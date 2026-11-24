@@ -170,7 +170,7 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
   const [tidigareKategori, setTidigareKategori] = useState<Kategori | null>(null);
   const [kvalitetsval, setKvalitetsval] = useState<SchemaKvalitetsval | null>(null);
   const sektion = useRef<HTMLElement>(null);
-  const kvalitetRetur = useRef(false);
+  const kvalitetRetur = useRef<string | null>(null);
   const atergang = useRef<{ fynd: string; kategori: Kategori; mal: string; top: number; away: boolean } | null>(null);
   const fynd = useMemo(() => active ? granskaFynd({ forslag, lessons, kontroll, datum, datedOverrides, intentional }) : [], [active, forslag, lessons, kontroll, datum, datedOverrides, intentional]);
   const grupper = kategorier.map(g => ({ ...g, fynd: fynd.filter(f => f.kategori === g.id).sort((a, b) => Number(!!a.upplysning) - Number(!!b.upplysning)) }));
@@ -188,9 +188,10 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
   useLayoutEffect(() => {
     const till = atergang.current;
     const element = sektion.current;
-    if (active && kvalitetRetur.current) {
-      kvalitetRetur.current = false;
-      const fokus = element?.querySelector<HTMLElement>('[data-kvalitet-pass]:enabled')
+    if (active && kvalitetRetur.current !== null) {
+      const knapp = kvalitetRetur.current;
+      kvalitetRetur.current = null;
+      const fokus = element?.querySelector<HTMLElement>(`[data-kvalitet-pass="${CSS.escape(knapp)}"]:enabled`)
         ?? element?.querySelector<HTMLElement>('[data-kvalitet-retur] select');
       fokus?.focus({ preventScroll: true });
       fokus?.scrollIntoView({ block: 'nearest' });
@@ -282,7 +283,7 @@ export function GranskaUtkast({ forslag, lessons, kontroll, checking, stale, dat
         {lessons.length > 0 && <div data-kvalitet-retur>
           <Schemakvalitet forslag={forslag} rader={elevkvalitet} val={kvalitetsval} senGrans={senGrans} onVal={setKvalitetsval}
             disabled={checking || disabled} kanProva={kanProva} stale={stale} checking={checking}
-            onOpen={(lesson, term) => { kvalitetRetur.current = true; onOpen({ lesson, term }); }} onProva={onProva}/>
+            onOpen={(lesson, term, knapp) => { kvalitetRetur.current = knapp.dataset.kvalitetPass ?? ''; onOpen({ lesson, term }); }} onProva={onProva}/>
         </div>}
         {actions}
         <div className="rounded-lg border border-border bg-card">

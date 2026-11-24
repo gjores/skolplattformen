@@ -11,11 +11,47 @@ export const sammaKvalitetsval = (a: SchemaKvalitetsval, b: SchemaKvalitetsval) 
 const minuter = (min: number) => min < 60 ? `${min} min` : `${Math.floor(min / 60)} tim ${min % 60 ? `${min % 60} min` : ''}`.trim();
 const skoldag = (r: SchemaKvalitetsrad) => r.kortasteDag === r.langstaDag ? minuter(r.langstaDag) : `${minuter(r.kortasteDag)}–${minuter(r.langstaDag)}`;
 const sluttid = (r: SchemaKvalitetsrad) => `${dayName(r.sluttid.dag)} ${clock(r.sluttid.min)}`;
+type Lektionsdagar = NonNullable<SchemaKvalitetsrad['lektionsdagar']>;
+type Lektionsdag = Lektionsdagar['dagar'][number];
+
+const antalPass = ({ min, max }: Lektionsdag) => min === max ? String(min) : `${min}–${max}`;
+const antalEnpassdagar = ({ dagar }: Lektionsdagar) => dagar.filter(dag => dag.ensammaElever > 0).length;
+
+function Lektionsfordelning({ veckan, lastaPass, disabled, onOpen }: {
+  veckan: Lektionsdagar; lastaPass: ReadonlySet<string>; disabled: boolean;
+  onOpen: (lesson: string, knapp: HTMLButtonElement) => void;
+}) {
+  const dagarMedEttPass = antalEnpassdagar(veckan);
+  return <div className="space-y-2">
+    <h4 className="font-semibold">Undervisningspass per veckodag</h4>
+    <p className="schema-note">{veckan.elever} {veckan.elever === 1 ? 'elev ingår' : 'elever ingår'}. {dagarMedEttPass === 0
+      ? 'Ingen elev har en dag med ett enda undervisningspass.'
+      : `På ${dagarMedEttPass} ${dagarMedEttPass === 1 ? 'veckodag' : 'veckodagar'} har minst en elev ett enda undervisningspass.`}</p>
+    {veckan.understigerMalElevdagar > 0 && <p className="schema-note">
+      {veckan.understigerMalElevdagar} {veckan.understigerMalElevdagar === 1 ? 'elevdag' : 'elevdagar'} under dagsmålet. Varje elev räknas en gång per veckodag då eleven har färre pass än sitt mål.
+    </p>}
+    <Table aria-label="Undervisningspass per veckodag">
+      <TableHeader><TableRow><TableHead>Veckodag</TableHead><TableHead className="whitespace-normal">Pass per elev</TableHead>
+        <TableHead className="whitespace-normal">Elever med ett pass</TableHead><TableHead>Pass i schemat</TableHead></TableRow></TableHeader>
+      <TableBody>{veckan.dagar.map(dag => <TableRow key={dag.dag}>
+        <TableHead scope="row" className="whitespace-normal">{dayName(dag.dag)}</TableHead>
+        <TableCell className="tabular-nums">{antalPass(dag)}</TableCell>
+        <TableCell className="tabular-nums">{dag.ensammaElever > 0 ? <strong>{dag.ensammaElever}</strong> : 0}</TableCell>
+        <TableCell className="whitespace-normal">{dag.pass && <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" className="h-auto min-h-11 whitespace-normal"
+            aria-label={`Visa ett ensamt pass på ${dayName(dag.dag).toLowerCase()}`} data-kvalitet-pass={`enpass-${dag.dag}`}
+            disabled={disabled} onClick={event => onOpen(dag.pass!, event.currentTarget)}>Visa passet</Button>
+          {lastaPass.has(dag.pass) && <span className="status-badge info">Låst pass</span>}
+        </div>}</TableCell>
+      </TableRow>)}</TableBody>
+    </Table>
+  </div>;
+}
 
 export function Schemakvalitet({ forslag, rader, val, senGrans, onVal, onOpen, onProva, disabled, kanProva, stale, checking }: {
   forslag: SchemaForslag; rader: SchemaKvalitetsrad[] | undefined; val: SchemaKvalitetsval | null;
   senGrans: number | null;
-  onVal: (val: SchemaKvalitetsval | null) => void; onOpen: (lesson: string, term: SchemaTerm) => void;
+  onVal: (val: SchemaKvalitetsval | null) => void; onOpen: (lesson: string, term: SchemaTerm, knapp: HTMLButtonElement) => void;
   onProva: (val: SchemaKvalitetsval, knapp: HTMLButtonElement) => void;
   disabled: boolean; kanProva: boolean; stale: boolean; checking: boolean;
 }) {
@@ -32,6 +68,7 @@ export function Schemakvalitet({ forslag, rader, val, senGrans, onVal, onOpen, o
   const urval = sorterade.filter(r => r.term === term);
   const rad = (val && urval.find(r => sammaKvalitetsval(r, val))) || urval[0];
   const valdResurs = rad && kvalitetsnyckel(rad);
+  const lastaPass = new Set(forslag.locks?.map(p => p.lesson));
   const valjTermin = (ny: SchemaTerm) => {
     const iTermin = sorterade.find(r => r.term === ny && kvalitetsnyckel(r) === valdResurs) ?? sorterade.find(r => r.term === ny);
     onVal(iTermin ?? { term: ny, slag: 'klass', ref: '' });
@@ -60,9 +97,10 @@ export function Schemakvalitet({ forslag, rader, val, senGrans, onVal, onOpen, o
             <div><dt className="schema-note">Senaste sluttid</dt><dd className="font-medium">{sluttid(rad)}{rang(rad) > 0 && ` · ${minuter(rang(rad))} efter skolans gräns`}</dd></div>
             <div><dt className="schema-note">Skoldagens längd</dt><dd className="font-medium">{skoldag(rad)}</dd></div>
           </dl>
+          {rad.lektionsdagar && <Lektionsfordelning veckan={rad.lektionsdagar} lastaPass={lastaPass} disabled={disabled} onOpen={(lesson, knapp) => onOpen(lesson, rad.term, knapp)}/>}
           <div className="flex flex-wrap gap-2">
-            {rad.hal && <Button type="button" variant="outline" data-kvalitet-pass disabled={disabled} onClick={() => onOpen(rad.hal!.pass, rad.term)}>Visa passet efter hålet</Button>}
-            {!rad.hal && rang(rad) > 0 && <Button type="button" variant="outline" data-kvalitet-pass disabled={disabled} onClick={() => onOpen(rad.sluttid.pass, rad.term)}>Visa det sena passet</Button>}
+            {rad.hal && <Button type="button" variant="outline" data-kvalitet-pass="hal" disabled={disabled} onClick={event => onOpen(rad.hal!.pass, rad.term, event.currentTarget)}>Visa passet efter hålet</Button>}
+            {!rad.hal && rang(rad) > 0 && <Button type="button" variant="outline" data-kvalitet-pass="sen" disabled={disabled} onClick={event => onOpen(rad.sluttid.pass, rad.term, event.currentTarget)}>Visa det sena passet</Button>}
             <Button type="button" variant="outline" disabled={disabled || !kanProva} onClick={e => onProva(rad, e.currentTarget)}>Pröva en förbättring</Button>
           </div>
         </> : <p className="schema-note">Inga kvalitetsmått för terminen. Det behövs placerade pass och elevunderlag.</p>}
@@ -84,6 +122,15 @@ export function Kvalitetsjamforelse({ forslag, val, fore, efter }: {
     ['Skoldagens längd', skoldag(a), skoldag(b)],
   ];
   const skillnad = (a.hal?.min ?? 0) - (b.hal?.min ?? 0);
+  if (a.lektionsdagar && b.lektionsdagar) {
+    matt.push(['Elevdagar under dagsmålet', String(a.lektionsdagar.understigerMalElevdagar), String(b.lektionsdagar.understigerMalElevdagar)]);
+  }
+  const skoldagarFore = new Map(a.lektionsdagar?.dagar.map(dag => [dag.dag, dag]));
+  const skoldagarEfter = new Map(b.lektionsdagar?.dagar.map(dag => [dag.dag, dag]));
+  const veckodagar = [...new Set([...skoldagarFore.keys(), ...skoldagarEfter.keys()])].sort((i, j) => i - j);
+  const dagMatt = (dag: Lektionsdag | undefined) => dag
+    ? `${antalPass(dag)} pass per elev · ${dag.ensammaElever} ${dag.ensammaElever === 1 ? 'elev' : 'elever'} med ett pass` : 'Uppgift saknas';
+  const sammaLektionsdagar = !a.lektionsdagar || !b.lektionsdagar || veckodagar.every(dag => dagMatt(skoldagarFore.get(dag)) === dagMatt(skoldagarEfter.get(dag)));
   return <div className="space-y-2">
     <h3 className="section-heading">{namn} · {PERIOD[val.term]}</h3>
     {skillnad !== 0 && <p>Längsta hålet blir {minuter(Math.abs(skillnad))} {skillnad > 0 ? 'kortare' : 'längre'} med förslaget.</p>}
@@ -92,6 +139,19 @@ export function Kvalitetsjamforelse({ forslag, val, fore, efter }: {
       <TableBody>{matt.map(([etikett, nu, provat]) => <TableRow key={etikett}><TableCell className="whitespace-normal">{etikett}</TableCell>
         <TableCell className="whitespace-normal">{nu}</TableCell><TableCell className="whitespace-normal">{provat}</TableCell></TableRow>)}</TableBody>
     </Table>
-    {matt.every(([, nu, provat]) => nu === provat) && <p className="schema-note">De här måtten är lika i båda förslagen.</p>}
+    {a.lektionsdagar && b.lektionsdagar && <div className="space-y-2">
+      <h4 className="font-semibold">Undervisningspass per veckodag</h4>
+      <p className="schema-note">Dagar då någon elev har ett enda pass går från {antalEnpassdagar(a.lektionsdagar)} till {antalEnpassdagar(b.lektionsdagar)}.</p>
+      <Table aria-label={`Undervisningspass per veckodag före och efter för ${namn}`}>
+        <TableHeader><TableRow><TableHead>Veckodag</TableHead><TableHead className="whitespace-normal">Nuvarande</TableHead>
+          <TableHead className="whitespace-normal">Prövat förslag</TableHead></TableRow></TableHeader>
+        <TableBody>{veckodagar.map(dag => <TableRow key={dag}>
+          <TableHead scope="row" className="whitespace-normal">{dayName(dag)}</TableHead>
+          <TableCell className="whitespace-normal">{dagMatt(skoldagarFore.get(dag))}</TableCell>
+          <TableCell className="whitespace-normal">{dagMatt(skoldagarEfter.get(dag))}</TableCell>
+        </TableRow>)}</TableBody>
+      </Table>
+    </div>}
+    {matt.every(([, nu, provat]) => nu === provat) && sammaLektionsdagar && <p className="schema-note">De här måtten är lika i båda förslagen.</p>}
   </div>;
 }

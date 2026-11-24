@@ -32,6 +32,8 @@ export type SchemaProblem = {
   version: SchemaMotorVersion; id: string;
   time: { step_min: number; start_grid_min: number; days: { start_min: number; end_min: number }[] };
   periods?: { id: string }[];
+  /** Ordinarie skoldagar för faktiska deltagandekluster, per motortermin. En äldre enperiodsgrund använder "" som period. */
+  student_day_balance?: { cluster: string; period: string; days: number[] }[];
   /** Appens valbara resurser för aktiviteter. Personreferenserna tas bort före anrop till Rusttjänsten. */
   aktivitetsResurser?: Record<string, SchemaAktivitetsResurser>;
   /** Interna samplaceringskopplingar och referensschema, aldrig externa personidentiteter. */
@@ -49,12 +51,14 @@ export type SchemaProblem = {
    * (05.2-SM-MARGINAL). `counted_min` används inte längre av appen.
    */
   lessons: { id: string; activity: string; duration_min: number; counted_min?: number; teachers: string[]; groups: string[]; periods?: string[];
+    /** Återkommande egna aktiviteter upptar elevernas tid och räknas separat från antalet undervisningspass. */
+    instructional?: boolean;
     locked?: { day: number; start_min: number; rooms?: string[] };
     margin?: Record<'students' | 'teachers' | 'rooms', { before_min: number; after_min: number }>;
     /** Tillåtna fönster: passet ska ligga helt inom ett av dem. Saknas fältet gäller hela skoldagen. */
     allowed?: SchemaInterval[]; rooms?: { count: 1; allowed: string[]; features?: string[]; min_capacity?: number } }[];
   rules: { student_max_min_per_day?: number; break_min: number; lunch: { window_start_min: number; window_end_min: number; length_min: number; teachers: boolean } | null; same_day: 'forbid' | 'avoid' | 'allow' };
-  weights: { late_after_min: number | null };
+  weights: { late_after_min: number | null; student_day_balance?: number };
 };
 /** `room`: salens löpnummer när passet ska ha en sal (05.2-SM-VILLKOR-PER-RESURS, R6). */
 export type SchemaPlacement = { lesson: string; day: number; startMin: number; room: string | null; ansvarig?: string };
@@ -65,7 +69,7 @@ export type SchemaSearchStatistics = { lessons: { lesson: string; title: string;
 export type SchemaMotorStatistics = { lessons: Omit<SchemaSearchStatistics['lessons'][number], 'title'>[];
   bottlenecks: { code: string; count: number; resource: string | null }[]; iterations: number };
 export type SchemaSolution = { status: SchemaStatus; placements: SchemaPlacement[]; unplaced: string[]; diagnoses: SchemaDiagnosis[];
-  metrics: { studentGapMin: number; teacherGapMin: number }; elapsedMs: number; statistics?: SchemaMotorStatistics };
+  metrics: { studentGapMin: number; teacherGapMin: number; studentDayShortfall?: number; studentDayConcentration?: number }; elapsedMs: number; statistics?: SchemaMotorStatistics };
 
 /**
  * Villkoren för schemat, satta av den som tar fram förslaget (05.2-SM-LASAR-VILLKOR, V1–V2). Alla tider är minuter efter midnatt
@@ -264,11 +268,18 @@ export type SchemaKontrollRequest = SchemaForslagRequest & { contractVersion: ty
 export type SchemaRawViolation = { code: string; message: string; lessons: string[]; resources: string[] };
 export type SchemaViolation = { code: string; message: string; lessons: string[] };
 export type SchemaKvalitetsval = { slag: 'klass' | 'grupp'; ref: string; term: SchemaTerm };
+export type SchemaLektionsdagar = {
+  dagar: { dag: number; min: number; max: number; ensammaElever: number; pass?: string }[];
+  ensammaElevdagar: number;
+  understigerMalElevdagar: number;
+  elever: number;
+};
 export type SchemaKvalitetsrad = SchemaKvalitetsval & {
   hal: { dag: number; min: number; fran: number; till: number; pass: string } | null;
   sluttid: { dag: number; min: number; pass: string };
   kortasteDag: number;
   langstaDag: number;
+  lektionsdagar?: SchemaLektionsdagar;
 };
 /** Regelbrott i hela schemat efter en flytt. `total` kan vara större än antalet som visas. */
 export type SchemaCheck = { violations: SchemaRawViolation[]; metrics: SchemaSolution['metrics'] & { cost?: number } };
@@ -542,6 +553,12 @@ export function checkSchemaPlacements(placements: SchemaPlacement[], problem: Sc
   return result;
 }
 /** Kontrollantens svar från motorn: bara pass som finns i underlaget får pekas ut. */
+function parseSchemaMotorMetrics(m: Record<string, unknown>): SchemaSolution['metrics'] {
+  return { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER),
+    ...(m.student_day_shortfall !== undefined && { studentDayShortfall: int(m.student_day_shortfall, 0, Number.MAX_SAFE_INTEGER) }),
+    ...(m.student_day_concentration !== undefined && { studentDayConcentration: int(m.student_day_concentration, 0, Number.MAX_SAFE_INTEGER) }) };
+}
+
 export function parseSchemaCheck(value: unknown, problem: SchemaProblem): SchemaCheck {
   const s = record(value), known = new Set(problem.lessons.map(l => l.id)), m = record(s.metrics);
   if (s.version !== problem.version || s.problem_id !== problem.id) bad();
@@ -550,8 +567,22 @@ export function parseSchemaCheck(value: unknown, problem: SchemaProblem): Schema
     if (lessons.some(id => !known.has(id))) bad();
     return { code: text(v.code, 100), message: text(v.message, SCHEMA_LIMITS.message), lessons, resources: list(v.resources, SCHEMA_LIMITS.lessons).map(id => text(id, 100)) };
   });
-  return { violations, metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER),
+  return { violations, metrics: { ...parseSchemaMotorMetrics(m),
     ...(m.cost === undefined ? {} : { cost: int(m.cost, -Number.MAX_SAFE_INTEGER, Number.MAX_SAFE_INTEGER) }) } };
+}
+function parseSchemaLektionsdagar(value: unknown, pass: (value: unknown) => string): SchemaLektionsdagar {
+  const row = record(value), elever = int(row.elever, 1, 1_000_000);
+  let lastDay = -1;
+  const dagar = list(row.dagar, 5).map(raw => {
+    const d = record(raw), dag = int(d.dag, lastDay + 1, 4), min = int(d.min, 0, SCHEMA_LIMITS.lessons);
+    const max = int(d.max, min, SCHEMA_LIMITS.lessons), ensammaElever = int(d.ensammaElever, 0, elever);
+    if (ensammaElever > 0 && (min > 1 || max < 1) || d.pass !== undefined && ensammaElever === 0) bad();
+    lastDay = dag;
+    return { dag, min, max, ensammaElever, ...(d.pass !== undefined && { pass: pass(d.pass) }) };
+  });
+  const ensammaElevdagar = dagar.reduce((sum, dag) => sum + dag.ensammaElever, 0);
+  if (!dagar.length || row.ensammaElevdagar !== ensammaElevdagar) bad();
+  return { dagar, elever, ensammaElevdagar, understigerMalElevdagar: int(row.understigerMalElevdagar, 0, dagar.length * elever) };
 }
 /** Klientens tolkning av kontrollruttens svar: grunden ska vara förslagets. */
 function parseElevkvalitet(value: unknown, lessons?: Set<string>, resources?: SchemaForslag['resurser']): SchemaKvalitetsrad[] {
@@ -573,7 +604,8 @@ function parseElevkvalitet(value: unknown, lessons?: Set<string>, resources?: Sc
     const fran = gap ? int(gap.fran, 0, 1439) : 0, till = gap ? int(gap.till, fran + 1, 1440) : 0;
     return { slag, ref, term, kortasteDag, langstaDag: int(row.langstaDag, kortasteDag, 1440),
       sluttid: { dag: int(last.dag, 0, 6), min: int(last.min, 1, 1440), pass: pass(last.pass) },
-      hal: gap ? { dag: int(gap.dag, 0, 6), min: int(gap.min, 1, till - fran), fran, till, pass: pass(gap.pass) } : null };
+      hal: gap ? { dag: int(gap.dag, 0, 6), min: int(gap.min, 1, till - fran), fran, till, pass: pass(gap.pass) } : null,
+      ...(row.lektionsdagar !== undefined && { lektionsdagar: parseSchemaLektionsdagar(row.lektionsdagar, pass) }) };
   });
 }
 
@@ -627,7 +659,7 @@ export function parseSchemaSolution(value: unknown, problem: SchemaProblem): Sch
   const statistics = parseSchemaMotorStatistics(s.search_statistics, problem);
   const m = record(s.metrics), stats = record(s.stats);
   return { status, placements, unplaced, diagnoses, statistics,
-    metrics: { studentGapMin: int(m.student_gap_min, 0, Number.MAX_SAFE_INTEGER), teacherGapMin: int(m.teacher_gap_min, 0, Number.MAX_SAFE_INTEGER) },
+    metrics: parseSchemaMotorMetrics(m),
     elapsedMs: int(stats.elapsed_ms, 0, Number.MAX_SAFE_INTEGER) };
 }
 

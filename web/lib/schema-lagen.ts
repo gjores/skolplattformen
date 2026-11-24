@@ -22,7 +22,7 @@ const SPARR: Record<string, SchemaOrsakSlag> = { outside_allowed: 'pass', teache
 const BROTT: Record<string, SchemaOrsakSlag> = { teacher_clash: 'larare', student_clash: 'elever', room_clash: 'sal', teacher_day_too_long: 'larare', teacher_no_lunch: 'larare',
   student_day_too_long: 'elever', student_no_lunch: 'elever', same_day: 'amne', activity_time: 'amne', not_simultaneous: 'pass', overlap_forbidden: 'pass',
   room_count: 'pass', room_unfit: 'sal', unknown_room: 'sal', room_unwanted: 'sal' };
-const ONSKEMAL = ['student_gap', 'teacher_gap', 'student_late', 'same_day_repeat', 'moved', 'room_moved'] as const;
+const ONSKEMAL = ['student_gap', 'teacher_gap', 'student_late', 'same_day_repeat', 'student_day_balance', 'moved', 'room_moved'] as const;
 
 /** Motorns svar efter tolkning: löpnummer för resurserna, som i underlaget. */
 export type SchemaPositionsOrsak = { code: string; kind: SchemaOrsakSlag | null; resource: string | null; lessons: string[] };
@@ -197,7 +197,7 @@ const BROTT_TEXT: Record<string, string> = { teacher_day_too_long: 'för lång d
   not_simultaneous: 'passet ska gå samtidigt med andra pass', overlap_forbidden: 'passet får inte överlappa ett annat pass', room_count: 'ingen passande sal', room_unfit: 'salen passar inte passet',
   unknown_room: 'salen finns inte', room_unwanted: 'passet ska inte ha någon sal' };
 const ONSKEMAL_TEXT: Record<string, string> = { student_gap: 'håltid för eleverna', teacher_gap: 'håltid för läraren', student_late: 'sen dag', same_day_repeat: 'samma ämne två gånger samma dag',
-  moved: 'passet flyttas från sin tidigare tid', room_moved: 'passet byter sal' };
+  student_day_balance: 'ojämn fördelning av undervisningspass', moved: 'passet flyttas från sin tidigare tid', room_moved: 'passet byter sal' };
 
 /**
  * Varför passet inte kan ligga här, som rader i designvyns tooltip: rubrik, vad som ligger i vägen per resurs, vilka av passets resurser som är lediga

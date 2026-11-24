@@ -1,8 +1,10 @@
-import type { SchemaKvalitetsrad, SchemaKvalitetsval, SchemaPlacement, SchemaProblem, SchemaTerm, SchemaTrim } from './schema-contract.ts';
+import type { SchemaKvalitetsrad, SchemaKvalitetsval, SchemaLektionsdagar, SchemaPlacement, SchemaProblem, SchemaTerm, SchemaTrim } from './schema-contract.ts';
 
 export type SchemaElevresurs = Pick<SchemaKvalitetsval, 'slag' | 'ref'> & { kluster: string[] };
 type Intervall = { pass: string; start: number; slut: number; upptagenFran: number; upptagenTill: number };
-type Dag = Omit<SchemaKvalitetsrad, keyof SchemaKvalitetsval | 'kortasteDag' | 'langstaDag'> & { langd: number };
+type Dag = Pick<SchemaKvalitetsrad, 'hal' | 'sluttid'> & { langd: number };
+type Lektionsdag = { antal: number; pass?: string };
+type Lektionsvecka = { totalt: number; dagar: Map<number, Lektionsdag> };
 
 function matDag(pass: Intervall[], dag: number, { break_min: rast, lunch }: SchemaProblem['rules']): Dag {
   const iTid = [...pass].sort((a, b) => a.start - b.start);
@@ -25,25 +27,61 @@ function matDag(pass: Intervall[], dag: number, { break_min: rast, lunch }: Sche
   return { hal, sluttid: { dag, min: sista.slut, pass: sista.pass }, langd: sista.slut - iTid[0].start };
 }
 
+function matLektionsdagar(kluster: string[], profiler: Map<string, Lektionsvecka>, storlek: Map<string, number>): SchemaLektionsdagar | undefined {
+  const perDag = new Map<number, SchemaLektionsdagar['dagar'][number]>();
+  let elever = 0, ensammaElevdagar = 0, understigerMalElevdagar = 0;
+  for (const id of kluster) {
+    const vecka = profiler.get(id), antalElever = storlek.get(id) ?? 0;
+    if (!vecka?.totalt || !antalElever) continue;
+    elever += antalElever;
+    const mal = Math.min(2, Math.floor(vecka.totalt / vecka.dagar.size));
+    for (const [dag, { antal, pass }] of vecka.dagar) {
+      const rad = perDag.get(dag) ?? { dag, min: antal, max: antal, ensammaElever: 0 };
+      rad.min = Math.min(rad.min, antal);
+      rad.max = Math.max(rad.max, antal);
+      if (antal < mal) understigerMalElevdagar += antalElever;
+      if (antal === 1) {
+        ensammaElevdagar += antalElever;
+        rad.ensammaElever += antalElever;
+        rad.pass ??= pass;
+      }
+      perDag.set(dag, rad);
+    }
+  }
+  return elever ? { elever, dagar: [...perDag.values()].sort((a, b) => a.dag - b.dag), ensammaElevdagar, understigerMalElevdagar } : undefined;
+}
+
 /** Sammanställ extrema värden över de faktiska deltagandemönstren. Ett gruppbyte i en klass får egna intervall. */
 export function schemaElevkvalitet(problem: SchemaProblem, terms: SchemaTerm[], resurser: SchemaElevresurs[], placements: Map<string, SchemaPlacement>, utelamnat: Set<string>, trims: SchemaTrim[] = []): SchemaKvalitetsrad[] {
   const kanda = new Set(resurser.flatMap(r => r.kluster));
   const grupper = new Map(problem.groups.map(g => [g.id, g.clusters.filter(id => kanda.has(id))]));
+  const storlek = new Map(problem.clusters?.map(k => [k.id, k.size]));
   const elevpass = problem.lessons.flatMap(l => {
+    if (utelamnat.has(l.id)) return [];
     const placement = placements.get(l.id);
-    if (!placement || utelamnat.has(l.id)) return [];
-    const { day, startMin } = placement, slut = startMin + l.duration_min;
     const kluster = new Set(l.groups.flatMap(g => grupper.get(g) ?? []));
-    const intervall: Intervall = { pass: l.id, start: startMin, slut, upptagenFran: Math.max(0, startMin - (l.margin?.students.before_min ?? 0)),
+    const start = placement?.startMin, slut = (start ?? 0) + l.duration_min;
+    const intervall: Intervall | null = start === undefined ? null : { pass: l.id, start, slut, upptagenFran: Math.max(0, start - (l.margin?.students.before_min ?? 0)),
       upptagenTill: Math.min(1440, slut + (l.margin?.students.after_min ?? 0)) };
-    return [{ day, intervall, kluster, periods: l.periods }];
+    return [{ id: l.id, day: placement?.day, intervall, kluster, periods: l.periods, undervisning: l.instructional !== false }];
   });
   return terms.flatMap(term => {
     const termensKortningar = new Map(trims.filter(t => t.term === term).map(t => [t.lesson, t.fixedMin]));
+    const lektionsperiod = problem.periods?.length ? term : '';
+    const profiler = new Map((problem.student_day_balance ?? []).filter(r => r.period === lektionsperiod && kanda.has(r.cluster)).map(r =>
+      [r.cluster, { totalt: 0, dagar: new Map(r.days.map(dag => [dag, { antal: 0 }])) }] as [string, Lektionsvecka]));
     const veckor = new Map<string, Map<number, Intervall[]>>();
     for (const l of elevpass) {
       if (l.periods?.length && !l.periods.includes(term)) continue;
-      const kortning = termensKortningar.get(l.intervall.pass) ?? 0;
+      if (l.undervisning) for (const id of l.kluster) {
+        const profil = profiler.get(id);
+        if (!profil) continue;
+        profil.totalt++;
+        const dag = l.day === undefined ? undefined : profil.dagar.get(l.day);
+        if (dag) { dag.antal++; dag.pass = l.id; }
+      }
+      if (l.day === undefined || !l.intervall) continue;
+      const kortning = termensKortningar.get(l.id) ?? 0;
       const fore = l.intervall;
       const intervall = kortning > 0 ? { ...fore, slut: fore.slut - kortning, upptagenTill: fore.upptagenTill - kortning } : fore;
       for (const id of l.kluster) {
@@ -61,7 +99,9 @@ export function schemaElevkvalitet(problem: SchemaProblem, terms: SchemaTerm[], 
         matt.kortasteDag = Math.min(matt.kortasteDag, d.langd);
         matt.langstaDag = Math.max(matt.langstaDag, d.langd);
       }
-      return matt ? [matt] : [];
+      if (!matt) return [];
+      const lektionsdagar = matLektionsdagar(kluster, profiler, storlek);
+      return [{ ...matt, ...(lektionsdagar && { lektionsdagar }) }];
     });
   });
 }

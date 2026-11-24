@@ -2,7 +2,7 @@
 //! hålls aktuell vid varje placering, och en journal för att ångra.
 
 use crate::compile::*;
-use schemamotor_model::SameDay;
+use schemamotor_model::{balanced_lesson_pairs, lesson_pairs, SameDay};
 
 /// Kostnad per oplacerad minut. Större än varje rimlig summa av önskemål.
 pub const BIG: i64 = 1_000_000_000;
@@ -13,6 +13,22 @@ pub const BIG: i64 = 1_000_000_000;
 pub const TIME: i64 = BIG / 100;
 
 pub type Pos = (u8, u8);
+
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+pub struct Objective {
+    pub uncovered: i64,
+    pub time: i64,
+    pub shortfall: i64,
+    pub cost: i64,
+}
+
+impl Objective {
+    pub const WORST: Self = Self { uncovered: i64::MAX, time: i64::MAX, shortfall: i64::MAX, cost: i64::MAX };
+
+    pub fn priority(self) -> (i64, i64, i64) {
+        (self.uncovered, self.time, self.shortfall)
+    }
+}
 
 #[derive(Default, Clone)]
 pub struct Plan {
@@ -34,6 +50,10 @@ pub struct State<'a> {
     ent_cost: Vec<i64>,
     act_cnt: Vec<u16>,
     time_sum: Vec<i64>,
+    balance_counts: Vec<u32>,
+    balance_totals: Vec<u32>,
+    pub student_day_shortfall: i64,
+    pub student_day_concentration: i64,
     /// Minuter utanför aktiviteternas tid, viktade enligt `TimeRule::cost`.
     pub time_dev: i64,
     pub soft: i64,
@@ -72,6 +92,10 @@ impl<'a> State<'a> {
             ent_cost: vec![0; inst.n_ents * cells],
             act_cnt: vec![0; inst.act_rule.len() * cells],
             time_sum: vec![0; inst.times.len()],
+            balance_counts: vec![0; inst.student_balances.len() * inst.days],
+            balance_totals: vec![0; inst.student_balances.len()],
+            student_day_shortfall: inst.student_balances.iter().map(|r| i64::from(r.target) * i64::from(r.day_count) * r.size).sum(),
+            student_day_concentration: 0,
             time_dev: inst.times.iter().map(|t| t.cost(0)).sum(),
             soft: 0,
             unplaced_min: inst.units.iter().map(|u| u.dur_min as i64).sum(),
@@ -85,8 +109,11 @@ impl<'a> State<'a> {
         (res * self.inst.periods + p) * self.inst.days + d
     }
 
-    pub fn obj(&self) -> i64 {
-        self.unplaced_min * BIG + self.time_dev * TIME + self.soft
+    pub fn obj(&self) -> Objective {
+        if self.inst.student_balances.is_empty() {
+            return Objective { uncovered: 0, time: 0, shortfall: 0, cost: self.unplaced_min * BIG + self.time_dev * TIME + self.soft };
+        }
+        Objective { uncovered: self.unplaced_min, time: self.time_dev, shortfall: self.student_day_shortfall, cost: self.soft }
     }
 
     pub fn occ_of(&self, res: usize, p: usize, d: usize) -> u128 {
@@ -517,6 +544,27 @@ impl<'a> State<'a> {
             let old = rule.cost(self.time_sum[i]);
             self.time_sum[i] += if add { amounts[du] } else { -amounts[du] };
             self.time_dev += rule.cost(self.time_sum[i]) - old;
+        }
+        for &index in &unit.student_balances {
+            let balance = &inst.student_balances[index];
+            if !balance.days[du] { continue; }
+            let count = &mut self.balance_counts[index * inst.days + du];
+            let total = &mut self.balance_totals[index];
+            let old_shortfall = balance.target.saturating_sub(*count);
+            let old_excess = lesson_pairs(*count) - balanced_lesson_pairs(*total, balance.day_count);
+            if add {
+                *count += 1;
+                *total += 1;
+            } else {
+                *count -= 1;
+                *total -= 1;
+            }
+            let shortfall = balance.target.saturating_sub(*count);
+            let excess = lesson_pairs(*count) - balanced_lesson_pairs(*total, balance.day_count);
+            self.student_day_shortfall += (i64::from(shortfall) - i64::from(old_shortfall)) * balance.size;
+            let change = (excess - old_excess) * balance.size;
+            self.student_day_concentration += change;
+            self.soft += change * inst.w.student_day_balance;
         }
         let moved = self.moved_cost(u, d, s, &self.rooms[u]);
         let dur = unit.dur_min as i64;

@@ -48,6 +48,9 @@ pub struct Problem {
     pub rules: Rules,
     #[serde(default)]
     pub weights: Weights,
+    /// Kalenderhärledda skoldagar per verkligt elevkluster och period.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub student_day_balance: Vec<StudentDayBalance>,
     /// Referensschema för minimal ändring. Flyttade pass kostar `weights.moved`.
     #[serde(default)]
     pub reference: Vec<Placement>,
@@ -101,6 +104,25 @@ pub struct Cluster {
     pub id: String,
     /// Antal elever. Viktar elevernas håltimmar och sena dagar.
     pub size: u32,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct StudentDayBalance {
+    pub cluster: String,
+    /// Tom sträng avser ett problem utan namngivna perioder.
+    pub period: String,
+    pub days: Vec<u32>,
+}
+
+pub fn lesson_pairs(count: u32) -> i64 {
+    i64::from(count) * i64::from(count.saturating_sub(1)) / 2
+}
+
+/// Det minsta möjliga antalet par när `count` ordnas jämnt över `days`.
+pub fn balanced_lesson_pairs(count: u32, days: u32) -> i64 {
+    let per_day = count / days;
+    i64::from(days) * lesson_pairs(per_day) + i64::from(count % days) * i64::from(per_day)
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -189,6 +211,9 @@ pub struct Lesson {
     #[serde(default)]
     pub activity: Option<String>,
     pub duration_min: u32,
+    /// Om passet är undervisning vid fördelningen av elevernas pass över veckan.
+    #[serde(default = "instructional", skip_serializing_if = "is_instructional")]
+    pub instructional: bool,
     #[serde(default)]
     pub teachers: Vec<String>,
     #[serde(default)]
@@ -214,6 +239,9 @@ pub struct Lesson {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub margin: Option<Margin>,
 }
+
+fn instructional() -> bool { true }
+fn is_instructional(value: &bool) -> bool { *value }
 
 /// Marginal före och efter ett pass för en part. Minuterna följer tidssteget.
 #[derive(Clone, Copy, Debug, Default, Serialize, Deserialize, PartialEq, Eq)]
@@ -374,6 +402,10 @@ impl Default for Rules {
 ///   första samma dag.
 /// - **Flytt.** `moved` per pass vars dag eller starttid skiljer sig från
 ///   referensen; `room_moved` om bara salarna skiljer sig.
+/// - **Passfördelning.** För varje angivet elevkluster och tillämplig dag
+///   vägs antalet par av undervisningspass samma dag över jämnast möjliga
+///   fördelning med `student_day_balance` och elevantalet. Med aktivt mål jämförs underskridande av dagarnas
+///   rimliga miniminivå före denna och övriga mjuka kostnader.
 ///
 /// Oplacerade pass ingår inte i kostnaden. De jämförs alltid före kostnaden.
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq)]
@@ -393,7 +425,12 @@ pub struct Weights {
     pub moved: i64,
     #[serde(default = "w100")]
     pub room_moved: i64,
+    #[serde(default, skip_serializing_if = "zero_weight")]
+    pub student_day_balance: i64,
 }
+
+fn zero_weight(weight: &i64) -> bool { *weight == 0 }
+fn zero_metric(metric: &u64) -> bool { *metric == 0 }
 
 fn w1() -> i64 {
     1
@@ -421,6 +458,7 @@ impl Default for Weights {
             same_day: 1500,
             moved: 3000,
             room_moved: 100,
+            student_day_balance: 0,
         }
     }
 }
@@ -480,6 +518,12 @@ pub struct Metrics {
     pub same_day_repeats: u32,
     pub moved_lessons: u32,
     pub room_moved_lessons: u32,
+    /// Saknade undervisningspass upp till dagens målnivå, gånger elevantalet.
+    #[serde(default, skip_serializing_if = "zero_metric")]
+    pub student_day_shortfall: u64,
+    /// Par av undervisningspass på samma skoldag över ett idealt jämnt mönster, gånger elevantalet.
+    #[serde(default, skip_serializing_if = "zero_metric")]
+    pub student_day_concentration: u64,
     pub cost: i64,
 }
 
@@ -712,6 +756,29 @@ impl Problem {
         let groups: HashSet<&str> = self.groups.iter().map(|g| g.id.as_str()).collect();
         let rooms: HashSet<&str> = self.rooms.iter().map(|r| r.id.as_str()).collect();
         let activities: HashSet<&str> = self.activities.iter().map(|a| a.id.as_str()).collect();
+        let mut balance_keys = HashSet::new();
+        let mut balance_size = 0u128;
+        let cluster_sizes: HashMap<&str, u32> = self.clusters.iter().map(|c| (c.id.as_str(), c.size)).collect();
+        if !(0..=10_000).contains(&self.weights.student_day_balance) {
+            err("student_day_balance", "Vikten för jämna skoldagar måste vara mellan 0 och 10 000.".into(), vec![], vec![]);
+        }
+        for row in &self.student_day_balance {
+            let period_ok = if periods.is_empty() { row.period.is_empty() } else { periods.contains(row.period.as_str()) };
+            let unique_days: HashSet<_> = row.days.iter().collect();
+            if !clusters.contains(row.cluster.as_str()) || !period_ok
+                || !balance_keys.insert((row.cluster.as_str(), row.period.as_str()))
+                || row.days.is_empty() || unique_days.len() != row.days.len() || row.days.iter().any(|day| *day >= days) {
+                err("student_day_balance", format!("Jämna skoldagar för {} har ogiltigt kluster, period eller veckodagar.", row.cluster), vec![], vec![row.cluster.clone()]);
+            }
+            balance_size += u128::from(cluster_sizes.get(row.cluster.as_str()).copied().unwrap_or(0))
+                * row.days.len() as u128;
+        }
+        // Även kontroll av ett felaktigt, överlappande schema måste kunna räkna utan överflöde.
+        let n = self.lessons.len() as u128;
+        if balance_size.saturating_mul(n.saturating_mul(n)).saturating_mul(self.weights.student_day_balance.max(1) as u128)
+            > i64::MAX as u128 / 4 {
+            err("student_day_balance", "Underlaget för jämna skoldagar är för stort för säker beräkning.".into(), vec![], vec![]);
+        }
         let mut budget_max_total = 0u128;
         for a in &self.activities {
             let mut budgets: HashMap<&str, (u64, u64, HashSet<&str>)> = HashMap::new();

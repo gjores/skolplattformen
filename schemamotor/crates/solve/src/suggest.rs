@@ -316,6 +316,7 @@ impl<'a> Search<'a> {
             a.moved
                 .cmp(&b.moved)
                 .then(a.distance.cmp(&b.distance))
+                .then(a.suggestion.metrics_after.student_day_shortfall.cmp(&b.suggestion.metrics_after.student_day_shortfall))
                 .then(a.suggestion.cost.cmp(&b.suggestion.cost))
                 .then(a.key.cmp(&b.key))
         });
@@ -330,6 +331,7 @@ impl<'a> Search<'a> {
             w.same_day,
             w.moved,
             w.room_moved,
+            w.student_day_balance,
         ]
         .iter()
         .all(|&w| w >= 0);
@@ -338,7 +340,7 @@ impl<'a> Search<'a> {
             && self
                 .results
                 .iter()
-                .all(|r| r.moved == 0 && r.distance == 0 && r.suggestion.cost == 0);
+                .all(|r| r.moved == 0 && r.distance == 0 && r.suggestion.metrics_after.student_day_shortfall == 0 && r.suggestion.cost == 0);
     }
     fn undo_branch(&mut self, u: usize, branch: Branch, pending: &mut BTreeSet<(u32, usize)>) {
         self.protected[u] = false;

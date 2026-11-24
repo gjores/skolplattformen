@@ -23,16 +23,18 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: 40cc8040ac5b560bffc7a7c7148a9956cb1e2838
-schema_candidate_revision: 40cc8040ac5b560bffc7a7c7148a9956cb1e2838
-schema_candidate_status: schema_exam_cancellations_and_joint_recalculation_verified
+schema_runtime_revision: c8042c2681538b0e1871b6dad406729988e222b9
+schema_candidate_revision: c8042c2681538b0e1871b6dad406729988e222b9
+schema_candidate_status: schema_student_day_balance_verified_with_synthetic_schedule
 schema_motor_contract_version: 5
-schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
-schema_installation_status: schema_exam_cancellations_installed_with_existing_revisions_preserved
+schema_motor_runtime_revision: c8042c2681538b0e1871b6dad406729988e222b9
+schema_installation_status: schema_student_day_balance_app_and_motor_installed
 schema_exam_catalog_validator_status: repaired_on_3012_with_20261123221000
-user_trial_status: schema_exam_cancellations_installed_awaiting_user_trial
+user_trial_status: schema_student_day_balance_installed_awaiting_user_trial
 milestone_name: milestone
 ---
+
+**2026-11-24 – jämnare undervisningsdagar på 3012/3013.** App och motor `c8042c26` prioriterar minsta dagsantal efter placering och timplan, och visar enpassdagar och lektionsfördelning i Granska. Syntetisk beräkning gav 4, 4, 3, 4 och 4 pass med noll regelavvikelser. Bytet passerade 32 skyddade vägar utan databasmigration. [SM-JAMNA-LEKTIONSDAGAR](phases/05.2-schemamodul/05.2-SM-JAMNA-LEKTIONSDAGAR-SUMMARY.md)
 
 **2026-11-24 – nationella prov bryter undervisningen på 3012.** Provbygget `40cc8040` visar inställda lektioner vid krock med deltagare, sal eller provvakt. Den vanliga omräkningen räknar fram ersättning för berörd undervisning och prioriterar frigjorda resurser. Ett inloggat prov på 3012 fann 27 krockande lektioner i det sparade utkastet och gav ett nytt förslag för tolv prov med 24 ersättningstillfällen. Schema- och provplanrevisionerna bevarades vid provet. [SM-PROV-BRYTER-UNDERVISNING](phases/05.2-schemamodul/05.2-SM-PROV-BRYTER-UNDERVISNING-SUMMARY.md)
 

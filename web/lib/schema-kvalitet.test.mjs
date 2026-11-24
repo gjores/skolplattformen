@@ -82,6 +82,45 @@ test('grundveckan använder terminens fasta passkortning och bortser från ensta
   assert.deepEqual([vt.hal.min, vt.sluttid.min, vt.langstaDag], [10, 615, 135]);
 });
 
+test('lektionsbalans räknar elevernas egna språkval, inkluderar tomma skoldagar och räknar mentorstid separat', () => {
+  const lessons = [
+    pass('gemensam-1', ['helklass', 'a']),
+    pass('gemensam-2', ['helklass']),
+    pass('gemensam-3', ['helklass']),
+    pass('gemensam-4', ['helklass']),
+    pass('sprak-a', ['a'], 50, { periods: ['ht'] }),
+    pass('sprak-b', ['b'], 50, { periods: ['ht'] }),
+    pass('annan-a', ['a'], 40, { periods: ['ht'] }),
+    pass('olagd-b', ['b'], 40, { periods: ['ht'] }),
+    pass('mentor', ['helklass'], 15, { instructional: false }),
+  ];
+  const placements = place([
+    ['gemensam-1', 0, 480], ['gemensam-2', 0, 550], ['gemensam-3', 1, 480], ['gemensam-4', 2, 480],
+    ['sprak-a', 0, 630], ['sprak-b', 1, 550], ['annan-a', 2, 550], ['mentor', 2, 590],
+  ]);
+  const actual = {
+    groups, lessons, rules, periods: [{ id: 'ht' }, { id: 'vt' }], clusters: [{ id: 'a', size: 2 }, { id: 'b', size: 3 }],
+    student_day_balance: [
+      { cluster: 'a', period: 'ht', days: [0, 1, 2] }, { cluster: 'b', period: 'ht', days: [0, 1, 2] },
+      { cluster: 'a', period: 'vt', days: [0, 1, 2, 3] }, { cluster: 'b', period: 'vt', days: [0, 1, 2, 4] },
+    ],
+  };
+  const rows = schemaElevkvalitet(actual, ['ht', 'vt'], resources, placements, new Set());
+  assert.deepEqual(rows[0].lektionsdagar, {
+    elever: 5, ensammaElevdagar: 5, understigerMalElevdagar: 5,
+    dagar: [
+      { dag: 0, min: 2, max: 3, ensammaElever: 0 },
+      { dag: 1, min: 1, max: 2, ensammaElever: 2, pass: 'gemensam-3' },
+      { dag: 2, min: 1, max: 2, ensammaElever: 3, pass: 'gemensam-4' },
+    ],
+  });
+  assert.equal(rows[2].lektionsdagar.understigerMalElevdagar, 3); // Även olagda undervisningspass ingår i veckans mål.
+  assert.deepEqual(rows[3].lektionsdagar.dagar.slice(-2), [
+    { dag: 3, min: 0, max: 0, ensammaElever: 0 }, { dag: 4, min: 0, max: 0, ensammaElever: 0 },
+  ]);
+  assert.equal(rows[3].lektionsdagar.understigerMalElevdagar, 5);
+});
+
 test('förslag och kontroll använder verkliga medlemsmönster och transporterar måtten utan elevidentiteter', () => {
   const unitId = '65a10000-0000-4000-8000-000000000001', classId = '65a10000-0000-4000-8000-000000000002';
   const pupilId = '65a10000-0000-4000-8000-000000000003', assumedClass = '65a10000-0000-4000-8000-000000000004';
@@ -98,6 +137,16 @@ test('förslag och kontroll använder verkliga medlemsmönster och transporterar
   const rows = parseSchemaForslag(result, input).elevkvalitet;
   assert.deepEqual(parseSchemaKontroll(checked, underlag.grundFingerprint).elevkvalitet, rows);
   assert.deepEqual(rows.map(({ ref, slag, term }) => ({ ref, slag, term })), [{ ref: classId, slag: 'klass', term: 'ht' }]);
+  assert.equal(rows[0].lektionsdagar.elever, 1);
+  assert.equal(rows[0].lektionsdagar.dagar.length, 5);
+  const felaktigtPass = structuredClone(result);
+  const ensampass = felaktigtPass.elevkvalitet[0].lektionsdagar.dagar.find(d => d.pass);
+  assert.ok(ensampass);
+  ensampass.pass = 'pass-12500';
+  assert.throws(() => parseSchemaForslag(felaktigtPass, input), SchemaContractError);
+  const felaktigSumma = structuredClone(checked);
+  felaktigSumma.elevkvalitet[0].lektionsdagar.ensammaElevdagar += 1;
+  assert.throws(() => parseSchemaKontroll(felaktigSumma, underlag.grundFingerprint), SchemaContractError);
   assert.ok(!JSON.stringify(rows).includes(pupilId));
   assert.ok(!JSON.stringify(rows).includes('kluster-'));
   const { elevkvalitet: _, ...legacy } = result;

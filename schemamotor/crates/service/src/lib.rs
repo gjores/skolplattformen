@@ -101,7 +101,16 @@ impl Drop for Running<'_> {
 fn handle(mut request: Request, cfg: &Config, running: &AtomicUsize) {
     let path = request.url().split('?').next().unwrap_or("").to_string();
     if path == "/v1/health" && *request.method() == Method::Get {
-        return reply(request, 200, serde_json::json!({"contract_version":CONTRACT_VERSION,"supported_problem_versions":SUPPORTED_PROBLEM_VERSIONS}).to_string());
+        return reply(
+            request,
+            200,
+            serde_json::json!({
+                "contract_version": CONTRACT_VERSION,
+                "supported_problem_versions": SUPPORTED_PROBLEM_VERSIONS,
+                "student_day_balance": true
+            })
+            .to_string(),
+        );
     }
     let check = path == "/v1/validate" || path == "/v1/positions";
     if path != "/v1/solve" && path != "/v1/diagnose" && path != "/v1/suggest" && !check {

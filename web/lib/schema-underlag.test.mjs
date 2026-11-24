@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaForslag, schemaGrundFingerprint, schemaKontroll, schemaProvUnderlag, weeklyLessons } from './schema-underlag.ts';
+import { buildSchemaUnderlag, defaultSchemaTime, mergeSchemaMembers, reachable, schemaFingerprint, schemaForslag, schemaGrundFingerprint, schemaKontroll, schemaProvUnderlag, weeklyLessons } from './schema-underlag.ts';
 import { schemaTime } from './schema-kalender.ts';
 import { checkSchemaPlacements, checkSchemaVillkor, defaultSchemaVillkor as annualDefaultSchemaVillkor, parseSchemaVillkor, parseSchemaCheck, parseSchemaForslag, parseSchemaForslagRequest, parseSchemaKontroll, parseSchemaKontrollRequest, parseSchemaSolution, sammaGrund, schemaGrund, villkorNyckel, SCHEMA_CONTRACT_VERSION, SCHEMA_GRUND_TYPER, SCHEMA_REGEL_TYPER } from './schema-contract.ts';
 
@@ -58,6 +58,44 @@ test('underlaget bär bara löpnummer: inga namn och inga av appens ID:n når mo
   assert.ok(!sent.includes('52a10000') && !sent.includes('Lärare') && !sent.includes('1A') && !sent.includes('Matematik') && !sent.includes('Provskolan'));
   assert.equal(problem.version, LEGACY_MOTOR_VERSION);
   assert.deepEqual(problem.teachers.map(t => t.id), ['larare-1', 'larare-2', 'larare-3', 'larare-4']);
+});
+
+test('balansmålet använder verkliga elever och klassens vanliga undervisningsdagar per termin', () => {
+  const time = timeWith({ classes: { [uid(10)]: [18, 18, 0, 18, 18] } }, { classes: { [uid(10)]: [20, 20, 20, 20, 0] } });
+  const members = { pupils: [{ id: uid(90), classIds: [uid(10)] }], memberships: [] };
+  const aktivitet = { id: 'aktivitet-1', typId: 'typ-mentorstid', typ: 'Mentorstid', name: 'Mentorstid', classRefs: [uid(10)], groupRefs: [], teacherRefs: [], rooms: [],
+    durationMin: 20, veckor: { typ: 'alla' }, visibleFor: 'alla', margin: null, tid: { typ: 'fast', day: 0, startMin: 480 } };
+  const villkor = { ...annualDefaultSchemaVillkor(), aktiviteter: [aktivitet] };
+  const { problem, labels, fingerprint, grundFingerprint } = buildSchemaUnderlag(plan(), { ...lasarRequest, villkor }, { time, members });
+  assert.equal(problem.weights.student_day_balance, 5);
+  assert.deepEqual(problem.student_day_balance, [
+    { cluster: 'kluster-1', period: 'ht', days: [0, 1, 3, 4] },
+    { cluster: 'kluster-1', period: 'vt', days: [0, 1, 2, 3] },
+  ]);
+  assert.equal(problem.lessons.at(-1).instructional, false);
+  assert.ok(!JSON.stringify(problem).includes(uid(90)));
+  const legacy = structuredClone(problem);
+  delete legacy.student_day_balance;
+  delete legacy.weights.student_day_balance;
+  delete legacy.lessons.at(-1).instructional;
+  assert.equal(fingerprint, schemaFingerprint(legacy, labels));
+  assert.equal(grundFingerprint, schemaGrundFingerprint(legacy, labels));
+  const single = buildSchemaUnderlag(plan(), request, { time, members }).problem;
+  assert.equal(single.periods, undefined);
+  assert.deepEqual(single.student_day_balance, [{ cluster: 'kluster-1', period: '', days: [0, 1, 3, 4] }]);
+});
+
+test('balansmålet utelämnar en termins löpnummer om ett språkbyte annars gör att samma elev räknas på båda parallellvalen', () => {
+  const time = timeWith({ span: { start: '2026-08-17', end: '2026-12-18' } }, { span: { start: '2027-01-11', end: '2027-06-18' } });
+  const groups = [group(40, 'Spanska', uid(60), [uid(10)]), group(41, 'Franska', uid(60), [uid(10)])];
+  const members = { pupils: [{ id: uid(90), classIds: [uid(10)] }, { id: uid(91), classIds: [uid(10)] }], memberships: [
+    { pupilId: uid(90), groupId: uid(40), startsOn: '2026-08-17', endsOn: '2026-12-18' },
+    { pupilId: uid(90), groupId: uid(41), startsOn: '2027-01-11', endsOn: null },
+    { pupilId: uid(91), groupId: uid(41), startsOn: '2026-08-17', endsOn: null },
+  ] };
+  const { problem } = buildSchemaUnderlag(plan({ groups }), { ...lasarRequest, villkor: annualDefaultSchemaVillkor() }, { time, members });
+  assert.deepEqual(problem.clusters.map(c => c.size), [1, 1, 25]);
+  assert.deepEqual(problem.student_day_balance?.map(r => [r.cluster, r.period]), [['kluster-2', 'ht'], ['kluster-2', 'vt']]);
 });
 
 test('oanvänd valbar personal ändrar inte schemats grund, pass eller lärarlöpnummer', () => {

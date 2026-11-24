@@ -45,8 +45,17 @@ pub struct Unit {
     pub nrooms: usize,
     /// Tidsregel och hela enhetens bidrag i minuter per möjlig veckodag.
     pub time: Vec<(u32, Vec<i64>)>,
+    /// Vilka elevklusters periodmål enhetens undervisning bidrar till.
+    pub student_balances: Vec<usize>,
     /// Enheten bryter mot en regel i sig själv (text för diagnos).
     pub self_conflict: Option<String>,
+}
+
+pub struct StudentBalance {
+    pub size: i64,
+    pub days: Vec<bool>,
+    pub day_count: u32,
+    pub target: u32,
 }
 
 /// En aktivitets tid i en eller flera perioder (`ActivityTime`).
@@ -109,6 +118,7 @@ pub struct Inst {
     pub times: Vec<TimeRule>,
     /// Enheter per tidsregel.
     pub time_units: Vec<Vec<u32>>,
+    pub student_balances: Vec<StudentBalance>,
     pub w: Weights,
 }
 
@@ -175,6 +185,20 @@ pub fn compile(p: &Problem) -> Inst {
     }
     let n_ents = n_teachers + cluster_names.len();
     let n_rooms = p.rooms.len();
+    let mut student_balances = Vec::new();
+    let mut balance_ix = HashMap::new();
+    let mut instruction_totals = Vec::new();
+    if p.weights.student_day_balance > 0 {
+        for row in &p.student_day_balance {
+            let cluster = cluster_ix[row.cluster.as_str()];
+            let period = if p.periods.is_empty() { 0 } else { period_ix[row.period.as_str()] };
+            balance_ix.insert(((n_teachers + cluster) as u32, period), student_balances.len());
+            let mut school_days = vec![false; days];
+            for &day in &row.days { school_days[day as usize] = true; }
+            student_balances.push(StudentBalance { size: cluster_size[cluster], days: school_days, day_count: row.days.len() as u32, target: 0 });
+            instruction_totals.push(0u32);
+        }
+    }
 
     let lunch = p.rules.lunch.as_ref();
     let mut ent_size = vec![1i64; n_teachers];
@@ -263,6 +287,7 @@ pub fn compile(p: &Problem) -> Inst {
         let mut ent_margin: Vec<(u8, u8)> = Vec::new();
         let mut virt: Vec<(u32, u8)> = Vec::new();
         let mut acts: Vec<(u32, u16)> = Vec::new();
+        let mut balances = Vec::new();
         let mut nrooms = 0usize;
         let mut self_conflict = None;
         let mut locked: Option<(u32, u32)> = None;
@@ -279,6 +304,16 @@ pub fn compile(p: &Problem) -> Inst {
             mine.sort();
             mine.dedup();
             for e in mine {
+                if l.instructional && !balance_ix.is_empty() {
+                    for period in 0..periods {
+                        if pm >> period & 1 != 0 {
+                            if let Some(&idx) = balance_ix.get(&(e, period)) {
+                                balances.push(idx);
+                                instruction_totals[idx] += 1;
+                            }
+                        }
+                    }
+                }
                 if ents.iter().any(|x| x.0 == e) {
                     let name = if (e as usize) < n_teachers { format!("lärare {}", p.teachers[e as usize].id) } else { format!("elever i {}", cluster_names[e as usize - n_teachers]) };
                     self_conflict = Some(format!("passen ska gå samtidigt men delar {name}"));
@@ -372,7 +407,11 @@ pub fn compile(p: &Problem) -> Inst {
         if acts.iter().any(|&(a, n)| n > 1 && p.activities[a as usize].same_day.unwrap_or(p.rules.same_day) == SameDay::Forbid) {
             self_conflict = Some("passen ska gå samtidigt men hör till samma aktivitet, som bara får ha ett pass per dag".into());
         }
-        units.push(Unit { parts, pm, ents, ent_margin, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, time: Vec::new(), self_conflict });
+        units.push(Unit { parts, pm, ents, ent_margin, virt, acts, dom, dom_size, locked: locked.is_some(), dur_min, nrooms, time: Vec::new(),
+            student_balances: balances, self_conflict });
+    }
+    for (balance, total) in student_balances.iter_mut().zip(instruction_totals) {
+        balance.target = (total / balance.day_count).min(2);
     }
 
     // Tidsregler: varje enhet bidrar med sina pass i aktiviteten, i de perioder den går.
@@ -457,6 +496,7 @@ pub fn compile(p: &Problem) -> Inst {
         act_units,
         times,
         time_units,
+        student_balances,
         w: p.weights.clone(),
     }
 }

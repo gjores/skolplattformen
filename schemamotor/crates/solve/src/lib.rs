@@ -169,7 +169,10 @@ pub fn solve(p: &Problem, opt: &Options, cancel: &AtomicBool) -> Solution {
     m.same_day_repeats = parts[3] as u32;
     m.moved_lessons = parts[4] as u32;
     m.room_moved_lessons = parts[5] as u32;
-    m.cost = parts[0] * w.student_gap + parts[1] * w.teacher_gap + parts[2] * w.student_late + parts[3] * w.same_day + parts[4] * w.moved + parts[5] * w.room_moved;
+    m.student_day_shortfall = st.student_day_shortfall as u64;
+    m.student_day_concentration = st.student_day_concentration as u64;
+    m.cost = parts[0] * w.student_gap + parts[1] * w.teacher_gap + parts[2] * w.student_late + parts[3] * w.same_day + parts[4] * w.moved
+        + parts[5] * w.room_moved + st.student_day_concentration * w.student_day_balance;
     debug_assert_eq!(m.cost, st.soft);
 
     if !unplaced.is_empty() {

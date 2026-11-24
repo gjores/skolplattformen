@@ -82,6 +82,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
         links: vec![],
         rules: Rules { break_min: 10, lunch: Some(Lunch { window_start_min: 10 * 60 + 30, window_end_min: 13 * 60 + 30, length_min: 40, teachers: true }), same_day: SameDay::Avoid, student_max_min_per_day: Some(420) },
         weights: Weights { late_after_min: Some(late), ..Weights::default() },
+        student_day_balance: vec![],
         reference: vec![],
     };
 
@@ -145,6 +146,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         id: format!("L{n}"),
                         activity: Some(activity.clone()),
                         duration_min: len,
+                        instructional: true,
                         teachers: vec![teacher.clone()],
                         groups: vec![class.clone()],
                         periods: vec![],
@@ -183,6 +185,7 @@ pub fn school(kind: &Kind, seed: u64) -> Problem {
                         id: format!("L{n}"),
                         activity: Some(activity.clone()),
                         duration_min: block_len,
+                        instructional: true,
                         teachers: teachers.clone(),
                         groups: vec![group.clone()],
                         periods: vec![],

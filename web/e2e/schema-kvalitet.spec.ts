@@ -42,10 +42,18 @@ function medPlaceringar(input: SchemaForslagRequest, at: SchemaPlacement[], lasM
 function kvalitetsrader(at: SchemaPlacement[]): SchemaKvalitetsrad[] {
   const host = at.find(p => p.lesson === hostpass)!;
   const varens = at.find(p => p.lesson === varpass)!;
-  const halFran = 600, springFran = 645;
+  const halFran = 600, springFran = 645, svenskaHt = at.find(p => p.lesson === 'pass-2')!;
+  const dagar = Array.from({ length: 5 }, (_, dag) => {
+    const dagensPass = [host, svenskaHt].filter(pass => pass.day === dag);
+    const max = dagensPass.length, min = max - Number(svenskaHt.day === dag);
+    const ensammaElever = max === 1 ? min === 0 ? 16 : 24 : max === 2 ? 8 : 0;
+    const pass = ensammaElever > 0 ? dagensPass[0]?.lesson : undefined;
+    return { dag, min, max, ensammaElever, ...(pass && { pass }) };
+  });
+  const lektionsdagar = { dagar, elever: 24, ensammaElevdagar: dagar.reduce((summa, dag) => summa + dag.ensammaElever, 0), understigerMalElevdagar: svenskaHt.day === host.day ? 16 : 24 };
   return [
     { slag: 'klass', ref: klass.ref, term: 'ht', hal: { dag: host.day, min: host.startMin - halFran - 10, fran: halFran, till: host.startMin, pass: host.lesson },
-      sluttid: { dag: host.day, min: 960, pass: host.lesson }, kortasteDag: 180, langstaDag: 480 },
+      sluttid: { dag: host.day, min: 960, pass: host.lesson }, kortasteDag: 180, langstaDag: 480, lektionsdagar },
     { slag: 'klass', ref: klass.ref, term: 'vt', hal: null, sluttid: { dag: varens.day, min: 850, pass: varens.lesson }, kortasteDag: 120, langstaDag: 320 },
     { slag: 'grupp', ref: grupp.ref, term: 'vt', hal: { dag: varens.day, min: 25, fran: springFran, till: varens.startMin, pass: varens.lesson },
       sluttid: { dag: varens.day, min: 920, pass: varens.lesson }, kortasteDag: 140, langstaDag: 400 },
@@ -71,14 +79,15 @@ async function oppnaGranska(page: Page, server: SchemaDraftTestServer, { parkera
   await page.route('**/api/schema/fortsatt', route => {
     const input = route.request().postDataJSON() as SchemaKontrollRequest;
     sokningar.push(input);
-    const at = input.placements.map(p => p.lesson === hostpass ? { ...p, startMin: 635 } : p);
+    const at = input.placements.map(p => p.lesson === hostpass ? { ...p, startMin: 635 }
+      : p.lesson === 'pass-2' ? { ...p, day: 0, startMin: 550 } : p);
     const forslag = medPlaceringar(input, at, true);
     return route.fulfill({ headers, json: { forslag, before: kontroll(medPlaceringar(input, input.placements, true), input.placements),
       after: kontroll(forslag, at) } });
   });
   await page.goto('/e2e/fixtures/schema-preview.html', { waitUntil: 'domcontentloaded' });
   await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
-  await expect.poll(() => server.drafts.get(draftKey)?.placements).toEqual(initiala);
+  await expect.poll(() => server.drafts.get(draftKey)?.placements, { timeout: 10_000 }).toEqual(initiala);
   await expect(page.getByText('Sparat på servern', { exact: true })).toBeVisible();
   await page.getByRole('navigation', { name: 'Arbetsytor', exact: true }).getByRole('button', { name: 'Granska', exact: true }).click();
   return { initiala, sokningar, kontroller };
@@ -118,6 +127,26 @@ test('klassens och gruppens mått hör till rätt termin och återgången behål
   await expect(yta).toContainText('25 min · Tisdag 10:45–11:20');
 });
 
+test('visar elevgruppernas pass per dag och återvänder till rätt enpasslänk', async ({ page, schemaDraftServer }) => {
+  await oppnaGranska(page, schemaDraftServer);
+  const yta = kvalitet(page), tabell = yta.getByRole('table', { name: 'Undervisningspass per veckodag', exact: true });
+  await expect(yta).toContainText('24 elever ingår');
+  await expect(yta).toContainText('På 2 veckodagar har minst en elev ett enda undervisningspass.');
+  await expect(yta).toContainText('24 elevdagar under dagsmålet.');
+  const onsdag = tabell.getByRole('row', { name: /Onsdag/u });
+  await expect(onsdag.getByRole('cell').first()).toHaveText('0–1');
+  await expect(onsdag.getByRole('cell').nth(1)).toHaveText('16');
+  const torsdag = tabell.getByRole('row', { name: /Torsdag/u });
+  await expect(torsdag.getByRole('cell').first()).toHaveText('0');
+  await expect(torsdag.getByRole('button')).toHaveCount(0);
+  const visa = onsdag.getByRole('button', { name: 'Visa ett ensamt pass på onsdag', exact: true });
+  await visa.click();
+  const kontext = page.getByRole('region', { name: 'Pass från granskningen', exact: true });
+  await expect(kontext).toContainText('Höstterminen · Onsdag 09:50');
+  await kontext.getByRole('button', { name: 'Tillbaka till granskningen', exact: true }).click();
+  await expect(visa).toBeFocused();
+});
+
 test('förhandsgranskar effekten för vald klass och sparar först efter uttryckligt val', async ({ page, schemaDraftServer }, info) => {
   const { initiala, sokningar, kontroller } = await oppnaGranska(page, schemaDraftServer);
   await page.evaluate(() => { document.documentElement.style.fontSize = '32px'; });
@@ -127,6 +156,11 @@ test('förhandsgranskar effekten för vald klass och sparar först efter uttryck
   const panel = fortsatt(page);
   const jamforelse = panel.getByRole('table', { name: `Kvalitetsmått för ${klass.name}`, exact: true });
   await expect(jamforelse.getByRole('row', { name: /Längsta hål/u }).getByRole('cell')).toHaveText(['Längsta hål', '1 tim', '25 min']);
+  await expect(jamforelse.getByRole('row', { name: /Elevdagar under dagsmålet/u }).getByRole('cell')).toHaveText(['Elevdagar under dagsmålet', '24', '16']);
+  const veckodagar = panel.getByRole('table', { name: `Undervisningspass per veckodag före och efter för ${klass.name}`, exact: true });
+  await expect(veckodagar.getByRole('row', { name: /Onsdag/u }).getByRole('cell'))
+    .toHaveText(['0–1 pass per elev · 16 elever med ett pass', '0 pass per elev · 0 elever med ett pass']);
+  await expect(panel).toContainText('Dagar då någon elev har ett enda pass går från 2 till 1.');
   await expect(panel.getByRole('columnheader', { name: 'Till', exact: true })).toBeVisible();
   expect(sokningar[0].placements).toEqual(initiala);
   expect(schemaDraftServer.saves).toHaveLength(saves);

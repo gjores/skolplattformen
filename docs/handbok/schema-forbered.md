@@ -57,6 +57,10 @@ Resursjämförelsen utgår från de bokningar som finns i utkastet. Använd den 
 
 Under **Elevernas skoldagar** väljer du termin och klass eller undervisningsgrupp. De största hålen visas först i resursvalet. Måtten visar det längsta hålet efter avdrag för raster och lunch, den senaste sluttiden och spannet från kortaste till längsta skoldag. En klass kan ha flera olika scheman genom sina undervisningsgrupper. Måtten utgår från dessa scheman och gäller den återkommande grundveckan. Enskilda datum och aktiviteter som bara gäller vissa veckor hanteras i respektive schemavy. Om måtten saknas i ett äldre utkast kan du köra **Kontrollera schemat** i Granska.
 
+Under **Undervisningspass per veckodag** visas hur många pass eleverna har varje ordinarie skoldag. Om antalet skiljer sig mellan eleverna visas ett spann. En elevdag är en elev under en veckodag. Dagar med ett enda undervisningspass går att följa upp i schemat. Parallella språkgrupper räknas enligt elevernas deltagande. Mentorstid visas som en aktivitet i schemat.
+
+Vid ny eller fortsatt beräkning försöker motorn lägga minst två undervisningspass per ordinarie skoldag där veckans antal räcker. Den väger också jämnheten mellan dagarna mot håltid och sluttid. Dagsmålet som visas i Granska kan därför vara lägre för elever med färre pass i veckan. Jämför utfallet före och efter beräkningen, särskilt om någon dag fortfarande ligger under målet.
+
 Välj **Visa passet efter hålet** för att öppna rätt grundpass eller **Pröva en förbättring** för att låta motorn arbeta vidare med hela utkastet. Jämför den valda klassens eller gruppens mått, hela schemats avvikelser och vilka pass som flyttas. Välj **Använd förslaget** om du vill spara ändringarna, eller **Behåll nuvarande schema** för att avsluta jämförelsen. Du kan ångra en använd förbättring i ett steg.
 
 ## Checklistan
@@ -71,7 +75,7 @@ Checklistan har sju punkter. Varje punkt visar de aktuella värdena, vad appen h
 | Lärartider och fasta tider | Spärrad och tillåten tid per lärare, längsta dag, låsta pass och aktiviteter med fast tid. |
 | Aktiviteter och nationella prov | Provplanen för läsåret och skolans återkommande aktiviteter, till exempel mentorstid. |
 | Regler och önskemål | Skoldag, lunch, raster, spärrar och marginaler. |
-| Mål för schemat | Vad schemamotorn väger: elevernas och lärarnas håltid, sena pass och samma ämne samma dag. |
+| Mål för schemat | Jämnare undervisningsdagar, elevernas och lärarnas håltid, sena pass och samma ämne samma dag. |
 
 Kryssa i **Genomgånget** när du har gått igenom ett område. Bocken är ditt eget ställningstagande. Appens kontroll bockar aldrig av något.
 

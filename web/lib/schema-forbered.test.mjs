@@ -17,7 +17,8 @@ test('sju områden i fast ordning, med värden och kontroll även innan något �
   assert.ok(p.every(x => x.varden.length && x.kontroll.length && /^[0-9a-f]{8}$/u.test(x.avtryck)));
   assert.match(id(p, 'salar').varden.join(' · '), new RegExp(`Inget salregister · 0 av ${fixtur.fordelning.length} undervisningar har salbehov · ${fixtur.fordelning.length} obesvarade`, 'u'));
   assert.equal(id(p, 'salar').saknas, fixtur.fordelning.length + 1);
-  assert.equal(id(p, 'aktiviteter').nasta, 'Gå igenom nationella prov'); assert.match(id(p, 'mal').kontroll[0], /går inte att välja ännu/u);
+  assert.equal(id(p, 'aktiviteter').nasta, 'Gå igenom nationella prov');
+  assert.match(id(p, 'mal').varden[0], /minst två undervisningspass/u);
   assert.match(id(p, 'larartider').kontroll[0], /kan inte avgöra/u);
 });
 test('provplanen räknas som en förutsättning och en sparad ändring upphäver områdets genomgång', () => {

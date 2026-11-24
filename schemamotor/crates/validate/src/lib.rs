@@ -99,7 +99,8 @@ fn validate_until(problem: &Problem, placements: &[Placement], deadline: Option<
     check_deadline(deadline)?;
     // Legacyv4:s placeringssemantik består. Nya budgetfält/versioner får däremot inte
     // passera grönt genom en kontrollväg som annars inte behöver kompilera underlaget.
-    if problem.version != 4 || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some())) {
+    if problem.version != 4 || !problem.student_day_balance.is_empty() || problem.weights.student_day_balance != 0
+        || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some())) {
         let errors = problem.check();
         if !errors.is_empty() {
             return Ok(Report { violations: errors.into_iter().map(|d| Violation { code: match d.code.as_str() {
@@ -468,6 +469,51 @@ fn validate_until(problem: &Problem, placements: &[Placement], deadline: Option<
         + m.moved_lessons as i64 * w.moved
         + m.room_moved_lessons as i64 * w.room_moved;
 
+    if w.student_day_balance > 0 && !problem.student_day_balance.is_empty() {
+        // Kontrollanten räknar från råa pass och gruppmedlemskap; inga beräknade sökarräknare återanvänds.
+        let mut expected: HashMap<&str, HashMap<&str, u32>> = HashMap::new();
+        for row in &problem.student_day_balance {
+            expected.entry(row.cluster.as_str()).or_default().insert(row.period.as_str(), 0);
+        }
+        for l in problem.lessons.iter().filter(|l| l.instructional) {
+            check_deadline(deadline)?;
+            let affected: BTreeSet<&str> = l.groups.iter().flat_map(|id| groups.get(id.as_str()))
+                .flat_map(|g| g.clusters.iter().map(String::as_str)).collect();
+            for cluster in affected {
+                if let Some(periods) = expected.get_mut(cluster) {
+                    for (&period, count) in periods {
+                        if in_period(l, (!period.is_empty()).then_some(period)) {
+                            *count += 1;
+                        }
+                    }
+                }
+            }
+        }
+        for row in &problem.student_day_balance {
+            check_deadline(deadline)?;
+            let day_count = row.days.len() as u32;
+            let target = (expected[row.cluster.as_str()][row.period.as_str()] / day_count).min(2);
+            let period = (!row.period.is_empty()).then_some(row.period.as_str());
+            let size = u64::from(cluster_size[&row.cluster]);
+            let mut counts = vec![0u32; problem.time.days.len()];
+            for p in by_cluster.get(&row.cluster).into_iter().flatten() {
+                if p.lesson.instructional && in_period(p.lesson, period) {
+                    if let Some(n) = counts.get_mut(p.day as usize) { *n += 1; }
+                }
+            }
+            let mut count = 0;
+            let mut pairs = 0;
+            for &day in &row.days {
+                let n = counts[day as usize];
+                count += n;
+                pairs += lesson_pairs(n);
+                m.student_day_shortfall += size * u64::from(target.saturating_sub(n));
+            }
+            m.student_day_concentration += size * (pairs - balanced_lesson_pairs(count, day_count)) as u64;
+        }
+        m.cost += m.student_day_concentration as i64 * w.student_day_balance;
+    }
+
     check_deadline(deadline)?;
     Ok(Report { violations: v, metrics: m })
 }
@@ -670,13 +716,15 @@ fn reasons(found: &[&Violation], lesson: &str) -> Vec<Reason> {
 
 /// Önskemål som blir sämre: de delar av kostnaden som ökar.
 fn preference_reasons(now: &Metrics, then: &Metrics, w: &Weights) -> Vec<Reason> {
-    let parts: [(&'static str, bool, i64); 6] = [
+    let parts = [
         ("student_gap", then.student_gap_min > now.student_gap_min, w.student_gap),
         ("teacher_gap", then.teacher_gap_min > now.teacher_gap_min, w.teacher_gap),
         ("student_late", then.student_late_min > now.student_late_min, w.student_late),
         ("same_day_repeat", then.same_day_repeats > now.same_day_repeats, w.same_day),
         ("moved", then.moved_lessons > now.moved_lessons, w.moved),
         ("room_moved", then.room_moved_lessons > now.room_moved_lessons, w.room_moved),
+        ("student_day_balance", (then.student_day_shortfall, then.student_day_concentration)
+            > (now.student_day_shortfall, now.student_day_concentration), w.student_day_balance),
     ];
     parts
         .iter()
@@ -688,7 +736,8 @@ fn preference_reasons(now: &Metrics, then: &Metrics, w: &Weights) -> Vec<Reason>
 /// Pröva varje starttid på startrutnätet där passet och dess marginal ryms i skoldagen, mot övriga pass som de ligger.
 /// `pupil` är ett kluster: då räknas elevernas brott bara för det klustret.
 pub fn positions(problem: &Problem, placements: &[Placement], lesson: &str, pupil: Option<&str>) -> Result<Vec<Position>, PositionsError> {
-    if (problem.version != 4 || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some()))) && !problem.check().is_empty() {
+    if (problem.version != 4 || !problem.student_day_balance.is_empty() || problem.weights.student_day_balance != 0
+        || problem.activities.iter().any(|a| a.time.iter().any(|t| t.budget.is_some()))) && !problem.check().is_empty() {
         return Err(PositionsError::BadProblem);
     }
     let l = problem.lessons.iter().find(|x| x.id == lesson).ok_or(PositionsError::UnknownLesson)?;
@@ -763,7 +812,7 @@ pub fn positions(problem: &Problem, placements: &[Placement], lesson: &str, pupi
                 } else {
                     PositionState::Violation
                 }
-            } else if cost_delta > 0 {
+            } else if (report.metrics.student_day_shortfall, report.metrics.cost) > (now.student_day_shortfall, now.cost) {
                 PositionState::Preference
             } else {
                 PositionState::Free

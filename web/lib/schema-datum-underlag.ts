@@ -155,9 +155,10 @@ export function schemaDatumUnderlag(plan: TjanstPlanRead, u: SchemaUnderlag, f: 
       } else for (let i = 0; i < linked.length; i++) for (let j = i + 1; j < linked.length; j++)
         if (linked[i][1].lesson.id !== linked[j][1].lesson.id) links.push({ kind: link.kind, lessons: [linked[i][0], linked[j][0]] });
     }
-    const { periods: _periods, reference: _reference, links: _links, aktivitetsResurser: _resurser, ...problem } = u.problem;
+    const { periods: _periods, reference: _reference, links: _links, aktivitetsResurser: _resurser, student_day_balance: _veckomal, weights, ...problem } = u.problem;
+    const { student_day_balance: _veckovikt, ...datumvikter } = weights;
     return { date, occurrences, placements, groupIdsByRef: ids, pupilsByGroup,
-      problem: { ...problem, id: `datum-${date}`, groups, clusters, activities: u.problem.activities.map(a => ({ id: a.id })), lessons, ...(links.length ? { links } : {}) } };
+      problem: { ...problem, id: `datum-${date}`, groups, clusters, activities: u.problem.activities.map(a => ({ id: a.id })), lessons, weights: datumvikter, ...(links.length ? { links } : {}) } };
   });
   const violations: SchemaDatumAvvikelse[] = [];
   // Ett samplaceringsvillkor får inte försvinna bara för att ena tillfället har flyttats till en annan dag.
