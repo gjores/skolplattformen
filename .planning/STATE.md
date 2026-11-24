@@ -23,8 +23,8 @@ worker_status: calendar_installed_through_20261112141000_health_pass_after_sql_1
 worker_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_build_revision: 7dda9d75a612a5f08731ca9f74b5d9fed31f7683
 verification_ui_status: calendar_actual_pass_14_images_reviewed_1280_fixed
-schema_runtime_revision: ca0bc93db46c9767b1d7d28f2914f3a6c765c0a2
-schema_candidate_revision: ca0bc93db46c9767b1d7d28f2914f3a6c765c0a2
+schema_runtime_revision: 5f6a61988999895bbc9b2092ac9bf0c0a8ba5b35
+schema_candidate_revision: 5f6a61988999895bbc9b2092ac9bf0c0a8ba5b35
 schema_candidate_status: schema_activity_restart_installed_and_authenticated_preview_verified
 schema_motor_contract_version: 5
 schema_motor_runtime_revision: 66a4fb969bc71548768014da59bac2b7f1aedb7a
@@ -34,7 +34,7 @@ user_trial_status: schema_activity_restart_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-24 – aktivitetsbokningar efter tömning på 3012.** Provbygget `ca0bc93d` rensar motorns aktivitetsplaceringar och bevarar aktivitetsbokningar och manuella val. Vid omräkning får olåsta resurser nya förslag. Verifierade skrivprov kördes med isolerade syntetiska uppgifter. Installationskontrollen bevarade innehållet i 24 tabeller inklusive 146 schemarevisioner och 27 provrevisionsposter. Ett inloggat förslag på 3012 gav en ansvarig lärare för en aktivitet med Ingen sal behövs. Helårsutkast och provplan var identiska efter provet. [SM-AKTIVITET-OMSTART](phases/05.2-schemamodul/05.2-SM-AKTIVITET-OMSTART-SUMMARY.md)
+**2026-11-24 – aktivitetsbokningar efter tömning på 3012.** Provbygget `5f6a6198` rensar motorns aktivitetsplaceringar och bevarar aktivitetsbokningar och manuella val. Vid omräkning får olåsta resurser nya förslag. Det första förslaget efter tömning väntar på uttryckligt val. Verifierade skrivprov kördes med isolerade syntetiska uppgifter. Installationskontrollen bevarade innehållet i 24 tabeller inklusive 146 schemarevisioner och 27 provrevisionsposter. Ett inloggat förslag på 3012 gav en ansvarig lärare för en aktivitet med Ingen sal behövs. Helårsutkast och provplan var identiska efter provet. [SM-AKTIVITET-OMSTART](phases/05.2-schemamodul/05.2-SM-AKTIVITET-OMSTART-SUMMARY.md)
 
 **2026-11-23 – friluftsdag med timplansämne på 3012.** Provbygget `d7ffa038` ger datumval, en gemensam aktivitet för valda klasser och ämnestid från timplanen. Granskningen visar ersättning och kvarstående minuter före sparning. Inloggade prov på förhandsporten och 3012 räknade Idrott och hälsa för tre undervisningar och föreslog fem flyttar. Databasuppgraderingen bevarade schemat och provplanen. [SM-DATERAD-AKTIVITET](phases/05.2-schemamodul/05.2-SM-DATERAD-AKTIVITET-SUMMARY.md)
 

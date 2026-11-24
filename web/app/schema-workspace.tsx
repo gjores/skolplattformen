@@ -611,7 +611,9 @@ function Workspace({ unitId, schoolYear, scopeKey, schoolName, onSessionLost, fo
   async function run(continueAnyway = false, releaseLocks = false, behallYta = false) {
     if (fonster) { synk.send({ typ: 'run', continueAnyway, releaseLocks }); return; }
     if (!spara.ready || busy || checking || issues.length || running.current) return;
-    const version = base || aktivitetsdefinition ? granskningsversion() : null;
+    const granskasForeSparning = !!base || !!aktivitetsdefinition
+      || spara.draftId !== null && (kanAngraTomning || !!villkor.aktiviteter?.length);
+    const version = granskasForeSparning ? granskningsversion() : null;
     let request = berakningsInput(releaseLocks);
     const key = JSON.stringify(request);
     const continuing = continueAnyway && fore?.key === JSON.stringify(berakningsInput());

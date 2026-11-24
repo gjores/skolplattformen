@@ -168,7 +168,7 @@ Kortet svarar på fyra frågor, var för sig:
 
 **Kontrollera underlaget** söker hinder utan att lägga något schema. Kontrollen bevisar inte att hela schemat går att lägga.
 
-**Ta fram schemaförslag** räknar med skolans aktuella underlag och villkor. När du lägger skolans första schema öppnas förslaget i **Lägg schema**. När det redan finns ett schema öppnas en förhandsgranskning. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt, och pass utan sal eller lärare redovisas.
+**Ta fram schemaförslag** räknar med skolans aktuella underlag och villkor. När du lägger skolans första schema öppnas förslaget i **Lägg schema**. När det redan finns ett schema eller när du precis har tömt utkastet öppnas en förhandsgranskning. Saknas uppgifter säger kortet vilka. Förslaget blir då ofullständigt, och pass utan sal eller lärare redovisas.
 
 I **Följ passet** visar lärarraden namn och roll. För valbara block väljer du **Visa ämnen i blocket** för att läsa hela ämneslistan. Fulla passnamn finns också på passknapparna.
 

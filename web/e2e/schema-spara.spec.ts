@@ -143,12 +143,26 @@ test('Töm schema gäller valt terminsutkast och kan ångras efter omladdning', 
     intentional: [], workingVillkor: host.workingVillkor });
   expect(server.drafts.get(key())).toEqual(annual);
 
+  const cleared = server.drafts.get(htKey);
   const beforeReload = reads.length;
   await page.reload();
   await expect(period).toHaveValue('ht');
   await expect(undo).toBeEnabled();
   expect(reads.slice(beforeReload)).toEqual(['ht']);
   await expect.poll(() => examReads).toEqual([host.revision, host.revision + 1, host.revision + 1]);
+
+  await page.getByRole('button', { name: 'Ta fram schemaförslag', exact: true }).click();
+  await expect(yta.getByRole('button', { name: 'Granska', exact: true })).toHaveAttribute('aria-current', 'page');
+  const review = page.getByRole('region', { name: 'Granska nytt schemaförslag', exact: true });
+  await expect(review.getByRole('button', { name: 'Använd förslaget', exact: true })).toBeEnabled();
+  expect(server.saves).toHaveLength(0);
+  expect(server.drafts.get(htKey)).toEqual(cleared);
+  await review.getByRole('button', { name: 'Behåll nuvarande schema', exact: true }).click();
+  await expect(review).toBeHidden();
+  await expect(undo).toBeEnabled();
+  expect(server.saves).toHaveLength(0);
+  expect(server.drafts.get(htKey)).toEqual(cleared);
+
   const beforeUndo = examReads.length;
   await undo.click();
   await expect(tom).toBeFocused();
