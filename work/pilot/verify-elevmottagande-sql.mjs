@@ -57,8 +57,9 @@ try {
     await tx`set local role skolplattform_worker`;
     return (await tx`select public.elevmottagande_read(${tx.json(request)}) value`)[0].value;
   });
-  const allocate = (request, actor = 'admin', connection = db) => connection.begin(async tx => {
+  const allocate = (request, actor = 'admin', connection = db, today) => connection.begin(async tx => {
     await fixture.actor(tx, actor);
+    if (today) await tx`select set_config('app.fake_today',${today},true)`;
     await tx`set local role skolplattform_worker`;
     return (await tx`select public.elevmottagande_allocate(${tx.json(request)}) value`)[0].value;
   });
@@ -76,9 +77,10 @@ try {
   assert.equal(after.body.rows.find(x => x.placementId === pupils.source.placementId).canAllocate, false);
   checks.push('daterade klasser, källägarskap och exakt timplansår');
 
-  assert.equal((await read({ ...scope, on: anchor }, 'principalA')).body.canAllocate, false);
+  assert.equal((await read({ ...scope, on: anchor }, 'principalA')).body.canAllocate, true);
   await assert.rejects(read({ ...scope, on: anchor }, 'principalB'), { code: '42501' });
-  await assert.rejects(allocate({ ...scope, action: 'preview', on: anchor, rows: [row('ready')] }, 'principalA'), { code: '42501' });
+  await assert.rejects(allocate({ ...scope, action: 'preview', on: anchor, rows: [row('ready')] }, 'principalB'), { code: '42501' });
+  await assert.rejects(allocate({ ...scope, action: 'preview', on: anchor, rows: [row('ready')] }, 'teacherGroup'), { code: '42501' });
   await assert.rejects(allocate({ ...scope, action: 'preview', on: anchor, rows: [row('protected')] }), { code: '42501' });
   await db.begin(async tx => {
     await fixture.actor(tx, 'hm');
@@ -97,32 +99,35 @@ try {
   checks.push('skolmandat, skrivrätt och aktiv placering för särskild skyddsbehörighet');
 
   const proposal = { ...scope, action: 'preview', on: first, rows: [row('ready'), row('raced'), row('old'), row('source'), row('booked')] };
-  const preview = (await allocate(proposal)).body;
+  const preview = (await allocate(proposal, 'principalA')).body;
   assert.equal(preview.rows.filter(x => x.status === 'ready').length, 2);
   assert.equal(preview.rows.find(x => x.placementId === pupils.booked.placementId).reason, 'existing_membership');
   assert.equal(preview.rows.find(x => x.placementId === pupils.old.placementId).reason, 'existing_membership');
   assert.equal(preview.rows.find(x => x.placementId === pupils.source.placementId).reason, 'source_owned');
   assert.deepEqual(preview.classes.map(({ before, after }) => [before, after]), [[0, 2]]);
-  const invalid = (await allocate({ ...proposal, rows: [row('ready', anchor)] })).body;
+  const invalid = (await allocate({ ...proposal, rows: [row('ready', anchor)] }, 'principalA')).body;
   assert.equal(invalid.rows[0].reason, 'placement_period');
   checks.push('fryst urval, tidigare klass och eget placeringsdatum');
 
-  const bulkPreview = (await allocate({ ...proposal, rows: [row('ready'), row('raced'), ...extra.map(key => row(key))] })).body;
+  const bulkPreview = (await allocate({ ...proposal, rows: [row('ready'), row('raced'), ...extra.map(key => row(key))] }, 'principalA')).body;
   assert.equal(bulkPreview.rows.length, 48);
   assert.equal(bulkPreview.rows.filter(x => x.status === 'ready').length, 48);
   assert.ok(!bulkPreview.rows.some(x => x.placementId === pupils.unselected.placementId));
 
-  await db.begin(async tx => {
-    await fixture.actor(tx, 'admin');
+  const ordinary = actor => db.begin(async tx => {
+    await fixture.actor(tx, actor);
     await tx`set local role skolplattform_worker`;
     const placement = pupils.raced;
     const q = { pupilId: placement.pupilId, schoolYear: scope.schoolYear, caseId: null,
       expectedVersion: future.body.rows.find(x => x.placementId === placement.placementId).version,
       kind: 'class', payload: { placementId: placement.placementId, classId: linked.classId, startsOn: late, endsOn: null } };
-    assert.equal((await tx`select public.phase4_change_pupil(${tx.json(q)}) value`)[0].value.kind, 'success');
+    return (await tx`select public.phase4_change_pupil(${tx.json(q)}) value`)[0].value;
   });
+  await assert.rejects(ordinary('principalA'), { code: '42501' });
+  assert.equal((await ordinary('admin')).kind, 'success');
   const save = { ...scope, action: 'save', on: first, commandId: randomUUID(), previewToken: bulkPreview.previewToken };
-  const [receipt, replay] = await Promise.all([allocate(save), allocate(save, 'admin', environment.connect())]);
+  await assert.rejects(allocate(save, 'admin'), { code: '42501' });
+  const [receipt, replay] = await Promise.all([allocate(save, 'principalA'), allocate(save, 'principalA', environment.connect())]);
   assert.deepEqual(receipt, replay);
   assert.equal(receipt.body.rows.filter(x => x.status === 'saved').length, 47);
   const raced = receipt.body.rows.find(x => x.placementId === pupils.raced.placementId);
@@ -133,14 +138,28 @@ try {
   const memberships = await db`select pupil_id from public.pupil_class_memberships where pupil_id=any(${ids}::uuid[])`;
   assert.equal(memberships.length, 48);
   assert.ok(!memberships.some(x => x.pupil_id === pupils.unselected.pupilId));
-  checks.push('samtidigt omförsök och omgranskning utan dubbla medlemskap');
+  const [record] = await db`select h.actor_id,h.revision,p.version from public.pupil_field_history h
+    join public.pupils p on p.id=h.pupil_id where h.pupil_id=${pupils.ready.pupilId} and h.field='class'`;
+  assert.equal(record.actor_id, fixture.membership('principalA'));
+  assert.equal(record.revision, record.version);
+  checks.push('rektors första klasstillhörighet med ordinarie elevhistorik och 47 samtidiga radkvitton');
 
-  await assert.rejects(allocate({ ...save, commandId: randomUUID() }), { code: '40001' });
-  const status = (await allocate({ ...scope, action: 'status' }, 'principalA')).body;
+  await assert.rejects(allocate({ ...save, commandId: randomUUID() }, 'principalA'), { code: '40001' });
+  const status = (await allocate({ ...scope, action: 'status' }, 'admin')).body;
   assert.deepEqual(status, receipt.body);
   assert.equal((await read({ ...scope, on: first })).body.latestCommandId, save.commandId);
   await assert.rejects(allocate({ ...scope, action: 'status' }, 'principalB'), { code: '42501' });
   checks.push('återläst kvitto på samma skola och förbud över skolgränsen');
+
+  const protectedProposal = { ...scope, action: 'preview', on: anchor, rows: [row('protected')] };
+  await assert.rejects(allocate(protectedProposal, 'principalA', db, anchor), { code: '42501' });
+  const protectedPreview = (await allocate(protectedProposal, 'admin', db, anchor)).body;
+  const protectedCommand = { ...scope, action: 'save', on: anchor, commandId: randomUUID(), previewToken: protectedPreview.previewToken };
+  assert.equal((await allocate(protectedCommand, 'admin', db, anchor)).body.rows[0].status, 'saved');
+  const protectedReceipt = { ...scope, action: 'status', commandId: protectedCommand.commandId };
+  assert.equal((await allocate(protectedReceipt, 'principalA', db, anchor)).body, null);
+  assert.equal((await allocate(protectedReceipt, 'admin', db, anchor)).body.rows[0].status, 'saved');
+  checks.push('rektors behörighet omfattar varken skyddad klasstillhörighet eller skyddat kvitto');
 
   console.log(JSON.stringify({ status: 'PASS', checks, migrations: environment.provenance.applied }));
 } finally {
