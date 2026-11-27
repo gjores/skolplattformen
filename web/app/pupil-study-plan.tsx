@@ -17,6 +17,7 @@ import {
 } from '@/lib/study-plan-model.ts';
 import MfaStepUpNotice from './mfa-step-up';
 import PupilStudyPlanImpact from './pupil-study-plan-impact';
+import PupilSwedishSubject, { type IntakeStudyRow } from './pupil-swedish-subject';
 import {
   parseStudyPlanPeriodEdit, studyPlanPeriodValues, StudyPlanActualForm, StudyPlanDecisionForm, StudyPlanEditor,
   StudyPlanPeriodFields, type StudyPlanPeriodEdit,
@@ -65,6 +66,8 @@ const issueLabels: Record<string, string> = {
   source_choice_needs_review: 'Elevvalet behöver granskas i skolans underlag.',
   additional_level_decision_needed: 'Registrera det befintliga beslutet och spara utkastet igen.',
   examination_source_needs_review: 'Examensformen för elevkullen behöver granskas.',
+  swedish_subject_required: 'Elevens svenskämne behöver bekräftas.',
+  swedish_assessment_pending: 'Målgruppsbedömningen för svenska som andraspråk återstår.',
 };
 
 function plannedDate(value: NonNullable<PlannedStudyDate>) {
@@ -379,6 +382,8 @@ export default function PupilStudyPlan(props: Props) {
   const [requiresMfa, setRequiresMfa] = useState(false);
   const [notice, setNotice] = useState('');
   const [issues, setIssues] = useState<StudyPlanIssue[]>([]);
+  const [swedish, setSwedish] = useState<IntakeStudyRow['swedish'] | null>(null);
+  const readSwedish = useCallback((row: IntakeStudyRow) => setSwedish(row.swedish), []);
   const [uncertain, setUncertain] = useState<{ command: StudyPlanCommand; checked: boolean } | null>(null);
   const nextRequest = useRef<AbortController | null>(null);
   const changing = useRef(false);
@@ -537,6 +542,8 @@ export default function PupilStudyPlan(props: Props) {
   const disabled = busy || Boolean(uncertain);
   const canEdit = writable && latest && read?.basisStatus !== 'unsupported';
   const canPublish = canEdit && read?.canMakeCurrent && snapshot?.state === 'draft';
+  const updateSwedish = canEdit && snapshot?.state === 'draft' && !!swedish?.subject && swedish.assessment !== 'pending'
+    && swedish.revision !== snapshot.content.source.swedishSubject?.revision;
   const contextIssues = issues.length ? issues : snapshot?.state === 'draft' ? studyPlanContentIssues(snapshot.content) : read?.basisIssues ?? [];
   const on = history?.on ?? initialOn;
   const showEditor = (field?: string) => {
@@ -563,6 +570,16 @@ export default function PupilStudyPlan(props: Props) {
     {busy && !read && <output>Hämtar studieplanen…</output>}
     {!read && !busy && !requiresMfa && <Button variant="outline" className="w-fit" onClick={() => void run(reload)}>Hämta aktuell version</Button>}
     {read && <>
+      {!history && read.basisStatus !== 'unsupported' && <div className="rounded-lg border border-border p-3">
+        <PupilSwedishSubject unitId={unitId} pupilId={pupilId} placementId={placementId} on={initialOn}
+          disabled={!writable || disabled || periodsPending} returnTo={props.returnTo} onSessionLost={onSessionLost}
+          onRead={readSwedish} onSaved={row => { readSwedish(row); void run(reload); }} />
+        {updateSwedish && <div className="mt-3 space-y-2"><p className="text-sm">Det bekräftade svenskämnet kan läggas in i elevens befintliga utkast.</p>
+          {!!read.swedishLevels?.length && <ul className="grid gap-1 text-sm" aria-label="Nivåer som läggs in">
+            {read.swedishLevels.map(level => <li key={`${level.subjectCode}-${level.itemCode}`}>{level.label} · {level.points} poäng</li>)}
+          </ul>}
+          <Button type="button" variant="outline" disabled={disabled || periodsPending} onClick={() => submit({ action: 'prepare_draft', payload: { dates: [], requireSharedSwedish: true } })}>Tillämpa svenskämnet på utkastet</Button></div>}
+      </div>}
       <IssueList issues={contextIssues} snapshot={snapshot} onEdit={canEdit && !editor && !disabled && !periodsPending ? showEditor : undefined} />
       {read.current && read.draft && !history && <div className="flex flex-wrap gap-2">
         <Button variant={selected === 'current' ? 'secondary' : 'outline'} aria-pressed={selected === 'current'} disabled={disabled || periodsPending}
@@ -573,7 +590,7 @@ export default function PupilStudyPlan(props: Props) {
       {history && <Button variant="outline" className="w-fit" onClick={() => setHistory(null)}>Till studieplanen</Button>}
       {!snapshot && <p className="empty-state">{history ? 'Ingen gällande version fanns på det datumet.' : 'Det finns ingen gällande studieplan på visat datum.'}</p>}
       {writable && !history && !canEdit && !read.draft && read.basisStatus !== 'unsupported' && <div>
-        <Button disabled={disabled} onClick={() => submit({ action: 'prepare_draft', payload: { dates: [] } })}>
+        <Button disabled={disabled} onClick={() => submit({ action: 'prepare_draft', payload: { dates: [], ...(read.latestRevision === 0 ? { requireSharedSwedish: true } : {}) } })}>
           {read.latestRevision > 0 ? 'Bered utkast från senaste version' : 'Skapa utkast'}
         </Button>
       </div>}

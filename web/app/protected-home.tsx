@@ -65,6 +65,7 @@ import LoggWorkspace from './logg-workspace';
 import MandateWorkspace from './mandate-workspace';
 import MfaStepUpNotice from './mfa-step-up';
 import PupilRegisterWorkspace, { clearRegisterLocation } from './pupil-register-workspace';
+import PupilIntakeWorkspace from './pupil-intake-workspace';
 import ProtectedTimplanWorkspace from './protected-timplan-workspace';
 import ProtectedGymTimplanWorkspace from './protected-gym-timplan-workspace';
 import ProtectedProgramplanWorkspace, { type ClassStepTarget } from './protected-programplan-workspace';
@@ -87,10 +88,11 @@ import ProtectedLasarWorkspace from './protected-lasar-workspace';
 import { LasarOverviewContext, type LasarOpenTarget } from './protected-lasar-overview';
 import type { LasarActorRole } from '@/lib/lasar-contract.ts';
 
-export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'timplaner' | 'programplaner'
+export type ProtectedView = 'start' | 'skolor' | 'kund' | 'logg' | 'mandat' | 'anslutning' | 'elever' | 'elevmottagande' | 'timplaner' | 'programplaner'
   | 'lasar' | 'tjanst' | 'valplaner' | 'undervisningsgrupper' | 'schema' | 'min-tjanst' | 'personal' | 'bemanning' | 'stangt';
 
 const PUPIL_FUNCTIONS = ['rektor', 'larare', 'administrator', 'elevhalsa', 'support'];
+const canOpenIntake = (context: ActiveContext | null) => context?.scopeKind === 'school' && ['rektor', 'administrator'].includes(context.function);
 
 export type SessionResponse = {
   identity: {
@@ -147,6 +149,7 @@ function shellView(search: string, value: SessionResponse): ProtectedView {
     || requested === 'mandat' && ['huvudman', 'rektor', 'elevhalsoansvarig'].includes(role)
     || requested === 'anslutning' && role === 'it') return requested as ProtectedView;
   const params = new URLSearchParams(search);
+  if (requested === 'elevmottagande' && canOpenIntake(value.context)) return 'elevmottagande';
   if (PUPIL_FUNCTIONS.includes(role) && (requested === 'elever' || params.has('lasar') || params.has('skola'))) return 'elever';
   return startView(value);
 }
@@ -269,6 +272,10 @@ function ProtectedNavigation({
               <SidebarMenuButton isActive={view === 'elever'} aria-current={view === 'elever' ? 'page' : undefined} onClick={() => go('elever')} className="nav-button">
                 <Users size={19} /><span>Elever</span>
               </SidebarMenuButton>
+              {canOpenIntake(session.context) && <SidebarMenuSub><SidebarMenuSubItem>
+                <SidebarMenuSubButton href="?vy=elevmottagande" className="min-h-11" isActive={view === 'elevmottagande'} aria-current={view === 'elevmottagande' ? 'page' : undefined}
+                  onClick={event => { if (!event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey) { event.preventDefault(); go('elevmottagande'); } }}>Elevmottagande</SidebarMenuSubButton>
+              </SidebarMenuSubItem></SidebarMenuSub>}
             </SidebarMenuItem>
           )}
         </SidebarMenu>
@@ -677,6 +684,12 @@ function ProtectedShell() {
         if (selected) { registerSelectionRef.current = { key: contextKey, selection: selected }; setSchoolYear(selected.schoolYear); }
         const query = selected ? selectionToQuery(selected) : '?vy=elever';
         window.history.pushState(null, '', window.location.pathname + query);
+      } else if (next === 'elevmottagande') {
+        const selected = currentRegisterSelection();
+        const selectedYear = view === 'elever' ? selected?.schoolYear ?? schoolYear : schoolYear;
+        const params = new URLSearchParams({ vy: next, ...(selectedYear ? { lasar: String(selectedYear) } : {}),
+          ...(view === 'elever' && selected?.unitId ? { skola: selected.unitId } : {}) });
+        window.history.pushState(null, '', window.location.pathname + '?' + params);
       } else window.history.pushState(null, '', window.location.pathname + `?vy=${next}`);
       locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
       setView(next); viewRef.current = next;
@@ -720,12 +733,16 @@ function ProtectedShell() {
           if (selected) { registerSelectionRef.current = { key: contextKey, selection: selected }; setSchoolYear(selected.schoolYear);
             if (!selectionFromQuery(window.location.search, selected)) window.history.replaceState(null, '', window.location.pathname + selectionToQuery(selected)); }
         }
+        if (nextView === 'elevmottagande' && registerSetup) {
+          const year = Number(new URLSearchParams(window.location.search).get('lasar'));
+          if (registerSetup.schoolYears.includes(year)) setSchoolYear(year);
+        }
         setView(nextView); viewRef.current = nextView;
       }
       locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state;
     };
     window.addEventListener('popstate', pop, true); return () => window.removeEventListener('popstate', pop, true);
-  }, [navigationBlocked, hasUnsaved, contextKey, currentRegisterSelection, rememberRegister, requestDiscard]);
+  }, [navigationBlocked, hasUnsaved, contextKey, currentRegisterSelection, rememberRegister, registerSetup, requestDiscard]);
 
   const registerContextKey = session && session !== 'loading' && session.context?.valid ? `${session.epoch}-${session.context.customerId}-${session.context.assignmentId}` : null;
   useEffect(() => {
@@ -779,6 +796,12 @@ function ProtectedShell() {
     if (error instanceof ApiError && (error.status === 401 || error.status === 403 && error.code !== 'mfa_required')) { clearSession(); return true; }
     return false;
   }
+  function openIntakeGroups(unitId: string, year: number) {
+    const prior = planningLocationRef.current ?? planningFor('timplaner');
+    const next: PlanLocation = { ...prior, planning: { ...prior.planning, unitId, schoolYear: year, page: 1, selectionRevision: null } };
+    planningLocationRef.current = next; setPlanningLocation(next);
+    void navigate('undervisningsgrupper');
+  }
   // Läsårsöverblickens Öppna kalendern (05.1.1-12, D-09): Läsår & skoldagar med skolan (eller ramen) och läsåret.
   async function goToLasar(target: LasarOpenTarget) {
     if (!(await canNavigate())) return;
@@ -828,6 +851,7 @@ function ProtectedShell() {
   const overview = isPlanningView(view) && planningLocation?.overview === true;
   const aplProcess = !overview && planningLocation?.view === 'timplaner' && planningLocation.process === 'apl';
   const currentTitle = aplProcess ? 'APL-planering' : overview ? 'Läsårsöverblick' : view === 'start' ? 'Start' : view === 'skolor' ? 'Skolor' : view === 'kund' ? 'Kundadministration' : view === 'logg' ? 'Säkerhetslogg' : view === 'mandat' ? 'Mandat' : view === 'anslutning' ? 'Lokal anslutning' : view === 'elever' ? 'Elever' : view === 'timplaner' ? 'Timplaner' : view === 'programplaner' ? 'Programplaner'
+    : view === 'elevmottagande' ? 'Elevmottagande'
     : view === 'lasar' ? 'Läsår & skoldagar'
     : view === 'valplaner' ? 'Valbara block' : view === 'undervisningsgrupper' ? 'Undervisningsgrupper' : view === 'schema' ? 'Schema' : view === 'tjanst' ? 'Tjänstefördelning' : view === 'min-tjanst' ? 'Min tjänst' : view === 'personal' ? 'Personal' : view === 'bemanning' ? 'Bemanning' : 'Kommande funktion';
 
@@ -846,10 +870,16 @@ function ProtectedShell() {
           <div className="top-actions">
             {validContext && PLANNING_FUNCTIONS.includes(session.context!.function) && <DecisionIndicator onOpen={() => navigate('start')}/>}
             <span className="demo-pill">Skyddad provmiljö</span>
-            {view === 'elever' && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={async year => {
+            {(view === 'elever' || view === 'elevmottagande') && validContext && registerSetup && schoolYear !== null && <SchoolYearPicker setup={registerSetup} value={schoolYear} onChange={async year => {
               if (!(await canNavigate())) return;
-              const selected = currentRegisterSelection();
-              if (selected) registerSelectionRef.current = { key: contextKey, selection: { ...selected, schoolYear: year, page: 1 } };
+              if (view === 'elever') {
+                const selected = currentRegisterSelection();
+                if (selected) registerSelectionRef.current = { key: contextKey, selection: { ...selected, schoolYear: year, page: 1 } };
+              } else {
+                const params = new URLSearchParams(window.location.search);
+                params.set('lasar', String(year)); params.delete('kull'); params.delete('datum');
+                window.history.replaceState(null, '', window.location.pathname + '?' + params);
+              }
               setSchoolYear(year);
             }}/>}
             {contextControl}
@@ -872,6 +902,11 @@ function ProtectedShell() {
             {(view === 'mandat' || view === 'anslutning') && <MandateWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} onMfaRequired={() => setMfaRequired(true)} onSessionLost={clearSession} />}
             {view === 'elever' && (registerSetup && schoolYear !== null ? registerSetup.scope.schools.length > 0 ? <PupilRegisterWorkspace key={`${session.epoch}-${session.context!.assignmentId}`} context={session.context!} epoch={session.epoch} setup={registerSetup} schoolYear={schoolYear} onSchoolYear={year => { if (sessionScope(sessionRef.current) !== contextKey) return; setSchoolYear(year); rememberRegister(); locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state; }}
               onOpenPupil={(_id, selection) => { if (sessionScope(sessionRef.current) === contextKey) registerSelectionRef.current = { key: contextKey, selection }; }} onSessionLost={clearSession} /> : <section className="admin-empty"><h1>Elever</h1><p>Ditt uppdrag omfattar inga elever just nu.</p></section> : <section><h1>Elever</h1>{registerError ? <><output role="alert">{registerError}</output><Button variant="outline" onClick={() => setRegisterRetry(n => n + 1)}>Försök igen</Button></> : <output>Hämtar elevregistrets urval…</output>}</section>)}
+            {view === 'elevmottagande' && canOpenIntake(session.context) && (registerSetup && schoolYear !== null ?
+              <PupilIntakeWorkspace key={`${contextKey}-${schoolYear}`} context={session.context!} epoch={session.epoch} schoolYear={schoolYear} setup={registerSetup}
+                onRegister={() => void navigate('elever')} onGroups={openIntakeGroups} onSessionLost={clearSession}
+                onLocationChanged={() => { locationRef.current = window.location.pathname + window.location.search; locationStateRef.current = window.history.state; }} />
+              : <section><h1>Elevmottagande</h1>{registerError ? <><p role="alert">{registerError}</p><Button variant="outline" onClick={() => setRegisterRetry(value => value + 1)}>Försök igen</Button></> : <output>Hämtar skolans urval…</output>}</section>)}
             {isPlanningView(view) && PLANNING_FUNCTIONS.includes(session.context!.function) && <PlanningArea location={planningLocation}>{(selection, setup) => <>
               {overview && <LasarOverviewContext.Provider value={{ actorRole: LASAR_ROLE[session.context!.function] ?? null, onOpen: target => void goToLasar(target), onSecurityFailure: overviewSecurityFailure }}>
                 <ProtectedPlanningOverview onSecurityFailure={overviewSecurityFailure} onChooseCollection={(collection, schoolform) => chooseOverviewCollection(collection, schoolform, setup)} onShowPlans={() => void navigate(view)} onOpen={async row=>{if(!(await canNavigate()))return;const target=planningRowLocation(row,selection);if(target){applyPlanningLocation(target);setPlanNavigation(value=>value+1);writePlanLocation(target);}}}/>

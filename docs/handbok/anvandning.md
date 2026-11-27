@@ -50,6 +50,17 @@ Skola, läsår, filter och sida kan återställas med webbläsarens bakåtknapp 
 
 En skyddad elev visas utan särskild skyddsbehörighet bara med anonymt visningsnamn och begränsade skoluppgifter. Personnummer, födelsedatum och hemkommun visas inte, och eleven kan inte ändras eller tas med i en export. Huvudmannen hanterar administratörens skyddsbehörighet för varje skola enligt [Mandat och avgränsad åtkomst](mandat.md).
 
+### Ta emot en ny kull
+
+Öppna **Elevmottagande** under **Elever**. Välj skola, kull och läsår. **Visa klass för** anger vilken dag klassuppgiften gäller. En redan bokad klass visas med sitt startdatum. Första klassfördelningen gäller elever som redan har en skolplacering på ett nationellt Gy25-program.
+
+1. Markera elever eller öppna **Fördela elever** från listan. En skoladministratör kan välja gemensam klass och startdatum, föreslå jämn fördelning och göra undantag för en enskild elev. Granska vilka elever som omfattas och spara klasstillhörigheterna. Elever med en befintlig klass öppnas i det ordinarie klassflödet.
+2. Kontrollera **Klasser och timplan**. **Koppla timplan för** öppnar den ordinarie klasskopplingen för rätt klass. Kontrollera läsåret och granska kopplingen innan du sparar. Återgå till mottagandet för att läsa om klassens status.
+3. Öppna en elev för att bekräfta **Svenskämne**. Välj **Bekräfta svenskämne för flera** när samma val redan är känt för flera markerade elever. Läs namnen innan du sparar. Rektor kan bekräfta målgruppsbedömningen för svenska som andraspråk för den enskilda eleven. Gruppens ämne kan visas som ett förslag eller som en avvikelse att kontrollera.
+4. Markera de elever som ska omfattas och välj **Granska studieplansutkast**. Listan visar kompletta, ofullständiga och befintliga planer. Utkast kan sparas medan någon uppgift eller klassens timplan behöver följas upp. Öppna elevens studieplan från kvittot. Om svenskämnet har blivit bekräftat väljer du **Tillämpa svenskämnet på utkastet** för att komplettera samma plan.
+
+**Visa senaste klasskvitto** hjälper dig att fortsätta efter ett avbrott. När du sparar en fördelning kan du gå vidare med utkast för de sparade eleverna eller följa upp de rader som återstår. Skolans faktiska studiestart bekräftas per nivå på elevkortet.
+
 ### Öppna och arbeta med ett elevkort
 
 Välj elevens namn för att öppna elevkortet. Där visas basuppgifter, skola, klass, utbildning, årskurs och hemkommun enligt ditt uppdrag. Administratörer med rätt räckvidd ser även skolplaceringar, klasstillhörighet och hemkommun över tid. Datum visar när placeringar och klasstillhörigheter gäller. En elev som bara har avslutade placeringar kan läsas med sin historik men inte ändras. Administratören kan ändra eleven när det finns en aktuell eller framtida placering på en skola som uppdraget omfattar.

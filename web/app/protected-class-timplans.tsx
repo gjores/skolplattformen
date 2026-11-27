@@ -14,7 +14,7 @@ import './protected-class-timplans.css';
 type Pending = {kind:'create';request:ClassPlanCreateRequest} | {kind:'link';request:ClassPlanLinkRequest};
 /** Nothing to do for the class: the chosen year is on this plan and no coming year lacks it. */
 function linkedThrough(c:ClassPlanUnderlag['classes'][number],planId:string,column:ClassPlanColumn){return c.link?.planId===planId&&!c.link.legacy&&c.link.columnId===column&&classPlanMissingYears(c.following).length===0;}
-type Props = {scopeKey:string;returnTo:string;plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;onSecurityFailure:(error:unknown)=>boolean};
+type Props = {scopeKey:string;returnTo:string;plan:GymTimplan;schoolYear:number;canPrepare:boolean;disabled:boolean;initialClassId?:string;onSecurityFailure:(error:unknown)=>boolean};
 const yearLabel = (year:number) => `${year}/${String(year+1).slice(-2)}`;
 function frozenStartYear(value:string|null):number|null {
   if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
@@ -23,7 +23,7 @@ function frozenStartYear(value:string|null):number|null {
   return date.getUTCFullYear()-(date.getUTCMonth()<6?1:0);
 }
 export default function ProtectedClassTimplans(props:Props) { return <ClassLinks key={`${props.scopeKey}:${props.plan.id}`} {...props}/>; }
-function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSecurityFailure}:Props) {
+function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,initialClassId,onSecurityFailure}:Props) {
   const journalKey=`sp:class-links:v1:${scopeKey}:${plan.id}`;
   const [restored]=useState(()=>{try{const raw=sessionStorage.getItem(journalKey);return {queue:raw?parseClassLinkQueue(JSON.parse(raw),scopeKey,plan.id,plan.unitId,plan.offeringId):null,broken:false};}catch{return {queue:null,broken:true};}});
   const [queue,setQueue]=useState<ClassLinkQueue|null>(restored.queue),[broken,setBroken]=useState(restored.broken);
@@ -33,7 +33,7 @@ function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSec
   const reviewButton=useRef<HTMLButtonElement>(null);
   function storeQueue(value:ClassLinkQueue){const parsed=parseClassLinkQueue(value,scopeKey,plan.id,plan.unitId,plan.offeringId),raw=JSON.stringify(parsed);sessionStorage.setItem(journalKey,raw);if(sessionStorage.getItem(journalKey)!==raw)throw Error('storage');queueRef.current=parsed;setQueue(parsed);return parsed;}
   function clearQueueJournal(){sessionStorage.removeItem(journalKey);if(sessionStorage.getItem(journalKey)!==null)throw Error('storage');}
-  const [open,setOpen]=useState(!!restored.queue||restored.broken),[year,setYear]=useState(restored.queue?.schoolYear??schoolYear),[data,setData]=useState<ClassPlanUnderlag|null>(null);
+  const [open,setOpen]=useState(!!initialClassId||!!restored.queue||restored.broken),[year,setYear]=useState(restored.queue?.schoolYear??schoolYear),[data,setData]=useState<ClassPlanUnderlag|null>(null);
   const [busy,setBusy]=useState(false),[error,setError]=useState<string|null>(null),[notice,setNotice]=useState<string|null>(null);
   const [name,setName]=useState(''),[selected,setSelected]=useState<string[]>([]),[confirmation,setConfirmation]=useState<ClassPlanLinkRequest|null>(null);
   const [pending,setPending]=useState<Pending|null>(null),[mfa,setMfa]=useState(false),[uncertain,setUncertain]=useState(false);
@@ -63,10 +63,16 @@ function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSec
     if(running.current||uncertain||queueLocked)return;
     restoreYearFocus.current=document.activeElement===yearSelect.current;
     const token=++generation.current;setBusy(true);setError(null);setYear(nextYear);
-    try{const result=await fetchData(nextYear);if(active.current&&token===generation.current)setData(result);}
+    try{const result=await fetchData(nextYear);if(active.current&&token===generation.current){setData(result);
+      if(initialClassId){const klass=result.classes.find(item=>item.id===initialClassId);const offset=nextYear-(result.plan.startYear??nextYear-3);
+        const targetColumn=(['ar1','ar2','ar3'] as const)[offset];if(klass&&targetColumn&&result.canManage&&!linkedThrough(klass,plan.id,targetColumn))setSelected([klass.id]);}
+    }}
     catch(caught){if(active.current&&token===generation.current&&!onSecurityFailure(caught))setError(caught instanceof ApiError?caught.message:'Klasskopplingarna kunde inte läsas. Försök igen.');}
     finally{if(active.current&&token===generation.current)setBusy(false);}
   }
+  const loadInitial=useRef(load);
+  useLayoutEffect(()=>{loadInitial.current=load;});
+  useEffect(()=>{if(initialClassId&&!restored.queue&&!restored.broken)void loadInitial.current(schoolYear);},[initialClassId,restored,schoolYear]);
   async function execute(command:Pending) {
     if(running.current||disabled||(!uncertain&&!canManage))return;
     running.current=true;setPending(command);setBusy(true);setError(null);setMfa(false);let accepted=false;
@@ -167,14 +173,14 @@ function ClassLinks({scopeKey,returnTo,plan,schoolYear,canPrepare,disabled,onSec
         {data.linkedClasses.length===0?<p>Inga klasser är kopplade till den här versionen.</p>:<ul className="class-plan-links">{data.linkedClasses.map(link=><li key={`${link.className}:${link.schoolYear}`}><strong>{link.className}</strong><span>{yearLabel(link.schoolYear)} · Årskurs {link.columnId.slice(2)} · Version {plan.version}</span>{link.legacy&&<span>Äldre namnkoppling – välj klassen nedan för att bekräfta kopplingen.</span>}</li>)}</ul>}
         <h3>Klasskopplingar för valt läsår</h3>
         <p>{planLabel} · version {plan.version} · {yearLabel(year)}. Markeringar sparar inga kopplingar.</p>
-        <ul className="class-link-choices">{data.classes.filter(c=>c.startYear===data.plan.startYear).map(c=>{const already=!!column&&linkedThrough(c,plan.id,column),missing=classPlanMissingYears(c.following).length;return <li key={c.id}>
+        <ul className="class-link-choices">{data.classes.filter(c=>c.startYear===data.plan.startYear&&(!initialClassId||c.id===initialClassId)).map(c=>{const already=!!column&&linkedThrough(c,plan.id,column),missing=classPlanMissingYears(c.following).length;return <li key={c.id}>
           <label><input type="checkbox" aria-label={`Välj ${c.name}`} checked={selected.includes(c.id)} disabled={!canManage||!column||busy||uncertain||queueLocked||already} onChange={e=>setSelected(previous=>e.target.checked?[...previous,c.id]:previous.filter(id=>id!==c.id))}/><strong>{c.name}</strong></label>
           <span>{already?'Redan kopplad till denna timplan':c.link?.planId===plan.id&&!c.link.legacy&&missing?`Kopplad för valt läsår · ${missing===1?'1 kommande läsår saknas':`${missing} kommande läsår saknas`}`:c.link?`${c.link.series?.name??'Timplan'} · version ${c.link.version}${c.link.legacy?' · äldre namnkoppling':''}`:'Ingen timplan för valt läsår'}</span>
         </li>;})}</ul>
         {canManage&&column&&!queueLocked&&<><Button ref={reviewButton} disabled={busy||uncertain||selected.length===0} onClick={prepareLink}>Koppla valda klasser ({selected.length})</Button>
-          <form className="class-plan-create" onSubmit={event=>{event.preventDefault();if(!busy&&!uncertain&&name.trim()&&data.plan.startYear!==null)void execute({kind:'create',request:{commandId:crypto.randomUUID(),planId:plan.id,expectedPlanRevision:data.plan.revision,name:name.trim().toUpperCase(),startYear:data.plan.startYear}});}}>
+          {!initialClassId&&<form className="class-plan-create" onSubmit={event=>{event.preventDefault();if(!busy&&!uncertain&&name.trim()&&data.plan.startYear!==null)void execute({kind:'create',request:{commandId:crypto.randomUUID(),planId:plan.id,expectedPlanRevision:data.plan.revision,name:name.trim().toUpperCase(),startYear:data.plan.startYear}});}}>
             <h3>Skapa klass för utbildningen</h3><p>{data.plan.educationName} · {plan.schoolName} · Första läsår {data.plan.startYear===null?'okänt':yearLabel(data.plan.startYear)}. Klassen skapas utan elever.</p><div className="class-plan-controls"><label>Klassnamn<input value={name} maxLength={60} disabled={busy||uncertain||queueLocked} onChange={event=>setName(event.target.value)} placeholder="Till exempel SA26A"/></label><Button type="submit" disabled={busy||uncertain||queueLocked||!name.trim()}>Skapa klass</Button></div>
-          </form>
+          </form>}
         </>}
       </>}
     </div>}

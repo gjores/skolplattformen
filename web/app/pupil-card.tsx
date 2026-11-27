@@ -36,6 +36,8 @@ type Props = {
   epoch: number;
   accessFunction: AccessFunction;
   scopeKind?: string | null;
+  initialStudyPlacementId?: string;
+  initialClassPlacementId?: string;
   loadUnitOptions: (unitId: string) => Promise<RegisterOptions>;
   onBack: () => void;
   onChanged: () => void;
@@ -56,12 +58,12 @@ export default function PupilCard(props: Props) {
   const [mfa, setMfa] = useState<'reveal' | 'change' | null>(null);
   const [personalNumber, setPersonalNumber] = useState<string | null>(null);
   const [revealing, setRevealing] = useState(false);
-  const [dialog, setDialog] = useState<ChangeKind | null>(null);
+  const [dialog, setDialog] = useState<ChangeKind | null>(props.initialClassPlacementId ? 'class' : null);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [history, setHistory] = useState<HistoryState>(emptyHistory);
-  const [studyPlanOpen, setStudyPlanOpen] = useState(false);
-  const [studyPlanVisited, setStudyPlanVisited] = useState(false);
-  const [studyPlacementId, setStudyPlacementId] = useState<string | null>(null);
+  const [studyPlanOpen, setStudyPlanOpen] = useState(!!props.initialStudyPlacementId);
+  const [studyPlanVisited, setStudyPlanVisited] = useState(!!props.initialStudyPlacementId);
+  const [studyPlacementId, setStudyPlacementId] = useState<string | null>(props.initialStudyPlacementId ?? null);
   const studyPlacementField = useId();
   const [resolving, setResolving] = useState<string | null>(null);
   const [sourceError, setSourceError] = useState<{ id: string; text: string } | null>(null);
@@ -345,7 +347,7 @@ export default function PupilCard(props: Props) {
       </TabsContent>}
     </Tabs>
 
-    {dialog && <PupilChangeDialog key={dialog} kind={dialog} card={card} schoolYear={props.schoolYear} caseId={props.caseId} today={props.today}
+    {dialog && (!props.initialClassPlacementId || dialog !== 'class' || card.capabilities.canEdit && placement?.id === props.initialClassPlacementId) && <PupilChangeDialog key={dialog} kind={dialog} card={card} schoolYear={props.schoolYear} caseId={props.caseId} today={props.today}
       options={props.options} schools={props.schools} returnTo={props.returnTo} epoch={props.epoch}
       refresh={() => load('refresh')} loadUnitOptions={props.loadUnitOptions}
       onClose={reload => { setDialog(null); if (reload) void load('refresh'); }}
