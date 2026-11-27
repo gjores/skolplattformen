@@ -34,7 +34,7 @@ type StudyPlanBasis = {
   programPlan: PlanPin | null; choices: SourceChoice[]; calendar: StudyPlanCalendarYear[]; token: string;
   programTerms?: { cohortStartYear: number; distribution: ProgramplanTermDistribution };
 };
-type Projection = Pick<StudyPlanCurrentReply, 'basisStatus' | 'basisIssues' | 'availableLevels'>;
+type Projection = Pick<StudyPlanCurrentReply, 'basisStatus' | 'basisIssues' | 'availableLevels' | 'swedishLevels'>;
 const sourceKindsToChoice = {
   modernLanguage: { id: 'mosp', kind: 'language' }, languageSubject: { id: 'sprk', kind: 'language' },
   naturalScience: { id: 'nave', kind: 'optional' }, individualChoice: { id: 'individual', kind: 'individual' },
@@ -106,6 +106,7 @@ type Curriculum = {
   basisStatus: Projection['basisStatus']; issues: StudyPlanIssue[]; levelIndex: Map<string, StudyPlanCatalogLevel>;
   fixed: StudyPlanCatalogLevel[]; rules: ChoiceRule[]; sourceChoices: TakenChoice[];
   program: CatalogProgram | null;
+  swedish?: StudyPlanCatalogLevel[];
 };
 type CatalogLevelIndexes = Map<string, Map<string, StudyPlanCatalogLevel>>;
 
@@ -215,7 +216,16 @@ async function curriculumFor(basis: StudyPlanBasis, indexes?: CatalogLevelIndexe
   curriculum.fixed = uniqueLevels(fixedByBlock(blocks.filter(s => !s.optional)));
   // The current national edition's paired alternatives are the two Swedish progressions.
   const swedish = blocks.filter(s => s.optional && ['SVEN', 'SVEA'].includes(s.code));
-  const swedishKeys = new Set(fixedByBlock(swedish).map(studyPlanLevelKey));
+  const swedishLevels = fixedByBlock(swedish);
+  const swedishKeys = new Set(swedishLevels.map(studyPlanLevelKey));
+  const swedishSubject = basis.source.swedishSubject;
+  if (swedishSubject) {
+    const { subject, assessment } = swedishSubject;
+    curriculum.swedish = subject && assessment !== 'pending' ? swedishLevels.filter(level => level.subjectCode === subject) : [];
+    const issue = subject === null ? 'swedish_subject_required' : assessment === 'pending' ? 'swedish_assessment_pending'
+      : curriculum.swedish.length === 0 ? 'swedish_level_source_missing' : null;
+    if (issue) curriculum.issues.push({ code: issue, field: 'svenska' });
+  }
   curriculum.rules.push({
     id: 'svenska', kind: 'optional', label: 'Svenska eller svenska som andraspråk',
     points: swedish[0]?.levels.reduce((sum, l) => sum + l.points, 0) ?? null,
@@ -267,6 +277,7 @@ async function curriculumFor(basis: StudyPlanBasis, indexes?: CatalogLevelIndexe
 
 function sourceAssignments(curriculum: Curriculum): Map<string, StudyPlanCatalogLevel[]> {
   const assignments = new Map<string, StudyPlanCatalogLevel[]>();
+  if (curriculum.swedish) assignments.set('svenska', curriculum.swedish);
   for (const choice of curriculum.sourceChoices) {
     if (choice.state !== 'confirmed') continue;
     for (const level of choice.levels) {
@@ -288,8 +299,9 @@ function sourceAllowsChoice(source: TakenChoice | undefined, rule: ChoiceRule): 
     && (!source.targetId || source.targetId === rule.id));
 }
 
-export async function projectStudyPlanBasis(basis: StudyPlanBasis): Promise<Projection> {
+export async function projectStudyPlanBasis(basis: StudyPlanBasis, latest?: StudyPlanSnapshot | null): Promise<Projection> {
   const curriculum = await curriculumFor(basis);
+  if (!basis.source.swedishSubject && latest?.content.sourceIssues.some(issue => issue.code === 'swedish_subject_required')) curriculum.swedish = [];
   const fixed = new Set(curriculum.fixed.map(studyPlanLevelKey));
   const assigned = sourceAssignments(curriculum);
   const assignedKeys = new Set([...assigned.values()].flat().map(studyPlanLevelKey));
@@ -298,6 +310,7 @@ export async function projectStudyPlanBasis(basis: StudyPlanBasis): Promise<Proj
     const key = studyPlanLevelKey(level);
     if (fixed.has(key) || assignedKeys.has(key)) return [];
     const choiceIds = curriculum.rules.filter(rule => {
+      if (rule.id === 'svenska' && curriculum.swedish) return false;
       if (!sourceAllowsChoice(bySource.get(key), rule)) return false;
       if (rule.id === 'extra') return !bySource.has(key);
       if (rule.points === null || rule.points === 0 || !rule.permits(level)) return false;
@@ -306,7 +319,8 @@ export async function projectStudyPlanBasis(basis: StudyPlanBasis): Promise<Proj
     }).map(rule => rule.id);
     return choiceIds.length ? [{ ...level, choiceIds }] : [];
   });
-  return { basisStatus: curriculum.basisStatus, basisIssues: uniqueIssues(curriculum.issues), availableLevels };
+  return { basisStatus: curriculum.basisStatus, basisIssues: uniqueIssues(curriculum.issues), availableLevels,
+    ...(curriculum.swedish?.length ? { swedishLevels: curriculum.swedish } : {}) };
 }
 
 /** Klassgranskningen behöver varken hela nivåväljaren eller nya nivå- och försöks-ID:n. */
@@ -389,10 +403,14 @@ function programPeriods(basis: StudyPlanBasis, program: CatalogProgram | null): 
 }
 
 export async function prepareStudyPlanDraft(
-  basis: StudyPlanBasis, latest: StudyPlanSnapshot | null, payload: StudyPlanDraftEdit,
+  basis: StudyPlanBasis, latest: StudyPlanSnapshot | null, payload: StudyPlanDraftEdit, indexes?: CatalogLevelIndexes,
 ): Promise<StudyPlanContent> {
-  const curriculum = await curriculumFor(basis);
-  const periods = latest === null ? programPeriods(basis, curriculum.program) : null;
+  const curriculum = await curriculumFor(basis, indexes);
+  if (!basis.source.swedishSubject && (payload.requireSharedSwedish || latest?.content.sourceIssues.some(issue => issue.code === 'swedish_subject_required'))) {
+    curriculum.swedish = [];
+    curriculum.issues.push({ code: 'swedish_subject_required', field: 'svenska' });
+  }
+  const periods = latest === null || curriculum.swedish ? programPeriods(basis, curriculum.program) : null;
   const old = latest?.content;
   const oldByKey = new Map(old?.levels.map(level => [studyPlanLevelKey(level), level]));
   const oldById = new Map(old?.levels.map(level => [level.id, level]));
@@ -404,7 +422,7 @@ export async function prepareStudyPlanDraft(
   const addLevel = (level: Omit<StudyPlanLevel, 'id' | 'attempts'>): string => {
     const key = studyPlanLevelKey(level);
     const prior = levels.get(key) ?? oldByKey.get(key);
-    const period = periods?.get(key);
+    const period = latest === null || level.subjectCode === 'SVEN' || level.subjectCode === 'SVEA' ? periods?.get(key) : null;
     const saved = {
       ...level, id: prior?.id ?? crypto.randomUUID(),
       attempts: prior?.attempts ?? [{
@@ -452,6 +470,7 @@ export async function prepareStudyPlanDraft(
     })) ?? [];
   const manual = new Map<string, StudyPlanCatalogLevel[]>();
   for (const choice of payload.selections ?? oldManual) {
+    if (choice.choiceId === 'svenska' && curriculum.swedish) continue;
     const rule = rules.get(choice.choiceId), key = studyPlanLevelKey(choice.level), level = curriculum.levelIndex.get(key);
     if (!rule || !level || !rule.permits(level) || used.has(key) || !sourceAllowsChoice(bySource.get(key), rule)) {
       if (payload.selections !== undefined) invalidStudyPlan();

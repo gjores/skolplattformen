@@ -81,10 +81,14 @@ async function read(tx: Tx, ctx: StudyPlanAuthority, request: StudyPlanReadReque
 
 export async function readStudyPlan(tx: Tx, ctx: StudyPlanAuthority, request: StudyPlanReadRequest) {
   authorize(ctx);
-  const { body, basis } = await read(tx, ctx, request);
+  const { body, basis, latest } = await read(tx, ctx, request);
   if (body.view !== 'current' || !basis) return { body, event: event('individual_study_plan_read', request) };
   try {
-    const projection = await projectStudyPlanBasis(basis);
+    const projection = await projectStudyPlanBasis(basis, latest);
+    const swedish = basis.source.swedishSubject;
+    const waitingForSwedish = swedish
+      ? swedish.subject === null || swedish.assessment === 'pending' || !!body.draft && body.draft.content.source.swedishSubject?.revision !== swedish.revision
+      : latest?.content.sourceIssues.some(issue => issue.code === 'swedish_subject_required');
     const schedule = [];
     for (const snapshot of [body.current, body.draft]) {
       if (!snapshot || !snapshot.content.levels.some(level => level.kind === 'gy25_level' && level.attempts.length === 1)) continue;
@@ -96,7 +100,8 @@ export async function readStudyPlan(tx: Tx, ctx: StudyPlanAuthority, request: St
         ...studyPlanFields(item, ['levelId', 'attemptId', 'firstPassOn', 'scheduledNow']), revision: snapshot.revision,
       }), 500));
     }
-    const scoped = parseStudyPlanReadReply({ ...body, ...projection, ...(schedule.length ? { schedule } : {}) }, request);
+    const scoped = parseStudyPlanReadReply({ ...body, ...projection, canMakeCurrent: body.canMakeCurrent && !waitingForSwedish,
+      ...(schedule.length ? { schedule } : {}) }, request);
     return { body: scoped, event: event('individual_study_plan_read', request) };
   } catch (error) {
     if (error instanceof Deny) throw error;

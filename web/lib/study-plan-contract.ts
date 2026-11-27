@@ -16,6 +16,7 @@ export type StudyPlanScope = { contractVersion: typeof STUDY_PLAN_CONTRACT_VERSI
 
 export type StudyPlanDateEdit = { levelId: string; attemptId: string; plannedStart: PlannedStudyDate; plannedEnd: PlannedStudyDate };
 export type StudyPlanDraftEdit = {
+  requireSharedSwedish?: true;
   dates: StudyPlanDateEdit[];
   selections?: { choiceId: string; level: StudyPlanLevelRef }[];
   confirmedChoiceIds?: string[];
@@ -64,6 +65,7 @@ export type StudyPlanCurrentReply = StudyPlanReadBase & {
   latestRevision: number; history: StudyPlanRevision[]; canMakeCurrent: boolean;
   sourceToken: string; basisStatus: 'ready' | 'incomplete' | 'unsupported';
   basisIssues: StudyPlanIssue[]; availableLevels: StudyPlanCatalogLevel[];
+  swedishLevels?: StudyPlanCatalogLevel[];
   calendar?: StudyPlanCalendarYear[];
   dateSuggestions?: StudyPlanDateEdit[];
   schedule?: StudyPlanScheduleRow[];
@@ -184,8 +186,12 @@ function parseDateEdits(value: unknown): StudyPlanDateEdit[] {
   return studyPlanUnique(studyPlanList(value, parseDateEdit, 1500), item => item.attemptId);
 }
 function parseDraft(value: unknown): StudyPlanDraftEdit {
-  const r = studyPlanFields(value, ['dates'], ['selections', 'confirmedChoiceIds', 'apprenticeship', 'compulsorySchoolSubjects', 'distanceTeaching']);
+  const r = studyPlanFields(value, ['dates'], ['selections', 'confirmedChoiceIds', 'apprenticeship', 'compulsorySchoolSubjects', 'distanceTeaching', 'requireSharedSwedish']);
   const edit: StudyPlanDraftEdit = { dates: parseDateEdits(r.dates) };
+  if (Object.hasOwn(r, 'requireSharedSwedish')) {
+    if (r.requireSharedSwedish !== true) invalidStudyPlan();
+    edit.requireSharedSwedish = true;
+  }
   if (Object.hasOwn(r, 'selections')) edit.selections = studyPlanUnique(studyPlanList(r.selections, value => {
     const selection = studyPlanFields(value, ['choiceId', 'level']);
     return { choiceId: studyPlanCode(selection.choiceId), level: parseStudyPlanLevelRef(selection.level) };
@@ -380,12 +386,12 @@ function parseImpact(value: unknown, on: string, target: StudyPlanImpactTarget):
 export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRequest): StudyPlanReadReply {
   const keys = [...scopeFields, 'on', 'view'];
   const r = studyPlanFields(value, keys, ['current', 'draft', 'latestRevision', 'history', 'version', 'canMakeCurrent',
-    'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels', 'calendar', 'dateSuggestions', 'schedule', 'status', 'options', 'target', 'impact']);
+    'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels', 'swedishLevels', 'calendar', 'dateSuggestions', 'schedule', 'status', 'options', 'target', 'impact']);
   const base = { ...expectScope(r, request), on: studyPlanDate(r.on) };
   if (base.on !== request.on || r.view !== request.view) invalidStudyPlan();
   switch (request.view) {
     case 'current': {
-      studyPlanFields(value, [...keys, 'current', 'draft', 'latestRevision', 'history', 'canMakeCurrent', 'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels'], ['calendar', 'dateSuggestions', 'schedule']);
+      studyPlanFields(value, [...keys, 'current', 'draft', 'latestRevision', 'history', 'canMakeCurrent', 'sourceToken', 'basisStatus', 'basisIssues', 'availableLevels'], ['swedishLevels', 'calendar', 'dateSuggestions', 'schedule']);
       const latestRevision = studyPlanInt(r.latestRevision, 0), history = parseHistory(r.history);
       const current = studyPlanNullable(r.current, parseStudyPlanSnapshot), draft = studyPlanNullable(r.draft, parseStudyPlanSnapshot);
       const latest = history.find(item => item.revision === latestRevision);
@@ -394,6 +400,9 @@ export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRe
         || latestRevision !== history.reduce((max, item) => Math.max(max, item.revision), 0)
         || typeof r.canMakeCurrent !== 'boolean') invalidStudyPlan();
       const calendar = Object.hasOwn(r, 'calendar') ? { calendar: studyPlanUnique(studyPlanList(r.calendar, parseCalendarYear, 30), item => String(item.schoolYear)) } : {};
+      const swedishLevels = Object.hasOwn(r, 'swedishLevels') ? studyPlanUnique(studyPlanList(r.swedishLevels, parseCatalogLevel, 10), studyPlanLevelKey) : undefined;
+      if (swedishLevels?.some(item => item.subjectCode !== swedishLevels[0].subjectCode || !['SVEN', 'SVEA'].includes(item.subjectCode)
+        || item.languageCode !== null || item.choiceIds !== undefined)) invalidStudyPlan();
       const dateSuggestions = Object.hasOwn(r, 'dateSuggestions') ? parseDateEdits(r.dateSuggestions) : undefined;
       const snapshot = draft ?? current;
       if (dateSuggestions?.some(edit => {
@@ -417,6 +426,7 @@ export function parseStudyPlanReadReply(value: unknown, request: StudyPlanReadRe
       return { ...base, view: request.view, current, draft, latestRevision, history, canMakeCurrent: r.canMakeCurrent, sourceToken: sourceToken(r.sourceToken),
         basisStatus: studyPlanEnum(r.basisStatus, ['ready', 'incomplete', 'unsupported']), basisIssues: studyPlanList(r.basisIssues, parseStudyPlanIssue),
         availableLevels: studyPlanUnique(studyPlanList(r.availableLevels, parseCatalogLevel, 3000), studyPlanLevelKey), ...calendar,
+        ...(swedishLevels !== undefined ? { swedishLevels } : {}),
         ...(dateSuggestions !== undefined ? { dateSuggestions } : {}), ...(schedule !== undefined ? { schedule } : {}) };
     }
     case 'history': {

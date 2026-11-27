@@ -133,7 +133,7 @@ const fixture = globalThis.__studyPlanRouteTest = {
       state.calls.push({ operation: 'schedule', values });
       return [{ result: structuredClone(state.script.schedule?.(values[0]) ?? []) }];
     }
-    const operation = /\bpublic\.individual_study_plan_(read|command|status)\(/u.exec(sql)?.[1];
+    const operation = /\bpublic\.individual_study_plan_(read|command|status|intake)\(/u.exec(sql)?.[1];
     assert.ok(operation, 'test query must use protected study-plan RPC');
     state.calls.push({ operation, values });
     const handler = state.script[operation];
@@ -160,6 +160,7 @@ registerHooks({
 const { POST: read } = await import('../app/api/studieplaner/lasa/route.ts');
 const { POST: write } = await import('../app/api/studieplaner/kommando/route.ts');
 const { POST: status } = await import('../app/api/studieplaner/status/route.ts');
+const { POST: intake } = await import('../app/api/studieplaner/mottagande/route.ts');
 
 function reset(script = {}, options = {}) {
   state = { fn: 'rektor', scopeKind: 'school', mfa: true, script, failAudit: false, events: [], calls: [], writes: [], ...options };
@@ -209,6 +210,59 @@ test('källa som behöver kompletteras får en läsbar status utan nivåer från
   assert.equal(body.basisStatus, 'incomplete');
   assert.deepEqual(body.availableLevels, []);
   assert.ok(body.basisIssues.some(item => item.field === 'path'));
+});
+
+test('valt SvA i väntan på bedömning döljer Gör gällande och spärrar manuellt svenskval', async () => {
+  const basis = createBasis();
+  basis.source.swedishSubject = { revision: 1, subject: 'SVEA', assessment: 'pending', effectiveOn: '2026-08-17' };
+  const draft = revision(1, { ...baseContent(), source: basis.source });
+  reset({ read: request => currentReply(request, { draft, basis }) });
+  const request = currentRequest(), response = await read(post('lasa', request));
+  const body = parseStudyPlanReadReply(await response.json(), parseStudyPlanReadRequest(request));
+  assert.equal(body.canMakeCurrent, false);
+  assert.ok(body.basisIssues.some(issue => issue.code === 'swedish_assessment_pending' && issue.field === 'svenska'));
+  assert.ok(body.availableLevels.every(level => !level.choiceIds.includes('svenska')));
+});
+
+test('mottagandet binder utkast till exakt granskat urval och återanvänder sparat kvitto', async () => {
+  const pupils = [{ pupilId, placementId }], commandId = id(67);
+  const row = { pupilId, placementId, groupSubjects: ['SVEA'], plan: { planId: null, revision: 0, status: 'none' },
+    swedish: { revision: 1, subject: 'SVEN', assessment: null, effectiveOn: '2026-08-17' } };
+  const basis = createBasis();
+  basis.source.swedishSubject = row.swedish;
+  let stored = null;
+  reset({ intake: input => {
+    if (input.action === 'read') return { rows: [row], canConfirmAssessment: true };
+    if (input.action === 'replay_drafts' || input.action === 'drafts_status') return stored;
+    assert.deepEqual(input.pupils, pupils);
+    if (input.action === 'preview_drafts') return { rows: [{ ...row, displayName: 'Syntetisk elev A', educationName: 'Syntetisk SA', closed: false, basis }],
+      canConfirmAssessment: true };
+    assert.equal(input.action, 'save_drafts');
+    assert.equal(input.commands.length, 1);
+    const [{ command, content }] = input.commands;
+    assert.deepEqual([command.pupilId, command.placementId, command.expectedRevision, command.payload.requireSharedSwedish], [pupilId, placementId, 0, true]);
+    assert.ok(content.levels.some(level => level.subjectCode === 'SVEN'));
+    assert.ok(content.levels.every(level => level.subjectCode !== 'SVEA'));
+    stored = { commandId, rows: [{ pupilId, placementId, outcome: 'saved', planId, revision: 1 }] };
+    return stored;
+  } });
+  const request = { unitId, on, pupils };
+  const overview = await intake(post('mottagande', { ...request, action: 'read' }));
+  assert.deepEqual(await overview.json(), { rows: [row], canConfirmAssessment: true });
+  const review = await intake(post('mottagande', { ...request, action: 'preview_drafts' }));
+  assert.equal(review.status, 200);
+  const { previewToken, rows } = await review.json();
+  assert.match(previewToken, /^sha256:[0-9a-f]{64}$/u);
+  assert.equal(rows.length, 1);
+  const save = { ...request, commandId, previewToken, action: 'save_drafts' };
+  basis.token = `sha256:${'b'.repeat(64)}`;
+  assert.equal((await intake(post('mottagande', save))).status, 409);
+  assert.ok(calls().every(([, input]) => input.action !== 'save_drafts'));
+  basis.token = token;
+  assert.deepEqual(await (await intake(post('mottagande', save))).json(), stored);
+  assert.deepEqual(await (await intake(post('mottagande', save))).json(), stored);
+  assert.deepEqual(await (await intake(post('mottagande', { unitId, commandId, action: 'drafts_status' }))).json(), stored);
+  assert.equal(calls().filter(([, input]) => input.action === 'save_drafts').length, 1);
 });
 
 test('publicerade pass är ett revisionsbundet datumförslag och ändrar inte den faktiska starten', async () => {

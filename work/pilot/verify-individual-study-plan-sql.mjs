@@ -15,6 +15,7 @@ import {
 } from '../../web/lib/study-plan-contract.ts';
 import { parseStudyPlanContent, studyAttemptStatus } from '../../web/lib/study-plan-model.ts';
 import { parseStudyPlanBasis, prepareStudyPlanDraft } from '../../web/lib/server/study-plan-basis.ts';
+import { parseStudyPlanIntakeDraftReceipt, parseStudyPlanIntakeRead, parseStudyPlanIntakeRequest, parseStudyPlanIntakeSwedishReceipt } from '../../web/lib/study-plan-intake-contract.ts';
 import { defaultProgramplanChoiceBlocks } from '../../web/lib/programplan-choice-blocks.ts';
 import { defaultSchemaVillkor } from '../../web/lib/schema-contract.ts';
 import { parseStudyGroupCommand, parseStudyGroupReply, STUDY_GROUP_CONTRACT_VERSION } from '../../web/lib/study-group-contract.ts';
@@ -28,6 +29,7 @@ const day = date => ({ kind: 'day', date });
 const term = (schoolYear, term) => ({ kind: 'term', schoolYear, term });
 const ownTableNames = ['individual_study_plans', 'individual_study_plan_revisions', 'individual_study_plan_receipts'];
 const classTableNames = ['individual_study_plan_class_runs', 'individual_study_plan_class_items'];
+const intakeTableNames = ['individual_study_plan_swedish', 'individual_study_plan_intake_receipts'];
 const businessTableNames = [
   'pupils', 'pupil_placements', 'school_classes', 'pupil_class_memberships', 'offerings', 'offering_units',
   'point_plans',
@@ -633,7 +635,7 @@ export async function verifyIndividualStudyPlanSql(out) {
     for (const name of migrations) await db.begin(tx => tx.unsafe(fileSource(name)));
     assert.deepEqual(await tableHashes(db, existingTables), beforeMigration, 'existing table fingerprints');
     check('Migrationen bevarar innehållet i varje befintlig tabell.');
-    for (const table of [...ownTableNames, ...classTableNames]) {
+    for (const table of [...ownTableNames, ...classTableNames, ...intakeTableNames]) {
       const qualified = `public.${table}`;
       const [rls] = await db`select relrowsecurity as enabled,relforcerowsecurity as forced from pg_class where oid=${qualified}::regclass`;
       assert.ok(rls.enabled && rls.forced, 'forced RLS');
@@ -642,7 +644,7 @@ export async function verifyIndividualStudyPlanSql(out) {
         assert.equal(grant.allowed, false, 'no direct table grants');
       }
     }
-    for (const suffix of ['read', 'command', 'status', 'class']) {
+    for (const suffix of ['read', 'command', 'status', 'class', 'intake']) {
       const fn = `public.individual_study_plan_${suffix}(jsonb)`;
       for (const role of ['anon', 'authenticated', 'service_role', 'skolplattform_worker']) {
         const [grant] = await db`select has_function_privilege(${role},${fn},'EXECUTE') as allowed`;
@@ -657,7 +659,7 @@ export async function verifyIndividualStudyPlanSql(out) {
         assert.equal(grant.allowed, false, 'no direct access to class projections');
       }
     }
-    check('Fyra avgränsade RPC:er är tillgängliga för Worker. Tabellerna har tvingat RLS och saknar direkta klient- och Worker-rättigheter.');
+    check('Avgränsade RPC:er är tillgängliga för Worker. Tabellerna har tvingat RLS och saknar direkta klient- och Worker-rättigheter.');
 
     stage = 'program sources and scope';
     const initial = await read('principalA', sa);
@@ -960,6 +962,9 @@ export async function verifyIndividualStudyPlanSql(out) {
 
     await verifyClassDrafts({ db, f, pupils, read, send, check, logStage: description => { stage = description; } });
 
+    stage = 'individuellt svenskämne och mottagandeutkast';
+    await verifyIntake({ db, f, school: sa, read, send, check });
+
     report.status = 'PASS';
   } catch (error) {
     report.failure = { stage, code: error.code ?? 'ASSERTION', hint: error.hint ?? null };
@@ -977,6 +982,129 @@ export async function verifyIndividualStudyPlanSql(out) {
     writeFileSync(out, JSON.stringify(report, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
   }
   return report;
+}
+
+async function verifyIntake({ db, f, school, read, send, check }) {
+  const { unitId, offeringId } = school;
+  const pupilRows = await db.begin(async tx => {
+    const numbers = await tx`select number from (
+      select 'TEST-20100101-'||lpad(n::text,4,'0') number from generate_series(100,800) n
+      ) synthetic where public.phase4_synthetic_birth_date(number) is not null
+        and not exists(select 1 from public.synthetic_pupil_numbers x where x.personal_number=synthetic.number)
+      order by number limit 3`;
+    assert.equal(numbers.length, 3);
+    const pupils = [];
+    for (const [i, { number }] of numbers.entries()) {
+      const pupilId = randomUUID(), placementId = randomUUID();
+      await tx`insert into public.synthetic_pupil_numbers(personal_number) values (${number})`;
+      await tx`insert into public.pupils(id,customer_id,organizer_id,display_name,personal_number,anonymous_name)
+        values (${pupilId},${f.id(1)},${f.id(2)},${'Syntetiskt mottagande ' + (i + 1)},${number},'Syntetiskt mottagande')`;
+      await tx`insert into public.pupil_placements(id,customer_id,organizer_id,pupil_id,unit_id,offering_id,starts_on)
+        values (${placementId},${f.id(1)},${f.id(2)},${pupilId},${unitId},${offeringId},${startsOn})`;
+      pupils.push({ pupilId, placementId });
+    }
+    return pupils;
+  });
+  const [pending, open, omitted] = pupilRows;
+  const run = (actor, input) => db.begin(async tx => {
+    await setActor(tx, f, actor);
+    return (await tx`select public.individual_study_plan_intake(${tx.json({ unitId, ...input })}) as r`)[0].r;
+  });
+  const selected = { unitId, on: currentDay, pupils: [pending, open] };
+  const readSelection = parseStudyPlanIntakeRequest({ action: 'read', ...selected });
+  const initial = parseStudyPlanIntakeRead(await run('admin', readSelection));
+  assert.equal(initial.canConfirmAssessment, false);
+  assert.ok(initial.rows.every(row => row.plan.status === 'none' && row.swedish.revision === 0));
+  await denied(() => run('principalB', readSelection));
+  await denied(() => run('principalA', { ...readSelection, pupils: [{ ...pending, pupilId: open.pupilId }] }));
+  const subject = parseStudyPlanIntakeRequest({ action: 'save_swedish', unitId, ...pending, commandId: randomUUID(),
+    expectedRevision: 0, subject: 'SVEA', assessment: 'pending', effectiveOn: startsOn });
+  const savedSubject = await run('admin', subject);
+  assert.deepEqual(await run('admin', subject), savedSubject);
+  const pendingReceipt = parseStudyPlanIntakeSwedishReceipt(await run('admin', {
+    action: 'swedish_status', ...pending, commandId: subject.commandId,
+  }));
+  assert.deepEqual(pendingReceipt, savedSubject.receipt);
+  assert.equal(pendingReceipt.swedish.assessment, 'pending');
+  assert.equal(await run('principalA', { action: 'swedish_status', ...pending, commandId: subject.commandId }), null);
+  const assessment = { ...subject, commandId: randomUUID(), assessment: 'confirmed', expectedRevision: 1 };
+  await denied(() => run('admin', assessment));
+  check('Svenskämnet är skol- och placeringsbundet. Administratören kan registrera ett SvA-val i väntan på rektors bedömning och läsa samma kvitto.');
+
+  const reviewed = await run('admin', { action: 'preview_drafts', ...selected });
+  assert.equal(reviewed.rows.length, 2);
+  const commands = await Promise.all(reviewed.rows.map(async row => {
+    const pupil = { unitId, pupilId: row.pupilId, placementId: row.placementId };
+    const basis = parseStudyPlanBasis(row.basis);
+    const payload = { dates: [], requireSharedSwedish: true };
+    const command = commandFor(pupil, { latestRevision: 0, sourceToken: basis.token }, 'prepare_draft', payload);
+    return { command, content: await prepareStudyPlanDraft(basis, null, payload) };
+  }));
+  const batch = { action: 'save_drafts', ...selected, commandId: randomUUID(), requestHash: `sha256:${'a'.repeat(64)}`, commands };
+  const receipt = parseStudyPlanIntakeDraftReceipt(await run('admin', batch));
+  assert.equal(receipt.rows.filter(row => row.outcome === 'saved').length, 2);
+  assert.deepEqual(await run('admin', { action: 'drafts_status', commandId: batch.commandId }), receipt);
+  assert.deepEqual(await run('admin', batch), receipt);
+  assert.equal((await read('principalA', { unitId, ...omitted })).result.latestRevision, 0);
+  const waiting = await read('principalA', { unitId, ...pending });
+  const notConfirmed = await read('principalA', { unitId, ...open });
+  assert.ok(waiting.result.draft.content.sourceIssues.some(issue => issue.code === 'swedish_assessment_pending'));
+  assert.ok(notConfirmed.result.draft.content.sourceIssues.some(issue => issue.code === 'swedish_subject_required'));
+  assert.ok(waiting.result.draft.content.levels.every(level => level.subjectCode !== 'SVEA'));
+  const publish = commandFor({ unitId, ...pending }, waiting.result, 'make_current', { effectiveOn: currentDay });
+  const rejected = await send('principalA', publish);
+  assert.equal(rejected.status, 'incomplete');
+  const bypass = structuredClone(notConfirmed.result.draft.content);
+  bypass.sourceIssues = [];
+  bypass.choices.find(choice => choice.id === 'svenska').state = 'confirmed';
+  await denied(() => send('principalA', commandFor({ unitId, ...open }, notConfirmed.result, 'prepare_draft', { dates: [] }), bypass), '22023');
+  check('Endast det markerade urvalet får utkast och samma kvitto efter omförsök. Ovalt svenskämne och väntande bedömning hindrar komplett eller gällande plan.');
+
+  const level = waiting.result.draft.content.levels.find(level => level.subjectCode === 'ENGE');
+  const attempt = level.attempts[0];
+  const actual = commandFor({ unitId, ...pending }, waiting.result, 'record_actual', { levelId: level.id, attemptId: attempt.id,
+    event: { kind: 'started', on: firstEffective, source: { kind: 'school_record', id: randomUUID() } } });
+  saved(await send('admin', actual));
+  const beforeAssessment = await read('principalA', { unitId, ...pending });
+  const confirmed = await run('principalA', assessment);
+  assert.equal(confirmed.receipt.swedish.assessment, 'confirmed');
+  assert.equal(confirmed.row.plan.status, 'needs_completion');
+  conflict(await send('principalA', commandFor({ unitId, ...pending }, beforeAssessment.result, 'make_current', { effectiveOn: currentDay })), 'source');
+  const fresh = await read('principalA', { unitId, ...pending });
+  const payload = { dates: [], requireSharedSwedish: true };
+  const reviewedDraft = await prepareStudyPlanDraft(parseStudyPlanBasis(fresh.basis), fresh.latest, payload);
+  const complete = commandFor({ unitId, ...pending }, fresh.result, 'prepare_draft', payload);
+  const completed = saved(await send('admin', complete, reviewedDraft));
+  assert.equal(completed.planId, waiting.result.draft.planId);
+  assert.ok(completed.content.choices.find(choice => choice.id === 'svenska').levelIds.length > 0);
+  assert.equal(completed.content.choices.find(choice => choice.id === 'svenska').state, 'confirmed');
+  assert.ok(completed.content.levels.some(level => level.subjectCode === 'SVEA'));
+  assert.ok(completed.content.levels.every(level => level.subjectCode !== 'SVEN'));
+  assert.deepEqual(completed.content.levels.find(item => item.id === level.id).attempts,
+    beforeAssessment.result.draft.content.levels.find(item => item.id === level.id).attempts);
+  assert.deepEqual((await read('principalA', { unitId, ...pending }, { view: 'history', revision: 1 })).result.version, waiting.result.draft);
+  check('Bekräftad bedömning ger katalogens SvA-nivåer på samma plan. Tidigare revision och bekräftad faktisk start ligger kvar.');
+
+  const legacyPupil = { unitId, ...omitted };
+  const beforeLegacy = await read('principalA', legacyPupil);
+  const legacy = firstDraft(beforeLegacy.basis, 'SA25');
+  const swedishLevels = ['SVEN1000X', 'SVEN2000X', 'SVEN3000X'].map(itemCode => ({ ...catalogCourse(itemCode),
+    id: randomUUID(), kind: 'gy25_level', label: itemCode, attempts: [{ id: randomUUID(), plannedStart: null, plannedEnd: null,
+      actual: { certainty: 'recorded', start: null, end: null } }] }));
+  legacy.levels.push(...swedishLevels);
+  legacy.choices.push({ id: 'svenska', kind: 'optional', label: 'Svenska', state: 'confirmed', levelIds: swedishLevels.map(level => level.id) });
+  saved(await send('principalA', commandFor(legacyPupil, beforeLegacy.result, 'prepare_draft', { dates: [] }), legacy));
+  const legacyDraft = await read('principalA', legacyPupil);
+  const legacyCurrent = saved(await send('principalA', commandFor(legacyPupil, legacyDraft.result, 'make_current', { effectiveOn: firstEffective })));
+  const approved = await read('principalA', legacyPupil);
+  saved(await send('principalA', commandFor(legacyPupil, approved.result, 'prepare_draft', { dates: [] }), legacy));
+  const legacyRow = parseStudyPlanIntakeRead(await run('principalA', { action: 'read', on: currentDay, pupils: [omitted] })).rows[0];
+  assert.equal(legacyRow.currentPlanSubject, 'SVEN');
+  assert.equal(legacyRow.canSaveSwedish, false);
+  assert.equal(legacyRow.swedish.revision, 0);
+  await denied(() => run('principalA', { ...assessment, ...omitted, expectedRevision: 0, commandId: randomUUID() }), '40001');
+  assert.deepEqual((await read('principalA', legacyPupil)).result.current, legacyCurrent);
+  check('En äldre gällande plans svenskämne visas med planen som källa. Första valet går inte att skriva om även om det finns ett nyare utkast.');
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

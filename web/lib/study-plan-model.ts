@@ -25,6 +25,12 @@ export type StudyPlanPath = {
   apprenticeship: boolean | null;
   specialVariantCode: string | null;
 };
+export type StudyPlanSwedish = {
+  revision: number;
+  subject: 'SVEN' | 'SVEA' | null;
+  assessment: 'pending' | 'confirmed' | null;
+  effectiveOn: string | null;
+};
 export type StudyPlanSource = {
   offeringId: string;
   placementStartsOn: string;
@@ -32,6 +38,7 @@ export type StudyPlanSource = {
   catalogId: string | null;
   programVersion: number | null;
   choices: { id: string; revision: number }[];
+  swedishSubject?: StudyPlanSwedish;
 };
 export type StudyPlanLevelRef = {
   subjectCode: string;
@@ -271,17 +278,29 @@ function parseChoice(value: unknown): StudyPlanChoice {
   if (state === 'not_applicable' && levelIds.length > 0) invalidStudyPlan();
   return { id: studyPlanCode(r.id), kind: studyPlanEnum(r.kind, STUDY_PLAN_CHOICE_KINDS), label: studyPlanLabel(r.label), state, levelIds };
 }
+export function parseStudyPlanSwedish(value: unknown): StudyPlanSwedish {
+  const row = studyPlanFields(value, ['revision', 'subject', 'assessment', 'effectiveOn']);
+  const revision = studyPlanInt(row.revision, 0);
+  const subject = studyPlanNullable(row.subject, item => studyPlanEnum(item, ['SVEN', 'SVEA']));
+  const assessment = studyPlanNullable(row.assessment, item => studyPlanEnum(item, ['pending', 'confirmed']));
+  const effectiveOn = studyPlanNullable(row.effectiveOn, studyPlanDate);
+  if ((subject === 'SVEA') !== (assessment !== null) || (revision === 0) !== (effectiveOn === null) || revision === 0 && subject !== null) invalidStudyPlan();
+  return { revision, subject, assessment, effectiveOn };
+}
 export function parseStudyPlanSource(value: unknown): StudyPlanSource {
-  const r = studyPlanFields(value, ['offeringId', 'placementStartsOn', 'placementEndsOn', 'catalogId', 'programVersion', 'choices']);
+  const r = studyPlanFields(value, ['offeringId', 'placementStartsOn', 'placementEndsOn', 'catalogId', 'programVersion', 'choices'], ['swedishSubject']);
   const placementStartsOn = studyPlanDate(r.placementStartsOn), placementEndsOn = studyPlanNullable(r.placementEndsOn, studyPlanDate);
   ordered(placementStartsOn, placementEndsOn);
   const choices = studyPlanUnique(studyPlanList(r.choices, value => {
     const item = studyPlanFields(value, ['id', 'revision']);
     return { id: studyPlanUuid(item.id), revision: studyPlanInt(item.revision) };
   }), item => item.id);
+  const swedishSubject = Object.hasOwn(r, 'swedishSubject') ? parseStudyPlanSwedish(r.swedishSubject) : undefined;
+  if (swedishSubject && !swedishSubject.effectiveOn) invalidStudyPlan();
   return {
     offeringId: studyPlanUuid(r.offeringId), placementStartsOn, placementEndsOn,
     catalogId: studyPlanNullable(r.catalogId, catalogId), programVersion: studyPlanNullable(r.programVersion, studyPlanInt), choices,
+    ...(swedishSubject ? { swedishSubject } : {}),
   };
 }
 function parsePath(value: unknown): StudyPlanPath {
