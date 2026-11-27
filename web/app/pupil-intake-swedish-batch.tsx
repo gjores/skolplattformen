@@ -48,7 +48,7 @@ const statusLabels: Record<Entry['status'], string> = {
 };
 
 function isEligible(row: SwedishBatchRow, date: string): row is SwedishBatchRow & { study: IntakeStudyRow } {
-  return !!row.study && !row.study.swedish.subject && row.study.plan.status !== 'current'
+  return !!row.study && row.study.canSaveSwedish !== false && !row.study.currentPlanSubject && !row.study.swedish.subject && row.study.plan.status !== 'current'
     && (!row.endsOn || row.endsOn >= date);
 }
 

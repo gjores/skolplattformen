@@ -24,7 +24,7 @@ import PupilSwedishSubject, { intakeStudyEndpoint, swedishFollowUp, swedishGroup
   type IntakePupil, type IntakeStudyRead, type IntakeStudyRow } from './pupil-swedish-subject';
 
 const endpoints = { roster: '/api/elevmottagande/lasa', classes: '/api/elevmottagande/fordela' };
-const field = 'min-h-11 max-w-full rounded-md border border-input bg-background px-3 text-sm';
+const field = 'min-h-11 max-w-full truncate rounded-md border border-input bg-background px-3 text-sm';
 const tableGrid = 'grid gap-2 px-3 py-2 @min-[35rem]:grid-cols-[2rem_minmax(6rem,1.2fr)_minmax(5rem,0.8fr)_minmax(6rem,1fr)_minmax(6rem,1fr)_auto] @min-[35rem]:items-center';
 const nbsp = new Intl.DateTimeFormat('sv-SE', { dateStyle: 'medium', timeZone: 'UTC' });
 const dayLabel = (value: string) => nbsp.format(new Date(`${value}T12:00:00Z`));
@@ -229,6 +229,7 @@ export default function PupilIntakeWorkspace({ context, epoch, schoolYear, setup
 
   const openTimetable = (klass: ElevmottagandeClass) => { setTimetable(klass); };
   const realSchool = setup.scope.schools.find(school => school.id === unitId);
+  const readyAllocationCount = classPreview?.rows.filter(row => row.status === 'ready').length ?? 0;
   const allocationRows = classReceipt?.rows.filter(row => row.status === 'saved') ?? [];
   const unsavedAllocations = classReceipt?.rows.filter(row => row.status !== 'saved') ?? [];
   const nextDraftRows = rows.filter(row => allocationRows.some(item => item.placementId === row.placementId));
@@ -273,7 +274,7 @@ export default function PupilIntakeWorkspace({ context, epoch, schoolYear, setup
           <div className="flex flex-wrap items-center justify-between gap-2"><h2 className="section-heading">Klasser och timplan</h2><span className="text-sm text-muted-foreground">{schoolYearLabel(schoolYear)}</span></div>
           {!roster.classes.length && <p className="text-sm">Kullen behöver klasser. Skapa dem under Programplaner.</p>}
           <ul className="divide-y divide-border">{roster.classes.map(klass => <li key={klass.id} className="flex flex-wrap items-center gap-3 py-2">
-            <div className="min-w-0 flex-1"><strong>{klass.name}</strong><span className="ml-2 text-sm text-muted-foreground">{klass.count} elever</span>
+            <div className="min-w-0 basis-full sm:flex-1"><strong>{klass.name}</strong><span className="ml-2 text-sm text-muted-foreground">{klass.count} elever</span>
               <div className="text-sm">{klass.timetable ? `${klass.timetable.name} · version ${klass.timetable.version} · Åk ${klass.timetable.columnId.slice(-1)}` : 'Timplan behöver kopplas'}</div></div>
             <Button variant="outline" type="button" onClick={event => { rememberFocus(event); openTimetable(klass); }}><Layers aria-hidden="true" />
               {klass.timetable ? `Visa timplan för ${klass.name}` : `Koppla timplan för ${klass.name}`}</Button>
@@ -363,8 +364,8 @@ export default function PupilIntakeWorkspace({ context, epoch, schoolYear, setup
           <AllocationResults items={classPreview.rows} onOpen={id => { const row = rows.find(item => item.placementId === id); if (row) openCard(row, 'class'); }} />
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" type="button" disabled={busy || !!request} onClick={() => setClassPreview(null)}>Ändra fördelning</Button>
-            <Button type="button" disabled={busy || !!request || !classPreview.rows.some(row => row.status === 'ready')} onClick={() => saveClasses()}>
-              Spara {classPreview.rows.filter(row => row.status === 'ready').length} klasstillhörigheter</Button>
+            <Button type="button" disabled={busy || !!request || !readyAllocationCount} onClick={() => saveClasses()}>
+              Spara {readyAllocationCount} {readyAllocationCount === 1 ? 'klasstillhörighet' : 'klasstillhörigheter'}</Button>
           </div>
         </>}
         {classReceipt && <>
