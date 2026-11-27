@@ -3,14 +3,15 @@ gsd_state_version: "1.0"
 milestone: v1.0
 current_phase: "05.3"
 current_phase_name: Klassorganisation
-current_plan: "Elevmottagande installerat på 3012 för användarprov med syntetisk kull."
+current_plan: "Elevmottagande installerat på 3012 för användarprov med rektorsuppdrag och syntetisk kull."
 status: in_progress
 stopped_at: "Elevmottagandets klassfördelning, timplanslänk och studieplansberedning verifierade och tillgängliga för lokalt användarprov."
 last_updated: "2026-11-27"
 last_activity: 2026-11-27
-last_activity_desc: "Elevmottagande installerat på lokal skyddad miljö med 48 oklassade, skolplacerade Gy25-elever."
+last_activity_desc: "Första klassfördelning för rektor installerad på 3012. Provkullen har 48 oklassade, skolplacerade Gy25-elever."
 elevmottagande_product_revision: d396bb57ee688c010dd4a4b76acd5c9f10561319
 elevmottagande_runtime_revision: cb30bf193039039f8bdd4ebedfa7767861760225
+elevmottagande_rektor_migration: "20261127152000"
 study_plan_trial_revision: 7aa66ed3e1bfcac723156317b42967e3b3c65b2f
 study_plan_trial_status: schema_publication_installed_awaiting_user_trial
 state_head: 13700ccb1cf54462a80a8c7a1866a46defb57a80
@@ -36,7 +37,7 @@ user_trial_status: swedish_groups_installed_awaiting_user_trial
 milestone_name: milestone
 ---
 
-**2026-11-27 – Elevmottagande på 3012.** Skyddad arbetslista för skolplacerade Gy25-elever med daterad första klass, klassens timplansstatus och studieplansutkast för valda elever. Lokal provkull har 48 elever och två klasser. Verifieringen omfattade isolerade databasskrivningar, genuina lokala MFA-sessioner, dator och telefon samt bevarande vid appbytet. Verksamhetens användarprov återstår. [Verifiering och provkull](phases/05.3-klassorganisation/05.3-ELEVMOTTAGANDE-SUMMARY.md)
+**2026-11-27 – Elevmottagande på 3012.** Skyddad arbetslista för skolplacerade Gy25-elever med daterad första klass, klassens timplansstatus och studieplansutkast för valda elever. Rektor kan spara den första klasstillhörigheten inom sitt skoluppdrag. Lokal provkull har 48 elever och två klasser. Verifieringen omfattade isolerade databasskrivningar, genuina lokala MFA-sessioner, dator och telefon samt bevarande vid installationen. Verksamhetens användarprov återstår. [Verifiering och provkull](phases/05.3-klassorganisation/05.3-ELEVMOTTAGANDE-SUMMARY.md)
 
 **2026-11-24 – Svenska/SvA-grupper med prognos eller kända deltagare på 3012.** App `47a12c1a` och migration `20261124120000` kopplar gruppbehov till klassens timplan. Prognosgrupper kan bemannas före elevplaceringen. Daterade medlemskap kan läggas till i samma grupp. [SM-SVA-GRUPPER](phases/05.2-schemamodul/05.2-SM-SVA-GRUPPER-SUMMARY.md) redovisar prov och lokal installation.
 
